@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
@@ -152,6 +153,19 @@ namespace AElf.Contracts.Election
                 State.TokenContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
+
+            if (State.VoteContract.Value == null)
+            {
+                State.VoteContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName);
+            }
+            
+            if (State.ProfitContract.Value == null)
+            {
+                State.ProfitContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+            }
+            
 
             var publicKey = Context.RecoverPublicKey().ToHex();
             var publicKeyByteString = ByteString.CopyFrom(Context.RecoverPublicKey());

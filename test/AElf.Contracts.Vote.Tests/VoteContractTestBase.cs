@@ -87,7 +87,7 @@ namespace AElf.Contracts.Vote
             const long totalSupply = 1_000_000_000;
             
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContract.Create), new CreateInput
             {
                 Symbol = TestTokenSymbol,
                 Decimals = 2,
@@ -95,9 +95,9 @@ namespace AElf.Contracts.Vote
                 TokenName = "elf token for testing",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
-                LockWhiteSystemContractNameList =
+                LockWhiteList =
                 {
-                    VoteSmartContractAddressNameProvider.Name
+                     VoteContractAddress
                 }
             });
 

@@ -16,6 +16,8 @@ namespace AElf.Contracts.MultiToken
         public Address ConsensusContractAddress =>
             ContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
 
+        public Address DividendContractAddress =>
+            ContractAddressService.GetAddressByContractName(DividendSmartContractAddressNameProvider.Name);
 
         public LockTest()
         {
@@ -40,7 +42,7 @@ namespace AElf.Contracts.MultiToken
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
 
-                var res0 = await TokenContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput()
+                var res0 = await TokenContractStub.Create.SendAsync(new CreateInput()
                 {
                     Symbol = DefaultSymbol,
                     Decimals = 2,
@@ -48,13 +50,13 @@ namespace AElf.Contracts.MultiToken
                     TokenName = "elf token",
                     TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
                     Issuer = DefaultSender,
-                    LockWhiteSystemContractNameList = {ConsensusSmartContractAddressNameProvider.Name}
+                    LockWhiteList = { ConsensusContractAddress }
                 });
-                await TokenContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
+                await TokenContractStub.Issue.SendAsync(new IssueInput
                 {
                     Symbol = DefaultSymbol,
                     Amount = DPoSContractConsts.LockTokenForElection * 20,
-                    ToSystemContractName = DividendSmartContractAddressNameProvider.Name,
+                    To = DividendContractAddress,
                     Memo = "Issue ",
                 });
                 var res = await TokenContractStub.Issue.SendAsync(new IssueInput

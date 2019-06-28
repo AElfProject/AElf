@@ -1,12 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -36,7 +33,6 @@ namespace AElf.Contracts.Election
             electionVotingItem.TotalSnapshotNumber.ShouldBe(long.MaxValue);
             electionVotingItem.CurrentSnapshotNumber.ShouldBe(1);
             electionVotingItem.IsLockToken.ShouldBe(false);
-            electionVotingItem.EndTimestamp.ShouldBe(new Timestamp {Seconds = long.MaxValue});
             electionVotingItem.AcceptedCurrency.ShouldBe(ElectionContractTestConstants.NativeTokenSymbol);
         }
 
@@ -301,8 +297,7 @@ namespace AElf.Contracts.Election
             announcedFullNodesKeyPairs.Count.ShouldBe(candidates.Value.Count);
             foreach (var keyPair in announcedFullNodesKeyPairs)
             {
-                candidates.Value.ShouldContain(ByteString.CopyFrom(keyPair.PublicKey));
-            }
+                candidates.Value.ShouldContain(ByteString.CopyFrom(keyPair.PublicKey));            }
         }
         
         [Fact]

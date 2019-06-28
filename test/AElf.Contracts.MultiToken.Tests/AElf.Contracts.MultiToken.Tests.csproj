@@ -35,6 +35,9 @@
         <ContractStub Include="..\..\protobuf\acs5.proto">
             <Link>Protobuf\Proto\acs5.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\test_method_call_threshold_contract.proto">
+            <Link>Protobuf\Proto\test_method_call_threshold_contract.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>

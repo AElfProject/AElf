@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Acs1;
 using Acs5;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TestContract.MethodCallThreshold;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -35,7 +36,7 @@ namespace AElf.Contracts.MultiToken
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
 
-                await TokenContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput()
+                await TokenContractStub.Create.SendAsync(new CreateInput
                 {
                     Symbol = DefaultSymbol,
                     Decimals = 2,
@@ -412,40 +413,6 @@ namespace AElf.Contracts.MultiToken
                         Name = nameof(TokenContractContainer.TokenContractStub.Transfer)
                     });
                 fee.SymbolToAmount[DefaultSymbol].ShouldBe(10L);
-            }
-        }
-
-        [Fact]
-        public async Task MultiTokenContract_ContractProfits()
-        {
-            await Initialize_TokenContract();
-            var profitChargerStub = GetTester<ProfitSharingContractContainer.ProfitSharingContractStub>(
-                TokenContractAddress, DefaultSenderKeyPair);
-
-            // Profit not set yet.
-            {
-                var profit = await profitChargerStub.GetMethodProfitFee.CallAsync(new StringValue
-                {
-                    Value = nameof(TokenContractContainer.TokenContractStub.Transfer)
-                });
-                profit.SymbolToAmount.Keys.ShouldNotContain(DefaultSymbol);
-            }
-
-            // Set profit.
-            var resultSet = (await profitChargerStub.SetMethodProfitFee.SendAsync(new SetMethodProfitFeeInput
-            {
-                Method = nameof(TokenContractContainer.TokenContractStub.Transfer),
-                SymbolToAmount = {new Dictionary<string, long> {{DefaultSymbol, 10L}}}
-            })).TransactionResult;
-            resultSet.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            // Check profit.
-            {
-                var profit = await profitChargerStub.GetMethodProfitFee.CallAsync(new StringValue
-                {
-                    Value = nameof(TokenContractContainer.TokenContractStub.Transfer)
-                });
-                profit.SymbolToAmount[DefaultSymbol].ShouldBe(10L);
             }
         }
     }

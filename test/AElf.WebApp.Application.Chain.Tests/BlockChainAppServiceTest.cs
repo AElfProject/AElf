@@ -162,19 +162,20 @@ namespace AElf.WebApp.Application.Chain.Tests
             var chain = await _blockchainService.GetChainAsync();
             var accountAddress = await _accountService.GetAccountAsync();
             var toAddress = Base64.ToBase64String(accountAddress.Value.ToByteArray());
-            var parameters = new Dictionary<string,string>
+            var parameters = new Dictionary<string, string>
             {
-                {"From",accountAddress.GetFormatted()},
-                {"To",contractAddress.GetFormatted()},
-                {"RefBlockNumber",chain.BestChainHeight.ToString()},
-                {"RefBlockHash",chain.BestChainHash.ToHex()},
-                {"MethodName",methodName},
-                {"Params","{\"owner\":{ \"Value\": \""+toAddress+"\" },\"symbol\":\"ELF\"}"}
+                {"From", accountAddress.GetFormatted()},
+                {"To", contractAddress.GetFormatted()},
+                {"RefBlockNumber", chain.BestChainHeight.ToString()},
+                {"RefBlockHash", chain.BestChainHash.ToHex()},
+                {"MethodName", methodName},
+                {"Params", "{\"owner\":{ \"Value\": \"" + toAddress + "\" },\"symbol\":\"ELF\"}"}
             };
             var createTransactionResponse =
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
-            var transactionHash = Hash.FromRawBytes(ByteArrayHelpers.FromHexString(createTransactionResponse.RawTransaction));
+            var transactionHash =
+                Hash.FromRawBytes(ByteArrayHelpers.FromHexString(createTransactionResponse.RawTransaction));
 
             var signature = await _accountService.SignAsync(transactionHash.DumpByteArray());
             parameters = new Dictionary<string, string>
@@ -203,21 +204,21 @@ namespace AElf.WebApp.Application.Chain.Tests
                     parameters, expectedStatusCode: HttpStatusCode.Forbidden);
             wrongTransactionResponse.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             wrongTransactionResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
-            
+
             const string methodName = "GetBalance";
             var contractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var chain = await _blockchainService.GetChainAsync();
             var accountAddress = await _accountService.GetAccountAsync();
             var toAddress = Base64.ToBase64String(accountAddress.Value.ToByteArray());
-            parameters = new Dictionary<string,string>
+            parameters = new Dictionary<string, string>
             {
-                {"From",accountAddress.GetFormatted()},
-                {"To",contractAddress.GetFormatted()},
-                {"RefBlockNumber",chain.BestChainHeight.ToString()},
-                {"RefBlockHash",chain.BestChainHash.ToHex()},
-                {"MethodName",methodName},
-                {"Params","{\"owner\":{ \"Value\": \""+toAddress+"\" },\"symbol\":\"ELF\"}"}
+                {"From", accountAddress.GetFormatted()},
+                {"To", contractAddress.GetFormatted()},
+                {"RefBlockNumber", chain.BestChainHeight.ToString()},
+                {"RefBlockHash", chain.BestChainHash.ToHex()},
+                {"MethodName", methodName},
+                {"Params", "{\"owner\":{ \"Value\": \"" + toAddress + "\" },\"symbol\":\"ELF\"}"}
             };
             var createTransactionResponse =
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
@@ -234,7 +235,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             wrongSignatureResponse.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             wrongSignatureResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
         }
-        
+
         [Fact]
         public async Task Send_Transaction_Success()
         {
@@ -246,7 +247,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             {
                 {"rawTransaction", transaction.ToByteArray().ToHex()}
             };
-            
+
             var sendTransactionResponse =
                 await PostResponseAsObjectAsync<SendTransactionOutput>("/api/blockChain/sendTransaction",
                     parameters);
@@ -1150,14 +1151,13 @@ namespace AElf.WebApp.Application.Chain.Tests
             errorResponse.Error.Code.ShouldBe(Error.InvalidParams.ToString());
             errorResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidParams]);
 
-            var issueNativeTokenInput = IssueNativeTokenInput.Parser.ParseJson(
-                "{\"toSystemContractName\":{ \"Value\": \"" +
-                Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidHash")) +
+            var issueInput = IssueInput.Parser.ParseJson(
+                "{\"to\":{ \"Value\": \"" + Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress")) +
                 "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}");
 
             json = "{ \"From\": { \"Value\": \"" + from + "\" }, \"To\": { \"Value\": \"" + to +
                    "\" }, \"RefBlockNumber\": \"11\", \"RefBlockPrefix\": \"H9f1zQ==\", \"MethodName\": \"IssueNativeToken\", \"Params\": \"" +
-                   Base64.ToBase64String(issueNativeTokenInput.ToByteArray()) + "\" }";
+                   Base64.ToBase64String(issueInput.ToByteArray()) + "\" }";
             transaction = Transaction.Parser.ParseJson(json);
 
             signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
@@ -1169,8 +1169,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             errorResponse =
                 await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/sendRawTransaction",
                     parameters, expectedStatusCode: HttpStatusCode.Forbidden);
-            errorResponse.Error.Code.ShouldBe(Error.InvalidParams.ToString());
-            errorResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidParams]);
+            errorResponse.Error.Code.ShouldBe(Error.NoMatchMethodInContractAddress.ToString());
+            errorResponse.Error.Message.ShouldBe(Error.Message[Error.NoMatchMethodInContractAddress]);
         }
 
         [Fact]

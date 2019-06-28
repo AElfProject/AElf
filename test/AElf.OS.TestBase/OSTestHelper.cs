@@ -330,7 +330,7 @@ namespace AElf.OS
 
             var ownAddress = await _accountService.GetAccountAsync();
             var callList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            callList.Add(nameof(TokenContractContainer.TokenContractStub.CreateNativeToken), new CreateInput
+            callList.Add(nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
             {
                 Symbol = "ELF",
                 TokenName = "ELF_Token",
