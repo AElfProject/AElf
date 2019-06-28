@@ -170,6 +170,12 @@ namespace AElf.Contracts.Treasury
 
         private void ConvertToNativeToken(string symbol, long amount)
         {
+            if (State.TokenConverterContract.Value == null)
+            {
+                State.TokenConverterContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
+            }
+            
             State.TokenConverterContract.Sell.Send(new SellInput
             {
                 Symbol = symbol,

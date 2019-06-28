@@ -87,7 +87,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Donate_FewOtherToken_Success()
         {
-            var keyPair = SampleECKeyPairs.KeyPairs[1];
+            var keyPair = CoreDataCenterKeyPairs[0];
 
             await TransferToken(keyPair, EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol, 100);
             var stub = GetTreasuryContractStub(keyPair);
@@ -109,20 +109,20 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Donate_AllOtherToken_Success()
         {
-            var keyPair = SampleECKeyPairs.KeyPairs[1];
+            var keyPair = CoreDataCenterKeyPairs[0];
 
-            await TransferToken(keyPair, EconomicSystemTestConstants.ConverterTokenSymbol, 100);
+            await TransferToken(keyPair, EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol, 100);
             var stub = GetTreasuryContractStub(keyPair);
             var donateResult = await stub.DonateAll.SendAsync(new DonateAllInput
             {
-                Symbol = EconomicSystemTestConstants.ConverterTokenSymbol
+                Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
             });
             donateResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var userBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = Address.FromPublicKey(keyPair.PublicKey),
-                Symbol = EconomicSystemTestConstants.ConverterTokenSymbol
+                Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
             })).Balance;
             userBalance.ShouldBe(0);
         }
@@ -130,23 +130,23 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task Donate_OtherToken_LessThan_Owned()
         {
-            var keyPair = SampleECKeyPairs.KeyPairs[1];
+            var keyPair = CoreDataCenterKeyPairs[0];
 
-            await TransferToken(keyPair, EconomicSystemTestConstants.ConverterTokenSymbol, 50);
+            await TransferToken(keyPair, EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol, 50);
             var stub = GetTreasuryContractStub(keyPair);
             var donateResult = await stub.Donate.SendAsync(new DonateInput
             {
-                Symbol = EconomicSystemTestConstants.ConverterTokenSymbol,
+                Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,
                 Amount = 100
             });
-            donateResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            donateResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
 
             var userBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = Address.FromPublicKey(keyPair.PublicKey),
-                Symbol = EconomicSystemTestConstants.ConverterTokenSymbol
+                Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
             })).Balance;
-            userBalance.ShouldBe(100);
+            userBalance.ShouldBe(50);
         }
 
         private async Task TransferToken(ECKeyPair keyPair, string symbol, long amount)

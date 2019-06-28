@@ -107,7 +107,6 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
             var chosenOneKeyPair = CoreDataCenterKeyPairs.First();
             var chosenOneAddress = Address.FromPublicKey(chosenOneKeyPair.PublicKey);
-            
             {
                 var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
@@ -124,7 +123,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             {
                 Spender = TokenConverterContractAddress,
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                Amount = 100_000// Enough,
+                Amount = 100_000_00000000// Enough,
             });
             var chosenOneTokenConverterContractStub =
                 GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
@@ -161,11 +160,11 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task EconomistSystem_SetMethodProfitFee()
         {
-            const long profitAmount = 100L;
+            const long feeAmount = 100L;
             var setMethodResult = await MethodCallThresholdContractStub.SetMethodCallingThreshold.SendAsync(new SetMethodCallingThresholdInput
             {
                 Method = nameof(MethodCallThresholdContractStub.SendForFun),
-                SymbolToAmount = {{EconomicSystemTestConstants.NativeTokenSymbol, profitAmount}}
+                SymbolToAmount = {{EconomicSystemTestConstants.NativeTokenSymbol, feeAmount}}
             });
             setMethodResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -173,7 +172,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             {
                 Value = nameof(MethodCallThresholdContractStub.SendForFun)
             });
-            tokenAmount.SymbolToAmount[EconomicSystemTestConstants.NativeTokenSymbol].ShouldBe(profitAmount);
+            tokenAmount.SymbolToAmount[EconomicSystemTestConstants.NativeTokenSymbol].ShouldBe(feeAmount);
         }
     }
 }

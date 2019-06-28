@@ -168,10 +168,12 @@ namespace AElf.Contracts.EconomicSystem.Tests
         {
             return GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress, keyPair);
         }
-        
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub GetParliamentAuthContractStub(ECKeyPair keyPair)
+
+        internal ParliamentAuthContractContainer.ParliamentAuthContractStub GetParliamentAuthContractStub(
+            ECKeyPair keyPair)
         {
-            return GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(ParliamentAuthContractAddress, keyPair);
+            return GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(ParliamentAuthContractAddress,
+                keyPair);
         }
 
         internal TransactionFeeChargingContractContainer.TransactionFeeChargingContractStub
@@ -214,12 +216,12 @@ namespace AElf.Contracts.EconomicSystem.Tests
             AsyncHelper.RunSync(InitializeProfit);
             AsyncHelper.RunSync(InitializeTreasuryConverter);
             AsyncHelper.RunSync(InitializeElection);
+            AsyncHelper.RunSync(InitializeParliamentContract);
             AsyncHelper.RunSync(InitializeEconomicContract);
             AsyncHelper.RunSync(InitializeToken);
             AsyncHelper.RunSync(InitializeAElfConsensus);
             AsyncHelper.RunSync(InitializeTokenConverter);
             AsyncHelper.RunSync(InitializeTransactionFeeChargingContract);
-            AsyncHelper.RunSync(InitializeMethodCallThresholdContract);
         }
 
         #region Deploy and initialize contracts
@@ -301,6 +303,15 @@ namespace AElf.Contracts.EconomicSystem.Tests
                     BootMinerKeyPair));
             EconomicContractStub = GetEconomicContractStub(BootMinerKeyPair);
 
+            //Deploy ParliamentAuth Contract
+            ParliamentAuthContractAddress = AsyncHelper.RunSync(() =>
+                DeploySystemSmartContract(
+                    KernelConstants.CodeCoverageRunnerCategory,
+                    ParliamentAuthContractCode,
+                    ParliamentAuthContractAddressNameProvider.Name,
+                    BootMinerKeyPair));
+            ParliamentAuthContractStub = GetParliamentAuthContractStub(BootMinerKeyPair);
+
             // Deploy Contracts for testing.
             TransactionFeeChargingContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
@@ -373,13 +384,40 @@ namespace AElf.Contracts.EconomicSystem.Tests
             CheckResult(result.TransactionResult);
         }
 
+        private async Task InitializeEconomicContract()
+        {
+            //create native token
+            {
+                var result = await EconomicContractStub.InitialEconomicSystem.SendAsync(new InitialEconomicSystemInput
+                {
+                    NativeTokenDecimals = EconomicSystemTestConstants.Decimals,
+                    IsNativeTokenBurnable = EconomicSystemTestConstants.IsBurnable,
+                    NativeTokenSymbol = EconomicSystemTestConstants.NativeTokenSymbol,
+                    NativeTokenTotalSupply = EconomicSystemTestConstants.TotalSupply,
+                    MiningRewardTotalAmount = EconomicSystemTestConstants.TotalSupply / 5
+                });
+                CheckResult(result.TransactionResult);
+            }
+
+            //Issue native token to core data center keyPairs
+            {
+                var result = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
+                {
+                    Amount = EconomicSystemTestConstants.TotalSupply / 5,
+                    To = TreasuryContractAddress,
+                    Memo = "Set mining rewards."
+                });
+                CheckResult(result.TransactionResult);
+            }
+        }
+
         private async Task InitializeToken()
         {
             //issue some to default user and buy resource
             {
                 var issueResult = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
                 {
-                    Amount = 1000_000L,
+                    Amount = 1000_000_00000000L,
                     To = Address.FromPublicKey(BootMinerKeyPair.PublicKey),
                     Memo = "Used to transfer other testers"
                 });
@@ -459,115 +497,51 @@ namespace AElf.Contracts.EconomicSystem.Tests
                     Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
                 });
             CheckResult(result.TransactionResult);
-            
-            var approveResult = await TokenContractStub.Approve.SendAsync(new ApproveInput
-            {
-                Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                Spender = TokenConverterContractAddress,
-                Amount = 1000_000L
-            });
-            approveResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-        }
 
-        private async Task InitializeMethodCallThresholdContract()
-        {
-            var result = await MethodCallThresholdContractStub.InitializeMethodCallThresholdContract.SendAsync(
-                new InitializeMethodCallThresholdContractInput
+            {
+                var approveResult = await TokenContractStub.Approve.SendAsync(new ApproveInput
                 {
-                    Symbol = EconomicSystemTestConstants.MethodCallThresholdContractTokenSymbol
+                    Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
+                    Spender = TokenConverterContractAddress,
+                    Amount = 1000_000_00000000L
                 });
-            CheckResult(result.TransactionResult);
+                approveResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+
+            foreach (var coreDataCenterKeyPair in CoreDataCenterKeyPairs)
+            {
+                var tokenStub = GetTokenContractTester(coreDataCenterKeyPair);
+                var approveResult = await tokenStub.Approve.SendAsync(new ApproveInput
+                {
+                    Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,
+                    Spender = TreasuryContractAddress,
+                    Amount = 1000_000_00000000L
+                });
+                approveResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
         }
 
         private async Task InitializeTokenConverter()
         {
-//            {
-//                var result = await TokenConverterContractStub.Initialize.SendAsync(new InitializeInput
-//                {
-//                    BaseTokenSymbol = EconomicSystemTestConstants.NativeTokenSymbol,
-//                    ManagerAddress = ConnectorManagerAddress,
-//                    FeeRate = "0.01"
-//                });
-//                CheckResult(result.TransactionResult);
-//            }
-            
             await SetConnectors();
+        }
+
+        private async Task InitializeParliamentContract()
+        {
+            var initializeResult = await ParliamentAuthContractStub.Initialize.SendAsync(new Empty());
+            CheckResult(initializeResult.TransactionResult);
         }
 
         private async Task SetConnectors()
         {
-            //Transfer manager to BootMiner
             {
-                var result = await TokenConverterContractStub.SetManagerAddress.SendAsync(BootMinerAddress);
-                CheckResult(result.TransactionResult);
-            }
-            
-            var manager =
-                GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
-                    BootMinerKeyPair);
-            {
-                var result = await manager.SetConnector.SendAsync(new Connector
-                {
-                    Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                    IsPurchaseEnabled = true,
-                    Weight = "0.5",
-                    IsVirtualBalanceEnabled = true,
-                    VirtualBalance = 1_000_000
-                });
-                CheckResult(result.TransactionResult);
-            }
-            {
-                var result = await manager.SetConnector.SendAsync(new Connector
+                await SetConnector(new Connector
                 {
                     Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,
                     IsPurchaseEnabled = true,
                     Weight = "0.2",
                     IsVirtualBalanceEnabled = true
                 });
-                CheckResult(result.TransactionResult);
-            }
-            {
-                var result = await manager.SetConnector.SendAsync(new Connector
-                {
-                    Symbol = EconomicSystemTestConstants.MethodCallThresholdContractTokenSymbol,
-                    IsPurchaseEnabled = true,
-                    Weight = "0.2",
-                    IsVirtualBalanceEnabled = true
-                });
-                CheckResult(result.TransactionResult);
-            }
-
-            //Transfer manager to TreasuryContractAddress
-            {
-                var result = await TokenConverterContractStub.SetManagerAddress.SendAsync(TreasuryContractAddress);
-                CheckResult(result.TransactionResult);
-            }
-        }
-
-        private async Task InitializeEconomicContract()
-        {
-            //create native token
-            {
-                var result = await EconomicContractStub.InitialEconomicSystem.SendAsync(new InitialEconomicSystemInput
-                {
-                    NativeTokenDecimals = EconomicSystemTestConstants.Decimals,
-                    IsNativeTokenBurnable = EconomicSystemTestConstants.IsBurnable,
-                    NativeTokenSymbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                    NativeTokenTotalSupply = EconomicSystemTestConstants.TotalSupply,
-                    MiningRewardTotalAmount = EconomicSystemTestConstants.TotalSupply/5
-                });
-                CheckResult(result.TransactionResult);
-            }
- 
-            //Issue native token to core data center keyPairs
-            {
-                var result = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
-                {
-                    Amount = EconomicSystemTestConstants.TotalSupply / 5,
-                    To = TreasuryContractAddress,
-                    Memo = "Set mining rewards."
-                });
-                CheckResult(result.TransactionResult);
             }
         }
 
@@ -664,12 +638,15 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 Params = connector.ToByteString(),
                 ToAddress = TokenConverterContractAddress
             };
-            await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
+            var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
+            CheckResult(createResult.TransactionResult);
+
             var proposalHash = Hash.FromMessage(proposal);
-            await ParliamentAuthContractStub.Approve.SendAsync(new Acs3.ApproveInput
+            var approveResult = await ParliamentAuthContractStub.Approve.SendAsync(new Acs3.ApproveInput
             {
                 ProposalId = proposalHash,
             });
+            CheckResult(approveResult.TransactionResult);
         }
     }
 }
