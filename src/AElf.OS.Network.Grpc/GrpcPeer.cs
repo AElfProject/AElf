@@ -61,7 +61,7 @@ namespace AElf.OS.Network.Grpc
         public long StartHeight { get; }
 
         public bool CanStreamTransactions { get; private set; } = false;
-        public bool CanStreamAnnounces { get; private set; } = false;
+        public bool CanStreamAnnouncements { get; private set; } = false;
 
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
@@ -167,12 +167,12 @@ namespace AElf.OS.Network.Grpc
         public void StartAnnouncementStreaming()
         {
             _announcementStreamCall = _client.AnnouncementBroadcastStream();
-            CanStreamAnnounces = true;
+            CanStreamAnnouncements = true;
         }
         
         public async Task AnnounceAsync(PeerNewBlockAnnouncement header)
         {
-            if (!CanStreamAnnounces)
+            if (!CanStreamAnnouncements)
             {
                 // if we cannot stream we use the unary version of the send.
                 await UnaryAnnounceAsync(header);
@@ -185,10 +185,10 @@ namespace AElf.OS.Network.Grpc
             }
             catch (RpcException e)
             {
-                if (!CanStreamAnnounces) // Already down
+                if (!CanStreamAnnouncements) // Already down
                     return;
                 
-                CanStreamAnnounces = false;
+                CanStreamAnnouncements = false;
                 _announcementStreamCall.Dispose();
                 
                 throw new NetworkException($"Failed stream to {this}: ", e, NetworkExceptionType.AnnounceStream);

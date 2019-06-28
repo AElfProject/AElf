@@ -19,7 +19,7 @@ namespace AElf.OS.Network.Infrastructure
         long StartHeight { get; }
         
         bool CanStreamTransactions { get; }
-        bool CanStreamAnnounces { get; }
+        bool CanStreamAnnouncements { get; }
         
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
 
