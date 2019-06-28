@@ -10,6 +10,7 @@ using AElf.CSharp.Core;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Approved = AElf.Contracts.MultiToken.Messages.Approved;
 
@@ -351,8 +352,9 @@ namespace AElf.Contracts.MultiToken
             var profitReceivingInformation = State.ProfitReceivingInfos[input.ContractAddress];
             Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
                 "Only profit receiver can perform this action.");
-            foreach (var symbol in input.Symbols)
+            foreach (var symbol in input.Symbols.Except(TokenContractConstants.ResourceTokenSymbols))
             {
+
                 var profits = State.Balances[input.ContractAddress][symbol];
                 State.Balances[input.ContractAddress][symbol] = 0;
                 var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
@@ -364,9 +366,38 @@ namespace AElf.Contracts.MultiToken
                 State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol] = profits.Sub(donates);
             }
 
+            foreach (var resourceSymbol in TokenContractConstants.ResourceTokenSymbols)
+            {
+                // Sell received token resources from callings of corresponding contract.
+                if (State.TokenConverterContract.Value == null)
+                {
+                    State.TokenConverterContract.Value =
+                        Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
+                }
+
+                State.TokenConverterContract.SellWithInlineAction.Send(new SellWithInlineActionInput
+                {
+                    Symbol = resourceSymbol,
+                    Amount = State.ChangedResources[input.ContractAddress][resourceSymbol],
+                    ContractAddress = Context.Self,
+                    MethodName = nameof(ReturnTax),
+                    Params = new ReturnTaxInput
+                    {
+                        BalanceBeforeSelling = State.Balances[Context.Self][Context.Variables.NativeSymbol],
+                        ReturnTaxReceiverAddress = profitReceivingInformation.ProfitReceiverAddress
+                    }.ToByteString()
+                });
+            }
+
             return new Empty();
         }
 
+        /// <summary>
+        /// Transfer from Context.Origin to Context.Sender.
+        /// Used for contract developers to receive / share profits.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty TransferToContract(TransferToContractInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
@@ -386,6 +417,17 @@ namespace AElf.Contracts.MultiToken
 
             DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
             State.Allowances[Context.Origin][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
+            return new Empty();
+        }
+
+        public override Empty ReturnTax(ReturnTaxInput input)
+        {
+            Assert(Context.Sender ==
+                   Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName),
+                "Only token converter contract can return tax.");
+            var amount = State.Balances[Context.Self][Context.Variables.NativeSymbol].Sub(input.BalanceBeforeSelling);
+            State.Balances[input.ReturnTaxReceiverAddress][Context.Variables.NativeSymbol] =
+                State.Balances[input.ReturnTaxReceiverAddress][Context.Variables.NativeSymbol].Add(amount);
             return new Empty();
         }
     }

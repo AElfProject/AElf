@@ -46,6 +46,8 @@ service TokenContract {
     }
     rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
     }
+    rpc ReturnTax (ReturnTaxInput) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -211,6 +213,11 @@ message TransferToContractInput {
     string symbol = 1;
     sint64 amount = 2;
     string memo = 3;
+}
+
+message ReturnTaxInput {
+    sint64 balance_before_selling = 1;
+    aelf.Address return_tax_receiver_address = 2;
 }
 
 // Events
