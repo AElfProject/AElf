@@ -55,30 +55,28 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
                 return new List<Transaction>();
             }
 
-            var contractAddress = transactionContext.Transaction.To;
-
             var tokenStub = new TokenContractContainer.TokenContractStub
             {
                 __factory = new TransactionGeneratingOnlyMethodStubFactory
                 {
-                    Sender = transactionContext.Transaction.From,
+                    Sender = transactionContext.Transaction.To,
                     ContractAddress = tokenContractAddress
                 }
             };
             if (transactionContext.Transaction.To == tokenContractAddress &&
-                transactionContext.Transaction.MethodName == nameof(tokenStub.CheckThreshold))
+                transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeResourceToken))
             {
                 return new List<Transaction>();
             }
 
-            var checkThresholdTransaction = (await tokenStub.CheckThreshold.SendAsync(new CheckThresholdInput
+            var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(new ChargeResourceTokenInput
             {
-                SymbolToThreshold = {resourceConsumptionAmount.SymbolToAmount}
+                SymbolToAmount = {resourceConsumptionAmount.SymbolToAmount}
             })).Transaction;
 
             return new List<Transaction>
             {
-                checkThresholdTransaction
+                chargeResourceTokenTransaction
             };
         }
     }

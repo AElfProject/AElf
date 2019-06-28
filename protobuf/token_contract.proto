@@ -44,6 +44,8 @@ service TokenContract {
     }
     rpc ReceiveProfits (ReceiveProfitsInput) returns (google.protobuf.Empty) {
     }
+    rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.Empty) {
+    }
     rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
     }
     rpc ReturnTax (ReturnTaxInput) returns (google.protobuf.Empty) {
@@ -147,6 +149,10 @@ message BurnInput {
 }
 
 message ChargeTransactionFeesInput {
+    map<string, sint64> symbol_to_amount = 1;
+}
+
+message ChargeResourceTokenInput {
     map<string, sint64> symbol_to_amount = 1;
 }
 

@@ -11,6 +11,7 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Approved = AElf.Contracts.MultiToken.Messages.Approved;
 
@@ -230,7 +231,7 @@ namespace AElf.Contracts.MultiToken
                 return new Empty();
             }
 
-            ChargeFirstSufficientToken(input.SymbolToAmount.ToDictionary(i => i.Key, i => i.Value), out var symbol,
+            ChargeFirstSufficientToken(input.SymbolToAmount, out var symbol,
                 out var amount, out var existingBalance);
 
             if (State.PreviousBlockTransactionFeeTokenSymbolList.Value == null)
@@ -249,7 +250,28 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        private void ChargeFirstSufficientToken(Dictionary<string, long> symbolToAmountMap, out string symbol,
+        public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
+        {
+            if (input.Equals(new ChargeResourceTokenInput()))
+            {
+                return new Empty();
+            }
+
+            foreach (var symbolToAmount in input.SymbolToAmount)
+            {
+                var existingBalance = State.Balances[Context.Sender][symbolToAmount.Key];
+                Assert(existingBalance >= symbolToAmount.Value,
+                    $"Insufficient resource. {symbolToAmount.Key}: {existingBalance} / {symbolToAmount.Value}");
+                State.Balances[Context.Sender][symbolToAmount.Key] = existingBalance.Sub(symbolToAmount.Value);
+                State.Balances[Context.Self][symbolToAmount.Key] =
+                    State.Balances[Context.Self][symbolToAmount.Key].Add(symbolToAmount.Value);
+                State.ChangedResources[Context.Sender][symbolToAmount.Key] =
+                    State.ChangedResources[Context.Sender][symbolToAmount.Key].Add(symbolToAmount.Value);
+            }
+            return new Empty();
+        }
+
+        private void ChargeFirstSufficientToken(MapField<string, long> symbolToAmountMap, out string symbol,
             out long amount, out long existingBalance)
         {
             symbol = Context.Variables.NativeSymbol;
@@ -366,9 +388,9 @@ namespace AElf.Contracts.MultiToken
                 State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol] = profits.Sub(donates);
             }
 
+            // Sell received token resources from callings of corresponding contract.
             foreach (var resourceSymbol in TokenContractConstants.ResourceTokenSymbols)
             {
-                // Sell received token resources from callings of corresponding contract.
                 if (State.TokenConverterContract.Value == null)
                 {
                     State.TokenConverterContract.Value =
@@ -387,6 +409,8 @@ namespace AElf.Contracts.MultiToken
                         ReturnTaxReceiverAddress = profitReceivingInformation.ProfitReceiverAddress
                     }.ToByteString()
                 });
+
+                State.ChangedResources[input.ContractAddress][resourceSymbol] = 0;
             }
 
             return new Empty();
