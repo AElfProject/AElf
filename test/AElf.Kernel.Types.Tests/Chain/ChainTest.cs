@@ -13,7 +13,7 @@ namespace AElf.Kernel.Types.Tests
         {
             var chainId = 2111;
             var chain = new Chain(chainId, Hash.Empty);
-            var serializeData = chain.Serialize();
+            
         }
 
         [Fact]

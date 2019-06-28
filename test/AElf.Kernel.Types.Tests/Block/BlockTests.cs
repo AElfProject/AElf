@@ -65,13 +65,6 @@ namespace AElf.Kernel.Types.Tests
 
             var hash = block.GetHash();
             hash.ShouldNotBe(null);
-
-            var hashBytes = block.GetHashBytes();
-            hashBytes.ShouldNotBe(null);
-            hashBytes.Length.ShouldBe(32);
-
-            var serializeData = block.Serialize();
-            serializeData.ShouldNotBe(null);
         }
 
         [Fact]

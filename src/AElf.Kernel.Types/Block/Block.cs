@@ -41,10 +41,5 @@ namespace AElf.Kernel
         {
             return Header.GetHashBytes();
         }
-
-        public byte[] Serialize()
-        {
-            return this.ToByteArray();
-        }
     }
 }
