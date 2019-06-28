@@ -395,7 +395,6 @@ namespace AElf.Contracts.MultiToken
                 "Only profit receiver can perform this action.");
             foreach (var symbol in input.Symbols.Except(TokenContractConstants.ResourceTokenSymbols))
             {
-
                 var profits = State.Balances[input.ContractAddress][symbol];
                 State.Balances[input.ContractAddress][symbol] = 0;
                 var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
@@ -405,31 +404,6 @@ namespace AElf.Contracts.MultiToken
                     Amount = donates
                 });
                 State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol] = profits.Sub(donates);
-            }
-
-            // Sell received token resources from callings of corresponding contract.
-            foreach (var resourceSymbol in TokenContractConstants.ResourceTokenSymbols)
-            {
-                if (State.TokenConverterContract.Value == null)
-                {
-                    State.TokenConverterContract.Value =
-                        Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
-                }
-
-                State.TokenConverterContract.SellWithInlineAction.Send(new SellWithInlineActionInput
-                {
-                    Symbol = resourceSymbol,
-                    Amount = State.ChangedResources[input.ContractAddress][resourceSymbol],
-                    ContractAddress = Context.Self,
-                    MethodName = nameof(ReturnTax),
-                    Params = new ReturnTaxInput
-                    {
-                        BalanceBeforeSelling = State.Balances[Context.Self][Context.Variables.NativeSymbol],
-                        ReturnTaxReceiverAddress = profitReceivingInformation.ProfitReceiverAddress
-                    }.ToByteString()
-                });
-
-                State.ChangedResources[input.ContractAddress][resourceSymbol] = 0;
             }
 
             return new Empty();
