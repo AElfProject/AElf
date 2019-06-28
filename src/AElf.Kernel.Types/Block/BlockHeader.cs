@@ -1,10 +1,13 @@
-﻿using AElf.Types;
+﻿using System;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel
 {
     public partial class BlockHeader : IBlockHeader
     {
+        private Hash _blockHash;
+
         partial void OnConstruction()
         {
             Bloom = ByteString.CopyFrom(new Bloom().Data);
@@ -17,7 +20,12 @@ namespace AElf.Kernel
 
         public Hash GetHash()
         {
-            return Hash.FromRawBytes(GetSignatureData());
+            if (_blockHash == null)
+            {
+                _blockHash = Hash.FromRawBytes(GetSignatureData());
+            }
+
+            return _blockHash;
         }
 
         public byte[] GetHashBytes()
@@ -27,6 +35,18 @@ namespace AElf.Kernel
 
         private byte[] GetSignatureData()
         {
+            if (ChainId < 0 ||
+                PreviousBlockHash == null ||
+                MerkleTreeRootOfTransactions == null ||
+                MerkleTreeRootOfWorldState == null ||
+                Height <= 0 ||
+                Time == null ||
+                MerkleTreeRootOfTransactionStatus == null ||
+                Height >  Constants.GenesisBlockHeight && (BlockExtraDatas?.Count == 0 || SignerPubkey.IsEmpty))
+            {
+                throw new InvalidOperationException($"Invalid block header: {this}");
+            }
+
             if (Signature.IsEmpty)
                 return this.ToByteArray();
 
