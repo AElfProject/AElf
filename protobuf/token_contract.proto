@@ -52,6 +52,10 @@ service TokenContract {
     }
     rpc SetResourceTokenUnitPrice (SetResourceTokenUnitPriceInput) returns (google.protobuf.Empty) {
     }
+    rpc AdvanceResourceToken (AdvanceResourceTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc TakeResourceTokenBack (TakeResourceTokenBackInput) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -244,6 +248,18 @@ message SetResourceTokenUnitPriceInput {
     sint64 cpu_unit_price = 1;
     sint64 sto_unit_price = 2;
     sint64 net_unit_price = 3;
+}
+
+message AdvanceResourceTokenInput {
+    aelf.Address contract_address = 1;
+    string resource_token_symbol = 2;
+    sint64 amount = 3;
+}
+
+message TakeResourceTokenBackInput {
+    aelf.Address contract_address = 1;
+    string resource_token_symbol = 2;
+    sint64 amount = 3;
 }
 
 // Events

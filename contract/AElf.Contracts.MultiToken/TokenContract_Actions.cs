@@ -487,5 +487,30 @@ namespace AElf.Contracts.MultiToken
             State.StoUnitPrice.Value = input.StoUnitPrice;
             return new Empty();
         }
+
+        public override Empty AdvanceResourceToken(AdvanceResourceTokenInput input)
+        {
+            Assert(TokenContractConstants.ResourceTokenSymbols.Contains(input.ResourceTokenSymbol),
+                "Invalid resource token symbol.");
+            State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
+                input.Amount;
+            State.Balances[input.ContractAddress][input.ResourceTokenSymbol] =
+                State.Balances[input.ContractAddress][input.ResourceTokenSymbol].Add(input.Amount);
+            State.Balances[Context.Sender][input.ResourceTokenSymbol] =
+                State.Balances[Context.Sender][input.ResourceTokenSymbol].Sub(input.Amount);
+            return new Empty();
+        }
+
+        public override Empty TakeResourceTokenBack(TakeResourceTokenBackInput input)
+        {
+            var advancedAmount =
+                State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol];
+            Assert(advancedAmount >= input.Amount, "Can't take back that more.");
+            State.Balances[input.ContractAddress][input.ResourceTokenSymbol] =
+                State.Balances[input.ContractAddress][input.ResourceTokenSymbol].Sub(input.Amount);
+            State.Balances[Context.Sender][input.ResourceTokenSymbol] =
+                State.Balances[Context.Sender][input.ResourceTokenSymbol].Add(input.Amount);
+            return new Empty();
+        }
     }
 }

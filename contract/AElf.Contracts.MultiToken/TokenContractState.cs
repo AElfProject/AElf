@@ -23,6 +23,11 @@ namespace AElf.Contracts.MultiToken
         /// </summary>
         public MappedState<Address, string, long> ChangedResources { get; set; }
 
+        /// <summary>
+        /// Contract Address -> Advance Address -> Resource Token Symbol -> Amount.
+        /// </summary>
+        public MappedState<Address, Address, string, long> AdvancedResourceToken { get; set; }
+
         public MappedState<Address, ProfitReceivingInformation> ProfitReceivingInfos { get; set; }
         public SingletonState<TokenSymbolList> PreviousBlockTransactionFeeTokenSymbolList { get; set; }
 
