@@ -15,6 +15,8 @@ namespace AElf.Contracts.CrossChain
 {
     public partial class CrossChainContract
     {
+        private const string ConsensusExtraDataName = "Consensus";
+        
         /// <summary>
         /// Bind parent chain height together with self height.
         /// </summary>
