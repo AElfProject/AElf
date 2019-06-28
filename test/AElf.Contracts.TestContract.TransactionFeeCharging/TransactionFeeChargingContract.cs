@@ -18,7 +18,12 @@ namespace AElf.Contracts.TestContract.TransactionFeeCharging
                 Decimals = 2,
                 Issuer = Context.Self,
                 IsBurnable = true,
-                TotalSupply = TransactionFeeChargingContractConstants.TotalSupply
+                TotalSupply = TransactionFeeChargingContractConstants.TotalSupply,
+                LockWhiteList =
+                {
+                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName),
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
+                }
             });
             State.TokenContract.Issue.Send(new IssueInput
             {
