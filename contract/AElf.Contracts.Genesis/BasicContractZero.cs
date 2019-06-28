@@ -75,7 +75,6 @@ namespace AElf.Contracts.Genesis
             return address;
         }
 
-
         private Address PrivateDeploySystemSmartContract(Hash name, int category, byte[] code)
         {
             if (name != null)

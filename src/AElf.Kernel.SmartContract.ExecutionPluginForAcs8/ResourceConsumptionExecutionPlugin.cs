@@ -1,26 +1,24 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs5;
+using Acs8;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.Profit;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
-using AElf.Kernel.SmartContract.ExecutionPluginForAcs6;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
+namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 {
-    public class ProfitSharingExecutionPlugin : IExecutionPlugin, ISingletonDependency
+    public class ResourceConsumptionExecutionPlugin : IExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
-        private const string AcsSymbol = "acs5";
+        private const string AcsSymbol = "acs8";
 
-        public ProfitSharingExecutionPlugin(IHostSmartContractBridgeContextService contextService)
+        public ResourceConsumptionExecutionPlugin(IHostSmartContractBridgeContextService contextService)
         {
             _contextService = contextService;
         }
@@ -40,12 +38,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
 
             var context = _contextService.Create();
             context.TransactionContext = transactionContext;
-            var selfStub = new ThresholdSettingContractContainer.ThresholdSettingContractStub
+            var selfStub = new ResourceConsumptionContractContainer.ResourceConsumptionContractStub()
             {
                 __factory = new MethodStubFactory(context)
             };
 
-            var threshold = await selfStub.GetMethodCallingThreshold.CallAsync(new StringValue
+            var resourceConsumptionAmount = await selfStub.GetResourceConsumptionAmount.CallAsync(new StringValue
             {
                 Value = context.TransactionContext.Transaction.MethodName
             });
@@ -56,6 +54,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
             {
                 return new List<Transaction>();
             }
+
+            var contractAddress = transactionContext.Transaction.To;
 
             var tokenStub = new TokenContractContainer.TokenContractStub
             {
@@ -73,7 +73,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
 
             var checkThresholdTransaction = (await tokenStub.CheckThreshold.SendAsync(new CheckThresholdInput
             {
-                SymbolToThreshold = {threshold.SymbolToAmount}
+                SymbolToThreshold = {resourceConsumptionAmount.SymbolToAmount}
             })).Transaction;
 
             return new List<Transaction>

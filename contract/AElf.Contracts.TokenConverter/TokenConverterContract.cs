@@ -262,6 +262,18 @@ namespace AElf.Contracts.TokenConverter
             return new Empty();
         }
 
+        public override Empty SellWithInlineAction(SellWithInlineActionInput input)
+        {
+            Sell(new SellInput
+            {
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                ReceiveLimit = input.ReceiveLimit
+            });
+            Context.SendInline(input.ContractAddress, input.MethodName, input.Params);
+            return new Empty();
+        }
+
         #endregion Actions
 
         #region Helpers

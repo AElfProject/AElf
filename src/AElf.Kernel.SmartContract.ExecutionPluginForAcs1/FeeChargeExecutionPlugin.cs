@@ -5,7 +5,6 @@ using Acs1;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
-using AElf.CSharp.Core;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.Reflection;
