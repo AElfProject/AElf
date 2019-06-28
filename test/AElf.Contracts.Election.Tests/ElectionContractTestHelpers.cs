@@ -39,7 +39,9 @@ namespace AElf.Contracts.Election
         private async Task<TransactionResult> AnnounceElectionAsync(ECKeyPair keyPair)
         {
             var electionStub = GetElectionContractStub(keyPair);
-            return (await electionStub.AnnounceElection.SendAsync(new Empty())).TransactionResult;
+            var announceResult = (await electionStub.AnnounceElection.SendAsync(new Empty())).TransactionResult;
+            
+            return announceResult;
         }
 
         private async Task<TransactionResult> QuitElectionAsync(ECKeyPair keyPair)

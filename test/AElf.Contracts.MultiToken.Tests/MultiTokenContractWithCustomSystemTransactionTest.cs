@@ -30,7 +30,7 @@ namespace AElf.Contracts.MultiToken
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
 
-                await TokenContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput()
+                await TokenContractStub.Create.SendAsync(new CreateInput
                 {
                     Symbol = DefaultSymbol,
                     Decimals = 2,

@@ -295,7 +295,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private async Task InitializeTokenContract()
         {
             {
-                var result = await TokenContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput
+                var result = await TokenContractStub.Create.SendAsync(new CreateInput
                 {
                     Symbol = AEDPoSContractTestConstants.Symbol,
                     Decimals = 2,
@@ -303,23 +303,23 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     TokenName = "elf token",
                     TotalSupply = AEDPoSContractTestConstants.TotalSupply,
                     Issuer = BootMinerAddress,
-                    LockWhiteSystemContractNameList =
+                    LockWhiteList =
                     {
-                        ElectionSmartContractAddressNameProvider.Name,
-                        VoteSmartContractAddressNameProvider.Name,
-                        ProfitSmartContractAddressNameProvider.Name,
+                        ElectionContractAddress,
+                        VoteContractAddress,
+                        ProfitContractAddress
                     }
                 });
                 CheckResult(result.TransactionResult);
             }
 
             {
-                var result = await TokenContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
+                var result = await TokenContractStub.Issue.SendAsync(new IssueInput
                 {
                     Symbol = AEDPoSContractTestConstants.Symbol,
                     Amount = AEDPoSContractTestConstants.TotalSupply.Div(5),
                     // Should be address of Treasury Contract.
-                    ToSystemContractName = ElectionSmartContractAddressNameProvider.Name,
+                    To = ElectionContractAddress,
                     Memo = "Set total mining rewards."
                 });
                 CheckResult(result.TransactionResult);

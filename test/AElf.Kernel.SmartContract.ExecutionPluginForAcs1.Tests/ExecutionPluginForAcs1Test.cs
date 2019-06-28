@@ -48,7 +48,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
 
         private async Task InitializeTokenAsync()
         {
-            await TokenContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput()
+            await TokenContractStub.Create.SendAsync(new CreateInput
             {
                 Symbol = "ELF",
                 Decimals = 2,

@@ -115,7 +115,7 @@ namespace AElf.Contracts.Profit
         {
             const string symbol = "ELF";
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContract.Create), new CreateInput
             {
                 Symbol = symbol,
                 Decimals = 2,
@@ -123,9 +123,9 @@ namespace AElf.Contracts.Profit
                 TokenName = "elf token",
                 TotalSupply = ProfitContractTestConsts.NativeTokenTotalSupply,
                 Issuer = Starter,
-                LockWhiteSystemContractNameList =
+                LockWhiteList =
                 {
-                    ProfitSmartContractAddressNameProvider.Name
+                    ProfitContractAddress
                 }
             });
 

@@ -26,6 +26,11 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj" >
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
@@ -42,6 +47,16 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Treasury\AElf.Contracts.Treasury.csproj" >
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Economic\AElf.Contracts.Economic.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -69,6 +84,9 @@
         <ContractStub Include="..\..\protobuf\election_contract.proto">
             <Link>Protobuf/Proto/election_contract.proto</Link>
         </ContractStub>
+        <ContractBase Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf/Proto/acs3.proto</Link>
+        </ContractBase>
         <ContractStub Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf/Proto/acs4.proto</Link>
         </ContractStub>
@@ -78,8 +96,17 @@
         <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
             <Link>Protobuf/Proto/aedpos_contract_impl.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\token_converter_contract.proto">
+            <Link>Protobuf/Proto/token_converter_contract.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\treasury_contract.proto">
             <Link>Protobuf/Proto/treasury_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\economic_contract.proto">
+            <Link>Protobuf/Proto/economic_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
+            <Link>Protobuf/Proto/parliament_auth_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 </Project>

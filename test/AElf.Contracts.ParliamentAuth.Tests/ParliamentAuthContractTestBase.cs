@@ -145,7 +145,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             const string symbol = "ELF";
             const long totalSupply = 100_000_000;
-            await TokenContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput
+            await TokenContractStub.Create.SendAsync(new CreateInput
             {
                 Symbol = symbol,
                 Decimals = 2,
