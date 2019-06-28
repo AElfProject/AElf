@@ -60,8 +60,8 @@ namespace AElf.OS.Network.Grpc
         public bool Inbound { get; }
         public long StartHeight { get; }
 
-        public bool CanStreamTransactions { get; private set; } = true;
-        public bool CanStreamAnnounces { get; private set; } = true;
+        public bool CanStreamTransactions { get; private set; } = false;
+        public bool CanStreamAnnounces { get; private set; } = false;
 
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
@@ -176,7 +176,6 @@ namespace AElf.OS.Network.Grpc
             {
                 // if we cannot stream we use the unary version of the send.
                 await UnaryAnnounceAsync(header);
-                Logger.LogDebug("Not streaming announce.");
                 return;
             }
             
@@ -207,7 +206,6 @@ namespace AElf.OS.Network.Grpc
             if (!CanStreamTransactions)
             {
                 // if we cannot stream we use the unary version of the send.
-                Logger.LogDebug("Not streaming transactions.");
                 await UnarySendTransactionAsync(tx);
                 return;
             }
