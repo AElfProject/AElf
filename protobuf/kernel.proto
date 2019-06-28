@@ -125,8 +125,9 @@ message ExecutionReturnSet {
     Hash TransactionId = 1;
     TransactionResultStatus Status = 2;
     map<string, bytes> StateChanges = 3;
-    bytes Bloom = 4;
-    bytes ReturnValue = 5;
+    map<string, bool> StateAccesses=4;
+    bytes Bloom = 5;
+    bytes ReturnValue = 6;
 }
 
 //message LogEvent {

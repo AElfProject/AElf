@@ -7,6 +7,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Parallel;
 using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS;
@@ -46,7 +47,9 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(GrpcCrossChainAElfModule),
 
         //web api module
-        typeof(WebWebAppAElfModule)
+        typeof(WebWebAppAElfModule),
+
+        typeof(ParallelExecutionModule)
     )]
     public class BasicBaseChainAElfModule : AElfModule<BasicBaseChainAElfModule>
     {
