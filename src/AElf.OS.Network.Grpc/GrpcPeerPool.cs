@@ -95,6 +95,11 @@ namespace AElf.OS.Network.Grpc
                 await channel.ShutdownAsync();
                 return false;
             }
+
+            await peer.FinalizeConnectAsync();
+            
+            peer.StartAnnouncementStreaming();
+            peer.StartTransactionStreaming();
             
             Logger.LogTrace($"Connected to {peer} -- height {peer.StartHeight}.");
             

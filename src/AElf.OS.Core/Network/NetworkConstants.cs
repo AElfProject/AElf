@@ -11,5 +11,7 @@ namespace AElf.OS.Network
         public const int DefaultMaxPeers = 25;
 
         public const string PeerReconnectionQueueName = "PeerReconnectionQueue";
+        public const string AnnouncementBroadcastQueueName = "AnnouncementBroadcastQueue";
+        public const string TransactionBroadcastQueueName = "TransactionBroadcastQueue";
     }
 }

@@ -18,8 +18,8 @@ namespace AElf.OS.Network.Infrastructure
         bool Inbound { get; }
         long StartHeight { get; }
         
-        bool CanBroadcastTransactions { get; }
-        bool CanBroadcastAnnounces { get; }
+        bool CanStreamTransactions { get; }
+        bool CanStreamAnnounces { get; }
         
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
 
@@ -31,7 +31,8 @@ namespace AElf.OS.Network.Infrastructure
         void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement);
 
         Task<bool> TryWaitForStateChangedAsync();
-        
+
+        Task FinalizeConnectAsync();
         Task SendDisconnectAsync();
         Task StopAsync();
 

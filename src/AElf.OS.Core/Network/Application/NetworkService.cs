@@ -48,7 +48,7 @@ namespace AElf.OS.Network.Application
             return _peerPool.GetPeers(true).ToList(); 
         }
 
-        public async Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
+        public Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
         {
             var blockHash = blockHeader.GetHash();
             
@@ -56,7 +56,7 @@ namespace AElf.OS.Network.Application
                 recentBlockHash == blockHash)
             {
                 Logger.LogDebug($"BlockHeight: {blockHeader.Height}, BlockHash: {blockHash} has been broadcast.");
-                return;
+                return Task.CompletedTask;
             }
             
             _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHash, hasFork);
@@ -67,43 +67,47 @@ namespace AElf.OS.Network.Application
                 BlockHeight = blockHeader.Height,
                 HasFork = hasFork
             };
-
-            foreach (var peer in _peerPool.GetPeers().Where(p => p.CanBroadcastAnnounces))
+            
+            _taskQueueManager.Enqueue(async () =>
             {
-                try
+                foreach (var peer in _peerPool.GetPeers().Where(p => p.CanStreamAnnounces))
                 {
-                    await peer.AnnounceAsync(announce);
+                    try
+                    {
+                        await peer.AnnounceAsync(announce);
+                    }
+                    catch (NetworkException ex)
+                    {
+                        Logger.LogError(ex, $"Error while announcing to {peer}.");
+                        await HandleNetworkException(peer, ex);
+                    }
                 }
-                catch (NetworkException ex)
-                {
-                    Logger.LogError(ex, $"Error while announcing to {peer}.");
-                    await HandleNetworkException(peer, ex);
-                }
-                catch (Exception e)
-                {
-                    Logger.LogError(e, $"Error while announcing to {peer}.");
-                }
-            }
+                
+            }, NetworkConstants.AnnouncementBroadcastQueueName);
+
+            return Task.CompletedTask;
         }
         
-        public async Task BroadcastTransactionAsync(Transaction tx)
+        public Task BroadcastTransactionAsync(Transaction tx)
         {
-            foreach (var peer in _peerPool.GetPeers().Where(p => p.CanBroadcastTransactions))
+            _taskQueueManager.Enqueue(async () =>
             {
-                try
+                foreach (var peer in _peerPool.GetPeers().Where(p => p.CanStreamTransactions))
                 {
-                    await peer.SendTransactionAsync(tx);
+                    try
+                    {
+                        await peer.SendTransactionAsync(tx);
+                    }
+                    catch (NetworkException ex)
+                    {
+                        Logger.LogError(ex, "Error while sending transaction.");
+                        await HandleNetworkException(peer, ex);
+                    }
                 }
-                catch (NetworkException ex)
-                {
-                    Logger.LogError(ex, "Error while sending transaction.");
-                    await HandleNetworkException(peer, ex);
-                }
-                catch (Exception e)
-                {
-                    Logger.LogError(e, $"Error while sending transaction {peer}.");
-                }
-            }
+                
+            }, NetworkConstants.TransactionBroadcastQueueName);
+            
+            return Task.CompletedTask;
         }
 
         public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, 
@@ -210,7 +214,13 @@ namespace AElf.OS.Network.Application
                 
                 QueueNetworkTask(() =>
                 {
-                    if (!peer.CanBroadcastAnnounces)
+                    if (!peer.IsReady)
+                    {
+                        Logger.LogDebug($"Peer {peer} is unstable, will not start streaming.");
+                        return Task.CompletedTask;
+                    }
+                        
+                    if (!peer.CanStreamAnnounces)
                     {
                         peer.StartAnnouncementStreaming();
                         Logger.LogDebug($"Started announcement stream {peer.PeerIpAddress}.");
@@ -229,7 +239,13 @@ namespace AElf.OS.Network.Application
 
                 QueueNetworkTask(() =>
                 {
-                    if (!peer.CanBroadcastTransactions)
+                    if (!peer.IsReady)
+                    {
+                        Logger.LogDebug($"Peer {peer} is unstable, will not start streaming.");
+                        return Task.CompletedTask;
+                    }
+                    
+                    if (!peer.CanStreamTransactions)
                     {
                         peer.StartTransactionStreaming();
                         Logger.LogDebug($"Started transaction stream {peer.PeerIpAddress}.");

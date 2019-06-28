@@ -173,6 +173,16 @@ namespace AElf.OS.Network.Grpc
             return AuthError.None;
         }
 
+        public override Task<VoidReply> FinalizeConnect(Handshake request, ServerCallContext context)
+        {
+            var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+            
+            peerInPool.StartAnnouncementStreaming();
+            peerInPool.StartTransactionStreaming();
+
+            return Task.FromResult(new VoidReply());
+        }
+
         public override async Task<VoidReply> AnnouncementBroadcastStream(IAsyncStreamReader<PeerNewBlockAnnouncement> requestStream, ServerCallContext context)
         {
             await requestStream.ForEachAsync(async r => await ProcessAnnouncement(r, context));
@@ -205,9 +215,10 @@ namespace AElf.OS.Network.Grpc
         /// <summary>
         /// This method is called when another peer broadcasts a transaction.
         /// </summary>
-        public async Task SendTransaction(Transaction tx, ServerCallContext context)
+        public override async Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
         {
             await ProcessTransaction(tx, context);
+            return new VoidReply();
         }
 
         private async Task ProcessTransaction(Transaction tx, ServerCallContext context)

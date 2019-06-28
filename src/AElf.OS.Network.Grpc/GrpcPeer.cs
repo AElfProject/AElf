@@ -24,8 +24,10 @@ namespace AElf.OS.Network.Grpc
         
         private const int AnnouncementTimeout = 300;
         private const int BlockRequestTimeout = 300;
-        private const int TransactionBroadcastTimeout = 300;
+        private const int TransactionSendTimeout = 300;
         private const int BlocksRequestTimeout = 500;
+
+        private const int FinalizeConnectTimeout = 400;
         
         private enum MetricNames
         {
@@ -58,8 +60,8 @@ namespace AElf.OS.Network.Grpc
         public bool Inbound { get; }
         public long StartHeight { get; }
 
-        public bool CanBroadcastTransactions { get; private set; } = true;
-        public bool CanBroadcastAnnounces { get; private set; } = true;
+        public bool CanStreamTransactions { get; private set; } = true;
+        public bool CanStreamAnnounces { get; private set; } = true;
 
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
@@ -92,9 +94,6 @@ namespace AElf.OS.Network.Grpc
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
-
-            StartAnnouncementStreaming();
-            StartTransactionStreaming();
         }
         
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -115,6 +114,14 @@ namespace AElf.OS.Network.Grpc
             return metrics;
         }
 
+        public async Task FinalizeConnectAsync()
+        {
+            GrpcRequest request = new GrpcRequest { ErrorMessage = $"Error while finalizing request to {this}." };
+            Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, FinalizeConnectTimeout.ToString()} };
+
+            await RequestAsync(_client, c => c.FinalizeConnectAsync(new Handshake(), data), request);
+        }
+
         public async Task<BlockWithTransactions> RequestBlockAsync(Hash hash)
         {
             var blockRequest = new BlockRequest {Hash = hash};
@@ -128,8 +135,7 @@ namespace AElf.OS.Network.Grpc
 
             Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, BlockRequestTimeout.ToString()} };
 
-            var blockReply 
-                = await RequestAsync(_client, c => c.RequestBlockAsync(blockRequest, data), request);
+            var blockReply = await RequestAsync(_client, c => c.RequestBlockAsync(blockRequest, data), request);
 
             return blockReply?.Block;
         }
@@ -155,28 +161,35 @@ namespace AElf.OS.Network.Grpc
 
             return list.Blocks.ToList();
         }
-        
+
+        #region Streaming
+
         public void StartAnnouncementStreaming()
         {
             _announcementStreamCall = _client.AnnouncementBroadcastStream();
-            CanBroadcastAnnounces = true;
+            CanStreamAnnounces = true;
         }
         
         public async Task AnnounceAsync(PeerNewBlockAnnouncement header)
         {
-            if (!CanBroadcastAnnounces)
+            if (!CanStreamAnnounces)
+            {
+                // if we cannot stream we use the unary version of the send.
+                await UnaryAnnounceAsync(header);
+                Logger.LogDebug("Not streaming announce.");
                 return;
-                
+            }
+            
             try
             {
                 await _announcementStreamCall.RequestStream.WriteAsync(header);
             }
             catch (RpcException e)
             {
-                if (!CanBroadcastAnnounces) // Already down
+                if (!CanStreamAnnounces) // Already down
                     return;
                 
-                CanBroadcastAnnounces = false;
+                CanStreamAnnounces = false;
                 _announcementStreamCall.Dispose();
                 
                 throw new NetworkException($"Failed stream to {this}: ", e, NetworkExceptionType.AnnounceStream);
@@ -186,13 +199,18 @@ namespace AElf.OS.Network.Grpc
         public void StartTransactionStreaming()
         {
             _transactionStreamCall = _client.TransactionBroadcastStream();
-            CanBroadcastTransactions = true;
+            CanStreamTransactions = true;
         }
 
         public async Task SendTransactionAsync(Transaction tx)
         {
-            if (!CanBroadcastTransactions)
+            if (!CanStreamTransactions)
+            {
+                // if we cannot stream we use the unary version of the send.
+                Logger.LogDebug("Not streaming transactions.");
+                await UnarySendTransactionAsync(tx);
                 return;
+            }
             
             try
             {
@@ -200,12 +218,38 @@ namespace AElf.OS.Network.Grpc
             }
             catch (RpcException e)
             {
-                CanBroadcastTransactions = false;
-                await _transactionStreamCall.RequestStream.CompleteAsync().ConfigureAwait(false);
+                if (!CanStreamTransactions) // Already down
+                    return;
+                
+                CanStreamTransactions = false;
                 _transactionStreamCall.Dispose();
                 
                 throw new NetworkException($"Failed stream to {this}: ", e, NetworkExceptionType.TransactionStream);
             }
+        }
+
+        #endregion
+        
+        public Task UnarySendTransactionAsync(Transaction tx)
+        {
+            var request = new GrpcRequest { ErrorMessage = $"Broadcast transaction for {tx.GetHash()} failed." };
+            var data = new Metadata {{ GrpcConstants.TimeoutMetadataKey, TransactionSendTimeout.ToString() }};
+            
+            return RequestAsync(_client, c => c.SendTransactionAsync(tx, data), request);
+        }
+        
+        public Task UnaryAnnounceAsync(PeerNewBlockAnnouncement header)
+        {
+            GrpcRequest request = new GrpcRequest
+            {
+                ErrorMessage = $"Broadcast announce for {header.BlockHash} failed.",
+                MetricName = nameof(MetricNames.Announce),
+                MetricInfo = $"Block hash {header.BlockHash}"
+            };
+
+            Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, AnnouncementTimeout.ToString()} };
+
+            return RequestAsync(_client, c => c.AnnounceAsync(header, data), request);
         }
 
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
