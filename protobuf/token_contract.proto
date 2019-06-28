@@ -202,6 +202,7 @@ message CrossChainReceiveTokenInput {
 message CheckThresholdInput {
     aelf.Address sender = 1;
     map<string, sint64> symbol_to_threshold = 2;
+    bool is_check_allowance = 3;
 }
 
 message ProfitReceivingInformation {

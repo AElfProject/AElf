@@ -12,7 +12,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract
 
             State.MethodCallingThresholdFees[input.Method] = new MethodCallingThreshold
             {
-                SymbolToAmount = { input.SymbolToAmount }
+                SymbolToAmount = { input.SymbolToAmount },
+                ThresholdCheckType = input.ThresholdCheckType
             };
 
             return new Empty();

@@ -60,7 +60,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
             {
                 __factory = new TransactionGeneratingOnlyMethodStubFactory
                 {
-                    Sender = transactionContext.Transaction.From,
+                    Sender = transactionContext.Transaction.To,
                     ContractAddress = tokenContractAddress
                 }
             };
@@ -73,7 +73,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
             var checkThresholdTransaction = (await tokenStub.CheckThreshold.SendAsync(new CheckThresholdInput
             {
                 Sender = context.Sender,
-                SymbolToThreshold = {threshold.SymbolToAmount}
+                SymbolToThreshold = {threshold.SymbolToAmount},
+                IsCheckAllowance = threshold.ThresholdCheckType == ThresholdCheckType.Allowance
             })).Transaction;
 
             return new List<Transaction>

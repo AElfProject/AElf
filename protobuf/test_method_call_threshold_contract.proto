@@ -16,6 +16,8 @@ service MethodCallThresholdContract {
     }
     rpc SendForFun (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
+    rpc FeelingLucky (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
 }
 
 message InitializeMethodCallThresholdContractInput {

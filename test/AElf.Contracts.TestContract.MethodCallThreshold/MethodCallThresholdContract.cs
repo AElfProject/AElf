@@ -1,7 +1,4 @@
 using Acs5;
-using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.Treasury;
-using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestContract.MethodCallThreshold

@@ -207,8 +207,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                 Method = nameof(DefaultTester.DummyMethod),
                 SymbolToAmount =
                 {
-                    { "ELF", callingFee }
-                }
+                    {"ELF", callingFee}
+                },
+                ThresholdCheckType = ThresholdCheckType.Balance
             });
 
             var callingThreshold = await DefaultTester.GetMethodCallingThreshold.CallAsync(new StringValue
@@ -227,7 +228,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                 {
                     { "ELF", elfFeeAmount },
                     { "RAM", ramFeeAmount }
-                }
+                },
+                ThresholdCheckType = ThresholdCheckType.Balance
             });
             setThresholdResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
