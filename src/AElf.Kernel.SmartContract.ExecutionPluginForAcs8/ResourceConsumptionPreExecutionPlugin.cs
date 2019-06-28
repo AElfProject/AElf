@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,12 +14,12 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 {
-    public class ResourceConsumptionExecutionPlugin : IExecutionPlugin, ISingletonDependency
+    public class ResourceConsumptionPreExecutionPlugin : IPostExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private const string AcsSymbol = "acs8";
 
-        public ResourceConsumptionExecutionPlugin(IHostSmartContractBridgeContextService contextService)
+        public ResourceConsumptionPreExecutionPlugin(IHostSmartContractBridgeContextService contextService)
         {
             _contextService = contextService;
         }
@@ -28,7 +29,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             return descriptors.Any(service => service.File.GetIndentity() == AcsSymbol);
         }
 
-        public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
+        public async Task<IEnumerable<Transaction>> GetPostTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
             if (!IsAcs8(descriptors))
@@ -69,9 +70,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
                 return new List<Transaction>();
             }
 
+            // Transaction size related to NET Token.
+            var transactionSize = transactionContext.Transaction.Size();
+            // Transaction trace state set related to STO Token.
+            var writesCount = transactionContext.Trace.StateSet.Writes.Count;
+            // Transaction executing time related to CPU Token.
+            var executingTime = Convert.ToInt32((transactionContext.Trace.EndTime - transactionContext.Trace.StartTime)
+                .TotalMilliseconds);
+
             var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(new ChargeResourceTokenInput
             {
-                SymbolToAmount = {resourceConsumptionAmount.SymbolToAmount}
+                
             })).Transaction;
 
             return new List<Transaction>

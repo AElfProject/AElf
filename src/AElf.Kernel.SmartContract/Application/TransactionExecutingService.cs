@@ -16,16 +16,19 @@ namespace AElf.Kernel.SmartContract.Application
     public class TransactionExecutingService : ITransactionExecutingService
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private readonly List<IExecutionPlugin> _plugins;
+        private readonly List<IPreExecutionPlugin> _prePlugins;
+        private readonly List<IPostExecutionPlugin> _postPlugins;
         private readonly ITransactionResultService _transactionResultService;
         public ILogger<TransactionExecutingService> Logger { get; set; }
 
         public TransactionExecutingService(ITransactionResultService transactionResultService,
-            ISmartContractExecutiveService smartContractExecutiveService, IEnumerable<IExecutionPlugin> plugins)
+            ISmartContractExecutiveService smartContractExecutiveService, IEnumerable<IPreExecutionPlugin> prePlugins,
+            IEnumerable<IPostExecutionPlugin> postPlugins)
         {
             _transactionResultService = transactionResultService;
             _smartContractExecutiveService = smartContractExecutiveService;
-            _plugins = GetUniquePlugins(plugins);
+            _prePlugins = GetUniquePrePlugins(prePlugins);
+            _postPlugins = GetUniquePostPlugins(postPlugins);
             Logger = NullLogger<TransactionExecutingService>.Instance;
         }
 
@@ -138,7 +141,7 @@ namespace AElf.Kernel.SmartContract.Application
                 StateCache = chainContext.StateCache,
                 Origin = origin != null ? origin : transaction.From
             };
-            
+
             var internalStateCache = new TieredStateCache(chainContext.StateCache);
             var internalChainContext = new ChainContextWithTieredStateCache(chainContext, internalStateCache);
             var executive = await _smartContractExecutiveService.GetExecutiveAsync(
@@ -164,6 +167,19 @@ namespace AElf.Kernel.SmartContract.Application
 
                 await ExecuteInlineTransactions(depth, currentBlockTime, txCtxt, internalStateCache,
                     internalChainContext, cancellationToken);
+
+                #region PostTransaction
+
+                if (depth == 0)
+                {
+                    if (!await ExecutePluginOnPostTransactionStageAsync(executive, txCtxt, currentBlockTime,
+                        internalChainContext, internalStateCache, cancellationToken))
+                    {
+                        return trace;
+                    }
+                }
+
+                #endregion
             }
             catch (Exception ex)
             {
@@ -213,9 +229,41 @@ namespace AElf.Kernel.SmartContract.Application
             CancellationToken cancellationToken)
         {
             var trace = txCtxt.Trace;
-            foreach (var plugin in _plugins)
+            foreach (var plugin in _prePlugins)
             {
                 var transactions = await plugin.GetPreTransactionsAsync(executive.Descriptors, txCtxt);
+                foreach (var preTx in transactions)
+                {
+                    var preTrace = await ExecuteOneAsync(0, internalChainContext, preTx, currentBlockTime,
+                        cancellationToken);
+                    trace.PreTransactions.Add(preTx);
+                    trace.PreTraces.Add(preTrace);
+                    if (!preTrace.IsSuccessful())
+                    {
+                        trace.ExecutionStatus = ExecutionStatus.Prefailed;
+                        preTrace.SurfaceUpError();
+                        trace.Error += preTrace.Error;
+                        return false;
+                    }
+
+                    internalStateCache.Update(preTrace.GetFlattenedWrites()
+                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                }
+            }
+
+            return true;
+        }
+
+        private async Task<bool> ExecutePluginOnPostTransactionStageAsync(IExecutive executive,
+            ITransactionContext txCtxt,
+            Timestamp currentBlockTime, ChainContextWithTieredStateCache internalChainContext,
+            TieredStateCache internalStateCache,
+            CancellationToken cancellationToken)
+        {
+            var trace = txCtxt.Trace;
+            foreach (var plugin in _postPlugins)
+            {
+                var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txCtxt);
                 foreach (var preTx in transactions)
                 {
                     var preTrace = await ExecuteOneAsync(0, internalChainContext, preTx, currentBlockTime,
@@ -308,7 +356,13 @@ namespace AElf.Kernel.SmartContract.Application
             return returnSet;
         }
 
-        private static List<IExecutionPlugin> GetUniquePlugins(IEnumerable<IExecutionPlugin> plugins)
+        private static List<IPreExecutionPlugin> GetUniquePrePlugins(IEnumerable<IPreExecutionPlugin> plugins)
+        {
+            // One instance per type
+            return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
+        }
+
+        private static List<IPostExecutionPlugin> GetUniquePostPlugins(IEnumerable<IPostExecutionPlugin> plugins)
         {
             // One instance per type
             return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();

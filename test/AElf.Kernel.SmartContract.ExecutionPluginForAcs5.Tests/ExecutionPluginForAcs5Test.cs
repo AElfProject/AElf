@@ -24,9 +24,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
             await InitializeContracts();
             await SetThresholdFee(feeAmount);
 
-            var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IExecutionPlugin>>()
+            var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IPreExecutionPlugin>>()
                 .ToLookup(p => p.GetType()).Select(coll => coll.First());
-            var plugin = plugins.SingleOrDefault(p => p.GetType() == typeof(ProfitSharingExecutionPlugin));
+            var plugin = plugins.SingleOrDefault(p => p.GetType() == typeof(ProfitSharingPreExecutionPlugin));
             plugin.ShouldNotBeNull();
          
             var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();

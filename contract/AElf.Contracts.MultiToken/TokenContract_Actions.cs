@@ -257,16 +257,22 @@ namespace AElf.Contracts.MultiToken
                 return new Empty();
             }
 
-            foreach (var symbolToAmount in input.SymbolToAmount)
+            var symbolToAmount = new Dictionary<string, long>
             {
-                var existingBalance = State.Balances[Context.Sender][symbolToAmount.Key];
-                Assert(existingBalance >= symbolToAmount.Value,
-                    $"Insufficient resource. {symbolToAmount.Key}: {existingBalance} / {symbolToAmount.Value}");
-                State.Balances[Context.Sender][symbolToAmount.Key] = existingBalance.Sub(symbolToAmount.Value);
-                State.Balances[Context.Self][symbolToAmount.Key] =
-                    State.Balances[Context.Self][symbolToAmount.Key].Add(symbolToAmount.Value);
-                State.ChangedResources[Context.Sender][symbolToAmount.Key] =
-                    State.ChangedResources[Context.Sender][symbolToAmount.Key].Add(symbolToAmount.Value);
+                {"CPU", State.CpuUnitPrice.Value.Mul(input.ExecutingTime)},
+                {"NET", State.NetUnitPrice.Value.Mul(input.TransactionSize)},
+                {"STO", State.StoUnitPrice.Value.Mul(input.WritesCount)}
+            };
+            foreach (var pair in symbolToAmount)
+            {
+                var existingBalance = State.Balances[Context.Sender][pair.Key];
+                Assert(existingBalance >= pair.Value,
+                    $"Insufficient resource. {pair.Key}: {existingBalance} / {pair.Value}");
+                State.Balances[Context.Sender][pair.Key] = existingBalance.Sub(pair.Value);
+                State.Balances[Context.Self][pair.Key] =
+                    State.Balances[Context.Self][pair.Key].Add(pair.Value);
+                State.ChangedResources[Context.Sender][pair.Key] =
+                    State.ChangedResources[Context.Sender][pair.Key].Add(pair.Value);
             }
             return new Empty();
         }
@@ -465,6 +471,20 @@ namespace AElf.Contracts.MultiToken
             var amount = State.Balances[Context.Self][Context.Variables.NativeSymbol].Sub(input.BalanceBeforeSelling);
             State.Balances[input.ReturnTaxReceiverAddress][Context.Variables.NativeSymbol] =
                 State.Balances[input.ReturnTaxReceiverAddress][Context.Variables.NativeSymbol].Add(amount);
+            return new Empty();
+        }
+
+        public override Empty SetResourceTokenUnitPrice(SetResourceTokenUnitPriceInput input)
+        {
+            Assert(
+                Context.Sender ==
+                Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName) ||
+                Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
+                "No permission to set resource token unit price.");
+
+            State.CpuUnitPrice.Value = input.CpuUnitPrice;
+            State.NetUnitPrice.Value = input.NetUnitPrice;
+            State.StoUnitPrice.Value = input.StoUnitPrice;
             return new Empty();
         }
     }

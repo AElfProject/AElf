@@ -20,6 +20,9 @@ namespace AElf.Contracts.Economic
         public const int ResourceTokenDecimals = 8;
         public const string ResourceTokenConnectorWeight = "0.2";
         public const long ResourceTokenConnectorInitialVirtualBalance = 100_000;
+        public const long CpuUnitPrice = 100;
+        public const long StoUnitPrice = 100;
+        public const long NetUnitPrice = 100;
 
         // Consensus related.
         public const string MiningTokenSymbol = "MINE";

@@ -6,7 +6,7 @@ using Google.Protobuf.Reflection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public interface IExecutionPlugin
+    public interface IPreExecutionPlugin
     {
         Task<IEnumerable<Transaction>> GetPreTransactionsAsync(IReadOnlyList<ServiceDescriptor> descriptors,
             ITransactionContext transactionContext);

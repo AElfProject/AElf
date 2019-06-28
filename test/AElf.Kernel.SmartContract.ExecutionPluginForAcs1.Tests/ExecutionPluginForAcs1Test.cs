@@ -72,9 +72,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
         {
             await DeployContractsAsync();
             await SetMethodFee_Successful(10);
-            var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IExecutionPlugin>>()
+            var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IPreExecutionPlugin>>()
                 .ToLookup(p => p.GetType()).Select(coll => coll.First()); // One instance per type
-            var plugin = plugins.SingleOrDefault(p => p.GetType() == typeof(FeeChargeExecutionPlugin));
+            var plugin = plugins.SingleOrDefault(p => p.GetType() == typeof(FeeChargePreExecutionPlugin));
             plugin.ShouldNotBeNull();
             var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var chain = await bcs.GetChainAsync();

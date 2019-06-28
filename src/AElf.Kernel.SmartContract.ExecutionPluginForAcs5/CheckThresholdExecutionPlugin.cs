@@ -14,12 +14,12 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
 {
-    public class ProfitSharingExecutionPlugin : IExecutionPlugin, ISingletonDependency
+    public class ProfitSharingPreExecutionPlugin : IPreExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private const string AcsSymbol = "acs5";
 
-        public ProfitSharingExecutionPlugin(IHostSmartContractBridgeContextService contextService)
+        public ProfitSharingPreExecutionPlugin(IHostSmartContractBridgeContextService contextService)
         {
             _contextService = contextService;
         }

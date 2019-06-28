@@ -30,6 +30,7 @@ namespace AElf.Contracts.Economic
 
             RegisterElectionVotingEvent();
             SetTreasuryProfitIdsToElectionContract();
+            SetResourceTokenUnitPrice();
 
             InitializeTokenConverterContract();
 
@@ -189,6 +190,16 @@ namespace AElf.Contracts.Economic
                 TreasuryHash = profitIdsCreatedByTreasuryContract[0],
                 SubsidyHash = profitIdsCreatedByTreasuryContract[2],
                 WelfareHash = profitIdsCreatedByTreasuryContract[3]
+            });
+        }
+
+        private void SetResourceTokenUnitPrice()
+        {
+            State.TokenContract.SetResourceTokenUnitPrice.Send(new SetResourceTokenUnitPriceInput
+            {
+                CpuUnitPrice = EconomicContractConstants.CpuUnitPrice,
+                StoUnitPrice = EconomicContractConstants.StoUnitPrice,
+                NetUnitPrice = EconomicContractConstants.NetUnitPrice,
             });
         }
 

@@ -50,6 +50,8 @@ service TokenContract {
     }
     rpc ReturnTax (ReturnTaxInput) returns (google.protobuf.Empty) {
     }
+    rpc SetResourceTokenUnitPrice (SetResourceTokenUnitPriceInput) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -153,7 +155,13 @@ message ChargeTransactionFeesInput {
 }
 
 message ChargeResourceTokenInput {
-    map<string, sint64> symbol_to_amount = 1;
+    sint32 transaction_size = 1;
+    sint32 writes_count = 2;
+    sint32 executing_time = 3;
+}
+
+message TokenSymbolList {
+    repeated string symbol_list = 1;
 }
 
 message GetTokenInfoInput {
@@ -230,6 +238,12 @@ message TransferToContractInput {
 message ReturnTaxInput {
     sint64 balance_before_selling = 1;
     aelf.Address return_tax_receiver_address = 2;
+}
+
+message SetResourceTokenUnitPriceInput {
+    sint64 cpu_unit_price = 1;
+    sint64 sto_unit_price = 2;
+    sint64 net_unit_price = 3;
 }
 
 // Events

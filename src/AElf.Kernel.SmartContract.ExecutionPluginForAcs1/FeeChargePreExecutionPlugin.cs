@@ -12,11 +12,11 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 {
-    public class FeeChargeExecutionPlugin : IExecutionPlugin, ISingletonDependency
+    public class FeeChargePreExecutionPlugin : IPreExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
 
-        public FeeChargeExecutionPlugin(IHostSmartContractBridgeContextService contextService)
+        public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService)
         {
             _contextService = contextService;
         }
