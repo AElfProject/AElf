@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs0;
@@ -25,17 +26,15 @@ namespace AElf.Blockchains.MainChain
         {
             var economicContractMethodCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            economicContractMethodCallList.Add(nameof(EconomicContractContainer.EconomicContractStub.CreateNativeToken),
-                new CreateNativeTokenInput
+            economicContractMethodCallList.Add(nameof(EconomicContractContainer.EconomicContractStub.InitialEconomicSystem),
+                new InitialEconomicSystemInput
                 {
-                    Decimals = _tokenInitialOptions.Decimals,
-                    IsBurnable = _tokenInitialOptions.IsBurnable,
-                    TokenName = _tokenInitialOptions.Name,
-                    TotalSupply = _tokenInitialOptions.TotalSupply
+                    NativeTokenDecimals = _tokenInitialOptions.Decimals,
+                    IsNativeTokenBurnable = _tokenInitialOptions.IsBurnable, 
+                    NativeTokenSymbol= _tokenInitialOptions.Symbol,
+                    NativeTokenTotalSupply = _tokenInitialOptions.TotalSupply,
+                    MiningRewardTotalAmount = Convert.ToInt64(_tokenInitialOptions.TotalSupply * _tokenInitialOptions.DividendPoolRatio)
                 });
-            economicContractMethodCallList.Add(
-                nameof(EconomicContractContainer.EconomicContractStub.InitialMiningReward),
-                new Empty());
 
             //TODO: Maybe should be removed after testing.
             foreach (var tokenReceiver in _consensusOptions.InitialMiners)
@@ -50,9 +49,6 @@ namespace AElf.Blockchains.MainChain
                         Memo = "Set initial miner's balance."
                     });
             }
-
-            economicContractMethodCallList.Add(
-                nameof(EconomicContractContainer.EconomicContractStub.RegisterElectionVotingEvent), new Empty());
             return economicContractMethodCallList;
         }
     }
