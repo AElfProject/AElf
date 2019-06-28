@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -27,6 +29,7 @@ namespace AElf.Contracts.Economic
             InitialMiningReward(input.MiningRewardTotalAmount);
 
             RegisterElectionVotingEvent();
+            SetTreasuryProfitIdsToElectionContract();
 
             InitializeTokenConverterContract();
 
@@ -170,6 +173,23 @@ namespace AElf.Contracts.Economic
             State.ElectionContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
             State.ElectionContract.RegisterElectionVotingEvent.Send(new Empty());
+        }
+
+        private void SetTreasuryProfitIdsToElectionContract()
+        {
+            State.ProfitContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+            var profitIdsCreatedByTreasuryContract = State.ProfitContract.GetCreatedProfitIds.Call(
+                new GetCreatedProfitIdsInput
+                {
+                    Creator = Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
+                }).ProfitIds;
+            State.ElectionContract.SetTreasuryProfitIds.Send(new SetTreasuryProfitIdsInput
+            {
+                TreasuryHash = profitIdsCreatedByTreasuryContract[0],
+                SubsidyHash = profitIdsCreatedByTreasuryContract[2],
+                WelfareHash = profitIdsCreatedByTreasuryContract[3]
+            });
         }
 
         private Address CreateConnectorManager()

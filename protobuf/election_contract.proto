@@ -33,6 +33,8 @@ service ElectionContract {
     }
     rpc UpdateMinersCount (UpdateMinersCountInput) returns (google.protobuf.Empty) {
     }
+    rpc SetTreasuryProfitIds (SetTreasuryProfitIdsInput) returns (google.protobuf.Empty) {
+    }
     
     // View
     rpc GetCandidates (google.protobuf.Empty) returns (PublicKeysList) {
@@ -226,4 +228,10 @@ message GetWelfareRewardAmountSampleOutput {
 
 message GetPageableCandidateInformationOutput {
     repeated CandidateDetail value = 1;
+}
+
+message SetTreasuryProfitIdsInput {
+    aelf.Hash treasury_hash = 1;
+    aelf.Hash welfare_hash = 2;
+    aelf.Hash subsidy_hash = 3;
 }

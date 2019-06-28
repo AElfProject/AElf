@@ -6,7 +6,6 @@ using AElf.Contracts.Economic;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.OS.Node.Application;
 using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -26,14 +25,16 @@ namespace AElf.Blockchains.MainChain
         {
             var economicContractMethodCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            economicContractMethodCallList.Add(nameof(EconomicContractContainer.EconomicContractStub.InitialEconomicSystem),
+            economicContractMethodCallList.Add(
+                nameof(EconomicContractContainer.EconomicContractStub.InitialEconomicSystem),
                 new InitialEconomicSystemInput
                 {
                     NativeTokenDecimals = _tokenInitialOptions.Decimals,
-                    IsNativeTokenBurnable = _tokenInitialOptions.IsBurnable, 
-                    NativeTokenSymbol= _tokenInitialOptions.Symbol,
+                    IsNativeTokenBurnable = _tokenInitialOptions.IsBurnable,
+                    NativeTokenSymbol = _tokenInitialOptions.Symbol,
                     NativeTokenTotalSupply = _tokenInitialOptions.TotalSupply,
-                    MiningRewardTotalAmount = Convert.ToInt64(_tokenInitialOptions.TotalSupply * _tokenInitialOptions.DividendPoolRatio)
+                    MiningRewardTotalAmount =
+                        Convert.ToInt64(_tokenInitialOptions.TotalSupply * _tokenInitialOptions.DividendPoolRatio)
                 });
 
             //TODO: Maybe should be removed after testing.
@@ -43,12 +44,14 @@ namespace AElf.Blockchains.MainChain
                     nameof(EconomicContractContainer.EconomicContractStub.IssueNativeToken), new IssueNativeTokenInput
                     {
                         Amount =
-                            (long) (_tokenInitialOptions.TotalSupply * (1 - _tokenInitialOptions.DividendPoolRatio)) /
+                            Convert.ToInt64(_tokenInitialOptions.TotalSupply *
+                                            (1 - _tokenInitialOptions.DividendPoolRatio)) /
                             _consensusOptions.InitialMiners.Count,
                         To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(tokenReceiver)),
                         Memo = "Set initial miner's balance."
                     });
             }
+
             return economicContractMethodCallList;
         }
     }

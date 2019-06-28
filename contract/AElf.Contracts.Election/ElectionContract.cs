@@ -450,6 +450,15 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
+        public override Empty SetTreasuryProfitIds(SetTreasuryProfitIdsInput input)
+        {
+            Assert(State.TreasuryHash.Value == null, "Treasury profit ids already set.");
+            State.TreasuryHash.Value = input.TreasuryHash;
+            State.WelfareHash.Value = input.WelfareHash;
+            State.SubsidyHash.Value = input.SubsidyHash;
+            return new Empty();
+        }
+
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
             return lockTime.Div(86400).Div(270).Mul(votesAmount).Add(votesAmount.Mul(2).Div(3));

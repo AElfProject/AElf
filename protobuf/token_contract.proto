@@ -199,6 +199,11 @@ message CrossChainReceiveTokenInput {
     repeated aelf.Hash merklePath = 4;
 }
 
+message IsInWhiteListInput {
+    string symbol = 1;
+    aelf.Address address = 2;
+}
+
 message CheckThresholdInput {
     aelf.Address sender = 1;
     map<string, sint64> symbol_to_threshold = 2;
@@ -259,13 +264,4 @@ message Burned
     aelf.Address burner = 1 [(aelf.is_indexed) = true];
     string symbol = 2 [(aelf.is_indexed) = true];
     sint64 amount = 3;
-}
-
-message IsInWhiteListInput {
-    string symbol = 1;
-    aelf.Address address = 2;
-}
-
-message TokenSymbolList {
-    repeated string symbol_list = 1;
 }
