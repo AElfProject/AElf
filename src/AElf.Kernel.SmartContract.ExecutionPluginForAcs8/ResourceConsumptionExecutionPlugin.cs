@@ -23,7 +23,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             _contextService = contextService;
         }
 
-        private static bool IsAcs5(IReadOnlyList<ServiceDescriptor> descriptors)
+        private static bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
         {
             return descriptors.Any(service => service.File.GetIndentity() == AcsSymbol);
         }
@@ -31,7 +31,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
         public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
-            if (!IsAcs5(descriptors))
+            if (!IsAcs8(descriptors))
             {
                 return new List<Transaction>();
             }
