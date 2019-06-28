@@ -45,9 +45,20 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 return true;
 
             var transactions = await _blockchainService.GetTransactionsAsync(block.TransactionHashList);
-            var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header.Clone(), transactions);
 
-            return executedBlock.GetHash().Equals(blockHash);
+            var executedBlockHash = executedBlock.GetHash();
+            if (executedBlockHash.Equals(blockHash))
+                return true;
+
+            Logger.LogError($"ExecuteBlock missing match, block hash: {blockHash}, executedBlock hash: {executedBlockHash}");
+            Logger.LogError($"MerkleTreeRootOfTransactions: {block.Header.MerkleTreeRootOfTransactions}, " +
+                            $"MerkleTreeRootOfWorldState: {block.Header.MerkleTreeRootOfWorldState} " +
+                            $"MerkleTreeRootOfTransactionStatus: {block.Header.MerkleTreeRootOfTransactionStatus}");
+            Logger.LogError($"MerkleTreeRootOfTransactions: {executedBlock.Header.MerkleTreeRootOfTransactions}, " +
+                            $"MerkleTreeRootOfWorldState: {executedBlock.Header.MerkleTreeRootOfWorldState} " +
+                            $"MerkleTreeRootOfTransactionStatus: {executedBlock.Header.MerkleTreeRootOfTransactionStatus}");
+            return false;
         }
 
         public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain,
