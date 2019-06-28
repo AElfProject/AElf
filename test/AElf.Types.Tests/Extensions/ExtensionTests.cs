@@ -39,7 +39,7 @@ namespace AElf.Types.Tests.Extensions
             byteArray1.ShouldNotBe(null);
 
             //hash
-            var hash = iNumber.ComputeHash();
+            var hash = iNumber.ToHash();
             hash.ShouldNotBe(null);
         }
 

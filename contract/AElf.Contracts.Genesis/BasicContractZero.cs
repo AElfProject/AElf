@@ -210,7 +210,7 @@ namespace AElf.Contracts.Genesis
 
         public static Address BuildContractAddress(int chainId, ulong serialNumber)
         {
-            return BuildContractAddress(chainId.ComputeHash(), serialNumber);
+            return BuildContractAddress(chainId.ToHash(), serialNumber);
         }
     }
 }
