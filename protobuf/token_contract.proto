@@ -44,6 +44,8 @@ service TokenContract {
     }
     rpc ReceiveProfits (ReceiveProfitsInput) returns (google.protobuf.Empty) {
     }
+    rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
@@ -203,6 +205,12 @@ message ProfitReceivingInformation {
 message ReceiveProfitsInput {
     aelf.Address contract_address = 1;
     repeated string symbols = 2;
+}
+
+message TransferToContractInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    string memo = 3;
 }
 
 // Events

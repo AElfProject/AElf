@@ -366,5 +366,27 @@ namespace AElf.Contracts.MultiToken
 
             return new Empty();
         }
+
+        public override Empty TransferToContract(TransferToContractInput input)
+        {
+            AssertValidToken(input.Symbol, input.Amount);
+
+            // First check allowance.
+            var allowance = State.Allowances[Context.Origin][Context.Sender][input.Symbol];
+            if (allowance < input.Amount)
+            {
+                if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value)
+                {
+                    DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
+                    return new Empty();
+                }
+
+                Assert(false, $"Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}");
+            }
+
+            DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
+            State.Allowances[Context.Origin][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
+            return new Empty();
+        }
     }
 }
