@@ -9,7 +9,7 @@
         <Exec Condition="'$(OS)' != 'Windows_NT'" Command="cp -f node_modules/aelf-sdk/dist/aelf.js Scripts/aelf.js" />
         <Exec Condition="'$(OS)' == 'Windows_NT'" Command="copy /b/v/y node_modules\aelf-sdk\dist\aelf.js Scripts\aelf.js" />
         <ItemGroup>
-            <Content Include="Scripts\aelf.js" CopyToOutputDirectory="true" />
+            <Content Include="Scripts\aelf.js" CopyToOutputDirectory="PreserveNewest" />
         </ItemGroup>
     </Target>
     <Target Name="InstallChakraCore" AfterTargets="AfterBuild">
