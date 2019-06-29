@@ -45,7 +45,6 @@ namespace AElf.CLI.JS.Net
             _context = context;
         }
 
-        
         public JSValue Send(JSValue payload)
         {
             try
