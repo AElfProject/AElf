@@ -16,8 +16,6 @@ service ProfitContract {
     }
     rpc CreateProfitItem (CreateProfitItemInput) returns (aelf.Hash) {
     }
-    rpc CreateTreasuryProfitItem (CreateProfitItemInput) returns (aelf.Hash) {
-    }
     rpc SetTreasuryProfitId (aelf.Hash) returns (google.protobuf.Empty) {
     }
     rpc AddWeight (AddWeightInput) returns (google.protobuf.Empty) {

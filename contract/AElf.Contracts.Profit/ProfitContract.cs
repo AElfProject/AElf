@@ -67,31 +67,6 @@ namespace AElf.Contracts.Profit
             return profitId;
         }
 
-        public override Hash CreateTreasuryProfitItem(CreateProfitItemInput input)
-        {
-            if (State.IsTreasuryProfitItemCreated[Context.Sender] == false)
-            {
-                return Hash.Empty;
-            }
-
-            var profitId = CreateProfitItem(input);
-
-            var profitItem = State.ProfitItemsMap[profitId];
-            profitItem.IsTreasuryProfitItem = true;
-            State.ProfitItemsMap[profitId] = profitItem;
-
-            RegisterSubProfitItem(new RegisterSubProfitItemInput
-            {
-                ProfitId = profitId,
-                SubProfitId = State.TreasuryProfitId.Value,
-                SubItemWeight = ProfitContractConsts.TreasuryProfitItemTreasuryWeight
-            });
-
-            State.IsTreasuryProfitItemCreated[Context.Sender] = true;
-
-            return profitId;
-        }
-
         public override Empty SetTreasuryProfitId(Hash input)
         {
             Assert(State.TreasuryProfitId.Value == null, "Treasury profit id already set.");
