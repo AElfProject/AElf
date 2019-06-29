@@ -31,12 +31,13 @@ namespace AElf.CLI.Commands
             {
                 // Get res
                 _engine.RunScript($@"
-                    var res = aelf.chain.getBlockHeight();
+                    var res = aelf.chain.getBlockHeight('{"sync:true"}');
                 ");
                 // Format res
                 _engine.RunScript($@"
                     var resStr = JSON.stringify(res, null, 2);
                 ");
+                var res = _engine.GlobalObject.ReadProperty<string>("resStr");
                 Console.WriteLine(_engine.GlobalObject.ReadProperty<string>("resStr"));
             }
             catch (JavaScriptException e)

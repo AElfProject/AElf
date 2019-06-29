@@ -1,13 +1,11 @@
 (function () {
     _requestor.isConnected = function () {
         try {
-            var res = this.send({
-                id: 1234,
-                jsonrpc: '2.0',
-                method: 'GetChainInformation',
-                params: {}
+            this.send({
+                method: 'GET',
+                url: 'blockChain/chainStatus'
             });
-            return res && res.error === undefined;
+            return true;
         } catch (e) {
             return false;
         }

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using ChakraCore.NET;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -23,7 +24,7 @@ namespace AElf.CLI.JS.Net
         private HttpClient _client;
         private string _serverUrl;
         private ChakraContext _context;
-
+        private const string ApiPath = "api";
         private string _toString(JSValue input)
         {
             var res = _context.GlobalObject.CallFunction<JSValue, string>("_toString", input);
@@ -50,8 +51,9 @@ namespace AElf.CLI.JS.Net
             try
             {
                 var content = _toString(payload);
-                var url = "/chain";
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, url)
+                var model = JsonConvert.DeserializeObject<HttpRequestModel>(content);
+                var uri = new Uri(_client.BaseAddress, $"{ApiPath}/{model.Url}");
+                var request = new HttpRequestMessage(CreateHttpMethod(model.Method), uri)
                 {
                     Content = new StringContent(content)
                     {
@@ -65,6 +67,21 @@ namespace AElf.CLI.JS.Net
             catch (Exception e)
             {
                 return _fromString(JsonConvert.SerializeObject(new HttpRequestorError(e.Message)));
+            }
+        }
+        
+        private HttpMethod CreateHttpMethod(string method)
+        {
+            switch (method.ToUpper())
+            {
+                case "POST":
+                    return HttpMethod.Post;
+                case "GET":
+                    return HttpMethod.Get;
+                case "DELETE":
+                    return HttpMethod.Delete;
+                default:
+                    throw new NotImplementedException();
             }
         }
     }
