@@ -22,7 +22,7 @@ namespace AElf.Contracts.CrossChain
                 BoundParentChainHeight = boundParentChainHeight
             };
         }
-        
+
         /// <summary>
         /// Cross chain txn verification.
         /// </summary>
@@ -35,11 +35,11 @@ namespace AElf.Contracts.CrossChain
             Assert(merkleTreeRoot != null,
                 $"Parent chain block at height {parentChainHeight} is not recorded.");
             var rootCalculated = ComputeRootWithTransactionStatusMerklePath(input.TransactionId, input.Path);
-            
+
             //Api.Assert((parentRoot??Hash.Empty).Equals(rootCalculated), "Transaction verification Failed");
             return new BoolValue {Value = merkleTreeRoot.Equals(rootCalculated)};
         }
-        
+
         public override SInt32Value GetChainStatus(SInt32Value input)
         {
             var info = State.SideChainInfo[input.Value];
@@ -49,13 +49,15 @@ namespace AElf.Contracts.CrossChain
 
         public override SInt64Value GetSideChainHeight(SInt32Value input)
         {
+            var info = State.SideChainInfo[input.Value];
+            Assert(info != null, "Not existed side chain.");
             var height = State.CurrentSideChainHeight[input.Value];
-            Assert(height != 0);
+            Assert(height != 0, "Not started side chain.");
             return new SInt64Value() {Value = height};
         }
 
         public override SInt64Value GetParentChainHeight(Empty input)
-        {            
+        {
             var parentChainHeight = State.CurrentParentChainHeight.Value;
             return new SInt64Value
             {
@@ -103,7 +105,7 @@ namespace AElf.Contracts.CrossChain
             if (State.ParentChainId.Value == 0)
                 return dict;
             var parentChainHeight = GetParentChainHeight(new Empty()).Value;
-            dict.IdHeightDict.Add(State.ParentChainId.Value, parentChainHeight); 
+            dict.IdHeightDict.Add(State.ParentChainId.Value, parentChainHeight);
             return dict;
         }
 

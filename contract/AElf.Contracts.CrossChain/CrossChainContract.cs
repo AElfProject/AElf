@@ -26,12 +26,12 @@ namespace AElf.Contracts.CrossChain
                 State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
                 State.GenesisContract.ChangeAdministrator.Send(input.ChainCreator);
             }
-            
+
             return new Empty();
         }
 
         #region Side chain lifetime actions
- 
+
         /// <summary>
         /// Create side chain. It is a proposal result from system address.
         /// </summary>
@@ -41,9 +41,9 @@ namespace AElf.Contracts.CrossChain
         {
             // side chain creation should be triggered by organization address from parliament.
             CheckOwnerAuthority();
-            
-            Assert(sideChainCreationRequest.LockedTokenAmount > 0 
-                   && sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice 
+
+            Assert(sideChainCreationRequest.LockedTokenAmount > 0
+                   && sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice
                    && !sideChainCreationRequest.ContractCode.IsEmpty,
                 "Invalid chain creation request.");
 
@@ -66,7 +66,7 @@ namespace AElf.Contracts.CrossChain
             State.CurrentSideChainHeight[chainId] = 0;
 
             var initialConsensusInfo = GetCurrentMiners();
-            State.SideChainInitialConsensusInfo[chainId] = new BytesValue{Value = initialConsensusInfo.ToByteString()};
+            State.SideChainInitialConsensusInfo[chainId] = new BytesValue {Value = initialConsensusInfo.ToByteString()};
             Context.LogDebug(() => $"Initial miner list for side chain {chainId} :" +
                                    string.Join(",",
                                        initialConsensusInfo.MinerList.PublicKeys));
@@ -75,7 +75,7 @@ namespace AElf.Contracts.CrossChain
             Context.Fire(new CreationRequested()
             {
                 ChainId = chainId,
-                Creator = Context.Sender
+                Creator = Context.Origin
             });
             return new SInt32Value() {Value = chainId};
         }
@@ -101,7 +101,7 @@ namespace AElf.Contracts.CrossChain
                 sideChainInfo.SideChainStatus = SideChainStatus.Active;
                 State.SideChainInfo[chainId] = sideChainInfo;
             }
-           
+
             TransferFrom(new TransferFromInput
             {
                 From = Context.Sender,
@@ -141,7 +141,7 @@ namespace AElf.Contracts.CrossChain
             });
             return new SInt64Value {Value = chainId};
         }
-        
+
         #endregion Side chain lifetime actions
 
         #region Cross chain actions
@@ -159,7 +159,7 @@ namespace AElf.Contracts.CrossChain
             //Assert(IsMiner(), "Not authorized to do this.");
             var indexedCrossChainData = State.IndexedCrossChainBlockData[Context.CurrentHeight];
             Assert(indexedCrossChainData == null); // This should not fail.
-            
+
             var sideChainBlockData = crossChainBlockData.SideChainBlockData;
             IndexParentChainBlockInfo(crossChainBlockData.ParentChainBlockData.ToArray());
             var indexedSideChainBlockData = IndexSideChainBlockInfo(sideChainBlockData.ToArray());
@@ -182,7 +182,7 @@ namespace AElf.Contracts.CrossChain
 //            Assert(parentChainBlockData.Length <= 256, "Beyond maximal capacity for once indexing.");
             var parentChainId = State.ParentChainId.Value;
             var currentHeight = State.CurrentParentChainHeight.Value;
-            
+
             for (var i = 0; i < parentChainBlockData.Length; i++)
             {
                 var blockInfo = parentChainBlockData[i];
@@ -193,7 +193,8 @@ namespace AElf.Contracts.CrossChain
                     $"Parent chain block info at height {targetHeight} is needed, not {parentChainHeight}");
                 Assert(blockInfo.TransactionStatusMerkleRoot != null,
                     "Parent chain transaction status merkle tree root needed.");
-                State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight] = blockInfo.TransactionStatusMerkleRoot;
+                State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight] =
+                    blockInfo.TransactionStatusMerkleRoot;
                 foreach (var indexedBlockInfo in blockInfo.IndexedMerklePath)
                 {
                     BindParentChainHeight(indexedBlockInfo.Key, parentChainHeight);
@@ -206,7 +207,7 @@ namespace AElf.Contracts.CrossChain
                     Context.LogDebug(() => "Updating consensus information..");
                     UpdateCurrentMiners(bytes);
                 }
-                
+
                 if (blockInfo.CrossChainExtraData != null)
                     State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight] =
                         blockInfo.CrossChainExtraData.SideChainTransactionsRoot;
@@ -236,7 +237,7 @@ namespace AElf.Contracts.CrossChain
                 if (info == null || info.SideChainStatus != SideChainStatus.Active)
                     continue;
                 var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
-                
+
                 var target = currentSideChainHeight != 0
                     ? currentSideChainHeight + 1
                     : Constants.GenesisBlockHeight;
@@ -250,12 +251,12 @@ namespace AElf.Contracts.CrossChain
 
                 lockedToken -= indexingPrice;
                 State.IndexingBalance[chainId] = lockedToken;
-                
+
                 if (lockedToken < indexingPrice)
                 {
                     info.SideChainStatus = SideChainStatus.InsufficientBalance;
                 }
-                
+
                 State.SideChainInfo[chainId] = info;
 
                 Transfer(new TransferInput
@@ -269,10 +270,10 @@ namespace AElf.Contracts.CrossChain
                 State.CurrentSideChainHeight[chainId] = sideChainHeight;
                 indexedSideChainBlockData.Add(blockInfo);
             }
-            
+
             return indexedSideChainBlockData;
         }
-        
+
         #endregion Cross chain actions
 
         public override Empty ChangOwnerAddress(Address input)
