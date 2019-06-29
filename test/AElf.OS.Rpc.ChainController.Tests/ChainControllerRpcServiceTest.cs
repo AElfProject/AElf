@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common.Application;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
@@ -504,68 +503,6 @@ namespace AElf.OS.Rpc.ChainController.Tests
             response1["error"]["code"].To<long>().ShouldBe(Error.NotFound);
             response1["error"]["message"].ToString().ShouldBe(Error.Message[Error.NotFound]);
         }
-        #endregion
-
-        #region Wallet cases
-
-        [Fact]
-        public async Task Wallet_ListAccounts()
-        {
-            var chain = await _blockchainService.GetChainAsync();
-            var walletStorePath = Path.Combine(ApplicationHelper.AppDataPath, "rpc-managed-wallet");
-            var store = new AElfKeyStore(walletStorePath);
-            var keyPair = await store.CreateAsync("123", chain.Id.ToString());
-            var addressString = Address.FromPublicKey(keyPair.PublicKey).GetFormatted();
-
-            var response = await JsonCallAsJObject("/wallet", "ListAccounts");
-            response.ShouldNotBeNull();
-            response["result"].ToList().Count.ShouldBeGreaterThanOrEqualTo(1);
-            response["result"].ToList().Contains(addressString).ShouldBeTrue();
-
-            Directory.Delete(walletStorePath, true);
-        }
-
-        [Fact]
-        public async Task Wallet_SignHash_Success()
-        {
-            var chain = await _blockchainService.GetChainAsync();
-            var walletStorePath = Path.Combine(ApplicationHelper.AppDataPath, "rpc-managed-wallet");
-            var store = new AElfKeyStore(walletStorePath);
-            var keyPair = await store.CreateAsync("123", chain.Id.ToString());
-            var addressString = Address.FromPublicKey(keyPair.PublicKey).GetFormatted();
-
-            var response = await JsonCallAsJObject("/wallet", "SignHash",
-                new {address = addressString, password = "123", hash = Hash.Generate().ToHex()});
-            response.ShouldNotBeNull();
-            response["result"].ToString().ShouldNotBeEmpty();
-
-            Directory.Delete(walletStorePath, true);
-        }
-
-        [Fact]
-        public async Task Wallet_SignHash_Failed()
-        {
-            var chain = await _blockchainService.GetChainAsync();
-            var walletStorePath = Path.Combine(ApplicationHelper.AppDataPath, "rpc-managed-wallet");
-            var store = new AElfKeyStore(walletStorePath);
-            var keyPair = await store.CreateAsync("123", chain.Id.ToString());
-            var addressString = Address.FromPublicKey(keyPair.PublicKey).GetFormatted();
-
-            var response = await JsonCallAsJObject("/wallet", "SignHash",
-                new {address = addressString, password = "wrong_password", hash = Hash.Generate().ToHex()});
-            response.ShouldNotBeNull();
-            response["error"]["code"].To<long>().ShouldBe(Wallet.Error.WrongPassword);
-            response["error"]["message"].ToString().ShouldBe(Wallet.Error.Message[Wallet.Error.WrongPassword]);
-
-            response = await JsonCallAsJObject("/wallet", "SignHash",
-                new {address = addressString + "test", password = "123", hash = Hash.Generate().ToHex()});
-            response.ShouldNotBeNull();
-            response["error"]["code"].To<long>().ShouldBe(Wallet.Error.AccountNotExist);
-            response["error"]["message"].ToString().ShouldBe(Wallet.Error.Message[Wallet.Error.AccountNotExist]);
-
-            Directory.Delete(walletStorePath, true);
-        }
-
         #endregion
 
         #region Net cases
