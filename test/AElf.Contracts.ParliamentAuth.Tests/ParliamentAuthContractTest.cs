@@ -57,10 +57,9 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task Get_OrganizationFailed()
         {
-            var transactionResult =
-                await ParliamentAuthContractStub.GetOrganization.SendAsync(Address.FromString("Test"));
-            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.TransactionResult.Error.Contains("No registered organization.").ShouldBeTrue();
+            var organization =
+                await ParliamentAuthContractStub.GetOrganization.CallAsync(Address.FromString("Test"));
+            organization.ShouldBe(new Organization());
         }
         
         [Fact]
@@ -81,9 +80,8 @@ namespace AElf.Contracts.ParliamentAuth
         [Fact]
         public async Task Get_ProposalFailed()
         {
-            var transactionResult = await ParliamentAuthContractStub.GetProposal.SendAsync(Hash.FromString("Test"));
-            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
+            var proposalOutput = await ParliamentAuthContractStub.GetProposal.CallAsync(Hash.FromString("Test"));
+            proposalOutput.ShouldBe(new ProposalOutput());
         }
 
         [Fact]
@@ -152,7 +150,6 @@ namespace AElf.Contracts.ParliamentAuth
                 
                 var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.TransactionResult.Error.Contains("Expired proposal.").ShouldBeTrue();
             }
             //"No registered organization."
             {
@@ -183,7 +180,6 @@ namespace AElf.Contracts.ParliamentAuth
                 ProposalId = Hash.FromString("Test")
             });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
         }
 
         [Fact]
@@ -230,7 +226,7 @@ namespace AElf.Contracts.ParliamentAuth
             Thread.Sleep(100);
             var transactionResult2 = await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput{ProposalId = proposalId});
             transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult2.TransactionResult.Error.Contains("Approval already existed.").ShouldBeTrue();
+            transactionResult2.TransactionResult.Error.Contains("Already approved").ShouldBeTrue();
         }
 
         [Fact]
