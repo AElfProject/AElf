@@ -29,15 +29,6 @@ namespace AElf.Contracts.ReferendumAuth
         }
 
         [Fact]
-        public async Task ReferendumAuthContract_InitializeMultiTimes()
-        {
-            var transactionResult =
-                await ReferendumAuthContractStub.Initialize.SendAsync(new Empty());
-            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.TransactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
-        }
-        
-        [Fact]
         public async Task Get_Organization()
         {
             _organizationAddress = await Create_Organization();
@@ -52,10 +43,9 @@ namespace AElf.Contracts.ReferendumAuth
         [Fact]
         public async Task Get_OrganizationFailed()
         {
-            var transactionResult =
-                await ReferendumAuthContractStub.GetOrganization.SendAsync(Address.FromString("Test"));
-            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.TransactionResult.Error.Contains("No registered organization.").ShouldBeTrue();
+            var organization =
+                await ReferendumAuthContractStub.GetOrganization.CallAsync(Address.FromString("Test"));
+            organization.ShouldBe(new Organization());
         }
         
         [Fact]
@@ -76,9 +66,8 @@ namespace AElf.Contracts.ReferendumAuth
         [Fact]
         public async Task Get_ProposalFailed()
         {
-            var transactionResult = await ReferendumAuthContractStub.GetProposal.SendAsync(Hash.FromString("Test"));
-            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.TransactionResult.Error.Contains("Proposal not found.").ShouldBeTrue();
+            var proposal = await ReferendumAuthContractStub.GetProposal.CallAsync(Hash.FromString("Test"));
+            proposal.ShouldBe(new ProposalOutput());
         }
         
         [Fact]
@@ -122,7 +111,6 @@ namespace AElf.Contracts.ReferendumAuth
                 
                 var transactionResult = await ReferendumAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.TransactionResult.Error.Contains("Expired proposal.").ShouldBeTrue();
             }
             {
                 //"No registered organization."
@@ -153,7 +141,7 @@ namespace AElf.Contracts.ReferendumAuth
                 ProposalId = Hash.FromString("Test")
             });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.TransactionResult.Error.Contains("Proposal not found.").ShouldBeTrue();
+            transactionResult.TransactionResult.Error.Contains("Invalid proposal id").ShouldBeTrue();
         }
 
         [Fact]
