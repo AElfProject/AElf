@@ -135,10 +135,10 @@ namespace AElf.Contracts.ReferendumAuth
             // State.LockedTokenAmount[Context.Sender][proposalId] = null;
             UnlockToken(new UnlockInput
             {
-                Amount = voteToken.Amount,
+                Amount = lockReceipt.Amount,
                 Address = Context.Sender,
-                LockId = voteToken.LockId,
-                Symbol = voteToken.TokenSymbol,
+                LockId = lockReceipt.LockId,
+                Symbol = lockReceipt.TokenSymbol,
                 Usage = "Referendum."
             });
             return new Empty();
