@@ -6,15 +6,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using Microsoft.Extensions.Logging;
-using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -40,8 +36,6 @@ namespace AElf.OS.Network.Grpc
         private readonly Channel _channel;
         private readonly PeerService.PeerServiceClient _client;
         
-        public ILogger<GrpcPeer> Logger { get; set; }
-
         /// <summary>
         /// Property that describes a valid state. Valid here means that the peer is ready to be used for communication.
         /// </summary>
@@ -198,7 +192,6 @@ namespace AElf.OS.Network.Grpc
         {
             if (!CanStreamBlocks)
             {
-                Logger.LogWarning("Request block reverted to old method.");
                 return await RequestBlockUnaryAsync(blockHash);
             }
             
@@ -214,13 +207,11 @@ namespace AElf.OS.Network.Grpc
                 if (received)
                 {
                     if (s.ElapsedMilliseconds > BlockRequestTimeout)
-                        Logger.LogWarning($"Block request slow: {s.ElapsedMilliseconds}");
+                        throw new NetworkException($"Block request for slow: {s.ElapsedMilliseconds}, hash {blockHash}");
                     
                     var block = _blockRequestBlockStream.ResponseStream.Current;
                     return block.Block;
                 }
-                
-                Logger.LogWarning($"Could not get {blockHash} from {this};");
             }
             catch (RpcException e)
             {

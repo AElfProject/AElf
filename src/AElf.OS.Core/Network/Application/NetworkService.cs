@@ -169,9 +169,7 @@ namespace AElf.OS.Network.Application
         {
             try
             {
-                Logger.LogDebug($"before request send to {peer.PeerIpAddress}.");
                 var res = await func(peer);
-                Logger.LogDebug($"request send to {peer.PeerIpAddress}.");
                 
                 return (peer, res);
             }
