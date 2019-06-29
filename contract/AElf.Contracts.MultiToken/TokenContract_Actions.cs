@@ -52,7 +52,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Issue(IssueInput input)
         {
             Assert(input.To != null, "To address not filled.");
-            var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
+            var tokenInfo = AssertValidToken(input.Symbol, input.Amount, true);
             Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == Context.GetZeroSmartContractAddress(),
                 $"Sender is not allowed to issue token {input.Symbol}.");
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
