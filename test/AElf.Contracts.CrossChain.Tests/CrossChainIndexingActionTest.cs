@@ -452,7 +452,7 @@ namespace AElf.Contract.CrossChain.Tests
                 {
                     Value = sideChainId
                 })).Value;
-            Assert.Equal(4, chainStatus);
+            Assert.Equal((int) SideChainStatus.Terminated, chainStatus);
         }
 
         [Fact]

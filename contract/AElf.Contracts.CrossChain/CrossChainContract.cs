@@ -126,10 +126,7 @@ namespace AElf.Contracts.CrossChain
             var chainId = input.ChainId;
             var amount = input.Amount;
             var sideChainInfo = State.SideChainInfos[chainId];
-            Assert(
-                sideChainInfo != null &&
-                (sideChainInfo.SideChainStatus == SideChainStatus.Active ||
-                 sideChainInfo.SideChainStatus == SideChainStatus.InsufficientBalance),
+            Assert(sideChainInfo != null && sideChainInfo.SideChainStatus == SideChainStatus.Active,
                 "Side chain not found or not able to be recharged.");
             State.IndexingBalance[chainId] = State.IndexingBalance[chainId] + amount;
             if (State.IndexingBalance[chainId] > sideChainInfo.SideChainCreationRequest.IndexingPrice)
@@ -159,7 +156,7 @@ namespace AElf.Contracts.CrossChain
             // no need to check authority since invoked in transaction from normal address
             var request = State.SideChainInfos[input.Value];
             Assert(
-                request != null && (request.SideChainStatus == SideChainStatus.Active || request.SideChainStatus == SideChainStatus.InsufficientBalance),"Side chain not found");
+                request != null && request.SideChainStatus == SideChainStatus.Active, "Side chain not found");
             
             Assert(Context.Sender.Equals(request.Proposer), "Not authorized to dispose.");
 
@@ -183,7 +180,7 @@ namespace AElf.Contracts.CrossChain
             //CheckAuthority(Context.Genesis);
             var info = State.SideChainInfos[chainId];
             Assert(info != null, "Not existed side chain.");
-            Assert(info.SideChainStatus == SideChainStatus.Active || info.SideChainStatus == SideChainStatus.InsufficientBalance, "Unable to dispose this side chain.");
+            Assert(info.SideChainStatus == SideChainStatus.Active, "Unable to dispose this side chain.");
 
             UnlockTokenAndResource(info);
             info.SideChainStatus = SideChainStatus.Terminated;
