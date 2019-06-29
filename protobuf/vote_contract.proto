@@ -13,8 +13,6 @@ service VoteContract {
     option (aelf.csharp_state) = "AElf.Contracts.Vote.VoteContractState";
 
     // Action
-    rpc InitialVoteContract (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
     rpc Register (VotingRegisterInput) returns (google.protobuf.Empty) {
     }
     rpc Vote (VoteInput) returns (google.protobuf.Empty) {

@@ -12,13 +12,6 @@ namespace AElf.Contracts.Vote
     /// </summary>
     public partial class VoteContract : VoteContractContainer.VoteContractBase
     {
-        public override Empty InitialVoteContract(Empty input)
-        {
-            Assert(!State.Initialized.Value, "Already initialized.");
-            State.Initialized.Value = true;
-            return new Empty();
-        }
-
         public override Empty Register(VotingRegisterInput input)
         {
             var votingItemId = input.GetHash(Context.Sender);

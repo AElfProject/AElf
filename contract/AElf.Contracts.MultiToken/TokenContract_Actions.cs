@@ -58,7 +58,7 @@ namespace AElf.Contracts.MultiToken
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
             Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
-            State.Balances[input.To][input.Symbol] = input.Amount;
+            State.Balances[input.To][input.Symbol] = State.Balances[input.To][input.Symbol].Add(input.Amount);
             return new Empty();
         }
 
