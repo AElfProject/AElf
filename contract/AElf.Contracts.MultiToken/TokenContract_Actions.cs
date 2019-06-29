@@ -13,6 +13,11 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract : TokenContractImplContainer.TokenContractImplBase
     {
+        /// <summary>
+        /// Register the TokenInfo into TokenContract add set true in the TokenContractState.LockWhiteLists;
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty Create(CreateInput input)
         {
             var existing = State.TokenInfos[input.Symbol];
@@ -59,6 +64,11 @@ namespace AElf.Contracts.MultiToken
             return Create(createInput);
         }
 
+        /// <summary>
+        /// Issue the token of corresponding contract
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty Issue(IssueInput input)
         {
             Assert(input.To != null, "To address not filled.");
@@ -72,6 +82,11 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        /// <summary>
+        /// Issue the token to the system contract
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty IssueNativeToken(IssueNativeTokenInput input)
         {
             Assert(input.ToSystemContractName != null, "To address not filled.");
@@ -93,6 +108,11 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        /// <summary>
+        /// Transfer token form a chain to another chain
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty CrossChainTransfer(CrossChainTransferInput input)
         {
             AssertValidToken(input.TokenInfo.Symbol, input.Amount);
@@ -105,6 +125,12 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+
+        /// <summary>
+        /// Receive the token from another chain
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty CrossChainReceiveToken(CrossChainReceiveTokenInput input)
         {
             var transferTransaction = Transaction.Parser.ParseFrom(input.TransferTransactionBytes);
@@ -193,6 +219,7 @@ namespace AElf.Contracts.MultiToken
                     DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
                     return new Empty();
                 }
+
                 Assert(false, "Insufficient allowance.");
             }
 
@@ -273,7 +300,7 @@ namespace AElf.Contracts.MultiToken
             var feePoolAddressNotSet =
                 State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
             Assert(!feePoolAddressNotSet, "Fee pool address is not set.");
-            
+
             var transactions = Context.GetPreviousBlockTransactions();
             var senders = transactions.Select(t => t.From).ToList();
             var feePool = State.FeePoolAddress.Value;
