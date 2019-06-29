@@ -68,7 +68,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract
         /// <returns></returns>
         public override Empty StoConsumingMethod(Empty input)
         {
-            for (var i = 0; i < 999_999; i++)
+            for (var i = 0; i < 999; i++)
             {
                 State.Map[i.ToString()] = i.ToString();
             }
@@ -82,6 +82,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract
         /// <param name="input"></param>
         /// <returns></returns>
         public override Empty NetConsumingMethod(NetConsumingMethodInput input)
+        {
+            return new Empty();
+        }
+
+        public override Empty FewConsumingMethod(Empty input)
         {
             return new Empty();
         }

@@ -16,6 +16,8 @@ service Contract {
     }
     rpc NetConsumingMethod (NetConsumingMethodInput) returns (google.protobuf.Empty) {
     }
+    rpc FewConsumingMethod (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
 }
 
 message NetConsumingMethodInput {
