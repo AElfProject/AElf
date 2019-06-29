@@ -14,13 +14,14 @@ service PeerService {
 
     rpc Announce (PeerNewBlockAnnouncement) returns (VoidReply) {}
     rpc SendTransaction (aelf.Transaction) returns (VoidReply) {}
-
+    
     rpc TransactionBroadcastStream (stream aelf.Transaction) returns (VoidReply) {}
     rpc AnnouncementBroadcastStream (stream PeerNewBlockAnnouncement) returns (VoidReply) {}
 
     rpc Connect (Handshake) returns (ConnectReply) {}
     rpc FinalizeConnect (Handshake) returns (VoidReply) {}
-    
+    rpc UpdateHandshake(UpdateHandshakeRequest) returns (Handshake) {}
+
     rpc Disconnect (DisconnectReason) returns (VoidReply) {}
 }
 
@@ -40,6 +41,9 @@ enum AuthError {
     CHAIN_MISMATCH = 5;
     PROTOCOL_MISMATCH = 6;
     CONNECTION_REFUSED = 7;
+}
+
+message UpdateHandshakeRequest {
 }
 
 // **** Blocks *****
