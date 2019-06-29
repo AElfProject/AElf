@@ -11,26 +11,10 @@ option (aelf.identity) = "acs8";
 
 service ResourceConsumptionContract {
     // Actions
-    rpc SetResourceConsumptionAmount (SetResourceConsumptionAmountInput) returns (google.protobuf.Empty) {
-    }
     rpc BuyResourceToken (BuyResourceTokenInput) returns (google.protobuf.Empty) {
     }
-    rpc SetResourceTokenBuyingPreferences (SetResourceTokenBuyingPreferencesInput) returns (google.protobuf.Empty) {
+    rpc SetResourceTokenBuyingPreferences (ResourceTokenBuyingPreferences) returns (google.protobuf.Empty) {
     }
-
-    // Views
-    rpc GetResourceConsumptionAmount (google.protobuf.StringValue) returns (ResourceConsumptionAmount) {
-        option (aelf.is_view) = true;
-    }
-}
-
-message ResourceConsumptionAmount {
-    map<string, sint64> symbol_to_amount = 1;
-}
-
-message SetResourceConsumptionAmountInput {
-    string method = 1;
-    map<string, sint64> symbol_to_amount = 2;
 }
 
 message BuyResourceTokenInput {
@@ -39,7 +23,7 @@ message BuyResourceTokenInput {
     sint64 pay_limit = 3; // No buy if paying more than this, 0 if no limit
 }
 
-message SetResourceTokenBuyingPreferencesInput {
+message ResourceTokenBuyingPreferences {
     sint64 cpu_threshold = 1;
     sint64 sto_threshold = 2;
     sint64 net_threshold = 3;
