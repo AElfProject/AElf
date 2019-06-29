@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using AElf.Contracts.TestContract;
 using AElf.Contracts.TestContract.BasicFunction;
@@ -86,7 +85,17 @@ namespace AElf.Contract.TestContract
                 new Empty())).Int64Value;
             rewardMoney.ShouldBeGreaterThanOrEqualTo(0);
         }
-        
+
+        [Fact]
+        public async Task BasicContract_ValidateOrigin_Success()
+        {
+            var transaction1 = await TestBasicSecurityContractStub.TestOriginAddress.SendAsync(DefaultSender);
+            transaction1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var transaction2 = await TestBasicFunctionContractStub.ValidateOrigin.SendAsync(DefaultSender);
+            transaction2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
         #endregion 
         
         #region BasicSecurity methods Test
