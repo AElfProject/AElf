@@ -57,7 +57,7 @@ namespace AElf.Contracts.CrossChain
             LockTokenAndResource(sideChainCreationRequest, chainId);
             var sideChainInfo = new SideChainInfo
             {
-                Proposer = Context.Sender,
+                Proposer = Context.Origin,
                 SideChainId = chainId,
                 SideChainStatus = SideChainStatus.Active,
                 SideChainCreationRequest = sideChainCreationRequest,
@@ -73,7 +73,7 @@ namespace AElf.Contracts.CrossChain
                                    string.Join(",",
                                        initialConsensusInfo.MinerList.PublicKeys));
             Context.LogDebug(() => $"RoundNumber {initialConsensusInfo.RoundNumber}");
-            // Event is not used for now.
+
             Context.Fire(new CreationRequested()
             {
                 ChainId = chainId,
