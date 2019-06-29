@@ -66,7 +66,9 @@ namespace AElf.Contracts.AssociationAuth
         public override Hash CreateProposal(CreateProposalInput input)
         {
             // check authorization of proposer public key
-            AssertSenderIsAuthorizedProposer(input.OrganizationAddress);
+            var organization = State.Organisations[input.OrganizationAddress];
+            Assert(organization != null, "No registered organization.");
+            AssertSenderIsAuthorizedProposer(organization);
             Hash hash = Hash.FromMessage(input);
             var proposal = new ProposalInfo
             {

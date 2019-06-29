@@ -5,12 +5,10 @@ namespace AElf.Contracts.AssociationAuth
 {
     public partial class AssociationAuthContract
     {
-        private void AssertSenderIsAuthorizedProposer(Address organizationAddress)
+        private void AssertSenderIsAuthorizedProposer(Organization organization)
         {
             // Proposal should not be from multi sig account.
             // As a result, only check first public key.
-            var organization = State.Organisations[organizationAddress];
-            Assert(organization != null, "No registered organization.");
             var reviewer = GetReviewerObjectForSender(organization);
             var authorizedProposer = reviewer.Weight >= organization.ProposerThreshold;
             Assert(authorizedProposer, "Unable to propose.");
