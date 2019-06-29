@@ -7,7 +7,10 @@ namespace AElf.OS.Network
         public const bool DefaultCompressBlocks = true;
         public const int DefaultMaxRequestRetryCount = 1;
         public const int DefaultMaxRandomPeersPerRequest = 2;
-        public const int DefaultMinBlockGapBeforeSync = 1024;
         public const int DefaultMaxPeers = 25;
+        
+        public const int DefaultInitialSyncOffset = 512;
+
+        public const string PeerReconnectionQueueName = "PeerReconnectionQueue";
     }
 }

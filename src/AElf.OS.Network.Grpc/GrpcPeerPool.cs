@@ -17,6 +17,7 @@ using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
 using Volo.Abp.Threading;
 
@@ -52,6 +53,8 @@ namespace AElf.OS.Network.Grpc
             Logger = NullLogger<GrpcPeerPool>.Instance;
         }
 
+        public int PeerCount => _authenticatedPeers.Count;
+
         public async Task<bool> AddPeerAsync(string address)
         {
             if (FindPeerByAddress(address) != null)
@@ -64,65 +67,26 @@ namespace AElf.OS.Network.Grpc
         {
             Logger.LogTrace($"Attempting to reach {ipAddress}.");
 
-            Channel channel = new Channel(ipAddress, ChannelCredentials.Insecure, new List<ChannelOption>
-            {
-                new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
-                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
-            });
-            
-            var client = new PeerService.PeerServiceClient(channel
-                .Intercept(metadata =>
-                    {
-                        metadata.Add(GrpcConstants.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
-                        return metadata;
-                    })
-                .Intercept(new RetryInterceptor()));
-            
-            var hsk = await BuildHandshakeAsync();
+            var (channel, client) = await CreateClientAsync(ipAddress);
 
-            if (channel.State == ChannelState.TransientFailure)
-            {
-                // if failing give it some time to recover
-                await channel.TryWaitForStateChangedAsync(channel.State,
-                    DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeoutInMilliSeconds));
-            }
+            ConnectReply connectReply = await TryConnectAsync(client, ipAddress);
 
-            ConnectReply connectReply;
-            
-            try
+            if (connectReply == null)
             {
-                Metadata data = new Metadata
-                {
-                    {GrpcConstants.TimeoutMetadataKey, _networkOptions.PeerDialTimeoutInMilliSeconds.ToString()}
-                };
-                connectReply = await client.ConnectAsync(hsk, data);
-            }
-            catch (AggregateException e)
-            {
-                await channel.ShutdownAsync();
-                Logger.LogError(e, $"Could not connect to {ipAddress}.");
-                return false;
-            }
-
-            // todo refactor so that connect returns the handshake and we'll check here 
-            // todo if not correct we kill the channel.
-            if (connectReply?.Handshake?.HskData == null || connectReply.Err != AuthError.None)
-            {
-                Logger.LogWarning($"Incorrect handshake for {ipAddress}, {connectReply?.Err}.");
                 await channel.ShutdownAsync();
                 return false;
             }
-
-            var pubKey = connectReply.Handshake.HskData.PublicKey.ToHex();
             
-            var connectionInfo = new GrpcPeerInfo
-            {
-                PublicKey = pubKey,
+            var pubKey = connectReply.Handshake.HandshakeData.Pubkey.ToHex();
+            
+            var connectionInfo = new GrpcPeerInfo 
+            { 
+                PublicKey = pubKey, 
                 PeerIpAddress = ipAddress,
-                ProtocolVersion = connectReply.Handshake.HskData.Version,
+                ProtocolVersion = connectReply.Handshake.HandshakeData.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                StartHeight = connectReply.Handshake.Header.Height,
-                IsInbound = false
+                StartHeight = connectReply.Handshake.BestChainBlockHeader.Height,
+                LibHeightAtHandshake = connectReply.Handshake.LibBlockHeight
             };
 
             var peer = new GrpcPeer(channel, client, connectionInfo);
@@ -133,18 +97,75 @@ namespace AElf.OS.Network.Grpc
                 await channel.ShutdownAsync();
                 return false;
             }
-
-            peer.DisconnectionEvent += PeerOnDisconnectionEvent;
             
             Logger.LogTrace($"Connected to {peer} -- height {peer.StartHeight}.");
-
-            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(new PeerNewBlockAnnouncement
-            {
-                BlockHash = connectReply.Handshake.Header.GetHash(),
-                BlockHeight = connectReply.Handshake.Header.Height
-            }, pubKey));
+            
+            FireConnectionEvent(connectReply, pubKey);
 
             return true;
+        }
+
+        private void FireConnectionEvent(ConnectReply connectReply, string pubKey)
+        {
+            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(new PeerNewBlockAnnouncement
+            {
+                BlockHash = connectReply.Handshake.BestChainBlockHeader.GetHash(),
+                BlockHeight = connectReply.Handshake.BestChainBlockHeader.Height
+            }, pubKey));
+        }
+        
+        private async Task<ConnectReply> TryConnectAsync(PeerService.PeerServiceClient client, string ipAddress)
+        {
+            ConnectReply connectReply;
+            
+            try
+            {
+                Metadata data = new Metadata {
+                    {GrpcConstants.TimeoutMetadataKey, _networkOptions.PeerDialTimeoutInMilliSeconds.ToString()}};
+                
+                var hsk = await BuildHandshakeAsync();
+                
+                connectReply = await client.ConnectAsync(hsk, data);
+            }
+            catch (AggregateException e)
+            {
+                Logger.LogError(e, $"Could not connect to {ipAddress}.");
+                return null;
+            }
+            
+            if (connectReply?.Handshake?.HandshakeData == null || connectReply.Error != AuthError.None)
+            {
+                Logger.LogWarning($"Incorrect handshake for {ipAddress}, {connectReply?.Error}.");
+                return null;
+            }
+
+            return connectReply;
+        }
+
+        private async Task<(Channel, PeerService.PeerServiceClient)> CreateClientAsync(string ipAddress)
+        {
+            Channel channel = new Channel(ipAddress, ChannelCredentials.Insecure, new List<ChannelOption>
+            {
+                new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
+                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
+            });
+            
+            var client = new PeerService.PeerServiceClient(channel
+                .Intercept(metadata =>
+                {
+                    metadata.Add(GrpcConstants.PubkeyMetadataKey, AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex());
+                    return metadata;
+                })
+                .Intercept(new RetryInterceptor()));
+            
+            if (channel.State == ChannelState.TransientFailure)
+            {
+                // if failing give it some time to recover
+                await channel.TryWaitForStateChangedAsync(channel.State,
+                    DateTime.UtcNow.AddSeconds(_networkOptions.PeerDialTimeoutInMilliSeconds));
+            }
+
+            return (channel, client);
         }
 
         public List<IPeer> GetPeers(bool includeFailing = false)
@@ -195,9 +216,7 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogWarning($"Could not add peer {peer.PubKey} ({peer.PeerIpAddress})");
                 return false;
             }
-
-            p.DisconnectionEvent += PeerOnDisconnectionEvent;
-
+            
             return true;
         }
 
@@ -211,18 +230,21 @@ namespace AElf.OS.Network.Grpc
             var nd = new HandshakeData
             {
                 ListeningPort = _networkOptions.ListeningPort,
-                PublicKey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
+                Pubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
                 Version = KernelConstants.ProtocolVersion,
                 ChainId = _blockchainService.GetChainId()
             };
 
             byte[] sig = await _accountService.SignAsync(Hash.FromMessage(nd).ToByteArray());
 
+            var chain = await _blockchainService.GetChainAsync();
+                
             var hsk = new Handshake
             {
-                HskData = nd,
+                HandshakeData = nd,
                 Signature = ByteString.CopyFrom(sig),
-                Header = await _blockchainService.GetBestChainLastBlockHeaderAsync()
+                BestChainBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync(),
+                LibBlockHeight = chain?.LastIrreversibleBlockHeight ?? 0
             };
 
             return hsk;
@@ -240,18 +262,10 @@ namespace AElf.OS.Network.Grpc
             return false;
         }
         
-        private async void PeerOnDisconnectionEvent(object sender, EventArgs e)
-        {
-            if (sender is GrpcPeer p)
-                await RemovePeerAsync(p.PubKey, false);
-        }
-
         public async Task<IPeer> RemovePeerAsync(string publicKey, bool sendDisconnect)
         {
             if (_authenticatedPeers.TryRemove(publicKey, out GrpcPeer removed))
             {
-                removed.DisconnectionEvent -= PeerOnDisconnectionEvent;
-                
                 if (sendDisconnect)
                 {
                     try
@@ -278,11 +292,6 @@ namespace AElf.OS.Network.Grpc
         
         public void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash, bool hasFork)
         {
-            if (hasFork)
-            {
-                _recentBlockHeightAndHashMappings.Clear();
-                return;
-            }
             _recentBlockHeightAndHashMappings[blockHeight] = blockHash;
             while (_recentBlockHeightAndHashMappings.Count > 10)
             {

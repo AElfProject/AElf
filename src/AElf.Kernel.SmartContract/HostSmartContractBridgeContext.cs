@@ -118,7 +118,7 @@ namespace AElf.Kernel.SmartContract
         public Hash TransactionId => TransactionContext.Transaction.GetHash();
         public Address Sender => TransactionContext.Transaction.From.Clone();
         public Address Self => TransactionContext.Transaction.To.Clone();
-        public Address Genesis => Address.Genesis;
+        public Address Origin => TransactionContext.Origin.Clone();
         public long CurrentHeight => TransactionContext.BlockHeight;
         public Timestamp CurrentBlockTime => TransactionContext.CurrentBlockTime;
         public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.Clone();
@@ -162,7 +162,7 @@ namespace AElf.Kernel.SmartContract
 
             if (!trace.IsSuccessful())
             {
-                throw new ContractCallException(trace.StdErr);
+                throw new ContractCallException(trace.Error);
             }
 
             var obj = new T();
@@ -214,11 +214,6 @@ namespace AElf.Kernel.SmartContract
         public bool VerifySignature(Transaction tx)
         {
             return tx.VerifySignature();
-        }
-
-        public void SendDeferredTransaction(Transaction deferredTxn)
-        {
-            TransactionContext.Trace.DeferredTransaction = deferredTxn.ToByteString();
         }
 
         public void DeployContract(Address address, SmartContractRegistration registration, Hash name)

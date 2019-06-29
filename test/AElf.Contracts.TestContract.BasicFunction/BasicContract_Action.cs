@@ -1,5 +1,6 @@
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestContract.BasicFunction
@@ -86,7 +87,12 @@ namespace AElf.Contracts.TestContract.BasicFunction
                 LockId = input.LockId,
                 Usage = input.Usage
             });
+            return new Empty();
+        }
 
+        public override Empty ValidateOrigin(Address address)
+        {
+            Assert(address == Context.Origin, "Validation failed, origin is not expected.");
             return new Empty();
         }
 

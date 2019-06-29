@@ -4,7 +4,9 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Node.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
 using AElf.OS.Network.Infrastructure;
@@ -28,7 +30,8 @@ namespace AElf.OS.Network.Grpc
     {
         private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
-        
+
+        private readonly ISyncStateService _syncStateService;
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockchainService;
         private readonly IAccountService _accountService;
@@ -36,8 +39,9 @@ namespace AElf.OS.Network.Grpc
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
 
-        public GrpcServerService(IPeerPool peerPool, IBlockchainService blockchainService, IAccountService accountService)
+        public GrpcServerService(ISyncStateService syncStateService, IPeerPool peerPool, IBlockchainService blockchainService, IAccountService accountService)
         {
+            _syncStateService = syncStateService;
             _peerPool = peerPool;
             _blockchainService = blockchainService;
             _accountService = accountService;
@@ -58,7 +62,7 @@ namespace AElf.OS.Network.Grpc
             var peer = GrpcUrl.Parse(context.Peer);
             
             if (peer == null)
-                return new ConnectReply { Err = AuthError.InvalidPeer };
+                return new ConnectReply { Error = AuthError.InvalidPeer };
 
             if (NetworkOptions.MaxPeers != 0)
             {
@@ -66,7 +70,7 @@ namespace AElf.OS.Network.Grpc
                 if (peerCount >= NetworkOptions.MaxPeers)
                 {
                     Logger.LogWarning($"Cannot add peer, there's currently {peerCount} peers (max. {NetworkOptions.MaxPeers}).");
-                    return new ConnectReply { Err = AuthError.ConnectionRefused };
+                    return new ConnectReply { Error = AuthError.ConnectionRefused };
                 }
             }
 
@@ -75,10 +79,10 @@ namespace AElf.OS.Network.Grpc
             if (error != AuthError.None)
             {
                 Logger.LogWarning($"Handshake not valid: {error}");
-                return new ConnectReply {Err = error};
+                return new ConnectReply {Error = error};
             }
             
-            var pubKey = handshake.HskData.PublicKey.ToHex();
+            var pubKey = handshake.HandshakeData.Pubkey.ToHex();
             var oldPeer = _peerPool.FindPeerByPublicKey(pubKey);
 
             if (oldPeer != null)
@@ -88,7 +92,7 @@ namespace AElf.OS.Network.Grpc
             }
 
             // TODO: find a URI type to use
-            var peerAddress = peer.IpAddress + ":" + handshake.HskData.ListeningPort;
+            var peerAddress = peer.IpAddress + ":" + handshake.HandshakeData.ListeningPort;
             var grpcPeer = DialPeer(peerAddress, handshake);
 
             // send our credentials
@@ -121,43 +125,44 @@ namespace AElf.OS.Network.Grpc
                 var c = channel.WaitForStateChangedAsync(channel.State);
             }
 
-            var pubKey = handshake.HskData.PublicKey.ToHex();
+            var pubKey = handshake.HandshakeData.Pubkey.ToHex();
             
             var connectionInfo = new GrpcPeerInfo
             {
                 PublicKey = pubKey,
                 PeerIpAddress = peerAddress,
-                ProtocolVersion = handshake.HskData.Version,
+                ProtocolVersion = handshake.HandshakeData.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                StartHeight = handshake.Header.Height,
-                IsInbound = true
+                StartHeight = handshake.BestChainBlockHeader.Height,
+                IsInbound = true,
+                LibHeightAtHandshake = handshake.LibBlockHeight
             };
-
+            
             return new GrpcPeer(channel, client, connectionInfo);
         }
 
         private AuthError ValidateHandshake(Handshake handshake)
         {
-            if (handshake?.HskData == null)
+            if (handshake?.HandshakeData == null)
                 return AuthError.InvalidHandshake;
 
             // verify chain id
-            if (handshake.HskData.ChainId != _blockchainService.GetChainId())
+            if (handshake.HandshakeData.ChainId != _blockchainService.GetChainId())
                 return AuthError.ChainMismatch;
 
             // verify protocol
-            if (handshake.HskData.Version != KernelConstants.ProtocolVersion)
+            if (handshake.HandshakeData.Version != KernelConstants.ProtocolVersion)
                 return AuthError.ProtocolMismatch;
 
             // verify signature
             var validData = CryptoHelpers.VerifySignature(handshake.Signature.ToByteArray(),
-                Hash.FromMessage(handshake.HskData).ToByteArray(), handshake.HskData.PublicKey.ToByteArray());
+                Hash.FromMessage(handshake.HandshakeData).ToByteArray(), handshake.HandshakeData.Pubkey.ToByteArray());
             
             if (!validData)
-                return AuthError.WrongSig;
+                return AuthError.WrongSignature;
             
             // verify authentication
-            var pubKey = handshake.HskData.PublicKey.ToHex();
+            var pubKey = handshake.HandshakeData.Pubkey.ToHex();
             if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.Authorized
                 && !NetworkOptions.AuthorizedKeys.Contains(pubKey))
             {
@@ -177,7 +182,7 @@ namespace AElf.OS.Network.Grpc
             
             // if this transaction's ref block is a lot higher than our chain 
             // then don't participate in p2p network
-            if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultMinBlockGapBeforeSync)
+            if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultInitialSyncOffset)
                 return new VoidReply();
             
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent { Transactions = new List<Transaction> {tx} });
@@ -213,7 +218,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override async Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)
         {
-            if (request == null || request.Hash == null) 
+            if (request == null || request.Hash == null || _syncStateService.SyncState != SyncState.Finished) 
                 return new BlockReply();
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested block {request.Hash}.");
@@ -228,7 +233,7 @@ namespace AElf.OS.Network.Grpc
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
         {
-            if (request == null || request.PreviousBlockHash == null) 
+            if (request == null || request.PreviousBlockHash == null || _syncStateService.SyncState != SyncState.Finished)
                 return new BlockList();
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.Count} blocks from {request.PreviousBlockHash}.");
@@ -252,6 +257,13 @@ namespace AElf.OS.Network.Grpc
             }
             
             return blockList;
+        }
+
+        public override async Task<Handshake> UpdateHandshake(UpdateHandshakeRequest request, ServerCallContext context)
+        {
+            Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested handshake data.");
+            
+            return await _peerPool.GetHandshakeAsync();
         }
 
         /// <summary>
