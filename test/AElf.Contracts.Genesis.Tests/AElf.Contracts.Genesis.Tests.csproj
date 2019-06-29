@@ -51,5 +51,8 @@
             <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Protobuf\Generated" />
+    </ItemGroup>
     <Import Project="..\..\test\AllContracts.props" />
 </Project>

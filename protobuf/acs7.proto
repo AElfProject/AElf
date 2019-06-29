@@ -108,9 +108,14 @@ message ChainInitializationData {
     google.protobuf.Timestamp CreationTimestamp = 3;
     repeated bytes extraInformation = 4;
     int64 creationHeightOnParentChain = 5;
+    ContractDeploymentPermissionLevel ContractDeploymentPermissionLevel = 6;
 }
 
-// from resource.proto
+enum ContractDeploymentPermissionLevel{
+    GenesisOwner = 0;
+    ChainOwner = 1;
+    Anyone = 2;
+}
 
 enum ResourceType
 {
@@ -133,12 +138,14 @@ message SideChainInfo {
     aelf.Hash proposalHash = 5;
     google.protobuf.Timestamp creationTimestamp = 6;
     int64 creationHeightOnParentChain = 7;
+    ContractDeploymentPermissionLevel ContractDeploymentPermissionLevel = 8;
 }
 
 message SideChainCreationRequest {
     int64 indexingPrice = 1;
     int64 lockedTokenAmount = 2;
     bytes contractCode = 3;
+    ContractDeploymentPermissionLevel ContractDeploymentPermissionLevel = 4;
 }
 
 message RequestChainCreationOutput {

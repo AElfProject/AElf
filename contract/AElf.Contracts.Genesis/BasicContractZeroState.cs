@@ -22,10 +22,10 @@ namespace AElf.Contracts.Genesis
         public SingletonState<Address> GenesisOwner { get; set; } 
         
         /// <summary>
-        /// Administrator contracts controls common contracts
+        /// Chain owner contracts controls common contracts
         /// if is not null and <see cref="ContractDeploymentAuthorityRequired"/> is false.
         /// </summary>
-        public SingletonState<Address> Administrator { get; set; }
+        public SingletonState<Address> ChainOwner { get; set; }
         
         public SingletonState<bool> ContractDeploymentAuthorityRequired { get; set; } 
         

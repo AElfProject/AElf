@@ -15,15 +15,15 @@ service ACS0 {
     }
     rpc UpdateSmartContract (ContractUpdateInput) returns (aelf.Address) {
     }
-    rpc ChangeContractOwner (ChangeContractOwnerInput) returns (google.protobuf.Empty) {
+    rpc ChangeContractAuthor (ChangeContractAuthorInput) returns (google.protobuf.Empty) {
     }
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
     rpc ChangeGenesisOwner (aelf.Address) returns (google.protobuf.Empty) {
     }
-    rpc ChangeAdministrator(aelf.Address) returns (google.protobuf.Empty) {
+    rpc InitializeChainOwner (aelf.Address) returns (google.protobuf.Empty) {
     }
-    
+
     // Views
     rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.UInt64Value) {
         option (aelf.is_view) = true;
@@ -32,6 +32,9 @@ service ACS0 {
         option (aelf.is_view) = true;
     }
     rpc GetContractOwner (aelf.Address) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetContractAuthor (aelf.Address) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
     rpc GetGenesisOwner(google.protobuf.Empty) returns(aelf.Address){
@@ -53,7 +56,7 @@ service ACS0 {
 message ContractInfo
 {
     uint64 SerialNumber=1;
-    aelf.Address deployer = 2;
+    aelf.Address author = 2;
     int32 Category = 3;
     aelf.Hash CodeHash = 4;
 }
@@ -82,9 +85,9 @@ message ContractUpdateInput {
     bytes code = 2;
 }
 
-message ChangeContractOwnerInput {
+message ChangeContractAuthorInput {
     aelf.Address contractAddress = 1;
-    aelf.Address newOwner = 2;
+    aelf.Address newAuthor = 2;
 }
 
 message InitializeInput{
@@ -108,10 +111,10 @@ message CodeUpdated
     aelf.Hash newCodeHash = 3;
 }
 
-message OwnerChanged
+message AuthorChanged
 {
     option (aelf.is_event) = true;
     aelf.Address address = 1 [(aelf.is_indexed) = true];
-    aelf.Address oldOwner = 2;
-    aelf.Address newOwner = 3;
+    aelf.Address oldAuthor = 2;
+    aelf.Address newAuthor = 3;
 }

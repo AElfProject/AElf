@@ -36,7 +36,7 @@ namespace AElf.Contracts.Genesis
             {
                 var resultInfo = await DefaultTester.GetContractInfo.CallAsync(contractAddress);
                 resultInfo.ShouldNotBeNull();
-                resultInfo.Owner.ShouldBe(DefaultSender);
+                resultInfo.Author.ShouldBe(DefaultSender);
             }
 
             {
@@ -47,8 +47,8 @@ namespace AElf.Contracts.Genesis
             }
 
             {
-                var resultOwner = await DefaultTester.GetContractOwner.CallAsync(contractAddress);
-                resultOwner.ShouldBe(DefaultSender);
+                var author = await DefaultTester.GetContractAuthor.CallAsync(contractAddress);
+                author.ShouldBe(DefaultSender);
             }
         }
 
@@ -90,31 +90,31 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task Change_Contract_Owner()
+        public async Task Change_Contract_Author()
         {
             var contractAddress = await Deploy_SmartContracts();
 
-            var resultChange = await DefaultTester.ChangeContractOwner.SendAsync(
-                new ChangeContractOwnerInput()
+            var resultChange = await DefaultTester.ChangeContractAuthor.SendAsync(
+                new ChangeContractAuthorInput()
                 {
                     ContractAddress = contractAddress,
-                    NewOwner = AnotherUser
+                    NewAuthor = AnotherUser
                 });
             resultChange.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var resultOwner = await DefaultTester.GetContractOwner.CallAsync(contractAddress);
-            resultOwner.ShouldBe(AnotherUser);
+            var resultAuthor = await DefaultTester.GetContractAuthor.CallAsync(contractAddress);
+            resultAuthor.ShouldBe(AnotherUser);
         }
 
         [Fact]
-        public async Task Change_Contract_Owner_Without_Permission()
+        public async Task Change_Contract_Author_Without_Permission()
         {
             var contractAddress = await Deploy_SmartContracts();
-            var result = await AnotherTester.ChangeContractOwner.SendAsync(
-                new ChangeContractOwnerInput()
+            var result = await AnotherTester.ChangeContractAuthor.SendAsync(
+                new ChangeContractAuthorInput()
                 {
                     ContractAddress = contractAddress,
-                    NewOwner = AnotherUser
+                    NewAuthor = AnotherUser
                 });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("no permission.").ShouldBeTrue();

@@ -47,7 +47,7 @@ service CrossChainContract {
     }
     rpc GetSideChainHeight (aelf.SInt32Value) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
-    }
+    }   
     rpc GetParentChainHeight (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
@@ -63,6 +63,7 @@ message InitializeInput {
     int32 parentChainId = 1;
     int64 creationHeightOnParentChain = 2;
     aelf.Address chainCreator = 3;
+    acs7.ContractDeploymentPermissionLevel ContractDeploymentPermissionLevel = 4;
 }
 
 message RechargeInput {

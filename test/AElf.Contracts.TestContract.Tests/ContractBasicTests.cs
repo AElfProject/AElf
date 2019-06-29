@@ -112,15 +112,15 @@ namespace AElf.Contract.TestContract
         }
         
         [Fact]
-        public async Task ChangeOwner_Without_Permission_Failed()
+        public async Task ChangeAuthor_Without_Permission_Failed()
         {
             var otherUser = SampleECKeyPairs.KeyPairs[2];
             var otherZeroStub = GetContractZeroTester(otherUser);
-            var transactionResult = (await otherZeroStub.ChangeContractOwner.SendAsync(
-                new Acs0.ChangeContractOwnerInput
+            var transactionResult = (await otherZeroStub.ChangeContractAuthor.SendAsync(
+                new Acs0.ChangeContractAuthorInput()
                 {
                     ContractAddress = BasicFunctionContractAddress,
-                    NewOwner = Address.Generate()
+                    NewAuthor = Address.Generate()
                 }
             )).TransactionResult;
             
@@ -129,14 +129,14 @@ namespace AElf.Contract.TestContract
         }
         
         [Fact]
-        public async Task ChangeOwner_With_Permission_Success()
+        public async Task ChangeAuthor_With_Permission_Success()
         {
             var otherUser = Address.Generate();
-            var transactionResult = (await BasicContractZeroStub.ChangeContractOwner.SendAsync(
-                new Acs0.ChangeContractOwnerInput
+            var transactionResult = (await BasicContractZeroStub.ChangeContractAuthor.SendAsync(
+                new Acs0.ChangeContractAuthorInput()
                 {
                     ContractAddress = BasicFunctionContractAddress,
-                    NewOwner = otherUser
+                    NewAuthor = otherUser
                 }
             )).TransactionResult;
             
