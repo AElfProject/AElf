@@ -6,7 +6,7 @@ namespace AElf.OS.Network.Infrastructure
 {
     public interface IPeerPool
     {
-        int CurrentPeerCount { get; }
+        int PeerCount { get; }
         
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerByAddressAsync(string address);

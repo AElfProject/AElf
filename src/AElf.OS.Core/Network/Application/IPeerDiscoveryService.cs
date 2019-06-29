@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.OS.Network.Infrastructure;
 
 namespace AElf.OS.Network.Application
 {

@@ -47,9 +47,9 @@ namespace AElf.OS.Worker
 
                 foreach (var node in newNodes.Nodes)
                 {
-                    if (_peerPool.CurrentPeerCount >= NetworkOptions.MaxPeers)
+                    if (_peerPool.PeerCount >= NetworkOptions.MaxPeers)
                     {
-                        Logger.LogDebug($"Discovery: Max peers reached {_peerPool.CurrentPeerCount}, aborting add.");
+                        Logger.LogDebug($"Discovery: Max peers reached {_peerPool.PeerCount}, aborting add.");
                         break;
                     }
 

@@ -51,6 +51,11 @@ namespace AElf.OS.Network
         /// Indicates if the node will participate in peer discovery operations.
         /// </summary>
         public bool EnablePeerDiscovery { get; set; } = true;
+
+        /// <summary>
+        /// The minimum distance between this node and peers needed to trigger initial sync. 
+        /// </summary>
+        public int InitialSyncOffset { get; set; } = NetworkConstants.DefaultInitialSyncOffset;
     }
     
     [Flags]

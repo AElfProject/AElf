@@ -20,6 +20,7 @@ message Handshake {
     bytes signature = 2;
     bool success = 3;
     aelf.BlockHeader best_chain_block_header = 4;
+    sint64 lib_block_height = 5;
 }
 
 message HandshakeData {

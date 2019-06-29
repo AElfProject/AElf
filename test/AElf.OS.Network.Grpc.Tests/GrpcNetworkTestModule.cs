@@ -1,9 +1,12 @@
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
@@ -18,6 +21,13 @@ namespace AElf.OS.Network
             {
                 o.ListeningPort = 2000;
                 o.MaxPeers = 2;
+            });
+            
+            context.Services.AddSingleton<ISyncStateService>(o =>
+            {
+                var mockService = new Mock<ISyncStateService>();
+                mockService.Setup(s => s.SyncState).Returns(SyncState.Finished);
+                return mockService.Object;
             });
         }
 
