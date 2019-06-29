@@ -27,6 +27,9 @@ namespace AElf.Contracts.MultiToken
                 IsBurnable = input.IsBurnable
             });
 
+            var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Select(m => m.Value);
+            var isSystemContractAddress = input.LockWhiteList.All(l => systemContractAddresses.Contains(l));
+            Assert(isSystemContractAddress, "Addresses in lock white list should be system contract addresses");
             foreach (var address in input.LockWhiteList)
             {
                 State.LockWhiteLists[input.Symbol][address] = true;
@@ -156,23 +159,25 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Lock(LockInput input)
         {
-            AssertLockAddress(input.Symbol, input.To);
+            AssertLockAddress(input.Symbol);
             AssertValidToken(input.Symbol, input.Amount);
-            var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.LockId.Value).ToArray());
+            var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
+                .Concat(input.LockId.Value).ToArray());
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
             // Transfer token to virtual address.
-            DoTransfer(input.From, virtualAddress, input.Symbol, input.Amount, input.Usage);
+            DoTransfer(input.Address, virtualAddress, input.Symbol, input.Amount, input.Usage);
             return new Empty();
         }
 
         public override Empty Unlock(UnlockInput input)
         {
-            AssertLockAddress(input.Symbol, input.To);
+            AssertLockAddress(input.Symbol);
             AssertValidToken(input.Symbol, input.Amount);
-            var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.LockId.Value).ToArray());
+            var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
+                .Concat(input.LockId.Value).ToArray());
             Context.SendVirtualInline(fromVirtualAddress, Context.Self, nameof(Transfer), new TransferInput
             {
-                To = input.From,
+                To = input.Address,
                 Symbol = input.Symbol,
                 Amount = input.Amount,
                 Memo = input.Usage,

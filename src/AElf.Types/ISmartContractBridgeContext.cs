@@ -62,6 +62,8 @@ namespace AElf
 
         Address GetContractAddressByName(Hash hash);
 
+        IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping();
+
         IStateProvider StateProvider { get; }
 
         byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage);
