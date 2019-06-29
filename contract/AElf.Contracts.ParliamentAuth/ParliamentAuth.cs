@@ -13,7 +13,7 @@ namespace AElf.Contracts.ParliamentAuth
         public override Organization GetOrganization(Address address)
         {
             var organization = State.Organisations[address];
-            return organization;
+            return organization ?? new Organization();
         }
 
         public override ProposalOutput GetProposal(Hash proposalId)
