@@ -7,8 +7,6 @@ namespace AElf.Contracts.TestContract.ResourceSpender
 {
     public partial class ResourceSpenderContractState : ContractState
     {
-        public MappedState<string, ResourceConsumptionAmount> ResourceConsumptionAmounts { get; set; }
-
         internal ACS0Container.ACS0ReferenceState ACS0Contract { get; set; }
     }
 }

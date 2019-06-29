@@ -38,6 +38,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract
             return new Empty();
         }
 
+        public override ResourceTokenBuyingPreferences GetResourceTokenBuyingPreferences(Empty input)
+        {
+            return State.ResourceTokenBuyingPreferences.Value;
+        }
+
         /// <summary>
         /// Time consuming.
         /// </summary>

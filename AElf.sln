@@ -325,6 +325,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract", "test\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract.csproj", "{E12D7110-BAD3-4CDC-8C6E-E7378EE194FD}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests", "test\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.csproj", "{4EAA2F01-747B-4E67-A17F-8FB7AB6075C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -911,6 +913,10 @@ Global
 		{E12D7110-BAD3-4CDC-8C6E-E7378EE194FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E12D7110-BAD3-4CDC-8C6E-E7378EE194FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E12D7110-BAD3-4CDC-8C6E-E7378EE194FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4EAA2F01-747B-4E67-A17F-8FB7AB6075C3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4EAA2F01-747B-4E67-A17F-8FB7AB6075C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4EAA2F01-747B-4E67-A17F-8FB7AB6075C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4EAA2F01-747B-4E67-A17F-8FB7AB6075C3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1073,5 +1079,6 @@ Global
 		{778E0253-E1BA-4E72-85AA-F786B5D443C6} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{6B07E07A-D637-45CC-B629-DE303993309C} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{E12D7110-BAD3-4CDC-8C6E-E7378EE194FD} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{4EAA2F01-747B-4E67-A17F-8FB7AB6075C3} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 	EndGlobalSection
 EndGlobal

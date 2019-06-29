@@ -44,11 +44,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
                 __factory = new MethodStubFactory(context)
             };
 
-            var resourceConsumptionAmount = await selfStub.GetResourceConsumptionAmount.CallAsync(new StringValue
-            {
-                Value = context.TransactionContext.Transaction.MethodName
-            });
-
             // Generate token contract stub.
             var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
             if (tokenContractAddress == null)
@@ -78,10 +73,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             var executingTime = Convert.ToInt32((transactionContext.Trace.EndTime - transactionContext.Trace.StartTime)
                 .TotalMilliseconds);
 
-            var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(new ChargeResourceTokenInput
-            {
-                
-            })).Transaction;
+            var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(
+                new ChargeResourceTokenInput
+                {
+                    TransactionSize = transactionSize,
+                    WritesCount = writesCount,
+                    ExecutingTime = executingTime
+                })).Transaction;
 
             return new List<Transaction>
             {
