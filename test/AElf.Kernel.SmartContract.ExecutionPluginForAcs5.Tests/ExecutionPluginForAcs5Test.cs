@@ -26,7 +26,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
 
             var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IPreExecutionPlugin>>()
                 .ToLookup(p => p.GetType()).Select(coll => coll.First());
-            var plugin = plugins.SingleOrDefault(p => p.GetType() == typeof(ProfitSharingPreExecutionPlugin));
+            var plugin = plugins.SingleOrDefault(p => p.GetType() == typeof(MethodCallingThresholdPreExecutionPlugin));
             plugin.ShouldNotBeNull();
          
             var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
@@ -45,7 +45,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                 })).ToList();
 
             transactions.ShouldNotBeEmpty();
-            transactions[0].From.ShouldBe(DefaultSender);
+            transactions[0].From.ShouldBe(TestContractAddress);
             transactions[0].To.ShouldBe(TokenContractAddress);
         }
 
