@@ -14,17 +14,18 @@ namespace AElf.Contracts.AssociationAuth
 
         public override Organization GetOrganization(Address address)
         {
-            var organization = State.Organisations[address];
-            Assert(organization != null, "No registered organization.");
-            return organization;
+            return State.Organisations[address] ?? new Organization();
         }
-        
+
         public override ProposalOutput GetProposal(Hash proposalId)
         {
             var proposal = State.Proposals[proposalId];
-            Assert(proposal !=null,"Not found proposal.");
-            
-            var result = new ProposalOutput
+            if (proposal == null)
+            {
+                return new ProposalOutput();
+            }
+
+            return new ProposalOutput
             {
                 ProposalId = proposalId,
                 ContractMethodName = proposal.ContractMethodName,
@@ -34,8 +35,6 @@ namespace AElf.Contracts.AssociationAuth
                 Proposer = proposal.Proposer,
                 ToAddress = proposal.ToAddress
             };
-
-            return result;
         }
 
         #endregion view
@@ -44,81 +43,71 @@ namespace AElf.Contracts.AssociationAuth
 
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
-            var isValidWeight = input.Reviewers.All(r => r.Weight >= 0);
-            var canBeProposed = input.Reviewers.Any(r => r.Weight >= input.ProposerThreshold);
-            var canBeReleased = input.Reviewers.Aggregate(0, (i, reviewer) => i + reviewer.Weight) >
-                                input.ReleaseThreshold;
-            Assert(isValidWeight && canBeProposed && canBeReleased, "Invalid organization." );
             var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
-            Address organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
-            if(State.Organisations[organizationAddress] == null)
+            var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
+            var organization = new Organization
             {
-                var organization =new Organization
-                {
-                    ReleaseThreshold = input.ReleaseThreshold,
-                    OrganizationAddress = organizationAddress,
-                    ProposerThreshold = input.ProposerThreshold,
-                    OrganizationHash = organizationHash
-                };
-                organization.Reviewers.AddRange(input.Reviewers);
+                ReleaseThreshold = input.ReleaseThreshold,
+                OrganizationAddress = organizationAddress,
+                ProposerThreshold = input.ProposerThreshold,
+                OrganizationHash = organizationHash,
+                Reviewers = {input.Reviewers}
+            };
+            Assert(Validate(organization), "Invalid organization.");
+            if (State.Organisations[organizationAddress] == null)
+            {
                 State.Organisations[organizationAddress] = organization;
             }
+
             return organizationAddress;
         }
 
 
-        public override Hash CreateProposal(CreateProposalInput proposal)
+        public override Hash CreateProposal(CreateProposalInput input)
         {
             // check authorization of proposer public key
-            CheckProposerAuthority(proposal.OrganizationAddress);
-            Assert(
-                !string.IsNullOrWhiteSpace(proposal.ContractMethodName)
-                && proposal.ToAddress != null
-                && proposal.ExpiredTime != null, "Invalid proposal.");
-            Assert(Context.CurrentBlockTime < proposal.ExpiredTime, "Expired proposal.");
-            //TODO: Proposals with the same input is not supported. 
-            Hash hash = Hash.FromMessage(proposal);
-            Assert(State.Proposals[hash] == null, "Proposal already exists.");
-            State.Proposals[hash] = new ProposalInfo
+            AssertSenderIsAuthorizedProposer(input.OrganizationAddress);
+            Hash hash = Hash.FromMessage(input);
+            var proposal = new ProposalInfo
             {
-                ContractMethodName = proposal.ContractMethodName,
-                ExpiredTime = proposal.ExpiredTime,
-                Params = proposal.Params,
-                ToAddress = proposal.ToAddress,
-                OrganizationAddress = proposal.OrganizationAddress,
+                ContractMethodName = input.ContractMethodName,
+                ExpiredTime = input.ExpiredTime,
+                Params = input.Params,
+                ToAddress = input.ToAddress,
+                OrganizationAddress = input.OrganizationAddress,
                 ProposalId = hash,
                 Proposer = Context.Sender
             };
-            
+            Assert(Validate(proposal), "Invalid proposal.");
+            //TODO: Proposals with the same input is not supported. 
+            Assert(State.Proposals[hash] == null, "Proposal already exists.");
+            State.Proposals[hash] = proposal;
             return hash;
         }
-    
-        public override BoolValue Approve(ApproveInput approvalInput)
-        {
-            var proposalInfo = State.Proposals[approvalInput.ProposalId];
-            Assert(proposalInfo != null, "Not found proposal.");
-            if (Context.CurrentBlockTime > proposalInfo.ExpiredTime)
-            {
-                // expired proposal
-                //State.Proposals[approvalInput.ProposalId] = null;
-                return new BoolValue{Value = false};
-            }
-            // check approval not existed
-            Assert(!proposalInfo.ApprovedReviewer.Contains(Context.Sender), "Approval already exists.");
-            var organization = GetOrganization(proposalInfo.OrganizationAddress);
-            var reviewer = organization.Reviewers.FirstOrDefault(r => r.Address.Equals(Context.Sender));
-            Assert(reviewer != null,"Not authorized approval.");
-            proposalInfo.ApprovedReviewer.Add(Context.Sender);
-            proposalInfo.ApprovedWeight += reviewer.Weight;
-            State.Proposals[approvalInput.ProposalId] = proposalInfo;
 
-            if (IsReadyToRelease(proposalInfo, organization))
+        public override BoolValue Approve(ApproveInput input)
+        {
+            var proposal = GetValidProposal(input.ProposalId);
+            AssertProposalNotYetApprovedBySender(proposal);
+            var organization = GetOrganization(proposal.OrganizationAddress);
+            var reviewer = GetReviewerObjectForSender(organization);
+
+            proposal.ApprovedReviewer.Add(Context.Sender);
+            proposal.ApprovedWeight += reviewer.Weight;
+
+            State.Proposals[input.ProposalId] = proposal;
+
+            if (IsReleaseThresholdReached(proposal, organization))
             {
-                Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
-                    proposalInfo.Params);
+                Context.SendVirtualInline(
+                    organization.OrganizationHash,
+                    proposal.ToAddress,
+                    proposal.ContractMethodName,
+                    proposal.Params);
                 //State.Proposals[approvalInput.ProposalId] = null;
             }
-            return new BoolValue{Value = true};
+
+            return new BoolValue {Value = true};
         }
 
         #endregion
