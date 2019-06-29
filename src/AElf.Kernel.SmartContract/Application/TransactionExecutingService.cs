@@ -264,11 +264,11 @@ namespace AElf.Kernel.SmartContract.Application
             foreach (var plugin in _postPlugins)
             {
                 var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txCtxt);
-                foreach (var preTx in transactions)
+                foreach (var postTx in transactions)
                 {
-                    var preTrace = await ExecuteOneAsync(0, internalChainContext, preTx, currentBlockTime,
+                    var preTrace = await ExecuteOneAsync(0, internalChainContext, postTx, currentBlockTime,
                         cancellationToken);
-                    trace.PreTransactions.Add(preTx);
+                    trace.PreTransactions.Add(postTx);
                     trace.PreTraces.Add(preTrace);
                     if (!preTrace.IsSuccessful())
                     {

@@ -9,17 +9,16 @@ using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.Reflection;
-using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 {
-    public class ResourceConsumptionPreExecutionPlugin : IPostExecutionPlugin, ISingletonDependency
+    public class ResourceConsumptionPostExecutionPlugin : IPostExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private const string AcsSymbol = "acs8";
 
-        public ResourceConsumptionPreExecutionPlugin(IHostSmartContractBridgeContextService contextService)
+        public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService)
         {
             _contextService = contextService;
         }
@@ -61,6 +60,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             };
             if (transactionContext.Transaction.To == tokenContractAddress &&
                 transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeResourceToken))
+            {
+                return new List<Transaction>();
+            }
+
+            if (transactionContext.Transaction.To == context.Self &&
+                (transactionContext.Transaction.MethodName == nameof(selfStub.BuyResourceToken) ||
+                 transactionContext.Transaction.MethodName == nameof(selfStub.GetResourceTokenBuyingPreferences) ||
+                 transactionContext.Transaction.MethodName == nameof(selfStub.SetResourceTokenBuyingPreferences)))
             {
                 return new List<Transaction>();
             }

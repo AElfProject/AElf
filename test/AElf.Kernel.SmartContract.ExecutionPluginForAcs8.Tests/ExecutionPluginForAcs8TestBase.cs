@@ -6,13 +6,16 @@ using AElf.Contracts.TokenConverter;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Token;
 using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
 {
     public class ExecutionPluginForAcs8TestBase : ContractTestBase<ExecutionPluginForAcs8TestModule>
     {
+        internal const long CpuUnitPrice = 1_00000000;
+        internal const long NetUnitPrice = 1_00000000;
+        internal const long StoUnitPrice = 1_00000000;
+
         //init connectors
         internal Connector ElfConnector = new Connector
         {
@@ -71,7 +74,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             await InitializeTokenAsync();
             await InitializeTokenConverterAsync();
         }
-
+        
         private async Task DeployContractsAsync()
         {
             const int category = KernelConstants.CodeCoverageRunnerCategory;
@@ -202,6 +205,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 });
                 issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
+
+            await TokenContractStub.SetResourceTokenUnitPrice.SendAsync(new SetResourceTokenUnitPriceInput
+            {
+                CpuUnitPrice = CpuUnitPrice,
+                NetUnitPrice = NetUnitPrice,
+                StoUnitPrice = StoUnitPrice
+            });
         }
 
         private async Task InitializeTokenConverterAsync()

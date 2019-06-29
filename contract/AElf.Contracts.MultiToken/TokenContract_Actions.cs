@@ -450,7 +450,15 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty SetResourceTokenUnitPrice(SetResourceTokenUnitPriceInput input)
         {
+            if (State.ACS0Contract.Value == null)
+            {
+                State.ACS0Contract.Value = Context.GetZeroSmartContractAddress();
+            }
+
+            var contractOwner = State.ACS0Contract.GetContractOwner.Call(Context.Self);
+            
             Assert(
+                contractOwner == Context.Sender ||
                 Context.Sender ==
                 Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
