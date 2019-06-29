@@ -42,7 +42,7 @@ namespace AElf.Contracts.CrossChain
         
         public override SInt32Value GetChainStatus(SInt32Value input)
         {
-            var info = State.SideChainInfos[input.Value];
+            var info = State.SideChainInfo[input.Value];
             Assert(info != null, "Not existed side chain.");
             return new SInt32Value() {Value = (int) info.SideChainStatus};
         }
@@ -73,7 +73,7 @@ namespace AElf.Contracts.CrossChain
         public override SInt64Value LockedBalance(SInt32Value input)
         {
             var chainId = input.Value;
-            var sideChainInfo = State.SideChainInfos[chainId];
+            var sideChainInfo = State.SideChainInfo[chainId];
             Assert(sideChainInfo != null, "Not existed side chain.");
             Assert(Context.Sender.Equals(sideChainInfo.Proposer), "Unable to check balance.");
             return new SInt64Value() {Value = State.IndexingBalance[chainId]};
@@ -86,7 +86,7 @@ namespace AElf.Contracts.CrossChain
             for (long i = 1; i <= serialNumber; i++)
             {
                 int chainId = ChainHelpers.GetChainId(i);
-                var sideChainInfo = State.SideChainInfos[chainId];
+                var sideChainInfo = State.SideChainInfo[chainId];
                 if (sideChainInfo.SideChainStatus != SideChainStatus.Active)
                     continue;
                 var height = State.CurrentSideChainHeight[chainId];
@@ -115,7 +115,7 @@ namespace AElf.Contracts.CrossChain
             {
                 int chainId = kv.Key;
                 var balance = State.IndexingBalance[chainId];
-                var sideChainInfo = State.SideChainInfos[chainId];
+                var sideChainInfo = State.SideChainInfo[chainId];
                 var toBeIndexedCount = balance.Div(sideChainInfo.SideChainCreationRequest.IndexingPrice);
                 sideChainIndexingInformationList.IndexingInformationList.Add(new SideChainIndexingInformation
                 {
@@ -135,7 +135,7 @@ namespace AElf.Contracts.CrossChain
 
         public override SInt64Value LockedToken(SInt32Value input)
         {
-            var info = State.SideChainInfos[input.Value];
+            var info = State.SideChainInfo[input.Value];
             Assert(info != null, "Side chain Not Found.");
             Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
             return new SInt64Value() {Value = info.SideChainCreationRequest.LockedTokenAmount};
@@ -143,7 +143,7 @@ namespace AElf.Contracts.CrossChain
 
         public override Address LockedAddress(SInt32Value input)
         {
-            var info = State.SideChainInfos[input.Value];
+            var info = State.SideChainInfo[input.Value];
             Assert(info != null, "Not existed side chain.");
             Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
             return info.Proposer;
@@ -151,7 +151,7 @@ namespace AElf.Contracts.CrossChain
 
         public override ChainInitializationData GetChainInitializationData(SInt32Value chainId)
         {
-            var sideChainInfo = State.SideChainInfos[chainId.Value];
+            var sideChainInfo = State.SideChainInfo[chainId.Value];
             Assert(sideChainInfo != null, "Side chain Not Found.");
             Assert(sideChainInfo.SideChainStatus == SideChainStatus.Active, "Incorrect side chain status.");
             var res = new ChainInitializationData
