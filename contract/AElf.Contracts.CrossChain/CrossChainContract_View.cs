@@ -50,9 +50,8 @@ namespace AElf.Contracts.CrossChain
         public override SInt64Value GetSideChainHeight(SInt32Value input)
         {
             var info = State.SideChainInfo[input.Value];
-            Assert(info != null, "Not existed side chain.");
+            Assert(info != null, "Side chain not found.");
             var height = State.CurrentSideChainHeight[input.Value];
-            Assert(height != 0, "Not started side chain.");
             return new SInt64Value() {Value = height};
         }
 

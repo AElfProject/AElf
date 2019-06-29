@@ -304,8 +304,10 @@ namespace AElf.Contract.CrossChain.Tests
                     Value = chainId
                 });
             var status = transactionResult1.Status;
-            Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Not started side chain.", transactionResult1.Error);
+            Assert.True(status == TransactionResultStatus.Mined);
+            var actual = new SInt32Value();
+            actual.MergeFrom(transactionResult.ReturnValue);
+            Assert.Equal(0, actual.Value);
         }
 
         [Fact]
@@ -324,7 +326,7 @@ namespace AElf.Contract.CrossChain.Tests
                 });
             var status = transactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Not existed side chain.", transactionResult.Error);
+            Assert.Contains("Side chain not found.", transactionResult.Error);
         }
     }
 }

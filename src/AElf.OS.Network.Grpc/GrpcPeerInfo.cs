@@ -8,5 +8,6 @@ namespace AElf.OS.Network.Grpc
         public long ConnectionTime { get; set; }
         public long StartHeight { get; set; }
         public bool IsInbound { get; set; }
+        public long LibHeightAtHandshake { get; set; }
     }
 }

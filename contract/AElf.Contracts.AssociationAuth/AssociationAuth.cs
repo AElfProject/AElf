@@ -117,14 +117,7 @@ namespace AElf.Contracts.AssociationAuth
             proposalInfo.ApprovedWeight += reviewer.Weight;
             State.Proposals[approvalInput.ProposalId] = proposalInfo;
 
-//            if (IsReadyToRelease(proposalInfo, organization))
-//            {
-//                Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
-//                    proposalInfo.Params);
-//                //State.Proposals[approvalInput.ProposalId] = null;
-//            }
-            
-            return new BoolValue{Value = true};
+            return new BoolValue {Value = true};
         }
 
         public override Empty Release(Hash proposalId)

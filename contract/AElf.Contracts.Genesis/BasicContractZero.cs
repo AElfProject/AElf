@@ -30,7 +30,7 @@ namespace AElf.Contracts.Genesis
         public override Address GetContractOwner(Address input)
         {
             var info = State.ContractInfos[input];
-            return info?.Owner;
+            return GetActualContractOwner(info);
         }
 
         public override Hash GetContractHash(Address input)
@@ -147,9 +147,8 @@ namespace AElf.Contracts.Genesis
 
             Assert(info != null, "Contract does not exist.");
             var contractDeploymentAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
-            var ownerAddress = info.Owner.Equals(Context.Self) || contractDeploymentAuthorityRequired
-                ? Context.Self
-                : info.Owner;
+
+            var ownerAddress = GetActualContractOwner(info);
             RequireAuthority(ownerAddress);
 
             var oldCodeHash = info.CodeHash;
@@ -298,6 +297,14 @@ namespace AElf.Contracts.Genesis
             Assert(Context.Sender.Equals(address), "Unauthorized to initialize genesis contract.");
             Assert(administrator != null, "Genesis Owner should not be null."); 
             State.GenesisOwner.Value = administrator;
+        }
+
+        private Address GetActualContractOwner(ContractInfo contractInfo)
+        {
+            var contractDeploymentAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
+            return contractInfo.Owner.Equals(Context.Self) || contractDeploymentAuthorityRequired
+                ? Context.Self
+                : contractInfo.Owner;
         }
     }
 

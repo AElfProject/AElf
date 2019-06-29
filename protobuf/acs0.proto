@@ -53,7 +53,7 @@ service ACS0 {
 message ContractInfo
 {
     uint64 SerialNumber=1;
-    aelf.Address Owner = 2;
+    aelf.Address deployer = 2;
     int32 Category = 3;
     aelf.Hash CodeHash = 4;
 }
