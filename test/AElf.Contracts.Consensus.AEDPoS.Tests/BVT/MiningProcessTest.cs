@@ -221,7 +221,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     RandomHash = randomHash,
                     PublicKey = ByteString.CopyFrom(CandidatesKeyPairs[0].PublicKey)
                 }.ToBytesValue())).ToConsensusHeaderInformation();
-            await oneCandidate.UpdateValue.SendAsync(
+            var updateResult = await oneCandidate.UpdateValue.SendAsync(
                 informationOfSecondRound.Round.ExtractInformationToUpdateConsensus(CandidatesKeyPairs[0].PublicKey
                     .ToHex()));
 

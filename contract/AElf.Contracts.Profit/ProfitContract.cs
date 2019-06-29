@@ -38,7 +38,7 @@ namespace AElf.Contracts.Profit
                 CurrentPeriod = 1,
                 IsReleaseAllBalanceEverytimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault
             };
-            
+
             var createdProfitItems = State.CreatedProfitIds[Context.Sender];
             if (createdProfitItems == null)
             {
@@ -117,6 +117,43 @@ namespace AElf.Contracts.Profit
             return new Empty();
         }
 
+        public override Empty CancelSubProfitItem(CancelSubProfitItemInput input)
+        {
+            Assert(input.ProfitId != input.SubProfitId, "Two profit items cannot be same.");
+
+            var profitItem = State.ProfitItemsMap[input.ProfitId];
+            Assert(profitItem != null, "Profit item not found.");
+
+            if (profitItem == null)
+            {
+                return new Empty();
+            }
+
+            Assert(input.SubItemCreator == profitItem.Creator, "Only creator can do the Cancel.");
+
+            var subProfitItemId = input.SubProfitId;
+            var subProfitItem = State.ProfitItemsMap[subProfitItemId];
+            Assert(subProfitItem != null, "Sub profit item not found.");
+
+            if (subProfitItem == null)
+            {
+                return new Empty();
+            }
+
+            var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItemId);
+            SubWeight(new SubWeightInput()
+            {
+                ProfitId = input.ProfitId,
+                Receiver = subItemVirtualAddress
+            });
+
+
+            profitItem.SubProfitItems.Remove(profitItem.SubProfitItems.Single(d => d.ProfitId == input.SubProfitId));
+            State.ProfitItemsMap[input.ProfitId] = profitItem;
+
+            return new Empty();
+        }
+
         public override Empty AddWeight(AddWeightInput input)
         {
             Assert(input.ProfitId != null, "Invalid profit id.");
@@ -139,7 +176,8 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
 
-            Context.LogDebug(() => $"Entered AddWeight. {input.ProfitId}, {input.EndPeriod}, current period {profitItem.ProfitId}");
+            Context.LogDebug(() =>
+                $"Entered AddWeight. {input.ProfitId}, {input.EndPeriod}, current period {profitItem.ProfitId}");
 
             if (profitItem.IsTreasuryProfitItem)
             {
@@ -412,6 +450,7 @@ namespace AElf.Contracts.Profit
                 profitItem.TotalAmounts[Context.Variables.NativeSymbol] =
                     profitItem.TotalAmounts[Context.Variables.NativeSymbol].Sub(input.Amount);
             }
+
             State.ProfitItemsMap[input.ProfitId] = profitItem;
 
             Context.LogDebug(() => "Leaving ReleaseProfit.");
@@ -553,7 +592,9 @@ namespace AElf.Contracts.Profit
             var availableDetails = profitDetails.Details.Where(d => d.LastProfitPeriod != profitItem.CurrentPeriod)
                 .ToList();
 
-            for (var i = 0; i < Math.Min(ProfitContractConsts.ProfitReceivingLimitForEachTime, availableDetails.Count); i++)
+            for (var i = 0;
+                i < Math.Min(ProfitContractConsts.ProfitReceivingLimitForEachTime, availableDetails.Count);
+                i++)
             {
                 var profitDetail = availableDetails[i];
                 if (profitDetail.LastProfitPeriod == 0)

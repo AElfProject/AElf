@@ -149,8 +149,8 @@ message RegisterSubProfitItemInput {
 }
 
 message CancelSubProfitItemInput {
-    string item_name = 1;
-    string sub_item_name = 2;
+    aelf.Hash profit_id = 1;
+    aelf.Hash sub_profit_id = 2;
     aelf.Address sub_item_creator = 3;
 }
 

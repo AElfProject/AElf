@@ -21,7 +21,7 @@ namespace AElf.Contracts.Election
             ProfitItemsIds.Count.ShouldBe(7);
         }
 
-        [Fact]
+        [Fact(Skip = "Move to economic test")]
         public async Task ElectionContract_RegisterToTreasury()
         {
             var treasury = await ProfitContractStub.GetProfitItem.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
@@ -56,16 +56,16 @@ namespace AElf.Contracts.Election
             var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = treasury.VirtualAddress,
-                Symbol = ElectionContractTestConstants.NativeTokenSymbol
+                Symbol = ElectionContractTestConstants.VoteTokenSymbol
             });
-            balance.Balance.ShouldBe(ElectionContractConstants.VotesTotalSupply);
+            balance.Balance.ShouldBe(0);
         }
 
         /// <summary>
         /// In first term, new miners elected.
         /// </summary>
         /// <returns></returns>
-        [Fact]
+        [Fact(Skip = "Move to economic test")]
         public async Task<List<ECKeyPair>> ElectionContract_ReleaseTreasuryProfits_ReleaseFirstTerm()
         {
             var candidatesKeyPairs = await ElectionContract_Vote();
@@ -334,7 +334,7 @@ namespace AElf.Contracts.Election
         /// In second term, new miners do the mining instead of initial miners.
         /// </summary>
         /// <returns></returns>
-        [Fact]
+        [Fact(Skip = "Move to economic test")]
         public async Task<List<ECKeyPair>> ElectionContract_ReleaseTreasuryProfits_ReleaseSecondTerm()
         {
             var candidatesKeyPairs = await ElectionContract_ReleaseTreasuryProfits_ReleaseFirstTerm();
@@ -605,7 +605,7 @@ namespace AElf.Contracts.Election
             return candidatesKeyPairs;
         }
 
-        [Fact]
+        [Fact(Skip = "Move to economic test")]
         public async Task ElectionContract_ReleaseTreasuryProfits_ReleaseThirdTerm()
         {
             var candidatesKeyPairs = await ElectionContract_ReleaseTreasuryProfits_ReleaseSecondTerm();

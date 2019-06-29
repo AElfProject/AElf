@@ -56,6 +56,66 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
+        public async Task Issue_Token_MultipleTimes()
+        {
+            // TokenContract
+            var category = KernelConstants.CodeCoverageRunnerCategory;
+            var code = TokenContractCode;
+            TokenContractAddress = await DeployContractAsync(category, code, DefaultSenderKeyPair);
+            TokenContractStub =
+                GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
+
+            var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = DefaultSymbol,
+                Decimals = 2,
+                IsBurnable = true,
+                TokenName = "elf token",
+                TotalSupply = _totalSupply,
+                Issuer = DefaultSender
+            });
+            createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            //first issue
+            {
+                var issueResult1 = await TokenContractStub.Issue.SendAsync(new IssueInput()
+                {
+                    Symbol = DefaultSymbol,
+                    Amount = 1000,
+                    To = DefaultSender,
+                    Memo = "first issue token."
+                });
+                issueResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = DefaultSender,
+                    Symbol = DefaultSymbol
+                })).Balance;
+                balance.ShouldBe(1000);
+            }
+            
+            //second issue
+            {
+                var issueResult1 = await TokenContractStub.Issue.SendAsync(new IssueInput()
+                {
+                    Symbol = DefaultSymbol,
+                    Amount = 1000,
+                    To = DefaultSender,
+                    Memo = "second issue token."
+                });
+                issueResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = DefaultSender,
+                    Symbol = DefaultSymbol
+                })).Balance;
+                balance.ShouldBe(2000);
+            }
+        }
+        
+        [Fact]
         public async Task Initialize_TokenContract()
         {
             await TokenContractStub.Create.SendAsync(
