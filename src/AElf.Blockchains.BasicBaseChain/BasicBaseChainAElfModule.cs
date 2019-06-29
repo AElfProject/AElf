@@ -16,7 +16,6 @@ using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.OS.Rpc.ChainController;
 using AElf.OS.Rpc.Net;
-using AElf.OS.Rpc.Wallet;
 using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
 using AElf.WebApp.Web;
@@ -41,7 +40,6 @@ namespace AElf.Blockchains.BasicBaseChain
 
         //TODO: should move to OSAElfModule
         typeof(ChainControllerRpcModule),
-        typeof(WalletRpcModule),
         typeof(NetRpcAElfModule),
         typeof(RuntimeSetupAElfModule),
         typeof(GrpcCrossChainAElfModule),
