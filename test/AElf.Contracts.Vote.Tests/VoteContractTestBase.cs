@@ -77,9 +77,7 @@ namespace AElf.Contracts.Vote
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
         {
-            var voteMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),new Empty());
-            return voteMethodCallList;
+            return new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()

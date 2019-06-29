@@ -9,15 +9,6 @@ namespace AElf.Contracts.Profit
 {
     public partial class ProfitContract : ProfitContractContainer.ProfitContractBase
     {
-        public override Empty InitializeProfitContract(Empty input)
-        {
-            Assert(!State.Initialized.Value, "Already initialized.");
-
-            State.Initialized.Value = true;
-
-            return new Empty();
-        }
-
         public override Hash CreateProfitItem(CreateProfitItemInput input)
         {
             if (State.TokenContract.Value == null)

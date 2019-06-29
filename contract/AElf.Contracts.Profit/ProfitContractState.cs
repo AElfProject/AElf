@@ -16,8 +16,7 @@ namespace AElf.Contracts.Profit
 
         public MappedState<Address, CreatedProfitIds> CreatedProfitIds { get; set; }
 
-        public MappedState<Address, bool> IsTreasuryProfitItemCreated { get; set; }
-
+        // TODO: Remove
         public SingletonState<Hash> TreasuryProfitId { get; set; }
     }
 }

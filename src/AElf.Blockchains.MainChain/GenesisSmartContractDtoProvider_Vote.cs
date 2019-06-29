@@ -24,9 +24,7 @@ namespace AElf.Blockchains.MainChain
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
         {
-            var voteContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            voteContractMethodCallList.Add(nameof(VoteContractContainer.VoteContractStub.InitialVoteContract),new Empty());
-            return voteContractMethodCallList;
+            return new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
         }
     }
 }

@@ -234,8 +234,6 @@ namespace AElf.Contracts.Election
         {
             DeployContracts();
             
-            AsyncHelper.RunSync(InitializeVote);
-            AsyncHelper.RunSync(InitializeProfit);
             AsyncHelper.RunSync(InitializeTreasury);
             AsyncHelper.RunSync(InitializeElection);
             AsyncHelper.RunSync(InitializeParliamentContract);
@@ -255,13 +253,6 @@ namespace AElf.Contracts.Election
             ReElectionReward
         }
         
-        private async Task InitializeVote()
-        {
-            var result = await VoteContractStub.InitialVoteContract.SendAsync(
-                new Empty());
-            CheckResult(result.TransactionResult);
-        }
-
         private async Task InitializeElection()
         {
             var result = await ElectionContractStub.InitialElectionContract.SendAsync(new InitialElectionContractInput
@@ -343,12 +334,6 @@ namespace AElf.Contracts.Election
             }
         }
 
-        private async Task InitializeProfit()
-        {
-            var result = await ProfitContractStub.InitializeProfitContract.SendAsync(new Empty());
-            CheckResult(result.TransactionResult);
-        }
-        
         private async Task InitializeTreasury()
         {
             {

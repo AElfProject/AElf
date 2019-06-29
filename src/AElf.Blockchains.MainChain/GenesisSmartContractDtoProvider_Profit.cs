@@ -23,9 +23,7 @@ namespace AElf.Blockchains.MainChain
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()
         {
-            var profitContractMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            profitContractMethodCallList.Add(nameof(ProfitContractContainer.ProfitContractStub.InitializeProfitContract),new Empty());
-            return profitContractMethodCallList;
+            return new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
         }
     }
 }

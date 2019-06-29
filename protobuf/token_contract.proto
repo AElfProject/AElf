@@ -73,6 +73,12 @@ service TokenContract {
     rpc GetProfitReceivingInformation (aelf.Address) returns (ProfitReceivingInformation) {
         option (aelf.is_view) = true;
     }
+    rpc GetLockedAmount (GetLockedAmountInput) returns (GetLockedAmountOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVirtualAddressForLocking (GetVirtualAddressForLockingInput) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {
@@ -260,6 +266,27 @@ message TakeResourceTokenBackInput {
     aelf.Address contract_address = 1;
     string resource_token_symbol = 2;
     sint64 amount = 3;
+}
+
+message GetLockedAmountInput {
+    aelf.Address from = 1;
+    aelf.Address to = 2;
+    string symbol = 3;
+    aelf.Hash lock_id = 4;
+}
+
+message GetLockedAmountOutput {
+    aelf.Address from = 1;
+    aelf.Address to = 2;
+    string symbol = 3;
+    aelf.Hash lock_id = 4;
+    sint64 amount = 5;
+}
+
+message GetVirtualAddressForLockingInput {
+    aelf.Address from = 1;
+    aelf.Address to = 2;
+    aelf.Hash lock_id = 3;
 }
 
 // Events

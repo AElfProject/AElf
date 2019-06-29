@@ -106,9 +106,7 @@ namespace AElf.Contracts.Profit
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()
         {
-            var voteMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            voteMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),new Empty());
-            return voteMethodCallList;
+            return new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()

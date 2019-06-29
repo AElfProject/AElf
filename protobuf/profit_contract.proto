@@ -12,8 +12,6 @@ service ProfitContract {
     option (aelf.csharp_state) = "AElf.Contracts.Profit.ProfitContractState";
 
     // Actions
-    rpc InitializeProfitContract (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
     rpc CreateProfitItem (CreateProfitItemInput) returns (aelf.Hash) {
     }
     rpc SetTreasuryProfitId (aelf.Hash) returns (google.protobuf.Empty) {
