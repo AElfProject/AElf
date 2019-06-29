@@ -113,21 +113,19 @@ message TransferInput {
 }
 
 message LockInput {
-    aelf.Address from = 1; // The one want to lock his token.
-    aelf.Address to = 2; // The address in white list.
-    aelf.Hash lock_id = 3;
-    string symbol = 4;
-    string usage = 5;
-    int64 amount = 6;
+    aelf.Address address = 1; // The one want to lock his token.
+    aelf.Hash lock_id = 2;
+    string symbol = 3;
+    string usage = 4;
+    int64 amount = 5;
 }
 
 message UnlockInput {
-    aelf.Address from = 1; // The one want to lock his token.
-    aelf.Address to = 2; // The address in white list.
-    aelf.Hash lock_id = 3;
-    string symbol = 4;
-    string usage = 5;
-    int64 amount = 6;
+    aelf.Address address = 1; // The one want to lock his token.
+    aelf.Hash lock_id = 2;
+    string symbol = 3;
+    string usage = 4;
+    int64 amount = 5;
 }
 
 message TransferFromInput {

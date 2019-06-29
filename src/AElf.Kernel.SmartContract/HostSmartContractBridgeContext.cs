@@ -71,6 +71,11 @@ namespace AElf.Kernel.SmartContract
         {
             return _smartContractBridgeService.GetAddressByContractName(hash);
         }
+        
+        public IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping()
+        {
+            return _smartContractBridgeService.GetSystemContractNameToAddressMapping();
+        }
 
         public void Initialize(ITransactionContext transactionContext)
         {
