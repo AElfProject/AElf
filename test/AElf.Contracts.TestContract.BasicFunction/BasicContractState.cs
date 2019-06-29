@@ -3,7 +3,7 @@ using AElf.Types;
 
 namespace AElf.Contracts.TestContract.BasicFunction
 {
-    public class BasicFunctionContractState : ContractState
+    public partial class BasicFunctionContractState : ContractState
     {
         public BoolState Initialized { get; set; }
         public StringState ContractName { get; set; }

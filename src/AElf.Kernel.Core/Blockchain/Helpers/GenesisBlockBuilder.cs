@@ -1,7 +1,4 @@
-﻿using System;
-using AElf.Common;
-using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
+﻿using AElf.Types;
 
 namespace AElf.Kernel.Blockchain.Helpers
 {
