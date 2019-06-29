@@ -97,5 +97,12 @@ namespace AElf.Contracts.Genesis
             var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
             return proposalId;
         }
+
+        protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId)
+        {
+            var transactionResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Release),proposalId);
+            return transactionResult;
+        }
     }
 }

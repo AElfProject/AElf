@@ -96,7 +96,7 @@ namespace AElf.Contracts.Genesis
             var info = new ContractInfo
             {
                 SerialNumber = serialNumber,
-                Owner = Context.Sender,
+                Owner = Context.Origin,
                 Category = category,
                 CodeHash = codeHash
             };
@@ -117,7 +117,7 @@ namespace AElf.Contracts.Genesis
             {
                 CodeHash = codeHash,
                 Address = contractAddress,
-                Creator = Context.Sender
+                Creator = Context.Origin
             });
 
             Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());

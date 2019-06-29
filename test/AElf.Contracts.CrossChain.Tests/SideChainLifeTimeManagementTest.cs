@@ -327,17 +327,17 @@ namespace AElf.Contract.CrossChain.Tests
 //        }
 //
         [Fact]
-        public async Task GetChainStatus_Fatal()
+        public async Task GetChainStatus_NotExist()
         {
             var chainId = ChainHelpers.GetChainId(1);
-            
-            var status =SInt32Value.Parser.ParseFrom(await CallContractMethodAsync(CrossChainContractAddress, 
+            var txResult = await Tester.ExecuteContractWithMiningAsync(CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub.GetChainStatus),
                 new SInt32Value()
                 {
                     Value = chainId
-                })).Value;
-            Assert.Equal(0, status);
+                });
+            txResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            txResult.Error.Contains("Not existed side chain.").ShouldBeTrue();
         }
 
         [Fact]

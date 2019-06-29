@@ -32,27 +32,41 @@ namespace AElf.Contracts.Genesis
             };
             string methodName = "DeploySmartContract";
             //create proposal to deploy
-            var proposalId = CreateProposalAsync(methodName, contractDeploymentInput);
-            //approve and release
-            var txResult = await ApproveWithMinersAsync(proposalId.Result);
-
+            var proposalId = await CreateProposalAsync(methodName, contractDeploymentInput);
+            //approve
+            var txResult = await ApproveWithMinersAsync(proposalId);
             txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            //release
+            var txResult2 = await ReleaseProposalAsync(proposalId);
+            txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var creator = ContractDeployed.Parser.ParseFrom(txResult2.Logs[0].Indexed[0]).Creator;
+            creator.ShouldBe(Tester.GetCallOwnerAddress());
+            var deployAddress = ContractDeployed.Parser.ParseFrom(txResult2.Logs[0].NonIndexed).Address;
+            deployAddress.ShouldNotBeNull();
         }
 
         [Fact]
         public async Task UpdateSmartContract()
         {
+            var code = Codes.Single(kv => kv.Key.Contains("Consensus")).Value;
             var contractUpdateInput = new ContractUpdateInput
             {
                 Address = TokenContractAddress,
-                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Consensus")).Value)
+                Code = ByteString.CopyFrom(code)
             };
             string methodName = "UpdateSmartContract";
-            //create proposal to update
-            var proposalId = CreateProposalAsync(methodName, contractUpdateInput);
-            //approve and release
-            var txResult = await ApproveWithMinersAsync(proposalId.Result);
-            txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var proposalId = await CreateProposalAsync(methodName, contractUpdateInput);
+            var txResult1 = await ApproveWithMinersAsync(proposalId);
+            txResult1.Status.ShouldBe(TransactionResultStatus.Mined);
+            var txResult2 = await ReleaseProposalAsync(proposalId);
+            txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            var contractAddress = CodeUpdated.Parser.ParseFrom(txResult2.Logs[0].Indexed[0]).Address;
+            contractAddress.ShouldBe(TokenContractAddress);
+            var codeHash = Hash.FromRawBytes(code);
+            var newHash = CodeUpdated.Parser.ParseFrom(txResult2.Logs[0].NonIndexed).NewCodeHash;
+            newHash.ShouldBe(codeHash);
         }
 
         [Fact]
@@ -60,11 +74,11 @@ namespace AElf.Contracts.Genesis
         {
             var address = Tester.GetCallOwnerAddress();
             var methodName = "ChangeGenesisOwner";
-            //create proposal to update
-            var proposalId = CreateProposalAsync(methodName, address);
-            //approve and release
-            var txResult = await ApproveWithMinersAsync(proposalId.Result);
-            txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var proposalId = await CreateProposalAsync(methodName, address);
+            var txResult1 = await ApproveWithMinersAsync(proposalId);
+            txResult1.Status.ShouldBe(TransactionResultStatus.Mined);
+            var txResult2 = await ReleaseProposalAsync(proposalId);
+            txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
             
             //check the address
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
@@ -75,7 +89,6 @@ namespace AElf.Contracts.Genesis
                 }));
             result.Status.ShouldBe(TransactionResultStatus.Mined);
         }
-
 
         [Fact]
         public async Task DeploySmartContracts_WithoutAuth()
