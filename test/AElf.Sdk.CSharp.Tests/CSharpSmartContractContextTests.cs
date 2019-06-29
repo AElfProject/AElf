@@ -3,6 +3,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
+using Shouldly;
 using Xunit;
 using CustomContract = AElf.Runtime.CSharp.Tests.TestContract;
 
@@ -10,36 +11,23 @@ namespace AElf.Sdk.CSharp.Tests
 {
     public class CSharpSmartContractContextTests : SdkCSharpTestBase
     {
-        private CustomContract.TestContract Contract = new CustomContract.TestContract();
-        private IStateProvider StateProvider { get; }
-        private IHostSmartContractBridgeContext BridgeContext { get; }
-        private CSharpSmartContractContext ContractContext { get; }
-
-        public CSharpSmartContractContextTests()
+        [Fact]
+        public void Verify_Transaction_Origin_SetValue()
         {
-            StateProvider = GetRequiredService<IStateProviderFactory>().CreateStateProvider();
-            BridgeContext = GetRequiredService<IHostSmartContractBridgeContextService>().Create();
-            
-            var transactionContext = new TransactionContext()
+            var bridgeContext = GetRequiredService<IHostSmartContractBridgeContextService>().Create();
+            var origin = Address.FromString("origin");
+            bridgeContext.TransactionContext = new TransactionContext
             {
+                Origin = origin,
                 Transaction = new Transaction()
                 {
-                    From = Address.Generate(),
-                    To = Address.Generate()
+                    From = Address.FromString("from"),
+                    To = Address.FromString("to")
                 }
             };
-
-            BridgeContext.TransactionContext = transactionContext;
-            Contract.InternalInitialize(BridgeContext);
-            
-            ContractContext = new CSharpSmartContractContext(BridgeContext);
+            var contractContext = new CSharpSmartContractContext(bridgeContext);
+            contractContext.Origin.ShouldBe(origin); 
+            contractContext.Origin.ShouldNotBe(bridgeContext.TransactionContext.Transaction.From);
         }
-
-        [Fact]
-        public void TestPreviousBlockHash()
-        {
-            var hash = ContractContext.PreviousBlockHash;
-        }
-        
     }
 }
