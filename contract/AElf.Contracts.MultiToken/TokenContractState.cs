@@ -1,5 +1,6 @@
 using Acs0;
 using Acs1;
+using Acs8;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TokenConverter;
@@ -48,6 +49,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         internal ACS0Container.ACS0ReferenceState ACS0Contract { get; set; }
+        internal ResourceConsumptionContractContainer.ResourceConsumptionContractReferenceState ACS8Contract { get; set; }
 
         public SingletonState<long> CpuUnitPrice { get; set; }
         public SingletonState<long> StoUnitPrice { get; set; }

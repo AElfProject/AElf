@@ -89,69 +89,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
                     ExecutingTime = executingTime
                 })).Transaction;
 
-            var preferences = await selfStub.GetResourceTokenBuyingPreferences.CallAsync(new Empty());
-            await BuyResourceTokens(preferences, context.Self, tokenStub, selfStub);
-
             return new List<Transaction>
             {
                 chargeResourceTokenTransaction
             };
-        }
-
-        private async Task BuyResourceTokens(ResourceTokenBuyingPreferences preferences, Address contractAddress,
-            TokenContractContainer.TokenContractStub tokenStub,
-            ResourceConsumptionContractContainer.ResourceConsumptionContractStub selfStub)
-        {
-            if (preferences.CpuThreshold > 0)
-            {
-                var cpuBalance = await tokenStub.GetBalance.CallAsync(new GetBalanceInput
-                {
-                    Owner = contractAddress, Symbol = "CPU"
-                });
-                if (cpuBalance.Balance <= preferences.CpuThreshold)
-                {
-                    await selfStub.BuyResourceToken.SendAsync(new BuyResourceTokenInput
-                    {
-                        Symbol = "CPU",
-                        Amount = preferences.CpuAmount,
-                        PayLimit = preferences.PayLimit
-                    });
-                }
-            }
-
-            if (preferences.StoAmount > 0)
-            {
-                var stoBalance = await tokenStub.GetBalance.CallAsync(new GetBalanceInput
-                {
-                    Owner = contractAddress, Symbol = "STO"
-                });
-                if (stoBalance.Balance <= preferences.StoThreshold)
-                {
-                    await selfStub.BuyResourceToken.SendAsync(new BuyResourceTokenInput
-                    {
-                        Symbol = "STO",
-                        Amount = preferences.StoAmount,
-                        PayLimit = preferences.PayLimit
-                    });
-                }
-            }
-
-            if (preferences.NetThreshold > 0)
-            {
-                var netBalance = await tokenStub.GetBalance.CallAsync(new GetBalanceInput
-                {
-                    Owner = contractAddress, Symbol = "NET"
-                });
-                if (netBalance.Balance <= preferences.NetThreshold)
-                {
-                    await selfStub.BuyResourceToken.SendAsync(new BuyResourceTokenInput
-                    {
-                        Symbol = "NET",
-                        Amount = preferences.NetAmount,
-                        PayLimit = preferences.PayLimit
-                    });
-                }
-            }
         }
     }
 }

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mime;
 using Acs0;
+using Acs8;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TokenConverter;
@@ -274,7 +276,61 @@ namespace AElf.Contracts.MultiToken
                 State.ChangedResources[Context.Sender][pair.Key] =
                     State.ChangedResources[Context.Sender][pair.Key].Add(pair.Value);
             }
+
+            TryToBuyMoreResourceTokenForSender();
+
             return new Empty();
+        }
+
+        private void TryToBuyMoreResourceTokenForSender()
+        {
+            var preferences = Context.Call<ResourceTokenBuyingPreferences>(Context.Sender,
+                nameof(State.ACS8Contract.GetResourceTokenBuyingPreferences), new Empty());
+
+            if (preferences.CpuThreshold > 0)
+            {
+                var cpuBalance = State.Balances[Context.Sender]["CPU"];
+                if (cpuBalance <= preferences.CpuThreshold)
+                {
+                    Context.SendInline(Context.Sender, nameof(State.ACS8Contract.BuyResourceToken),
+                        new BuyResourceTokenInput
+                        {
+                            Symbol = "CPU",
+                            Amount = preferences.CpuAmount,
+                            PayLimit = preferences.PayLimit
+                        });
+                }
+            }
+
+            if (preferences.StoAmount > 0)
+            {
+                var stoBalance = State.Balances[Context.Sender]["STO"];
+                if (stoBalance <= preferences.StoThreshold)
+                {
+                    Context.SendInline(Context.Sender, nameof(State.ACS8Contract.BuyResourceToken),
+                        new BuyResourceTokenInput
+                        {
+                            Symbol = "STO",
+                            Amount = preferences.StoAmount,
+                            PayLimit = preferences.PayLimit
+                        });
+                }
+            }
+
+            if (preferences.NetThreshold > 0)
+            {
+                var netBalance = State.Balances[Context.Sender]["NET"];
+                if (netBalance <= preferences.NetThreshold)
+                {
+                    Context.SendInline(Context.Sender, nameof(State.ACS8Contract.BuyResourceToken),
+                        new BuyResourceTokenInput
+                        {
+                            Symbol = "NET",
+                            Amount = preferences.NetAmount,
+                            PayLimit = preferences.PayLimit
+                        });
+                }
+            }
         }
 
         private void ChargeFirstSufficientToken(MapField<string, long> symbolToAmountMap, out string symbol,
