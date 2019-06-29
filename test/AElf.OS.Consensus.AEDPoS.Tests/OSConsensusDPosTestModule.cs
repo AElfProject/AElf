@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Modularity;
