@@ -46,6 +46,11 @@ namespace AElf.OS.Network
         /// Indicates if this node will compress blocks when a peer requests blocks.
         /// </summary>
         public bool CompressBlocksOnRequest { get; set; } = NetworkConstants.DefaultCompressBlocks;
+
+        /// <summary>
+        /// The minimum distance between this node and peers needed to trigger initial sync. 
+        /// </summary>
+        public int InitialSyncOffset { get; set; } = NetworkConstants.DefaultInitialSyncOffset;
     }
     
     [Flags]
