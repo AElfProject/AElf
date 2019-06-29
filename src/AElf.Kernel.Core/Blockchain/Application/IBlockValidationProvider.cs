@@ -1,8 +1,6 @@
 using System;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Kernel.Account.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 
