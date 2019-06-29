@@ -70,7 +70,7 @@ namespace AElf.OS.Network.Application
             
             _taskQueueManager.Enqueue(async () =>
             {
-                foreach (var peer in _peerPool.GetPeers().Where(p => p.CanStreamAnnouncements))
+                foreach (var peer in _peerPool.GetPeers())
                 {
                     try
                     {
@@ -90,7 +90,7 @@ namespace AElf.OS.Network.Application
         {
             _taskQueueManager.Enqueue(async () =>
             {
-                foreach (var peer in _peerPool.GetPeers().Where(p => p.CanStreamTransactions))
+                foreach (var peer in _peerPool.GetPeers())
                 {
                     try
                     {
