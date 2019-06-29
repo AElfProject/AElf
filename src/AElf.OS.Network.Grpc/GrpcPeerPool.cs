@@ -98,6 +98,7 @@ namespace AElf.OS.Network.Grpc
 
             await peer.FinalizeConnectAsync();
             
+            peer.StartBlockRequestStreaming();
             peer.StartAnnouncementStreaming();
             peer.StartTransactionStreaming();
             

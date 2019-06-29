@@ -60,8 +60,9 @@ namespace AElf.OS.Network.Grpc
         public bool Inbound { get; }
         public long StartHeight { get; }
 
-        public bool CanStreamTransactions { get; private set; } = false;
-        public bool CanStreamAnnouncements { get; private set; } = false;
+        public bool CanStreamTransactions { get; private set; }
+        public bool CanStreamAnnouncements { get; private set; }
+        public bool CanStreamBlocks { get; private set; }
 
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
@@ -71,6 +72,7 @@ namespace AElf.OS.Network.Grpc
         
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<PeerNewBlockAnnouncement, VoidReply> _announcementStreamCall;
+        private AsyncDuplexStreamingCall<BlockRequest, BlockReply> _blockRequestBlockStream;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, GrpcPeerInfo peerInfo)
         {
@@ -122,7 +124,7 @@ namespace AElf.OS.Network.Grpc
             await RequestAsync(_client, c => c.FinalizeConnectAsync(new Handshake(), data), request);
         }
 
-        public async Task<BlockWithTransactions> RequestBlockAsync(Hash hash)
+        private async Task<BlockWithTransactions> RequestBlockUnaryAsync(Hash hash)
         {
             var blockRequest = new BlockRequest {Hash = hash};
 
@@ -163,6 +165,54 @@ namespace AElf.OS.Network.Grpc
         }
 
         #region Streaming
+        
+        public void StartBlockRequestStreaming()
+        { 
+            _blockRequestBlockStream = _client.RequestBlockStream();
+            CanStreamBlocks = true;
+        }
+        
+        public async Task<BlockWithTransactions> RequestBlockAsync(Hash blockHash)
+        {
+            if (!CanStreamBlocks)
+            {
+                Logger.LogWarning("Request block reverted to old method.");
+                return await RequestBlockUnaryAsync(blockHash);
+            }
+            
+            try
+            {
+                Stopwatch s = Stopwatch.StartNew();
+                
+                await _blockRequestBlockStream.RequestStream.WriteAsync(new BlockRequest { Hash = blockHash }).ConfigureAwait(false);
+                bool received = await _blockRequestBlockStream.ResponseStream.MoveNext().ConfigureAwait(false);
+                
+                s.Stop();
+                
+                if (received)
+                {
+                    if (s.ElapsedMilliseconds > BlockRequestTimeout)
+                        Logger.LogWarning($"Block request slow: {s.ElapsedMilliseconds}");
+                    
+                    var block = _blockRequestBlockStream.ResponseStream.Current;
+                    return block.Block;
+                }
+                
+                Logger.LogWarning($"Could not get {blockHash} from {this};");
+            }
+            catch (RpcException e)
+            {
+                if (!CanStreamBlocks) // Already down
+                    return null;
+                
+                CanStreamBlocks = false;
+                _blockRequestBlockStream.Dispose();
+                
+                throw new NetworkException($"Failed stream to {this}: ", e, NetworkExceptionType.BlockRequestStream);
+            }
+            
+            return null;
+        }
 
         public void StartAnnouncementStreaming()
         {

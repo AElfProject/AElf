@@ -7,9 +7,11 @@ import "network_types.proto";
 import "aelf/core.proto";
 
 service PeerService {
+    
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}
     rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
-    
+    rpc RequestBlockStream (stream BlockRequest) returns (stream BlockReply) {}
+
     rpc Announce (PeerNewBlockAnnouncement) returns (VoidReply) {}
     rpc SendTransaction (aelf.Transaction) returns (VoidReply) {}
 
