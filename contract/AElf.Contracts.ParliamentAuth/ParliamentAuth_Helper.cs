@@ -48,7 +48,7 @@ namespace AElf.Contracts.ParliamentAuth
         }
 
         private const int MaxThreshold = 10000;
-        private const int DefaultReleaseThreshold = 6667; // 2/3 for default parliament organization
+        private const int DefaultReleaseThreshold = 6666; // 2/3 for default parliament organization
 
         private bool Validate(Organization organization)
         {
