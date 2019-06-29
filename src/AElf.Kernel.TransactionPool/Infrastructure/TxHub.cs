@@ -205,7 +205,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 if (!transaction.VerifySignature())
                     continue;
 
-                var receipt = new TransactionReceipt(transaction);
+                var receipt = new TransactionReceipt
+                {
+                    TransactionId = transaction.GetHash(),
+                    Transaction = transaction
+                };
                 if (_allTransactions.ContainsKey(receipt.TransactionId))
                 {
                     //Logger.LogWarning($"Transaction already exists in TxStore");
