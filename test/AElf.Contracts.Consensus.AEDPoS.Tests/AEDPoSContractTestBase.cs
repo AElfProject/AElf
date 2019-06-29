@@ -107,7 +107,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     VoteSmartContractAddressNameProvider.Name,
                     BootMinerKeyPair));
             VoteContractStub = GetVoteContractTester(BootMinerKeyPair);
-            AsyncHelper.RunSync(InitializeVoteContract);
 
             // Deploy Profit Contract
             ProfitContractAddress = AsyncHelper.RunSync(() =>
@@ -240,12 +239,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         #region Contract Initialization
-
-        private async Task InitializeVoteContract()
-        {
-            var result = await VoteContractStub.InitialVoteContract.SendAsync(new Empty());
-            CheckResult(result.TransactionResult);
-        }
 
         private async Task InitializeElectionContract()
         {

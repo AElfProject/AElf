@@ -82,8 +82,13 @@ namespace AElf.Contracts.Election
 
             // Voter token not enough
             {
+                var voterBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = Address.FromPublicKey(voterKeyPair.PublicKey),
+                    Symbol = "ELF"
+                })).Balance;
                 var transactionResult =
-                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400, 100_000);
+                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400, voterBalance + 10);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.ShouldContain("Insufficient balance");
@@ -233,9 +238,6 @@ namespace AElf.Contracts.Election
             await NextRound(BootMinerKeyPair);
 
             FullNodesKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
-
-            var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-                {Owner = ElectionContractAddress, Symbol = "VOTE"});
 
             var moreVotesCandidates = FullNodesKeyPairs.Take(InitialMinersCount).ToList();
             moreVotesCandidates.ForEach(async kp =>

@@ -153,6 +153,7 @@ namespace AElf.Contracts.Election
 
             await VoteToCandidates(votersKeyPairs.Take(InitialMinersCount).ToList(),
                 candidatesKeyPairs.Select(p => p.PublicKey.ToHex()).ToList(), lockTime, amount);
+            
             await VoteToCandidates(
                 votersKeyPairs.Skip(InitialMinersCount).Take(candidatesKeyPairs.Count - InitialMinersCount).ToList(),
                 candidatesKeyPairs.Select(p => p.PublicKey.ToHex()).ToList(), lockTime, amount / 2);

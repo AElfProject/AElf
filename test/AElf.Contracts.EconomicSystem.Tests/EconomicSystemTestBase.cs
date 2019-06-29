@@ -212,7 +212,6 @@ namespace AElf.Contracts.EconomicSystem.Tests
         {
             DeployContracts();
 
-            AsyncHelper.RunSync(InitializeVote);
             AsyncHelper.RunSync(InitializeProfit);
             AsyncHelper.RunSync(InitializeTreasuryConverter);
             AsyncHelper.RunSync(InitializeElection);
@@ -326,13 +325,6 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 Hash.FromString("AElf.ContractNames.MethodCallThreshold"),
                 BootMinerKeyPair));
             MethodCallThresholdContractStub = GetMethodCallThresholdContractStub(BootMinerKeyPair);
-        }
-
-        private async Task InitializeVote()
-        {
-            var result = await VoteContractStub.InitialVoteContract.SendAsync(
-                new Empty());
-            CheckResult(result.TransactionResult);
         }
 
         private async Task InitializeProfit()

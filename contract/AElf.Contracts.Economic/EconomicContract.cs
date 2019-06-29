@@ -118,7 +118,12 @@ namespace AElf.Contracts.Economic
                 Decimals = 0,
                 Issuer = Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
                 IsBurnable = false,
-                IsTransferDisabled = true
+                IsTransferDisabled = true,
+                LockWhiteList =
+                {
+                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+                    Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName)
+                }
             });
         }
 

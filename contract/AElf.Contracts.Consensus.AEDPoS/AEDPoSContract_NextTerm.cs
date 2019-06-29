@@ -143,12 +143,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void TransferMiningReward(long amount)
         {
-            State.TokenContract.Transfer.Send(new TransferInput
+            if (amount > 0)
             {
-                Symbol = Context.Variables.NativeSymbol,
-                Amount = amount,
-                To = State.TreasuryContract.Value
-            });
+                State.TokenContract.Transfer.Send(new TransferInput
+                {
+                    Symbol = Context.Variables.NativeSymbol,
+                    Amount = amount,
+                    To = State.TreasuryContract.Value
+                });
+            }
             
             Context.LogDebug(() => $"Released {amount} mining rewards.");
         }

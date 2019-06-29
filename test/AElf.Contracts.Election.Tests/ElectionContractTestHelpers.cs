@@ -54,12 +54,14 @@ namespace AElf.Contracts.Election
             int lockTime, long amount)
         {
             var electionStub = GetElectionContractStub(voterKeyPair);
-            return (await electionStub.Vote.SendAsync(new VoteMinerInput
+            var voteResult = (await electionStub.Vote.SendAsync(new VoteMinerInput
             {
                 CandidatePublicKey = candidatePublicKey,
                 Amount = amount,
                 EndTimestamp = TimestampHelper.GetUtcNow().AddSeconds(lockTime)
             })).TransactionResult;
+
+            return voteResult;
         }
         
         private async Task VoteToCandidate(List<ECKeyPair> votersKeyPairs, string candidatePublicKey,
