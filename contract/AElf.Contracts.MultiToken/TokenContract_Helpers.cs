@@ -13,14 +13,13 @@ namespace AElf.Contracts.MultiToken
             return character >= 'A' && character <= 'Z';
         }
 
-        private TokenInfo AssertValidToken(string symbol, long amount, bool isIssue = false)
+        private TokenInfo AssertValidToken(string symbol, long amount)
         {
             Assert(!string.IsNullOrEmpty(symbol) & symbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
             Assert(amount > 0, "Invalid amount.");
             var tokenInfo = State.TokenInfos[symbol];
-            Assert(tokenInfo != null && tokenInfo != new TokenInfo(), "Token is not found.");
-            Assert(isIssue || !tokenInfo.IsTransferDisabled, "Token can't transfer.");
+            Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), "Token is not found.");
             return tokenInfo;
         }
         

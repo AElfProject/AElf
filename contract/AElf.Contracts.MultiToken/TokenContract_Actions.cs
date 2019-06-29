@@ -52,7 +52,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Issue(IssueInput input)
         {
             Assert(input.To != null, "To address not filled.");
-            var tokenInfo = AssertValidToken(input.Symbol, input.Amount, true);
+            var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == Context.GetZeroSmartContractAddress(),
                 $"Sender is not allowed to issue token {input.Symbol}.");
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
@@ -64,7 +64,8 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Transfer(TransferInput input)
         {
-            AssertValidToken(input.Symbol, input.Amount);
+            var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
+            Assert(!tokenInfo.IsTransferDisabled, "Token can't transfer.");
             DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
             return new Empty();
         }
@@ -158,7 +159,8 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty TransferFrom(TransferFromInput input)
         {
-            AssertValidToken(input.Symbol, input.Amount);
+            var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
+            Assert(tokenInfo.Issuer == input.To || !tokenInfo.IsTransferDisabled, "Token can't transfer.");
 
             // First check allowance.
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
@@ -180,7 +182,8 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Approve(ApproveInput input)
         {
-            AssertValidToken(input.Symbol, input.Amount);
+            var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
+            Assert(!tokenInfo.IsTransferDisabled, "Token can't transfer.");
             State.Allowances[Context.Sender][input.Spender][input.Symbol] =
                 State.Allowances[Context.Sender][input.Spender][input.Symbol].Add(input.Amount);
             Context.Fire(new Approved()
