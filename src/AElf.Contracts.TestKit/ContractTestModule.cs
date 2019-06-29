@@ -5,6 +5,7 @@ using AElf.Database;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Account.Infrastructure;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.ChainController;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Consensus;
@@ -23,6 +24,8 @@ using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.Runtime.CSharp;
+using AElf.Types;
+using Google.Protobuf;
 using MartinCostello.Logging.XUnit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -98,6 +101,9 @@ namespace AElf.Contracts.TestKit
 //            context.Services.AddSingleton(o => Mock.Of<IConsensusInformationGenerationService>());
 //            context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
             context.Services.AddTransient(o => Mock.Of<IConsensusService>());
+            context.Services.AddTransient(o => Mock.Of<IBlockExtraDataProvider>(e =>
+                e.GetExtraDataForFillingBlockHeaderAsync(It.IsAny<BlockHeader>()) ==
+                Task.FromResult(ByteString.Empty)));
             #endregion
 
             context.Services.AddTransient<IAccount, Account>();

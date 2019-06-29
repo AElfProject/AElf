@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Types;
+using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
@@ -34,13 +35,22 @@ namespace AElf.Kernel.Blockchain.Application
             block.Body = new BlockBody();
             validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync( block);
             validateResult.ShouldBeFalse();
-            
+           
             block.Body.Transactions.Add(Hash.Empty);
+            block.Header = new BlockHeader
+            {
+                Height = 10,
+                PreviousBlockHash = Hash.FromString("PreviousBlockHash"),
+                Time = TimestampHelper.GetUtcNow(),
+                MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
+                MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus"),
+                MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoot(),
+                BlockExtraDatas = { ByteString.CopyFromUtf8("BlockExtraData") },
+                SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey")
+            };
             validateResult = await _blockValidationProvider.ValidateBeforeAttachAsync( block);
             validateResult.ShouldBeFalse();
 
-            block.Header.Time = TimestampHelper.GetUtcNow();
-            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoot();
             validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync( block);
             validateResult.ShouldBeTrue();        
         }

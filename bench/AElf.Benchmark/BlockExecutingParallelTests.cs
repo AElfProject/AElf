@@ -52,19 +52,8 @@ namespace AElf.Benchmark
         {
             var chain = await _blockchainService.GetChainAsync();
 
-            _block = new Block
-            {
-                Header = new BlockHeader
-                {
-                    ChainId = chain.Id,
-                    Height = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash,
-                    Time = TimestampHelper.GetUtcNow()
-                },
-                Body = new BlockBody()
-            };
-
             (_prepareTransactions, _keyPairs) = await _osTestHelper.PrepareTokenForParallel(TransactionCount);
+            _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, _transactions);
             await _blockExecutingService.ExecuteBlockAsync(_block.Header, _prepareTransactions);
             await _osTestHelper.BroadcastTransactions(_prepareTransactions);
             _block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,

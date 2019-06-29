@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Modularity;
@@ -10,6 +11,7 @@ using AElf.OS;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.Runtime.CSharp;
+using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
@@ -49,7 +51,19 @@ namespace AElf.Contracts.TestBase
                 mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(ecKeyPair.PublicKey);
                 
                 return mockService.Object;
-            });    
+            }); 
+            
+            context.Services.AddTransient<IBlockExtraDataService>(o =>
+            {
+                var mockService = new Mock<IBlockExtraDataService>();
+                mockService.Setup(s =>
+                    s.FillBlockExtraData(It.IsAny<BlockHeader>())).Returns<BlockHeader>((blockHeader) =>
+                {
+                    blockHeader.BlockExtraDatas.Add(ByteString.Empty);
+                    return Task.CompletedTask;
+                });
+                return mockService.Object;
+            });
         }
     }
 }

@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Modularity;
+using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -54,6 +55,8 @@ namespace AElf.OS
 
                 return mockService.Object;
             });
+
+            context.Services.AddSingleton(o => Mock.Of<IAElfNetworkServer>());
         }
     }
 }

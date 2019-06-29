@@ -138,7 +138,7 @@ namespace AElf.Kernel
             return transactionResult;
         }
 
-        public Block GenerateBlock(long previousBlockHeight, Hash previousBlockHash, List<Transaction> transactions)
+        public Block GenerateBlock(long previousBlockHeight, Hash previousBlockHash, List<Transaction> transactions = null)
         {
             var newBlock = new Block
             {
@@ -146,18 +146,21 @@ namespace AElf.Kernel
                 {
                     Height = previousBlockHeight + 1,
                     PreviousBlockHash = previousBlockHash,
-                    Time = TimestampHelper.GetUtcNow()
+                    Time = TimestampHelper.GetUtcNow(),
+                    MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
+                    MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus"),
+                    BlockExtraDatas = { ByteString.Empty },
+                    SignerPubkey = ByteString.CopyFrom(_keyPair.PublicKey)
                 },
                 Body = new BlockBody()
             };
-            
-//            var newBlock = new Block(previousBlockHash);
-//            newBlock.Header.Height = previousBlockHeight + 1;
-//            newBlock.Header.Time = TimestampHelper.GetUtcNow();
-//            
-            foreach (var transaction in transactions)
+
+            if (transactions != null)
             {
-                newBlock.AddTransaction(transaction);
+                foreach (var transaction in transactions)
+                {
+                    newBlock.AddTransaction(transaction);
+                }
             }
 
             newBlock.Header.MerkleTreeRootOfTransactions = newBlock.Body.CalculateMerkleTreeRoot();
@@ -238,15 +241,7 @@ namespace AElf.Kernel
 
         private async Task<Chain> CreateChain()
         {
-            var genesisBlock = new Block
-            {
-                Header = new BlockHeader
-                {
-                    Height = Constants.GenesisBlockHeight,
-                    PreviousBlockHash = Hash.Empty
-                },
-                Body = new BlockBody()
-            };
+            var genesisBlock = GenerateBlock(0, Hash.Empty, new List<Transaction>());
             
             var chain = await _blockchainService.CreateChainAsync(genesisBlock, new List<Transaction>());
             

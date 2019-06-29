@@ -22,6 +22,7 @@ namespace AElf.Kernel.SmartContract
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly ECKeyPair _keyPair;
+        private readonly KernelTestHelper _kernelTestHelper;
 
         private IHostSmartContractBridgeContext _bridgeContext;
 
@@ -30,6 +31,7 @@ namespace AElf.Kernel.SmartContract
             _blockchainService = GetRequiredService<IBlockchainService>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _defaultContractZeroCodeProvider = GetRequiredService<IDefaultContractZeroCodeProvider>();
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
             _keyPair = CryptoHelpers.GenerateKeyPair();
             _bridgeContext = CreateNewContext();
         }
@@ -81,15 +83,8 @@ namespace AElf.Kernel.SmartContract
         public void Get_GetPreviousTransactions_Success()
         {
             var transaction = GetNewTransaction();
-            
-            var newBlock = new Block
-            {
-                Header = new BlockHeader
-                {
-                    PreviousBlockHash = Hash.Empty
-                },
-                Body = new BlockBody { Transactions = { transaction.GetHash() }}
-            };
+
+            var newBlock = _kernelTestHelper.GenerateBlock(0, Hash.Empty, new List<Transaction> {transaction});
 
             _blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
             _blockchainService.AddBlockAsync(newBlock);

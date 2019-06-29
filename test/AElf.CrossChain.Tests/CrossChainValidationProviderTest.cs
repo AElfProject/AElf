@@ -16,10 +16,13 @@ namespace AElf.CrossChain
     {
         private readonly IBlockValidationProvider _crossChainBlockValidationProvider;
         private readonly CrossChainTestHelper _crossChainTestHelper;
+        private readonly KernelTestHelper _kernelTestHelper;
+        
         public CrossChainValidationProviderTest()
         {
             _crossChainBlockValidationProvider = GetRequiredService<IBlockValidationProvider>();
             _crossChainTestHelper = GetRequiredService<CrossChainTestHelper>();
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
 
         [Fact]
@@ -39,13 +42,7 @@ namespace AElf.CrossChain
         [Fact]
         public async Task Validate_EmptyHeader_NoIndexedData()
         {
-            var block = new Block
-            {
-                Header = new BlockHeader
-                {
-                    Height = 2
-                }
-            };
+            var block = _kernelTestHelper.GenerateBlock(10, Hash.Empty);
             var validationRes = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             Assert.True(validationRes);
         }
@@ -53,13 +50,7 @@ namespace AElf.CrossChain
         [Fact]
         public async Task Validate_EmptyHeader_WithIndexedData()
         {
-            var block = new Block
-            {
-                Header = new BlockHeader
-                {
-                    Height = 2
-                }
-            };
+            var block = _kernelTestHelper.GenerateBlock(10, Hash.Empty);
             
             var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
             int chainId = 123;
@@ -144,13 +135,8 @@ namespace AElf.CrossChain
 
         private IBlock CreateFilledBlock(Hash merkleTreeRoot)
         {
-            var block = new Block
-            {
-                Header = new BlockHeader
-                {
-                    Height = 2
-                }
-            };
+            var block = _kernelTestHelper.GenerateBlock(1, Hash.Empty);
+            block.Header.BlockExtraDatas.Clear();
             
             block.Header.BlockExtraDatas.Add(new CrossChainExtraData{SideChainTransactionsRoot = merkleTreeRoot}.ToByteString());
             return block;
