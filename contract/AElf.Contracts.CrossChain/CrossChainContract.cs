@@ -11,8 +11,6 @@ namespace AElf.Contracts.CrossChain
 {
     public partial class CrossChainContract : CrossChainContractContainer.CrossChainContractBase
     {
-        private int RequestChainCreationWaitingPeriod { get; } = 24 * 60 * 60;
-
         public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
@@ -64,7 +62,7 @@ namespace AElf.Contracts.CrossChain
                 CreationTimestamp = Context.CurrentBlockTime,
                 CreationHeightOnParentChain = Context.CurrentHeight
             };
-            State.SideChainInfos[chainId] = sideChainInfo;
+            State.SideChainInfo[chainId] = sideChainInfo;
             State.CurrentSideChainHeight[chainId] = 0;
 
             var initialConsensusInfo = GetCurrentMiners();
@@ -91,7 +89,7 @@ namespace AElf.Contracts.CrossChain
         {
             var chainId = input.ChainId;
             var amount = input.Amount;
-            var sideChainInfo = State.SideChainInfos[chainId];
+            var sideChainInfo = State.SideChainInfo[chainId];
             Assert(
                 sideChainInfo != null &&
                 (sideChainInfo.SideChainStatus == SideChainStatus.Active ||
@@ -101,7 +99,7 @@ namespace AElf.Contracts.CrossChain
             if (State.IndexingBalance[chainId] > sideChainInfo.SideChainCreationRequest.IndexingPrice)
             {
                 sideChainInfo.SideChainStatus = SideChainStatus.Active;
-                State.SideChainInfos[chainId] = sideChainInfo;
+                State.SideChainInfo[chainId] = sideChainInfo;
             }
            
             TransferFrom(new TransferFromInput
@@ -116,26 +114,6 @@ namespace AElf.Contracts.CrossChain
         }
 
         /// <summary>
-        /// Request form normal address to dispose side chain
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public override Hash RequestChainDisposal(SInt32Value input)
-        {
-            // no need to check authority since invoked in transaction from normal address
-            var request = State.SideChainInfos[input.Value];
-            Assert(
-                request != null && (request.SideChainStatus == SideChainStatus.Active || request.SideChainStatus == SideChainStatus.InsufficientBalance),"Side chain not found");
-            
-            Assert(Context.Sender.Equals(request.Proposer), "Not authorized to dispose.");
-
-            // side chain disposal
-            Hash proposalHash = Propose(RequestChainCreationWaitingPeriod, Context.Self, nameof(DisposeSideChain),
-                input);
-            return proposalHash;
-        }
-
-        /// <summary>
         /// Dispose side chain. It is a proposal result from system address.
         /// </summary>
         /// <param name="input"></param>
@@ -147,14 +125,17 @@ namespace AElf.Contracts.CrossChain
             var chainId = input.Value;
             // side chain disposal should be triggered by multi sig txn from system address.
             //CheckAuthority(Context.Genesis);
-            var info = State.SideChainInfos[chainId];
+            var info = State.SideChainInfo[chainId];
             Assert(info != null, "Not existed side chain.");
-            Assert(info.SideChainStatus == SideChainStatus.Active || info.SideChainStatus == SideChainStatus.InsufficientBalance, "Unable to dispose this side chain.");
+            Assert(Context.Origin.Equals(info.Proposer), "Not authorized to dispose.");
+            Assert(
+                info.SideChainStatus == SideChainStatus.Active ||
+                info.SideChainStatus == SideChainStatus.InsufficientBalance, "Unable to dispose this side chain.");
 
             UnlockTokenAndResource(info);
             info.SideChainStatus = SideChainStatus.Terminated;
-            State.SideChainInfos[chainId] = info;
-            Context.Fire(new Disposed()
+            State.SideChainInfo[chainId] = info;
+            Context.Fire(new Disposed
             {
                 ChainId = chainId
             });
@@ -251,7 +232,7 @@ namespace AElf.Contracts.CrossChain
             {
                 var blockInfo = sideChainBlockData[i];
                 var chainId = blockInfo.ChainId;
-                var info = State.SideChainInfos[chainId];
+                var info = State.SideChainInfo[chainId];
                 if (info == null || info.SideChainStatus != SideChainStatus.Active)
                     continue;
                 var currentSideChainHeight = State.CurrentSideChainHeight[chainId];
@@ -275,7 +256,7 @@ namespace AElf.Contracts.CrossChain
                     info.SideChainStatus = SideChainStatus.InsufficientBalance;
                 }
                 
-                State.SideChainInfos[chainId] = info;
+                State.SideChainInfo[chainId] = info;
 
                 Transfer(new TransferInput
                 {
