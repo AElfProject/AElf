@@ -133,7 +133,7 @@ namespace AElf.Contracts.CrossChain
         private void UpdateCurrentMiners(ByteString bytes)
         {
             ValidateContractState(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
-            State.ConsensusContract.UpdateConsensusInformation.Send(new ConsensusInformation {Bytes = bytes});
+            State.ConsensusContract.UpdateConsensusInformation.Send(new ConsensusInformation {Value = bytes});
         }
 
         private Hash GetParentChainMerkleTreeRoot(long parentChainHeight)

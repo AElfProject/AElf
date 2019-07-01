@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package acs3;
+
 import "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
@@ -22,25 +23,25 @@ service AuthorizationContract {
 }
 
 message ApproveInput {
-    aelf.Hash proposalId = 1;
+    aelf.Hash proposal_id = 1;
     sint64 quantity= 2;
 }
 
-message CreateProposalInput{
-    string contractMethodName = 2;
-    aelf.Address toAddress = 3;
+message CreateProposalInput {
+    string contract_method_name = 2;
+    aelf.Address to_address = 3;
     bytes params = 4;
-    google.protobuf.Timestamp expiredTime = 5;
-    aelf.Address organizationAddress = 6;
+    google.protobuf.Timestamp expired_time = 5;
+    aelf.Address organization_address = 6;
 }
 
-message ProposalOutput{
-    aelf.Hash proposalId = 1;
-    string contractMethodName = 2;
-    aelf.Address toAddress = 3;
+message ProposalOutput {
+    aelf.Hash proposal_id = 1;
+    string contract_method_name = 2;
+    aelf.Address to_address = 3;
     bytes params = 4;
-    google.protobuf.Timestamp expiredTime = 5;
-    aelf.Address organizationAddress = 6;
+    google.protobuf.Timestamp expired_time = 5;
+    aelf.Address organization_address = 6;
     aelf.Address proposer = 7;
     bool IsReadyToRelease = 8;
 }

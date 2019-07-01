@@ -288,7 +288,7 @@ namespace AElf.Contracts.TestBase
             consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
                 new MinerList
                 {
-                    PublicKeys =
+                    Pubkeys =
                     {
                         consensusOptions.InitialMiners.Select(k => k.ToByteString())
                     }
@@ -309,7 +309,7 @@ namespace AElf.Contracts.TestBase
             consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
                 new MinerList
                 {
-                    PublicKeys =
+                    Pubkeys =
                     {
                         initialMiners.Select(k => k.ToByteString())
                     }

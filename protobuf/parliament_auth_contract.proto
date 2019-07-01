@@ -9,40 +9,42 @@ import "google/protobuf/timestamp.proto";
 option csharp_namespace = "AElf.Contracts.ParliamentAuth";
 
 service ParliamentAuthContract {
+    
     option (aelf.csharp_state) = "AElf.Contracts.ParliamentAuth.ParliamentAuthState";
     option (aelf.base) = "acs3.proto";
+    
     // Actions
-    rpc Initialize(InitializeInput) returns (google.protobuf.Empty){
+    rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {
     }
     rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
     }
     rpc GetOrganization (aelf.Address) returns (Organization) {
         option (aelf.is_view) = true;
     }
-    rpc GetGenesisOwnerAddress (google.protobuf.Empty) returns (aelf.Address){
+    rpc GetGenesisOwnerAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
 }
 
-message CreateOrganizationInput{
-    sint32 releaseThreshold = 1;
+message CreateOrganizationInput {
+    sint32 release_threshold = 1;
 }
 
-message Organization{
-    sint32 releaseThreshold = 1;
-    aelf.Address organizationAddress = 2;
-    aelf.Hash organizationHash = 3;
+message Organization {
+    sint32 release_threshold = 1;
+    aelf.Address organization_address = 2;
+    aelf.Hash organization_hash = 3;
 }
 
 message ProposalInfo {
-    aelf.Hash proposalId = 1;
-    string contractMethodName = 2;
-    aelf.Address toAddress = 3;
+    aelf.Hash proposal_id = 1;
+    string contract_method_name = 2;
+    aelf.Address to_address = 3;
     bytes params = 4;
-    google.protobuf.Timestamp expiredTime = 5;
+    google.protobuf.Timestamp expired_time = 5;
     aelf.Address proposer = 6;
-    aelf.Address organizationAddress =7;
-    repeated aelf.Address approvedRepresentatives = 8;
+    aelf.Address organization_address = 7;
+    repeated aelf.Address approved_representatives = 8;
 }
 
 message InitializeInput{
