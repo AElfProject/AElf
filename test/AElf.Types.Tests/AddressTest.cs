@@ -91,17 +91,17 @@ namespace AElf.Types.Tests
         {
             var address = Address.FromString("Test");
             var formattedAddress = address.GetFormatted();
-            AddressHelpers.VerifyFormattedAddress(formattedAddress).ShouldBeTrue();
+            AddressHelper.VerifyFormattedAddress(formattedAddress).ShouldBeTrue();
 
-            AddressHelpers.VerifyFormattedAddress(formattedAddress + "ER").ShouldBeFalse();
-            AddressHelpers.VerifyFormattedAddress("AE" + formattedAddress).ShouldBeFalse();
+            AddressHelper.VerifyFormattedAddress(formattedAddress + "ER").ShouldBeFalse();
+            AddressHelper.VerifyFormattedAddress("AE" + formattedAddress).ShouldBeFalse();
 
             var formattedAddressCharArray = formattedAddress.ToCharArray();
             formattedAddressCharArray[4] = 'F';
-            AddressHelpers.VerifyFormattedAddress(new string(formattedAddressCharArray)).ShouldBeFalse();
+            AddressHelper.VerifyFormattedAddress(new string(formattedAddressCharArray)).ShouldBeFalse();
 
-            AddressHelpers.VerifyFormattedAddress("").ShouldBeFalse();
-            AddressHelpers.VerifyFormattedAddress("I0I0").ShouldBeFalse();
+            AddressHelper.VerifyFormattedAddress("").ShouldBeFalse();
+            AddressHelper.VerifyFormattedAddress("I0I0").ShouldBeFalse();
         }
     }
 }

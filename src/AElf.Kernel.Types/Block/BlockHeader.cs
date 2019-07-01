@@ -7,7 +7,7 @@ namespace AElf.Kernel
     {
         partial void OnConstruction()
         {
-            Bloom = ByteString.CopyFrom(new Bloom().Data) ?? ByteString.Empty;
+            Bloom = ByteString.CopyFrom(Kernel.Bloom.Empty);
         }
 
         public BlockHeader(Hash preBlockHash)

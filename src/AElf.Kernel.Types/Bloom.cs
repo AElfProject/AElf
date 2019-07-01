@@ -7,6 +7,8 @@ namespace AElf.Kernel
 {
     public class Bloom
     {
+        public static readonly byte[] Empty = GetNewEmptyBytes();
+
         private static byte[] GetNewEmptyBytes()
         {
             var bytes = new byte[256];
@@ -44,7 +46,7 @@ namespace AElf.Kernel
 
         public Bloom()
         {
-            _data = GetNewEmptyBytes();
+            _data = Empty;
         }
 
         public Bloom(byte[] data)
