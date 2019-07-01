@@ -11,7 +11,7 @@ namespace AElf.Kernel
             return Hash.FromRawBytes(GetSignatureData());
         }
 
-        // TODO: remove
+        // Done: remove
         public byte[] GetHashBytes()
         {
             return SHA256.Create().ComputeHash(GetSignatureData());

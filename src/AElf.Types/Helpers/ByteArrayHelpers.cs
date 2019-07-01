@@ -5,13 +5,13 @@ namespace AElf
 {
     public static class ByteArrayHelpers
     {
-        // TODO: remove
+        // Done: remove
         private static bool IsWithPrefix(string value)
         {
             return value.Length >= 2 && value[0] == '0' && (value[1] == 'x' || value[1] == 'X');
         }
 
-        // TODO: to extensions
+        // Done: to extensions
         public static byte[] FromHexString(string hex)
         {
             if (IsWithPrefix(hex))

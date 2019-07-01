@@ -7,7 +7,7 @@ namespace AElf.Cryptography
 {
     public class ApiAuthenticationHelper
     {
-        // TODO: check
+        // Done, removed: check
         public static string GetSign(string chainApikey, string chainId, string method, string timestamp)
         {
             var signValue = $"{chainApikey}{chainId}{method}{timestamp}".ToLower();

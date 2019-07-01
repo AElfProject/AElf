@@ -6,7 +6,7 @@ namespace AElf.Cryptography.SecretSharing
 {
     public static class SecretSharingExtensions
     {
-        // TODO: input as bytes
+        // Done: input as bytes
         public static BigInteger ToBigInteger(this string str)
         {
             const int bitSize = 8;

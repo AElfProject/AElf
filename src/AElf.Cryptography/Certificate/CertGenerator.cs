@@ -11,7 +11,7 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 using X509Certificate = Org.BouncyCastle.X509.X509Certificate;
 
-// TODO: delete
+// Done: delete
 namespace AElf.Cryptography.Certificate
 {
     public class CertGenerator
