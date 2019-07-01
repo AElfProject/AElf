@@ -113,8 +113,7 @@ namespace AElf.Contracts.ReferendumAuth
 
             LockToken(new LockInput
             {
-                From = Context.Sender,
-                To = Context.Self,
+                Address = Context.Sender,
                 Symbol = organization.TokenSymbol,
                 Amount = lockedTokenAmount,
                 LockId = Context.TransactionId,
@@ -141,10 +140,9 @@ namespace AElf.Contracts.ReferendumAuth
             UnlockToken(new UnlockInput
             {
                 Amount = voteToken.Amount,
-                From = Context.Sender,
+                Address = Context.Sender,
                 LockId = voteToken.LockId,
                 Symbol = voteToken.TokenSymbol,
-                To = Context.Self,
                 Usage = "Referendum."
             });
             return new Empty();

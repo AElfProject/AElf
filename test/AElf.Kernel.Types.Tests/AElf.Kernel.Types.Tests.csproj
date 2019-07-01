@@ -12,7 +12,6 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Common\AElf.Common.csproj" />
         <ProjectReference Include="..\..\src\AElf.Cryptography\AElf.Cryptography.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
     </ItemGroup>

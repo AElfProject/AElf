@@ -11,7 +11,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         private ValidationResult ValidateBeforeExecution(AElfConsensusHeaderInformation extraData)
         {
-            var publicKey = extraData.SenderPublicKey.ToHex();
+            var publicKey = extraData.SenderPubkey.ToHex();
             var updatedRound = extraData.Round;
 
             // Validate the sender.
@@ -138,7 +138,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         
         private bool ValidatePreviousInValue(AElfConsensusHeaderInformation extraData)
         {
-            var publicKey = extraData.SenderPublicKey.ToHex();
+            var publicKey = extraData.SenderPubkey.ToHex();
 
             if (!TryToGetPreviousRoundInformation(out var previousRound)) return true;
 

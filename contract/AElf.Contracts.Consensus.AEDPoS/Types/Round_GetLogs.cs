@@ -11,9 +11,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             foreach (var minerInRound in RealTimeMinersInformation.Values.OrderBy(m => m.Order))
             {
                 var minerInformation = new StringBuilder("\n");
-                minerInformation.Append($"[{minerInRound.PublicKey.Substring(0, 10)}]");
+                minerInformation.Append($"[{minerInRound.Pubkey.Substring(0, 10)}]");
                 minerInformation.Append(minerInRound.IsExtraBlockProducer ? "(Current EBP)" : "");
-                minerInformation.AppendLine(minerInRound.PublicKey == publicKey
+                minerInformation.AppendLine(minerInRound.Pubkey == publicKey
                     ? "(This Node)"
                     : "");
                 minerInformation.AppendLine($"Order:\t {minerInRound.Order}");

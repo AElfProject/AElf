@@ -1,4 +1,6 @@
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TestContract.BasicFunction
@@ -52,6 +54,45 @@ namespace AElf.Contracts.TestContract.BasicFunction
                 State.WinerHistory[Context.Sender] = State.WinerHistory[Context.Sender].Add(result);
             }
             
+            return new Empty();
+        }
+
+        public override Empty LockToken(LockTokenInput input)
+        {
+            State.TokenContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            
+            State.TokenContract.Lock.Send(new LockInput
+            {
+                Symbol = input.Symbol,
+                Address = input.Address,
+                Amount = input.Amount,
+                LockId = input.LockId,
+                Usage = input.Usage
+            });
+            
+            return new Empty();
+        }
+
+        public override Empty UnlockToken(UnlockTokenInput input)
+        {
+            State.TokenContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            
+            State.TokenContract.Unlock.Send(new UnlockInput
+            {
+                Symbol = input.Symbol,
+                Address = input.Address,
+                Amount = input.Amount,
+                LockId = input.LockId,
+                Usage = input.Usage
+            });
+            return new Empty();
+        }
+
+        public override Empty ValidateOrigin(Address address)
+        {
+            Assert(address == Context.Origin, "Validation failed, origin is not expected.");
             return new Empty();
         }
 

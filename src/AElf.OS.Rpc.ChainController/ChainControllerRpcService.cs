@@ -53,7 +53,7 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("GetChainInformation")]
         public Task<JObject> GetChainInformation()
         {
-            var map = SmartContractAddressService.GetSystemContractNameToAddressMapping();
+            //var map = SmartContractAddressService.GetSystemContractNameToAddressMapping();
             var basicContractZero = SmartContractAddressService.GetZeroSmartContractAddress();
             var response = new JObject
             {
@@ -135,6 +135,9 @@ namespace AElf.OS.Rpc.ChainController
             var transaction = await TransactionManager.GetTransaction(transactionResult.TransactionId);
             
             var response = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
+            response["TransactionId"] = transactionResult.TransactionId.ToHex();
+            response["Status"] = transactionResult.Status.ToString();
+            
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {
                 var block = await this.GetBlockAtHeight(transactionResult.BlockNumber);
@@ -226,7 +229,7 @@ namespace AElf.OS.Rpc.ChainController
                     ["PreviousBlockHash"] = blockInfo.Header.PreviousBlockHash.ToHex(),
                     ["MerkleTreeRootOfTransactions"] = blockInfo.Header.MerkleTreeRootOfTransactions.ToHex(),
                     ["MerkleTreeRootOfWorldState"] = blockInfo.Header.MerkleTreeRootOfWorldState.ToHex(),
-                    ["Extra"] = blockInfo.Header.BlockExtraDatas.ToString(),
+                    ["Extra"] = blockInfo.Header.ExtraData.ToString(),
                     ["Height"] = blockInfo.Header.Height.ToString(),
                     ["Time"] = blockInfo.Header.Time.ToDateTime(),
                     ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
@@ -297,9 +300,16 @@ namespace AElf.OS.Rpc.ChainController
         {
             var stateStorageKey = Hash.LoadHex(blockHash).ToStorageKey();
             var blockState = await BlockStateSets.GetAsync(stateStorageKey);
+            
             if (blockState == null)
                 throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);
-            return JObject.FromObject(JsonConvert.DeserializeObject(blockState.ToString()));
+            
+            return new JObject
+            {
+                ["BlockHash"] = blockState.BlockHash.ToHex(),
+                ["BlockHeight"] = blockState.BlockHeight,
+                ["Changes"] = (JObject) JsonConvert.DeserializeObject(blockState.Changes.ToString())
+            };
         }
 
         /*

@@ -26,7 +26,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             TryToGetCurrentRoundInformation(out var round)
                 ? new MinerList
                 {
-                    PublicKeys =
+                    Pubkeys =
                     {
                         round.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())
                     }
@@ -63,7 +63,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             else if (TryToGetCurrentRoundInformation(out round))
             {
                 var miners = new MinerList();
-                miners.PublicKeys.AddRange(round.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
+                miners.Pubkeys.AddRange(round.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
                 round = miners.GenerateFirstRoundOfNewTerm(round.GetMiningInterval(), Context.CurrentBlockTime,
                     round.RoundNumber, termNumber);
             }
@@ -100,13 +100,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 $"Got victories from Election Contract:\n{string.Join("\n", victoriesPublicKeys.Value.Select(s => s.ToHex().Substring(0, 10)))}");
             victories = new MinerList
             {
-                PublicKeys = {victoriesPublicKeys.Value},
+                Pubkeys = {victoriesPublicKeys.Value},
             };
-            return victories.PublicKeys.Any();
+            return victories.Pubkeys.Any();
         }
 
         private bool GenerateNextRoundInformation(Round currentRound, Timestamp currentBlockTime, out Round nextRound)
         {
+            if (!State.IsMainChain.Value && IsMainChainMinerListChanged(currentRound))
+            {
+                Context.LogDebug(() => "About to change miners.");
+                nextRound = State.MainChainCurrentMinerList.Value.GenerateFirstRoundOfNewTerm(
+                    currentRound.GetMiningInterval(), currentBlockTime, currentRound.RoundNumber);
+                Context.LogDebug(() => "Round of new miners generated.");
+                return true;
+            }
+
             TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
             if (TryToGetPreviousRoundInformation(out var previousRound) &&
                 previousRound.TermNumber + 1 != currentRound.TermNumber)
@@ -132,7 +141,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                         // Transfer evil node's consensus information to the chosen backup.
                         var minerInRound = currentRound.RealTimeMinersInformation[publicKeyToRemove];
-                        minerInRound.PublicKey = theOneFeelingLucky;
+                        minerInRound.Pubkey = theOneFeelingLucky;
                         minerInRound.ProducedBlocks = 0;
                         minerInRound.MissedTimeSlots = 0;
                         currentRound.RealTimeMinersInformation[theOneFeelingLucky] = minerInRound;
@@ -142,9 +151,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            var result = currentRound.GenerateNextRoundInformation(currentBlockTime,
+            return currentRound.GenerateNextRoundInformation(currentBlockTime,
                 blockchainStartTimestamp, out nextRound);
-            return result;
+        }
+
+        private bool IsMainChainMinerListChanged(Round currentRound)
+        {
+            Context.LogDebug(() => "Entered IsMainChainMinerListChanged.");
+            return State.MainChainCurrentMinerList.Value.Pubkeys.Any() &&
+                   GetMinerListHash(currentRound.RealTimeMinersInformation.Keys) !=
+                   GetMinerListHash(State.MainChainCurrentMinerList.Value.Pubkeys.Select(p => p.ToHex()));
+        }
+
+        private Hash GetMinerListHash(IEnumerable<string> minerList)
+        {
+            return Hash.FromString(
+                minerList.OrderBy(p => p).Aggregate("", (current, publicKey) => current + publicKey));
         }
 
         public override SInt64Value GetCurrentTermNumber(Empty input)
@@ -172,12 +194,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
         {
             return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
-                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.PublicKey) &&
+                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.Pubkey) &&
                       minerInCurrentRound.PreviousInValue != null
-                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.PublicKey].OutValue
+                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.Pubkey].OutValue
                 where previousOutValue != null &&
                       Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
-                select minerInCurrentRound.PublicKey).ToList();
+                select minerInCurrentRound.Pubkey).ToList();
         }
 
         private bool TryToGetElectionSnapshot(long termNumber, out TermSnapshot snapshot)
