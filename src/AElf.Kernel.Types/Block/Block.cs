@@ -43,7 +43,7 @@ namespace AElf.Kernel
             return Header.GetHashBytes();
         }
 
-        // TODO: remove
+        // Done: remove
         public byte[] Serialize()
         {
             return this.ToByteArray();

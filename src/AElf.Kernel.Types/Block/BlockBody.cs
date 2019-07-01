@@ -29,7 +29,7 @@ namespace AElf.Kernel
             return _blockBodyHash ?? CalculateBodyHash();
         }
 
-        // TODO: check to remove
+        // Done: check to remove
         public Hash GetHashWithoutCache()
         {
             _blockBodyHash = null;

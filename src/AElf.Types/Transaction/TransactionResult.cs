@@ -5,7 +5,7 @@ namespace AElf.Kernel
 {
     public partial class TransactionResult
     {
-        // TODO: use Bloom.Empty to init
+        // Done: use Bloom.Empty to init
         partial void OnConstruction()
         {
             Bloom = ByteString.CopyFrom(new byte[256]);

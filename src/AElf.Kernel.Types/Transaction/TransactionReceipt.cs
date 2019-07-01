@@ -1,6 +1,6 @@
 namespace AElf.Kernel
 {
-    // TODO: remove
+    // Done: remove
     public partial class TransactionReceipt
     {
         public TransactionReceipt(Transaction transaction)

@@ -6,7 +6,7 @@ namespace AElf.Kernel
     {
         partial void OnConstruction()
         {
-            // TODO: improve perf, Bloom.Empty
+            // Done: improve perf, Bloom.Empty
             Bloom = ByteString.CopyFrom(new Bloom().Data);
         }
 

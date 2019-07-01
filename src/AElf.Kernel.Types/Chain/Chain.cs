@@ -10,7 +10,7 @@ namespace AElf.Kernel
             GenesisBlockHash = genesisBlockHash;
         }
 
-        // TODO: remove
+        // Done: remove
         public byte[] Serialize()
         {
             return this.ToByteArray();
