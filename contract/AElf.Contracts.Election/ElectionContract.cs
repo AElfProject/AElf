@@ -29,7 +29,7 @@ namespace AElf.Contracts.Election
             State.MaximumLockTime.Value = input.MaximumLockTime;
 
             State.TimeEachTerm.Value = input.TimeEachTerm;
-            
+
             State.MinerIncreaseInterval.Value = input.MinerIncreaseInterval;
 
             State.MinersCount.Value = input.MinerList.Count;
@@ -146,36 +146,36 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        // TODO: Consider a limit amount of candidates.
+        #region AnnounceElection
+
         /// <summary>
-        /// Actually this method is for adding an option of voting.
+        /// Actually this method is for adding an option of the Voting Item.
+        /// Thus the limitation of candidates will be limited by the capacity of voting options.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
         public override Empty AnnounceElection(Empty input)
         {
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
+            var recoveredPublicKey = Context.RecoverPublicKey();
+            AnnounceElection(recoveredPublicKey);
 
-            if (State.VoteContract.Value == null)
-            {
-                State.VoteContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName);
-            }
-            
-            if (State.ProfitContract.Value == null)
-            {
-                State.ProfitContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
-            }
-            
+            var publicKey = recoveredPublicKey.ToHex();
 
-            var publicKey = Context.RecoverPublicKey().ToHex();
-            var publicKeyByteString = ByteString.CopyFrom(Context.RecoverPublicKey());
+            LockCandidateNativeToken();
 
+            AddCandidateAsOption(publicKey);
+
+            RegisterCandidateToSubsidyProfitItem();
+
+            return new Empty();
+        }
+
+        private void AnnounceElection(byte[] recoveredPublicKey)
+        {
+            var publicKey = recoveredPublicKey.ToHex();
+            var publicKeyByteString = ByteString.CopyFrom(recoveredPublicKey);
+
+            // TODO: Reconsider.
             Assert(
                 State.ElectorVotes[publicKey] == null || State.ElectorVotes[publicKey].ActiveVotingRecordIds == null ||
                 State.ElectorVotes[publicKey].ActiveVotedVotesAmount == 0, "Voter can't announce election.");
@@ -184,13 +184,14 @@ namespace AElf.Contracts.Election
                 "Initial miner cannot announce election.");
 
             var candidateInformation = State.CandidateInformationMap[publicKey];
-            
+
             if (candidateInformation != null)
             {
                 Assert(!candidateInformation.IsCurrentCandidate,
                     "This public key already announced election.");
                 candidateInformation.AnnouncementTransactionId = Context.TransactionId;
                 candidateInformation.IsCurrentCandidate = true;
+                // In this way we can keep history of current candidate, like terms, missed time slots, etc.
                 State.CandidateInformationMap[publicKey] = candidateInformation;
             }
             else
@@ -206,6 +207,15 @@ namespace AElf.Contracts.Election
             }
 
             State.Candidates.Value.Value.Add(publicKeyByteString);
+        }
+
+        private void LockCandidateNativeToken()
+        {
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
 
             // Lock the token from sender for deposit of announce election
             State.TokenContract.Lock.Send(new LockInput
@@ -216,6 +226,15 @@ namespace AElf.Contracts.Election
                 LockId = Context.TransactionId,
                 Usage = "Lock for announcing election."
             });
+        }
+
+        private void AddCandidateAsOption(string publicKey)
+        {
+            if (State.VoteContract.Value == null)
+            {
+                State.VoteContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName);
+            }
 
             // Add this candidate as an option for the the Voting Item.
             State.VoteContract.AddOption.Send(new AddOptionInput
@@ -223,6 +242,15 @@ namespace AElf.Contracts.Election
                 VotingItemId = State.MinerElectionVotingItemId.Value,
                 Option = publicKey
             });
+        }
+
+        private void RegisterCandidateToSubsidyProfitItem()
+        {
+            if (State.ProfitContract.Value == null)
+            {
+                State.ProfitContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+            }
 
             // Add 1 weight for this candidate in subsidy profit item.
             State.ProfitContract.AddWeight.Send(new AddWeightInput
@@ -231,9 +259,11 @@ namespace AElf.Contracts.Election
                 Receiver = Context.Sender,
                 Weight = 1
             });
-
-            return new Empty();
         }
+
+        #endregion
+
+        #region QuitElection
 
         /// <summary>
         /// delete a option of voting,then sub the weight from the corresponding ProfitItem 
@@ -242,18 +272,13 @@ namespace AElf.Contracts.Election
         /// <returns></returns>
         public override Empty QuitElection(Empty input)
         {
-            var publicKey = Context.RecoverPublicKey().ToHex();
-            var publicKeyByteString = ByteString.CopyFrom(Context.RecoverPublicKey());
-
-            Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Sender is not a candidate.");
-            Assert(
-                !State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).Pubkeys
-                    .Contains(publicKeyByteString),
-                "Current miners cannot quit election.");
+            var recoveredPublicKey = Context.RecoverPublicKey();
+            QuitElection(recoveredPublicKey);
+            var publicKey = recoveredPublicKey.ToHex();
 
             var candidateInformation = State.CandidateInformationMap[publicKey];
 
-            State.Candidates.Value.Value.Remove(publicKeyByteString);
+            // Unlock candidate's native token.
             State.TokenContract.Unlock.Send(new UnlockInput
             {
                 Address = Context.Sender,
@@ -263,17 +288,19 @@ namespace AElf.Contracts.Election
                 Usage = "Quit election."
             });
 
+            // Update candidate information.
+            candidateInformation.IsCurrentCandidate = false;
+            candidateInformation.AnnouncementTransactionId = Hash.Empty;
+            State.CandidateInformationMap[publicKey] = candidateInformation;
+
+            // Remove candidate public key from the Voting Item options.
             State.VoteContract.RemoveOption.Send(new RemoveOptionInput
             {
                 VotingItemId = State.MinerElectionVotingItemId.Value,
                 Option = publicKey
             });
 
-            candidateInformation.IsCurrentCandidate = false;
-            candidateInformation.AnnouncementTransactionId = Hash.Empty;
-            State.CandidateInformationMap[publicKey] = candidateInformation;
-
-            // Delete 1 weight of this candidate from subsidy profit item.
+            // Remove this candidate from subsidy profit item.
             State.ProfitContract.SubWeight.Send(new SubWeightInput
             {
                 ProfitId = State.SubsidyHash.Value,
@@ -282,6 +309,22 @@ namespace AElf.Contracts.Election
 
             return new Empty();
         }
+
+        private void QuitElection(byte[] recoveredPublicKey)
+        {
+            var publicKeyByteString = ByteString.CopyFrom(recoveredPublicKey);
+
+            Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Sender is not a candidate.");
+
+            Assert(
+                !State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).Pubkeys
+                    .Contains(publicKeyByteString),
+                "Current miners cannot quit election.");
+
+            State.Candidates.Value.Value.Remove(publicKeyByteString);
+        }
+
+        #endregion
 
         /// <summary>
         /// Call the Vote function of VoteContract to do a voting.
