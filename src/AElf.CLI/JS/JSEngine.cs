@@ -89,7 +89,7 @@ namespace AElf.CLI.JS
         private void LoadAelfJs()
         {
             RunScript(File.ReadAllText(Path.Combine(DefaultScriptsPath, "aelf.babel2.js")));
-            RunScript(@"AElf = require('aelf');");
+            RunScript(@"Aelf = require('aelf');");
         }
 
         private void LoadHelpersJs()
@@ -170,7 +170,7 @@ namespace AElf.CLI.JS
                 RunScript("_requestor = null;");
                 _requestor = new HttpRequestor(_option.Endpoint, _context);
                 _context.GlobalObject.WriteProperty("_requestor", _requestor);
-                RunScript("aelf = new AElf(_requestor);");
+                RunScript("aelf = new Aelf(_requestor);");
                 RunScript(File.ReadAllText(Path.Combine(DefaultScriptsPath, "requestor.js")));
             }
             catch (Exception)

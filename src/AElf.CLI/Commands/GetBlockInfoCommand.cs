@@ -44,7 +44,7 @@ namespace AElf.CLI.Commands
                 var incltx = _option.IncludeTxs ? "true" : "false";
                 // Get res
                 _engine.RunScript($@"
-                    var res = aelf.chain.getBlockInfo({_option.Height}, {incltx});
+                    var res = aelf.chain.getBlockByHeight({_option.Height}, {incltx},{{sync:true}});
                 ");
                 // Format res
                 _engine.RunScript($@"

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using ChakraCore.NET;
 using System.Net.Http;
@@ -62,7 +63,9 @@ namespace AElf.CLI.JS.Net
                 };
                 var response = _client.SendAsync(request).Result;
                 var result = response.Content.ReadAsStringAsync().Result;
-                return _fromString(result);
+                var dic = new Dictionary<string, string> {["result"] = result};
+                var result2 = JsonConvert.SerializeObject(dic);
+                return _fromString(result2);
             }
             catch (Exception e)
             {
