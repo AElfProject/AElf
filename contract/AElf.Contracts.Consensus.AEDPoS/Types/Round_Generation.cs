@@ -79,7 +79,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // First miner of next round != Extra block producer of current round
             var firstMinerOfNextRound = nextRound.RealTimeMinersInformation.Values.First(i => i.Order == 1);
             var extraBlockProducerOfCurrentRound = GetExtraBlockProducerInformation();
-            if (firstMinerOfNextRound.PublicKey == extraBlockProducerOfCurrentRound.PublicKey)
+            if (firstMinerOfNextRound.Pubkey == extraBlockProducerOfCurrentRound.Pubkey)
             {
                 var secondMinerOfNextRound =
                     nextRound.RealTimeMinersInformation.Values.First(i => i.Order == 2);
@@ -93,7 +93,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // Last miner of next round != Extra block producer of next round
             var lastMinerOfNextRound = nextRound.RealTimeMinersInformation.Values.First(i => i.Order == minersCount);
             var extraBlockProducerOfNextRound = nextRound.GetExtraBlockProducerInformation();
-            if (lastMinerOfNextRound.PublicKey == extraBlockProducerOfNextRound.PublicKey)
+            if (lastMinerOfNextRound.Pubkey == extraBlockProducerOfNextRound.Pubkey)
             {
                 var lastButOneMinerOfNextRound =
                     nextRound.RealTimeMinersInformation.Values.First(i => i.Order == minersCount.Sub(1));
