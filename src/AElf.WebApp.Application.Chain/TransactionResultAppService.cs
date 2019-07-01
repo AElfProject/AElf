@@ -1,58 +1,47 @@
-﻿using AElf.Types;
-using AElf.WebApp.Application.Chain.Dto;
-using Google.Protobuf;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Domain;
+using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.Types;
+using AElf.WebApp.Application.Chain.Dto;
+using Google.Protobuf;
+using Newtonsoft.Json;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
-using Volo.Abp.DependencyInjection;
 
-namespace AElf.WebApp.Application.Chain.AppServices.AppTransactionResultService
+namespace AElf.WebApp.Application.Chain
 {
-    public interface IAppTransactionResultService
+    public interface ITransactionResultAppService : IApplicationService
     {
-        /// <summary>
-        /// Get the current status of a transaction
-        /// </summary>
-        /// <param name="transactionId">transaction id</param>
-        /// <returns></returns>
         Task<TransactionResultDto> GetTransactionResultAsync(string transactionId);
 
-        /// <summary>
-        /// Get multiple transaction results.
-        /// </summary>
-        /// <param name="blockHash">block hash</param>
-        /// <param name="offset">offset</param>
-        /// <param name="limit">limit</param>
-        /// <returns></returns>
-        /// <exception cref="UserFriendlyException"></exception>
         Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
             int limit = 10);
     }
 
-    public class AppTransactionResultService : IAppTransactionResultService,ITransientDependency
+    public class TransactionResultAppService : ITransactionResultAppService
     {
-        private readonly IAppBlockService _appBlockService;
-        private readonly IAppTransactionGetResultService _appTransactionGetResultService;
-        private readonly IAppTransactionService _appTransactionService;
+        private readonly ITransactionResultExpands _transactionResultExpands;
+        private readonly ITransactionManager _transactionManager;
+        private readonly IBlockchainService _blockchainService;
+        private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AppTransactionResultService"/> class.
-        /// </summary>
-        /// <param name="appBlockService">The application block service.</param>
-        /// <param name="appTransactionService">The application contract service.</param>
-        /// <param name="appTransactionGetResultService">The application transaction get result service.</param>
-        public AppTransactionResultService(IAppBlockService appBlockService,
-            IAppTransactionService appTransactionService,
-            IAppTransactionGetResultService appTransactionGetResultService)
+        public TransactionResultAppService(ITransactionResultExpands transactionResultExpands,
+            ITransactionManager transactionManager,
+            IBlockchainService blockchainService,
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {
-            _appBlockService = appBlockService;
-            _appTransactionService = appTransactionService;
-            _appTransactionGetResultService = appTransactionGetResultService;
+            _transactionResultExpands = transactionResultExpands;
+            _transactionManager = transactionManager;
+            _blockchainService = blockchainService;
+            _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         }
+
 
         /// <summary>
         /// Get the current status of a transaction
@@ -72,16 +61,13 @@ namespace AElf.WebApp.Application.Chain.AppServices.AppTransactionResultService
                     Error.InvalidTransactionId.ToString());
             }
 
-            var transactionAndResult =
-                await _appTransactionGetResultService.GetTransactionAndResultAsync(transactionHash);
-
-            var transactionResult = transactionAndResult.Item1;
-            var transaction = transactionAndResult.Item2;
+            var transactionResult = await _transactionResultExpands.GetTransactionResultAsync(transactionHash);
+            var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
 
             var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {
-                var block = await _appBlockService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
+                var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
                 output.BlockHash = block.GetHash().ToHex();
             }
 
@@ -96,13 +82,15 @@ namespace AElf.WebApp.Application.Chain.AppServices.AppTransactionResultService
 
             output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
 
-            var methodDescriptor =
-                await _appTransactionService.GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
+            var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
+                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
+
             output.Transaction.Params = JsonFormatter.ToDiagnosticString(
                 methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
 
             return output;
         }
+
 
         /// <summary>
         /// Get multiple transaction results.
@@ -136,7 +124,7 @@ namespace AElf.WebApp.Application.Chain.AppServices.AppTransactionResultService
                     Error.InvalidBlockHash.ToString());
             }
 
-            var block = await _appBlockService.GetBlockAsync(realBlockHash);
+            var block = await _blockchainService.GetBlockAsync(realBlockHash);
             if (block == null)
             {
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
@@ -149,14 +137,10 @@ namespace AElf.WebApp.Application.Chain.AppServices.AppTransactionResultService
                 var transactionHashes = block.Body.Transactions.ToList().GetRange(offset, limit);
                 foreach (var hash in transactionHashes)
                 {
-                    var transactionAndResult = await _appTransactionGetResultService.GetTransactionAndResultAsync(hash);
-
-                    var transactionResult = transactionAndResult.Item1;
-                    var transaction = transactionAndResult.Item2;
-
+                    var transactionResult = await _transactionResultExpands.GetTransactionResultAsync(hash);
                     var transactionResultDto =
                         JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
-
+                    var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
                     transactionResultDto.BlockHash = block.GetHash().ToHex();
 
                     if (transactionResult.Status == TransactionResultStatus.Failed)
@@ -166,8 +150,9 @@ namespace AElf.WebApp.Application.Chain.AppServices.AppTransactionResultService
                         JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
 
                     var methodDescriptor =
-                        await _appTransactionService.GetContractMethodDescriptorAsync(transaction.To,
-                            transaction.MethodName);
+                        await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(_blockchainService,
+                            _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
+
                     transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(
                         methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
 
