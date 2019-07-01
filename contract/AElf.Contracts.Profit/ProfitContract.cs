@@ -9,6 +9,12 @@ namespace AElf.Contracts.Profit
 {
     public partial class ProfitContract : ProfitContractContainer.ProfitContractBase
     {
+        /// <summary>
+        /// Create a ProfitItem
+        /// At the first time,the profitItem's id is unknown,it may create by transaction id and createdProfitIds;
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Hash CreateProfitItem(CreateProfitItemInput input)
         {
             if (State.TokenContract.Value == null)
@@ -65,6 +71,12 @@ namespace AElf.Contracts.Profit
             return new Empty();
         }
 
+        /// <summary>
+        /// Register a SubProfitItem,binding to a ProfitItem as child.
+        /// Then add the father ProfitItem's weight.
+        /// </summary>
+        /// <param name="input">RegisterSubProfitItemInput</param>
+        /// <returns></returns>
         public override Empty RegisterSubProfitItem(RegisterSubProfitItemInput input)
         {
             Assert(input.ProfitId != input.SubProfitId, "Two profit items cannot be same.");
@@ -308,6 +320,7 @@ namespace AElf.Contracts.Profit
         /// <returns></returns>
         public override Empty ReleaseProfit(ReleaseProfitInput input)
         {
+            Assert(input.Amount >= 0, $"Amount must greater than 0");
             Context.LogDebug(() => $"Entered ReleaseProfit. {input.ProfitId}");
 
             if (State.TokenContract.Value == null)
@@ -345,6 +358,8 @@ namespace AElf.Contracts.Profit
                 input.Amount = balance;
             }
 
+            //if input.period == 0,the token will transfer to the totalAmount in the profitItem
+            //opposed,the token will transfer to the corresponding address of input.period
             if (input.Period < 0 || totalWeight <= 0)
             {
                 return BurnProfits(input, profitItem, profitItem.VirtualAddress);
@@ -356,11 +371,13 @@ namespace AElf.Contracts.Profit
             Assert(input.Period == releasingPeriod,
                 $"Invalid period. When release profit item {input.ProfitId.ToHex()} of period {input.Period}. Current period is {releasingPeriod}");
 
+            //Compute the receivingVirtualAddress by profitVirtualAddress and releasingPeriod
             var profitsReceivingVirtualAddress =
                 GetReleasedPeriodProfitsVirtualAddress(profitItem.VirtualAddress, releasingPeriod);
 
             Context.LogDebug(() => $"Receiving virtual address: {profitsReceivingVirtualAddress}");
 
+            //ReleasedProfitsMap means the record that profit released at a period
             var releasedProfitInformation = State.ReleasedProfitsMap[profitsReceivingVirtualAddress];
             if (releasedProfitInformation == null)
             {
@@ -571,6 +588,11 @@ namespace AElf.Contracts.Profit
             return new Empty();
         }
 
+        /// <summary>
+        /// Gain the profit form profitId from Details.lastPeriod to profitItem.currentPeriod-1;
+        /// </summary>
+        /// <param name="input">ProfitInput</param>
+        /// <returns></returns>
         public override Empty Profit(ProfitInput input)
         {
             Context.LogDebug(() => $"{Context.Sender} is trying to profit from {input.ProfitId.ToHex()}.");
@@ -592,6 +614,7 @@ namespace AElf.Contracts.Profit
             var availableDetails = profitDetails.Details.Where(d => d.LastProfitPeriod != profitItem.CurrentPeriod)
                 .ToList();
 
+            //Only can get profit until profitItem.CurrentPeriod-1,because currentPeriod hasn't be released.
             for (var i = 0;
                 i < Math.Min(ProfitContractConsts.ProfitReceivingLimitForEachTime, availableDetails.Count);
                 i++)

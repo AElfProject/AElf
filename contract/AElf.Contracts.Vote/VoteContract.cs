@@ -72,6 +72,12 @@ namespace AElf.Contracts.Vote
             return new Empty();
         }
 
+        /// <summary>
+        /// Execute the Vote action,save the VoteRecords and update the VotingResults and the VotedItems
+        /// Before Voting,the VotingItem's token must be locked,except the votes delegated to a contract.
+        /// </summary>
+        /// <param name="input">VoteInput</param>
+        /// <returns></returns>
         public override Empty Vote(VoteInput input)
         {
             var votingItem = AssertVotingItem(input.VotingItemId);
@@ -131,7 +137,7 @@ namespace AElf.Contracts.Vote
 
             return new Empty();
         }
-
+        
         private void UpdateVotedItems(Hash voteId, Address voter, VotingItem votingItem)
         {
             var votedItems = State.VotedItemsMap[voter] ?? new VotedItems();
@@ -150,6 +156,12 @@ namespace AElf.Contracts.Vote
             State.VotedItemsMap[voter] = votedItems;
         }
 
+        /// <summary>
+        /// Update the State.VotingResults.include the VotersCount,VotesAmount and the votes int the results[option]
+        /// </summary>
+        /// <param name="votingItem"></param>
+        /// <param name="option"></param>
+        /// <param name="amount"></param>
         private void UpdateVotingResult(VotingItem votingItem, string option, long amount)
         {
             // Update VotingResult based on this voting behaviour.
@@ -167,6 +179,14 @@ namespace AElf.Contracts.Vote
             State.VotingResults[votingResultHash] = votingResult;
         }
 
+        /// <summary>
+        /// Withdraw the Votes.
+        /// first,mark the related record IsWithdrawn.
+        /// second,delete the vote form ActiveVotes and add the vote to withdrawnVotes.
+        /// finally,unlock the token that Locked in the VotingItem 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty Withdraw(WithdrawInput input)
         {
             var votingRecord = State.VotingRecords[input.VoteId];
