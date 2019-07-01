@@ -21,11 +21,11 @@ namespace AElf.Contracts.Election
 
         public SingletonState<long> CurrentTermNumber { get; set; }
 
-        public SingletonState<PublicKeysList> Candidates { get; set; }
+        public SingletonState<PubkeyList> Candidates { get; set; }
 
-        public SingletonState<PublicKeysList> InitialMiners { get; set; }
+        public SingletonState<PubkeyList> InitialMiners { get; set; }
 
-        public SingletonState<PublicKeysList> BlackList { get; set; }
+        public SingletonState<PubkeyList> BlackList { get; set; }
 
         /// <summary>
         /// Vote Id -> Lock Time (seconds)
@@ -47,6 +47,8 @@ namespace AElf.Contracts.Election
         public SingletonState<long> MaximumLockTime { get; set; }
 
         public SingletonState<long> TimeEachTerm { get; set; }
+
+        public SingletonState<long> MinerIncreaseInterval { get; set; }
 
         public SingletonState<Hash> MinerElectionVotingItemId { get; set; }
         

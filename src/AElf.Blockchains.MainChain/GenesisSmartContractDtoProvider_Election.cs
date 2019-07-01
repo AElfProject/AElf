@@ -35,6 +35,7 @@ namespace AElf.Blockchains.MainChain
                     MinimumLockTime = _economicOptions.MinimumLockTime,
                     TimeEachTerm = _consensusOptions.TimeEachTerm,
                     MinerList = {_consensusOptions.InitialMiners},
+                    MinerIncreaseInterval = _consensusOptions.MinerIncreaseInterval
                 });
             return electionContractMethodCallList;
         }

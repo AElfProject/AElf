@@ -14,6 +14,7 @@ namespace AElf.Contracts.Vote
     {
         public override Empty Register(VotingRegisterInput input)
         {
+            //Sender represents the transaction's sponsor
             var votingItemId = input.GetHash(Context.Sender);
 
             if (input.TotalSnapshotNumber == 0)
@@ -35,6 +36,8 @@ namespace AElf.Contracts.Vote
 
             Context.LogDebug(() => $"Voting item created by {Context.Sender}: {votingItemId.ToHex()}");
 
+            //Judge the AcceptedCurrency is exist in the WhiteList of TokenContract.
+            //Only the currency existed in TokenContact can be used for voting.
             var isInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
             {
                 Symbol = input.AcceptedCurrency,
@@ -72,8 +75,15 @@ namespace AElf.Contracts.Vote
             return new Empty();
         }
 
+        /// <summary>
+        /// Execute the Vote action,save the VoteRecords and update the VotingResults and the VotedItems
+        /// Before Voting,the VotingItem's token must be locked,except the votes delegated to a contract.
+        /// </summary>
+        /// <param name="input">VoteInput</param>
+        /// <returns></returns>
         public override Empty Vote(VoteInput input)
         {
+            //the VotingItem is exist in state.
             var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Options.Contains(input.Option), $"Option {input.Option} not found.");
             Assert(votingItem.CurrentSnapshotNumber <= votingItem.TotalSnapshotNumber,
@@ -86,7 +96,9 @@ namespace AElf.Contracts.Vote
             }
             else
             {
+                //Voter just is the transaction sponsor
                 input.Voter = Context.Sender;
+                //VoteId just is the transaction ID;
                 input.VoteId = Context.TransactionId;
             }
 
@@ -100,6 +112,7 @@ namespace AElf.Contracts.Vote
                 VoteTimestamp = Context.CurrentBlockTime,
                 Voter = input.Voter
             };
+            //save the VotingRecords into the state.
             State.VotingRecords[input.VoteId] = votingRecord;
 
             UpdateVotingResult(votingItem, input.Option, input.Amount);
@@ -132,6 +145,7 @@ namespace AElf.Contracts.Vote
             return new Empty();
         }
 
+        //Update the VotedItems,if it doesn't exist in State.VotedItemsMap,will create a new VotedItems.
         private void UpdateVotedItems(Hash voteId, Address voter, VotingItem votingItem)
         {
             var votedItems = State.VotedItemsMap[voter] ?? new VotedItems();
@@ -147,9 +161,16 @@ namespace AElf.Contracts.Vote
                         ActiveVotes = {voteId}
                     };
             }
+
             State.VotedItemsMap[voter] = votedItems;
         }
 
+        /// <summary>
+        /// Update the State.VotingResults.include the VotersCount,VotesAmount and the votes int the results[option]
+        /// </summary>
+        /// <param name="votingItem"></param>
+        /// <param name="option"></param>
+        /// <param name="amount"></param>
         private void UpdateVotingResult(VotingItem votingItem, string option, long amount)
         {
             // Update VotingResult based on this voting behaviour.
@@ -167,6 +188,14 @@ namespace AElf.Contracts.Vote
             State.VotingResults[votingResultHash] = votingResult;
         }
 
+        /// <summary>
+        /// Withdraw the Votes.
+        /// first,mark the related record IsWithdrawn.
+        /// second,delete the vote form ActiveVotes and add the vote to withdrawnVotes.
+        /// finally,unlock the token that Locked in the VotingItem 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty Withdraw(WithdrawInput input)
         {
             var votingRecord = State.VotingRecords[input.VoteId];
@@ -263,6 +292,11 @@ namespace AElf.Contracts.Vote
             return new Empty();
         }
 
+        /// <summary>
+        /// Add a option for corresponding VotingItem.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty AddOption(AddOptionInput input)
         {
             var votingItem = AssertVotingItem(input.VotingItemId);
@@ -273,6 +307,11 @@ namespace AElf.Contracts.Vote
             return new Empty();
         }
 
+        /// <summary>
+        /// Delete a option for corresponding VotingItem
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty RemoveOption(RemoveOptionInput input)
         {
             var votingItem = AssertVotingItem(input.VotingItemId);
@@ -318,11 +357,15 @@ namespace AElf.Contracts.Vote
             return votingItem;
         }
 
+        /// <summary>
+        /// Initialize the related contracts=>TokenContract;
+        /// </summary>
         private void InitializeDependentContracts()
         {
             if (State.TokenContract.Value == null)
             {
-                State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
         }
 

@@ -9,6 +9,7 @@ import "google/protobuf/empty.proto";
 option csharp_namespace = "AElf.Contracts.Profit";
 
 service ProfitContract {
+
     option (aelf.csharp_state) = "AElf.Contracts.Profit.ProfitContractState";
 
     // Actions
