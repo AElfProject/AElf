@@ -13,6 +13,11 @@ namespace AElf.Contracts.Election
 {
     public partial class ElectionContract : ElectionContractContainer.ElectionContractBase
     {
+        /// <summary>
+        /// Initialize the ElectionContract and corresponding contract states.
+        /// </summary>
+        /// <param name="input">InitialElectionContractInput</param>
+        /// <returns></returns>
         public override Empty InitialElectionContract(InitialElectionContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
@@ -160,13 +165,13 @@ namespace AElf.Contracts.Election
                 State.VoteContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName);
             }
-
+            
             if (State.ProfitContract.Value == null)
             {
                 State.ProfitContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
             }
-
+            
 
             var publicKey = Context.RecoverPublicKey().ToHex();
             var publicKeyByteString = ByteString.CopyFrom(Context.RecoverPublicKey());
@@ -179,7 +184,7 @@ namespace AElf.Contracts.Election
                 "Initial miner cannot announce election.");
 
             var candidateInformation = State.CandidateInformationMap[publicKey];
-
+            
             if (candidateInformation != null)
             {
                 Assert(!candidateInformation.IsCurrentCandidate,
@@ -231,9 +236,9 @@ namespace AElf.Contracts.Election
         }
 
         /// <summary>
-        /// delete a option of voting,then sub the weight from ProfitContract 
+        /// delete a option of voting,then sub the weight from the corresponding ProfitItem 
         /// </summary>
-        /// <param name="input"></param>
+        /// <param name="input">Empty</param>
         /// <returns></returns>
         public override Empty QuitElection(Empty input)
         {
@@ -383,9 +388,11 @@ namespace AElf.Contracts.Election
         }
 
         /// <summary>
-        /// Withdraw a vote,recall the votes.
+        /// Withdraw a voting,recall the votes the voted by sender.
+        /// At the same time,the weight that the voter occupied will sub form totalWeight.
+        /// and the "VOTE" token will be returned to ElectionContract;
         /// </summary>
-        /// <param name="input"></param>
+        /// <param name="input">Hash</param>
         /// <returns></returns>
         public override Empty Withdraw(Hash input)
         {
@@ -444,9 +451,9 @@ namespace AElf.Contracts.Election
         }
 
         /// <summary>
-        /// Update the candidate information, except evil nodes.
+        /// Update the candidate information,if it's not evil node.
         /// </summary>
-        /// <param name="input"></param>
+        /// <param name="input">UpdateCandidateInformationInput</param>
         /// <returns></returns>
         public override Empty UpdateCandidateInformation(UpdateCandidateInformationInput input)
         {

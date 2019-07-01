@@ -14,12 +14,12 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 {
-    public class ResourceConsumptionPreExecutionPlugin : IPreExecutionPlugin, IPostExecutionPlugin, ISingletonDependency
+    public class ResourceConsumptionPostExecutionPlugin : IPostExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private const string AcsSymbol = "acs8";
 
-        public ResourceConsumptionPreExecutionPlugin(IHostSmartContractBridgeContextService contextService)
+        public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService)
         {
             _contextService = contextService;
         }
@@ -29,59 +29,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             return descriptors.Any(service => service.File.GetIndentity() == AcsSymbol);
         }
 
-        public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
-            IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
-        {
-            if (!IsAcs8(descriptors))
-            {
-                return new List<Transaction>();
-            }
-
-            var context = _contextService.Create();
-            context.TransactionContext = transactionContext;
-            var selfStub = new ResourceConsumptionContractContainer.ResourceConsumptionContractStub
-            {
-                __factory = new MethodStubFactory(context)
-            };
-
-            // Generate token contract stub.
-            var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
-            if (tokenContractAddress == null)
-            {
-                return new List<Transaction>();
-            }
-
-            var tokenStub = new TokenContractContainer.TokenContractStub
-            {
-                __factory = new TransactionGeneratingOnlyMethodStubFactory
-                {
-                    Sender = transactionContext.Transaction.To,
-                    ContractAddress = tokenContractAddress
-                }
-            };
-            if (transactionContext.Transaction.To == tokenContractAddress &&
-                transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeResourceToken))
-            {
-                return new List<Transaction>();
-            }
-
-            if (transactionContext.Transaction.To == context.Self &&
-                (transactionContext.Transaction.MethodName == nameof(selfStub.BuyResourceToken) ||
-                 transactionContext.Transaction.MethodName == nameof(selfStub.GetResourceTokenBuyingPreferences) ||
-                 transactionContext.Transaction.MethodName == nameof(selfStub.SetResourceTokenBuyingPreferences)))
-            {
-                return new List<Transaction>();
-            }
-
-            var chargeResourceTokenTransaction =
-                (await tokenStub.CheckResourceToken.SendAsync(new Empty())).Transaction;
-
-            return new List<Transaction>
-            {
-                chargeResourceTokenTransaction
-            };
-        }
-        
         public async Task<IEnumerable<Transaction>> GetPostTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {

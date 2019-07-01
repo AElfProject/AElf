@@ -144,8 +144,7 @@ namespace AElf.Contracts.Vote
 
             return new Empty();
         }
-
-        //Update the VotedItems,if it doesn't exist in State.VotedItemsMap,will create a new VotedItems.
+        
         private void UpdateVotedItems(Hash voteId, Address voter, VotingItem votingItem)
         {
             var votedItems = State.VotedItemsMap[voter] ?? new VotedItems();

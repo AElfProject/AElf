@@ -15,10 +15,16 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract : TokenContractImplContainer.TokenContractImplBase
     {
+        /// <summary>
+        /// Register the TokenInfo into TokenContract add initial TokenContractState.LockWhiteLists;
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty Create(CreateInput input)
         {
             var existing = State.TokenInfos[input.Symbol];
-            Assert(existing == null || !string.IsNullOrEmpty(existing.Symbol), $"Token already exists. Symbol: {input.Symbol}");
+            Assert(existing == null || !string.IsNullOrEmpty(existing.Symbol),
+                $"Token already exists. Symbol: {input.Symbol}");
             RegisterTokenInfo(new TokenInfo
             {
                 Symbol = input.Symbol,
@@ -46,6 +52,11 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        /// <summary>
+        /// Issue the token to issuer,then issuer will occupy the amount of token the issued.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty Issue(IssueInput input)
         {
             Assert(input.To != null, "To address not filled.");
@@ -67,6 +78,12 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        /// <summary>
+        /// Transfer token form a chain to another chain
+        /// burn the tokens at the current chain
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty CrossChainTransfer(CrossChainTransferInput input)
         {
             AssertValidToken(input.TokenInfo.Symbol, input.Amount);
@@ -79,6 +96,11 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        /// <summary>
+        /// Receive the token from another chain
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty CrossChainReceiveToken(CrossChainReceiveTokenInput input)
         {
             var transferTransaction = Transaction.Parser.ParseFrom(input.TransferTransactionBytes);
@@ -429,16 +451,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty CheckResourceToken(Empty input)
-        {
-            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols)
-            {
-                var balance = State.Balances[Context.Sender][symbol];
-                Assert(balance > 0, $"Contract balance of {symbol} token is not enough.");
-            }
-            return new Empty();
-        }
-
         public override Empty SetProfitReceivingInformation(ProfitReceivingInformation input)
         {
             if (State.ACS0Contract.Value == null)
@@ -513,7 +525,7 @@ namespace AElf.Contracts.MultiToken
             }
 
             var contractOwner = State.ACS0Contract.GetContractOwner.Call(Context.Self);
-            
+
             Assert(
                 contractOwner == Context.Sender ||
                 Context.Sender ==
