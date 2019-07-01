@@ -12,7 +12,7 @@ namespace AElf.Contracts.ParliamentAuth
         {
             MaybeLoadConsensusContractAddress();
             var miner = State.ConsensusContract.GetCurrentMinerList.Call(new Empty());
-            var members = miner.PublicKeys.Select(publicKey =>
+            var members = miner.Pubkeys.Select(publicKey =>
                 Address.FromPublicKey(publicKey.ToByteArray())).ToList();
             return members;
         }
