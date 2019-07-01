@@ -1,6 +1,6 @@
 namespace AElf
 {
-    // TODO: check helper or helpers?
+    // Done: check helper or helpers?
     public static class AddressHelpers
     {
         public static bool VerifyFormattedAddress(string formattedAddress)

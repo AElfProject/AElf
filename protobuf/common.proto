@@ -13,7 +13,7 @@ message Hash
     bytes Value = 1;
 }
 
-// TODO: check other types
+// Done: check other types
 message SInt32Value
 {
     sint32 Value = 1;

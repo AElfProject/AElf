@@ -14,7 +14,7 @@ using Org.BouncyCastle.Security;
 
 namespace AElf.Cryptography
 {
-    // TODO: move to account service
+    // Done: move to account service
     public class AElfKeyStore : IKeyStore
     {
         private static readonly SecureRandom Random = new SecureRandom();

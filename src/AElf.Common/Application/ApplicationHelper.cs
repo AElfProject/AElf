@@ -2,7 +2,7 @@
 using System.IO;
 
 
-// TODO：Remove
+// Done：Remove
 namespace AElf.Common.Application
 {
     public static class ApplicationHelper
