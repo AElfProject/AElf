@@ -38,8 +38,6 @@ namespace AElf.Contracts.MultiToken
                 // this is needed, NOT GOOD DESIGN, it doesn't matter what code we deploy, all we need is an address
                 await DeploySystemSmartContract(KernelConstants.CodeCoverageRunnerCategory, TokenContractCode,
                     ConsensusSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
-                await DeploySystemSmartContract(KernelConstants.CodeCoverageRunnerCategory, TokenContractCode,
-                    DividendSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
             }
             {
                 // TokenContract
@@ -62,7 +60,7 @@ namespace AElf.Contracts.MultiToken
                     GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(OtherBasicFunctionContractAddress,
                         DefaultSenderKeyPair);
 
-                await TokenContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput()
+                await TokenContractStub.Create.SendAsync(new CreateInput
                 {
                     Symbol = DefaultSymbol,
                     Decimals = 2,
@@ -70,15 +68,9 @@ namespace AElf.Contracts.MultiToken
                     TokenName = "elf token",
                     TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
                     Issuer = DefaultSender,
-                    LockWhiteSystemContractNameList = {BasicFunctionContractName,OtherBasicFunctionContractName}
+                    LockWhiteList = {BasicFunctionContractAddress,OtherBasicFunctionContractAddress}
                 });
-                await TokenContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
-                {
-                    Symbol = DefaultSymbol,
-                    Amount = DPoSContractConsts.LockTokenForElection * 20,
-                    ToSystemContractName = DividendSmartContractAddressNameProvider.Name,
-                    Memo = "Issue ",
-                });
+
                 await TokenContractStub.Issue.SendAsync(new IssueInput
                 {
                     Symbol = DefaultSymbol,

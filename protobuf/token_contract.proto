@@ -44,11 +44,11 @@ service TokenContract {
     }
     rpc ReceiveProfits (ReceiveProfitsInput) returns (google.protobuf.Empty) {
     }
+    rpc CheckResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
     rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.Empty) {
     }
     rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
-    }
-    rpc ReturnTax (ReturnTaxInput) returns (google.protobuf.Empty) {
     }
     rpc SetResourceTokenUnitPrice (SetResourceTokenUnitPriceInput) returns (google.protobuf.Empty) {
     }
