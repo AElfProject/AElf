@@ -19,9 +19,9 @@ namespace AElf.OS.Network.Grpc
         private const int MaxMetricsPerMethod = 100;
         
         private const int AnnouncementTimeout = 300;
-        private const int BlockRequestTimeout = 300;
+        private const int BlockRequestTimeout = 500;
         private const int TransactionSendTimeout = 300;
-        private const int BlocksRequestTimeout = 500;
+        private const int BlocksRequestTimeout = 1000;
 
         private const int FinalizeConnectTimeout = 400;
         private const int UpdateHandshakeTimeout = 400;
