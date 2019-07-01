@@ -26,17 +26,17 @@ namespace AElf.WebApp.Application.Chain
 
     public class TransactionResultAppService : ITransactionResultAppService
     {
-        private readonly ITransactionResultExpands _transactionResultExpands;
+        private readonly ITransactionResultProxyService _transactionResultProxyService;
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
 
-        public TransactionResultAppService(ITransactionResultExpands transactionResultExpands,
+        public TransactionResultAppService(ITransactionResultProxyService transactionResultProxyService,
             ITransactionManager transactionManager,
             IBlockchainService blockchainService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {
-            _transactionResultExpands = transactionResultExpands;
+            _transactionResultProxyService = transactionResultProxyService;
             _transactionManager = transactionManager;
             _blockchainService = blockchainService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
@@ -61,7 +61,7 @@ namespace AElf.WebApp.Application.Chain
                     Error.InvalidTransactionId.ToString());
             }
 
-            var transactionResult = await _transactionResultExpands.GetTransactionResultAsync(transactionHash);
+            var transactionResult = await GetTransactionResultAsync(transactionHash);
             var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
 
             var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
@@ -137,7 +137,7 @@ namespace AElf.WebApp.Application.Chain
                 var transactionHashes = block.Body.Transactions.ToList().GetRange(offset, limit);
                 foreach (var hash in transactionHashes)
                 {
-                    var transactionResult = await _transactionResultExpands.GetTransactionResultAsync(hash);
+                    var transactionResult = await GetTransactionResultAsync(hash);
                     var transactionResultDto =
                         JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
                     var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
@@ -162,6 +162,34 @@ namespace AElf.WebApp.Application.Chain
             }
 
             return output;
+        }
+        
+        private async Task<TransactionResult> GetTransactionResultAsync(Hash txHash)
+        {
+            // in storage
+            var res = await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(txHash);
+            if (res != null)
+            {
+                return res;
+            }
+
+            // in tx pool
+            var receipt = await _transactionResultProxyService.TxHub.GetTransactionReceiptAsync(txHash);
+            if (receipt != null)
+            {
+                return new TransactionResult
+                {
+                    TransactionId = receipt.TransactionId,
+                    Status = TransactionResultStatus.Pending
+                };
+            }
+
+            // not existed
+            return new TransactionResult
+            {
+                TransactionId = txHash,
+                Status = TransactionResultStatus.NotExisted
+            };
         }
     }
 }
