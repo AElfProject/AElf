@@ -255,7 +255,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var result = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
                     new InitialAElfConsensusContractInput
                     {
-                        TimeEachTerm = AEDPoSContractTestConstants.TimeEachTerm
+                        TimeEachTerm = AEDPoSContractTestConstants.TimeEachTerm,
+                        MinerIncreaseInterval = AEDPoSContractTestConstants.MinerIncreaseInterval
                     });
                 CheckResult(result.TransactionResult);
             }
@@ -263,7 +264,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var result = await AEDPoSContractStub.FirstRound.SendAsync(
                     new MinerList
                     {
-                        PublicKeys = {InitialMinersKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
+                        Pubkeys = {InitialMinersKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
                     }.GenerateFirstRoundOfNewTerm(AEDPoSContractTestConstants.MiningInterval, BlockchainStartTimestamp.ToDateTime()));
                 CheckResult(result.TransactionResult);
             }

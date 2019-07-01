@@ -8,7 +8,9 @@ import "google/protobuf/empty.proto";
 option csharp_namespace = "AElf.Contracts.TokenConverter";
 
 service TokenConverterContract {
+    
     option (aelf.csharp_state) = "AElf.Contracts.TokenConverter.TokenConverterContractState";
+    
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }

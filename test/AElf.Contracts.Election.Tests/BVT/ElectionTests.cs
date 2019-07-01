@@ -14,7 +14,7 @@ namespace AElf.Contracts.Election
 {
     public partial class ElectionContractTests : ElectionContractTestBase
     {
-        public const int CandidatesCount = 7;
+        public const int CandidatesCount = 19;
         
         [Fact]
         public async Task ElectionContract_RegisterElectionVotingEvent()
@@ -179,7 +179,7 @@ namespace AElf.Contracts.Election
                 {
                     Value = voterKeyPair.PublicKey.ToHex()
                 });
-                voterVotes.PublicKey.ShouldBe(ByteString.CopyFrom(voterKeyPair.PublicKey));
+                voterVotes.Pubkey.ShouldBe(ByteString.CopyFrom(voterKeyPair.PublicKey));
                 voterVotes.AllVotedVotesAmount.ShouldBe(actualVotedAmount);
                 voterVotes.ActiveVotedVotesAmount.ShouldBe(actualVotedAmount);
                 voterVotes.ActiveVotingRecords.Count.ShouldBe(0);// Not filled.
@@ -206,7 +206,7 @@ namespace AElf.Contracts.Election
                 {
                     Value = candidateKeyPair.PublicKey.ToHex()
                 });
-                candidateVotes.PublicKey.ShouldBe(ByteString.CopyFrom(candidateKeyPair.PublicKey));
+                candidateVotes.Pubkey.ShouldBe(ByteString.CopyFrom(candidateKeyPair.PublicKey));
                 candidateVotes.AllObtainedVotedVotesAmount.ShouldBe(amount * 2);
                 candidateVotes.ObtainedActiveVotedVotesAmount.ShouldBe(amount * 2);
                 candidateVotes.ObtainedWithdrawnVotesRecords.Count.ShouldBe(0);// Not filled.
@@ -319,7 +319,7 @@ namespace AElf.Contracts.Election
                 Value = minerKeyPair.PublicKey.ToHex()
             });
 
-            information.PublicKey.ShouldBe(minerKeyPair.PublicKey.ToHex());
+            information.Pubkey.ShouldBe(minerKeyPair.PublicKey.ToHex());
         }
 
         [Fact]
@@ -331,7 +331,7 @@ namespace AElf.Contracts.Election
             var transactionResult = (await ElectionContractStub.UpdateCandidateInformation.SendAsync(new UpdateCandidateInformationInput
             {
                 IsEvilNode = true,
-                PublicKey = publicKey,
+                Pubkey = publicKey,
                 RecentlyProducedBlocks = 10,
                 RecentlyMissedTimeSlots = 100
             })).TransactionResult;

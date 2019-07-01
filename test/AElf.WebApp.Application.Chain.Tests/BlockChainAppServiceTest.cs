@@ -164,12 +164,12 @@ namespace AElf.WebApp.Application.Chain.Tests
             var toAddress = Base64.ToBase64String(accountAddress.Value.ToByteArray());
             var parameters = new Dictionary<string, string>
             {
-                {"From", accountAddress.GetFormatted()},
-                {"To", contractAddress.GetFormatted()},
-                {"RefBlockNumber", chain.BestChainHeight.ToString()},
-                {"RefBlockHash", chain.BestChainHash.ToHex()},
-                {"MethodName", methodName},
-                {"Params", "{\"owner\":{ \"Value\": \"" + toAddress + "\" },\"symbol\":\"ELF\"}"}
+                {"From",accountAddress.GetFormatted()},
+                {"To",contractAddress.GetFormatted()},
+                {"RefBlockNumber",chain.BestChainHeight.ToString()},
+                {"RefBlockHash",chain.BestChainHash.ToHex()},
+                {"MethodName",methodName},
+                {"Params","{\"owner\":{ \"value\": \""+toAddress+"\" },\"symbol\":\"ELF\"}"}
             };
             var createTransactionResponse =
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
@@ -213,12 +213,12 @@ namespace AElf.WebApp.Application.Chain.Tests
             var toAddress = Base64.ToBase64String(accountAddress.Value.ToByteArray());
             parameters = new Dictionary<string, string>
             {
-                {"From", accountAddress.GetFormatted()},
-                {"To", contractAddress.GetFormatted()},
-                {"RefBlockNumber", chain.BestChainHeight.ToString()},
-                {"RefBlockHash", chain.BestChainHash.ToHex()},
-                {"MethodName", methodName},
-                {"Params", "{\"owner\":{ \"Value\": \"" + toAddress + "\" },\"symbol\":\"ELF\"}"}
+                {"From",accountAddress.GetFormatted()},
+                {"To",contractAddress.GetFormatted()},
+                {"RefBlockNumber",chain.BestChainHeight.ToString()},
+                {"RefBlockHash",chain.BestChainHash.ToHex()},
+                {"MethodName",methodName},
+                {"Params","{\"owner\":{ \"value\": \""+toAddress+"\" },\"symbol\":\"ELF\"}"}
             };
             var createTransactionResponse =
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
@@ -279,8 +279,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             var from = Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress"));
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var json =
-                "{ \"From\": { \"Value\": \"" + from + "\" }, \"To\": { \"Value\": \"" + to +
-                "\" }, \"RefBlockNumber\": \"11\", \"RefBlockPrefix\": \"H9f1zQ==\", \"MethodName\": \"Transfer\", \"Params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
+                "{ \"from\": { \"value\": \"" + from + "\" }, \"to\": { \"value\": \"" + to +
+                "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"Transfer\", \"params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
             var transaction = Transaction.Parser.ParseJson(json);
 
             var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
@@ -306,8 +306,8 @@ namespace AElf.WebApp.Application.Chain.Tests
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var json =
-                "{ \"From\": { \"Value\": \"" + from + "\" }, \"To\": { \"Value\": \"" + to +
-                "\" }, \"RefBlockNumber\": \"11\", \"RefBlockPrefix\": \"H9f1zQ==\", \"MethodName\": \"InvalidMethod\", \"Params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
+                "{ \"from\": { \"value\": \"" + from + "\" }, \"to\": { \"value\": \"" + to +
+                "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"InvalidMethod\", \"params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
             var transaction = Transaction.Parser.ParseJson(json);
 
             var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
@@ -333,11 +333,11 @@ namespace AElf.WebApp.Application.Chain.Tests
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var transactionParams = TransferInput.Parser.ParseJson(
-                "{\"to\":{ \"Value\": \"" + Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress")) +
+                "{\"to\":{ \"value\": \"" + Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress")) +
                 "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}");
 
-            var json = "{ \"From\": { \"Value\": \"" + from + "\" }, \"To\": { \"Value\": \"" + to +
-                       "\" }, \"RefBlockNumber\": \"11\", \"RefBlockPrefix\": \"H9f1zQ==\", \"MethodName\": \"Transfer\", \"Params\": \"" +
+            var json = "{ \"from\": { \"value\": \"" + from + "\" }, \"to\": { \"value\": \"" + to +
+                       "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"Transfer\", \"params\": \"" +
                        Base64.ToBase64String(transactionParams.ToByteArray()) + "\" }";
             var transaction = Transaction.Parser.ParseJson(json);
 
@@ -415,8 +415,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             var from = Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress"));
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var json =
-                "{ \"From\": { \"Value\": \"" + from + "\" }, \"To\": { \"Value\": \"" + to +
-                "\" }, \"RefBlockNumber\": \"11\", \"RefBlockPrefix\": \"H9f1zQ==\", \"MethodName\": \"Transfer\", \"Params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
+                "{ \"from\": { \"value\": \"" + from + "\" }, \"to\": { \"value\": \"" + to +
+                "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"Transfer\", \"params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
             var transaction3 = Transaction.Parser.ParseJson(json);
 
             var signature = await _accountService.SignAsync(transaction3.GetHash().DumpByteArray());
@@ -447,8 +447,8 @@ namespace AElf.WebApp.Application.Chain.Tests
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var json =
-                "{ \"From\": { \"Value\": \"" + from + "\" }, \"To\": { \"Value\": \"" + to +
-                "\" }, \"RefBlockNumber\": \"11\", \"RefBlockPrefix\": \"H9f1zQ==\", \"MethodName\": \"InvalidMethod\", \"Params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
+                "{ \"from\": { \"value\": \"" + from + "\" }, \"to\": { \"value\": \"" + to +
+                "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"InvalidMethod\", \"params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
             var transaction3 = Transaction.Parser.ParseJson(json);
 
             var signature = await _accountService.SignAsync(transaction3.GetHash().DumpByteArray());
@@ -479,11 +479,11 @@ namespace AElf.WebApp.Application.Chain.Tests
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var transactionParams = TransferInput.Parser.ParseJson(
-                "{\"to\":{ \"Value\": \"" + Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress")) +
+                "{\"to\":{ \"value\": \"" + Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress")) +
                 "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}");
 
-            var json = "{ \"From\": { \"Value\": \"" + from + "\" }, \"To\": { \"Value\": \"" + to +
-                       "\" }, \"RefBlockNumber\": \"11\", \"RefBlockPrefix\": \"H9f1zQ==\", \"MethodName\": \"Transfer\", \"Params\": \"" +
+            var json = "{ \"from\": { \"value\": \"" + from + "\" }, \"to\": { \"value\": \"" + to +
+                       "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"Transfer\", \"params\": \"" +
                        Base64.ToBase64String(transactionParams.ToByteArray()) + "\" }";
             var transaction3 = Transaction.Parser.ParseJson(json);
 
@@ -516,7 +516,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 $"/api/blockChain/transactionResult?transactionId={transactionHex}");
 
             response.TransactionId.ShouldBe(transactionHex);
-            response.Status.ShouldBe(TransactionResultStatus.Pending.ToString());
+            response.Status.ShouldBe(TransactionResultStatus.Pending.ToString().ToUpper());
 
             await _osTestHelper.MinedOneBlock();
 
@@ -525,7 +525,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 $"/api/blockChain/transactionResult?transactionId={transactionHex}");
 
             response.TransactionId.ShouldBe(transactionHex);
-            response.Status.ShouldBe(TransactionResultStatus.Mined.ToString());
+            response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
         }
 
         [Fact]
@@ -543,7 +543,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 $"/api/blockChain/transactionResult?transactionId={transactionHex}");
 
             response.TransactionId.ShouldBe(transactionHex);
-            response.Status.ShouldBe(TransactionResultStatus.Failed.ToString());
+            response.Status.ShouldBe(TransactionResultStatus.Failed.ToString().ToUpper());
             response.Error.Contains("Token already exists.").ShouldBeTrue();
         }
 
@@ -989,7 +989,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 {"MethodName", "Transfer"},
                 {
                     "Params",
-                    "{\"to\":{ \"Value\": \"" + toAddress + "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}"
+                    "{\"to\":{ \"value\": \"" + toAddress + "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}"
                 }
             };
             var response =
@@ -1018,7 +1018,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 {"MethodName", methodName},
                 {
                     "Params",
-                    "{\"to\":{ \"Value\": \"" + toAddress + "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}"
+                    "{\"to\":{ \"value\": \"" + toAddress + "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}"
                 }
             };
             var createTransactionResponse =
@@ -1079,8 +1079,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             var from = Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress"));
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var json =
-                "{ \"From\": { \"Value\": \"" + from + "\" }, \"To\": { \"Value\": \"" + to +
-                "\" }, \"RefBlockNumber\": \"11\", \"RefBlockPrefix\": \"H9f1zQ==\", \"MethodName\": \"Transfer\", \"Params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
+                "{ \"from\": { \"value\": \"" + from + "\" }, \"to\": { \"value\": \"" + to +
+                "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"Transfer\", \"params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
             var transaction = Transaction.Parser.ParseJson(json);
 
             var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
@@ -1105,8 +1105,8 @@ namespace AElf.WebApp.Application.Chain.Tests
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var json =
-                "{ \"From\": { \"Value\": \"" + from + "\" }, \"To\": { \"Value\": \"" + to +
-                "\" }, \"RefBlockNumber\": \"11\", \"RefBlockPrefix\": \"H9f1zQ==\", \"MethodName\": \"InvalidMethod\", \"Params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
+                "{ \"from\": { \"value\": \"" + from + "\" }, \"to\": { \"value\": \"" + to +
+                "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"invalid_method\", \"params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
             var transaction = Transaction.Parser.ParseJson(json);
 
             var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
@@ -1131,11 +1131,11 @@ namespace AElf.WebApp.Application.Chain.Tests
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var to = Base64.ToBase64String(contractAddress.Value.ToByteArray());
             var transactionParams = TransferInput.Parser.ParseJson(
-                "{\"to\":{ \"Value\": \"" + Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress")) +
+                "{\"to\":{ \"value\": \"" + Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress")) +
                 "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}");
 
-            var json = "{ \"From\": { \"Value\": \"" + from + "\" }, \"To\": { \"Value\": \"" + to +
-                       "\" }, \"RefBlockNumber\": \"11\", \"RefBlockPrefix\": \"H9f1zQ==\", \"MethodName\": \"Transfer\", \"Params\": \"" +
+            var json = "{ \"from\": { \"value\": \"" + from + "\" }, \"to\": { \"value\": \"" + to +
+                       "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"Transfer\", \"params\": \"" +
                        Base64.ToBase64String(transactionParams.ToByteArray()) + "\" }";
             var transaction = Transaction.Parser.ParseJson(json);
 
@@ -1155,8 +1155,8 @@ namespace AElf.WebApp.Application.Chain.Tests
                 "{\"to\":{ \"Value\": \"" + Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidAddress")) +
                 "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}");
 
-            json = "{ \"From\": { \"Value\": \"" + from + "\" }, \"To\": { \"Value\": \"" + to +
-                   "\" }, \"RefBlockNumber\": \"11\", \"RefBlockPrefix\": \"H9f1zQ==\", \"MethodName\": \"IssueNativeToken\", \"Params\": \"" +
+            json = "{ \"from\": { \"value\": \"" + from + "\" }, \"to\": { \"value\": \"" + to +
+                   "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"IssueNativeToken\", \"params\": \"" +
                    Base64.ToBase64String(issueInput.ToByteArray()) + "\" }";
             transaction = Transaction.Parser.ParseJson(json);
 

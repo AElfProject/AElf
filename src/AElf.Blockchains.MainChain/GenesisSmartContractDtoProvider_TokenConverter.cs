@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Acs0;
-using AElf.Contracts.TokenConverter;
 using AElf.OS.Node.Application;
 
 namespace AElf.Blockchains.MainChain
@@ -11,18 +10,11 @@ namespace AElf.Blockchains.MainChain
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForTokenConverter()
         {
             var l = new List<GenesisSmartContractDto>();
-
             l.AddGenesisSmartContract(
                 _codes.Single(kv => kv.Key.Contains("TokenConverter")).Value,
                 TokenConverterSmartContractAddressNameProvider.Name,
-                GenerateTokenConverterInitializationCallList());
+                new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList());
             return l;
-        }
-
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateTokenConverterInitializationCallList()
-        {
-            return new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
         }
     }
 }

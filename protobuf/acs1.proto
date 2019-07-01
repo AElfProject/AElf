@@ -8,9 +8,11 @@ import "google/protobuf/empty.proto";
 option (aelf.identity) = "acs1";
 
 service FeeChargedContract {
+    
     // Actions
     rpc SetMethodFee (SetMethodFeeInput) returns (google.protobuf.Empty) {
     }
+    
     // Views
     rpc GetMethodFee (MethodName) returns (TokenAmount) {
         option (aelf.is_view) = true;

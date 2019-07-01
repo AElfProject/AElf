@@ -468,7 +468,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
                 var result = await AEDPoSContractStub.FirstRound.SendAsync(
                     new MinerList
                     {
-                        PublicKeys = {InitialCoreDataCenterKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
+                        Pubkeys = {InitialCoreDataCenterKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
                     }.GenerateFirstRoundOfNewTerm(EconomicSystemTestConstants.MiningInterval, StartTimestamp));
                 CheckResult(result.TransactionResult);
             }
@@ -541,7 +541,7 @@ namespace AElf.Contracts.EconomicSystem.Tests
             var victories = await ElectionContractStub.GetVictories.CallAsync(new Empty());
             var miners = new MinerList
             {
-                PublicKeys =
+                Pubkeys =
                 {
                     victories.Value
                 }
