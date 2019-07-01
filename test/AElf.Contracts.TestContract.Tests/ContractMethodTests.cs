@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Contracts.TestContract;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestContract.BasicSecurity;
 using AElf.Contracts.TestKit;
@@ -344,7 +345,7 @@ namespace AElf.Contract.TestContract
             queryResult.FromAmount.ShouldBe(0);
             queryResult.ToAmount.ShouldBe(0);
         }
-
+        
         #endregion
     }
 }

@@ -1,10 +1,12 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Types;
-using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Token;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
@@ -13,11 +15,17 @@ namespace AElf.Contracts.MultiToken
 {
     public class LockTest : MultiTokenContractTestBase
     {
-        public Address ConsensusContractAddress =>
-            ContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
+        private readonly Address _address = Address.Generate();
+        private const string SymbolForTest = "ELFTEST";
+        private const long Amount = 100;
+        private Address BasicFunctionContractAddress { get; set; }
+        private Address OtherBasicFunctionContractAddress { get; set; }
+        private BasicFunctionContractContainer.BasicFunctionContractStub BasicFunctionContractStub { get; set; }
+        private BasicFunctionContractContainer.BasicFunctionContractStub OtherBasicFunctionContractStub { get; set; }
+        private byte[] BasicFunctionContractCode => Codes.Single(kv => kv.Key.Contains("BasicFunction")).Value;
+        private Hash BasicFunctionContractName => Hash.FromString("AElf.TestContractNames.BasicFunction");
+        private Hash OtherBasicFunctionContractName => Hash.FromString("AElf.TestContractNames.OtherBasicFunction");
 
-        public Address DividendContractAddress =>
-            ContractAddressService.GetAddressByContractName(DividendSmartContractAddressNameProvider.Name);
 
         public LockTest()
         {
@@ -38,11 +46,23 @@ namespace AElf.Contracts.MultiToken
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = TokenContractCode;
                 TokenContractAddress = await DeploySystemSmartContract(category, code,
-                    TokenConverterSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
+                    TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
+                
+                BasicFunctionContractAddress = await DeploySystemSmartContract(KernelConstants.CodeCoverageRunnerCategory, BasicFunctionContractCode,
+                    BasicFunctionContractName, DefaultSenderKeyPair);
+                BasicFunctionContractStub =
+                    GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(BasicFunctionContractAddress,
+                        DefaultSenderKeyPair);
+                
+                OtherBasicFunctionContractAddress = await DeploySystemSmartContract(KernelConstants.CodeCoverageRunnerCategory, BasicFunctionContractCode,
+                    OtherBasicFunctionContractName, DefaultSenderKeyPair);
+                OtherBasicFunctionContractStub =
+                    GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(OtherBasicFunctionContractAddress,
+                        DefaultSenderKeyPair);
 
-                var res0 = await TokenContractStub.Create.SendAsync(new CreateInput()
+                await TokenContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput()
                 {
                     Symbol = DefaultSymbol,
                     Decimals = 2,
@@ -50,154 +70,208 @@ namespace AElf.Contracts.MultiToken
                     TokenName = "elf token",
                     TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
                     Issuer = DefaultSender,
-                    LockWhiteList = { ConsensusContractAddress }
+                    LockWhiteSystemContractNameList = {BasicFunctionContractName,OtherBasicFunctionContractName}
                 });
-                await TokenContractStub.Issue.SendAsync(new IssueInput
+                await TokenContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
                 {
                     Symbol = DefaultSymbol,
                     Amount = DPoSContractConsts.LockTokenForElection * 20,
-                    To = DividendContractAddress,
+                    ToSystemContractName = DividendSmartContractAddressNameProvider.Name,
                     Memo = "Issue ",
                 });
-                var res = await TokenContractStub.Issue.SendAsync(new IssueInput
+                await TokenContractStub.Issue.SendAsync(new IssueInput
                 {
                     Symbol = DefaultSymbol,
                     Amount = DPoSContractConsts.LockTokenForElection * 80,
                     To = DefaultSender,
                     Memo = "Set dividends.",
                 });
+
+                await TokenContractStub.Create.SendAsync(new CreateInput
+                {
+                    Symbol = SymbolForTest,
+                    Decimals = 2,
+                    IsBurnable = true,
+                    Issuer = DefaultSender,
+                    TokenName = "elf test token",
+                    TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
+                    LockWhiteList =
+                    {
+                        BasicFunctionContractAddress,
+                        OtherBasicFunctionContractAddress
+                    }
+                });
+                await TokenContractStub.Issue.SendAsync(new IssueInput
+                {
+                    Symbol = SymbolForTest,
+                    Amount = DPoSContractConsts.LockTokenForElection * 20,
+                    To = DefaultSender,
+                    Memo = "Issue"
+                });
             }
+        }
+
+        [Fact]
+        public async Task Create_Token_Use_Custom_Address()
+        {
+            var transactionResult = (await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = "TEST",
+                Decimals = 2,
+                IsBurnable = true,
+                Issuer = DefaultSender,
+                TokenName = "elf test token",
+                TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
+                LockWhiteList =
+                {
+                    User1Address
+                }
+            })).TransactionResult;
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Addresses in lock white list should be system contract addresses");
         }
 
         [Fact]
         public async Task LockAndUnlockTest()
         {
-            const long amount = 100;
-
-            await TokenContractStub.Transfer.SendAsync(new TransferInput()
+            var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
             {
-                Symbol = DefaultSymbol,
-                Amount = amount,
-                To = User1Address
-            });
+                Symbol = SymbolForTest,
+                Amount = Amount,
+                To = _address
+            })).TransactionResult;
+            transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             // Check balance before locking.
             {
                 var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
                 {
-                    Owner = User1Address,
-                    Symbol = DefaultSymbol
+                    Owner = _address,
+                    Symbol = SymbolForTest
                 });
-                result.Balance.ShouldBe(amount);
+                result.Balance.ShouldBe(Amount);
             }
 
             var lockId = Hash.Generate();
 
             // Lock.
-            await TokenContractStub.Lock.SendAsync(new LockInput
+            var lockTokenResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput
             {
-                From = User1Address,
-                To = ConsensusContractAddress,
-                Amount = amount,
-                Symbol = "ELF",
+                Address = _address,
+                Amount = Amount,
+                Symbol = SymbolForTest,
                 LockId = lockId,
                 Usage = "Testing."
-            });
+            })).TransactionResult;
+            lockTokenResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             // Check balance of user after locking.
             {
                 var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
                 {
-                    Owner = User1Address,
-                    Symbol = DefaultSymbol
+                    Owner = _address,
+                    Symbol = SymbolForTest
                 });
                 result.Balance.ShouldBe(0);
             }
 
             // Unlock.
-            await TokenContractStub.Unlock.SendAsync(new UnlockInput
+            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput
             {
-                From = User1Address,
-                To = ConsensusContractAddress,
-                Amount = amount,
-                Symbol = "ELF",
+                Address = _address,
+                Amount = Amount,
+                Symbol = SymbolForTest,
                 LockId = lockId,
                 Usage = "Testing."
-            });
+            })).TransactionResult;
+            unlockResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             // Check balance of user after unlocking.
             {
                 var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
                 {
-                    Owner = User1Address,
-                    Symbol = DefaultSymbol
+                    Owner = _address,
+                    Symbol = SymbolForTest
                 });
-                result.Balance.ShouldBe(amount);
+                result.Balance.ShouldBe(Amount);
             }
         }
 
         [Fact]
         public async Task Cannot_Lock_To_Address_Not_In_White_List()
         {
-            const long amount = 100;
-
-            await TokenContractStub.Transfer.SendAsync(new TransferInput()
+            var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
             {
-                Symbol = DefaultSymbol,
-                Amount = amount,
-                To = User1Address
-            });
+                Symbol = SymbolForTest,
+                Amount = Amount,
+                To = _address
+            })).TransactionResult;
+            transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             // Check balance before locking.
             {
                 var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
                 {
-                    Owner = User1Address,
-                    Symbol = DefaultSymbol
+                    Owner = _address,
+                    Symbol = SymbolForTest
                 });
-                result.Balance.ShouldBe(amount);
+                result.Balance.ShouldBe(Amount);
             }
 
             // Try to lock.
             var lockId = Hash.Generate();
 
+            var defaultSenderStub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
+
             // Lock.
-            var transactionResult = (await TokenContractStub.Lock.SendAsync(new LockInput
+            var lockResult = (await defaultSenderStub.Lock.SendAsync(new LockInput
             {
-                From = User1Address,
-                To = Address.Generate(),
-                Amount = amount,
-                Symbol = "ELF",
+                Address = _address,
+                Amount = Amount,
+                Symbol = SymbolForTest,
                 LockId = lockId,
                 Usage = "Testing."
             })).TransactionResult;
 
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldContain("Not in white list");
+            lockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            lockResult.Error.ShouldContain("Not in white list");
         }
 
         [Fact]
         public async Task Lock_With_Insufficient_Balance()
         {
-            const long amount = 100;
-
-            var anotherStub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
+            var transferResult= (await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                Symbol = SymbolForTest,
+                Amount = Amount,
+                To = _address
+            })).TransactionResult;
+            transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            // Check balance before locking.
+            {
+                var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+                {
+                    Owner = _address,
+                    Symbol = SymbolForTest
+                });
+                result.Balance.ShouldBe(Amount);
+            }
 
             var lockId = Hash.Generate();
-
+            
             // Lock.
-            var transactionResult = (await anotherStub.Lock.SendAsync(new LockInput()
+            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
             {
-                From = User1Address,
-                To = ConsensusContractAddress,
-                Symbol = DefaultSymbol,
-                Amount = amount * 2,
+                Address = _address,
+                Symbol = SymbolForTest,
+                Amount = Amount * 2,
                 LockId = lockId,
                 Usage = "Testing"
             })).TransactionResult;
 
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldContain("Insufficient balance");
+            lockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            lockResult.Error.ShouldContain("Insufficient balance");
         }
 
         /// <summary>
@@ -207,199 +281,228 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task Unlock_Twice_To_Get_Total_Amount_Balance()
         {
-            const long amount = 100;
-
-            await TokenContractStub.Transfer.SendAsync(new TransferInput()
+            var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
             {
-                Symbol = DefaultSymbol,
-                Amount = amount,
-                To = User1Address
-            });
+                Symbol = SymbolForTest,
+                Amount = Amount,
+                To = _address
+            })).TransactionResult;
+            transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var lockId = Hash.Generate();
 
-            var user1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
             // Lock.
-            await user1Stub.Lock.SendAsync(new LockInput()
+            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
             {
-                From = User1Address,
-                To = ConsensusContractAddress,
-                Symbol = DefaultSymbol,
-                Amount = amount,
+                Address = _address,
+                Symbol = SymbolForTest,
+                Amount = Amount,
                 LockId = lockId,
                 Usage = "Testing"
-            });
+            })).TransactionResult;
+            lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             // Unlock half of the amount at first.
             {
-                var transactionResult = (await user1Stub.Unlock.SendAsync(new UnlockInput()
+                var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
                 {
-                    From = User1Address,
-                    To = ConsensusContractAddress,
-                    Amount = amount / 2,
-                    Symbol = "ELF",
+                    Address = _address,
+                    Amount = Amount / 2,
+                    Symbol = SymbolForTest,
                     LockId = lockId,
                     Usage = "Testing."
                 })).TransactionResult;
 
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                unlockResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
             // Unlock another half of the amount.
             {
-                var transactionResult = (await user1Stub.Unlock.SendAsync(new UnlockInput()
+                var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
                 {
-                    From = User1Address,
-                    To = ConsensusContractAddress,
-                    Amount = amount / 2,
-                    Symbol = "ELF",
+                    Address = _address,
+                    Amount = Amount / 2,
+                    Symbol = SymbolForTest,
                     LockId = lockId,
                     Usage = "Testing."
                 })).TransactionResult;
 
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                unlockResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
             // Cannot keep on unlocking.
             {
-                var transactionResult = (await user1Stub.Unlock.SendAsync(new UnlockInput()
+                var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
                 {
-                    From = User1Address,
-                    To = ConsensusContractAddress,
+                    Address = _address,
                     Amount = 1,
-                    Symbol = "ELF",
+                    Symbol = SymbolForTest,
                     LockId = lockId,
                     Usage = "Testing."
                 })).TransactionResult;
 
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.ShouldContain("Insufficient balance");
+                unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                unlockResult.Error.ShouldContain("Insufficient balance");
             }
         }
 
         [Fact]
         public async Task Unlock_With_Excess_Amount()
         {
-            const long amount = 100;
-
-            await TokenContractStub.Transfer.SendAsync(new TransferInput()
+            var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
             {
-                Symbol = DefaultSymbol,
-                Amount = amount,
-                To = User1Address
-            });
+                Symbol = SymbolForTest,
+                Amount = Amount,
+                To = _address
+            })).TransactionResult;
+            transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var lockId = Hash.Generate();
 
-            var user1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
-
             // Lock.
-            await user1Stub.Lock.SendAsync(new LockInput()
+            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
             {
-                From = User1Address,
-                To = ConsensusContractAddress,
-                Symbol = DefaultSymbol,
-                Amount = amount,
+                Address = _address,
+                Symbol = SymbolForTest,
+                Amount = Amount,
                 LockId = lockId,
                 Usage = "Testing"
-            });
+            })).TransactionResult;
+            lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var transactionResult = (await user1Stub.Unlock.SendAsync(new UnlockInput()
+            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
             {
-                From = User1Address,
-                To = ConsensusContractAddress,
-                Amount = amount + 1,
-                Symbol = "ELF",
+                Address = _address,
+                Amount = Amount + 1,
+                Symbol = SymbolForTest,
                 LockId = lockId,
                 Usage = "Testing."
             })).TransactionResult;
 
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldContain("Insufficient balance");
+            unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            unlockResult.Error.ShouldContain("Insufficient balance");
         }
 
         [Fact]
         public async Task Unlock_Token_Not_Himself()
         {
-            const long amount = 100;
-
-            await TokenContractStub.Transfer.SendAsync(new TransferInput()
+            var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
             {
-                Symbol = DefaultSymbol,
-                Amount = amount,
-                To = User1Address
-            });
-
-            var user1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
+                Symbol = SymbolForTest,
+                Amount = Amount,
+                To = _address
+            })).TransactionResult;
+            transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var lockId = Hash.Generate();
 
             // Lock.
-            await user1Stub.Lock.SendAsync(new LockInput()
+            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
             {
-                From = User1Address,
-                To = ConsensusContractAddress,
-                Symbol = DefaultSymbol,
-                Amount = amount,
+                Address = _address,
+                Symbol = SymbolForTest,
+                Amount = Amount,
                 LockId = lockId,
                 Usage = "Testing"
-            });
-
-            var user2Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User2KeyPair);
-            var transactionResult = (await user2Stub.Unlock.SendAsync(new UnlockInput()
+            })).TransactionResult;
+            lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            // Check balance before locking.
             {
-                From = User1Address,
-                To = ConsensusContractAddress,
-                Amount = amount,
-                Symbol = "ELF",
+                var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+                {
+                    Owner = _address,
+                    Symbol = SymbolForTest
+                });
+                result.Balance.ShouldBe(0);
+            }
+
+            var unlockResult = (await OtherBasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
+            {
+                Address = _address,
+                Amount = Amount,
+                Symbol = SymbolForTest,
                 LockId = lockId,
                 Usage = "Testing."
             })).TransactionResult;
 
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldContain("Insufficient balance");
+            unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            unlockResult.Error.ShouldContain("Insufficient balance");
         }
 
         [Fact]
         public async Task Unlock_Token_With_Strange_LockId()
         {
-            const long amount = 100;
-
-
-            await TokenContractStub.Transfer.SendAsync(new TransferInput()
+            var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
             {
-                Symbol = DefaultSymbol,
-                Amount = amount,
-                To = User1Address
-            });
-
-            var user1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
-
+                Symbol = SymbolForTest,
+                Amount = Amount,
+                To = _address
+            })).TransactionResult;
+            transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
             var lockId = Hash.Generate();
 
             // Lock.
-            await user1Stub.Lock.SendAsync(new LockInput()
+            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
             {
-                From = User1Address,
-                To = ConsensusContractAddress,
-                Symbol = DefaultSymbol,
-                Amount = amount,
+                Address = _address,
+                Symbol = SymbolForTest,
+                Amount = Amount,
                 LockId = lockId,
                 Usage = "Testing"
-            });
+            })).TransactionResult;
+            lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var transactionResult = (await user1Stub.Unlock.SendAsync(new UnlockInput()
+            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
             {
-                From = User1Address,
-                To = ConsensusContractAddress,
-                Amount = amount,
-                Symbol = "ELF",
+                Address = _address,
+                Amount = Amount,
+                Symbol = SymbolForTest,
                 LockId = Hash.Generate(),
                 Usage = "Testing."
             })).TransactionResult;
 
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldContain("Insufficient balance");
+            unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            unlockResult.Error.ShouldContain("Insufficient balance");
         }
+        
+                [Fact]
+        public async Task Unlock_Token_To_Other_Address()
+        {
+            var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
+            {
+                Symbol = SymbolForTest,
+                Amount = Amount,
+                To = _address
+            })).TransactionResult;
+            transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var lockId = Hash.Generate();
+
+            // Lock.
+            var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
+            {
+                Address = _address,
+                Symbol = SymbolForTest,
+                Amount = Amount,
+                LockId = lockId,
+                Usage = "Testing"
+            })).TransactionResult;
+            lockResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput()
+            {
+                Address = User2Address,
+                Amount = Amount,
+                Symbol = SymbolForTest,
+                LockId = lockId,
+                Usage = "Testing."
+            })).TransactionResult;
+
+            unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            unlockResult.Error.ShouldContain("Insufficient balance");
+        }
+
     }
 }

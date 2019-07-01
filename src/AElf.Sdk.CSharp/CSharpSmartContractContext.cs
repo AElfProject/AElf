@@ -103,6 +103,11 @@ namespace AElf.Sdk.CSharp
             return _smartContractBridgeContextImplementation.GetContractAddressByName(hash);
         }
         
+        public IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping()
+        {
+            return _smartContractBridgeContextImplementation.GetSystemContractNameToAddressMapping();
+        }
+        
         public byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
         {
             return _smartContractBridgeContextImplementation.EncryptMessage(receiverPublicKey, plainMessage);

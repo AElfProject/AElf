@@ -12,7 +12,6 @@
       <ProjectReference Include="..\..\src\AElf.OS.Rpc.ChainController\AElf.OS.Rpc.ChainController.csproj" />
       <ProjectReference Include="..\..\src\AElf.OS.Rpc.Core\AElf.OS.Rpc.Core.csproj" />
       <ProjectReference Include="..\..\src\AElf.OS.Rpc.Net\AElf.OS.Rpc.Net.csproj" />
-      <ProjectReference Include="..\..\src\AElf.OS.Rpc.Wallet\AElf.OS.Rpc.Wallet.csproj" />
       <ProjectReference Include="..\AElf.Runtime.CSharp.Tests\AElf.Runtime.CSharp.Tests.csproj" />
       <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
       <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />

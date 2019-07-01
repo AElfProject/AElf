@@ -110,11 +110,10 @@ namespace AElf.Contracts.Vote
                 // Lock voted token.
                 State.TokenContract.Lock.Send(new LockInput
                 {
-                    From = votingRecord.Voter,
+                    Address = votingRecord.Voter,
                     Symbol = votingItem.AcceptedCurrency,
                     LockId = input.VoteId,
                     Amount = input.Amount,
-                    To = Context.Self,
                     Usage = $"Voting for {input.VotingItemId}"
                 });
             }
@@ -214,11 +213,10 @@ namespace AElf.Contracts.Vote
             {
                 State.TokenContract.Unlock.Send(new UnlockInput
                 {
-                    From = votingRecord.Voter,
+                    Address = votingRecord.Voter,
                     Symbol = votingItem.AcceptedCurrency,
                     Amount = votingRecord.Amount,
                     LockId = input.VoteId,
-                    To = Context.Self,
                     Usage = $"Withdraw votes for {votingRecord.VotingItemId}"
                 });
             }
