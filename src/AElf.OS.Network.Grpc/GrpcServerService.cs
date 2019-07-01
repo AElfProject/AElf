@@ -182,7 +182,6 @@ namespace AElf.OS.Network.Grpc
         {
             var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
             
-            peerInPool.StartBlockRequestStreaming();
             peerInPool.StartAnnouncementStreaming();
             peerInPool.StartTransactionStreaming();
 
@@ -248,38 +247,6 @@ namespace AElf.OS.Network.Grpc
             return new VoidReply();
         }
 
-        public override async Task RequestBlockStream(IAsyncStreamReader<BlockRequest> requestStream, IServerStreamWriter<BlockReply> responseStream, ServerCallContext context)
-        {
-            try
-            {
-                await requestStream.ForEachAsync(async request =>
-                {
-                    var block = await GetBlock(request, context);
-                    await responseStream.WriteAsync(new BlockReply { Block = block });
-                });
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e, "Exception while handling block request.");
-            }
-        }
-
-        private async Task<BlockWithTransactions> GetBlock(BlockRequest request, ServerCallContext context)
-        {
-            if (request == null || request.Hash == null) {
-                return null; // will throw exception in client
-            }
-            
-            Logger.LogDebug($"Peer {context.GetPeerInfo()} requested block {request.Hash}.");
-
-            var block = await _blockchainService.GetBlockWithTransactionsByHash(request.Hash);
-            
-            if (block == null)
-                Logger.LogDebug($"Could not find block {request.Hash} for {context.GetPeerInfo()}.");
-
-            return block;
-        }
-
         /// <summary>
         /// This method returns a block. The parameter is a <see cref="BlockRequest"/> object, if the value
         /// of <see cref="BlockRequest.Hash"/> is not null, the request is by ID, otherwise it will be
@@ -289,8 +256,13 @@ namespace AElf.OS.Network.Grpc
         {
             if (request == null || request.Hash == null || _syncStateService.SyncState != SyncState.Finished) 
                 return new BlockReply();
+            
+            Logger.LogDebug($"Peer {context.GetPeerInfo()} requested block {request.Hash}.");
 
-            var block = await GetBlock(request, context); 
+            var block = await _blockchainService.GetBlockWithTransactionsByHash(request.Hash);
+            
+            if (block == null)
+                Logger.LogDebug($"Could not find block {request.Hash} for {context.GetPeerInfo()}.");
 
             return new BlockReply { Block = block };
         }

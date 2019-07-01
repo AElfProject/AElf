@@ -175,7 +175,7 @@ namespace AElf.OS.Network.Application
             }
             catch (NetworkException ex)
             {
-                Logger.LogError(ex, $"Error while requesting block from {peer.PeerIpAddress}.");
+                Logger.LogError(ex, $"Error while requesting block(s) from {peer.PeerIpAddress}.");
                 await HandleNetworkException(peer, ex);
             }
             

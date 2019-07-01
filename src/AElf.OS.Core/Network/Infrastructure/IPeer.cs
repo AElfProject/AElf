@@ -26,7 +26,6 @@ namespace AElf.OS.Network.Infrastructure
 
         void StartTransactionStreaming();
         void StartAnnouncementStreaming();
-        void StartBlockRequestStreaming();
 
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();
 
