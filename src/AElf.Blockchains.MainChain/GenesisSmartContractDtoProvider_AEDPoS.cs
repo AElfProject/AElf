@@ -38,7 +38,7 @@ namespace AElf.Blockchains.MainChain
             aelfConsensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
                 new MinerList
                 {
-                    PublicKeys =
+                    Pubkeys =
                     {
                         _consensusOptions.InitialMiners.Select(p => p.ToByteString())
                     }
@@ -54,7 +54,7 @@ namespace AElf.Blockchains.MainChain
             DateTime currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
         {
             var sortedMiners =
-                (from obj in miners.PublicKeys.Distinct()
+                (from obj in miners.Pubkeys.Distinct()
                         .ToDictionary<ByteString, string, int>(miner => miner.ToHex(), miner => miner[0])
                     orderby obj.Value descending
                     select obj.Key).ToList();
@@ -71,7 +71,7 @@ namespace AElf.Blockchains.MainChain
                     minerInRound.IsExtraBlockProducer = true;
                 }
 
-                minerInRound.PublicKey = sortedMiners[i];
+                minerInRound.Pubkey = sortedMiners[i];
                 minerInRound.Order = i + 1;
                 minerInRound.ExpectedMiningTime =
                     currentBlockTime.AddMilliseconds((i * miningInterval) + miningInterval).ToTimestamp();

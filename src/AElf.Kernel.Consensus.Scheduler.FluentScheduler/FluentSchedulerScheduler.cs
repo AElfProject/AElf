@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Consensus.Application;
 using AElf.Sdk.CSharp;
 using FluentScheduler;

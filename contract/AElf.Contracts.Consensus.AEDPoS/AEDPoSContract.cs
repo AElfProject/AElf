@@ -59,7 +59,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.MiningInterval.Value = input.GetMiningInterval();
             State.MainChainCurrentMinerList.Value = new MinerList
             {
-                PublicKeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}
+                Pubkeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}
             };
 
             if (State.ElectionContract.Value != null)
@@ -73,7 +73,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var minerList = new MinerList
-                {PublicKeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}};
+                {Pubkeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}};
             SetMinerListOfCurrentTerm(minerList);
 
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
@@ -210,9 +210,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             Assert(!State.IsMainChain.Value, "Only side chain can update consensus information.");
             // For now we just extract the miner list from main chain consensus information, then update miners list.
-            if (input == null || input.Bytes.IsEmpty)
+            if (input == null || input.Value.IsEmpty)
                 return new Empty();
-            var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Bytes);
+            var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Value);
 
             // check round number of shared consensus, not term number
             if (consensusInformation.Round.RoundNumber <= State.MainChainRoundNumber.Value)
@@ -222,7 +222,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.MainChainRoundNumber.Value = consensusInformation.Round.RoundNumber;
             State.MainChainCurrentMinerList.Value = new MinerList
             {
-                PublicKeys = {minersKeys.Select(k => k.ToByteString())}
+                Pubkeys = {minersKeys.Select(k => k.ToByteString())}
             };
             return new Empty();
         }

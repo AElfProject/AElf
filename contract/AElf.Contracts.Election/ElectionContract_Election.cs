@@ -148,8 +148,7 @@ namespace AElf.Contracts.Election
             //lock the token from sender for deposit of announce election
             State.TokenContract.Lock.Send(new LockInput
             {
-                From = Context.Sender,
-                To = Context.Self,
+                Address = Context.Sender,
                 Symbol = Context.Variables.NativeSymbol,
                 Amount = ElectionContractConstants.LockTokenForElection,
                 LockId = Context.TransactionId,
@@ -186,7 +185,7 @@ namespace AElf.Contracts.Election
 
             Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Sender is not a candidate.");
             Assert(
-                !State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).PublicKeys
+                !State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).Pubkeys
                     .Contains(publicKeyByteString),
                 "Current miners cannot quit election.");
 
@@ -195,8 +194,7 @@ namespace AElf.Contracts.Election
             State.Candidates.Value.Value.Remove(publicKeyByteString);
             State.TokenContract.Unlock.Send(new UnlockInput
             {
-                From = Context.Sender,
-                To = Context.Self,
+                Address = Context.Sender,
                 Symbol = Context.Variables.NativeSymbol,
                 LockId = candidateInformation.AnnouncementTransactionId,
                 Amount = ElectionContractConstants.LockTokenForElection,
@@ -301,11 +299,10 @@ namespace AElf.Contracts.Election
 
             State.TokenContract.Lock.Send(new LockInput
             {
-                From = Context.Sender,
+                Address = Context.Sender,
                 Symbol = Context.Variables.NativeSymbol,
                 LockId = Context.TransactionId,
                 Amount = input.Amount,
-                To = Context.Self,
                 Usage = "Voting for Main Chain Miner Election."
             });
 
@@ -360,11 +357,10 @@ namespace AElf.Contracts.Election
 
             State.TokenContract.Unlock.Send(new UnlockInput
             {
-                From = Context.Sender,
+                Address = Context.Sender,
                 Symbol = Context.Variables.NativeSymbol,
                 Amount = votingRecord.Amount,
                 LockId = input,
-                To = Context.Self,
                 Usage = "Withdraw votes for Main Chain Miner Election."
             });
 

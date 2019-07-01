@@ -10,6 +10,7 @@ import "google/protobuf/timestamp.proto";
 option csharp_namespace = "AElf.Contracts.Election";
 
 service ElectionContract {
+    
     option (aelf.csharp_state) = "AElf.Contracts.Election.ElectionContractState";
 
     // Action
