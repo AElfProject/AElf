@@ -7,7 +7,9 @@ import "google/protobuf/empty.proto";
 option csharp_namespace = "AElf.Contracts.Resource.FeeReceiver";
 
 service FeeReceiverContract {
+    
     option (aelf.csharp_state) = "AElf.Contracts.Resource.FeeReceiver.FeeReceiverContractState";
+    
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
@@ -17,6 +19,7 @@ service FeeReceiverContract {
     }
     rpc Burn (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
+    
     // Views
     rpc GetElfTokenAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
@@ -30,6 +33,6 @@ service FeeReceiverContract {
 }
 
 message InitializeInput {
-    aelf.Address elfTokenAddress = 1;
-    aelf.Address foundationAddress = 2;
+    aelf.Address elf_token_address = 1;
+    aelf.Address foundation_address = 2;
 }

@@ -10,6 +10,7 @@ import "google/protobuf/timestamp.proto";
 option csharp_namespace = "AElf.Contracts.Vote";
 
 service VoteContract {
+    
     option (aelf.csharp_state) = "AElf.Contracts.Vote.VoteContractState";
 
     // Action
@@ -116,7 +117,7 @@ message GetVotingResultInput {
 
 message VotingResult {
     aelf.Hash voting_item_id = 1;
-    map<string, sint64> results = 2;// option -> amount
+    map<string, sint64> results = 2; // option -> amount
     sint64 snapshot_number = 3;
     sint64 voters_count = 4;
     google.protobuf.Timestamp snapshot_start_timestamp = 5;

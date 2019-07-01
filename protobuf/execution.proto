@@ -2,12 +2,12 @@ syntax = "proto3";
 
 package aelf;
 
-option csharp_namespace = "AElf.Kernel.SmartContractExecution";
-
 import "kernel.proto";
+
+option csharp_namespace = "AElf.Kernel.SmartContractExecution";
 
 message TransactionTraceMessage
 {
-    int64 RequestId = 1;
-    repeated TransactionTrace TransactionTraces = 2;
+    int64 request_id = 1;
+    repeated TransactionTrace transaction_traces = 2;
 }
