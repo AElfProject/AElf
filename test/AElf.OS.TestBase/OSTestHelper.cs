@@ -269,7 +269,7 @@ namespace AElf.OS
             return block;
         }
 
-        public Block GenerateBlock(Hash preBlockHash, long preBlockHeight, List<Transaction> transactions = null)
+        public Block GenerateBlock(Hash preBlockHash, long preBlockHeight, IEnumerable<Transaction> transactions = null)
         {
             var block = new Block
             {
@@ -301,7 +301,7 @@ namespace AElf.OS
         }
 
         public BlockWithTransactions GenerateBlockWithTransactions(Hash preBlockHash, long preBlockHeight,
-            List<Transaction> transactions = null)
+            IEnumerable<Transaction> transactions = null)
         {
             var block = GenerateBlock(preBlockHash, preBlockHeight, transactions);
             var blockWithTransactions = new BlockWithTransactions

@@ -74,6 +74,18 @@ namespace AElf.OS.Network
                 await _networkService.BroadcastAnnounceAsync(_osTestHelper.GenerateBlock(Hash.Empty, 10).Header, false);
             Assert.Equal(successfulBcasts, _peerPool.GetPeers().Count-1);
         }
+        
+        [Fact]
+        public async Task BroadcastTransactionAsync_Success()
+        {
+            var successfulBcasts = await _networkService.BroadcastTransactionAsync(new Transaction
+            {
+                From = Address.Generate(),
+                To = Address.Generate(),
+                MethodName = "Test"
+            });
+            Assert.Equal(successfulBcasts, _peerPool.GetPeers().Count-1);
+        }
 
         #endregion Broadcasts
         
