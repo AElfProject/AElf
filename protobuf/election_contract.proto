@@ -15,8 +15,6 @@ service ElectionContract {
     // Action
     rpc InitialElectionContract (InitialElectionContractInput) returns (google.protobuf.Empty) {
     }
-    rpc ConfigElectionContract (ConfigElectionContractInput) returns (google.protobuf.Empty) {
-    }
     rpc RegisterElectionVotingEvent (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc TakeSnapshot (TakeElectionSnapshotInput) returns (google.protobuf.Empty) {
@@ -99,11 +97,8 @@ service ElectionContract {
 message InitialElectionContractInput {
     sint64 minimum_lock_time = 1;
     sint64 maximum_lock_time = 2;
-}
-
-message ConfigElectionContractInput {
-    repeated string miner_list = 1;
-    sint64 time_each_term = 2;
+    repeated string miner_list = 3;
+    sint64 time_each_term = 4;
 }
 
 message GetTermSnapshotInput {

@@ -60,15 +60,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 PublicKeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}
             };
 
-            if (State.ElectionContract.Value != null)
-            {
-                State.ElectionContract.ConfigElectionContract.Send(new ConfigElectionContractInput
-                {
-                    MinerList = {input.RealTimeMinersInformation.Keys},
-                    TimeEachTerm = State.TimeEachTerm.Value
-                });
-            }
-
             var minerList = new MinerList
                 {PublicKeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}};
             SetMinerListOfCurrentTerm(minerList);

@@ -17,28 +17,28 @@ namespace AElf.Contracts.Election
         public override Empty InitialElectionContract(InitialElectionContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
+
             State.Candidates.Value = new PublicKeysList();
+            State.BlackList.Value = new PublicKeysList();
+
             State.MinimumLockTime.Value = input.MinimumLockTime;
             State.MaximumLockTime.Value = input.MaximumLockTime;
-            State.Initialized.Value = true;
-            State.BlackList.Value = new PublicKeysList();
-            State.CurrentTermNumber.Value = 1;
-            return new Empty();
-        }
 
-        public override Empty ConfigElectionContract(ConfigElectionContractInput input)
-        {
-            State.AEDPoSContract.Value = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-            Assert(State.AEDPoSContract.Value == Context.Sender, "Only Consensus Contract can call this method.");
-            Assert(State.InitialMiners.Value == null, "Initial miners already set.");
+            State.TimeEachTerm.Value = input.TimeEachTerm;
+
+            State.MinersCount.Value = input.MinerList.Count;
             State.InitialMiners.Value = new PublicKeysList
-                {Value = {input.MinerList.Select(k => k.ToByteString())}};
+            {
+                Value = {input.MinerList.Select(k => k.ToByteString())}
+            };
             foreach (var publicKey in input.MinerList)
             {
                 State.CandidateInformationMap[publicKey] = new CandidateInformation {PublicKey = publicKey};
             }
-            State.MinersCount.Value = input.MinerList.Count;
-            State.TimeEachTerm.Value = input.TimeEachTerm;
+
+            State.CurrentTermNumber.Value = 1;
+
+            State.Initialized.Value = true;
             return new Empty();
         }
 
@@ -159,13 +159,13 @@ namespace AElf.Contracts.Election
                 State.VoteContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName);
             }
-            
+
             if (State.ProfitContract.Value == null)
             {
                 State.ProfitContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
             }
-            
+
 
             var publicKey = Context.RecoverPublicKey().ToHex();
             var publicKeyByteString = ByteString.CopyFrom(Context.RecoverPublicKey());
@@ -178,7 +178,7 @@ namespace AElf.Contracts.Election
                 "Initial miner cannot announce election.");
 
             var candidateInformation = State.CandidateInformationMap[publicKey];
-            
+
             if (candidateInformation != null)
             {
                 Assert(!candidateInformation.IsCurrentCandidate,
@@ -293,7 +293,7 @@ namespace AElf.Contracts.Election
                 voterVotes = new ElectorVote
                 {
                     PublicKey = voterPublicKeyByteString,
-                    ActiveVotingRecordIds = { Context.TransactionId},
+                    ActiveVotingRecordIds = {Context.TransactionId},
                     ActiveVotedVotesAmount = input.Amount,
                     AllVotedVotesAmount = input.Amount
                 };
@@ -314,7 +314,7 @@ namespace AElf.Contracts.Election
                 candidateVotes = new CandidateVote
                 {
                     PublicKey = input.CandidatePublicKey.ToByteString(),
-                    ObtainedActiveVotingRecordIds = { Context.TransactionId},
+                    ObtainedActiveVotingRecordIds = {Context.TransactionId},
                     ObtainedActiveVotedVotesAmount = input.Amount,
                     AllObtainedVotedVotesAmount = input.Amount
                 };
@@ -322,8 +322,10 @@ namespace AElf.Contracts.Election
             else
             {
                 candidateVotes.ObtainedActiveVotingRecordIds.Add(Context.TransactionId);
-                candidateVotes.ObtainedActiveVotedVotesAmount = candidateVotes.ObtainedActiveVotedVotesAmount.Add(input.Amount);
-                candidateVotes.AllObtainedVotedVotesAmount = candidateVotes.AllObtainedVotedVotesAmount.Add(input.Amount);
+                candidateVotes.ObtainedActiveVotedVotesAmount =
+                    candidateVotes.ObtainedActiveVotedVotesAmount.Add(input.Amount);
+                candidateVotes.AllObtainedVotedVotesAmount =
+                    candidateVotes.AllObtainedVotedVotesAmount.Add(input.Amount);
             }
 
             State.CandidateVotes[input.CandidatePublicKey] = candidateVotes;
@@ -445,7 +447,8 @@ namespace AElf.Contracts.Election
             }
 
             candidateInformation.ProducedBlocks = candidateInformation.ProducedBlocks.Add(input.RecentlyProducedBlocks);
-            candidateInformation.MissedTimeSlots = candidateInformation.MissedTimeSlots.Add(input.RecentlyMissedTimeSlots);
+            candidateInformation.MissedTimeSlots =
+                candidateInformation.MissedTimeSlots.Add(input.RecentlyMissedTimeSlots);
             State.CandidateInformationMap[input.PublicKey] = candidateInformation;
             Context.LogDebug(() => "Leaving UpdateCandidateInformation");
 
