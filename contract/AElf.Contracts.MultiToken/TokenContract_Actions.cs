@@ -517,17 +517,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty ReturnTax(ReturnTaxInput input)
-        {
-            Assert(Context.Sender ==
-                   Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName),
-                "Only token converter contract can return tax.");
-            var amount = State.Balances[Context.Self][Context.Variables.NativeSymbol].Sub(input.BalanceBeforeSelling);
-            State.Balances[input.ReturnTaxReceiverAddress][Context.Variables.NativeSymbol] =
-                State.Balances[input.ReturnTaxReceiverAddress][Context.Variables.NativeSymbol].Add(amount);
-            return new Empty();
-        }
-
         public override Empty SetResourceTokenUnitPrice(SetResourceTokenUnitPriceInput input)
         {
             if (State.ACS0Contract.Value == null)
