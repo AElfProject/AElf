@@ -20,11 +20,7 @@ service TokenConverterContract {
     }
     rpc SetFeeRate (google.protobuf.StringValue) returns (google.protobuf.Empty) {
     }
-    rpc SetFeeReceiverAddress (aelf.Address) returns (google.protobuf.Empty) {
-    }
     rpc SetManagerAddress (aelf.Address) returns (google.protobuf.Empty) {
-    }
-    rpc SellWithInlineAction (SellWithInlineActionInput) returns (google.protobuf.Empty) {
     }
 
     // Views

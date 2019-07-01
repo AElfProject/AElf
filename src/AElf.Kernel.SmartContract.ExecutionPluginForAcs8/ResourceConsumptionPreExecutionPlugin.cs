@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,7 +14,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 {
-    public class ResourceConsumptionPreExecutionPlugin : IPreExecutionPlugin, ISingletonDependency
+    public class ResourceConsumptionPreExecutionPlugin : IPreExecutionPlugin, IPostExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private const string AcsSymbol = "acs8";
@@ -74,6 +75,72 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 
             var chargeResourceTokenTransaction =
                 (await tokenStub.CheckResourceToken.SendAsync(new Empty())).Transaction;
+
+            return new List<Transaction>
+            {
+                chargeResourceTokenTransaction
+            };
+        }
+        
+        public async Task<IEnumerable<Transaction>> GetPostTransactionsAsync(
+            IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
+        {
+            if (!IsAcs8(descriptors))
+            {
+                return new List<Transaction>();
+            }
+
+            var context = _contextService.Create();
+            context.TransactionContext = transactionContext;
+            var selfStub = new ResourceConsumptionContractContainer.ResourceConsumptionContractStub()
+            {
+                __factory = new MethodStubFactory(context)
+            };
+
+            // Generate token contract stub.
+            var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
+            if (tokenContractAddress == null)
+            {
+                return new List<Transaction>();
+            }
+
+            var tokenStub = new TokenContractContainer.TokenContractStub
+            {
+                __factory = new TransactionGeneratingOnlyMethodStubFactory
+                {
+                    Sender = transactionContext.Transaction.To,
+                    ContractAddress = tokenContractAddress
+                }
+            };
+            if (transactionContext.Transaction.To == tokenContractAddress &&
+                transactionContext.Transaction.MethodName == nameof(tokenStub.ChargeResourceToken))
+            {
+                return new List<Transaction>();
+            }
+
+            if (transactionContext.Transaction.To == context.Self &&
+                (transactionContext.Transaction.MethodName == nameof(selfStub.BuyResourceToken) ||
+                 transactionContext.Transaction.MethodName == nameof(selfStub.GetResourceTokenBuyingPreferences) ||
+                 transactionContext.Transaction.MethodName == nameof(selfStub.SetResourceTokenBuyingPreferences)))
+            {
+                return new List<Transaction>();
+            }
+
+            // Transaction size related to NET Token.
+            var transactionSize = transactionContext.Transaction.Size();
+            // Transaction trace state set related to STO Token.
+            var writesCount = transactionContext.Trace.StateSet.Writes.Count;
+            // Transaction executing time related to CPU Token.
+            var executingTime = Convert.ToInt32((transactionContext.Trace.EndTime - transactionContext.Trace.StartTime)
+                .TotalMilliseconds);
+
+            var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(
+                new ChargeResourceTokenInput
+                {
+                    TransactionSize = transactionSize,
+                    WritesCount = writesCount,
+                    ExecutingTime = executingTime
+                })).Transaction;
 
             return new List<Transaction>
             {

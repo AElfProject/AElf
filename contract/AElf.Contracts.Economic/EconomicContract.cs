@@ -208,7 +208,7 @@ namespace AElf.Contracts.Economic
             });
         }
 
-        private Address CreateConnectorManager()
+        private Address InitialConnectorManager()
         {
             State.ParliamentAuthContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
@@ -227,7 +227,7 @@ namespace AElf.Contracts.Economic
 
         private void InitializeTokenConverterContract()
         {
-            var connectorManager = CreateConnectorManager();
+            var connectorManager = InitialConnectorManager();
             State.TokenConverterContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
             var connectors = new List<Connector>

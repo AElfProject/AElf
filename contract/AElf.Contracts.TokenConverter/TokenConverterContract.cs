@@ -64,8 +64,6 @@ namespace AElf.Contracts.TokenConverter
         /// <returns></returns>
         public override Empty Initialize(InitializeInput input)
         {
-            //Assert(input.TokenContractAddress != null, "Token contract address required.");
-            //Assert(input.FeeReceiverAddress != null, "Fee receiver address required.");
             Assert(IsValidSymbol(input.BaseTokenSymbol), $"Base token symbol is invalid. {input.BaseTokenSymbol}");
             Assert(State.TokenContract.Value == null, "Already initialized.");
             State.TokenContract.Value = input.TokenContractAddress != null
@@ -102,19 +100,6 @@ namespace AElf.Contracts.TokenConverter
             //CreateToken();
 
             return new Empty();
-        }
-
-        private void CreateToken()
-        {
-            State.TokenContract.Create.Send(new CreateInput
-            {
-                Symbol = TokenConverterContractConstants.TokenSymbol,
-                TokenName = "AElf Token Converter Contract Token",
-                Issuer = Context.Self,
-                TotalSupply = TokenConverterContractConstants.TotalSupply,
-                Decimals = 2,
-                IsBurnable = true
-            });
         }
 
         public override Empty SetConnector(Connector input)
@@ -259,18 +244,6 @@ namespace AElf.Contracts.TokenConverter
             AssertPerformedByManager();
             Assert(input != null && input != new Address(), "Input is not a valid address.");
             State.ManagerAddress.Value = input;
-            return new Empty();
-        }
-
-        public override Empty SellWithInlineAction(SellWithInlineActionInput input)
-        {
-            Sell(new SellInput
-            {
-                Symbol = input.Symbol,
-                Amount = input.Amount,
-                ReceiveLimit = input.ReceiveLimit
-            });
-            Context.SendInline(input.ContractAddress, input.MethodName, input.Params);
             return new Empty();
         }
 
