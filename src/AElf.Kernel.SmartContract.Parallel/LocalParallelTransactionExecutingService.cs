@@ -29,8 +29,8 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             _grouper = grouper;
             _plainExecutingService =
-                new TransactionExecutingService(transactionResultService, smartContractExecutiveService, prePlugins,
-                    postPlugins);
+                new TransactionExecutingService(transactionResultService, smartContractExecutiveService, postPlugins,prePlugins
+                    );
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<LocalParallelTransactionExecutingService>.Instance;
         }

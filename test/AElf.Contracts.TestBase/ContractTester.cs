@@ -117,7 +117,7 @@ namespace AElf.Contracts.TestBase
                             miners.Add(minerKeyPair.PublicKey.ToHex());
                         }
 
-                        o.InitialMiners = miners;
+                        o.InitialMinerList = miners;
                         o.MiningInterval = 4000;
                         o.StartTimestamp = new Timestamp {Seconds = 0};
                     });
@@ -267,7 +267,7 @@ namespace AElf.Contracts.TestBase
                 {
                     Pubkeys =
                     {
-                        consensusOptions.InitialMiners.Select(k => k.ToByteString())
+                        consensusOptions.InitialMinerList.Select(k => k.ToByteString())
                     }
                 }.GenerateFirstRoundOfNewTerm(consensusOptions.MiningInterval,
                     consensusOptions.StartTimestamp));

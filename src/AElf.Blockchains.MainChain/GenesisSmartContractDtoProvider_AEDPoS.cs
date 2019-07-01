@@ -40,7 +40,7 @@ namespace AElf.Blockchains.MainChain
                 {
                     Pubkeys =
                     {
-                        _consensusOptions.InitialMiners.Select(p => p.ToByteString())
+                        _consensusOptions.InitialMinerList.Select(p => p.ToByteString())
                     }
                 }.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval,
                     _consensusOptions.StartTimestamp.ToDateTime()));

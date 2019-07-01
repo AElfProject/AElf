@@ -22,8 +22,8 @@ namespace AElf.Kernel.SmartContract.Application
         public ILogger<TransactionExecutingService> Logger { get; set; }
 
         public TransactionExecutingService(ITransactionResultService transactionResultService,
-            ISmartContractExecutiveService smartContractExecutiveService, IEnumerable<IPreExecutionPlugin> prePlugins,
-            IEnumerable<IPostExecutionPlugin> postPlugins)
+            ISmartContractExecutiveService smartContractExecutiveService, IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins
+            )
         {
             _transactionResultService = transactionResultService;
             _smartContractExecutiveService = smartContractExecutiveService;
@@ -266,19 +266,19 @@ namespace AElf.Kernel.SmartContract.Application
                 var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txCtxt);
                 foreach (var postTx in transactions)
                 {
-                    var preTrace = await ExecuteOneAsync(0, internalChainContext, postTx, currentBlockTime,
+                    var postTrace = await ExecuteOneAsync(0, internalChainContext, postTx, currentBlockTime,
                         cancellationToken);
-                    trace.PreTransactions.Add(postTx);
-                    trace.PreTraces.Add(preTrace);
-                    if (!preTrace.IsSuccessful())
+                    trace.PostTransactions.Add(postTx);
+                    trace.PostTraces.Add(postTrace);
+                    if (!postTrace.IsSuccessful())
                     {
-                        trace.ExecutionStatus = ExecutionStatus.Prefailed;
-                        preTrace.SurfaceUpError();
-                        trace.Error += preTrace.Error;
+                        trace.ExecutionStatus = ExecutionStatus.Postfailed;
+                        postTrace.SurfaceUpError();
+                        trace.Error += postTrace.Error;
                         return false;
                     }
 
-                    internalStateCache.Update(preTrace.GetFlattenedWrites()
+                    internalStateCache.Update(postTrace.GetFlattenedWrites()
                         .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
                 }
             }

@@ -39,7 +39,7 @@ namespace AElf.OS
                     miners.Add(CryptoHelpers.GenerateKeyPair().PublicKey.ToHex());
                 }
 
-                o.InitialMiners = miners;
+                o.InitialMinerList = miners;
                 o.MiningInterval = 4000;
                 o.TimeEachTerm = 604800;
                 o.MinerIncreaseInterval = 31536000;
