@@ -188,7 +188,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             else
             {
                 expectedMiningTime =
-                    currentRound.ArrangeAbnormalMiningTime(minerInRound.PublicKey, Context.CurrentBlockTime);
+                    currentRound.ArrangeAbnormalMiningTime(minerInRound.Pubkey, Context.CurrentBlockTime);
                 nextBlockMiningLeftMilliseconds = (int) (expectedMiningTime - Context.CurrentBlockTime).Milliseconds();
             }
         }
@@ -290,7 +290,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var minedMiners = previousRound.GetMinedMiners();
                 return minedMiners.Count == 1 &&
-                       minedMiners.Select(m => m.PublicKey).Contains(publicKey);
+                       minedMiners.Select(m => m.Pubkey).Contains(publicKey);
             }
 
             return false;

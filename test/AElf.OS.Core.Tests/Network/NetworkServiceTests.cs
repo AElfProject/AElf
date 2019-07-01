@@ -54,7 +54,7 @@ namespace AElf.OS.Network
         }
 
         #endregion GetBlockByHash
-        
+
         #region GetPeers
 
         [Fact]

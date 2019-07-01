@@ -2,21 +2,19 @@ syntax = "proto3";
 
 package aelf;
 
-option csharp_namespace = "AElf.Types";
-
 import "google/protobuf/timestamp.proto";
 
+option csharp_namespace = "AElf.Types";
+
 message Transaction {
-    Address From = 1;
-    Address To = 2;
-    int64 RefBlockNumber = 3;
-    bytes RefBlockPrefix = 4;
-    string MethodName = 5;
-    bytes Params = 6;
-    bytes Signature = 10000;
+    Address from = 1;
+    Address to = 2;
+    int64 ref_block_number = 3;
+    bytes ref_block_prefix = 4;
+    string method_name = 5;
+    bytes params = 6;
+    bytes signature = 10000;
 }
-
-
 
 message StatePath {
     repeated string parts = 1;
@@ -29,23 +27,23 @@ message ScopedStatePath {
 
 
 enum TransactionResultStatus {
-    NotExisted = 0;
-    Pending = 1;
-    Failed = 2;
-    Mined = 3;
-    Unexecutable = 4;
+    NOT_EXISTED = 0;
+    PENDING = 1;
+    FAILED = 2;
+    MINED = 3;
+    UNEXECUTABLE = 4;
 }
 
 message TransactionResult {
-    Hash TransactionId = 1;
-    TransactionResultStatus Status = 2;
-    repeated LogEvent Logs = 3;
-    bytes Bloom = 4;
-    bytes ReturnValue = 5;
-    int64 BlockNumber = 6;
-    Hash BlockHash = 7;
-    int32 Index = 8;
-    Hash StateHash = 9;
+    Hash transaction_id = 1;
+    TransactionResultStatus status = 2;
+    repeated LogEvent logs = 3;
+    bytes bloom = 4;
+    bytes return_value = 5;
+    int64 block_number = 6;
+    Hash block_hash = 7;
+    int32 index = 8;
+    Hash state_hash = 9;
     // Merkle proof path for this transaction
     string Error = 10;
     string ReadableReturnValue = 11;
@@ -53,54 +51,41 @@ message TransactionResult {
  
 
 message LogEvent {
-    Address Address = 1;
-    string Name = 2;
-    repeated bytes Indexed = 3;
-    bytes NonIndexed = 4;
+    Address address = 1;
+    string name = 2;
+    repeated bytes indexed = 3;
+    bytes non_indexed = 4;
 }
-
 
 message SmartContractRegistration {
-    int32 Category = 1;
-    bytes Code = 2;
-    Hash CodeHash = 3;
+    int32 category = 1;
+    bytes code = 2;
+    Hash code_hash = 3;
 }
-
-message HashList {
-    repeated Hash Values = 1;
-}
-
 
 message TransactionExecutingStateSet {
-    int64 Version = 1;
-    map<string, bytes> Writes = 2;
-    map<string, bool> Reads = 3;
-}
-
-
-message ActionResult {
-    bool Success = 1;
-    string ErrorMessage = 2;
+    map<string, bytes> writes = 1;
+    map<string, bool> reads = 2;
 }
 
 // Common
 
 message Address
 {
-    bytes Value = 1;
+    bytes value = 1;
 }
 
 message Hash
 {
-    bytes Value = 1;
+    bytes value = 1;
 }
 
 message SInt32Value
 {
-    sint32 Value = 1;
+    sint32 value = 1;
 }
 
 message SInt64Value
 {
-    sint64 Value = 1;
+    sint64 value = 1;
 }
