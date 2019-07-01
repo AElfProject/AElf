@@ -29,7 +29,7 @@ namespace AElf.Types.Tests
             Should.Throw<ArgumentOutOfRangeException>(() => {Address.FromBytes(bytes); });
 
             //Generate from public key
-            var pk = CryptoHelpers.GenerateKeyPair().PublicKey;
+            var pk = CryptoHelper.GenerateKeyPair().PublicKey;
             var address5 = Address.FromPublicKey(pk);
             address5.ShouldNotBe(null);
             address5.DumpByteArray().Length.ShouldBe(32);
@@ -38,7 +38,7 @@ namespace AElf.Types.Tests
         [Fact]
         public void Get_Address_Info()
         {
-            var pk = CryptoHelpers.GenerateKeyPair().PublicKey;
+            var pk = CryptoHelper.GenerateKeyPair().PublicKey;
             var address = Address.FromPublicKey(pk);
             var addressString = address.GetFormatted();
             addressString.ShouldNotBe(string.Empty);

@@ -7,7 +7,7 @@ namespace AElf.Kernel
 {
     public class Bloom
     {
-        public static readonly byte[] Empty = GetNewEmptyBytes();
+        public static readonly ByteString Empty = ByteString.CopyFrom(new byte[256]);
 
         private static byte[] GetNewEmptyBytes()
         {
@@ -46,7 +46,7 @@ namespace AElf.Kernel
 
         public Bloom()
         {
-            _data = Empty;
+            _data = GetNewEmptyBytes();
         }
 
         public Bloom(byte[] data)

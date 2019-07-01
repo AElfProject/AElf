@@ -37,7 +37,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var initial = 0;
             foreach (var keyPair in othersKeyPairs)
             {
-                var encryptedMessage = CryptoHelpers.EncryptMessage(ownerKeyPair.PrivateKey, keyPair.PublicKey,
+                var encryptedMessage = CryptoHelper.EncryptMessage(ownerKeyPair.PrivateKey, keyPair.PublicKey,
                     secrets[initial++]);
                 encryptedValues.Add(keyPair.PublicKey.ToHex(), encryptedMessage);
             }
@@ -50,7 +50,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var cipherMessage = encryptedValues[keyPair.PublicKey.ToHex()];
                 var decryptMessage =
-                    CryptoHelpers.DecryptMessage(ownerKeyPair.PublicKey, keyPair.PrivateKey, cipherMessage);
+                    CryptoHelper.DecryptMessage(ownerKeyPair.PublicKey, keyPair.PrivateKey, cipherMessage);
                 decryptedValues.Add(keyPair.PublicKey.ToHex(), decryptMessage);
 
                 if (decryptedValues.Count >= MinimumCount)

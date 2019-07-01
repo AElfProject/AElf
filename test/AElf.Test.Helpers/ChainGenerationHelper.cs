@@ -10,7 +10,7 @@ using Xunit;
 
 namespace AElf.Synchronization.Tests
 {
-    public static class ChainGenerationHelpers
+    public static class ChainGenerationHelper
     {
         /// <summary>
         /// Generates <see cref="count"/> random miners.
@@ -24,7 +24,7 @@ namespace AElf.Synchronization.Tests
             List<ECKeyPair> keyPairs = new List<ECKeyPair>(count);
             
             for (int i = 0; i < count; i++)
-                keyPairs.Add(CryptoHelpers.GenerateKeyPair());
+                keyPairs.Add(CryptoHelper.GenerateKeyPair());
             
             return keyPairs;
         }
@@ -46,7 +46,7 @@ namespace AElf.Synchronization.Tests
         public static int GetRandomChainId()
         {
             var random = new Random();
-            var chainId = ChainHelpers.GetChainId(random.Next(195112, 11316496));
+            var chainId = ChainHelper.GetChainId(random.Next(195112, 11316496));
             return chainId;
         }
         
@@ -77,7 +77,7 @@ namespace AElf.Synchronization.Tests
                 {
                     Height = previous.Header.Height + 1,
                     MerkleTreeRootOfTransactions = Hash.Generate(),
-                    ChainId = ChainHelpers.GetChainId(123),
+                    ChainId = ChainHelper.GetChainId(123),
                     PreviousBlockHash = previous.GetHash(),
                     MerkleTreeRootOfWorldState = Hash.Generate(),
                     Signature = producer == null ? ByteString.Empty : ByteString.CopyFromUtf8(producer)

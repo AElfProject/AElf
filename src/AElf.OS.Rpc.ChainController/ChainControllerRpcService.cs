@@ -58,7 +58,7 @@ namespace AElf.OS.Rpc.ChainController
             var response = new JObject
             {
                 ["GenesisContractAddress"] = basicContractZero?.GetFormatted(),
-                ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(BlockchainService.GetChainId())
+                ["ChainId"] = ChainHelper.ConvertChainIdToBase58(BlockchainService.GetChainId())
             };
 
             return Task.FromResult(response);
@@ -70,7 +70,7 @@ namespace AElf.OS.Rpc.ChainController
             byte[] response;
             try
             {
-                var hexString = ByteArrayHelpers.FromHexString(rawTransaction);
+                var hexString = ByteArrayHelper.FromHexString(rawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(hexString);
                 response = await this.CallReadOnly(transaction);
             }
@@ -229,7 +229,7 @@ namespace AElf.OS.Rpc.ChainController
                     ["Extra"] = blockInfo.Header.BlockExtraDatas.ToString(),
                     ["Height"] = blockInfo.Header.Height.ToString(),
                     ["Time"] = blockInfo.Header.Time.ToDateTime(),
-                    ["ChainId"] = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
+                    ["ChainId"] = ChainHelper.ConvertChainIdToBase58(blockInfo.Header.ChainId),
                     ["Bloom"] = blockInfo.Header.Bloom.ToByteArray().ToHex()
                 },
                 ["Body"] = new JObject

@@ -46,7 +46,7 @@ namespace AElf.CrossChain
 
                 Logger.LogTrace(
                     $"Target height {targetHeight} of side chain " +
-                    $"{ChainHelpers.ConvertChainIdToBase58(sideChainIndexingInformation.ChainId)}.");
+                    $"{ChainHelper.ConvertChainIdToBase58(sideChainIndexingInformation.ChainId)}.");
                 var sideChainBlockDataFromCache = new List<SideChainBlockData>();  
                 
                 var i = 0;
@@ -70,7 +70,7 @@ namespace AElf.CrossChain
                 {
                     Logger.LogTrace(
                         $"Got height [{sideChainBlockDataFromCache.First().Height} - {sideChainBlockDataFromCache.Last().Height} ]" +
-                        $" from side chain {ChainHelpers.ConvertChainIdToBase58(sideChainIndexingInformation.ChainId)}.");
+                        $" from side chain {ChainHelper.ConvertChainIdToBase58(sideChainIndexingInformation.ChainId)}.");
                     sideChainBlockDataList.AddRange(sideChainBlockDataFromCache);
                 }
             }
@@ -157,7 +157,7 @@ namespace AElf.CrossChain
             if (parentChainBlockDataList.Count > 0)
                 Logger.LogTrace(
                     $"Got height [{parentChainBlockDataList.First().Height} - {parentChainBlockDataList.Last().Height} ]" +
-                    $" from parent chain {ChainHelpers.ConvertChainIdToBase58(parentChainId)}.");
+                    $" from parent chain {ChainHelper.ConvertChainIdToBase58(parentChainId)}.");
             return parentChainBlockDataList;
         }
 

@@ -33,7 +33,7 @@ namespace AElf.Kernel
             if (!transaction.VerifyFormat())
                 return false;
 
-            var recovered = CryptoHelpers.RecoverPublicKey(transaction.Signature.ToByteArray(), 
+            var recovered = CryptoHelper.RecoverPublicKey(transaction.Signature.ToByteArray(), 
                 transaction.GetHash().DumpByteArray(), out var publicKey);
 
             if (!recovered)

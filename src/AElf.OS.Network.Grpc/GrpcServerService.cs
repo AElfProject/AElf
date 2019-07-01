@@ -150,7 +150,7 @@ namespace AElf.OS.Network.Grpc
                 return AuthError.ProtocolMismatch;
 
             // verify signature
-            var validData = CryptoHelpers.VerifySignature(handshake.Signature.ToByteArray(),
+            var validData = CryptoHelper.VerifySignature(handshake.Signature.ToByteArray(),
                 Hash.FromMessage(handshake.HandshakeData).ToByteArray(), handshake.HandshakeData.Pubkey.ToByteArray());
             
             if (!validData)

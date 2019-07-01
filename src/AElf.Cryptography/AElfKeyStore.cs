@@ -100,7 +100,7 @@ namespace AElf.Cryptography
 
         public async Task<ECKeyPair> CreateAsync(string password, string chainId)
         {
-            var keyPair = CryptoHelpers.GenerateKeyPair();
+            var keyPair = CryptoHelper.GenerateKeyPair();
             var res = await WriteKeyPairAsync(keyPair, password, chainId);
             return !res ? null : keyPair;
         }

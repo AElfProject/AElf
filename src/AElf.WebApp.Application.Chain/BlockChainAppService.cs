@@ -108,7 +108,7 @@ namespace AElf.WebApp.Application.Chain
         {
             try
             {
-                var byteArray = ByteArrayHelpers.FromHexString(input.RawTransaction);
+                var byteArray = ByteArrayHelper.FromHexString(input.RawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(byteArray);
                 if (!transaction.VerifySignature())
                 {
@@ -130,9 +130,9 @@ namespace AElf.WebApp.Application.Chain
         {
             try
             {
-                var byteArray = ByteArrayHelpers.FromHexString(input.RawTransaction);
+                var byteArray = ByteArrayHelper.FromHexString(input.RawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(byteArray);
-                transaction.Signature = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature));
+                transaction.Signature = ByteString.CopyFrom(ByteArrayHelper.FromHexString(input.Signature));
                 if (!transaction.VerifySignature())
                 {
                     throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
@@ -212,8 +212,8 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<SendRawTransactionOutput> SendRawTransactionAsync(SendRawTransactionInput input)
         {
-            var transaction = Transaction.Parser.ParseFrom(ByteArrayHelpers.FromHexString(input.Transaction));
-            transaction.Signature = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature));
+            var transaction = Transaction.Parser.ParseFrom(ByteArrayHelper.FromHexString(input.Transaction));
+            transaction.Signature = ByteString.CopyFrom(ByteArrayHelper.FromHexString(input.Signature));
             var txIds = await PublishTransactionsAsync(new[] {transaction.ToByteArray().ToHex()});
 
             var output = new SendRawTransactionOutput
@@ -423,7 +423,7 @@ namespace AElf.WebApp.Application.Chain
                     Extra = block.Header.BlockExtraDatas.ToString(),
                     Height = block.Header.Height,
                     Time = block.Header.Time.ToDateTime(),
-                    ChainId = ChainHelpers.ConvertChainIdToBase58(block.Header.ChainId),
+                    ChainId = ChainHelper.ConvertChainIdToBase58(block.Header.ChainId),
                     Bloom = block.Header.Bloom.ToByteArray().ToHex(),
                     SignerPubkey =  block.Header.SignerPubkey.ToByteArray().ToHex()
                 },
@@ -477,7 +477,7 @@ namespace AElf.WebApp.Application.Chain
                     Extra = blockInfo.Header.BlockExtraDatas.ToString(),
                     Height = blockInfo.Header.Height,
                     Time = blockInfo.Header.Time.ToDateTime(),
-                    ChainId = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
+                    ChainId = ChainHelper.ConvertChainIdToBase58(blockInfo.Header.ChainId),
                     Bloom = blockInfo.Header.Bloom.ToByteArray().ToHex(),
                     SignerPubkey = blockInfo.Header.SignerPubkey.ToByteArray().ToHex()
                 },
@@ -542,7 +542,7 @@ namespace AElf.WebApp.Application.Chain
 
             return new ChainStatusDto()
             {
-                ChainId = ChainHelpers.ConvertChainIdToBase58(chain.Id),
+                ChainId = ChainHelper.ConvertChainIdToBase58(chain.Id),
                 GenesisContractAddress = basicContractZero?.GetFormatted(),
                 Branches = branches,
                 NotLinkedBlocks = formattedNotLinkedBlocks,
@@ -659,7 +659,7 @@ namespace AElf.WebApp.Application.Chain
                 Transaction transaction;
                 try
                 {
-                    var hexString = ByteArrayHelpers.FromHexString(rawTransactions[i]);
+                    var hexString = ByteArrayHelper.FromHexString(rawTransactions[i]);
                     transaction = Transaction.Parser.ParseFrom(hexString);
                 }
                 catch

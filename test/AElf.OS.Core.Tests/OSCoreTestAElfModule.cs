@@ -19,9 +19,9 @@ namespace AElf.OS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ChainOptions>(o => { o.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF"); });
+            Configure<ChainOptions>(o => { o.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
 
-            var ecKeyPair = CryptoHelpers.GenerateKeyPair();
+            var ecKeyPair = CryptoHelper.GenerateKeyPair();
             var nodeAccount = Address.FromPublicKey(ecKeyPair.PublicKey).GetFormatted();
             var nodeAccountPassword = "123";
 
@@ -36,7 +36,7 @@ namespace AElf.OS
                 var miners = new List<string>();
                 for (var i = 0; i < 3; i++)
                 {
-                    miners.Add(CryptoHelpers.GenerateKeyPair().PublicKey.ToHex());
+                    miners.Add(CryptoHelper.GenerateKeyPair().PublicKey.ToHex());
                 }
 
                 o.InitialMiners = miners;
@@ -48,7 +48,7 @@ namespace AElf.OS
             {
                 var mockService = new Mock<IAccountService>();
                 mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
-                    Task.FromResult(CryptoHelpers.SignWithPrivateKey(ecKeyPair.PrivateKey, data)));
+                    Task.FromResult(CryptoHelper.SignWithPrivateKey(ecKeyPair.PrivateKey, data)));
 
                 mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(ecKeyPair.PublicKey);
 

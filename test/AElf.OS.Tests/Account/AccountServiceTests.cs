@@ -44,7 +44,7 @@ namespace AElf.OS.Account
             var signature = await _accountService.SignAsync(data);
             var publicKey = await _accountService.GetPublicKeyAsync();
             
-            var recoverResult = CryptoHelpers.RecoverPublicKey(signature, data, out var recoverPublicKey);
+            var recoverResult = CryptoHelper.RecoverPublicKey(signature, data, out var recoverPublicKey);
             var verifyResult =  recoverResult && publicKey.BytesEqual(recoverPublicKey);
 
             Assert.True(verifyResult);
@@ -59,7 +59,7 @@ namespace AElf.OS.Account
             var signature = await _accountService.SignAsync(data1);
             var publicKey = await _accountService.GetPublicKeyAsync();
 
-            var recoverResult = CryptoHelpers.RecoverPublicKey(signature, data2, out var recoverPublicKey);
+            var recoverResult = CryptoHelper.RecoverPublicKey(signature, data2, out var recoverPublicKey);
             var verifyResult =  recoverResult && publicKey.BytesEqual(recoverPublicKey);
             
             Assert.False(verifyResult);

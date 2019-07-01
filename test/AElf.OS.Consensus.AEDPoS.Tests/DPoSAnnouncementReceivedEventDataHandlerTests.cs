@@ -43,7 +43,7 @@ namespace AElf.OS.Consensus.DPos
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
             };
-            var sendKey = CryptoHelpers.GenerateKeyPair().PublicKey.ToHex();
+            var sendKey = CryptoHelper.GenerateKeyPair().PublicKey.ToHex();
             var announcementData = new AnnouncementReceivedEventData(an, sendKey);
 
             await _dpoSAnnouncementReceivedEventDataHandler.HandleEventAsync(announcementData);
@@ -58,7 +58,7 @@ namespace AElf.OS.Consensus.DPos
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
             };
-            var sendKey = CryptoHelpers.GenerateKeyPair().PublicKey.ToHex();
+            var sendKey = CryptoHelper.GenerateKeyPair().PublicKey.ToHex();
             var announcementData = new AnnouncementReceivedEventData(an, sendKey);
 
             await _dpoSAnnouncementReceivedEventDataHandler.HandleEventAsync(announcementData);

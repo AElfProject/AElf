@@ -6,7 +6,7 @@ using Xunit;
 
 namespace AElf.Common
 {
-    public class ApplicationHelpersTest
+    public class ApplicationHelperTest
     {
         [Fact]
         public void Get_Path()

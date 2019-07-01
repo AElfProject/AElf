@@ -110,7 +110,7 @@ namespace AElf.Sdk.CSharp.Tests
             //Block header test
             var header = new BlockHeader
             {
-                ChainId = ChainHelpers.ConvertBase58ToChainId("AELF"),
+                ChainId = ChainHelper.ConvertBase58ToChainId("AELF"),
                 Height = new Random().Next(),
                 Bloom = ByteString.CopyFromUtf8("bloom")
             };

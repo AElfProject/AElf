@@ -31,7 +31,7 @@ namespace AElf.Kernel
             if (!block.VerifyFormat())
                 return false;
 
-            var recovered = CryptoHelpers.RecoverPublicKey(block.Header.Signature.ToByteArray(),
+            var recovered = CryptoHelper.RecoverPublicKey(block.Header.Signature.ToByteArray(),
                                         block.GetHash().DumpByteArray(), out var publicKey);
             if (!recovered)
                 return false;

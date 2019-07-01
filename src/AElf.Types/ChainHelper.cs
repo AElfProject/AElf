@@ -2,7 +2,7 @@
 
 namespace AElf
 {
-    public static class ChainHelpers
+    public static class ChainHelper
     {
         public static int GetChainId(long serialNumber)
         {

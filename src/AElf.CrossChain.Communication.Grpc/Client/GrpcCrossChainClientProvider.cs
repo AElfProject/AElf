@@ -128,12 +128,12 @@ namespace AElf.CrossChain.Communication.Grpc
         
         private async Task<bool> TryConnectAndUpdateClientAsync(ICrossChainClient client)
         {
-            Logger.LogTrace($"Try handshake with chain {ChainHelpers.ConvertChainIdToBase58(client.RemoteChainId)}");
+            Logger.LogTrace($"Try handshake with chain {ChainHelper.ConvertChainIdToBase58(client.RemoteChainId)}");
             _connectionFailedClients.TryAdd(client.RemoteChainId, client);
             var connectionResult = await RequestAsync(client, c => c.ConnectAsync());
             if (connectionResult)
             {
-                Logger.LogTrace($"Connected to chain {ChainHelpers.ConvertChainIdToBase58(client.RemoteChainId)}");
+                Logger.LogTrace($"Connected to chain {ChainHelper.ConvertChainIdToBase58(client.RemoteChainId)}");
                 UpdateClient(client);
             }
             

@@ -106,7 +106,7 @@ namespace AElf.CrossChain.Communication.Grpc
                     }
 
                     BlockCacheEntityProducer.Logger.LogTrace(
-                        $"Received response from chain {ChainHelpers.ConvertChainIdToBase58(response.ChainId)} at height {response.Height}");
+                        $"Received response from chain {ChainHelper.ConvertChainIdToBase58(response.ChainId)} at height {response.Height}");
                 }
             }
         }

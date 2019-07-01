@@ -4,10 +4,10 @@ namespace AElf.Types
 {
     public partial class TransactionResult
     {
-        private static readonly byte[] _empty = new byte[256];
+        private static readonly ByteString _empty =ByteString.CopyFrom(new byte[256]);
         partial void OnConstruction()
         {
-            Bloom = ByteString.CopyFrom(_empty);
+            Bloom = _empty;
         }
 
         public byte[] Serialize()

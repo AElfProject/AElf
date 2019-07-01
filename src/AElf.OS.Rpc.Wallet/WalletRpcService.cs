@@ -36,8 +36,8 @@ namespace AElf.OS.Rpc.Wallet
                 throw new JsonRpcServiceException(Error.AccountNotExist, Error.Message[Error.AccountNotExist]);
             }
 
-            var toSig = ByteArrayHelpers.FromHexString(hash);
-            var signature = CryptoHelpers.SignWithPrivateKey(kp.PrivateKey, toSig);
+            var toSig = ByteArrayHelper.FromHexString(hash);
+            var signature = CryptoHelper.SignWithPrivateKey(kp.PrivateKey, toSig);
             return signature.ToHex();
         }
     }
