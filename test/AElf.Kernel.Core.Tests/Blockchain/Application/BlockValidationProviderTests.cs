@@ -9,10 +9,12 @@ namespace AElf.Kernel.Blockchain.Application
     public class BlockValidationProviderTests : AElfKernelTestBase
     {
         private readonly BlockValidationProvider _blockValidationProvider;
+        private readonly KernelTestHelper _kernelTestHelper;
         
         public BlockValidationProviderTests()
         {
             _blockValidationProvider = GetRequiredService<BlockValidationProvider>();
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
 
         [Fact]
@@ -37,17 +39,7 @@ namespace AElf.Kernel.Blockchain.Application
             validateResult.ShouldBeFalse();
            
             block.Body.Transactions.Add(Hash.Empty);
-            block.Header = new BlockHeader
-            {
-                Height = 10,
-                PreviousBlockHash = Hash.FromString("PreviousBlockHash"),
-                Time = TimestampHelper.GetUtcNow(),
-                MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
-                MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus"),
-                MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoot(),
-                BlockExtraDatas = { ByteString.CopyFromUtf8("BlockExtraData") },
-                SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey")
-            };
+            block.Header = _kernelTestHelper.GenerateBlock(9, Hash.FromString("PreviousBlockHash")).Header;
             validateResult = await _blockValidationProvider.ValidateBeforeAttachAsync( block);
             validateResult.ShouldBeFalse();
 

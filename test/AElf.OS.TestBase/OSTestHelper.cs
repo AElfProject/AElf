@@ -241,7 +241,7 @@ namespace AElf.OS
             return transaction;
         }
 
-        public async Task BroadcastTransactions(List<Transaction> transactions)
+        public async Task BroadcastTransactions(IEnumerable<Transaction> transactions)
         {
             var transactionsReceivedEvent = new TransactionsReceivedEvent
             {
@@ -282,7 +282,7 @@ namespace AElf.OS
                     MerkleTreeRootOfTransactions = Hash.Empty,
                     MerkleTreeRootOfWorldState = Hash.Empty,
                     MerkleTreeRootOfTransactionStatus = Hash.Empty,
-                    BlockExtraDatas = {ByteString.Empty},
+                    ExtraData = {ByteString.Empty},
                     SignerPubkey = ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync))
                 },
                 Body = new BlockBody()

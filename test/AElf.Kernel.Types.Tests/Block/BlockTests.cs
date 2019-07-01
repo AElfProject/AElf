@@ -95,7 +95,7 @@ namespace AElf.Kernel.Types.Tests
             block.Header.MerkleTreeRootOfWorldState = Hash.Empty;
             block.Header.MerkleTreeRootOfTransactionStatus = Hash.Empty;
             block.Header.SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey");
-            block.Header.BlockExtraDatas.Add(ByteString.Empty);
+            block.Header.ExtraData.Add(ByteString.Empty);
             block.Body.BlockHeader = block.Header.GetHash();           
 
             return block;
@@ -132,7 +132,7 @@ namespace AElf.Kernel.Types.Tests
                 PreviousBlockHash = Hash.Generate(),
                 MerkleTreeRootOfTransactions = Hash.Empty,
                 MerkleTreeRootOfWorldState = Hash.Empty,
-                BlockExtraDatas = { ByteString.Empty},
+                ExtraData = { ByteString.Empty},
                 Time = TimestampHelper.GetUtcNow(),
                 MerkleTreeRootOfTransactionStatus = Hash.Empty,
                 SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey")

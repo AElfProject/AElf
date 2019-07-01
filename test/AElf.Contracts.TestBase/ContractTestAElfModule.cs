@@ -59,7 +59,7 @@ namespace AElf.Contracts.TestBase
                 mockService.Setup(s =>
                     s.FillBlockExtraData(It.IsAny<BlockHeader>())).Returns<BlockHeader>((blockHeader) =>
                 {
-                    blockHeader.BlockExtraDatas.Add(ByteString.Empty);
+                    blockHeader.ExtraData.Add(ByteString.Empty);
                     return Task.CompletedTask;
                 });
                 return mockService.Object;

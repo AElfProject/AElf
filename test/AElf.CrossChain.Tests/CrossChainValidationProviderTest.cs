@@ -136,9 +136,9 @@ namespace AElf.CrossChain
         private IBlock CreateFilledBlock(Hash merkleTreeRoot)
         {
             var block = _kernelTestHelper.GenerateBlock(1, Hash.Empty);
-            block.Header.BlockExtraDatas.Clear();
+            block.Header.ExtraData.Clear();
             
-            block.Header.BlockExtraDatas.Add(new CrossChainExtraData{SideChainTransactionsRoot = merkleTreeRoot}.ToByteString());
+            block.Header.ExtraData.Add(new CrossChainExtraData{SideChainTransactionsRoot = merkleTreeRoot}.ToByteString());
             return block;
         }
 

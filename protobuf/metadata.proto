@@ -4,15 +4,15 @@ option csharp_namespace = "AElf.Kernel.SmartContract.Metadata";
 
 message DataAccessPath {
     enum AccessMode {
-        Undefined = 0;
-        Read = 1;
-        Write = 2;
+        UNDEFINED = 0;
+        READ = 1;
+        WRITE = 2;
     }
-    repeated string Path = 1;
-    AccessMode Mode = 2;
+    repeated string path = 1;
+    AccessMode mode = 2;
 }
 
 message InlineCall {
-    repeated string AddressPath = 1;
-    string MethodName = 2;
+    repeated string address_path = 1;
+    string method_name = 2;
 }

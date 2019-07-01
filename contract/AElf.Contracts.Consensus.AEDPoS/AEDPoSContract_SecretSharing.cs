@@ -84,7 +84,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 var orders = anotherMinerInPreviousRound.DecryptedPreviousInValues.Select((t, i) =>
                         previousRound.RealTimeMinersInformation.Values
-                            .First(m => m.PublicKey ==
+                            .First(m => m.Pubkey ==
                                         anotherMinerInPreviousRound.DecryptedPreviousInValues.Keys.ToList()[i]).Order)
                     .ToList();
 

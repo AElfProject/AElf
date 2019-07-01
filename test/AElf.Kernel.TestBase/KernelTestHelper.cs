@@ -146,9 +146,10 @@ namespace AElf.Kernel
                     Height = previousBlockHeight + 1,
                     PreviousBlockHash = previousBlockHash,
                     Time = TimestampHelper.GetUtcNow(),
-                    MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
-                    MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus"),
-                    BlockExtraDatas = { ByteString.Empty },
+                    MerkleTreeRootOfWorldState = Hash.Empty,
+                    MerkleTreeRootOfTransactionStatus = Hash.Empty,
+                    MerkleTreeRootOfTransactions = Hash.Empty,
+                    ExtraData = { ByteString.Empty },
                     SignerPubkey = ByteString.CopyFrom(_keyPair.PublicKey)
                 },
                 Body = new BlockBody()
@@ -160,10 +161,9 @@ namespace AElf.Kernel
                 {
                     newBlock.AddTransaction(transaction);
                 }
+                newBlock.Header.MerkleTreeRootOfTransactions = newBlock.Body.CalculateMerkleTreeRoot();
             }
 
-            newBlock.Header.MerkleTreeRootOfTransactions = newBlock.Body.CalculateMerkleTreeRoot();
-            
             return newBlock;
         }
 

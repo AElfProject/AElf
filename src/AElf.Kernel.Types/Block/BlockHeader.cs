@@ -48,7 +48,7 @@ namespace AElf.Kernel
                 Height <= 0 ||
                 Time == null ||
                 MerkleTreeRootOfTransactionStatus == null ||
-                Height >  Constants.GenesisBlockHeight && (BlockExtraDatas?.Count == 0 || SignerPubkey.IsEmpty))
+                Height >  Constants.GenesisBlockHeight && (ExtraData?.Count == 0 || SignerPubkey.IsEmpty))
             {
                 throw new InvalidOperationException($"Invalid block header: {this}");
             }
