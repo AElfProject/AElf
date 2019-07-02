@@ -120,7 +120,7 @@ namespace AElf.Contracts.Profit
             {
                 ProfitId = profitId,
                 Amount = amount,
-                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
+                Symbol = ProfitContractTestConsts.NativeTokenSymbol,
             });
 
             // Check profit item and corresponding balance.
@@ -143,7 +143,7 @@ namespace AElf.Contracts.Profit
                 ProfitId = profitId,
                 Amount = amount,
                 Period = period,
-                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
+                Symbol = ProfitContractTestConsts.NativeTokenSymbol,
             });
 
             // Check profit item and corresponding balance.
@@ -173,7 +173,7 @@ namespace AElf.Contracts.Profit
                     });
                 releasedProfitInformation.IsReleased.ShouldBe(false);
                 releasedProfitInformation.TotalWeight.ShouldBe(0);
-                releasedProfitInformation.ProfitsAmount.ShouldBe(amount);
+                releasedProfitInformation.ProfitsAmount[ProfitContractTestConsts.NativeTokenSymbol].ShouldBe(amount);
             }
         }
 
@@ -205,7 +205,7 @@ namespace AElf.Contracts.Profit
             {
                 ProfitId = profitId,
                 Amount = amountAddedByGoodGuy,
-                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
+                Symbol = ProfitContractTestConsts.NativeTokenSymbol,
             });
 
             // Check profit item.
@@ -219,7 +219,7 @@ namespace AElf.Contracts.Profit
             {
                 ProfitId = profitId,
                 Amount = amountAddedByGoodGuy,
-                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
+                Symbol = ProfitContractTestConsts.NativeTokenSymbol,
                 Period = 1
             });
 
@@ -235,7 +235,7 @@ namespace AElf.Contracts.Profit
                         ProfitId = profitId,
                         Period = 1
                     });
-                releasedProfitsInformation.ProfitsAmount.ShouldBe(amountReleasedByCreator);
+                releasedProfitsInformation.ProfitsAmount[ProfitContractTestConsts.NativeTokenSymbol].ShouldBe(amountReleasedByCreator);
                 // total_weight is 0 before releasing.
                 releasedProfitsInformation.TotalWeight.ShouldBe(0);
                 releasedProfitsInformation.IsReleased.ShouldBe(false);
@@ -269,7 +269,8 @@ namespace AElf.Contracts.Profit
                         ProfitId = profitId,
                         Period = 1
                     });
-                releasedProfitsInformation.ProfitsAmount.ShouldBe(amountReleasedByCreator + amountAddedByGoodGuy);
+                releasedProfitsInformation.ProfitsAmount[ProfitContractTestConsts.NativeTokenSymbol]
+                    .ShouldBe(amountReleasedByCreator + amountAddedByGoodGuy);
                 releasedProfitsInformation.TotalWeight.ShouldBe(weight);
                 releasedProfitsInformation.IsReleased.ShouldBe(true);
             }
@@ -1232,7 +1233,7 @@ namespace AElf.Contracts.Profit
             await ProfitContractStub.AddProfits.SendAsync(new AddProfitsInput
             {
                 ProfitId = profitId,
-                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
+                Symbol = ProfitContractTestConsts.NativeTokenSymbol,
                 Amount = amount
             });
         }

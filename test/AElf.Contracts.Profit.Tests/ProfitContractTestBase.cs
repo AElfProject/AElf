@@ -84,7 +84,7 @@ namespace AElf.Contracts.Profit
             await ProfitContractStub.AddProfits.SendAsync(new AddProfitsInput
             {
                 ProfitId = TreasuryHash,
-                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
+                Symbol = ProfitContractTestConsts.NativeTokenSymbol,
                 Amount = (long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2),
             });
         }

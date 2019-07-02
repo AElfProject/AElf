@@ -447,7 +447,7 @@ namespace AElf.Contracts.Treasury
             foreach (var lockTime in input.Value)
             {
                 var weight = GetVotesWeight(sampleAmount, lockTime);
-                output.Value.Add(totalAmount.Mul(weight).Div(totalWeight));
+                output.Value.Add(totalAmount[Context.Variables.NativeSymbol].Mul(weight).Div(totalWeight));
             }
 
             return output;

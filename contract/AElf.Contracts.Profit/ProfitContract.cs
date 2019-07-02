@@ -327,7 +327,10 @@ namespace AElf.Contracts.Profit
         /// <returns></returns>
         public override Empty ReleaseProfit(ReleaseProfitInput input)
         {
-            Assert(input.Amount >= 0, $"Amount must be greater than or equal to 0");
+            Assert(input.Amount >= 0, "Amount must be greater than or equal to 0");
+
+            Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
+            if (input.Symbol == null) return new Empty();// Just to avoid IDE warning.
 
             var profitItem = State.ProfitItemsMap[input.ProfitId];
             Assert(profitItem != null, "Profit item not found.");
@@ -538,29 +541,15 @@ namespace AElf.Contracts.Profit
 
         public override Empty AddProfits(AddProfitsInput input)
         {
-            var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
-            {
-                Symbol = input.Symbol
-            });
-            Assert(input.Symbol != null && input.Symbol.Any() && tokenInfo.TotalSupply != 0,
-                "Invalid token symbol.");
-            if (input.Symbol == null)
-            {
-                return new Empty();
-            }
+            Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
+            if (input.Symbol == null) return new Empty();// Just to avoid IDE warning.
 
             var profitItem = State.ProfitItemsMap[input.ProfitId];
             Assert(profitItem != null, "Profit item not found.");
-
-            if (profitItem == null)
-            {
-                return new Empty();
-            }
+            if (profitItem == null) return new Empty();// Just to avoid IDE warning.
 
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
 
-            //if input.period == 0,the token will transfer to the totalAmount in the profitItem
-            //opposed,the token will transfer to the corresponding address of input.period
             if (input.Period == 0)
             {
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -626,26 +615,23 @@ namespace AElf.Contracts.Profit
         /// <returns></returns>
         public override Empty Profit(ProfitInput input)
         {
-            Context.LogDebug(() => $"{Context.Sender} is trying to profit from {input.ProfitId.ToHex()}.");
-
+            Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
+            if (input.Symbol == null) return new Empty();// Just to avoid IDE warning.
             var profitItem = State.ProfitItemsMap[input.ProfitId];
             Assert(profitItem != null, "Profit item not found.");
-
             var profitDetails = State.ProfitDetailsMap[input.ProfitId][Context.Sender];
-
             Assert(profitDetails != null, "Profit details not found.");
+            if (profitDetails == null || profitItem == null) return new Empty();// Just to avoid IDE warning.
 
-            if (profitDetails == null || profitItem == null)
-            {
-                return new Empty();
-            }
+            Context.LogDebug(() => $"{Context.Sender} is trying to profit {input.Symbol} from {input.ProfitId.ToHex()}.");
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
 
-            var availableDetails = profitDetails.Details.Where(d => d.LastProfitPeriod != profitItem.CurrentPeriod)
+            var availableDetails = profitDetails.Details.Where(d => d.LastProfitPeriod < profitItem.CurrentPeriod)
                 .ToList();
 
-            // Only can get profit until profitItem.CurrentPeriod-1,because currentPeriod hasn't be released.
+            // Only can get profit from last profit period to actual last period (profit.CurrentPeriod - 1),
+            // because current period not released yet.
             for (var i = 0;
                 i < Math.Min(ProfitContractConsts.ProfitReceivingLimitForEachTime, availableDetails.Count);
                 i++)
@@ -656,42 +642,47 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                var lastProfitPeriod = profitDetail.LastProfitPeriod;
-                // Can only get profit until profitItem.CurrentPeriod - 1,because currentPeriod hasn't be released.
-                for (var period = profitDetail.LastProfitPeriod;
-                    period <= (profitDetail.EndPeriod == long.MaxValue
-                        ? profitItem.CurrentPeriod - 1
-                        : Math.Min(profitItem.CurrentPeriod - 1, profitDetail.EndPeriod));
-                    period++)
-                {
-                    var releasedProfitsVirtualAddress =
-                        GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
-                    var releasedProfitsInformation = State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
-                    var amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount[input.Symbol])
-                        .Div(releasedProfitsInformation.TotalWeight);
-                    var period1 = period;
-                    Context.LogDebug(() =>
-                        $"{Context.Sender} is profiting {amount} tokens from {input.ProfitId.ToHex()} in period {period1}");
-                    if (releasedProfitsInformation.IsReleased && amount > 0)
-                    {
-                        State.TokenContract.TransferFrom.Send(new TransferFromInput
-                        {
-                            From = releasedProfitsVirtualAddress,
-                            To = Context.Sender,
-                            Symbol = input.Symbol,
-                            Amount = amount
-                        });
-                    }
-
-                    lastProfitPeriod = period + 1;
-                }
-
-                profitDetail.LastProfitPeriod = lastProfitPeriod;
+                ProfitAllPeriods(input, profitDetail, profitItem, profitVirtualAddress);
             }
 
             State.ProfitDetailsMap[input.ProfitId][Context.Sender] = profitDetails;
 
             return new Empty();
+        }
+
+        private void ProfitAllPeriods(ProfitInput input, ProfitDetail profitDetail, ProfitItem profitItem,
+            Address profitVirtualAddress)
+        {
+            var lastProfitPeriod = profitDetail.LastProfitPeriod;
+            for (var period = profitDetail.LastProfitPeriod;
+                period <= (profitDetail.EndPeriod == long.MaxValue
+                    ? profitItem.CurrentPeriod - 1
+                    : Math.Min(profitItem.CurrentPeriod - 1, profitDetail.EndPeriod));
+                period++)
+            {
+                var releasedProfitsVirtualAddress =
+                    GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
+                var releasedProfitsInformation = State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
+                var amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount[input.Symbol])
+                    .Div(releasedProfitsInformation.TotalWeight);
+                var periodToPrint = period;
+                Context.LogDebug(() =>
+                    $"{Context.Sender} is profiting {amount} tokens from {input.ProfitId.ToHex()} in period {periodToPrint}");
+                if (releasedProfitsInformation.IsReleased && amount > 0)
+                {
+                    State.TokenContract.TransferFrom.Send(new TransferFromInput
+                    {
+                        From = releasedProfitsVirtualAddress,
+                        To = Context.Sender,
+                        Symbol = input.Symbol,
+                        Amount = amount
+                    });
+                }
+
+                lastProfitPeriod = period + 1;
+            }
+
+            profitDetail.LastProfitPeriod = lastProfitPeriod;
         }
 
         public override Hash GetTreasuryProfitId(Empty input)
