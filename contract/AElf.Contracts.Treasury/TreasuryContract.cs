@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
@@ -19,8 +20,14 @@ namespace AElf.Contracts.Treasury
 
             // Create profit items: `Treasury`, `CitizenWelfare`, `BackupSubsidy`, `MinerReward`,
             // `MinerBasicReward`, `MinerVotesWeightReward`, `ReElectedMinerReward`
+            var profitItemNameList = new List<string>
+            {
+                "Treasury", "MinerReward", "Subsidy", "Welfare", "Basic Reward", "Votes Weight Reward",
+                "Re-Election Reward"
+            };
             for (var i = 0; i < 7; i++)
             {
+                Context.LogDebug(() => profitItemNameList[i]);
                 State.ProfitContract.CreateProfitItem.Send(new CreateProfitItemInput
                 {
                     IsReleaseAllBalanceEveryTimeByDefault = true

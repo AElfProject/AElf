@@ -195,7 +195,7 @@ namespace AElf.Contracts.Profit
             }
 
             Context.LogDebug(() =>
-                $"Entered AddWeight. {input.ProfitId}, {input.EndPeriod}, current period {profitItem.ProfitId}");
+                $"{input.ProfitId}.\n End Period: {input.EndPeriod}, Current Period: {profitItem.CurrentPeriod}");
 
             if (profitItem.IsTreasuryProfitItem)
             {

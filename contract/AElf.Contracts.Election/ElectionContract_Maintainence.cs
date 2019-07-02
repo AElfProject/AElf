@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.Sdk.CSharp;
@@ -86,24 +85,30 @@ namespace AElf.Contracts.Election
 
             State.CurrentTermNumber.Value = input.TermNumber.Add(1);
 
+            if (State.AEDPoSContract.Value == null)
+            {
+                State.AEDPoSContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            }
+
             var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
 
             var reElectionProfitAddWeights = new AddWeightsInput
             {
                 ProfitId = State.ReElectionRewardHash.Value,
-                EndPeriod = input.TermNumber
+                EndPeriod = input.TermNumber.Add(1)
             };
             var votesWeightRewardProfitAddWeights = new AddWeightsInput
             {
                 ProfitId = State.VotesRewardHash.Value,
-                EndPeriod = input.TermNumber
+                EndPeriod = input.TermNumber.Add(1)
             };
             foreach (var publicKey in previousMiners)
             {
                 var address = Address.FromPublicKey(ByteArrayHelpers.FromHexString(publicKey));
 
-                UpdateCandidateInformation(publicKey, input.TermNumber.Sub(1), address, previousMiners,
+                UpdateCandidateInformation(publicKey, input.TermNumber, address, previousMiners,
                     ref reElectionProfitAddWeights);
 
                 UpdateVotesWeightRewardProfit(publicKey, address, ref votesWeightRewardProfitAddWeights);
@@ -184,7 +189,6 @@ namespace AElf.Contracts.Election
             }
         }
 
-
         #endregion
 
         /// <summary>
@@ -223,7 +227,8 @@ namespace AElf.Contracts.Election
 
         public override Empty UpdateMinersCount(UpdateMinersCountInput input)
         {
-            Context.LogDebug(() => $"Consensus Contract Address: {Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName)}");
+            Context.LogDebug(() =>
+                $"Consensus Contract Address: {Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName)}");
             Context.LogDebug(() => $"Sender Address: {Context.Sender}");
             Assert(
                 Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
