@@ -158,9 +158,8 @@ namespace AElf.CrossChain.Communication.Grpc
                 ListeningPort = _localListeningPort,
                 Host = _host
             }, CreateOption());
-            var res = reply != null && reply.Result;
-            IsConnected = res;
-            return Task.FromResult(res);
+            IsConnected = reply != null && reply.Success;
+            return Task.FromResult(IsConnected);
         }
 
         public abstract Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId);

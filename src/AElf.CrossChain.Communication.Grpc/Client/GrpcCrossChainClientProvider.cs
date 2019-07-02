@@ -57,7 +57,7 @@ namespace AElf.CrossChain.Communication.Grpc
             var localChainId = crossChainClientDto.LocalChainId;
             client = CreateGrpcClient(uriStr, localChainId, chainId, isClientToParentChain);
             _grpcCrossChainClients.TryAdd(chainId, client);
-            _ = ConnectAsync(client);
+            ConnectAsync(client);
             Logger.LogTrace("Create client finished.");
         }
 
