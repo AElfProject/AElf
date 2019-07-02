@@ -21,9 +21,9 @@ namespace AElf.OS.Network.Grpc
         private const int AnnouncementTimeout = 300;
         private const int BlockRequestTimeout = 500;
         private const int TransactionSendTimeout = 300;
-        private const int BlocksRequestTimeout = 1000;
+        private const int BlocksRequestTimeout = 500;
 
-        private const int FinalizeConnectTimeout = 400;
+        private const int FinalizeConnectTimeout = 500;
         private const int UpdateHandshakeTimeout = 400;
         
         private enum MetricNames
@@ -35,7 +35,7 @@ namespace AElf.OS.Network.Grpc
         
         private readonly Channel _channel;
         private readonly PeerService.PeerServiceClient _client;
-        
+
         /// <summary>
         /// Property that describes a valid state. Valid here means that the peer is ready to be used for communication.
         /// </summary>
@@ -84,7 +84,7 @@ namespace AElf.OS.Network.Grpc
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
-
+            
             _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
             RecentRequestsRoundtripTimes =
                 new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
@@ -93,7 +93,7 @@ namespace AElf.OS.Network.Grpc
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
         }
-        
+
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
         {
             Dictionary<string, List<RequestMetric>> metrics = new Dictionary<string, List<RequestMetric>>();
