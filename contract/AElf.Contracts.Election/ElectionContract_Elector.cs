@@ -13,6 +13,8 @@ namespace AElf.Contracts.Election
     /// </summary>
     public partial class ElectionContract
     {
+        #region Vote
+
         /// <summary>
         /// Call the Vote function of VoteContract to do a voting.
         /// </summary>
@@ -137,6 +139,21 @@ namespace AElf.Contracts.Election
             State.CandidateVotes[candidatePublicKey] = candidateVotes;
         }
 
+        private long GetVotesWeight(long votesAmount, long lockTime)
+        {
+            return lockTime.Div(86400).Div(270).Mul(votesAmount).Add(votesAmount.Mul(2).Div(3));
+        }
+
+        private long GetEndPeriod(long lockTime)
+        {
+            var treasury = State.ProfitContract.GetProfitItem.Call(State.TreasuryHash.Value);
+            return lockTime.Div(State.TimeEachTerm.Value).Add(treasury.CurrentPeriod);
+        }
+
+        #endregion
+
+        #region Withdraw
+
         /// <summary>
         /// Withdraw a voting,recall the votes the voted by sender.
         /// At the same time,the weight that the voter occupied will sub form totalWeight.
@@ -200,16 +217,7 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        private long GetVotesWeight(long votesAmount, long lockTime)
-        {
-            return lockTime.Div(86400).Div(270).Mul(votesAmount).Add(votesAmount.Mul(2).Div(3));
-        }
-
-        private long GetEndPeriod(long lockTime)
-        {
-            var treasury = State.ProfitContract.GetProfitItem.Call(State.TreasuryHash.Value);
-            return lockTime.Div(State.TimeEachTerm.Value).Add(treasury.CurrentPeriod);
-        }
+        #endregion
 
         private long GetElfAmount(long votingAmount)
         {

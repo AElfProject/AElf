@@ -73,12 +73,92 @@ namespace AElf.Contracts.Election
 
         public override Empty TakeSnapshot(TakeElectionSnapshotInput input)
         {
-            Context.LogDebug(() => "Entered TakeSnapshot.");
+            SavePreviousTermInformation(input);
+
+            // Update snapshot of corresponding voting record by the way.
+            State.VoteContract.TakeSnapshot.Send(new TakeSnapshotInput
+            {
+                SnapshotNumber = input.TermNumber,
+                VotingItemId = State.MinerElectionVotingItemId.Value
+            });
+
+            State.CurrentTermNumber.Value = input.TermNumber.Add(1);
+
+            var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
+                .RealTimeMinersInformation.Keys.ToList();
+
+            var reElectionProfitAddWeights = new AddWeightsInput();
+            var votesWeightRewardProfitAddWeights = new AddWeightsInput();
+            foreach (var publicKey in previousMiners)
+            {
+                var address = Address.FromPublicKey(ByteArrayHelpers.FromHexString(publicKey));
+
+                UpdateCandidateInformation(publicKey, input.TermNumber.Sub(1), address, previousMiners,
+                    ref reElectionProfitAddWeights);
+
+                UpdateVotesWeightRewardProfit(publicKey, address, ref votesWeightRewardProfitAddWeights);
+
+                if (State.ProfitContract.Value == null)
+                {
+                    State.ProfitContract.Value =
+                        Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+                }
+
+                State.ProfitContract.AddWeights.Send(reElectionProfitAddWeights);
+                State.ProfitContract.AddWeights.Send(votesWeightRewardProfitAddWeights);
+            }
+
+            return new Empty();
+        }
+
+        private void UpdateCandidateInformation(string publicKey, long lastTermNumber, Address minerAddress,
+            List<string> previousMiners, ref AddWeightsInput reElectionProfitAddWeights)
+        {
+            var candidateInformation = State.CandidateInformationMap[publicKey];
+            candidateInformation.Terms.Add(lastTermNumber);
+
+            var victories = GetVictories(previousMiners);
+
+            if (victories.Contains(publicKey.ToByteString()))
+            {
+                candidateInformation.ContinualAppointmentCount =
+                    candidateInformation.ContinualAppointmentCount.Add(1);
+                reElectionProfitAddWeights.Weights.Add(new WeightMap
+                {
+                    Receiver = minerAddress,
+                    Weight = candidateInformation.ContinualAppointmentCount
+                });
+            }
+            else
+            {
+                candidateInformation.ContinualAppointmentCount = 0;
+            }
+
+            State.CandidateInformationMap[publicKey] = candidateInformation;
+        }
+
+        private void UpdateVotesWeightRewardProfit(string publicKey, Address minerAddress,
+            ref AddWeightsInput votesWeightRewardProfitAddWeights)
+        {
+            var votes = State.CandidateVotes[publicKey];
+            if (votes != null)
+            {
+                votesWeightRewardProfitAddWeights.Weights.Add(new WeightMap
+                {
+                    Receiver = minerAddress,
+                    Weight = votes.ObtainedActiveVotedVotesAmount
+                });
+            }
+        }
+
+        private void SavePreviousTermInformation(TakeElectionSnapshotInput input)
+        {
             var snapshot = new TermSnapshot
             {
                 MinedBlocks = input.MinedBlocks,
                 EndRoundNumber = input.RoundNumber
             };
+
             foreach (var publicKey in State.Candidates.Value.Value)
             {
                 var votes = State.CandidateVotes[publicKey.ToHex()];
@@ -90,60 +170,7 @@ namespace AElf.Contracts.Election
 
                 snapshot.ElectionResult.Add(publicKey.ToHex(), validObtainedVotesAmount);
             }
-
-            // Update snapshot of corresponding voting record by the way.
-            State.VoteContract.TakeSnapshot.Send(new TakeSnapshotInput
-            {
-                SnapshotNumber = input.TermNumber,
-                VotingItemId = State.MinerElectionVotingItemId.Value
-            });
-
-
             State.Snapshots[input.TermNumber] = snapshot;
-            State.CurrentTermNumber.Value = input.TermNumber.Add(1);
-
-            var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
-                .RealTimeMinersInformation.Keys.ToList();
-
-            var victories = GetVictories(previousMiners);
-            var previousMinersAddresses = new List<Address>();
-            foreach (var publicKey in previousMiners)
-            {
-                var address = Address.FromPublicKey(ByteArrayHelpers.FromHexString(publicKey));
-
-                previousMinersAddresses.Add(address);
-
-/*                var history = State.CandidateInformationMap[publicKey];
-                history.Terms.Add(input.TermNumber - 1);
-
-                if (victories.Contains(publicKey.ToByteString()))
-                {
-                    history.ContinualAppointmentCount = history.ContinualAppointmentCount.Add(1);
-                    reElectionProfitAddWeights.Weights.Add(new WeightMap
-                    {
-                        Receiver = address,
-                        Weight = history.ContinualAppointmentCount
-                    });
-                }
-                else
-                {
-                    history.ContinualAppointmentCount = 0;
-                }
-
-                var votes = State.CandidateVotes[publicKey];
-                if (votes != null)
-                {
-                    votesWeightRewardProfitAddWeights.Weights.Add(new WeightMap
-                    {
-                        Receiver = address,
-                        Weight = votes.ObtainedActiveVotedVotesAmount
-                    });
-                }
-
-                State.CandidateInformationMap[publicKey] = history;*/
-            }
-
-            return new Empty();
         }
 
         /// <summary>
