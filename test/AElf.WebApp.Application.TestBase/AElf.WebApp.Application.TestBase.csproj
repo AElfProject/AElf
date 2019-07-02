@@ -13,7 +13,7 @@
         <PackageReference Include="Volo.Abp.Autofac" Version="0.15.0" />
         <PackageReference Include="Volo.Abp.Core" Version="0.15.0" />
         <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
     </ItemGroup>
 
     <ItemGroup>
