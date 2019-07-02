@@ -1,5 +1,3 @@
-using System;
-using Acs0;
 using Acs3;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -55,7 +53,7 @@ namespace AElf.Contracts.ParliamentAuth
             var organizationInput = new CreateOrganizationInput
             {
                 ReleaseThreshold = input.GenesisOwnerReleaseThreshold,
-                ProposerAuthorityRequired = input.PrivilegedProposer != null,
+                ProposerAuthorityRequired = input.IsPrivilegePreserved,
             };
             if (input.PrivilegedProposer != null)
                 organizationInput.ProposerWhiteList.Add(input.PrivilegedProposer);
