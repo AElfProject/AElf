@@ -33,21 +33,10 @@ namespace AElf.Contracts.Genesis
             return info?.Author;
         }
 
-        public override Address GetContractOwner(Address input)
-        {
-            var info = State.ContractInfos[input];
-            return GetActualContractOwner(info);
-        }
-
         public override Hash GetContractHash(Address input)
         {
             var info = State.ContractInfos[input];
             return info?.CodeHash;
-        }
-
-        public override Address GetGenesisOwner(Empty input)
-        {
-            return State.GenesisOwner.Value;
         }
 
         public override Address GetContractAddressByName(Hash input)
@@ -140,21 +129,22 @@ namespace AElf.Contracts.Genesis
         public override Address DeploySmartContract(ContractDeploymentInput input)
         {
             RequireAuthority();
+            
             var address = PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray());
             return address;
         }
 
         public override Address UpdateSmartContract(ContractUpdateInput input)
         {
+            RequireAuthority();
+            
             var contractAddress = input.Address;
             var code = input.Code.ToByteArray();
             var info = State.ContractInfos[contractAddress];
-
             Assert(info != null, "Contract does not exist.");
-
-            var ownerAddress = GetActualContractOwner(info);
-            RequireAuthority(ownerAddress);
-
+            Assert(info.Author == Context.Self || info.Author == Context.Origin, 
+                "Only author can propose contract update.");
+            
             var oldCodeHash = info.CodeHash;
             var newCodeHash = Hash.FromRawBytes(code);
             Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
@@ -218,48 +208,27 @@ namespace AElf.Contracts.Genesis
                 InitializeGenesisOwner(newOwnerAddress);
             else
             {
-                RequireAuthority(State.GenesisOwner.Value);
+                AssertSenderAddressWith(State.GenesisOwner.Value);
                 State.GenesisOwner.Value = newOwnerAddress;
             }
 
             return new Empty();
         }
 
-        public override Empty InitializeChainOwner(Address chainOwner)
-        {
-            Assert(State.ChainOwner.Value == null, "Chain owner already initialized.");
-            var address = GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
-            Assert(Context.Sender == address, "Unauthorized to initialize genesis contract.");
-            Assert(chainOwner != null, "Genesis Owner should not be null."); 
-            State.GenesisOwner.Value = chainOwner;
-            return new Empty();
-        }
-
         #endregion Actions
-        
-        private void RequireAuthority(Address ownerAddress)
-        {
-            AssertSenderAddressWith(ownerAddress);
-        }
 
         public void RequireAuthority()
         {
             var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
-            var chainOwner = State.ChainOwner.Value;
             if (!State.Initialized.Value)
             {
                 // only authority of contract zero is valid before initialization 
-                RequireAuthority(Context.Self);
+                AssertSenderAddressWith(Context.Self);
             }
             else if (isGenesisOwnerAuthorityRequired)
             {
                 // genesis owner authority check is required
-                RequireAuthority(State.GenesisOwner.Value);
-            }
-            else if (chainOwner != null)
-            {
-                // chain owner authority check is required if it is not null.
-                RequireAuthority(chainOwner);
+                AssertSenderAddressWith(State.GenesisOwner.Value);
             }
         }
 
@@ -275,19 +244,6 @@ namespace AElf.Contracts.Genesis
             Assert(Context.Sender.Equals(address), "Unauthorized to initialize genesis contract.");
             Assert(genesisOwner != null, "Genesis Owner should not be null."); 
             State.GenesisOwner.Value = genesisOwner;
-        }
-
-        private Address GetActualContractOwner(ContractInfo contractInfo)
-        {
-            var contractDeploymentAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
-            
-            // only genesis owner controls genesis contract
-            if (contractInfo.Author.Equals(Context.Self) || contractDeploymentAuthorityRequired)
-                return State.GenesisOwner.Value;
-            
-            // chain owner controls if it is not null, otherwise it is the author. 
-            var chainOwner = State.ChainOwner.Value;
-            return chainOwner != null ? chainOwner : contractInfo.Author;
         }
     }
 

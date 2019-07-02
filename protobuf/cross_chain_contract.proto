@@ -62,8 +62,6 @@ service CrossChainContract {
 message InitializeInput {
     int32 parent_chain_id = 1;
     int64 creation_height_on_parent_chain = 2;
-    aelf.Address chain_creator = 3;
-    acs7.ContractDeploymentPermissionLevel contract_deployment_permission_level = 4;
 }
 
 message RechargeInput {

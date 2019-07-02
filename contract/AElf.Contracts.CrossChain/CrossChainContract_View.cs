@@ -160,7 +160,8 @@ namespace AElf.Contracts.CrossChain
                 CreationHeightOnParentChain = sideChainInfo.CreationHeightOnParentChain,
                 ChainId = chainId.Value,
                 Creator = sideChainInfo.Proposer,
-                CreationTimestamp = sideChainInfo.CreationTimestamp
+                CreationTimestamp = sideChainInfo.CreationTimestamp,
+                IsPrivilegePreserved = sideChainInfo.SideChainCreationRequest.IsPrivilegePreserved
             };
             ByteString consensusInformation = State.SideChainInitialConsensusInfo[chainId.Value].Value;
             res.ExtraInformation.Add(consensusInformation);

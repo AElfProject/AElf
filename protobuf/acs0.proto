@@ -22,8 +22,6 @@ service ACS0 {
     
     rpc ChangeGenesisOwner (aelf.Address) returns (google.protobuf.Empty) {
     }
-    rpc InitializeChainOwner (aelf.Address) returns (google.protobuf.Empty) {
-    }
 
     // Views
     rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.UInt64Value) {
@@ -36,9 +34,6 @@ service ACS0 {
         option (aelf.is_view) = true;
     }
     rpc GetContractAuthor (aelf.Address) returns (aelf.Address) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetGenesisOwner(google.protobuf.Empty) returns(aelf.Address){
         option (aelf.is_view) = true;
     }
     rpc GetContractHash (aelf.Address) returns (aelf.Hash) {

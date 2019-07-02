@@ -20,14 +20,6 @@ namespace AElf.Contracts.CrossChain
             State.ParentChainId.Value = input.ParentChainId;
             State.CreationHeightOnParentChain.Value = input.CreationHeightOnParentChain;
             State.CurrentParentChainHeight.Value = input.CreationHeightOnParentChain - 1;
-            
-            if (input.ChainCreator != null 
-                && input.ContractDeploymentPermissionLevel == ContractDeploymentPermissionLevel.ChainOwner)
-            {
-                // initialize chain owner
-                State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
-                State.GenesisContract.InitializeChainOwner.Send(input.ChainCreator);
-            }
 
             return new Empty();
         }
@@ -62,8 +54,7 @@ namespace AElf.Contracts.CrossChain
                 SideChainStatus = SideChainStatus.Active,
                 SideChainCreationRequest = sideChainCreationRequest,
                 CreationTimestamp = Context.CurrentBlockTime,
-                CreationHeightOnParentChain = Context.CurrentHeight,
-                ContractDeploymentPermissionLevel = sideChainCreationRequest.ContractDeploymentPermissionLevel
+                CreationHeightOnParentChain = Context.CurrentHeight
             };
             State.SideChainInfo[chainId] = sideChainInfo;
             State.CurrentSideChainHeight[chainId] = 0;

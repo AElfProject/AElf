@@ -142,7 +142,7 @@ namespace AElf.Contract.TestContract
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var ownerAddress = (await BasicContractZeroStub.GetContractOwner.CallAsync(BasicFunctionContractAddress)).GetFormatted();
+            var ownerAddress = (await BasicContractZeroStub.GetContractAuthor.CallAsync(BasicFunctionContractAddress)).GetFormatted();
             ownerAddress.ShouldBe(otherUser.GetFormatted());
         }
     }

@@ -19,13 +19,7 @@ namespace AElf.Contracts.Genesis
         /// Genesis owner controls system contracts
         /// and genesis owner controls common contracts if <see cref="ContractDeploymentAuthorityRequired"/> is true.
         /// </summary>
-        public SingletonState<Address> GenesisOwner { get; set; } 
-        
-        /// <summary>
-        /// Chain owner contracts controls common contracts
-        /// if is not null and <see cref="ContractDeploymentAuthorityRequired"/> is false.
-        /// </summary>
-        public SingletonState<Address> ChainOwner { get; set; }
+        public SingletonState<Address> GenesisOwner { get; set; }
         
         public SingletonState<bool> ContractDeploymentAuthorityRequired { get; set; } 
         
