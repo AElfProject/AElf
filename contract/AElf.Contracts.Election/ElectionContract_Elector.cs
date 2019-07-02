@@ -148,12 +148,12 @@ namespace AElf.Contracts.Election
         {
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input);
 
-            var actualLockedTime = (Context.CurrentBlockTime - votingRecord.VoteTimestamp).Seconds;
+            var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
             var claimedLockDays = State.LockTimeMap[input];
             Assert(actualLockedTime >= claimedLockDays,
                 $"Still need {claimedLockDays.Sub(actualLockedTime).Div(86400)} days to unlock your token.");
 
-            // Update Voter's Votes information.
+            // Update Elector's Votes information.
             var voterPublicKey = Context.RecoverPublicKey().ToHex();
             var voterVotes = State.ElectorVotes[voterPublicKey];
             voterVotes.ActiveVotingRecordIds.Remove(input);
@@ -172,7 +172,7 @@ namespace AElf.Contracts.Election
             {
                 Address = Context.Sender,
                 Symbol = Context.Variables.NativeSymbol,
-                Amount = votingRecord.Amount,
+                Amount = GetElfAmount(votingRecord.Amount),
                 LockId = input,
                 Usage = "Withdraw votes for Main Chain Miner Election."
             });
