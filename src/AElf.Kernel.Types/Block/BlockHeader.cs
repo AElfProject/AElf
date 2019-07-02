@@ -5,11 +5,6 @@ namespace AElf.Kernel
 {
     public partial class BlockHeader : IBlockHeader
     {
-        partial void OnConstruction()
-        {
-            Bloom = Kernel.Bloom.Empty;
-        }
-
         public BlockHeader(Hash preBlockHash)
         {
             PreviousBlockHash = preBlockHash;

@@ -43,7 +43,7 @@ namespace AElf.Database
             return Task.FromResult(true);
         }
 
-        public Task SetAll(Dictionary<string, byte[]> cache)
+        public Task SetAllAsync(Dictionary<string, byte[]> cache)
         {
             foreach (var change in cache)
             {

@@ -1,4 +1,4 @@
-using AElf.Kernel.Blockchain.Helpers;
+using AElf.Kernel.Blockchain.Helper;
 using AElf.Types;
 using Shouldly;
 using Xunit;

@@ -51,7 +51,7 @@ namespace AElf.Database
         public async Task PipelineSetAsync(IDictionary<string, byte[]> cache)
         {
             var dic =  cache.ToDictionary(k=> GetKey(k.Key),v => v.Value);
-            await _keyValueDatabase.SetAll(dic);
+            await _keyValueDatabase.SetAllAsync(dic);
         }
     }
 }
