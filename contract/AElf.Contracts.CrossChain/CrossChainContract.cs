@@ -199,7 +199,6 @@ namespace AElf.Contracts.CrossChain
         public override CrossChainBlockData GetIndexedCrossChainBlockDataByHeight(SInt64Value input)
         {
             var crossChainBlockData = new CrossChainBlockData();
-            
             var indexedParentChainBlockData = State.LastIndexedParentChainBlockData.Value;
             if (indexedParentChainBlockData != null && indexedParentChainBlockData.BlockHeight == input.Value)
                 crossChainBlockData.ParentChainBlockData.AddRange(indexedParentChainBlockData.ParentChainBlockData);
