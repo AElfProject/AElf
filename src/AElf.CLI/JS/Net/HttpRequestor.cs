@@ -4,6 +4,7 @@ using System.Linq;
 using ChakraCore.NET;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using Newtonsoft.Json;
 
 namespace AElf.CLI.JS.Net
@@ -41,8 +42,7 @@ namespace AElf.CLI.JS.Net
         public HttpRequestor(string serverUrl, ChakraContext context)
         {
             _serverUrl = serverUrl;
-            _client = new HttpClient();
-            _client.BaseAddress = new Uri(_serverUrl);
+            _client = new HttpClient {BaseAddress = new Uri(_serverUrl)};
             _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _context = context;
         }
@@ -61,11 +61,16 @@ namespace AElf.CLI.JS.Net
                         Headers = {ContentType = MediaTypeHeaderValue.Parse("application/json")}
                     }
                 };
-                var response = _client.SendAsync(request).Result;
-                var result = response.Content.ReadAsStringAsync().Result;
-                var dic = new Dictionary<string, string> {["result"] = result};
-                var result2 = JsonConvert.SerializeObject(dic);
-                return _fromString(result2);
+                using (var response = _client.SendAsync(request).Result)
+                {
+                    using (var httpContent = response.Content)
+                    {
+                        var result = httpContent.ReadAsStringAsync().Result;
+                        var dic = new Dictionary<string, string> {["result"] = result};
+                        var result2 = JsonConvert.SerializeObject(dic);
+                        return _fromString(result2);
+                    }
+                }
             }
             catch (Exception e)
             {

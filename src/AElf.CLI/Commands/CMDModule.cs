@@ -44,7 +44,8 @@ namespace AElf.CLI.Commands
                 [typeof(CheckChainStatusOption)] = typeof(CheckChainStatusCommand),
                 [typeof(VerifyCrossChainTransactionOption)] = typeof(VerifyCrossChainTransactionCommand),
                 [typeof(WithdrawChainCreationRequestOption)] = typeof(WithdrawChainCreationRequestCommand),
-                [typeof(RechargeForSideChainOption)] =typeof(RechargeForSideChainCommand)
+                [typeof(RechargeForSideChainOption)] =typeof(RechargeForSideChainCommand),
+                [typeof(GetChainStatusOption)] = typeof(GetChainStatusCammand)
             };
         }
 
