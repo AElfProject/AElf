@@ -81,12 +81,6 @@ namespace AElf.CrossChain
         public async Task<bool> ValidateSideChainBlockDataAsync(List<SideChainBlockData> sideChainBlockDataList, 
             Hash currentBlockHash, long currentBlockHeight)
         {
-//            bool isExceedSizeLimit = sideChainBlockDataList.GroupBy(b => b.ChainId).Select(g => g.Count())
-//                .Any(count => count > CrossChainOption.Value.MaximalCountForIndexingSideChainBlock);
-//
-//            if (isExceedSizeLimit)
-//                return false;
-
             var sideChainValidatedHeightDict = new Dictionary<int, long>(); // chain id => validated height
             foreach (var sideChainBlockData in sideChainBlockDataList)
             {
@@ -112,13 +106,8 @@ namespace AElf.CrossChain
                 if (cachedSideChainBlockData == null)
                     throw new ValidateNextTimeBlockValidationException("Cross chain data is not ready.");
                 if (!cachedSideChainBlockData.Equals(sideChainBlockData))
-                {
-                    Logger.LogWarning("Inconsistent side chain block data.");
-                    Logger.LogWarning($"Target height - {targetHeight}");
-                    Logger.LogWarning($"Remote - {sideChainBlockData}");
-                    Logger.LogWarning($"Local - {cachedSideChainBlockData}");
                     return false;
-                }
+                
                 sideChainValidatedHeightDict[sideChainBlockData.ChainId] = sideChainBlockData.Height;
             }
 
@@ -180,14 +169,10 @@ namespace AElf.CrossChain
 
             var length = parentChainBlockDataList.Count;
 
-//            if (length > CrossChainOption.Value.MaximalCountForIndexingParentChainBlock)
-//                return false;
-
             var i = 0;
 
             var targetHeight = (await _readerFactory.Create(currentBlockHash, currentBlockHeight).GetParentChainHeight
                                    .CallAsync(new Empty())).Value + 1;
-            var res = true;
             while (i < length)
             {
                 var parentChainBlockData = _blockCacheEntityConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, false);
@@ -195,22 +180,15 @@ namespace AElf.CrossChain
                 {
                     throw new ValidateNextTimeBlockValidationException("Cross chain data is not ready.");
                 }
-
+                
                 if (!parentChainBlockDataList[i].Equals(parentChainBlockData))
-                {
-                    Logger.LogWarning("Inconsistent parent chain block data.");
-                    Logger.LogWarning($"Target height - {targetHeight}");
-                    Logger.LogWarning($"Remote - {parentChainBlockDataList[i]}");
-                    Logger.LogWarning($"Local - {parentChainBlockData}");
-                    // cached parent chain block info is not compatible with provided.
                     return false;
-                }
 
                 targetHeight++;
                 i++;
             }
 
-            return res;
+            return true;
         }
 
         public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight)
