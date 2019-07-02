@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Application;
 using AElf.OS.BlockSync.Dto;
 using AElf.OS.Network;
@@ -6,24 +7,28 @@ using AElf.OS.Network.Events;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
-    public class PeerConnectedEventHandler : ILocalEventHandler<AnnouncementReceivedEventData>
+    public class PeerConnectedEventHandler : ILocalEventHandler<AnnouncementReceivedEventData>, ITransientDependency
     {
         public ILogger<PeerConnectedEventHandler> Logger { get; set; }
 
         private readonly IBlockSyncService _blockSyncService;
         private readonly IBlockSyncValidationService _blockSyncValidationService;
+        private readonly IBlockchainService _blockchainService;
         private readonly NetworkOptions _networkOptions;
 
         public PeerConnectedEventHandler(IBlockSyncService blockSyncService,
             IBlockSyncValidationService blockSyncValidationService,
+            IBlockchainService blockchainService,
             IOptionsSnapshot<NetworkOptions> networkOptions)
         {
             _blockSyncService = blockSyncService;
             _blockSyncValidationService = blockSyncValidationService;
+            _blockchainService = blockchainService;
             _networkOptions = networkOptions.Value;
             Logger = NullLogger<PeerConnectedEventHandler>.Instance;
         }
@@ -38,19 +43,23 @@ namespace AElf.OS.Handlers
 
         private async Task ProcessNewBlockAsync(PeerNewBlockAnnouncement announcement, string senderPubKey)
         {
-            if (!await _blockSyncValidationService.ValidateBeforeEnqueue(announcement.BlockHash,
+            Logger.LogDebug(
+                $"Start block sync job, target height: {announcement.BlockHeight}, target block hash: {announcement.BlockHash}, peer: {senderPubKey}");
+            
+            var chain = await _blockchainService.GetChainAsync();
+            
+            if (!await _blockSyncValidationService.ValidateBeforeSync(chain, announcement.BlockHash,
                 announcement.BlockHeight))
             {
                 return;
             }
 
-            _blockSyncService.EnqueueSyncBlockJob(new SyncBlockDto
+            await _blockSyncService.SyncBlockAsync(chain, new SyncBlockDto
             {
                 SyncBlockHash = announcement.BlockHash,
                 SyncBlockHeight = announcement.BlockHeight,
                 SuggestedPeerPubKey = senderPubKey,
-                BatchRequestBlockCount = _networkOptions.BlockIdRequestCount,
-                SyncRetryTimes = 3
+                BatchRequestBlockCount = _networkOptions.BlockIdRequestCount
             });
         }
     }

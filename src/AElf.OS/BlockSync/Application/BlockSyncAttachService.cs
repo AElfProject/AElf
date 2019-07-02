@@ -42,6 +42,9 @@ namespace AElf.OS.BlockSync.Application
                     try
                     {
                         _blockSyncStateProvider.BlockSyncAttachAndExecuteBlockJobEnqueueTime = enqueueTimestamp;
+                        Logger.LogTrace(
+                            $"Block sync: Attach and execute block, block height: {blockWithTransactions.Height}, block hash: {blockWithTransactions.GetHash()}, enqueue time: {enqueueTimestamp}");
+                            
                         await _blockAttachService.AttachBlockAsync(block);
                     }
                     finally
@@ -62,6 +65,9 @@ namespace AElf.OS.BlockSync.Application
                     try
                     {
                         _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime = enqueueTimestamp;
+                        Logger.LogTrace(
+                            $"Block sync: Attach block, block height: {blockWithTransactions.Height}, block hash: {blockWithTransactions.GetHash()}, enqueue time: {enqueueTimestamp}");
+                        
                         await AttachBlockWithTransactionsAsync(blockWithTransactions);
                     }
                     finally
@@ -69,7 +75,7 @@ namespace AElf.OS.BlockSync.Application
                         _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime = null;
                     }
                 },
-                OSConsts.BlockSyncAttachQueueName);
+                OSConstants.BlockSyncAttachQueueName);
         }
     }
 }

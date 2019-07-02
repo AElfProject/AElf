@@ -38,7 +38,7 @@ namespace AElf.OS.Handlers
                     {
                         _taskQueueManager.Enqueue(async () => {
                             await _syncStateService.UpdateSyncStateAsync();
-                        }, OSConsts.InitialSyncQueueName);
+                        }, OSConstants.InitialSyncQueueName);
                     }
                 }
                 

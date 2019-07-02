@@ -1,12 +1,11 @@
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.OS.BlockSync.Dto;
 
 namespace AElf.OS.BlockSync.Application
 {
     public interface IBlockSyncService
     {
-        Task SyncBlockAsync(SyncBlockDto syncBlockDto);
-
-        void EnqueueSyncBlockJob(SyncBlockDto syncBlockDto);
+        Task SyncBlockAsync(Chain chain, SyncBlockDto syncBlockDto);
     }
 }

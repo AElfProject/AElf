@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.OS.BlockSync.Application
 {
-public class BlockDownloadService : IBlockDownloadService
+    public class BlockDownloadService : IBlockDownloadService
     {
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
@@ -37,7 +37,7 @@ public class BlockDownloadService : IBlockDownloadService
             var downloadBlockCount = 0;
             var lastDownloadBlockHash = previousBlockHash;
             var lastDownloadBlockHeight = previousBlockHeight;
-            
+
             while (true)
             {
                 // Limit block sync job count, control memory usage
@@ -70,7 +70,7 @@ public class BlockDownloadService : IBlockDownloadService
                 {
                     Logger.LogDebug(
                         $"Processing block {blockWithTransactions},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
-                    
+
                     _blockSyncAttachService.EnqueueAttachBlockWithTransactionsJob(blockWithTransactions);
 
                     downloadBlockCount++;

@@ -1,7 +1,6 @@
 ﻿using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Consensus.DPos;
-using AElf.OS.Handlers;
 using AElf.OS.Network.Grpc;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -23,8 +22,6 @@ namespace AElf.OS
 
             context.Services.AddAssemblyOf<OSAElfModule>();
 
-            context.Services.AddSingleton<PeerConnectedEventHandler>();
-
             Configure<AccountOptions>(configuration.GetSection("Account"));
         }
         
@@ -32,9 +29,10 @@ namespace AElf.OS
         {
             var taskQueueManager = context.ServiceProvider.GetService<ITaskQueueManager>();
 
-            taskQueueManager.CreateQueue(OSConsts.BlockSyncAttachQueueName);
-            taskQueueManager.CreateQueue(OSConsts.BlockSyncQueueName);
-            taskQueueManager.CreateQueue(OSConsts.InitialSyncQueueName);
+            taskQueueManager.CreateQueue(OSConstants.BlockSyncAttachQueueName);
+            taskQueueManager.CreateQueue(OSConstants.BlockDownloadQueueName);
+            taskQueueManager.CreateQueue(OSConstants.BlockFetchQueueName, 4);
+            taskQueueManager.CreateQueue(OSConstants.InitialSyncQueueName);
         }
     }
 }
