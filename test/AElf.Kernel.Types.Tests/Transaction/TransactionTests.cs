@@ -18,12 +18,6 @@ namespace AElf.Kernel.Types.Tests
                 BlockNumber = 10,
                 ReturnValue = new StringValue{Value = "test"}.ToByteString()
             };
-
-            var serializeData = transactionResult.Serialize();
-            serializeData.ShouldNotBeNull();
-
-            var transactionResult1 = TransactionResult.Parser.ParseFrom(serializeData);
-            transactionResult.ShouldBe(transactionResult1);
         }
     }
 }

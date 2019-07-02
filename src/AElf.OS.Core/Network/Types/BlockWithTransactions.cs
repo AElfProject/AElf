@@ -33,10 +33,5 @@ namespace AElf.OS.Network
         {
             return Header.GetHash();
         }
-        
-        public byte[] GetHashBytes()
-        {
-            return Header.GetHashBytes();
-        }
     }
 }

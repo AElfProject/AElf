@@ -2,7 +2,7 @@
 using Xunit;
 using Shouldly;
 
-namespace AElf.Types.Tests.Helpers
+namespace AElf.Types.Tests.Helper
 {
     public class ByteArrayHelperTests
     {

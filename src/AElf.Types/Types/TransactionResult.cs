@@ -9,10 +9,5 @@ namespace AElf.Types
         {
             Bloom = _empty;
         }
-
-        public byte[] Serialize()
-        {
-            return this.ToByteArray();
-        }
     }
 }

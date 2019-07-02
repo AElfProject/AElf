@@ -3,7 +3,7 @@ using AElf.Common;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.Kernel.Blockchain.Helpers
+namespace AElf.Kernel.Blockchain.Helper
 {
     // TODO: It seems we never use this except test projects.
     public class GenesisBlockBuilder
