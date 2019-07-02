@@ -8,7 +8,9 @@ import "google/protobuf/timestamp.proto";
 option csharp_namespace = "AElf.Contracts.Consensus.AEDPoS";
 
 service AEDPoSContract {
+    
     option (aelf.csharp_state) = "AElf.Contracts.Consensus.AEDPoS.AEDPoSContractState";
+    
     // Actions
     // -> Process
     rpc InitialAElfConsensusContract (InitialAElfConsensusContractInput) returns (google.protobuf.Empty) {
@@ -67,14 +69,14 @@ message InitialAElfConsensusContractInput {
 
 // Just used as parameter of consensus contract method.
 message UpdateValueInput {
-    aelf.Hash out_value = 1;// Calculated from current in value.
-    aelf.Hash signature = 2;// Calculated from current in value and signatures of previous round.
-    sint64 round_id = 3;// To ensure the values to update will be apply to correct round by comparing round id.
-    aelf.Hash previous_in_value = 5;// Publish previous in value for validation previous signature and previous out value.
+    aelf.Hash out_value = 1; // Calculated from current in value.
+    aelf.Hash signature = 2; // Calculated from current in value and signatures of previous round.
+    sint64 round_id = 3; // To ensure the values to update will be apply to correct round by comparing round id.
+    aelf.Hash previous_in_value = 5; // Publish previous in value for validation previous signature and previous out value.
     google.protobuf.Timestamp actual_mining_time = 6;
     sint32 supposed_order_of_next_round = 7;
     map<string, int32> tune_order_information = 8;
-    map<string, bytes> encrypted_in_values = 9;// For others to recover his in value of current round.
+    map<string, bytes> encrypted_in_values = 9; // For others to recover his in value of current round.
     map<string, bytes> decrypted_previous_in_values = 10;
     sint64 produced_blocks = 11;
     map<string, aelf.Hash> miners_previous_in_values = 12;
@@ -82,7 +84,7 @@ message UpdateValueInput {
 
 // The miners public key list for each term.
 message MinerList {
-    repeated bytes public_keys = 1;
+    repeated bytes pubkeys = 1;
 }
 
 // To query first round number of each term.
@@ -92,7 +94,7 @@ message TermNumberLookUp {
 
 // All the candidates.
 message Candidates {
-    repeated bytes public_keys = 1;
+    repeated bytes pubkeys = 1;
 }
 
 // The information of a round.
@@ -115,7 +117,7 @@ message MinerInRound {
     google.protobuf.Timestamp expected_mining_time = 6;
     sint64 produced_blocks = 7;
     sint64 missed_time_slots = 8;
-    string public_key = 9;
+    string pubkey = 9;
     aelf.Hash previous_in_value = 12;
     sint32 supposed_order_of_next_round = 13;
     sint32 final_order_of_next_round = 14;
@@ -126,7 +128,7 @@ message MinerInRound {
 }
 
 message AElfConsensusHeaderInformation {
-    bytes sender_publicKey = 1;
+    bytes sender_pubkey = 1;
     Round round = 2;
     AElfConsensusBehaviour behaviour = 3;
 }
@@ -136,16 +138,16 @@ message AElfConsensusHint {
 }
 
 enum AElfConsensusBehaviour {
-    UpdateValue = 0;
-    NextRound = 1;
-    NextTerm = 2;
-    UpdateValueWithoutPreviousInValue = 3;
-    Nothing = 4;
-    TinyBlock = 5;
+    UPDATE_VALUE = 0;
+    NEXT_ROUND = 1;
+    NEXT_TERM = 2;
+    UPDATE_VALUE_WITHOUT_PREVIOUS_IN_VALUE = 3;
+    NOTHING = 4;
+    TINY_BLOCK = 5;
 }
 
 message AElfConsensusTriggerInformation {
-    bytes public_key = 1;// A must-have.
+    bytes pubkey = 1;// A must-have.
     aelf.Hash random_hash = 2;// To calculate In Value.
     aelf.Hash previous_random_hash = 3;// Random hash of previous round for validation.
     AElfConsensusBehaviour behaviour = 4;
@@ -173,5 +175,5 @@ message VoteMinersCountInput {
 }
 
 message ConsensusInformation {
-    bytes Bytes = 1;
+    bytes value = 1;
 }

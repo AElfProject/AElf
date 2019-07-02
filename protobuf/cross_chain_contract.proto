@@ -7,10 +7,10 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
 
-
 option csharp_namespace = "AElf.Contracts.CrossChain";
 
 service CrossChainContract {
+    
     option (aelf.csharp_state) = "AElf.Contracts.CrossChain.CrossChainContractState";
     option (aelf.base) = "acs7.proto";
     
@@ -28,7 +28,6 @@ service CrossChainContract {
     }
     rpc DisposeSideChain (aelf.SInt32Value) returns (aelf.SInt64Value) {
     }
-    
 
     rpc ChangOwnerAddress(aelf.Address) returns (google.protobuf.Empty) {
     }
@@ -64,12 +63,12 @@ service CrossChainContract {
 }
 
 message InitializeInput {
-    int32 parentChainId = 1;
-    int64 creationHeightOnParentChain = 2;
+    int32 parent_chain_id = 1;
+    int64 creation_height_on_parent_chain = 2;
 }
 
 message RechargeInput {
-    int32 chainId = 1;
+    int32 chain_id = 1;
     sint64 amount = 2;
 }
 
@@ -83,28 +82,22 @@ message IndexedSideChainBlockData{
 }
 
 message VerifyTransactionInput {
-    aelf.Hash transactionId = 1;
+    aelf.Hash transaction_id = 1;
     repeated aelf.Hash path = 2;
-    sint64 parentChainHeight = 3;
-    int32 verifiedChainId = 4;
+    sint64 parent_chain_height = 3;
+    int32 verified_chain_id = 4;
 }
 
 // Events
-message CreationRequested
-{
+message CreationRequested {
     option (aelf.is_event) = true;
     aelf.Address creator = 1;
     int32 chainId = 2;
 }
 
-message Disposed
-{
+message Disposed {
     option (aelf.is_event) = true;
-    int32 chainId = 1;
+    int32 chain_id = 1;
 }
-
-
-
-// from crosschain.proto
 
 
