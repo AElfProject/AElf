@@ -205,7 +205,6 @@ namespace AElf.WebApp.Application.Chain
             };
         }
         
-        
         /// <summary>
         /// Get the current state about a given block
         /// </summary>
