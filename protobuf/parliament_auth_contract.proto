@@ -52,7 +52,7 @@ message ProposalInfo {
 }
 
 message InitializeInput{
-    int32 genesisOwnerReleaseThreshold = 1;
+    int32 genesis_owner_releaseThreshold = 1;
     aelf.Address privileged_proposer = 2;
     bool is_privilege_preserved = 3;
 }
