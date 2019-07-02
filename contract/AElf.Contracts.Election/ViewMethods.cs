@@ -23,6 +23,11 @@ namespace AElf.Contracts.Election
 
         public override PubkeyList GetVictories(Empty input)
         {
+            if (State.AEDPoSContract.Value == null)
+            {
+                State.AEDPoSContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            }
             var currentMiners = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
             return new PubkeyList {Value = {GetVictories(currentMiners)}};

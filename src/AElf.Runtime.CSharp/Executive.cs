@@ -149,6 +149,7 @@ namespace AElf.Runtime.CSharp
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine($"ContractError: {ex}");
                     // TODO: Simplify exception
                     CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                     CurrentTransactionContext.Trace.Error += "\n" + ex;

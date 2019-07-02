@@ -108,7 +108,8 @@ namespace AElf.Contracts.Treasury
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
                 ProfitId = State.TreasuryHash.Value,
-                Period = releasingPeriodNumber
+                Period = releasingPeriodNumber,
+                Symbol = Context.Variables.NativeSymbol
             });
 
             ReleaseTreasurySubProfitItems(releasingPeriodNumber);
@@ -295,31 +296,36 @@ namespace AElf.Contracts.Treasury
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
                 ProfitId = State.RewardHash.Value,
-                Period = termNumber
+                Period = termNumber,
+                Symbol = Context.Variables.NativeSymbol
             });
 
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
                 ProfitId = State.SubsidyHash.Value,
-                Period = termNumber
+                Period = termNumber,
+                Symbol = Context.Variables.NativeSymbol
             });
 
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
                 ProfitId = State.BasicRewardHash.Value,
-                Period = termNumber
+                Period = termNumber,
+                Symbol = Context.Variables.NativeSymbol
             });
 
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
                 ProfitId = State.VotesWeightRewardHash.Value,
-                Period = termNumber
+                Period = termNumber,
+                Symbol = Context.Variables.NativeSymbol
             });
 
             State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
             {
                 ProfitId = State.ReElectionRewardHash.Value,
-                Period = termNumber
+                Period = termNumber,
+                Symbol = Context.Variables.NativeSymbol
             });
 
             // Citizen Welfare release should delay one term.
@@ -328,7 +334,8 @@ namespace AElf.Contracts.Treasury
             {
                 ProfitId = State.WelfareHash.Value,
                 Period = termNumber > 1 ? termNumber - 1 : -1,
-                TotalWeight = State.CachedWelfareWeight.Value
+                TotalWeight = State.CachedWelfareWeight.Value,
+                Symbol = Context.Variables.NativeSymbol
             });
 
             State.CachedWelfareWeight.Value =

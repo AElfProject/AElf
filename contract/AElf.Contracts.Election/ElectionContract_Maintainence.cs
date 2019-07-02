@@ -223,7 +223,10 @@ namespace AElf.Contracts.Election
 
         public override Empty UpdateMinersCount(UpdateMinersCountInput input)
         {
-            Assert(State.AEDPoSContract.Value == Context.Sender,
+            Context.LogDebug(() => $"Consensus Contract Address: {Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName)}");
+            Context.LogDebug(() => $"Sender Address: {Context.Sender}");
+            Assert(
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName) == Context.Sender,
                 "Only consensus contract can update miners count.");
             State.MinersCount.Value = input.MinersCount;
             return new Empty();
