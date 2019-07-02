@@ -194,7 +194,9 @@ namespace AElf.Contracts.Economic
             {
                 TreasuryHash = profitIdsCreatedByTreasuryContract[0],
                 SubsidyHash = profitIdsCreatedByTreasuryContract[2],
-                WelfareHash = profitIdsCreatedByTreasuryContract[3]
+                WelfareHash = profitIdsCreatedByTreasuryContract[3],
+                VotesRewardHash = profitIdsCreatedByTreasuryContract[5],
+                ReElectionRewardHash = profitIdsCreatedByTreasuryContract[6]
             });
         }
 

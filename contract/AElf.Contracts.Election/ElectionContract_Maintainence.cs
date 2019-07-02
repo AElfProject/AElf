@@ -235,6 +235,8 @@ namespace AElf.Contracts.Election
             State.TreasuryHash.Value = input.TreasuryHash;
             State.WelfareHash.Value = input.WelfareHash;
             State.SubsidyHash.Value = input.SubsidyHash;
+            State.ReElectionRewardHash.Value = input.ReElectionRewardHash;
+            State.VotesRewardHash.Value = input.VotesRewardHash;
             return new Empty();
         }
     }
