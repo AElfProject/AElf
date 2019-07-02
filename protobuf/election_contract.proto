@@ -141,7 +141,7 @@ message ElectionResult {
 }
 
 message ElectorVote {
-    repeated aelf.Hash active_voting_record_ids = 1;
+    repeated aelf.Hash active_voting_record_ids = 1;// Not withdrawn.
     repeated aelf.Hash withdrawn_voting_record_ids = 2;
     sint64 active_voted_votes_amount = 3;
     sint64 all_voted_votes_amount = 4;
