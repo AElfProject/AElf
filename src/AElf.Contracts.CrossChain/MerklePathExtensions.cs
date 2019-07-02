@@ -18,7 +18,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public static Hash ComputeRootWith(this MerklePath merklePath, Hash leaf)
         {
-            // TODO: remove clone
+            // Done: remove clone
             Hash hash = leaf.Clone();
             foreach (var node in merklePath.Path)
             {

@@ -7,11 +7,11 @@ namespace AElf.Kernel
     {
         public int TransactionsCount => Transactions.Count;
         private Hash _blockBodyHash;
-        // TODO: remove
+        // Done: remove
         public BinaryMerkleTree BinaryMerkleTree { get; } = new BinaryMerkleTree();
 
 
-        // TODO: remove
+        // Done: remove
         private Hash CalculateBodyHash()
         {
             _blockBodyHash = new List<Hash>()

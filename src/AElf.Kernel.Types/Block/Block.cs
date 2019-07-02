@@ -37,7 +37,7 @@ namespace AElf.Kernel
             return Header.GetHash();
         }
 
-        // TODO: remove
+        // Done: remove
         public byte[] GetHashBytes()
         {
             return Header.GetHashBytes();

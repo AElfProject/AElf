@@ -11,7 +11,7 @@ namespace AElf.Kernel
             Bloom = ByteString.CopyFrom(new byte[256]);
         }
 
-        // TODO: remove
+        // Done: remove
         public byte[] Serialize()
         {
             return this.ToByteArray();
