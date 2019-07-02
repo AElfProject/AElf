@@ -13,7 +13,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Timestamp currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
         {
             var sortedMiners =
-                (from obj in PublicKeys
+                (from obj in Pubkeys
                         .ToDictionary<ByteString, string, int>(miner => miner.ToHex(), miner => miner[0])
                     orderby obj.Value descending
                     select obj.Key).ToList();
@@ -30,7 +30,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     minerInRound.IsExtraBlockProducer = true;
                 }
 
-                minerInRound.PublicKey = sortedMiners[i];
+                minerInRound.Pubkey = sortedMiners[i];
                 minerInRound.Order = i + 1;
                 minerInRound.ExpectedMiningTime =
                     currentBlockTime.AddMilliseconds(i.Mul(miningInterval).Add(miningInterval));
