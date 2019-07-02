@@ -14,27 +14,15 @@ namespace AElf.Contracts.Vote
     {
         public override Empty Register(VotingRegisterInput input)
         {
-            var votingItemId = input.GetHash(Context.Sender);
-
-            if (input.TotalSnapshotNumber == 0)
+            var votingItemId = AssertValidNewVotingItem(input);
+            
+            if (State.TokenContract.Value == null)
             {
-                input.TotalSnapshotNumber = 1;
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
-            Assert(input.TotalSnapshotNumber > 0, "Total snapshot number must be greater than 0.");
-            Assert(input.EndTimestamp > input.StartTimestamp, "Invalid active time.");
-
-            if (input.EndTimestamp == new Timestamp {Seconds = long.MaxValue})
-            {
-                Assert(input.TotalSnapshotNumber != 1, "Cannot created endless voting event.");
-            }
-
-            InitializeDependentContracts();
-
-            Assert(State.VotingItems[votingItemId] == null, "Voting item already exists.");
-
-            Context.LogDebug(() => $"Voting item created by {Context.Sender}: {votingItemId.ToHex()}");
-
+            // Accepted currency is in white list means this token symbol supports voting.
             var isInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
             {
                 Symbol = input.AcceptedCurrency,
@@ -80,6 +68,7 @@ namespace AElf.Contracts.Vote
         /// <returns></returns>
         public override Empty Vote(VoteInput input)
         {
+            //the VotingItem is exist in state.
             var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Options.Contains(input.Option), $"Option {input.Option} not found.");
             Assert(votingItem.CurrentSnapshotNumber <= votingItem.TotalSnapshotNumber,
@@ -92,7 +81,9 @@ namespace AElf.Contracts.Vote
             }
             else
             {
+                //Voter just is the transaction sponsor
                 input.Voter = Context.Sender;
+                //VoteId just is the transaction ID;
                 input.VoteId = Context.TransactionId;
             }
 
@@ -106,6 +97,7 @@ namespace AElf.Contracts.Vote
                 VoteTimestamp = Context.CurrentBlockTime,
                 Voter = input.Voter
             };
+            //save the VotingRecords into the state.
             State.VotingRecords[input.VoteId] = votingRecord;
 
             UpdateVotingResult(votingItem, input.Option, input.Amount);
@@ -153,6 +145,7 @@ namespace AElf.Contracts.Vote
                         ActiveVotes = {voteId}
                     };
             }
+
             State.VotedItemsMap[voter] = votedItems;
         }
 
@@ -283,6 +276,11 @@ namespace AElf.Contracts.Vote
             return new Empty();
         }
 
+        /// <summary>
+        /// Add a option for corresponding VotingItem.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty AddOption(AddOptionInput input)
         {
             var votingItem = AssertVotingItem(input.VotingItemId);
@@ -293,6 +291,11 @@ namespace AElf.Contracts.Vote
             return new Empty();
         }
 
+        /// <summary>
+        /// Delete a option for corresponding VotingItem
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty RemoveOption(RemoveOptionInput input)
         {
             var votingItem = AssertVotingItem(input.VotingItemId);
@@ -338,12 +341,27 @@ namespace AElf.Contracts.Vote
             return votingItem;
         }
 
-        private void InitializeDependentContracts()
+        /// <summary>
+        /// Initialize the related contracts=>TokenContract;
+        /// </summary>
+        private Hash AssertValidNewVotingItem(VotingRegisterInput input)
         {
-            if (State.TokenContract.Value == null)
+            // Use input without options and sender's address to calculate voting item id.
+            var votingItemId = input.GetHash(Context.Sender);
+
+            Assert(State.VotingItems[votingItemId] == null, "Voting item already exists.");
+
+            // total snapshot number can't be 0. At least one epoch is required.
+            if (input.TotalSnapshotNumber == 0)
             {
-                State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+                input.TotalSnapshotNumber = 1;
             }
+
+            Assert(input.EndTimestamp > input.StartTimestamp, "Invalid active time.");
+
+            Context.LogDebug(() => $"Voting item created by {Context.Sender}: {votingItemId.ToHex()}");
+
+            return votingItemId;
         }
 
         private Hash GetVotingResultHash(Hash votingItemId, long snapshotNumber)

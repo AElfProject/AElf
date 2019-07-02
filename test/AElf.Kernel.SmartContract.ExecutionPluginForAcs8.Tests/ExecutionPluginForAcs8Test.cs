@@ -1,9 +1,13 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Text;
 using System.Threading.Tasks;
 using Acs8;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -190,6 +194,70 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             var lesserConsumption = balanceAfter.Balance - balanceBefore.Balance;
 
             consumption.ShouldBeGreaterThan(lesserConsumption);
+        }
+
+        [Fact]
+        public async Task CompareCpuTokenConsumption_WithoutResource()
+        {
+            await SetResourceTokenBuyingPreferences();
+            var cpuConsumingResult = await DefaultTester.CpuConsumingMethod.SendAsync(new Empty());
+            cpuConsumingResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            cpuConsumingResult.TransactionResult.Error.Contains("CPU token is not enough").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task CompareConsumptions()
+        {
+            await SetResourceTokenBuyingPreferences();
+            await AdvanceResourceToken();
+
+            var (cpu, sto, net) =
+                await GetTransactionResourcesCost(DefaultTester.CpuConsumingMethod.SendAsync);
+            var (cpu1, sto1, net1) = 
+                await GetTransactionResourcesCost(DefaultTester.FewConsumingMethod.SendAsync);
+            
+            cpu.ShouldBeGreaterThanOrEqualTo(cpu1);
+            sto.ShouldBeGreaterThanOrEqualTo(sto1);
+            net.ShouldBeGreaterThanOrEqualTo(net1);
+        }
+
+        private async Task<(long cpu, long sto, long net)> GetTransactionResourcesCost(Func<Empty, Task<IExecutionResult<Empty>>> action)
+        {
+            var beforeCpu = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = TestContractAddress,
+                Symbol = "CPU"
+            })).Balance;
+            var beforeSto = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = TestContractAddress,
+                Symbol = "STO"
+            })).Balance;
+            var beforeNet = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = TestContractAddress,
+                Symbol = "NET"
+            })).Balance;
+
+            await action(new Empty());
+            
+            var afterCpu = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = TestContractAddress,
+                Symbol = "CPU"
+            })).Balance;
+            var afterSto = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = TestContractAddress,
+                Symbol = "STO"
+            })).Balance;
+            var afterNet = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = TestContractAddress,
+                Symbol = "NET"
+            })).Balance;
+
+            return (beforeCpu - afterCpu, beforeSto - afterSto, beforeNet - afterNet);
         }
     }
 }

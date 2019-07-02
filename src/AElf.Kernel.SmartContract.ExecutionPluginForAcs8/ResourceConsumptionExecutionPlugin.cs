@@ -14,12 +14,12 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 {
-    public class ResourceConsumptionPostExecutionPlugin : IPostExecutionPlugin, ISingletonDependency
+    public class ResourceConsumptionPreExecutionPlugin : IPreExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private const string AcsSymbol = "acs8";
 
-        public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService)
+        public ResourceConsumptionPreExecutionPlugin(IHostSmartContractBridgeContextService contextService)
         {
             _contextService = contextService;
         }
@@ -29,7 +29,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             return descriptors.Any(service => service.File.GetIndentity() == AcsSymbol);
         }
 
-        public async Task<IEnumerable<Transaction>> GetPostTransactionsAsync(
+        public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
             if (!IsAcs8(descriptors))
@@ -39,7 +39,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 
             var context = _contextService.Create();
             context.TransactionContext = transactionContext;
-            var selfStub = new ResourceConsumptionContractContainer.ResourceConsumptionContractStub()
+            var selfStub = new ResourceConsumptionContractContainer.ResourceConsumptionContractStub
             {
                 __factory = new MethodStubFactory(context)
             };
@@ -73,25 +73,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
                 return new List<Transaction>();
             }
 
-            // Transaction size related to NET Token.
-            var transactionSize = transactionContext.Transaction.Size();
-            // Transaction trace state set related to STO Token.
-            var writesCount = transactionContext.Trace.StateSet.Writes.Count;
-            // Transaction executing time related to CPU Token.
-            var executingTime = Convert.ToInt32((transactionContext.Trace.EndTime - transactionContext.Trace.StartTime)
-                .TotalMilliseconds);
-
-            var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(
-                new ChargeResourceTokenInput
-                {
-                    TransactionSize = transactionSize,
-                    WritesCount = writesCount,
-                    ExecutingTime = executingTime
-                })).Transaction;
+            var checkResourceTokenTransaction =
+                (await tokenStub.CheckResourceToken.SendAsync(new Empty())).Transaction;
 
             return new List<Transaction>
             {
-                chargeResourceTokenTransaction
+                checkResourceTokenTransaction
             };
         }
     }

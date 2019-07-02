@@ -79,9 +79,9 @@ namespace AElf.Blockchains.SideChain
             var miners = chainInitializationData == null
                 ? new MinerList
                 {
-                    PublicKeys =
+                    Pubkeys =
                     {
-                        _consensusOptions.InitialMiners.Select(p => p.ToByteString())
+                        _consensusOptions.InitialMinerList.Select(p => p.ToByteString())
                     }
                 }
                 : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationData.ExtraInformation[0]).MinerList;

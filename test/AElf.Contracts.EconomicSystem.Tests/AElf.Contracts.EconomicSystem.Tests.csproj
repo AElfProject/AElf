@@ -56,6 +56,7 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
         <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForAcs1\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForAcs8\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.csproj" />
         <ProjectReference Include="..\..\test\AElf.Contracts.TestContract.TransactionFeeCharging\AElf.Contracts.TestContract.TransactionFeeCharging.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>

@@ -80,6 +80,7 @@ namespace AElf.Blockchains.BasicBaseChain
 
             var configuration = context.Services.GetConfiguration();
             Configure<TokenInitialOptions>(configuration.GetSection("TokenInitial"));
+            Configure<EconomicOptions>(configuration.GetSection("Economic"));
             Configure<ChainOptions>(option =>
             {
                 option.ChainId =

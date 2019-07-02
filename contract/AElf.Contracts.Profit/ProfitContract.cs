@@ -118,6 +118,8 @@ namespace AElf.Contracts.Profit
                 EndPeriod = long.MaxValue
             });
 
+
+            // Add a sub profit item.
             profitItem.SubProfitItems.Add(new SubProfitItem
             {
                 ProfitId = input.SubProfitId,
@@ -211,6 +213,7 @@ namespace AElf.Contracts.Profit
                 EndPeriod = input.EndPeriod,
                 Weight = input.Weight,
             };
+
             var currentProfitDetails = State.ProfitDetailsMap[profitId][input.Receiver];
             if (currentProfitDetails == null)
             {
@@ -320,7 +323,7 @@ namespace AElf.Contracts.Profit
         /// <returns></returns>
         public override Empty ReleaseProfit(ReleaseProfitInput input)
         {
-            Assert(input.Amount >= 0, $"Amount must greater than 0");
+            Assert(input.Amount >= 0, $"Amount must be greater than or equal to 0");
             Context.LogDebug(() => $"Entered ReleaseProfit. {input.ProfitId}");
 
             if (State.TokenContract.Value == null)
@@ -530,6 +533,9 @@ namespace AElf.Contracts.Profit
             }
 
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
+
+            //if input.period == 0,the token will transfer to the totalAmount in the profitItem
+            //opposed,the token will transfer to the corresponding address of input.period
             if (input.Period == 0)
             {
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -614,7 +620,7 @@ namespace AElf.Contracts.Profit
             var availableDetails = profitDetails.Details.Where(d => d.LastProfitPeriod != profitItem.CurrentPeriod)
                 .ToList();
 
-            //Only can get profit until profitItem.CurrentPeriod-1,because currentPeriod hasn't be released.
+            // Only can get profit until profitItem.CurrentPeriod-1,because currentPeriod hasn't be released.
             for (var i = 0;
                 i < Math.Min(ProfitContractConsts.ProfitReceivingLimitForEachTime, availableDetails.Count);
                 i++)
@@ -626,6 +632,7 @@ namespace AElf.Contracts.Profit
                 }
 
                 var lastProfitPeriod = profitDetail.LastProfitPeriod;
+                // Can only get profit until profitItem.CurrentPeriod - 1,because currentPeriod hasn't be released.
                 for (var period = profitDetail.LastProfitPeriod;
                     period <= (profitDetail.EndPeriod == long.MaxValue
                         ? profitItem.CurrentPeriod - 1

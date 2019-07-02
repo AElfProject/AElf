@@ -29,24 +29,25 @@ namespace AElf.Blockchains.MainChain
                 nameof(EconomicContractContainer.EconomicContractStub.InitialEconomicSystem),
                 new InitialEconomicSystemInput
                 {
-                    NativeTokenDecimals = _tokenInitialOptions.Decimals,
-                    IsNativeTokenBurnable = _tokenInitialOptions.IsBurnable,
-                    NativeTokenSymbol = _tokenInitialOptions.Symbol,
-                    NativeTokenTotalSupply = _tokenInitialOptions.TotalSupply,
+                    NativeTokenDecimals = _economicOptions.Decimals,
+                    IsNativeTokenBurnable = _economicOptions.IsBurnable,
+                    NativeTokenSymbol = _economicOptions.Symbol,
+                    NativeTokenName = _economicOptions.TokenName,
+                    NativeTokenTotalSupply = _economicOptions.TotalSupply,
                     MiningRewardTotalAmount =
-                        Convert.ToInt64(_tokenInitialOptions.TotalSupply * _tokenInitialOptions.DividendPoolRatio)
+                        Convert.ToInt64(_economicOptions.TotalSupply * _economicOptions.DividendPoolRatio)
                 });
 
             //TODO: Maybe should be removed after testing.
-            foreach (var tokenReceiver in _consensusOptions.InitialMiners)
+            foreach (var tokenReceiver in _consensusOptions.InitialMinerList)
             {
                 economicContractMethodCallList.Add(
                     nameof(EconomicContractContainer.EconomicContractStub.IssueNativeToken), new IssueNativeTokenInput
                     {
                         Amount =
-                            Convert.ToInt64(_tokenInitialOptions.TotalSupply *
-                                            (1 - _tokenInitialOptions.DividendPoolRatio)) /
-                            _consensusOptions.InitialMiners.Count,
+                            Convert.ToInt64(_economicOptions.TotalSupply *
+                                            (1 - _economicOptions.DividendPoolRatio)) /
+                            _consensusOptions.InitialMinerList.Count,
                         To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(tokenReceiver)),
                         Memo = "Set initial miner's balance."
                     });

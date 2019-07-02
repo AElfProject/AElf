@@ -451,6 +451,17 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        public override Empty CheckResourceToken(Empty input)
+        {
+            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"RAM"}))
+            {
+                var balance = State.Balances[Context.Sender][symbol];
+                Assert(balance > 0, $"Contract balance of {symbol} token is not enough.");
+            }
+
+            return new Empty();
+        }
+
         public override Empty SetProfitReceivingInformation(ProfitReceivingInformation input)
         {
             if (State.ACS0Contract.Value == null)

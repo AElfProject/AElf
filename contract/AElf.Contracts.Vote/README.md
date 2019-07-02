@@ -33,7 +33,7 @@ For a `Sponsor` to register / create a voting event.
 
 - Transction sender will be the `Sponsor`.
 
-- The values of `Topic` and `Sponsor` fields can identify a `VotingEvent`.
+- The values of `Sponsor` fields can identify a `VotingEvent`.
 
 - A `VotingEvent` with specific `EpochNumber` called `VotingGoing` in this contract, which isn't really exists.
 
@@ -65,7 +65,7 @@ For a `Voter` to vote for a voting going (a epoch of a voting event).
 
 - `VotingHistory` just for one `VotingGoing` (of a voter).
 
-- The values of `Topic`, `Sponsor` and `EpochNumber` fields can identify a `VotingGoing` or a `VotingResult`.
+- The values of `Sponsor` and `EpochNumber` fields can identify a `VotingGoing` or a `VotingResult`.
 
 - We can get a certain `VotingRecord` by providing transaction id of `Vote` transaction, which actually called `VoteId`.
 

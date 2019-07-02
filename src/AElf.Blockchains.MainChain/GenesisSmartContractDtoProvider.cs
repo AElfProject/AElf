@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Blockchains.BasicBaseChain;
 using AElf.Contracts.Deployer;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.OS.Node.Application;
@@ -16,13 +17,13 @@ namespace AElf.Blockchains.MainChain
         private readonly IReadOnlyDictionary<string, byte[]> _codes =
             ContractsDeployer.GetContractCodes<GenesisSmartContractDtoProvider>();
         private readonly ConsensusOptions _consensusOptions;
-        private readonly TokenInitialOptions _tokenInitialOptions;
+        private readonly EconomicOptions _economicOptions;
 
         public GenesisSmartContractDtoProvider(IOptionsSnapshot<ConsensusOptions> dposOptions,
-            IOptionsSnapshot<TokenInitialOptions> tokenInitialOptions)
+            IOptionsSnapshot<EconomicOptions> economicOptions)
         {
             _consensusOptions = dposOptions.Value;
-            _tokenInitialOptions = tokenInitialOptions.Value;
+            _economicOptions = economicOptions.Value;
         }
 
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress)

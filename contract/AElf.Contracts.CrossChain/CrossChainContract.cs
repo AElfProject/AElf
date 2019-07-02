@@ -105,7 +105,7 @@ namespace AElf.Contracts.CrossChain
             State.SideChainInitialConsensusInfo[chainId] = new BytesValue{Value = initialConsensusInfo.ToByteString()};
             Context.LogDebug(() => $"Initial miner list for side chain {chainId} :" +
                                    string.Join(",",
-                                       initialConsensusInfo.MinerList.PublicKeys));
+                                       initialConsensusInfo.MinerList.Pubkeys));
             Context.LogDebug(() => $"RoundNumber {initialConsensusInfo.RoundNumber}");
             // Event is not used for now.
             Context.Fire(new CreationRequested()
