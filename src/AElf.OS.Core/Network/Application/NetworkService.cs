@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
@@ -48,7 +46,7 @@ namespace AElf.OS.Network.Application
             return _peerPool.GetPeers(true).ToList(); 
         }
 
-        public void BroadcastAnnounce(BlockHeader blockHeader, bool hasFork)
+        public Task BroadcastAnnounceAsync(BlockHeader blockHeader,bool hasFork)
         {
             var blockHash = blockHeader.GetHash();
             
@@ -56,7 +54,7 @@ namespace AElf.OS.Network.Application
                 recentBlockHash == blockHash)
             {
                 Logger.LogDebug($"BlockHeight: {blockHeader.Height}, BlockHash: {blockHash} has been broadcast.");
-                return;
+                return Task.CompletedTask;
             }
             
             _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHash, hasFork);
@@ -84,9 +82,11 @@ namespace AElf.OS.Network.Application
                 }
                 
             }, NetworkConstants.AnnouncementBroadcastQueueName);
+            
+            return Task.CompletedTask;
         }
         
-        public void BroadcastTransaction(Transaction tx)
+        public Task BroadcastTransactionAsync(Transaction tx)
         {
             _taskQueueManager.Enqueue(async () =>
             {
@@ -104,6 +104,8 @@ namespace AElf.OS.Network.Application
                 }
                 
             }, NetworkConstants.TransactionBroadcastQueueName);
+
+            return Task.CompletedTask;
         }
 
         public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, 

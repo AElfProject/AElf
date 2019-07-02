@@ -16,7 +16,7 @@ namespace AElf.OS.Handlers
         public async Task HandleEventAsync(TransactionAcceptedEvent eventData)
         {
             // No need to wait for the result
-            NetworkService.BroadcastTransaction(eventData.Transaction);
+            _ = NetworkService.BroadcastTransactionAsync(eventData.Transaction);
         }
     }
 }
