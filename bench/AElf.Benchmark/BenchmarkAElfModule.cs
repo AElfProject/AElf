@@ -1,8 +1,6 @@
-using AElf.Database;
-using AElf.Kernel.Infrastructure;
 using AElf.Modularity;
 using AElf.OS;
-using Microsoft.Extensions.DependencyInjection;
+using AElf.Kernel.SmartContract.Parallel;
 using Volo.Abp.Modularity;
 
 namespace AElf.Benchmark
@@ -43,6 +41,17 @@ namespace AElf.Benchmark
 //                    p.UseRedisDatabase();
 //                }
 //            });
+        }
+    }
+
+    [DependsOn(
+        typeof(OSCoreWithChainTestAElfModule),
+        typeof(ParallelExecutionModule)
+    )]
+    public class BenchmarkParallelAElfModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
         }
     }
 }

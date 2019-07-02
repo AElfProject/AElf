@@ -157,7 +157,7 @@ namespace AElf.Contracts.Election
 
             Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Sender is not a candidate.");
             Assert(
-                !State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).PublicKeys
+                !State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).Pubkeys
                     .Contains(publicKeyByteString),
                 "Current miners cannot quit election.");
 

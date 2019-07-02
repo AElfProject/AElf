@@ -33,7 +33,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var minerInRound = RealTimeMinersInformation[publicKey];
 
-            if (GetExtraBlockProducerInformation().PublicKey == publicKey)
+            if (GetExtraBlockProducerInformation().Pubkey == publicKey)
             {
                 var distance = (GetExtraBlockMiningTime().AddMilliseconds(miningInterval) - currentBlockTime).Milliseconds();
                 if (distance > 0)
