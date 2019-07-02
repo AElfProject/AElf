@@ -23,7 +23,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Create(CreateInput input)
         {
             var existing = State.TokenInfos[input.Symbol];
-            Assert(existing == null || !string.IsNullOrEmpty(existing.Symbol),
+            Assert(existing == null && !string.IsNullOrEmpty(input.Symbol),
                 $"Token already exists. Symbol: {input.Symbol}");
             RegisterTokenInfo(new TokenInfo
             {
@@ -387,7 +387,7 @@ namespace AElf.Contracts.MultiToken
             if (State.TreasuryContract.Value == null)
             {
                 State.TreasuryContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             }
 
             if (State.PreviousBlockTransactionFeeTokenSymbolList.Value == null ||

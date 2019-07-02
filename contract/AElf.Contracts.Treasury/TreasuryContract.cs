@@ -132,7 +132,9 @@ namespace AElf.Contracts.Treasury
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
-                To = isNativeSymbol ? State.TreasuryVirtualAddress.Value : Context.Self,
+                To = isNativeSymbol
+                    ? Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
+                    : Context.Self,
                 Symbol = input.Symbol,
                 Amount = input.Amount,
                 Memo = "Donate to treasury."
@@ -176,7 +178,7 @@ namespace AElf.Contracts.Treasury
                 State.TokenConverterContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
             }
-            
+
             State.TokenConverterContract.Sell.Send(new SellInput
             {
                 Symbol = symbol,
@@ -201,7 +203,7 @@ namespace AElf.Contracts.Treasury
                 State.TokenContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
-            
+
             if (State.TokenConverterContract.Value == null)
             {
                 State.TokenConverterContract.Value =
@@ -416,6 +418,7 @@ namespace AElf.Contracts.Treasury
                     Weight = 1
                 });
             }
+
             State.ProfitContract.AddWeights.Send(reElectionProfitAddWeights);
 
             // Manage weights of `MinerVotesWeightReward`
@@ -431,6 +434,7 @@ namespace AElf.Contracts.Treasury
                     Weight = 1
                 });
             }
+
             State.ProfitContract.AddWeights.Send(votesWeightRewardProfitAddWeights);
         }
 

@@ -4,13 +4,19 @@ using System.Threading.Tasks;
 using Acs1;
 using Acs5;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.MethodCallThreshold;
+using AElf.Contracts.Treasury;
 using AElf.Kernel;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using Shouldly;
 using Volo.Abp.Threading;
+using AElf.Contracts.TokenConverter;
+using AElf.Cryptography;
+using AElf.Kernel.Token;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -21,9 +27,20 @@ namespace AElf.Contracts.MultiToken
         private static long _totalSupply = 1_000_000L;
         private static long _balanceOfStarter = 800_000L;
 
+        private Connector RamConnector = new Connector
+        {
+            Symbol = "AETC",
+            VirtualBalance = 0,
+            Weight = "0.5",
+            IsPurchaseEnabled = true,
+            IsVirtualBalanceEnabled = false
+        };
+
         public MultiTokenContractTest()
         {
-            AsyncHelper.RunSync(async () => await InitializeAsync());
+            //AsyncHelper.RunSync(async () => await InitializeAsync());
+            DeployContracts();
+            InitialContracts();
         }
 
         private async Task InitializeAsync()
@@ -32,26 +49,158 @@ namespace AElf.Contracts.MultiToken
                 // TokenContract
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = TokenContractCode;
-                TokenContractAddress = await DeployContractAsync(category, code, DefaultSenderKeyPair);
+                TokenContractAddress = await DeploySystemSmartContract(category, code,
+                    TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
 
-                await TokenContractStub.Create.SendAsync(new CreateInput
+            }
+
+
+        }
+
+        private void DeployContracts()
+        {
+            var category = KernelConstants.CodeCoverageRunnerCategory;
+
+            {
+                // ProfitContract
+
+                var code = ProfitContractCode;
+                ProfitContractAddress = AsyncHelper.RunSync(() =>
+                    DeploySystemSmartContract(category, code, ProfitSmartContractAddressNameProvider.Name,
+                        DefaultSenderKeyPair)
+                );
+                ProfitContractStub =
+                    GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress,
+                        DefaultSenderKeyPair);
+
+            }
+
+            {
+                // TreasuryContract
+                var code = TreasuryContractCode;
+                TreasuryContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
+                    TreasurySmartContractAddressNameProvider.Name, DefaultSenderKeyPair));
+                TreasuryContractStub =
+                    GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress,
+                        DefaultSenderKeyPair);
+            }
+
+            {
+                // TokenContract
+                var code = TokenContractCode;
+                TokenContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
+                    TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair));
+                TokenContractStub =
+                    GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
+            }
+
+            {
+                //TokenConvertContract
+                var code = TokenConverterContractCode;
+                TokenConverterContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
+                    TokenConverterSmartContractAddressNameProvider.Name, DefaultSenderKeyPair));
+                TokenConverterContractStub =
+                    GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+                        DefaultSenderKeyPair);
+            }
+
+
+        }
+
+        private void InitialContracts()
+        {
+            {
+                TokenContractStub.Create.SendAsync(new CreateInput
                 {
                     Symbol = DefaultSymbol,
+                    TokenName = "Native Token",
+                    TotalSupply = _totalSupply,
                     Decimals = 2,
                     IsBurnable = true,
-                    TokenName = "elf token",
-                    TotalSupply = _totalSupply,
-                    Issuer = DefaultSender
+                    Issuer = DefaultSender,
+                    LockWhiteList =
+                    {
+                        ProfitContractAddress,
+                        TreasuryContractAddress
+                    }
                 });
-                await TokenContractStub.Issue.SendAsync(new IssueInput()
+                TokenContractStub.Create.SendAsync(new CreateInput
+                {
+                    Symbol = "AETC",
+                    TokenName = "AElf Token Converter Token",
+                    TotalSupply = 500_000L,
+                    Decimals = 2,
+                    Issuer = DefaultSender,
+                    IsBurnable = true,
+                    LockWhiteList =
+                    {
+                        ProfitContractAddress,
+                        TreasuryContractAddress
+                    }
+                });
+            }
+            
+            {
+                var result = AsyncHelper.RunSync(() => TokenContractStub.Issue.SendAsync(new IssueInput()
                 {
                     Symbol = DefaultSymbol,
                     Amount = _balanceOfStarter,
                     To = DefaultSender,
                     Memo = "Set for token converter."
-                });
+                }));
+                CheckResult(result.TransactionResult);
+            }
+            
+            {
+                var result = AsyncHelper.RunSync(() => TokenContractStub.Issue.SendAsync(new IssueInput()
+                {
+                    Symbol = DefaultSymbol,
+                    Amount = _totalSupply - _balanceOfStarter,
+                    To = TokenContractAddress,
+                    Memo = "Set for token converter."
+                }));
+                CheckResult(result.TransactionResult);
+            }
+
+            {
+                var result = AsyncHelper.RunSync(() => ProfitContractStub.CreateProfitItem.SendAsync(
+                    new CreateProfitItemInput
+                    {
+                        ProfitReceivingDuePeriodCount = 10
+                    }));
+                CheckResult(result.TransactionResult);
+            }
+
+            {
+                var result = AsyncHelper.RunSync(() =>
+                    TokenConverterContractStub.Initialize.SendAsync(new InitializeInput
+                    {
+                        BaseTokenSymbol = DefaultSymbol,
+                        FeeRate = "0.005",
+                        ManagerAddress = ManagerAddress,
+                        TokenContractAddress = TokenContractAddress,
+                        FeeReceiverAddress = ManagerAddress,
+                        Connectors = {RamConnector}
+                    }));
+                CheckResult(result.TransactionResult);
+            }
+            
+            {
+                var result =
+                    AsyncHelper.RunSync(() =>
+                        TreasuryContractStub.InitialTreasuryContract.SendAsync(new InitialTreasuryContractInput()));
+                CheckResult(result.TransactionResult);
+            }
+        }
+
+
+        private void CheckResult(TransactionResult result)
+        {
+            if (!string.IsNullOrEmpty(result.Error))
+            {
+                throw new Exception(result.Error);
             }
         }
 
@@ -94,7 +243,7 @@ namespace AElf.Contracts.MultiToken
                 })).Balance;
                 balance.ShouldBe(1000);
             }
-            
+
             //second issue
             {
                 var issueResult1 = await TokenContractStub.Issue.SendAsync(new IssueInput()
@@ -114,7 +263,7 @@ namespace AElf.Contracts.MultiToken
                 balance.ShouldBe(2000);
             }
         }
-        
+
         [Fact]
         public async Task Initialize_TokenContract()
         {
@@ -418,7 +567,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task Charge_Transaction_Fees()
         {
-            await Initialize_TokenContract();
+            //await Initialize_TokenContract();
 
             var result = (await TokenContractStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
             {
@@ -438,6 +587,39 @@ namespace AElf.Contracts.MultiToken
                 Symbol = DefaultSymbol
             });
             balanceOutput.Balance.ShouldBe(_balanceOfStarter - 1000L - 10L);
+        }
+
+        [Fact]
+        public async Task Claim_Transaction_Fees()
+        {
+            var originBalanceOutput1 = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = TreasuryContractAddress,
+                Symbol = DefaultSymbol
+            });
+            originBalanceOutput1.Balance.ShouldBe(0L);
+            await Charge_Transaction_Fees();
+
+            var originBalanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = TreasuryContractAddress,
+                Symbol = DefaultSymbol
+            });
+            originBalanceOutput.Balance.ShouldBe(10L);
+
+            {
+                var result = (await TokenContractStub.ClaimTransactionFees.SendAsync(new Empty()
+                )).TransactionResult;
+                CheckResult(result);
+            }
+
+            var balanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = TreasuryContractAddress,
+                Symbol = DefaultSymbol
+            });
+            balanceOutput.Balance.ShouldBe(10L);
+
         }
 
         [Fact]
@@ -475,5 +657,6 @@ namespace AElf.Contracts.MultiToken
                 fee.SymbolToAmount[DefaultSymbol].ShouldBe(10L);
             }
         }
+
     }
 }
