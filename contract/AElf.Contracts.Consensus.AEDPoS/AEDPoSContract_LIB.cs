@@ -58,12 +58,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // Current round is not enough to find LIB.
 
-            var publicKeys = new HashSet<string>(validMinersOfCurrentRound.Select(m => m.PublicKey));
+            var publicKeys = new HashSet<string>(validMinersOfCurrentRound.Select(m => m.Pubkey));
 
             if (TryToGetPreviousRoundInformation(out var previousRound))
             {
                 var preRoundMiners = previousRound.RealTimeMinersInformation.Values.OrderByDescending(m => m.Order)
-                    .Select(m => m.PublicKey).ToList();
+                    .Select(m => m.Pubkey).ToList();
 
                 var traversalBlocksCount = publicKeys.Count;
 

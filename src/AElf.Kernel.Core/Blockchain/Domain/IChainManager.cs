@@ -27,7 +27,7 @@ namespace AElf.Kernel.Blockchain.Domain
         Task RemoveChainBlockLinkAsync(Hash blockHash);
         Task<ChainBlockIndex> GetChainBlockIndexAsync(long blockHeight);
         Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, ChainBlockLink chainBlockLink);
-        Task SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash);
+        Task<bool> SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash);
         Task<List<ChainBlockLink>> GetNotExecutedBlocks(Hash blockHash);
         Task SetChainBlockLinkExecutionStatus(ChainBlockLink blockLink, ChainBlockLinkExecutionStatus status);
         Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
@@ -207,7 +207,7 @@ namespace AElf.Kernel.Blockchain.Domain
             return status;
         }
 
-        public async Task SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash)
+        public async Task<bool> SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash)
         {
             Stack<ChainBlockLink> links = new Stack<ChainBlockLink>();
 
@@ -228,6 +228,7 @@ namespace AElf.Kernel.Blockchain.Domain
             while (links.Count > 0)
             {
                 var chainBlockLink = links.Pop();
+                if (chainBlockLink.Height <= chain.LastIrreversibleBlockHeight) return false;
                 await SetChainBlockIndexAsync(chainBlockLink.Height, chainBlockLink.BlockHash);
                 await SetChainBlockLinkAsync(chainBlockLink);
                 chain.LastIrreversibleBlockHash = chainBlockLink.BlockHash;
@@ -237,6 +238,8 @@ namespace AElf.Kernel.Blockchain.Domain
 
                 await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
             }
+
+            return true;
         }
 
         public async Task<List<ChainBlockLink>> GetNotExecutedBlocks(Hash blockHash)
