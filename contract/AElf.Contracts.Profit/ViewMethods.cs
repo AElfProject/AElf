@@ -20,6 +20,13 @@ namespace AElf.Contracts.Profit
             return State.ProfitItemsMap[input];
         }
 
+        /// <summary>
+        /// If input.Period == 0, the result will be the address of general ledger of a certain profit item;
+        /// Otherwise the result will be the address of a specific account period of a certain profit item,
+        /// which profit receivers will gain profits from.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Address GetProfitItemVirtualAddress(GetProfitItemVirtualAddressInput input)
         {
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
@@ -34,7 +41,9 @@ namespace AElf.Contracts.Profit
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
             var releasedProfitsVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
             return State.ReleasedProfitsMap[releasedProfitsVirtualAddress] ?? new ReleasedProfitsInformation
-                       {ProfitsAmount = -1, TotalWeight = -1};
+            {
+                TotalWeight = -1
+            };
         }
 
         public override ProfitDetails GetProfitDetails(GetProfitDetailsInput input)
@@ -89,7 +98,7 @@ namespace AElf.Contracts.Profit
                     var releasedProfitsInformation = State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
                     if (releasedProfitsInformation.IsReleased)
                     {
-                        amount = amount.Add(profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount)
+                        amount = amount.Add(profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount[input.Symbol])
                             .Div(releasedProfitsInformation.TotalWeight));
                     }
                 }

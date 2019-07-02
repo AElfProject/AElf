@@ -79,6 +79,7 @@ message ProfitItem {
     bool is_release_all_balance_everytime_by_default = 10;
     bool is_treasury_profit_item = 11;
     aelf.Hash profit_id = 12;
+    string symbol = 13;
 }
 
 message SubProfitItem {
@@ -116,6 +117,7 @@ message WeightMap {
 
 message ProfitInput {
     aelf.Hash profit_id = 1;
+    string symbol = 2;
 }
 
 message ReleaseProfitInput {
@@ -123,6 +125,7 @@ message ReleaseProfitInput {
     sint64 period = 2;
     sint64 amount = 3;
     sint64 total_weight = 4;
+    string symbol = 5;
 }
 
 message ProfitDetails {
@@ -140,7 +143,7 @@ message AddProfitsInput {
     aelf.Hash profit_id = 1;
     sint64 amount = 2;
     sint64 period = 3;
-    string token_symbol = 4;
+    string symbol = 4;
 }
 
 message RegisterSubProfitItemInput {
@@ -157,7 +160,7 @@ message CancelSubProfitItemInput {
 
 message ReleasedProfitsInformation {
     sint64 total_weight = 1;
-    sint64 profits_amount = 2;// Only native token amount, because other types of tokens need to convert to native tokens.
+    map<string, sint64> profits_amount = 2;
     bool is_released = 3;
 }
 
