@@ -71,6 +71,8 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
+        #region TakeSnapshot
+
         public override Empty TakeSnapshot(TakeElectionSnapshotInput input)
         {
             SavePreviousTermInformation(input);
@@ -87,8 +89,16 @@ namespace AElf.Contracts.Election
             var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
 
-            var reElectionProfitAddWeights = new AddWeightsInput();
-            var votesWeightRewardProfitAddWeights = new AddWeightsInput();
+            var reElectionProfitAddWeights = new AddWeightsInput
+            {
+                ProfitId = State.ReElectionRewardHash.Value,
+                EndPeriod = input.TermNumber
+            };
+            var votesWeightRewardProfitAddWeights = new AddWeightsInput
+            {
+                ProfitId = State.VotesRewardHash.Value,
+                EndPeriod = input.TermNumber
+            };
             foreach (var publicKey in previousMiners)
             {
                 var address = Address.FromPublicKey(ByteArrayHelpers.FromHexString(publicKey));
@@ -109,6 +119,29 @@ namespace AElf.Contracts.Election
             }
 
             return new Empty();
+        }
+
+        private void SavePreviousTermInformation(TakeElectionSnapshotInput input)
+        {
+            var snapshot = new TermSnapshot
+            {
+                MinedBlocks = input.MinedBlocks,
+                EndRoundNumber = input.RoundNumber
+            };
+
+            foreach (var publicKey in State.Candidates.Value.Value)
+            {
+                var votes = State.CandidateVotes[publicKey.ToHex()];
+                var validObtainedVotesAmount = 0L;
+                if (votes != null)
+                {
+                    validObtainedVotesAmount = votes.ObtainedActiveVotedVotesAmount;
+                }
+
+                snapshot.ElectionResult.Add(publicKey.ToHex(), validObtainedVotesAmount);
+            }
+
+            State.Snapshots[input.TermNumber] = snapshot;
         }
 
         private void UpdateCandidateInformation(string publicKey, long lastTermNumber, Address minerAddress,
@@ -151,27 +184,8 @@ namespace AElf.Contracts.Election
             }
         }
 
-        private void SavePreviousTermInformation(TakeElectionSnapshotInput input)
-        {
-            var snapshot = new TermSnapshot
-            {
-                MinedBlocks = input.MinedBlocks,
-                EndRoundNumber = input.RoundNumber
-            };
 
-            foreach (var publicKey in State.Candidates.Value.Value)
-            {
-                var votes = State.CandidateVotes[publicKey.ToHex()];
-                var validObtainedVotesAmount = 0L;
-                if (votes != null)
-                {
-                    validObtainedVotesAmount = votes.ObtainedActiveVotedVotesAmount;
-                }
-
-                snapshot.ElectionResult.Add(publicKey.ToHex(), validObtainedVotesAmount);
-            }
-            State.Snapshots[input.TermNumber] = snapshot;
-        }
+        #endregion
 
         /// <summary>
         /// Update the candidate information,if it's not evil node.

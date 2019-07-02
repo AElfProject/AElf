@@ -231,4 +231,6 @@ message SetTreasuryProfitIdsInput {
     aelf.Hash treasury_hash = 1;
     aelf.Hash welfare_hash = 2;
     aelf.Hash subsidy_hash = 3;
+    aelf.Hash votes_reward_hash = 4;
+    aelf.Hash re_election_reward_hash = 5;
 }
