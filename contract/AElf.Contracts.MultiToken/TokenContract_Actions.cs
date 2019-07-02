@@ -422,24 +422,26 @@ namespace AElf.Contracts.MultiToken
         public override Empty CheckThreshold(CheckThresholdInput input)
         {
             var meetThreshold = false;
-            if (input.IsCheckAllowance)
+
+            foreach (var symbolToThreshold in input.SymbolToThreshold)
             {
+                if (State.Balances[input.Sender][symbolToThreshold.Key] < symbolToThreshold.Value) continue;
+                meetThreshold = true;
+                break;
+            }
+
+            if (meetThreshold && input.IsCheckAllowance)
+            {
+                var meetAllowanceThreshold = false;
                 foreach (var symbolToThreshold in input.SymbolToThreshold)
                 {
                     if (State.Allowances[input.Sender][Context.Sender][symbolToThreshold.Key] <
                         symbolToThreshold.Value) continue;
-                    meetThreshold = true;
+                    meetAllowanceThreshold = true;
                     break;
                 }
-            }
-            else
-            {
-                foreach (var symbolToThreshold in input.SymbolToThreshold)
-                {
-                    if (State.Balances[input.Sender][symbolToThreshold.Key] < symbolToThreshold.Value) continue;
-                    meetThreshold = true;
-                    break;
-                }
+
+                meetThreshold = meetAllowanceThreshold;
             }
 
             if (input.SymbolToThreshold.Count == 0)
@@ -539,6 +541,7 @@ namespace AElf.Contracts.MultiToken
 
             Assert(
                 contractOwner == Context.Sender ||
+                // TODO: Check (Sender == 2/3 organization virtual address) instead of this.
                 Context.Sender ==
                 Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
