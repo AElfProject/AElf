@@ -34,7 +34,7 @@ namespace AElf.OS.Network.Infrastructure
         Task<bool> TryWaitForStateChangedAsync();
         
         Task UpdateHandshakeAsync();
-        Task FinalizeConnectAsync();
+        Task<FinalizeConnectReply> FinalizeConnectAsync(Handshake handshake);
         Task SendDisconnectAsync();
         
         Task StopAsync();

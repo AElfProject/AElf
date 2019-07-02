@@ -21,6 +21,10 @@ message HandshakeData {
     bytes pubkey = 4;
 }
 
+message FinalizeConnectReply {
+    bool success = 1;
+}
+
 message PeerNewBlockAnnouncement {
     aelf.Hash block_hash = 1;
     int64 block_height = 2;

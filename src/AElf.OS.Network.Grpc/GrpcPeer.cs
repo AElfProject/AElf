@@ -130,12 +130,12 @@ namespace AElf.OS.Network.Grpc
                 LastKnowLibHeight = handshake.LibBlockHeight;
         }
 
-        public async Task FinalizeConnectAsync()
+        public async Task<FinalizeConnectReply> FinalizeConnectAsync(Handshake handshake)
         {
             GrpcRequest request = new GrpcRequest { ErrorMessage = $"Error while finalizing request to {this}." };
             Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, FinalizeConnectTimeout.ToString()} };
 
-            await RequestAsync(_client, c => c.FinalizeConnectAsync(new Handshake(), data), request);
+            return await RequestAsync(_client, c => c.FinalizeConnectAsync(handshake, data), request);
         }
 
         public async Task<BlockWithTransactions> RequestBlockAsync(Hash hash)

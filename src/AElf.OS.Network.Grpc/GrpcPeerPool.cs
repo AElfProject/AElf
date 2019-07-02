@@ -70,7 +70,8 @@ namespace AElf.OS.Network.Grpc
 
             var (channel, client) = await CreateClientAsync(ipAddress);
 
-            ConnectReply connectReply = await TryConnectAsync(client, ipAddress);
+            var handshake = await BuildHandshakeAsync();
+            ConnectReply connectReply = await TryConnectAsync(client, ipAddress, handshake);
 
             if (connectReply == null)
             {
@@ -99,7 +100,14 @@ namespace AElf.OS.Network.Grpc
                 return false;
             }
 
-            await peer.FinalizeConnectAsync();
+            var finalizeReply = await peer.FinalizeConnectAsync(handshake);
+            
+            if (finalizeReply == null || !finalizeReply.Success)
+            {
+                Logger.LogWarning($"Could not finalize connection to {ipAddress} - {pubKey}");
+                await RemovePeerAsync(pubKey, true); // remove and cleanup
+                return false;
+            }
             
             peer.StartAnnouncementStreaming();
             peer.StartTransactionStreaming();
@@ -120,7 +128,7 @@ namespace AElf.OS.Network.Grpc
             }, pubKey));
         }
         
-        private async Task<ConnectReply> TryConnectAsync(PeerService.PeerServiceClient client, string ipAddress)
+        private async Task<ConnectReply> TryConnectAsync(PeerService.PeerServiceClient client, string ipAddress, Handshake handshake)
         {
             ConnectReply connectReply;
             
@@ -129,9 +137,7 @@ namespace AElf.OS.Network.Grpc
                 Metadata data = new Metadata {
                     {GrpcConstants.TimeoutMetadataKey, _networkOptions.PeerDialTimeoutInMilliSeconds.ToString()}};
                 
-                var hsk = await BuildHandshakeAsync();
-                
-                connectReply = await client.ConnectAsync(hsk, data);
+                connectReply = await client.ConnectAsync(handshake, data);
             }
             catch (AggregateException e)
             {

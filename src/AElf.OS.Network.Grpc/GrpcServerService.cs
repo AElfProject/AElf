@@ -178,14 +178,17 @@ namespace AElf.OS.Network.Grpc
             return AuthError.None;
         }
 
-        public override Task<VoidReply> FinalizeConnect(Handshake request, ServerCallContext context)
+        public override Task<FinalizeConnectReply> FinalizeConnect(Handshake request, ServerCallContext context)
         {
             var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+            
+            if (peerInPool == null)
+                return Task.FromResult(new FinalizeConnectReply { Success = false });
             
             peerInPool.StartAnnouncementStreaming();
             peerInPool.StartTransactionStreaming();
 
-            return Task.FromResult(new VoidReply());
+            return Task.FromResult(new FinalizeConnectReply { Success = true });
         }
 
         public override async Task<VoidReply> AnnouncementBroadcastStream(IAsyncStreamReader<PeerNewBlockAnnouncement> requestStream, ServerCallContext context)
