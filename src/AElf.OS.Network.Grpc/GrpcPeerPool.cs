@@ -11,14 +11,11 @@ using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Volo.Abp.DependencyInjection;
-using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
 using Volo.Abp.Threading;
 
@@ -109,7 +106,7 @@ namespace AElf.OS.Network.Grpc
                 return false;
             }
             
-            peer.StartAsync();
+            await peer.StartAsync();
             
             Logger.LogTrace($"Connected to {peer} -- height {peer.StartHeight}.");
             
