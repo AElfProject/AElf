@@ -200,7 +200,7 @@ namespace AElf.Contracts.CrossChain
         {
             var crossChainBlockData = new CrossChainBlockData();
             var indexedParentChainBlockData = State.LastIndexedParentChainBlockData.Value;
-            if (indexedParentChainBlockData != null && indexedParentChainBlockData.BlockHeight == input.Value)
+            if (indexedParentChainBlockData != null && indexedParentChainBlockData.LocalChainHeight == input.Value)
                 crossChainBlockData.ParentChainBlockData.AddRange(indexedParentChainBlockData.ParentChainBlockData);
             
             var indexedSideChainBlockData = State.IndexedSideChainBlockData[input.Value];
@@ -239,7 +239,7 @@ namespace AElf.Contracts.CrossChain
             var currentHeight = State.CurrentParentChainHeight.Value;
             var indexedParentChainBlockData = new IndexedParentChainBlockData
             {
-                BlockHeight = Context.CurrentHeight
+                LocalChainHeight = Context.CurrentHeight
             };
             for (var i = 0; i < parentChainBlockData.Count; i++)
             {

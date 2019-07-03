@@ -73,12 +73,12 @@ message RechargeInput {
 }
 
 message IndexedParentChainBlockData{
-    int64 blockHeight = 1;
-    repeated acs7.ParentChainBlockData parentChainBlockData = 2;
+    int64 local_chain_height = 1;
+    repeated acs7.ParentChainBlockData parent_chain_block_data = 2;
 }
 
 message IndexedSideChainBlockData{
-    repeated acs7.SideChainBlockData sideChainBlockData = 1;
+    repeated acs7.SideChainBlockData side_chain_block_data = 1;
 }
 
 message VerifyTransactionInput {
