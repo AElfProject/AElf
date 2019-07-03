@@ -140,7 +140,7 @@ namespace AElf.Contracts.Treasury
             {
                 From = Context.Sender,
                 To = isNativeSymbol
-                    ? Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
+                    ? State.TreasuryVirtualAddress.Value
                     : Context.Self,
                 Symbol = input.Symbol,
                 Amount = input.Amount,

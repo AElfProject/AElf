@@ -12,7 +12,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AElf.Contracts.EconomicSystem.Tests
+namespace AElf.Contracts.Economic.TestBase
 {
     public class EconomicTransactionExecutor : ITransactionExecutor
     {

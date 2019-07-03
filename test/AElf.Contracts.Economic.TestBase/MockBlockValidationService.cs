@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 
-namespace AElf.Contracts.EconomicSystem.Tests
+namespace AElf.Contracts.Economic.TestBase
 {
     public class MockBlockValidationService : IBlockValidationService
     {

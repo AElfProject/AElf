@@ -183,6 +183,12 @@ namespace AElf.Contracts.Election
 
             Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Sender is not a candidate.");
 
+            if (State.AEDPoSContract.Value == null)
+            {
+                State.AEDPoSContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            }
+
             Assert(
                 !State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).Pubkeys
                     .Contains(publicKeyByteString),

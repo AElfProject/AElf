@@ -1,4 +1,5 @@
 using System.Linq;
+using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -8,7 +9,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     internal partial class MinerList
     {
-        public Round GenerateFirstRoundOfNewTerm(int miningInterval,
+        public Consensus.AEDPoS.Round GenerateFirstRoundOfNewTerm(int miningInterval,
             Timestamp currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
         {
             var sortedMiners =
@@ -17,7 +18,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     orderby obj.Value descending
                     select obj.Key).ToList();
 
-            var round = new Round();
+            var round = new Consensus.AEDPoS.Round();
 
             for (var i = 0; i < sortedMiners.Count; i++)
             {

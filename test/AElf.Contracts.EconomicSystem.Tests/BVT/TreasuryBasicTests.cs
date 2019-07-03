@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using Acs5;
+using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TokenConverter;
 using AElf.Types;
@@ -66,7 +67,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Owner = chosenOneAddress,
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol
             });
-            var tycoon = GetTransactionFeeChargingContractStub(chosenOneKeyPair);
+            var tycoon = GetTransactionFeeChargingContractTester(chosenOneKeyPair);
             await tycoon.SendForFun.SendAsync(new Empty());
             var balanceAfter = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -144,7 +145,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 balance.Balance.ShouldBe(feeAmount);
             }
             
-            var tycoon = GetTransactionFeeChargingContractStub(chosenOneKeyPair);
+            var tycoon = GetTransactionFeeChargingContractTester(chosenOneKeyPair);
             await tycoon.SendForFun.SendAsync(new Empty());
             
             {
