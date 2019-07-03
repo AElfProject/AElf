@@ -41,7 +41,7 @@ namespace AElf.Kernel
 
         private byte[] GetSignatureData()
         {
-            CheckRequiredField();
+            CheckField();
 
             if (Signature.IsEmpty)
                 return this.ToByteArray();
@@ -51,7 +51,7 @@ namespace AElf.Kernel
             return blockHeader.ToByteArray();
         }
 
-        private void CheckRequiredField()
+        private void CheckField()
         {
             if (ChainId < 0)
             {
