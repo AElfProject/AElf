@@ -54,7 +54,7 @@ namespace AElf.Contracts.Election
             var electionStub = GetElectionContractStub(voterKeyPair);
             var voteResult = (await electionStub.Vote.SendAsync(new VoteMinerInput
             {
-                CandidatePublicKey = candidatePublicKey,
+                CandidatePubkey = candidatePublicKey,
                 Amount = amount,
                 EndTimestamp = TimestampHelper.GetUtcNow().AddSeconds(lockTime)
             })).TransactionResult;
