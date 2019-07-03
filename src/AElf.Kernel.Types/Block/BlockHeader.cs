@@ -21,9 +21,7 @@ namespace AElf.Kernel
         public Hash GetHash()
         {
             if (_blockHash == null)
-            {
                 _blockHash = Hash.FromRawBytes(GetSignatureData());
-            }
 
             return _blockHash;
         }
@@ -41,7 +39,8 @@ namespace AElf.Kernel
 
         private byte[] GetSignatureData()
         {
-            CheckField();
+            if (!VerifyFields())
+                throw new InvalidOperationException($"Invalid block header: {this}.");
 
             if (Signature.IsEmpty)
                 return this.ToByteArray();
@@ -51,38 +50,28 @@ namespace AElf.Kernel
             return blockHeader.ToByteArray();
         }
 
-        private void CheckField()
+        public bool VerifyFields()
         {
             if (ChainId < 0)
-            {
-                throw new InvalidOperationException($"Invalid block header, ChainId is not correct: {this}");
-            }
+                return false;
 
             if (Height < Constants.GenesisBlockHeight)
-            {
-                throw new InvalidOperationException($"Invalid block header, Height is not correct: {this}");
-            }
+                return false;
+
+            if (Height > Constants.GenesisBlockHeight && SignerPubkey.IsEmpty)
+                return false;
 
             if (PreviousBlockHash == null)
-            {
-                throw new InvalidOperationException($"Invalid block header, PreviousBlockHash is not correct: {this}");
-            }
+                return false;
 
             if (MerkleTreeRootOfTransactions == null || MerkleTreeRootOfWorldState == null ||
                 MerkleTreeRootOfTransactionStatus == null)
-            {
-                throw new InvalidOperationException($"Invalid block header, MerkleTreeRoot is not correct: {this}");
-            }
+                return false;
 
             if (Time == null)
-            {
-                throw new InvalidOperationException($"Invalid block header, Time is not correct: {this}");
-            }
+                return false;
 
-            if (Height > Constants.GenesisBlockHeight && SignerPubkey.IsEmpty)
-            {
-                throw new InvalidOperationException($"Invalid block header, SignerPubkey is not correct: {this}");
-            }
+            return true;
         }
     }
 }
