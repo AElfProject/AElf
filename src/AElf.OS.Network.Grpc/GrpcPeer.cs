@@ -18,9 +18,7 @@ namespace AElf.OS.Network.Grpc
     {
         private const int MaxMetricsPerMethod = 100;
         
-        private const int AnnouncementTimeout = 300;
         private const int BlockRequestTimeout = 300;
-        private const int TransactionSendTimeout = 300;
         private const int BlocksRequestTimeout = 500;
 
         private const int FinalizeConnectTimeout = 500;
@@ -37,16 +35,17 @@ namespace AElf.OS.Network.Grpc
         private readonly PeerService.PeerServiceClient _client;
 
         /// <summary>
-        /// Property that describes a valid state. Valid here means that the peer is ready to be used for communication.
+        /// Property that describes a valid state. Valid here means that the peer is ready to be used for communications.
         /// </summary>
         public bool IsReady
         {
-            get { return _channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready; }
+            get { return (_channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready) && IsConnected; }
         }
         
         public long LastKnowLibHeight { get; private set; }
 
         public bool IsBest { get; set; }
+        public bool IsConnected { get; set; }
         public Hash CurrentBlockHash { get; private set; }
         public long CurrentBlockHeight { get; private set; }
         
@@ -56,9 +55,7 @@ namespace AElf.OS.Network.Grpc
         public long ConnectionTime { get; }
         public bool Inbound { get; }
         public long StartHeight { get; }
-
-        private bool _canBroadcast;
-
+        
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
         
@@ -134,7 +131,11 @@ namespace AElf.OS.Network.Grpc
             GrpcRequest request = new GrpcRequest { ErrorMessage = $"Error while finalizing request to {this}." };
             Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, FinalizeConnectTimeout.ToString()} };
 
-            return await RequestAsync(_client, c => c.FinalizeConnectAsync(handshake, data), request);
+            var finalizeConnectReply = await RequestAsync(_client, c => c.FinalizeConnectAsync(handshake, data), request);
+            
+            IsConnected = finalizeConnectReply.Success;
+            
+            return finalizeConnectReply;
         }
 
         public async Task<BlockWithTransactions> RequestBlockAsync(Hash hash)
@@ -180,19 +181,13 @@ namespace AElf.OS.Network.Grpc
 
         #region Streaming
 
-        public Task StartAsync()
-        {
-            _canBroadcast = true;
-            return Task.CompletedTask;
-        }
-        
         /// <summary>
         /// Send a announcement to the peer using the stream call.
         /// Note: this method is not thread safe.
         /// </summary>
         public async Task AnnounceAsync(PeerNewBlockAnnouncement header)
         {
-            if (!_canBroadcast)
+            if (!IsConnected)
                 return;
             
             if (_announcementStreamCall == null)
@@ -218,7 +213,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public async Task SendTransactionAsync(Transaction transaction)
         {
-            if (!_canBroadcast)
+            if (!IsConnected)
                 return;
                 
             if (_transactionStreamCall == null)

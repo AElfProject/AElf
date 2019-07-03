@@ -180,12 +180,12 @@ namespace AElf.OS.Network.Grpc
 
         public override Task<FinalizeConnectReply> FinalizeConnect(Handshake request, ServerCallContext context)
         {
-            var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+            var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
             
-            if (peerInPool == null)
+            if (peer == null)
                 return Task.FromResult(new FinalizeConnectReply { Success = false });
-            
-            peerInPool.StartAsync();
+
+            peer.IsConnected = true;
             
             return Task.FromResult(new FinalizeConnectReply { Success = true });
         }

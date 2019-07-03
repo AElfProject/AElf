@@ -106,8 +106,6 @@ namespace AElf.OS.Network.Grpc
                 return false;
             }
             
-            await peer.StartAsync();
-            
             Logger.LogTrace($"Connected to {peer} -- height {peer.StartHeight}.");
             
             FireConnectionEvent(connectReply, pubKey);

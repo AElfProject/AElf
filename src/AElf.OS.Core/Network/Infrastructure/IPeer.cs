@@ -7,6 +7,7 @@ namespace AElf.OS.Network.Infrastructure
     public interface IPeer
     {
         bool IsBest { get; set; }
+        bool IsConnected { get; set; }
         bool IsReady { get; }
         Hash CurrentBlockHash { get; }
         long CurrentBlockHeight { get; }
@@ -21,7 +22,6 @@ namespace AElf.OS.Network.Infrastructure
         
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         
-        Task StartAsync();
         Task StopAsync();
 
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();

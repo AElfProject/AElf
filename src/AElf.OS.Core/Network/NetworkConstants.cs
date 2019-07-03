@@ -10,6 +10,9 @@ namespace AElf.OS.Network
         public const int DefaultMaxPeers = 25;
         
         public const int DefaultInitialSyncOffset = 512;
+        
+        public const int AnnouncementQueueJobTimeout = 1000;
+        public const int TransactionQueueJobTimeout = 1000;
 
         public const string PeerReconnectionQueueName = "PeerReconnectionQueue";
         public const string AnnouncementBroadcastQueueName = "AnnouncementBroadcastQueue";

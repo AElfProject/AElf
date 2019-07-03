@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -66,8 +68,17 @@ namespace AElf.OS.Network.Application
                 HasFork = hasFork
             };
             
+            var beforeEnqueue = TimestampHelper.GetUtcNow();
             _taskQueueManager.Enqueue(async () =>
             {
+                var execTime = TimestampHelper.GetUtcNow();
+                if (execTime > beforeEnqueue +
+                    TimestampHelper.DurationFromMilliseconds(NetworkConstants.AnnouncementQueueJobTimeout))
+                {
+                    Logger.LogWarning($"Announcement too old: {execTime - beforeEnqueue}");
+                    return;
+                }
+                
                 foreach (var peer in _peerPool.GetPeers())
                 {
                     try
@@ -88,8 +99,17 @@ namespace AElf.OS.Network.Application
         
         public Task BroadcastTransactionAsync(Transaction tx)
         {
+            var beforeEnqueue = TimestampHelper.GetUtcNow();
             _taskQueueManager.Enqueue(async () =>
             {
+                var execTime = TimestampHelper.GetUtcNow();
+                if (execTime > beforeEnqueue +
+                    TimestampHelper.DurationFromMilliseconds(NetworkConstants.TransactionQueueJobTimeout))
+                {
+                    Logger.LogWarning($"Transaction too old: {execTime - beforeEnqueue}");
+                    return;
+                }
+                
                 foreach (var peer in _peerPool.GetPeers())
                 {
                     try
