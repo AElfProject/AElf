@@ -234,7 +234,7 @@ namespace AElf.OS.Network
             await _service.Connect(handshake, BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
             await _service.Connect(handshake, BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
 
-            var peers = _peerPool.GetPeers().Select(p => p.PubKey)
+            var peers = _peerPool.GetPeers(true).Select(p => p.PubKey)
                 .Where(key => key == peerKeyPair.PublicKey.ToHex())
                 .ToList();
             

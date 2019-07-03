@@ -95,8 +95,7 @@ namespace AElf.OS.Network
                 BlockHeight = 100,
                 BlockHash = Hash.Generate()
             };
-
-            await _grpcPeer.StartAsync();
+            
             await _grpcPeer.AnnounceAsync(header);
             
             received.ShouldNotBeNull();
@@ -114,7 +113,6 @@ namespace AElf.OS.Network
                 return Task.CompletedTask;
             });
             var transactions = await _osTestHelper.GenerateTransferTransactions(1);
-            await _grpcPeer.StartAsync();
             await _grpcPeer.SendTransactionAsync(transactions.First());
 
             await Task.Delay(200);
