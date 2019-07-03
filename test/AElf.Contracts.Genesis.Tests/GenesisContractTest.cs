@@ -73,6 +73,22 @@ namespace AElf.Contracts.Genesis
             var contractHash = Hash.FromRawBytes(contractCode);
             resultHash.ShouldBe(contractHash);
         }
+        
+        [Fact]
+        public async Task Update_SmartContract_WrongUser()
+        {
+            var contractAddress = await Deploy_SmartContracts();
+
+            var resultUpdate = await AnotherTester.UpdateSmartContract.SendAsync(
+                new ContractUpdateInput()
+                {
+                    Address = contractAddress,
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("Consensus")).Value),
+                });
+            resultUpdate.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            resultUpdate.TransactionResult.Error.Contains("Only author can propose contract update.").ShouldBeTrue();
+        }
+        
 
         [Fact]
         public async Task Update_SmartContract_With_Same_Code()

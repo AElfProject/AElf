@@ -57,8 +57,7 @@ namespace AElf.Contracts.Genesis
             ParliamentAddress = Tester.GetContractAddress(ParliamentAuthContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
         }
-
-
+        
         protected async Task<TransactionResult> ApproveWithMinersAsync(Hash proposalId)
         {
             var tester0 = Tester.CreateNewContractTester(Tester.InitialMinerList[0]);

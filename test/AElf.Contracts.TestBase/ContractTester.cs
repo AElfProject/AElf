@@ -7,7 +7,6 @@ using AElf.Contracts.Deployer;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.ParliamentAuth;
 using AElf.CrossChain;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -85,6 +84,7 @@ namespace AElf.Contracts.TestBase
         public long TokenTotalSupply = 1000_000L;
         public long InitialTreasuryAmount = 200_000L;
         public long InitialBalanceOfStarter = 800_000L;
+        public bool IsPrivilegePreserved = true;
 
         public ContractTester() : this(0, null)
         {
@@ -688,6 +688,37 @@ namespace AElf.Contracts.TestBase
             {
                 //TODO: support initialize method, make the tester auto issue elf token
                 list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
+                list.AddGenesisSmartContract(FeeReceiverContractCode, ResourceFeeReceiverSmartContractAddressNameProvider
+                    .Name);
+                list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthContractAddressNameProvider.Name,
+                    parliamentContractCallList);
+            };
+        }
+        
+        /// <summary>
+        /// Zero Contract and Consensus Contract will deploy independently, thus this list won't contain this two contracts.
+        /// </summary>
+        /// <returns></returns>
+        public Action<List<GenesisSmartContractDto>> GetSideChainDefaultContractTypes(Address issuer, out long totalSupply,
+            out long dividend, out long balanceOfStarter, Address proposer,out bool isPrivilegePreserved)
+        {
+            totalSupply = TokenTotalSupply;
+            dividend = InitialTreasuryAmount;
+            balanceOfStarter = InitialBalanceOfStarter;
+            isPrivilegePreserved = IsPrivilegePreserved;
+
+            var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
+            parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new ParliamentAuth.InitializeInput
+                {
+                    GenesisOwnerReleaseThreshold = contractOptions.GenesisOwnerReleaseThreshold,
+                    PrivilegedProposer = proposer,
+                    IsPrivilegePreserved = IsPrivilegePreserved
+                });
+            return list =>
+            {
+                list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract(FeeReceiverContractCode, ResourceFeeReceiverSmartContractAddressNameProvider
                     .Name);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
