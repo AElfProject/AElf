@@ -18,7 +18,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             var keyPair = SampleECKeyPairs.KeyPairs[1];
             await TransferToken(keyPair, EconomicSystemTestConstants.NativeTokenSymbol, 100);
-            var stub = GetTreasuryContractStub(keyPair);
+            var stub = GetTreasuryContractTester(keyPair);
 
             var donateResult = await stub.Donate.SendAsync(new DonateInput
             {
@@ -43,7 +43,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             var keyPair = SampleECKeyPairs.KeyPairs[1];
             await TransferToken(keyPair, EconomicSystemTestConstants.NativeTokenSymbol, 100);
-            var stub = GetTreasuryContractStub(keyPair);
+            var stub = GetTreasuryContractTester(keyPair);
 
             var donateResult = await stub.DonateAll.SendAsync(new DonateAllInput
             {
@@ -68,7 +68,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var keyPair = SampleECKeyPairs.KeyPairs[1];
 
             await TransferToken(keyPair, EconomicSystemTestConstants.NativeTokenSymbol, 50);
-            var stub = GetTreasuryContractStub(keyPair);
+            var stub = GetTreasuryContractTester(keyPair);
             var donateResult = await stub.Donate.SendAsync(new DonateInput
             {
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
@@ -90,7 +90,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var keyPair = CoreDataCenterKeyPairs[0];
 
             await TransferToken(keyPair, EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol, 100);
-            var stub = GetTreasuryContractStub(keyPair);
+            var stub = GetTreasuryContractTester(keyPair);
             var donateResult = await stub.Donate.SendAsync(new DonateInput
             {
                 Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,
@@ -112,7 +112,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var keyPair = CoreDataCenterKeyPairs[0];
 
             await TransferToken(keyPair, EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol, 100);
-            var stub = GetTreasuryContractStub(keyPair);
+            var stub = GetTreasuryContractTester(keyPair);
             var donateResult = await stub.DonateAll.SendAsync(new DonateAllInput
             {
                 Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
@@ -133,7 +133,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var keyPair = CoreDataCenterKeyPairs[0];
 
             await TransferToken(keyPair, EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol, 50);
-            var stub = GetTreasuryContractStub(keyPair);
+            var stub = GetTreasuryContractTester(keyPair);
             var donateResult = await stub.Donate.SendAsync(new DonateInput
             {
                 Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,

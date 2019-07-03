@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
@@ -55,7 +54,7 @@ namespace AElf.Contracts.Election
             var electionStub = GetElectionContractStub(voterKeyPair);
             var voteResult = (await electionStub.Vote.SendAsync(new VoteMinerInput
             {
-                CandidatePubkey = candidatePublicKey,
+                CandidatePublicKey = candidatePublicKey,
                 Amount = amount,
                 EndTimestamp = TimestampHelper.GetUtcNow().AddSeconds(lockTime)
             })).TransactionResult;

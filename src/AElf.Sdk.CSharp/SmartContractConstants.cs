@@ -12,7 +12,7 @@ namespace AElf.Sdk.CSharp
         public static readonly Hash VoteContractSystemName = Hash.FromString("AElf.ContractNames.Vote");
         public static readonly Hash ProfitContractSystemName = Hash.FromString("AElf.ContractNames.Profit");
         public static readonly Hash CrossChainContractSystemName = Hash.FromString("AElf.ContractNames.CrossChain");
-        public static readonly Hash TokenConverterContractSystemName = Hash.FromString("AElf.ContractsNames.TokenConverter");
+        public static readonly Hash TokenConverterContractSystemName = Hash.FromString("AElf.ContractNames.TokenConverter");
         public static readonly Hash EconomicContractSystemName = Hash.FromString("AElf.ContractNames.Economic");
     }
 }
