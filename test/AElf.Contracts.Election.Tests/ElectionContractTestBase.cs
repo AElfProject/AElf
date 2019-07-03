@@ -222,7 +222,7 @@ namespace AElf.Contracts.Election
             var result2 = await AEDPoSContractStub.FirstRound.SendAsync(
                 new MinerList
                     {
-                        PublicKeys = {InitialMinersKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
+                        Pubkeys = {InitialMinersKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
                     }.GenerateFirstRoundOfNewTerm(MiningInterval, StartTimestamp));
             CheckResult(result2.TransactionResult);
         }
@@ -315,7 +315,7 @@ namespace AElf.Contracts.Election
             var victories = await ElectionContractStub.GetVictories.CallAsync(new Empty());
             var miners = new MinerList
             {
-                PublicKeys =
+                Pubkeys =
                 {
                     victories.Value
                 }

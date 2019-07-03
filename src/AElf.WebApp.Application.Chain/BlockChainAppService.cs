@@ -420,7 +420,7 @@ namespace AElf.WebApp.Application.Chain
                     PreviousBlockHash = block.Header.PreviousBlockHash.ToHex(),
                     MerkleTreeRootOfTransactions = block.Header.MerkleTreeRootOfTransactions.ToHex(),
                     MerkleTreeRootOfWorldState = block.Header.MerkleTreeRootOfWorldState.ToHex(),
-                    Extra = block.Header.BlockExtraDatas.ToString(),
+                    Extra = block.Header.ExtraData.ToString(),
                     Height = block.Header.Height,
                     Time = block.Header.Time.ToDateTime(),
                     ChainId = ChainHelper.ConvertChainIdToBase58(block.Header.ChainId),
@@ -474,7 +474,7 @@ namespace AElf.WebApp.Application.Chain
                     PreviousBlockHash = blockInfo.Header.PreviousBlockHash.ToHex(),
                     MerkleTreeRootOfTransactions = blockInfo.Header.MerkleTreeRootOfTransactions.ToHex(),
                     MerkleTreeRootOfWorldState = blockInfo.Header.MerkleTreeRootOfWorldState.ToHex(),
-                    Extra = blockInfo.Header.BlockExtraDatas.ToString(),
+                    Extra = blockInfo.Header.ExtraData.ToString(),
                     Height = blockInfo.Header.Height,
                     Time = blockInfo.Header.Time.ToDateTime(),
                     ChainId = ChainHelper.ConvertChainIdToBase58(blockInfo.Header.ChainId),
@@ -515,7 +515,7 @@ namespace AElf.WebApp.Application.Chain
                 Queued = queued
             };
         }
-        
+
         /// <summary>
         /// Get the current status of the block chain.
         /// </summary>
@@ -523,29 +523,19 @@ namespace AElf.WebApp.Application.Chain
         public async Task<ChainStatusDto> GetChainStatusAsync()
         {
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
-     
+
             var chain = await _blockchainService.GetChainAsync();
-            var branches = JsonConvert.DeserializeObject<Dictionary<string, long>>(chain.Branches.ToString());
-            var formattedNotLinkedBlocks = new List<NotLinkedBlockDto>();
 
-            foreach (var notLinkedBlock in chain.NotLinkedBlocks)
-            {
-                var block = await GetBlockAsync(Hash.LoadBase64(notLinkedBlock.Value));
-                formattedNotLinkedBlocks.Add(new NotLinkedBlockDto
-                    {
-                        BlockHash = block.GetHash().ToHex(),
-                        Height = block.Height,
-                        PreviousBlockHash = block.Header.PreviousBlockHash.ToHex()
-                    }
-                );
-            }
+            var branches = chain.Branches.ToDictionary(b => Hash.LoadBase64(b.Key).ToHex(), b => b.Value);
+            var notLinkedBlocks = chain.NotLinkedBlocks.ToDictionary(b => Hash.LoadBase64(b.Key).ToHex(),
+                b => Hash.LoadBase64(b.Value).ToHex());
 
-            return new ChainStatusDto()
+            return new ChainStatusDto
             {
                 ChainId = ChainHelper.ConvertChainIdToBase58(chain.Id),
                 GenesisContractAddress = basicContractZero?.GetFormatted(),
                 Branches = branches,
-                NotLinkedBlocks = formattedNotLinkedBlocks,
+                NotLinkedBlocks = notLinkedBlocks,
                 LongestChainHeight = chain.LongestChainHeight,
                 LongestChainHash = chain.LongestChainHash?.ToHex(),
                 GenesisBlockHash = chain.GenesisBlockHash.ToHex(),
@@ -555,7 +545,7 @@ namespace AElf.WebApp.Application.Chain
                 BestChainHeight = chain.BestChainHeight
             };
         }
-        
+
         /// <summary>
         /// Get the current state about a given block
         /// </summary>
@@ -624,13 +614,6 @@ namespace AElf.WebApp.Application.Chain
         
         private async Task<TransactionResult> GetTransactionResultAsync(Hash txHash)
         {
-            // in storage
-            var res = await _transactionResultQueryService.GetTransactionResultAsync(txHash);
-            if (res != null)
-            {
-                return res;
-            }
-
             // in tx pool
             var receipt = await _txHub.GetTransactionReceiptAsync(txHash);
             if (receipt != null)
@@ -640,6 +623,13 @@ namespace AElf.WebApp.Application.Chain
                     TransactionId = receipt.TransactionId,
                     Status = TransactionResultStatus.Pending
                 };
+            }
+            
+            // in storage
+            var res = await _transactionResultQueryService.GetTransactionResultAsync(txHash);
+            if (res != null)
+            {
+                return res;
             }
 
             // not existed

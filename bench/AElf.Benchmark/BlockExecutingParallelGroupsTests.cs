@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -16,7 +17,7 @@ using BenchmarkDotNet.Attributes;
 namespace AElf.Benchmark
 {
    [MarkdownExporterAttribute.GitHub]
-    public class BlockExecutingParalleGroupslTests : BenchmarkTestBase
+    public class BlockExecutingParalleGroupslTests : BenchmarkParallelTestBase
     {
         private IBlockExecutingService _blockExecutingService;
         private IBlockchainService _blockchainService;
@@ -25,16 +26,16 @@ namespace AElf.Benchmark
         private INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
         private OSTestHelper _osTestHelper;
 
+        private List<Transaction> _systemTransactions;
         private List<Transaction> _prepareTransactions;
-        private List<Transaction> _transactions;
+        private List<Transaction> _cancellableTransactions;
         private List<ECKeyPair> _keyPairs;
         private Block _block;
-
         
-        [Params(1, 10, 20, 50, 100)] 
+        [Params(1, 2, 5, 10, 50, 100)]
         public int GroupCount;
 
-        public int TransactionCount = 2000;
+        public int TransactionCount = 200;
 
         [GlobalSetup]
         public async Task GlobalSetup()
@@ -47,7 +48,8 @@ namespace AElf.Benchmark
             _osTestHelper = GetRequiredService<OSTestHelper>();
             
             _prepareTransactions = new List<Transaction>();
-            _transactions = new List<Transaction>();
+            _systemTransactions = new List<Transaction>();
+            _cancellableTransactions = new List<Transaction>();
             _keyPairs = new List<ECKeyPair>();
         }
 
@@ -64,8 +66,7 @@ namespace AElf.Benchmark
                     Height = chain.BestChainHeight + 1,
                     PreviousBlockHash = chain.BestChainHash,
                     Time = TimestampHelper.GetUtcNow()
-                },
-                Body = new BlockBody()
+                }
             };
             var tokenAmount = TransactionCount / GroupCount;
             (_prepareTransactions, _keyPairs) = await _osTestHelper.PrepareTokenForParallel(GroupCount, tokenAmount);
@@ -74,20 +75,33 @@ namespace AElf.Benchmark
             _block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
                 TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4));
             
-            _transactions = await _osTestHelper.GenerateTransactionsWithoutConflict(_keyPairs, tokenAmount);
+            _systemTransactions = await _osTestHelper.GenerateTransferTransactions(1);
+            _cancellableTransactions = await _osTestHelper.GenerateTransactionsWithoutConflict(_keyPairs, tokenAmount);
+            chain = await _blockchainService.GetChainAsync();
+            _block = new Block
+            {
+                Header = new BlockHeader
+                {
+                    ChainId = chain.Id,
+                    Height = chain.BestChainHeight + 1,
+                    PreviousBlockHash = chain.BestChainHash,
+                    Time = TimestampHelper.GetUtcNow()
+                }
+            };
         }
         
         [Benchmark]
         public async Task ExecuteBlock()
         {
-            _block = await _blockExecutingService.ExecuteBlockAsync(_block.Header, _transactions);
+            _block = await _blockExecutingService.ExecuteBlockAsync(_block.Header, 
+                _systemTransactions, _cancellableTransactions, CancellationToken.None);
         }
 
         [IterationCleanup]
         public async Task IterationCleanup()
         {
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
-            foreach (var transaction in _transactions.Concat(_prepareTransactions))
+            foreach (var transaction in _systemTransactions.Concat(_cancellableTransactions))
             {
                 await _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(), _block.GetHash());
                 await _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(),

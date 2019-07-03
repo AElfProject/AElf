@@ -1,13 +1,13 @@
 using System.Threading.Tasks;
+using AElf.Cryptography;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Cryptography;
 using Microsoft.Extensions.Options;
 using Shouldly;
 using Xunit;
 
-namespace AElf.OS.Account
+namespace AElf.OS.Account.Application
 {
     public class AccountServiceTests : OSTestBase
     {
@@ -61,7 +61,7 @@ namespace AElf.OS.Account
 
             var recoverResult = CryptoHelper.RecoverPublicKey(signature, data2, out var recoverPublicKey);
             var verifyResult =  recoverResult && publicKey.BytesEqual(recoverPublicKey);
-            
+
             Assert.False(verifyResult);
         }
 

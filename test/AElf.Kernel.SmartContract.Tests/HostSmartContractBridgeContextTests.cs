@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;

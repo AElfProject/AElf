@@ -71,6 +71,11 @@ namespace AElf.Kernel.SmartContract
         {
             return _smartContractBridgeService.GetAddressByContractName(hash);
         }
+        
+        public IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping()
+        {
+            return _smartContractBridgeService.GetSystemContractNameToAddressMapping();
+        }
 
         public void Initialize(ITransactionContext transactionContext)
         {
@@ -113,7 +118,7 @@ namespace AElf.Kernel.SmartContract
         public Hash TransactionId => TransactionContext.Transaction.GetHash();
         public Address Sender => TransactionContext.Transaction.From.Clone();
         public Address Self => TransactionContext.Transaction.To.Clone();
-        public Address Genesis => Address.Genesis;
+        public Address Origin => TransactionContext.Origin.Clone();
         public long CurrentHeight => TransactionContext.BlockHeight;
         public Timestamp CurrentBlockTime => TransactionContext.CurrentBlockTime;
         public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.Clone();

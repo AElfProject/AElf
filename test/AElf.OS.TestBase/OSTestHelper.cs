@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
-using AElf.Common;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
