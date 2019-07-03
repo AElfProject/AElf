@@ -83,6 +83,7 @@ namespace AElf.OS.Consensus.DPos
             };
             
             var peer = new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), connectionInfo);
+            peer.IsConnected = true;
             
             var blocks = _osTestHelper.BestBranchBlockList.GetRange(0, blockHeight);
             foreach (var block in blocks)
