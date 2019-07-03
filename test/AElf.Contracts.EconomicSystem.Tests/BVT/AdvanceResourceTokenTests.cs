@@ -64,14 +64,14 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Owner = developerAddress,
                 Symbol = ResourceTokenSymbol
             });
-            
+
             await TokenContractStub.TakeResourceTokenBack.SendAsync(new TakeResourceTokenBackInput
             {
                 ContractAddress = contractAddress,
                 Amount = Amount,
                 ResourceTokenSymbol = ResourceTokenSymbol
             });
-            
+
             // Check balance of developer.
             {
                 var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -81,7 +81,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 });
                 balance.Balance.ShouldBe(balanceBeforeTakingBack.Balance + Amount);
             }
-            
+
             // Check balance of contract address.
             {
                 var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -92,7 +92,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 balance.Balance.ShouldBe(0);
             }
         }
-        
+
         [Fact]
         public async Task TokenContract_TakeResourceTokenBack_NotAll()
         {
@@ -105,14 +105,14 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Owner = developerAddress,
                 Symbol = ResourceTokenSymbol
             });
-            
+
             await TokenContractStub.TakeResourceTokenBack.SendAsync(new TakeResourceTokenBackInput
             {
                 ContractAddress = contractAddress,
                 Amount = takeBackAmount,
                 ResourceTokenSymbol = ResourceTokenSymbol
             });
-            
+
             // Check balance of developer.
             {
                 var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -122,7 +122,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 });
                 balance.Balance.ShouldBe(balanceBeforeTakingBack.Balance + takeBackAmount);
             }
-            
+
             // Check balance of contract address.
             {
                 var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -133,13 +133,13 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 balance.Balance.ShouldBe(Amount - takeBackAmount);
             }
         }
-        
+
         [Fact]
         public async Task TokenContract_TakeResourceTokenBack_Exceed()
         {
             var contractAddress = await TokenContract_AdvanceResourceToken();
             const long takeBackAmount = Amount * 2;
-            
+
             var result = await TokenContractStub.TakeResourceTokenBack.SendAsync(new TakeResourceTokenBackInput
             {
                 ContractAddress = contractAddress,
