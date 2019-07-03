@@ -47,11 +47,7 @@ namespace AElf.OS
             {
                 var mockService = new Mock<IBlockExtraDataService>();
                 mockService.Setup(s =>
-                    s.FillBlockExtraData(It.IsAny<BlockHeader>())).Returns<BlockHeader>((blockHeader) =>
-                {
-                    blockHeader.ExtraData.Add(ByteString.Empty);
-                    return Task.CompletedTask;
-                });
+                    s.FillBlockExtraData(It.IsAny<BlockHeader>())).Returns(Task.CompletedTask);
                 return mockService.Object;
             });
 

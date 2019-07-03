@@ -51,18 +51,6 @@ namespace AElf.Contracts.TestBase
                 mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(ecKeyPair.PublicKey);
                 
                 return mockService.Object;
-            }); 
-            
-            context.Services.AddTransient<IBlockExtraDataService>(o =>
-            {
-                var mockService = new Mock<IBlockExtraDataService>();
-                mockService.Setup(s =>
-                    s.FillBlockExtraData(It.IsAny<BlockHeader>())).Returns<BlockHeader>((blockHeader) =>
-                {
-                    blockHeader.ExtraData.Add(ByteString.Empty);
-                    return Task.CompletedTask;
-                });
-                return mockService.Object;
             });
         }
     }

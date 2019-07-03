@@ -101,9 +101,6 @@ namespace AElf.Contracts.TestKit
 //            context.Services.AddSingleton(o => Mock.Of<IConsensusInformationGenerationService>());
 //            context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
             context.Services.AddTransient(o => Mock.Of<IConsensusService>());
-            context.Services.AddTransient(o => Mock.Of<IBlockExtraDataProvider>(e =>
-                e.GetExtraDataForFillingBlockHeaderAsync(It.IsAny<BlockHeader>()) ==
-                Task.FromResult(ByteString.Empty)));
             #endregion
 
             context.Services.AddTransient<IAccount, Account>();
