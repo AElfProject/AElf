@@ -8,7 +8,7 @@ namespace AElf.Kernel.Infrastructure
         where T: IMessage<T>
     {
         Task SetAsync(string key, T value);
-        Task PipelineSetAsync(Dictionary<string, T> pipelineSet);
+        Task SetAllAsync(Dictionary<string, T> pipelineSet);
         Task<T> GetAsync(string key);
         Task RemoveAsync(string key);
     }
