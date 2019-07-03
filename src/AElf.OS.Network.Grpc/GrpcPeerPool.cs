@@ -109,8 +109,7 @@ namespace AElf.OS.Network.Grpc
                 return false;
             }
             
-            peer.StartAnnouncementStreaming();
-            peer.StartTransactionStreaming();
+            peer.StartAsync();
             
             Logger.LogTrace($"Connected to {peer} -- height {peer.StartHeight}.");
             

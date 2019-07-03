@@ -195,16 +195,6 @@ namespace AElf.OS.Network.Application
                 Logger.LogError($"Queuing peer for reconnection {peer.PeerIpAddress}.");
                 QueueNetworkTask(async () => await RecoverPeerAsync(peer));
             }
-            else if (exception.ExceptionType == NetworkExceptionType.AnnounceStream)
-            {
-                Logger.LogDebug($"Queuing peer for announcement stream recreation {peer.PeerIpAddress}.");
-                QueueNetworkTask(() => RestartAnnouncementStreamingAsync(peer));
-            }
-            else if (exception.ExceptionType == NetworkExceptionType.TransactionStream)
-            {
-                Logger.LogDebug($"Queuing peer for transaction stream recreation {peer.PeerIpAddress}.");
-                QueueNetworkTask(() => RestartTransactionStreaming(peer));
-            }
         }
         
         private async Task RecoverPeerAsync(IPeer peer)
@@ -216,48 +206,6 @@ namespace AElf.OS.Network.Application
 
             if (!success)
                 await _peerPool.RemovePeerAsync(peer.PubKey, false);
-        }
-
-        private Task RestartAnnouncementStreamingAsync(IPeer peer)
-        {
-            if (!peer.IsReady)
-            {
-                Logger.LogDebug($"Peer {peer} is unstable, will not start streaming.");
-                return Task.CompletedTask;
-            }
-
-            if (!peer.CanStreamAnnouncements)
-            {
-                peer.StartAnnouncementStreaming();
-                Logger.LogDebug($"Started announcement stream {peer.PeerIpAddress}.");
-            }
-            else
-            {
-                Logger.LogDebug($"Already started announcement stream {peer.PeerIpAddress}.");
-            }
-
-            return Task.CompletedTask;
-        }
-        
-        private Task RestartTransactionStreaming(IPeer peer)
-        {
-            if (!peer.IsReady)
-            {
-                Logger.LogDebug($"Peer {peer} is unstable, will not start streaming.");
-                return Task.CompletedTask;
-            }
-                    
-            if (!peer.CanStreamTransactions)
-            {
-                peer.StartTransactionStreaming();
-                Logger.LogDebug($"Started transaction stream {peer.PeerIpAddress}.");
-            }
-            else
-            {
-                Logger.LogDebug($"Already started transaction stream {peer.PeerIpAddress}.");
-            }
-
-            return Task.CompletedTask;
         }
         
         private void QueueNetworkTask(Func<Task> task)

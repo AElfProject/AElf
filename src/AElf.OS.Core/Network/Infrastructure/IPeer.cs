@@ -19,13 +19,10 @@ namespace AElf.OS.Network.Infrastructure
         bool Inbound { get; }
         long StartHeight { get; }
         
-        bool CanStreamTransactions { get; }
-        bool CanStreamAnnouncements { get; }
-        
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
-
-        void StartTransactionStreaming();
-        void StartAnnouncementStreaming();
+        
+        Task StartAsync();
+        Task StopAsync();
 
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();
 
@@ -37,10 +34,8 @@ namespace AElf.OS.Network.Infrastructure
         Task<FinalizeConnectReply> FinalizeConnectAsync(Handshake handshake);
         Task SendDisconnectAsync();
         
-        Task StopAsync();
-
         Task AnnounceAsync(PeerNewBlockAnnouncement an);
-        Task SendTransactionAsync(Transaction tx);
+        Task SendTransactionAsync(Transaction transaction);
         Task<BlockWithTransactions> RequestBlockAsync(Hash hash);
         Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);
     }

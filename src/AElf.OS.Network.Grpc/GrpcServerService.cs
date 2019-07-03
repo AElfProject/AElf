@@ -185,9 +185,8 @@ namespace AElf.OS.Network.Grpc
             if (peerInPool == null)
                 return Task.FromResult(new FinalizeConnectReply { Success = false });
             
-            peerInPool.StartAnnouncementStreaming();
-            peerInPool.StartTransactionStreaming();
-
+            peerInPool.StartAsync();
+            
             return Task.FromResult(new FinalizeConnectReply { Success = true });
         }
 

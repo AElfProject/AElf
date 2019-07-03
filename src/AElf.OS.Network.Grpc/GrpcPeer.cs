@@ -57,8 +57,7 @@ namespace AElf.OS.Network.Grpc
         public bool Inbound { get; }
         public long StartHeight { get; }
 
-        public bool CanStreamTransactions { get; private set; }
-        public bool CanStreamAnnouncements { get; private set; }
+        private bool _canBroadcast;
 
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
@@ -181,20 +180,23 @@ namespace AElf.OS.Network.Grpc
 
         #region Streaming
 
-        public void StartAnnouncementStreaming()
+        public Task StartAsync()
         {
-            _announcementStreamCall = _client.AnnouncementBroadcastStream();
-            CanStreamAnnouncements = true;
+            _canBroadcast = true;
+            return Task.CompletedTask;
         }
         
+        /// <summary>
+        /// Send a announcement to the peer using the stream call.
+        /// Note: this method is not thread safe.
+        /// </summary>
         public async Task AnnounceAsync(PeerNewBlockAnnouncement header)
         {
-            if (!CanStreamAnnouncements)
-            {
-                // if we cannot stream we use the unary version of the send.
-                await UnaryAnnounceAsync(header);
+            if (!_canBroadcast)
                 return;
-            }
+            
+            if (_announcementStreamCall == null)
+                _announcementStreamCall = _client.AnnouncementBroadcastStream();
             
             try
             {
@@ -202,71 +204,41 @@ namespace AElf.OS.Network.Grpc
             }
             catch (RpcException e)
             {
-                if (!CanStreamAnnouncements) // Already down
-                    return;
-                
-                CanStreamAnnouncements = false;
                 _announcementStreamCall.Dispose();
+                _announcementStreamCall = null;
                 
-                throw new NetworkException($"Failed stream to {this}: ", e, NetworkExceptionType.AnnounceStream);
+                HandleFailure(e, $"Error during announcement broadcast: {header.BlockHash}.");
             }
         }
-
-        public void StartTransactionStreaming()
+        
+        
+        /// <summary>
+        /// Send a transaction to the peer using the stream call.
+        /// Note: this method is not thread safe.
+        /// </summary>
+        public async Task SendTransactionAsync(Transaction transaction)
         {
-            _transactionStreamCall = _client.TransactionBroadcastStream();
-            CanStreamTransactions = true;
-        }
-
-        public async Task SendTransactionAsync(Transaction tx)
-        {
-            if (!CanStreamTransactions)
-            {
-                // if we cannot stream we use the unary version of the send.
-                await UnarySendTransactionAsync(tx);
+            if (!_canBroadcast)
                 return;
-            }
-            
+                
+            if (_transactionStreamCall == null)
+                _transactionStreamCall = _client.TransactionBroadcastStream();
+
             try
             {
-                await _transactionStreamCall.RequestStream.WriteAsync(tx);
+                await _transactionStreamCall.RequestStream.WriteAsync(transaction);
             }
             catch (RpcException e)
             {
-                if (!CanStreamTransactions) // Already down
-                    return;
-                
-                CanStreamTransactions = false;
                 _transactionStreamCall.Dispose();
+                _transactionStreamCall = null;
                 
-                throw new NetworkException($"Failed stream to {this}: ", e, NetworkExceptionType.TransactionStream);
+                HandleFailure(e, $"Error during transaction broadcast: {transaction.GetHash()}.");
             }
         }
 
         #endregion
         
-        public Task UnarySendTransactionAsync(Transaction tx)
-        {
-            var request = new GrpcRequest { ErrorMessage = $"Broadcast transaction for {tx.GetHash()} failed." };
-            var data = new Metadata {{ GrpcConstants.TimeoutMetadataKey, TransactionSendTimeout.ToString() }};
-            
-            return RequestAsync(_client, c => c.SendTransactionAsync(tx, data), request);
-        }
-        
-        public Task UnaryAnnounceAsync(PeerNewBlockAnnouncement header)
-        {
-            GrpcRequest request = new GrpcRequest
-            {
-                ErrorMessage = $"Broadcast announce for {header.BlockHash} failed.",
-                MetricName = nameof(MetricNames.Announce),
-                MetricInfo = $"Block hash {header.BlockHash}"
-            };
-
-            Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, AnnouncementTimeout.ToString()} };
-
-            return RequestAsync(_client, c => c.AnnounceAsync(header, data), request);
-        }
-
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
             Func<PeerService.PeerServiceClient, AsyncUnaryCall<TResp>> func, GrpcRequest requestParams)
         {
@@ -327,7 +299,7 @@ namespace AElf.OS.Network.Grpc
         /// This method handles the case where the peer is potentially down. If the Rpc call
         /// put the channel in TransientFailure or Connecting, we give the connection a certain time to recover.
         /// </summary>
-        private void HandleFailure(AggregateException exceptions, string errorMessage)
+        private void HandleFailure(Exception exception, string errorMessage)
         {
             // If channel has been shutdown (unrecoverable state) remove it.
             string message = $"Failed request to {this}: {errorMessage}";
@@ -343,13 +315,13 @@ namespace AElf.OS.Network.Grpc
                 message = $"Failed request to {this}: {errorMessage}";
                 type = NetworkExceptionType.PeerUnstable;
             }
-            else if (exceptions.InnerException is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Cancelled)
+            else if (exception.InnerException is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Cancelled)
             {
                 message = $"Failed request to {this}: {errorMessage}";
                 type = NetworkExceptionType.Unrecoverable;
             }
             
-            throw new NetworkException(message, exceptions, type);
+            throw new NetworkException(message, exception, type);
         }
 
         public async Task<bool> TryWaitForStateChangedAsync()
