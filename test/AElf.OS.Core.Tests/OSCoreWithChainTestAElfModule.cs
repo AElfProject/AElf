@@ -6,7 +6,6 @@ using AElf.Kernel.Miner.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
-using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp;
@@ -65,7 +64,6 @@ namespace AElf.OS
 
             context.Services.AddSingleton<IAElfNetworkServer>(o => Mock.Of<IAElfNetworkServer>());
         }
-
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             _osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
