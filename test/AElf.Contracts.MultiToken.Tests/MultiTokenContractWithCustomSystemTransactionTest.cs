@@ -26,9 +26,9 @@ namespace AElf.Contracts.MultiToken
                 // TokenContract
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = TokenContractCode;
-                TokenContractAddress = await DeployContractAsync(category, code, DefaultSenderKeyPair);
+                TokenContractAddress = await DeployContractAsync(category, code, DefaultKeyPair);
                 TokenContractStub =
-                    GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
+                    GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
 
                 await TokenContractStub.Create.SendAsync(new CreateInput
                 {
@@ -37,13 +37,13 @@ namespace AElf.Contracts.MultiToken
                     IsBurnable = true,
                     TokenName = "elf token",
                     TotalSupply = _totalSupply,
-                    Issuer = DefaultSender
+                    Issuer = DefaultAddress
                 });
                 await TokenContractStub.Issue.SendAsync(new IssueInput()
                 {
                     Symbol = DefaultSymbol,
                     Amount = _totalSupply,
-                    To = DefaultSender,
+                    To = DefaultAddress,
                     Memo = "Set for token converter."
                 });
             }
@@ -58,7 +58,7 @@ namespace AElf.Contracts.MultiToken
             generator.GenerateTransactionFunc = (_, preBlockHeight, preBlockHash) =>
                 new Transaction
                 {
-                    From = DefaultSender,
+                    From = DefaultAddress,
                     To = TokenContractAddress,
                     MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
                     Params = new TransferInput
@@ -74,7 +74,7 @@ namespace AElf.Contracts.MultiToken
             var result = await TokenContractStub.GetBalance.SendAsync(new GetBalanceInput
             {
                 Symbol = DefaultSymbol,
-                Owner = DefaultSender
+                Owner = DefaultAddress
             });
             generator.GenerateTransactionFunc = null;
             result.Output.Balance.ShouldBe(_totalSupply - transferAmountInSystemTxn);

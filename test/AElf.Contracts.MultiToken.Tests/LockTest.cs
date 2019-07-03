@@ -37,31 +37,31 @@ namespace AElf.Contracts.MultiToken
             {
                 // this is needed, NOT GOOD DESIGN, it doesn't matter what code we deploy, all we need is an address
                 await DeploySystemSmartContract(KernelConstants.CodeCoverageRunnerCategory, TokenContractCode,
-                    ConsensusSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
+                    ConsensusSmartContractAddressNameProvider.Name, DefaultKeyPair);
             }
             {
                 // TokenContract
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = TokenContractCode;
                 TokenContractAddress = await DeploySystemSmartContract(category, code,
-                    TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
+                    TokenSmartContractAddressNameProvider.Name, DefaultKeyPair);
                 TokenContractStub =
-                    GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
+                    GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
 
                 BasicFunctionContractAddress = await DeploySystemSmartContract(
                     KernelConstants.CodeCoverageRunnerCategory, BasicFunctionContractCode,
-                    BasicFunctionContractName, DefaultSenderKeyPair);
+                    BasicFunctionContractName, DefaultKeyPair);
                 BasicFunctionContractStub =
                     GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(BasicFunctionContractAddress,
-                        DefaultSenderKeyPair);
+                        DefaultKeyPair);
 
                 OtherBasicFunctionContractAddress = await DeploySystemSmartContract(
                     KernelConstants.CodeCoverageRunnerCategory, BasicFunctionContractCode,
-                    OtherBasicFunctionContractName, DefaultSenderKeyPair);
+                    OtherBasicFunctionContractName, DefaultKeyPair);
                 OtherBasicFunctionContractStub =
                     GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(
                         OtherBasicFunctionContractAddress,
-                        DefaultSenderKeyPair);
+                        DefaultKeyPair);
 
                 await TokenContractStub.Create.SendAsync(new CreateInput
                 {
@@ -70,7 +70,7 @@ namespace AElf.Contracts.MultiToken
                     IsBurnable = true,
                     TokenName = "elf token",
                     TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
-                    Issuer = DefaultSender,
+                    Issuer = DefaultAddress,
                     LockWhiteList = {BasicFunctionContractAddress, OtherBasicFunctionContractAddress}
                 });
 
@@ -78,7 +78,7 @@ namespace AElf.Contracts.MultiToken
                 {
                     Symbol = DefaultSymbol,
                     Amount = DPoSContractConsts.LockTokenForElection * 80,
-                    To = DefaultSender,
+                    To = DefaultAddress,
                     Memo = "Set dividends.",
                 });
 
@@ -87,7 +87,7 @@ namespace AElf.Contracts.MultiToken
                     Symbol = SymbolForTest,
                     Decimals = 2,
                     IsBurnable = true,
-                    Issuer = DefaultSender,
+                    Issuer = DefaultAddress,
                     TokenName = "elf test token",
                     TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
                     LockWhiteList =
@@ -100,7 +100,7 @@ namespace AElf.Contracts.MultiToken
                 {
                     Symbol = SymbolForTest,
                     Amount = DPoSContractConsts.LockTokenForElection * 20,
-                    To = DefaultSender,
+                    To = DefaultAddress,
                     Memo = "Issue"
                 });
             }
@@ -114,7 +114,7 @@ namespace AElf.Contracts.MultiToken
                 Symbol = "TEST",
                 Decimals = 2,
                 IsBurnable = true,
-                Issuer = DefaultSender,
+                Issuer = DefaultAddress,
                 TokenName = "elf test token",
                 TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
                 LockWhiteList =
@@ -217,7 +217,7 @@ namespace AElf.Contracts.MultiToken
             var lockId = Hash.Generate();
 
             var defaultSenderStub =
-                GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
+                GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
 
             // Lock.
             var lockResult = (await defaultSenderStub.Lock.SendAsync(new LockInput
