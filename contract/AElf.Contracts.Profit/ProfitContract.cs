@@ -403,13 +403,16 @@ namespace AElf.Contracts.Profit
                 input.Period = -1;
             }
 
-            // Which means the creator gonna burn this amount of profits.
-            var profitsBurningVirtualAddress =
-                GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, input.Period);
+            // Burn this amount of profits.
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = profitVirtualAddress,
-                To = profitsBurningVirtualAddress,
+                To = Context.Self,
+                Amount = input.Amount,
+                Symbol = input.Symbol
+            });
+            State.TokenContract.Burn.Send(new BurnInput
+            {
                 Amount = input.Amount,
                 Symbol = input.Symbol
             });
