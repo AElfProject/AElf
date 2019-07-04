@@ -38,10 +38,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 
             var context = _contextService.Create();
             context.TransactionContext = transactionContext;
-            var selfStub = new ResourceConsumptionContractContainer.ResourceConsumptionContractStub()
-            {
-                __factory = new MethodStubFactory(context)
-            };
 
             // Generate token contract stub.
             var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
@@ -65,9 +61,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             }
 
             if (transactionContext.Transaction.To == context.Self &&
-                (transactionContext.Transaction.MethodName == nameof(selfStub.BuyResourceToken) ||
-                 transactionContext.Transaction.MethodName == nameof(selfStub.GetResourceTokenBuyingPreferences) ||
-                 transactionContext.Transaction.MethodName == nameof(selfStub.SetResourceTokenBuyingPreferences)))
+                (transactionContext.Transaction.MethodName == nameof(ResourceConsumptionContractContainer
+                     .ResourceConsumptionContractStub.BuyResourceToken) ||
+                 transactionContext.Transaction.MethodName == nameof(ResourceConsumptionContractContainer
+                     .ResourceConsumptionContractStub.GetResourceTokenBuyingPreferences) ||
+                 transactionContext.Transaction.MethodName == nameof(ResourceConsumptionContractContainer
+                     .ResourceConsumptionContractStub.SetResourceTokenBuyingPreferences)))
             {
                 return new List<Transaction>();
             }

@@ -16,9 +16,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForConstrainedTransaction
         {
             async Task<IExecutionResult<TOutput>> SendAsync(TInput input)
             {
-                return new ExecutionResult<TOutput>()
+                return new ExecutionResult<TOutput>
                 {
-                    Transaction = new Transaction()
+                    Transaction = new Transaction
                     {
                         From = Sender,
                         To = ContractAddress,

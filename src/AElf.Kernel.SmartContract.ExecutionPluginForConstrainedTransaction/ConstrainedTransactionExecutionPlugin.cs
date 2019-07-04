@@ -20,7 +20,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForConstrainedTransaction
     public class ConstrainedTransactionExecutionPlugin : IPreExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
-        private const string AcsSymbol = "acs8";
 
         public ConstrainedTransactionExecutionPlugin(IHostSmartContractBridgeContextService contextService)
         {

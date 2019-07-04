@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AElf.CSharp.Core;
 using Google.Protobuf;
 
-namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs6
+namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
 {
     public class MethodStubFactory : IMethodStubFactory
     {
