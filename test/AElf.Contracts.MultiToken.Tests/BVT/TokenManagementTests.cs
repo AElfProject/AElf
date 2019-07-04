@@ -1,9 +1,13 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestKit;
+using AElf.Contracts.TokenConverter;
+using AElf.Contracts.Treasury;
 using AElf.Kernel;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -72,6 +76,38 @@ namespace AElf.Contracts.MultiToken
                     TokenSmartContractAddressNameProvider.Name, DefaultKeyPair));
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
+            }
+            
+            // ProfitContract
+            {
+                var code = ProfitContractCode;
+                ProfitContractAddress = AsyncHelper.RunSync(() =>
+                    DeploySystemSmartContract(category, code, ProfitSmartContractAddressNameProvider.Name,
+                        DefaultKeyPair)
+                );
+                ProfitContractStub =
+                    GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress,
+                        DefaultKeyPair);
+            }
+
+            // TreasuryContract
+            {
+                var code = TreasuryContractCode;
+                TreasuryContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
+                    TreasurySmartContractAddressNameProvider.Name, DefaultKeyPair));
+                TreasuryContractStub =
+                    GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress,
+                        DefaultKeyPair);
+            }
+
+            //TokenConvertContract
+            {
+                var code = TokenConverterContractCode;
+                TokenConverterContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
+                    TokenConverterSmartContractAddressNameProvider.Name, DefaultKeyPair));
+                TokenConverterContractStub =
+                    GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+                        DefaultKeyPair);
             }
             
             //BasicFunctionContract
