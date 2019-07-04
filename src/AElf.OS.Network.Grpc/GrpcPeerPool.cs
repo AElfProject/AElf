@@ -272,20 +272,7 @@ namespace AElf.OS.Network.Grpc
         {
             if (_authenticatedPeers.TryRemove(publicKey, out GrpcPeer removed))
             {
-                if (sendDisconnect)
-                {
-                    try
-                    {
-                        await removed.SendDisconnectAsync();
-                    }
-                    catch (RpcException e)
-                    {
-                        Logger.LogError(e, $"Error sending disconnect to peer {removed}.");
-                    }
-                }
-                
-                await removed.DisconnectAsync();
-                
+                await removed.DisconnectAsync(sendDisconnect);
                 Logger.LogDebug($"Removed peer {removed}");
             }
             else
@@ -294,6 +281,16 @@ namespace AElf.OS.Network.Grpc
             }
 
             return removed;
+        }
+
+        public async Task ClearAllPeersAsync(bool sendDisconnect)
+        {
+            var peersToRemove = _authenticatedPeers.Keys.ToList();
+            
+            foreach (string peer in peersToRemove)
+            {
+                await RemovePeerAsync(peer, sendDisconnect);
+            }
         }
         
         public void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash, bool hasFork)

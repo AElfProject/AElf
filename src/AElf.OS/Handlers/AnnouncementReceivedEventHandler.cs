@@ -33,6 +33,7 @@ namespace AElf.OS.Handlers
             _blockchainService = blockchainService;
             _blockSyncService = blockSyncService;
             _networkOptions = networkOptions.Value;
+            
             Logger = NullLogger<AnnouncementReceivedEventHandler>.Instance;
         }
 

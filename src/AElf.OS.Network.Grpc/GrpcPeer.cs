@@ -330,19 +330,7 @@ namespace AElf.OS.Network.Grpc
 
             return true;
         }
-
-        public async Task DisconnectAsync()
-        {
-            try
-            {
-                await _channel.ShutdownAsync();
-            }
-            catch (InvalidOperationException)
-            {
-                // If channel already shutdown
-            }
-        }
-
+        
         public void ProcessReceivedAnnouncement(BlockAnnouncement blockAnnouncement)
         {
             if (blockAnnouncement.HasFork)
@@ -359,10 +347,33 @@ namespace AElf.OS.Network.Grpc
                 _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
             }
         }
-
-        public async Task SendDisconnectAsync()
+        
+        public async Task DisconnectAsync(bool gracefulDisconnect)
         {
-            await _client.DisconnectAsync(new DisconnectReason {Why = DisconnectReason.Types.Reason.Shutdown});
+            IsConnected = false;
+            
+            if (gracefulDisconnect && IsReady)
+            {
+                GrpcRequest request = new GrpcRequest { ErrorMessage = "Error while sending disconnect." };
+                
+                try
+                {
+                    await RequestAsync(_client, c => c.DisconnectAsync(new DisconnectReason {Why = DisconnectReason.Types.Reason.Shutdown}), request);
+                }
+                catch (NetworkException)
+                {
+                    // swallow the exception, we don't care because we're disconnecting.
+                }
+            }
+            
+            try
+            {
+                await _channel.ShutdownAsync();
+            }
+            catch (InvalidOperationException)
+            {
+                // if channel already shutdown
+            }
         }
 
         public override string ToString()

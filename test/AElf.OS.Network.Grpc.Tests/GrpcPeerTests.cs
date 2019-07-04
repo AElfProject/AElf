@@ -126,7 +126,7 @@ namespace AElf.OS.Network
             var peers = _pool.GetPeers();
             peers.Count.ShouldBe(2);
 
-            await _grpcPeer.SendDisconnectAsync();
+            await _grpcPeer.DisconnectAsync(true);
             peers = _pool.GetPeers();
             peers.Count.ShouldBe(1);
         }

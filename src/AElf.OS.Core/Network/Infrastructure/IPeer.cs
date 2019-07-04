@@ -20,7 +20,10 @@ namespace AElf.OS.Network.Infrastructure
         long ConnectionTime { get; }
         bool Inbound { get; }
         long StartHeight { get; }
+        
+        IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
 
+        Task UpdateHandshakeAsync();
         Task SendAnnouncementAsync(BlockAnnouncement an);
         Task SendTransactionAsync(Transaction transaction);
         Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash);
@@ -30,12 +33,7 @@ namespace AElf.OS.Network.Infrastructure
 
         Task<bool> TryRecoverAsync();
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();
-        IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
 
-        Task DisconnectAsync();
-
-        Task UpdateHandshakeAsync();
-        Task SendDisconnectAsync();
-
+        Task DisconnectAsync(bool gracefulDisconnect);
     }
 }

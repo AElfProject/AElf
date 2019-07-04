@@ -89,22 +89,7 @@ namespace AElf.OS.Network.Grpc
                 // if server already shutdown, we continue and clear the channels.
             }
 
-            foreach (var peer in _peerPool.GetPeers(true))
-            {
-                if (gracefulDisconnect)
-                {
-                    try
-                    {
-                        await peer.SendDisconnectAsync();
-                    }
-                    catch (RpcException e)
-                    {
-                        Logger.LogError(e, $"Error sending disconnect {peer}.");
-                    }
-                }
-
-                await peer.DisconnectAsync();
-            }
+            await _peerPool.ClearAllPeersAsync(gracefulDisconnect);
         }
 
         public void Dispose()
