@@ -309,14 +309,14 @@ namespace AElf.Contracts.MultiToken
         private void TryToBuyMoreResourceTokenForSender()
         {
             var preferences = Context.Call<ResourceTokenBuyingPreferences>(Context.Sender,
-                nameof(State.ACS8Contract.GetResourceTokenBuyingPreferences), new Empty());
+                nameof(State.ResourceConsumptionContract.GetResourceTokenBuyingPreferences), new Empty());
 
             if (preferences.CpuThreshold > 0)
             {
                 var cpuBalance = State.Balances[Context.Sender]["CPU"];
                 if (cpuBalance <= preferences.CpuThreshold)
                 {
-                    Context.SendInline(Context.Sender, nameof(State.ACS8Contract.BuyResourceToken),
+                    Context.SendInline(Context.Sender, nameof(State.ResourceConsumptionContract.BuyResourceToken),
                         new BuyResourceTokenInput
                         {
                             Symbol = "CPU",
@@ -331,7 +331,7 @@ namespace AElf.Contracts.MultiToken
                 var stoBalance = State.Balances[Context.Sender]["STO"];
                 if (stoBalance <= preferences.StoThreshold)
                 {
-                    Context.SendInline(Context.Sender, nameof(State.ACS8Contract.BuyResourceToken),
+                    Context.SendInline(Context.Sender, nameof(State.ResourceConsumptionContract.BuyResourceToken),
                         new BuyResourceTokenInput
                         {
                             Symbol = "STO",
@@ -346,7 +346,7 @@ namespace AElf.Contracts.MultiToken
                 var netBalance = State.Balances[Context.Sender]["NET"];
                 if (netBalance <= preferences.NetThreshold)
                 {
-                    Context.SendInline(Context.Sender, nameof(State.ACS8Contract.BuyResourceToken),
+                    Context.SendInline(Context.Sender, nameof(State.ResourceConsumptionContract.BuyResourceToken),
                         new BuyResourceTokenInput
                         {
                             Symbol = "NET",
@@ -488,12 +488,12 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty SetProfitReceivingInformation(ProfitReceivingInformation input)
         {
-            if (State.ACS0Contract.Value == null)
+            if (State.ZeroContract.Value == null)
             {
-                State.ACS0Contract.Value = Context.GetZeroSmartContractAddress();
+                State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
             }
 
-            var contractOwner = State.ACS0Contract.GetContractOwner.Call(input.ContractAddress);
+            var contractOwner = State.ZeroContract.GetContractOwner.Call(input.ContractAddress);
             Assert(contractOwner == Context.Sender || input.ContractAddress == Context.Sender,
                 "Either contract owner or contract itself can set profit receiving information.");
 
@@ -554,18 +554,22 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty SetResourceTokenUnitPrice(SetResourceTokenUnitPriceInput input)
         {
-            if (State.ACS0Contract.Value == null)
+            if (State.ZeroContract.Value == null)
             {
-                State.ACS0Contract.Value = Context.GetZeroSmartContractAddress();
+                State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
             }
 
-            var contractOwner = State.ACS0Contract.GetContractOwner.Call(Context.Self);
+            if (State.ParliamentAuthContract.Value == null)
+            {
+                State.ParliamentAuthContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+            }
+
+            var contractOwner = State.ZeroContract.GetContractOwner.Call(Context.Self);
 
             Assert(
                 contractOwner == Context.Sender ||
-                // TODO: Check (Sender == 2/3 organization virtual address) instead of this.
-                Context.Sender ==
-                Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName) ||
+                Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set resource token unit price.");
 

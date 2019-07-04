@@ -282,13 +282,13 @@ namespace AElf.Contracts.Economic.TestBase
         {
             {
                 var result =
-                    await TreasuryContractStub.InitialTreasuryContract.SendAsync(new InitialTreasuryContractInput());
+                    await TreasuryContractStub.InitialTreasuryContract.SendAsync(new Empty());
                 CheckResult(result.TransactionResult);
             }
             {
                 var result =
                     await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(
-                        new InitialMiningRewardProfitItemInput());
+                        new Empty());
                 CheckResult(result.TransactionResult);
             }
             //get profit ids

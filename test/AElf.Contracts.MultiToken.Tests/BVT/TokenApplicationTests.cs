@@ -261,7 +261,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Token lock and unlock test")]
         public async Task MultiTokenContract_LockAndUnLock()
         {
-            Create_BasicFunctionContract_Issue();
+            await Create_BasicFunctionContract_Issue();
             var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
             {
                 Symbol = SymbolForTest,
@@ -302,6 +302,17 @@ namespace AElf.Contracts.MultiToken
                 });
                 result.Balance.ShouldBe(0);
             }
+            
+            // Check locked amount
+            {
+                var amount = await TokenContractStub.GetLockedAmount.CallAsync(new GetLockedAmountInput
+                {
+                    Symbol = SymbolForTest,
+                    Address = _address,
+                    LockId = lockId,
+                });
+                amount.Amount.ShouldBe(Amount);
+            }
 
             // Unlock.
             var unlockResult = (await BasicFunctionContractStub.UnlockToken.SendAsync(new UnlockTokenInput
@@ -328,7 +339,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Token lock through address not in whitelist")]
         public async Task MultiTokenContract_Lock_AddressNotInWhiteList()
         {
-            Create_BasicFunctionContract_Issue();
+            await Create_BasicFunctionContract_Issue();
             var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
             {
                 Symbol = SymbolForTest,
@@ -370,7 +381,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Token lock with insufficient balance")]
         public async Task MultiTokenContract_Lock_WithInsufficientBalance()
         {
-            Create_BasicFunctionContract_Issue();
+            await Create_BasicFunctionContract_Issue();
             var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput
             {
                 Symbol = SymbolForTest,
@@ -412,7 +423,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Token unlock until no balance left")]
         public async Task MultiTokenContract_Unlock_repeatedly()
         {
-            Create_BasicFunctionContract_Issue();
+            await Create_BasicFunctionContract_Issue();
             var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
             {
                 Symbol = SymbolForTest,
@@ -481,7 +492,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Token unlock excess the total amount of lock")]
         public async Task MultiTokenContract_Unlock_ExcessAmount()
         {
-            Create_BasicFunctionContract_Issue();
+            await Create_BasicFunctionContract_Issue();
             var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
             {
                 Symbol = SymbolForTest,
@@ -519,7 +530,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] A lock the token,but B to unlock.")]
         public async Task MultiTokenContract_Unlock_NotLocker()
         {
-            Create_BasicFunctionContract_Issue();
+            await Create_BasicFunctionContract_Issue();
             var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
             {
                 Symbol = SymbolForTest,
@@ -563,12 +574,12 @@ namespace AElf.Contracts.MultiToken
             unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
             unlockResult.Error.ShouldContain("Insufficient balance");
         }
-
+        
         [Fact(DisplayName =
             "[MultiToken] Unlock the token through strange lockId which is different from locking lockId")]
         public async Task MultiTokenContract_Unlock_StrangeLockId()
         {
-            Create_BasicFunctionContract_Issue();
+            await Create_BasicFunctionContract_Issue();
             var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
             {
                 Symbol = SymbolForTest,
@@ -606,7 +617,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Unlock the token to another address that isn't the address locked")]
         public async Task MultiTokenContract_Unlock_ToOtherAddress()
         {
-            Create_BasicFunctionContract_Issue();
+            await Create_BasicFunctionContract_Issue();
             var transferResult = (await TokenContractStub.Transfer.SendAsync(new TransferInput()
             {
                 Symbol = SymbolForTest,
@@ -675,7 +686,7 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Token TransferToContract test")]
         public async Task MultiTokenContract_TransferToContract()
         {
-            MultiTokenContract_Approve_ContractAddress();
+            await MultiTokenContract_Approve_ContractAddress();
 
             var result = (await BasicFunctionContractStub.TransferTokenToContract.SendAsync(
                 new TransferTokenToContractInput

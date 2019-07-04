@@ -269,23 +269,20 @@ message TakeResourceTokenBackInput {
 }
 
 message GetLockedAmountInput {
-    aelf.Address from = 1;
-    aelf.Address to = 2;
+    aelf.Address address = 1;
     string symbol = 3;
     aelf.Hash lock_id = 4;
 }
 
 message GetLockedAmountOutput {
-    aelf.Address from = 1;
-    aelf.Address to = 2;
+    aelf.Address address = 1;
     string symbol = 3;
     aelf.Hash lock_id = 4;
     sint64 amount = 5;
 }
 
 message GetVirtualAddressForLockingInput {
-    aelf.Address from = 1;
-    aelf.Address to = 2;
+    aelf.Address address = 1;
     aelf.Hash lock_id = 3;
 }
 
