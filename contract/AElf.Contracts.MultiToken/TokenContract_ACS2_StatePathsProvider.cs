@@ -42,16 +42,7 @@ namespace AElf.Contracts.MultiToken
 
                 case nameof(DonateResourceToken):
                 {
-                    return new ResourceInfo
-                    {
-                        Reources =
-                        {
-                            GetPathHashCode(nameof(TokenContractState.ChargedResources), "CPU"),
-                            GetPathHashCode(nameof(TokenContractState.ChargedResources), "STO"),
-                            GetPathHashCode(nameof(TokenContractState.ChargedResources), "NET"),
-                            GetPathHashCode(nameof(TokenContractState.TreasuryContract))
-                        }
-                    };
+                    return GetDonateResourceTokenResourceInfo();
                 }
 
                 case nameof(ClaimTransactionFees):
@@ -65,6 +56,24 @@ namespace AElf.Contracts.MultiToken
             }
         }
 
+        private ResourceInfo GetDonateResourceTokenResourceInfo()
+        {
+            var resourceInfo = new ResourceInfo
+            {
+                Reources =
+                {
+                    GetPathHashCode(nameof(TokenContractState.TreasuryContract))
+                }
+            };
+
+            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols)
+            {
+                resourceInfo.Reources.Add(GetPathHashCode(nameof(TokenContractState.ChargedResources), symbol));
+            }
+
+            return resourceInfo;
+        }
+
         private ResourceInfo GetClaimTransactionFessResourceInfo()
         {
             var resourceInfo = new ResourceInfo
@@ -75,12 +84,10 @@ namespace AElf.Contracts.MultiToken
                     GetPathHashCode(nameof(TokenContractState.TreasuryContract))
                 }
             };
-            if (State.PreviousBlockTransactionFeeTokenSymbolList.Value != null)
+            if (State.PreviousBlockTransactionFeeTokenSymbolList.Value == null) return resourceInfo;
+            foreach (var symbol in State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList)
             {
-                foreach (var symbol in State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList)
-                {
-                    resourceInfo.Reources.Add(GetPathHashCode(nameof(TokenContractState.ChargedFees), symbol));
-                }
+                resourceInfo.Reources.Add(GetPathHashCode(nameof(TokenContractState.ChargedFees), symbol));
             }
 
             return resourceInfo;
