@@ -97,7 +97,7 @@ namespace AElf.OS.Network.Application
             return Task.CompletedTask;
         }
         
-        public Task BroadcastTransactionAsync(Transaction tx)
+        public Task BroadcastTransactionAsync(Transaction transaction)
         {
             var beforeEnqueue = TimestampHelper.GetUtcNow();
             _taskQueueManager.Enqueue(async () =>
@@ -114,7 +114,7 @@ namespace AElf.OS.Network.Application
                 {
                     try
                     {
-                        await peer.SendTransactionAsync(tx);
+                        await peer.SendTransactionAsync(transaction);
                     }
                     catch (NetworkException ex)
                     {
