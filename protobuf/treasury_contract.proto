@@ -20,11 +20,7 @@ service TreasuryContract {
     }
     rpc Release (ReleaseInput) returns (google.protobuf.Empty) {
     }
-    rpc Register (RegisterInput) returns (google.protobuf.Empty) {
-    }
     rpc DonateAll (DonateAllInput) returns (google.protobuf.Empty) {
-    }
-    rpc ReleaseMiningReward (ReleaseMiningRewardInput) returns (google.protobuf.Empty) {
     }
 
     // View

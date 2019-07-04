@@ -386,8 +386,15 @@ namespace AElf.Contracts.MultiToken
         {
             if (State.TreasuryContract.Value == null)
             {
-                State.TreasuryContract.Value =
+                var treasuryContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+                if (treasuryContractAddress == null)
+                {
+                    // Which means Treasury Contract didn't deployed yet. Ignore this method.
+                    return new Empty();
+                }
+
+                State.TreasuryContract.Value = treasuryContractAddress;
             }
 
             if (State.PreviousBlockTransactionFeeTokenSymbolList.Value == null ||
@@ -423,8 +430,15 @@ namespace AElf.Contracts.MultiToken
         {
             if (State.TreasuryContract.Value == null)
             {
-                State.TreasuryContract.Value =
+                var treasuryContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+                if (treasuryContractAddress == null)
+                {
+                    // Which means Treasury Contract didn't deployed yet. Ignore this method.
+                    return new Empty();
+                }
+
+                State.TreasuryContract.Value = treasuryContractAddress;
             }
 
             foreach (var symbol in TokenContractConstants.ResourceTokenSymbols)

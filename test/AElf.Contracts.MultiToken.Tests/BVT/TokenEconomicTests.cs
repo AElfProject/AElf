@@ -14,15 +14,6 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class MultiTokenContractTests
     {
-        private Connector RamConnector = new Connector
-        {
-            Symbol = "AETC",
-            VirtualBalance = 0,
-            Weight = "0.5",
-            IsPurchaseEnabled = true,
-            IsVirtualBalanceEnabled = false
-        };
-        
         private async Task InitialEconomic()
         {
             {

@@ -1,9 +1,6 @@
-using System;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Shouldly;
@@ -11,7 +8,7 @@ using Xunit;
 
 namespace AElf.Contracts.Profit
 {
-    public class ProfitTests : ProfitContractTestBase
+    public partial class ProfitTests : ProfitContractTestBase
     {
         public ProfitTests()
         {
@@ -23,60 +20,10 @@ namespace AElf.Contracts.Profit
         {
             await CreateTreasury();
 
-            var treasury = await ProfitContractStub.GetProfitItem.CallAsync(TreasuryHash);
 
-            treasury.Creator.ShouldBe(Address.FromPublicKey(StarterKeyPair.PublicKey));
-            treasury.TotalAmounts[ProfitContractTestConsts.NativeTokenSymbol]
-                .ShouldBe((long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2));
-
-            var treasuryAddress = await ProfitContractStub.GetProfitItemVirtualAddress.CallAsync(
-                new GetProfitItemVirtualAddressInput
-                {
-                    ProfitId = TreasuryHash
-                });
-            var treasuryBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Symbol = ProfitContractTestConsts.NativeTokenSymbol,
-                Owner = treasuryAddress
-            })).Balance;
-
-            treasuryBalance.ShouldBe((long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2));
         }
 
-        [Fact]
-        public async Task ProfitContract_CreateProfitItem()
-        {
-            var creator = Creators[0];
-            var creatorAddress = Address.FromPublicKey(CreatorMinerKeyPair[0].PublicKey);
 
-            await creator.CreateProfitItem.SendAsync(new CreateProfitItemInput
-            {
-            });
-
-            var createdProfitIds = (await creator.GetCreatedProfitIds.CallAsync(new GetCreatedProfitIdsInput
-            {
-                Creator = creatorAddress
-            })).ProfitIds;
-
-            createdProfitIds.Count.ShouldBe(1);
-
-            var profitId = createdProfitIds.First();
-            var profitItem = await creator.GetProfitItem.CallAsync(profitId);
-
-            profitItem.Creator.ShouldBe(creatorAddress);
-            profitItem.CurrentPeriod.ShouldBe(1);
-            profitItem.ProfitReceivingDuePeriodCount.ShouldBe(ProfitContractConsts.DefaultProfitReceivingDuePeriodCount);
-            profitItem.TotalWeight.ShouldBe(0);
-            profitItem.TotalAmounts.Count.ShouldBe(0);
-
-            var itemBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Symbol = ProfitContractTestConsts.NativeTokenSymbol,
-                Owner = profitItem.VirtualAddress
-            })).Balance;
-
-            Assert.Equal(0, itemBalance);
-        }
 
         /// <summary>
         /// Of course it's okay for an address to creator many profit items.

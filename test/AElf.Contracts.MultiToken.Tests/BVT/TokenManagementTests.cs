@@ -20,6 +20,15 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class MultiTokenContractTests : MultiTokenContractTestBase
     {
+        
+        private Connector RamConnector = new Connector
+        {
+            Symbol = "AETC",
+            VirtualBalance = 0,
+            Weight = "0.5",
+            IsPurchaseEnabled = true,
+            IsVirtualBalanceEnabled = false
+        };
         /// <summary>
         /// Burnable & Transferable
         /// </summary>
@@ -113,14 +122,14 @@ namespace AElf.Contracts.MultiToken
             //BasicFunctionContract
             {
                 BasicFunctionContractAddress = AsyncHelper.RunSync(()=> DeploySystemSmartContract(
-                    KernelConstants.CodeCoverageRunnerCategory, BasicFunctionContractCode,
+                    category, BasicFunctionContractCode,
                     BasicFunctionContractName, DefaultKeyPair));
                 BasicFunctionContractStub =
                     GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(BasicFunctionContractAddress,
                         DefaultKeyPair);
 
                 OtherBasicFunctionContractAddress = AsyncHelper.RunSync(()=> DeploySystemSmartContract(
-                    KernelConstants.CodeCoverageRunnerCategory, BasicFunctionContractCode,
+                    category, BasicFunctionContractCode,
                     OtherBasicFunctionContractName, DefaultKeyPair));
                 OtherBasicFunctionContractStub =
                     GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(
