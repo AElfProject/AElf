@@ -9,7 +9,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-//            context.Services.AddAssemblyOf<ExecutionPluginForAcs1TestModule>();
+
         }
     }
 }

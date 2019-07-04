@@ -16,8 +16,6 @@ namespace AElf.OS
         {
             var configuration = context.Services.GetConfiguration();
 
-            context.Services.AddAssemblyOf<CoreOSAElfModule>();
-
             Configure<NetworkOptions>(configuration.GetSection("Network"));
         }
         

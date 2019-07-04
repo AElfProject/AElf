@@ -9,7 +9,7 @@ namespace AElf.Contracts.Profit
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<ProfitContractTestAElfModule>();
+
         }
     }
 }

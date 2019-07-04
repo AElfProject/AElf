@@ -12,7 +12,7 @@ namespace AElf.Modularity
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<TSelf>();
+            //context.Services.AddAssemblyOf<TSelf>();
         }
     }
 }

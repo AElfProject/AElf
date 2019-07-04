@@ -38,11 +38,7 @@ namespace AElf.Contracts.TestKit
     public class ContractTestModule<TSelf> : ContractTestModule
         where TSelf : ContractTestModule<TSelf>
     {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.AddAssemblyOf<TSelf>();
-            base.ConfigureServices(context);
-        }
+        
     }
 
     [DependsOn(

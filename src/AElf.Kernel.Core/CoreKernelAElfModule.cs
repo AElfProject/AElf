@@ -24,8 +24,7 @@ namespace AElf.Kernel
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-
-            services.AddAssemblyOf<CoreKernelAElfModule>();
+            
             services.AddTransient<ITransactionResultQueryService, TransactionResultService>();
 
             services.AddTransient(typeof(IStoreKeyPrefixProvider<>), typeof(StoreKeyPrefixProvider<>));
@@ -50,12 +49,11 @@ namespace AElf.Kernel
 
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
-
-            services.AddTransient<IBlockValidationProvider, BlockValidationProvider>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
+            
         }
     }
 

@@ -10,7 +10,6 @@ namespace AElf.Contracts.MultiToken
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<MultiTokenContractTestAElfModule>();
             var instance = new TestTokenBalanceTransactionGenerator();
             context.Services.AddSingleton(instance);
             context.Services.AddSingleton<ISystemTransactionGenerator>(instance);

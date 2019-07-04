@@ -21,8 +21,6 @@ namespace AElf.OS
         {
             var configuration = context.Services.GetConfiguration();
 
-            context.Services.AddAssemblyOf<OSAElfModule>();
-
             context.Services.AddSingleton<PeerConnectedEventHandler>();
 
             Configure<AccountOptions>(configuration.GetSection("Account"));

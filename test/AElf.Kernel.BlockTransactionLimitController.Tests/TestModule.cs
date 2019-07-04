@@ -10,7 +10,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<TestModule>();
+
         }
     }
 }

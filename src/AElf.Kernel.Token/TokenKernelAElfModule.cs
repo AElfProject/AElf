@@ -8,7 +8,7 @@ namespace AElf.Kernel.Token
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<TokenKernelAElfModule>();
+
         }
     }
 }

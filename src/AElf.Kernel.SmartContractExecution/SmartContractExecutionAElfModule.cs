@@ -15,8 +15,7 @@ namespace AElf.Kernel.SmartContractExecution
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-
-            services.AddAssemblyOf<SmartContractExecutionAElfModule>();
+            
             services.AddTransient<IBlockchainExecutingService, FullBlockchainExecutingService>();
         }
 

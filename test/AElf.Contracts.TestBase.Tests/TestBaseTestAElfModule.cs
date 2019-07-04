@@ -12,7 +12,7 @@ namespace AElf.Contracts.TestBase.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<TestBaseTestAElfModule>();
+
         }
     }
 }

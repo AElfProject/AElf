@@ -10,21 +10,18 @@ namespace AElf
         protected override ServiceLifetime? GetServiceLifetimeFromClassHierarcy(Type type)
         {
             var lifeTime = base.GetServiceLifetimeFromClassHierarcy(type);
-            if (lifeTime != null)
+            if (lifeTime == null)
             {
-                return lifeTime;
-            }
+                var interfaceName = "I" + type.Name;
 
-            var interfaceName = "I" + type.Name;
-
-            if (type.GetInterfaces().Any(p => p.Name == interfaceName))
-            {
-                if (type.Name.EndsWith("Manager") || type.Name.EndsWith("Service"))
+                if (type.GetInterfaces().Any(p => p.Name == interfaceName))
                 {
-                    return ServiceLifetime.Transient;
+                    if (type.Name.EndsWith("Manager") || type.Name.EndsWith("Service"))
+                    {
+                        return ServiceLifetime.Transient;
+                    }
                 }
             }
-
 
             return null;
         }
