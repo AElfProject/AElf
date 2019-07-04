@@ -558,7 +558,8 @@ namespace AElf.Contracts.MultiToken
             Assert(TokenContractConstants.ResourceTokenSymbols.Contains(input.ResourceTokenSymbol),
                 "Invalid resource token symbol.");
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
-                input.Amount;
+                State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol]
+                    .Add(input.Amount);
             State.Balances[input.ContractAddress][input.ResourceTokenSymbol] =
                 State.Balances[input.ContractAddress][input.ResourceTokenSymbol].Add(input.Amount);
             State.Balances[Context.Sender][input.ResourceTokenSymbol] =
@@ -575,6 +576,8 @@ namespace AElf.Contracts.MultiToken
                 State.Balances[input.ContractAddress][input.ResourceTokenSymbol].Sub(input.Amount);
             State.Balances[Context.Sender][input.ResourceTokenSymbol] =
                 State.Balances[Context.Sender][input.ResourceTokenSymbol].Add(input.Amount);
+            State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
+                advancedAmount.Sub(input.Amount);
             return new Empty();
         }
     }
