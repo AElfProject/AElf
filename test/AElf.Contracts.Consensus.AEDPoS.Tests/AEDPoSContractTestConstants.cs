@@ -8,11 +8,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         internal const int TinySlots = 8;
 
-        internal const int InitialMinersCount = 5;
+        internal const int InitialMinersCount = 9;
         
-        internal const int CandidatesCount = 10;
+        internal const int CandidatesCount = 31;
         
-        internal const int VotersCount = 10;
+        internal const int VotersCount = 60;
 
         internal const int MiningInterval = 4000;
 
@@ -27,6 +27,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <summary>
         /// 7 days.
         /// </summary>
-        internal const long TimeEachTerm = 604800;// 7 * 60 * 60 * 24
+        internal const long TimeEachTerm = 120;// 7 * 60 * 60 * 24
+
+        internal const long MinerIncreaseInterval = 120;
     }
 }

@@ -87,7 +87,7 @@ namespace AElf.CrossChain.Communication.Grpc
             var indexingHandShakeReply = await BasicCrossChainRpcBase.CrossChainHandShakeAsync(request, context);
             
             indexingHandShakeReply.ShouldNotBeNull();
-            indexingHandShakeReply.Result.ShouldBeTrue();
+            indexingHandShakeReply.Success.ShouldBeTrue();
         }
         
         private ServerCallContext BuildServerCallContext(Metadata metadata = null)

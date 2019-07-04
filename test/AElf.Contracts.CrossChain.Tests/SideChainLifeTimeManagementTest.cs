@@ -13,12 +13,6 @@ using Xunit;
 
 namespace AElf.Contract.CrossChain.Tests
 {
-    /*
-     * Todo:
-     * Side chain creation proposal is disable.
-     * Lock resource is disable.
-     * Token amount to check.
-    */
     public class SideChainLifeTimeManagementTest : CrossChainContractTestBase
     {
         [Fact]
