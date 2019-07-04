@@ -11,6 +11,12 @@ namespace AElf.Contracts.Profit
 {
     public partial class ProfitContract : ProfitContractContainer.ProfitContractBase
     {
+
+        /// <summary>
+        /// Initialize a profit contract.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty InitializeProfitContract(Empty input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
@@ -20,11 +26,18 @@ namespace AElf.Contracts.Profit
             return new Empty();
         }
 
+        /// <summary>
+        /// Create a ProfitItem
+        /// At the first time,the profitItem's id is unknown,it may create by transaction id and createdProfitIds;
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Hash CreateProfitItem(CreateProfitItemInput input)
         {
             if (State.TokenContract.Value == null)
             {
-                State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
             var tokenInfo = State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
@@ -75,6 +88,12 @@ namespace AElf.Contracts.Profit
             return profitId;
         }
 
+        /// <summary>
+        /// Register a SubProfitItem,binding to a ProfitItem as child.
+        /// Then add the father ProfitItem's weight.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty RegisterSubProfitItem(RegisterSubProfitItemInput input)
         {
             Assert(input.ProfitId != input.SubProfitId, "Two profit items cannot be same.");
@@ -108,6 +127,8 @@ namespace AElf.Contracts.Profit
                 EndPeriod = long.MaxValue
             });
 
+
+            //binding the SubProfitItem to father ProfitItem
             profitItem.SubProfitItems.Add(new SubProfitItem
             {
                 ProfitId = input.SubProfitId,
@@ -153,6 +174,8 @@ namespace AElf.Contracts.Profit
                 EndPeriod = input.EndPeriod,
                 Weight = input.Weight,
             };
+
+            //current profitContract receiver's profit details who gain the profit 
             var currentProfitDetails = State.ProfitDetailsMap[profitId][input.Receiver];
             if (currentProfitDetails == null)
             {
@@ -176,7 +199,7 @@ namespace AElf.Contracts.Profit
             }
 
             State.ProfitDetailsMap[profitId][input.Receiver] = currentProfitDetails;
-            
+
             Context.LogDebug(() => $"Add {input.Weight} weights to profit item {input.ProfitId.ToHex()}");
 
             return new Empty();
@@ -265,6 +288,7 @@ namespace AElf.Contracts.Profit
         /// <returns></returns>
         public override Empty ReleaseProfit(ReleaseProfitInput input)
         {
+            Assert(input.Amount >= 0, $"Amount must greater than 0");
             var profitItem = State.ProfitItemsMap[input.ProfitId];
 
             Assert(profitItem != null, "Profit item not found.");
@@ -330,9 +354,11 @@ namespace AElf.Contracts.Profit
             Assert(input.Period == releasingPeriod,
                 $"Invalid period. When release profit item {input.ProfitId.ToHex()} of period {input.Period}. Current period is {releasingPeriod}");
 
+            //Compute the receivingVirtualAddress by profitVirtualAddress and releasingPeriod
             var profitsReceivingVirtualAddress =
                 GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, releasingPeriod);
 
+            //ReleasedProfitsMap means the record that profit released at a period
             var releasedProfitInformation = State.ReleasedProfitsMap[profitsReceivingVirtualAddress];
             if (releasedProfitInformation == null)
             {
@@ -360,6 +386,7 @@ namespace AElf.Contracts.Profit
 
             var remainAmount = input.Amount;
 
+            //according to the ratio that subProfitItem's weight divide totalWeight,subProfitItem can get the corresponding token.
             foreach (var subProfitItem in profitItem.SubProfitItems)
             {
                 var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItem.ProfitId);
@@ -422,6 +449,9 @@ namespace AElf.Contracts.Profit
             }
 
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
+
+            //if input.period == 0,the token will transfer to the totalAmount in the profitItem
+            //opposed,the token will transfer to the corresponding address of input.period
             if (input.Period == 0)
             {
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -437,6 +467,7 @@ namespace AElf.Contracts.Profit
             }
             else
             {
+
                 var releasedProfitsVirtualAddress =
                     GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
 
@@ -452,7 +483,8 @@ namespace AElf.Contracts.Profit
                 {
                     Assert(!releasedProfitsInformation.IsReleased,
                         $"Profit item of period {input.Period} already released.");
-                    releasedProfitsInformation.ProfitsAmount = releasedProfitsInformation.ProfitsAmount.Add(input.Amount);
+                    releasedProfitsInformation.ProfitsAmount =
+                        releasedProfitsInformation.ProfitsAmount.Add(input.Amount);
                 }
 
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -470,6 +502,12 @@ namespace AElf.Contracts.Profit
             return new Empty();
         }
 
+
+        /// <summary>
+        /// Gain the profit form profitId from Details.lastPeriod to profitItem.currentPeriod-1;
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty Profit(ProfitInput input)
         {
             Context.LogDebug(() => $"{Context.Sender} is trying to profit from {input.ProfitId.ToHex()}.");
@@ -500,6 +538,7 @@ namespace AElf.Contracts.Profit
                 }
 
                 var lastProfitPeriod = profitDetail.LastProfitPeriod;
+                //Can only get profit until profitItem.CurrentPeriod-1,because currentPeriod hasn't be released.
                 for (var period = profitDetail.LastProfitPeriod;
                     period <= (profitDetail.EndPeriod == long.MaxValue
                         ? profitItem.CurrentPeriod - 1
@@ -512,7 +551,8 @@ namespace AElf.Contracts.Profit
                     var amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount)
                         .Div(releasedProfitsInformation.TotalWeight);
                     var period1 = period;
-                    Context.LogDebug(() => $"{Context.Sender} is profiting {amount} tokens from {input.ProfitId.ToHex()} in period {period1}");
+                    Context.LogDebug(() =>
+                        $"{Context.Sender} is profiting {amount} tokens from {input.ProfitId.ToHex()} in period {period1}");
                     if (releasedProfitsInformation.IsReleased && amount > 0)
                     {
                         State.TokenContract.TransferFrom.Send(new TransferFromInput

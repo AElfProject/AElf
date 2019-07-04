@@ -298,10 +298,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         [Fact]
         public async Task Get_NotExisted_TransactionsResult()
         {
-            var block = new Block
-            {
-                Header = new BlockHeader(),
-            };
+            var block = _osTestHelper.GenerateBlock(Hash.Empty, 10);
             var blockHash = block.GetHash().ToHex();
             var response = await JsonCallAsJObject("/chain", "GetTransactionsResult",
                 new {blockHash, offset = 0, num = 10});
@@ -316,10 +313,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         [Fact]
         public async Task Get_TransactionsResult_With_InvalidParameter()
         {
-            var block = new Block
-            {
-                Header = new BlockHeader(),
-            };
+            var block = _osTestHelper.GenerateBlock(Hash.Empty, 10);
             var blockHash = block.GetHash().ToHex();
             
             var response1 = await JsonCallAsJObject("/chain", "GetTransactionsResult",

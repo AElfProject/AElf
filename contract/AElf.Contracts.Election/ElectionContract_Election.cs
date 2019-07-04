@@ -12,6 +12,12 @@ namespace AElf.Contracts.Election
 {
     public partial class ElectionContract : ElectionContractContainer.ElectionContractBase
     {
+
+        /// <summary>
+        /// Initialize the ElectionContractState
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty InitialElectionContract(InitialElectionContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
@@ -23,19 +29,29 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
+        /// <summary>
+        /// Config the ElectionContract according to the ConfigElectionContractInput;
+        /// Create the CandidateInformationMap according to the input.MinerList;
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty ConfigElectionContract(ConfigElectionContractInput input)
         {
-            State.AEDPoSContract.Value = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            State.AEDPoSContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             Assert(State.AEDPoSContract.Value == Context.Sender, "Only Consensus Contract can call this method.");
             Assert(State.InitialMiners.Value == null, "Initial miners already set.");
             State.InitialMiners.Value = new PublicKeysList
                 {Value = {input.MinerList.Select(k => k.ToByteString())}};
+            //
             foreach (var publicKey in input.MinerList)
             {
                 State.CandidateInformationMap[publicKey] = new CandidateInformation {PublicKey = publicKey};
             }
+
             State.MinersCount.Value = input.MinerList.Count;
             State.TimeEachTerm.Value = input.TimeEachTerm;
+            State.MinerIncreaseInterval.Value = input.MinerIncreaseInterval;
             return new Empty();
         }
 
@@ -43,9 +59,12 @@ namespace AElf.Contracts.Election
         {
             Assert(!State.VotingEventRegistered.Value, "Already registered.");
 
-            State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            //initialize the related contract from contract names; 
+            State.TokenContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             State.VoteContract.Value = Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName);
-            State.AEDPoSContract.Value = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            State.AEDPoSContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
 
             State.TokenContract.Create.Send(new CreateInput
             {
@@ -58,6 +77,7 @@ namespace AElf.Contracts.Election
                 LockWhiteList = {Context.Self}
             });
 
+            //call the method <Issue> in TokenContract,
             State.TokenContract.Issue.Send(new IssueInput
             {
                 Symbol = ElectionContractConstants.VoteSymbol,
@@ -102,7 +122,7 @@ namespace AElf.Contracts.Election
                 "Initial miner cannot announce election.");
 
             var candidateInformation = State.CandidateInformationMap[publicKey];
-            
+
             if (candidateInformation != null)
             {
                 Assert(!candidateInformation.IsCurrentCandidate,
@@ -125,6 +145,7 @@ namespace AElf.Contracts.Election
 
             State.Candidates.Value.Value.Add(publicKeyByteString);
 
+            //lock the token from sender for deposit of announce election
             State.TokenContract.Lock.Send(new LockInput
             {
                 Address = Context.Sender,
@@ -134,12 +155,14 @@ namespace AElf.Contracts.Election
                 Usage = "Lock for announcing election."
             });
 
+            //add a option for the VotingItem
             State.VoteContract.AddOption.Send(new AddOptionInput
             {
                 VotingItemId = State.MinerElectionVotingItemId.Value,
                 Option = publicKey
             });
 
+            //add a weight for the ProfitContract
             State.ProfitContract.AddWeight.Send(new AddWeightInput
             {
                 ProfitId = State.SubsidyHash.Value,
@@ -150,6 +173,11 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
+        /// <summary>
+        /// delete a option of voting,then sub the weight from ProfitContract 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty QuitElection(Empty input)
         {
             var publicKey = Context.RecoverPublicKey().ToHex();
@@ -157,7 +185,7 @@ namespace AElf.Contracts.Election
 
             Assert(State.Candidates.Value.Value.Contains(publicKeyByteString), "Sender is not a candidate.");
             Assert(
-                !State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).PublicKeys
+                !State.AEDPoSContract.GetCurrentMinerList.Call(new Empty()).Pubkeys
                     .Contains(publicKeyByteString),
                 "Current miners cannot quit election.");
 
@@ -183,6 +211,7 @@ namespace AElf.Contracts.Election
             candidateInformation.AnnouncementTransactionId = Hash.Empty;
             State.CandidateInformationMap[publicKey] = candidateInformation;
 
+            //delete a weight from ProfitContract ，oppose to the AddWeight of AnnounceElection function
             State.ProfitContract.SubWeight.Send(new SubWeightInput
             {
                 ProfitId = State.SubsidyHash.Value,
@@ -192,6 +221,11 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
+        /// <summary>
+        /// Call the Vote function of VoteContract to do a voting.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty Vote(VoteMinerInput input)
         {
             Assert(State.CandidateInformationMap[input.CandidatePublicKey] != null, "Candidate not found.");
@@ -217,7 +251,7 @@ namespace AElf.Contracts.Election
                 voterVotes = new ElectorVote
                 {
                     PublicKey = voterPublicKeyByteString,
-                    ActiveVotingRecordIds = { Context.TransactionId},
+                    ActiveVotingRecordIds = {Context.TransactionId},
                     ActiveVotedVotesAmount = input.Amount,
                     AllVotedVotesAmount = input.Amount
                 };
@@ -238,7 +272,7 @@ namespace AElf.Contracts.Election
                 candidateVotes = new CandidateVote
                 {
                     PublicKey = input.CandidatePublicKey.ToByteString(),
-                    ObtainedActiveVotingRecordIds = { Context.TransactionId},
+                    ObtainedActiveVotingRecordIds = {Context.TransactionId},
                     ObtainedActiveVotedVotesAmount = input.Amount,
                     AllObtainedVotedVotesAmount = input.Amount
                 };
@@ -246,14 +280,15 @@ namespace AElf.Contracts.Election
             else
             {
                 candidateVotes.ObtainedActiveVotingRecordIds.Add(Context.TransactionId);
-                candidateVotes.ObtainedActiveVotedVotesAmount = candidateVotes.ObtainedActiveVotedVotesAmount.Add(input.Amount);
-                candidateVotes.AllObtainedVotedVotesAmount = candidateVotes.AllObtainedVotedVotesAmount.Add(input.Amount);
+                candidateVotes.ObtainedActiveVotedVotesAmount =
+                    candidateVotes.ObtainedActiveVotedVotesAmount.Add(input.Amount);
+                candidateVotes.AllObtainedVotedVotesAmount =
+                    candidateVotes.AllObtainedVotedVotesAmount.Add(input.Amount);
             }
 
             State.CandidateVotes[input.CandidatePublicKey] = candidateVotes;
-            
-            
 
+            //Transfer elf to VoteToken,voter can get another authority.
             State.TokenContract.Transfer.Send(new TransferInput
             {
                 Symbol = ElectionContractConstants.VoteSymbol,
@@ -291,6 +326,11 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
+        /// <summary>
+        /// Withdraw a vote,recall the votes.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty Withdraw(Hash input)
         {
             var votingRecord = State.VoteContract.GetVotingRecord.Call(input);
@@ -347,6 +387,11 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
+        /// <summary>
+        /// Update the candidate information,if it's not evil node.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty UpdateCandidateInformation(UpdateCandidateInformationInput input)
         {
             var candidateInformation = State.CandidateInformationMap[input.PublicKey];
@@ -370,7 +415,8 @@ namespace AElf.Contracts.Election
             }
 
             candidateInformation.ProducedBlocks = candidateInformation.ProducedBlocks.Add(input.RecentlyProducedBlocks);
-            candidateInformation.MissedTimeSlots = candidateInformation.MissedTimeSlots.Add(input.RecentlyMissedTimeSlots);
+            candidateInformation.MissedTimeSlots =
+                candidateInformation.MissedTimeSlots.Add(input.RecentlyMissedTimeSlots);
             State.CandidateInformationMap[input.PublicKey] = candidateInformation;
             return new Empty();
         }

@@ -31,5 +31,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public SingletonState<MinerList> MainChainCurrentMinerList { get; set; }
 
         public SingletonState<bool> IsMainChain { get; set; }
+        
+        public SingletonState<long> MinerIncreaseInterval { get; set; }
     }
 }

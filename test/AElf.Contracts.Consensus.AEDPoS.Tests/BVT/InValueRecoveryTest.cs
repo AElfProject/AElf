@@ -79,16 +79,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var triggers = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(i =>
                 new AElfConsensusTriggerInformation
                 {
-                    PublicKey = ByteString.CopyFrom(InitialMinersKeyPairs[i].PublicKey),
+                    Pubkey = ByteString.CopyFrom(InitialMinersKeyPairs[i].PublicKey),
                     RandomHash = randomHashes[i],
                     PreviousRandomHash = previousTriggers[InitialMinersKeyPairs[i].PublicKey.ToHex()].RandomHash
-                }).ToDictionary(t => t.PublicKey.ToHex(), t => t);
+                }).ToDictionary(t => t.Pubkey.ToHex(), t => t);
 
             // Just `MinimumCount + 1` miners produce blocks.
             foreach (var minerInRound in currentRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order)
                 .Take(MinimumCount + 1))
             {
-                var currentKeyPair = InitialMinersKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.PublicKey);
+                var currentKeyPair = InitialMinersKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.Pubkey);
 
                 KeyPairProvider.SetKeyPair(currentKeyPair);
 
@@ -97,10 +97,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var tester = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation = new AElfConsensusHeaderInformation();
                 headerInformation.MergeFrom(
-                    (await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.PublicKey]
+                    (await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
                         .ToBytesValue())).Value);
                 // Update consensus information.
-                var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.PublicKey);
+                var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.Pubkey);
                 await tester.UpdateValue.SendAsync(toUpdate);
             }
 
@@ -124,13 +124,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var triggers = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(i =>
                 new AElfConsensusTriggerInformation
                 {
-                    PublicKey = ByteString.CopyFrom(InitialMinersKeyPairs[i].PublicKey),
+                    Pubkey = ByteString.CopyFrom(InitialMinersKeyPairs[i].PublicKey),
                     RandomHash = randomHashes[i]
-                }).ToDictionary(t => t.PublicKey.ToHex(), t => t);
+                }).ToDictionary(t => t.Pubkey.ToHex(), t => t);
 
             foreach (var minerInRound in firstRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
             {
-                var currentKeyPair = InitialMinersKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.PublicKey);
+                var currentKeyPair = InitialMinersKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.Pubkey);
 
                 KeyPairProvider.SetKeyPair(currentKeyPair);
 
@@ -139,11 +139,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var tester = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation = new AElfConsensusHeaderInformation();
                 headerInformation.MergeFrom(
-                    (await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.PublicKey]
+                    (await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
                         .ToBytesValue())).Value);
 
                 // Update consensus information.
-                var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.PublicKey);
+                var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.Pubkey);
                 await tester.UpdateValue.SendAsync(toUpdate);
             }
 

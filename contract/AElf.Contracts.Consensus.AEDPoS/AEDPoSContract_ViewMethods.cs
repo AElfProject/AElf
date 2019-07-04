@@ -26,7 +26,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             TryToGetCurrentRoundInformation(out var round)
                 ? new MinerList
                 {
-                    PublicKeys =
+                    Pubkeys =
                     {
                         round.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())
                     }
@@ -63,7 +63,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             else if (TryToGetCurrentRoundInformation(out round))
             {
                 var miners = new MinerList();
-                miners.PublicKeys.AddRange(round.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
+                miners.Pubkeys.AddRange(round.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
                 round = miners.GenerateFirstRoundOfNewTerm(round.GetMiningInterval(), Context.CurrentBlockTime,
                     round.RoundNumber, termNumber);
             }
@@ -100,9 +100,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 $"Got victories from Election Contract:\n{string.Join("\n", victoriesPublicKeys.Value.Select(s => s.ToHex().Substring(0, 10)))}");
             victories = new MinerList
             {
-                PublicKeys = {victoriesPublicKeys.Value},
+                Pubkeys = {victoriesPublicKeys.Value},
             };
-            return victories.PublicKeys.Any();
+            return victories.Pubkeys.Any();
         }
 
         private bool GenerateNextRoundInformation(Round currentRound, Timestamp currentBlockTime, out Round nextRound)
@@ -141,7 +141,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                         // Transfer evil node's consensus information to the chosen backup.
                         var minerInRound = currentRound.RealTimeMinersInformation[publicKeyToRemove];
-                        minerInRound.PublicKey = theOneFeelingLucky;
+                        minerInRound.Pubkey = theOneFeelingLucky;
                         minerInRound.ProducedBlocks = 0;
                         minerInRound.MissedTimeSlots = 0;
                         currentRound.RealTimeMinersInformation[theOneFeelingLucky] = minerInRound;
@@ -158,9 +158,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private bool IsMainChainMinerListChanged(Round currentRound)
         {
             Context.LogDebug(() => "Entered IsMainChainMinerListChanged.");
-            return State.MainChainCurrentMinerList.Value.PublicKeys.Any() &&
+            return State.MainChainCurrentMinerList.Value.Pubkeys.Any() &&
                    GetMinerListHash(currentRound.RealTimeMinersInformation.Keys) !=
-                   GetMinerListHash(State.MainChainCurrentMinerList.Value.PublicKeys.Select(p => p.ToHex()));
+                   GetMinerListHash(State.MainChainCurrentMinerList.Value.Pubkeys.Select(p => p.ToHex()));
         }
 
         private Hash GetMinerListHash(IEnumerable<string> minerList)
@@ -194,12 +194,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
         {
             return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
-                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.PublicKey) &&
+                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.Pubkey) &&
                       minerInCurrentRound.PreviousInValue != null
-                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.PublicKey].OutValue
+                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.Pubkey].OutValue
                 where previousOutValue != null &&
                       Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
-                select minerInCurrentRound.PublicKey).ToList();
+                select minerInCurrentRound.Pubkey).ToList();
         }
 
         private bool TryToGetElectionSnapshot(long termNumber, out TermSnapshot snapshot)
@@ -241,14 +241,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
                        !round.RealTimeMinersInformation.ContainsKey(k));
         }
 
-        private int GetMinersCount()
+
+        private int GetMinersCount(Round input)
         {
             if (!TryToGetRoundInformation(1, out var firstRound)) return 0;
-            // TODO: Maybe this should according to date, like every July 1st we increase 2 miners.
-            var initialMinersCount = firstRound.RealTimeMinersInformation.Count;
-            return initialMinersCount.Add(
-                (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
-                .Div(365 * 60 * 60 * 24).Mul(2));
+            //TODO: the configuration about the minercountinterval should become a const when online;
+            return input.RealTimeMinersInformation.Count < AEDPoSContractConstants.MinMinersCount
+                ? AEDPoSContractConstants.MinMinersCount
+                : AEDPoSContractConstants.MinMinersCount.Add(
+                    (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
+                    .Div(State.MinerIncreaseInterval.Value).Mul(2));
         }
     }
 }

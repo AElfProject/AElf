@@ -12,11 +12,13 @@ namespace AElf.OS.Network
     {
         private readonly INetworkService _networkService;
         private readonly IPeerPool _peerPool;
+        private readonly OSTestHelper _osTestHelper;
 
         public NetworkServiceTests()
         {
             _networkService = GetRequiredService<INetworkService>();
             _peerPool = GetRequiredService<IPeerPool>();
+            _osTestHelper = GetRequiredService<OSTestHelper>();
         }
 
         #region GetBlocks
@@ -60,14 +62,28 @@ namespace AElf.OS.Network
         [Fact]
         public async Task BroadcastAnnounceAsync_OnePeerThrows_ShouldNotBlockOthers()
         {
-            int successfulBcasts = await _networkService.BroadcastAnnounceAsync(new BlockHeader(),false);
+            int successfulBcasts =
+                await _networkService.BroadcastAnnounceAsync(_osTestHelper.GenerateBlock(Hash.Empty, 10).Header, false);
             Assert.Equal(successfulBcasts, _peerPool.GetPeers().Count-1);
         }
         
         [Fact]
         public async Task BroadcastTransactionAsync_OnePeerThrows_ShouldNotBlockOthers()
         {
-            int successfulBcasts = await _networkService.BroadcastAnnounceAsync(new BlockHeader(),false);
+            int successfulBcasts =
+                await _networkService.BroadcastAnnounceAsync(_osTestHelper.GenerateBlock(Hash.Empty, 10).Header, false);
+            Assert.Equal(successfulBcasts, _peerPool.GetPeers().Count-1);
+        }
+        
+        [Fact]
+        public async Task BroadcastTransactionAsync_Success()
+        {
+            var successfulBcasts = await _networkService.BroadcastTransactionAsync(new Transaction
+            {
+                From = Address.Generate(),
+                To = Address.Generate(),
+                MethodName = "Test"
+            });
             Assert.Equal(successfulBcasts, _peerPool.GetPeers().Count-1);
         }
 

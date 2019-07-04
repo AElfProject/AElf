@@ -18,6 +18,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(TryToUpdateTermNumber(input.TermNumber), "Failed to update term number.");
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
 
+            var minersCount = GetMinersCount(input);
+            if (minersCount != 0 && State.ElectionContract.Value != null)
+            {
+                State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
+                {
+                    MinersCount = minersCount
+                });
+            }
             // Reset some fields of first two rounds of next term.
             foreach (var minerInRound in input.RealTimeMinersInformation.Values)
             {
@@ -44,7 +52,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // Update miners list.
             var miners = new MinerList();
-            miners.PublicKeys.AddRange(input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
+            miners.Pubkeys.AddRange(input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
             Assert(SetMinerListOfCurrentTerm(miners), "Failed to update miner list.");
 
             // Update term number lookup. (Using term number to get first round number of related term.)

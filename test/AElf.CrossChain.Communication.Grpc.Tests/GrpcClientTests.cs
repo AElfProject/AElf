@@ -41,7 +41,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 FromChainId = 0,
                 Host = "127.0.0.1"
             });
-            result.Result.ShouldBeTrue();
+            result.Success.ShouldBeTrue();
             Dispose();
         }
         

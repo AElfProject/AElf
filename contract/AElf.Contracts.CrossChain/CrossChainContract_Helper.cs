@@ -15,6 +15,8 @@ namespace AElf.Contracts.CrossChain
 {
     public partial class CrossChainContract
     {
+        private const string ConsensusExtraDataName = "Consensus";
+        
         /// <summary>
         /// Bind parent chain height together with self height.
         /// </summary>
@@ -141,7 +143,7 @@ namespace AElf.Contracts.CrossChain
         private void UpdateCurrentMiners(ByteString bytes)
         {
             ValidateContractState(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
-            State.ConsensusContract.UpdateConsensusInformation.Send(new ConsensusInformation {Bytes = bytes});
+            State.ConsensusContract.UpdateConsensusInformation.Send(new ConsensusInformation {Value = bytes});
         }
 
         private Hash GetParentChainMerkleTreeRoot(long parentChainHeight)
@@ -151,7 +153,7 @@ namespace AElf.Contracts.CrossChain
         
         private Hash GetSideChainMerkleTreeRoot(long parentChainHeight)
         {
-            var indexedSideChainData = State.IndexedCrossChainBlockData[parentChainHeight];
+            var indexedSideChainData = State.IndexedSideChainBlockData[parentChainHeight];
             return ComputeRootWithMultiHash(
                 indexedSideChainData.SideChainBlockData.Select(d => d.TransactionMerkleTreeRoot));
         }

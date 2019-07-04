@@ -26,7 +26,7 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     // Actually extraData cannot be NULL if it is mining processing, as the index in BlockExtraData is fixed.
                     // So it can be ByteString.Empty but not NULL.
-                    blockHeader.BlockExtraDatas.Add(extraData);
+                    blockHeader.ExtraData.Add(extraData);
                 }
             }
         }
@@ -38,9 +38,9 @@ namespace AElf.Kernel.Blockchain.Application
             for (var i = 0; i < _blockExtraDataProviders.Count; i++)
             {
                 var blockExtraDataProviderName = _blockExtraDataProviders[i].GetType().Name;
-                if (blockExtraDataProviderName.Contains(blockExtraDataProviderSymbol) && i < blockHeader.BlockExtraDatas.Count)
+                if (blockExtraDataProviderName.Contains(blockExtraDataProviderSymbol) && i < blockHeader.ExtraData.Count)
                 {
-                    return blockHeader.BlockExtraDatas[i];
+                    return blockHeader.ExtraData[i];
                 }
             }
             

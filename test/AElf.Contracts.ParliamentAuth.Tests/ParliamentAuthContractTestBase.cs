@@ -193,7 +193,7 @@ namespace AElf.Contracts.ParliamentAuth
             {
                 IsTermStayOne = true
             });
-            var minerList = new MinerList {PublicKeys = {InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex().ToByteString())}};
+            var minerList = new MinerList {Pubkeys = {InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex().ToByteString())}};
             await ConsensusContractStub.FirstRound.SendAsync(minerList.GenerateFirstRoundOfNewTerm(MiningInterval, BlockchainStartTime));
         }
 //        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateConsensusInitializationCallList()
