@@ -103,7 +103,7 @@ namespace AElf.OS.Network.Grpc
                     }
                 }
 
-                await peer.StopAsync();
+                await peer.DisconnectAsync();
             }
         }
 

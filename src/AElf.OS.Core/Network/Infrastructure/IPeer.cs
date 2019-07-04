@@ -22,7 +22,7 @@ namespace AElf.OS.Network.Infrastructure
         
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         
-        Task StopAsync();
+        Task DisconnectAsync();
 
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();
 

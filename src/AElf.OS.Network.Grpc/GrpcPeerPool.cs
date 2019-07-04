@@ -284,7 +284,7 @@ namespace AElf.OS.Network.Grpc
                     }
                 }
                 
-                await removed.StopAsync();
+                await removed.DisconnectAsync();
                 
                 Logger.LogDebug($"Removed peer {removed}");
             }

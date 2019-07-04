@@ -331,7 +331,7 @@ namespace AElf.OS.Network.Grpc
             return true;
         }
 
-        public async Task StopAsync()
+        public async Task DisconnectAsync()
         {
             try
             {
