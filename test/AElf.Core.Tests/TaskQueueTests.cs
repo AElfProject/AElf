@@ -8,7 +8,7 @@ namespace AElf
 {
     public class TaskQueueTests
     {
-        private TaskQueue _taskQueue;
+        private readonly TaskQueue _taskQueue;
         private int _counter;
         public TaskQueueTests()
         {
@@ -17,14 +17,14 @@ namespace AElf
         }
 
         [Fact]
-        public async Task StartQueueTest_Twice()
+        public void StartQueueTest_Twice()
         {
             _taskQueue.Start();
             Should.Throw<InvalidOperationException>(() => _taskQueue.Start());
         }
 
         [Fact]
-        public async Task EnqueueTest()
+        public void EnqueueTest()
         {
             _taskQueue.Start();
             _taskQueue.Enqueue(ProcessTask);
@@ -36,19 +36,20 @@ namespace AElf
         }
 
         [Fact]
-        public async Task Enqueue_MultipleTimes()
+        public void Enqueue_MultipleTimes()
         {
             _taskQueue.Start();
             for (var i = 0; i < 10; i++)
-            {
                 _taskQueue.Enqueue(ProcessTask);
+
+            while (_taskQueue.Size != 0)
                 Thread.Sleep(10);
-            }
+            
             _counter.ShouldBe(10);
         }
 
         [Fact]
-        public async Task Dispose_QueueTest()
+        public void Dispose_QueueTest()
         {
             _taskQueue.Start();
             _taskQueue.Dispose();
@@ -57,7 +58,7 @@ namespace AElf
         }
 
         [Fact]
-        public async Task Stop_QueueTest()
+        public void Stop_QueueTest()
         {
             _taskQueue.Start();
             _taskQueue.Dispose();
