@@ -19,7 +19,7 @@ namespace AElf.Contracts.MultiToken
                 "Invalid symbol.");
             Assert(amount > 0, "Invalid amount.");
             var tokenInfo = State.TokenInfos[symbol];
-            Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), "Token is not found.");
+            Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), $"Token is not found. {symbol}");
             return tokenInfo;
         }
         

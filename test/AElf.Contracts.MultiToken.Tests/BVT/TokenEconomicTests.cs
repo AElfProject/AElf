@@ -1,10 +1,17 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
+using Acs3;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
+using AElf.Contracts.Treasury;
+using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
@@ -92,10 +99,45 @@ namespace AElf.Contracts.MultiToken
             }
 
             {
+                var connector = new Connector
+                {
+                    Symbol = AliceCoinTokenInfo.Symbol,
+                    IsPurchaseEnabled = true,
+                    Weight = "0.2",
+                    IsVirtualBalanceEnabled = true
+                };
+                var connectorManagerAddress = await TokenConverterContractStub.GetManagerAddress.CallAsync(new Empty());
+                var proposal = new CreateProposalInput
+                {
+                    OrganizationAddress = connectorManagerAddress,
+                    ContractMethodName = nameof(TokenConverterContractStub.SetConnector),
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                    Params = connector.ToByteString(),
+                    ToAddress = TokenConverterContractAddress
+                };
+
+                var parliamentAuthContractAddress = AsyncHelper.RunSync(() =>
+                    DeploySystemSmartContract(30, Codes.Single(kv => kv.Key.Contains("ParliamentAuth")).Value, Hash.FromString("AElf.ContractsName.Parliament"),
+                        DefaultKeyPair));
+                var ParliamentAuthContractStub =
+                    GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(parliamentAuthContractAddress,
+                        DefaultKeyPair);
+                var initializeResult = await ParliamentAuthContractStub.Initialize.SendAsync(new Empty());
+                CheckResult(initializeResult.TransactionResult);
+                var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
+                CheckResult(createResult.TransactionResult);
+
+                var proposalHash = Hash.FromMessage(proposal);
+                var approveResult = await ParliamentAuthContractStub.Approve.SendAsync(new Acs3.ApproveInput
+                {
+                    ProposalId = proposalHash,
+                });
+                CheckResult(approveResult.TransactionResult);
+                
                 var result = AsyncHelper.RunSync(() =>
                     TokenConverterContractStub.Initialize.SendAsync(new InitializeInput
                     {
-                        BaseTokenSymbol = DefaultSymbol,
+                        BaseTokenSymbol = AliceCoinTokenInfo.Symbol,
                         FeeRate = "0.005",
                         ManagerAddress = ManagerAddress,
                         TokenContractAddress = TokenContractAddress,
@@ -104,72 +146,10 @@ namespace AElf.Contracts.MultiToken
                     }));
                 CheckResult(result.TransactionResult);
             }
-
-            {
-                var result =
-                    AsyncHelper.RunSync(() =>
-                        TreasuryContractStub.InitialTreasuryContract.SendAsync(new Empty()));
-                CheckResult(result.TransactionResult);
-            }
+            
         }
-        [Fact]
-        public async Task Charge_Transaction_Fees()
-        {
-
-            await InitialEconomic();
-            var result = (await TokenContractStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
-            {
-                SymbolToAmount = {new Dictionary<string, long> {{DefaultSymbol, 10L}}}
-            })).TransactionResult;
-            result.Status.ShouldBe(TransactionResultStatus.Mined);
-            await TokenContractStub.Transfer.SendAsync(new TransferInput
-            {
-                Symbol = AliceCoinTokenInfo.Symbol,
-                Amount = 1000L,
-                Memo = "transfer test",
-                To = User1Address
-            });
-            var balanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = DefaultAddress,
-                Symbol = AliceCoinTokenInfo.Symbol
-            });
-            balanceOutput.Balance.ShouldBe(AliceCoinTotalAmount - 1000L - 10L);
-        }
-
-        [Fact]
-        public async Task Claim_Transaction_Fees()
-        {
-            await MultiTokenContract_Create();
-            var originBalanceOutput1 = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = TreasuryContractAddress,
-                Symbol = AliceCoinTokenInfo.Symbol
-            });
-            originBalanceOutput1.Balance.ShouldBe(0L);
-            await Charge_Transaction_Fees();
-
-            var originBalanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = TreasuryContractAddress,
-                Symbol = AliceCoinTokenInfo.Symbol
-            });
-            originBalanceOutput.Balance.ShouldBe(10L);
-
-            {
-                var result = (await TokenContractStub.ClaimTransactionFees.SendAsync(new Empty()
-                )).TransactionResult;
-                CheckResult(result);
-            }
-
-            var balanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = TreasuryContractAddress,
-                Symbol = AliceCoinTokenInfo.Symbol
-            });
-            balanceOutput.Balance.ShouldBe(10L);
-
-        }
+        
+        
 
         [Fact]
         public async Task Set_And_Get_Method_Fee()
