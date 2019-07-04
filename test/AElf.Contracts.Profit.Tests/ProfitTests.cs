@@ -20,24 +20,7 @@ namespace AElf.Contracts.Profit
         {
             await CreateTreasury();
 
-            var treasury = await ProfitContractStub.GetProfitItem.CallAsync(DefaultProfitId);
 
-            treasury.Creator.ShouldBe(Address.FromPublicKey(StarterKeyPair.PublicKey));
-            treasury.TotalAmounts[ProfitContractTestConsts.NativeTokenSymbol]
-                .ShouldBe((long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2));
-
-            var treasuryAddress = await ProfitContractStub.GetProfitItemVirtualAddress.CallAsync(
-                new GetProfitItemVirtualAddressInput
-                {
-                    ProfitId = DefaultProfitId
-                });
-            var treasuryBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Symbol = ProfitContractTestConsts.NativeTokenSymbol,
-                Owner = treasuryAddress
-            })).Balance;
-
-            treasuryBalance.ShouldBe((long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2));
         }
 
 
