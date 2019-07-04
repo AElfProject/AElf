@@ -19,7 +19,7 @@ namespace AElf.Contracts.ParliamentAuth
 
         private void CheckProposerAuthority(Organization organization)
         {
-            // it is authorized to propose if
+            // It is a valid proposer if
             // authority check is disable,
             // or sender is in proposer white list,
             // or sender is one of miners.

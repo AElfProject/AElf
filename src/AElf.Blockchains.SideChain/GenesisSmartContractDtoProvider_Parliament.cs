@@ -18,7 +18,7 @@ namespace AElf.Blockchains.SideChain
                 {
                     GenesisOwnerReleaseThreshold = _contractOptions.GenesisOwnerReleaseThreshold,
                     PrivilegedProposer = chainInitializationData.Creator,
-                    IsPrivilegePreserved = chainInitializationData.IsPrivilegePreserved
+                    ProposerAuthorityRequired = chainInitializationData.ChainCreatorPrivilegePreserved
                 });
             return parliamentInitializationCallList;
         } 

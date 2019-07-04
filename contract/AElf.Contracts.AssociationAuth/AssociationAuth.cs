@@ -25,7 +25,7 @@ namespace AElf.Contracts.AssociationAuth
             Assert(proposal !=null,"Not found proposal.");
             
             var organization = State.Organisations[proposal.OrganizationAddress];
-            var isReadyToRelease = IsReadyToRelease(proposal, organization);
+            var readyToRelease = IsReadyToRelease(proposal, organization);
             var result = new ProposalOutput
             {
                 ProposalId = proposalId,
@@ -35,7 +35,7 @@ namespace AElf.Contracts.AssociationAuth
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
                 ToAddress = proposal.ToAddress,
-                IsReadyToRelease = isReadyToRelease
+                ToBeReleased = readyToRelease
             };
 
             return result;

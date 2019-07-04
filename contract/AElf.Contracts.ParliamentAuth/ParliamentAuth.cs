@@ -22,7 +22,7 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(proposal != null, "Not found proposal.");
             var organization = State.Organisations[proposal.OrganizationAddress];
             var representatives = GetCurrentMinerList();
-            var isReadyToRelease = IsReadyToRelease(proposal, organization, representatives);
+            var readyToRelease = IsReadyToRelease(proposal, organization, representatives);
             var result = new ProposalOutput
             {
                 ProposalId = proposalId,
@@ -32,7 +32,7 @@ namespace AElf.Contracts.ParliamentAuth
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
                 ToAddress = proposal.ToAddress,
-                IsReadyToRelease = isReadyToRelease
+                ToBeReleased = readyToRelease
             };
 
             return result;
@@ -53,7 +53,7 @@ namespace AElf.Contracts.ParliamentAuth
             var organizationInput = new CreateOrganizationInput
             {
                 ReleaseThreshold = input.GenesisOwnerReleaseThreshold,
-                ProposerAuthorityRequired = input.IsPrivilegePreserved,
+                ProposerAuthorityRequired = input.ProposerAuthorityRequired,
             };
             if (input.PrivilegedProposer != null)
                 organizationInput.ProposerWhiteList.Add(input.PrivilegedProposer);
@@ -131,13 +131,6 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(IsValidRepresentative(representatives), "Not authorized approval.");
             proposalInfo.ApprovedRepresentatives.Add(Context.Sender);
             State.Proposals[approvalInput.ProposalId] = proposalInfo;
-//            var organization = State.Organisations[proposalInfo.OrganizationAddress];
-//            if (IsReadyToRelease(proposalInfo, organization, representatives))
-//            {
-//                Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
-//                    proposalInfo.Params);
-//                //State.Proposals[approvalInput.ProposalId] = null;
-//            }
 
             return new BoolValue {Value = true};
         }

@@ -697,10 +697,10 @@ namespace AElf.Contracts.TestBase
         }
         
         /// <summary>
-        /// Zero Contract and Consensus Contract will deploy independently, thus this list won't contain this two contracts.
+        /// System contract dto for side chain initialization.
         /// </summary>
         /// <returns></returns>
-        public Action<List<GenesisSmartContractDto>> GetSideChainDefaultContractTypes(Address issuer, out long totalSupply,
+        public Action<List<GenesisSmartContractDto>> GetSideChainSystemContractDtos(Address issuer, out long totalSupply,
             out long dividend, out long balanceOfStarter, Address proposer,out bool isPrivilegePreserved)
         {
             totalSupply = TokenTotalSupply;
@@ -711,11 +711,11 @@ namespace AElf.Contracts.TestBase
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new ParliamentAuth.InitializeInput
-                {
-                    GenesisOwnerReleaseThreshold = contractOptions.GenesisOwnerReleaseThreshold,
-                    PrivilegedProposer = proposer,
-                    IsPrivilegePreserved = IsPrivilegePreserved
-                });
+            {
+                GenesisOwnerReleaseThreshold = contractOptions.GenesisOwnerReleaseThreshold,
+                PrivilegedProposer = proposer,
+                ProposerAuthorityRequired = IsPrivilegePreserved
+            });
             return list =>
             {
                 list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name);

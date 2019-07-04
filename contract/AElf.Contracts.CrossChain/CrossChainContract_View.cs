@@ -161,7 +161,7 @@ namespace AElf.Contracts.CrossChain
                 ChainId = chainId.Value,
                 Creator = sideChainInfo.Proposer,
                 CreationTimestamp = sideChainInfo.CreationTimestamp,
-                IsPrivilegePreserved = sideChainInfo.SideChainCreationRequest.IsPrivilegePreserved
+                ChainCreatorPrivilegePreserved = sideChainInfo.SideChainCreationRequest.IsPrivilegePreserved
             };
             ByteString consensusInformation = State.SideChainInitialConsensusInfo[chainId.Value].Value;
             res.ExtraInformation.Add(consensusInformation);

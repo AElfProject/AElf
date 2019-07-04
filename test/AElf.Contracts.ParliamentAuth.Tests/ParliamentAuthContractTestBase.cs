@@ -152,25 +152,23 @@ namespace AElf.Contracts.ParliamentAuth
         }
     }
 
-    public class
-        ParliamentAuthContractPrivilegeTestBase : TestBase.ContractTestBase<
-            ParliamentAuthContractPrivilegeTestAElfModule>
+    public class ParliamentAuthContractPrivilegeTestBase : TestBase.ContractTestBase<ParliamentAuthContractPrivilegeTestAElfModule>
     {
         protected Address ParliamentAddress;
         protected Address BasicContractZeroAddress;
         protected Address TokenContractAddress;
 
-        protected long _totalSupply;
-        protected long _balanceOfStarter;
-        protected bool _isPrivilegePreserved;
+        protected long TotalSupply;
+        protected long BalanceOfStarter;
+        protected bool IsPrivilegePreserved;
 
         public ParliamentAuthContractPrivilegeTestBase()
         {
             AsyncHelper.RunSync(() =>
-                Tester.InitialChainAsyncWithAuthAsync(Tester.GetSideChainDefaultContractTypes(
-                    Tester.GetCallOwnerAddress(), out _totalSupply,
+                Tester.InitialChainAsyncWithAuthAsync(Tester.GetSideChainSystemContractDtos(
+                    Tester.GetCallOwnerAddress(), out TotalSupply,
                     out _,
-                    out _balanceOfStarter, Tester.GetCallOwnerAddress(), out _isPrivilegePreserved)));
+                    out BalanceOfStarter, Tester.GetCallOwnerAddress(), out IsPrivilegePreserved)));
             BasicContractZeroAddress = Tester.GetZeroContractAddress();
             ParliamentAddress = Tester.GetContractAddress(ParliamentAuthContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);

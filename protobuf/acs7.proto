@@ -13,8 +13,6 @@ service ACS7 {
     
     rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) {
     }
-//    rpc RequestChainCreation (SideChainCreationRequest) returns (RequestChainCreationOutput) {
-//    }
     rpc CreateSideChain (SideChainCreationRequest) returns (aelf.SInt32Value) {
     }
     rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
@@ -108,7 +106,7 @@ message ChainInitializationData {
     google.protobuf.Timestamp creation_timestamp = 3;
     repeated bytes extra_information = 4;
     int64 creation_height_on_parent_chain = 5;
-    bool is_privilege_preserved = 6;
+    bool chain_creator_privilege_preserved = 6;
 }
 
 enum ResourceType

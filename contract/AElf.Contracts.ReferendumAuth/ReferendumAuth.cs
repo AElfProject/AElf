@@ -24,7 +24,7 @@ namespace AElf.Contracts.ReferendumAuth
             Assert(proposal != null, "Proposal not found.");
 
             var organization = State.Organisations[proposal.OrganizationAddress];
-            var isReadyToRelease = IsReadyToRelease(proposalId, organization);
+            var readyToRelease = IsReadyToRelease(proposalId, organization);
             var result = new ProposalOutput
             {
                 ProposalId = proposalId,
@@ -34,7 +34,7 @@ namespace AElf.Contracts.ReferendumAuth
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
                 ToAddress = proposal.ToAddress,
-                IsReadyToRelease = isReadyToRelease
+                ToBeReleased = readyToRelease
             };
 
             return result;
