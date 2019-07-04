@@ -23,7 +23,7 @@ namespace AElf.OS
 
             context.Services.AddAssemblyOf<OSAElfModule>();
 
-            context.Services.AddSingleton<PeerConnectedEventHandler>();
+            context.Services.AddSingleton<AnnouncementReceivedEventHandler>();
 
             Configure<AccountOptions>(configuration.GetSection("Account"));
         }

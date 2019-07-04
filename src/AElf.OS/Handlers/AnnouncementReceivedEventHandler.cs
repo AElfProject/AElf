@@ -12,9 +12,9 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
-    public class PeerConnectedEventHandler : ILocalEventHandler<AnnouncementReceivedEventData>
+    public class AnnouncementReceivedEventHandler : ILocalEventHandler<AnnouncementReceivedEventData>
     {
-        public ILogger<PeerConnectedEventHandler> Logger { get; set; }
+        public ILogger<AnnouncementReceivedEventHandler> Logger { get; set; }
 
         private readonly IBlockchainService _blockchainService;
         private readonly ITaskQueueManager _taskQueueManager;
@@ -24,7 +24,7 @@ namespace AElf.OS.Handlers
         private readonly Duration _blockSyncAnnouncementAgeLimit = new Duration {Seconds = 4};
         private readonly Duration _blockSyncAttachBlockAgeLimit = new Duration {Seconds = 2};
 
-        public PeerConnectedEventHandler(ITaskQueueManager taskQueueManager,
+        public AnnouncementReceivedEventHandler(ITaskQueueManager taskQueueManager,
             IBlockchainService blockchainService,
             IBlockSyncService blockSyncService,
             IOptionsSnapshot<NetworkOptions> networkOptions)
@@ -33,7 +33,7 @@ namespace AElf.OS.Handlers
             _blockchainService = blockchainService;
             _blockSyncService = blockSyncService;
             _networkOptions = networkOptions.Value;
-            Logger = NullLogger<PeerConnectedEventHandler>.Instance;
+            Logger = NullLogger<AnnouncementReceivedEventHandler>.Instance;
         }
 
         //TODO: need to directly test ProcessNewBlockAsync, or unit test cannot catch exceptions of ProcessNewBlockAsync
