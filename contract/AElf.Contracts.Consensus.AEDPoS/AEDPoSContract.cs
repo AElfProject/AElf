@@ -17,6 +17,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.TimeEachTerm.Value = input.IsSideChain || input.IsTermStayOne
                 ? int.MaxValue
                 : input.TimeEachTerm;
+            
+            State.MinerIncreaseInterval.Value = input.MinerIncreaseInterval;
 
             Context.LogDebug(() => $"Time each term: {State.TimeEachTerm.Value} seconds.");
 
@@ -65,7 +67,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 State.ElectionContract.ConfigElectionContract.Send(new ConfigElectionContractInput
                 {
                     MinerList = {input.RealTimeMinersInformation.Keys},
-                    TimeEachTerm = State.TimeEachTerm.Value
+                    TimeEachTerm = State.TimeEachTerm.Value,
+                    MinerIncreaseInterval = State.MinerIncreaseInterval.Value
                 });
             }
 
@@ -181,10 +184,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var actualBlockchainStartTimestamp = input.GetStartTime();
                 SetBlockchainStartTimestamp(actualBlockchainStartTimestamp);
-            }
-            else
-            {
-                var minersCount = GetMinersCount();
+                var minersCount = GetMinersCount(input);
                 if (minersCount != 0 && State.ElectionContract.Value != null)
                 {
                     State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput

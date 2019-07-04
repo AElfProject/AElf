@@ -19,6 +19,7 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Volo.Abp.Threading;
+using Xunit;
 
 namespace AElf.Contracts.Election
 {
@@ -47,9 +48,9 @@ namespace AElf.Contracts.Election
 
         internal const int MiningInterval = 4000;
         
-        internal const int InitialMinersCount = 5;
-        internal const int FullNodesCount = 10;
-        internal const int VotersCount = 10;
+        internal const int InitialMinersCount = 9;
+        internal const int FullNodesCount = 40;
+        internal const int VotersCount = 40;
 
         protected Address TokenContractAddress { get; set; }
         protected Address VoteContractAddress { get; set; }
@@ -216,7 +217,8 @@ namespace AElf.Contracts.Election
             var result1 = await AEDPoSContractStub.InitialAElfConsensusContract.SendAsync(
                 new InitialAElfConsensusContractInput
                 {
-                    TimeEachTerm = 604800L
+                    TimeEachTerm = 604800L,
+                    MinerIncreaseInterval=120L
                 });
             CheckResult(result1.TransactionResult);
             var result2 = await AEDPoSContractStub.FirstRound.SendAsync(

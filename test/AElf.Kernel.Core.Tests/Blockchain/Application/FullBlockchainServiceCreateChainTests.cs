@@ -11,25 +11,18 @@ namespace AElf.Kernel.Blockchain.Application
     public class FullBlockchainServiceCreateChainTests: AElfKernelTestBase
     {
         private readonly FullBlockchainService _fullBlockchainService;
+        private readonly KernelTestHelper _kernelTestHelper;
 
         public FullBlockchainServiceCreateChainTests()
         {
             _fullBlockchainService = GetRequiredService<FullBlockchainService>();
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
         
         [Fact]
         public async Task Create_Chain_Success()
         {
-            var block = new Block
-            {
-                Header = new BlockHeader
-                {
-                    Height = Constants.GenesisBlockHeight,
-                    PreviousBlockHash = Hash.Empty,
-                    Time = TimestampHelper.GetUtcNow()
-                },
-                Body = new BlockBody()
-            };
+            var block = _kernelTestHelper.GenerateBlock(0, Hash.Empty, new List<Transaction>());
 
             var chain = await _fullBlockchainService.GetChainAsync();
             chain.ShouldBeNull();

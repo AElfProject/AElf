@@ -36,7 +36,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         public ILogger<FullBlockchainExecutingService> Logger { get; set; }
 
-        private async Task<bool> ExecuteBlock(ChainBlockLink blockLink, Block block)
+        private async Task<bool> TryExecuteBlockAsync(Block block)
         {
             var blockHash = block.GetHash();
 
@@ -47,9 +47,39 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var transactions = await _blockchainService.GetTransactionsAsync(block.TransactionHashList);
             var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
 
-            return executedBlock.GetHash().Equals(blockHash);
+            return executedBlock.GetHashWithoutCache().Equals(blockHash);
         }
+        
+        /// <summary>
+        /// Processing pipeline for a block contains ValidateBlockBeforeExecute, ExecuteBlock and ValidateBlockAfterExecute.
+        /// </summary>
+        /// <param name="block"></param>
+        /// <returns>Block processing result is true if succeed, otherwise false.</returns>
+        private async Task<bool> TryProcessBlockAsync(Block block)
+        {
+            var blockHash = block.GetHash();
+            // Set the other blocks as bad block if found the first bad block
+            if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(block))
+            {
+                Logger.LogWarning($"Block validate fails before execution. block hash : {blockHash}");
+                return false;
+            }
 
+            if (!await TryExecuteBlockAsync(block))
+            {
+                Logger.LogWarning($"Block execution failed. block hash : {blockHash}");
+                return false;
+            }
+
+            if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(block))
+            {
+                Logger.LogWarning($"Block validate fails after execution. block hash : {blockHash}");
+                return false;
+            }
+
+            return true;
+        }
+        
         public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain,
             BlockAttachOperationStatus status)
         {
@@ -68,50 +98,24 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 {
                     var linkedBlock = await _blockchainService.GetBlockByHashAsync(blockLink.BlockHash);
 
-                    // Set the other blocks as bad block if found the first bad block
-                    if (!await _blockValidationService.ValidateBlockBeforeExecuteAsync(linkedBlock))
+                    var processResult = await TryProcessBlockAsync(linkedBlock);
+                    if (!processResult)
                     {
                         await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
                             ChainBlockLinkExecutionStatus.ExecutionFailed);
                         await _chainManager.RemoveLongestBranchAsync(chain);
-                        Logger.LogWarning($"Block validate fails before execution. block hash : {blockLink.BlockHash}");
                         return null;
                     }
-
-                    if (!await ExecuteBlock(blockLink, linkedBlock))
-                    {
-                        await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
-                            ChainBlockLinkExecutionStatus.ExecutionFailed);
-                        await _chainManager.RemoveLongestBranchAsync(chain);
-                        Logger.LogWarning($"Block execution failed. block hash : {blockLink.BlockHash}");
-                        return null;
-                    }
-
-                    if (!await _blockValidationService.ValidateBlockAfterExecuteAsync(linkedBlock))
-                    {
-                        await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
-                            ChainBlockLinkExecutionStatus.ExecutionFailed);
-                        await _chainManager.RemoveLongestBranchAsync(chain);
-                        Logger.LogWarning($"Block validate fails after execution. block hash : {blockLink.BlockHash}");
-                        return null;
-                    }
-
-                    await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
+                    
+                    await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, 
                         ChainBlockLinkExecutionStatus.ExecutionSuccess);
-
                     successLinks.Add(blockLink);
-
                     Logger.LogInformation($"Executed block {blockLink.BlockHash} at height {blockLink.Height}.");
-
                     await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
                     {
                         BlockHeader = linkedBlock.Header
                     });
                 }
-            }
-            catch (ValidateNextTimeBlockValidationException ex)
-            {
-                Logger.LogWarning($"Block validate fails after execution. Exception message {ex.Message}");
             }
             catch (Exception ex)
             {

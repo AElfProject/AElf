@@ -32,14 +32,14 @@ namespace AElf.OS.BlockSync.Application
             var peerBlock = peerBlocks.Last();
             var peerBlockHash = peerBlock.GetHash();
             var peerBlockHeight = peerBlock.Header.Height;
-            
+
             await _blockSyncService.SyncBlockAsync(chain, new SyncBlockDto
             {
                 SyncBlockHash = peerBlockHash,
                 SyncBlockHeight = peerBlockHeight,
                 BatchRequestBlockCount = 5
             });
-            
+
             chain = await _blockChainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(30);
             chain.BestChainHash.ShouldBe(peerBlockHash);
@@ -47,6 +47,5 @@ namespace AElf.OS.BlockSync.Application
             var block = await _blockChainService.GetBlockByHeightInBestChainBranchAsync(originalBestChainHeight);
             block.GetHash().ShouldNotBe(originalBestChainHash);
         }
-        
     }
 }
