@@ -20,15 +20,16 @@ namespace AElf.Contracts.Economic
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
 
+            Context.LogDebug(() => "Will create tokens.");
             CreateNativeToken(input);
             CreateTokenConverterToken();
             CreateResourceTokens();
             CreateMiningToken();
             CreateElectionToken();
 
-            InitialMiningReward(input.MiningRewardTotalAmount);
+            Context.LogDebug(() => "Finished creating tokens.");
 
-            InitializeTreasuryContract();
+            InitialMiningReward(input.MiningRewardTotalAmount);
 
             RegisterElectionVotingEvent();
             SetTreasuryProfitIdsToElectionContract();
@@ -273,14 +274,6 @@ namespace AElf.Contracts.Economic
                 BaseTokenSymbol = Context.Variables.NativeSymbol,
                 ManagerAddress = connectorManager
             });
-        }
-
-        private void InitializeTreasuryContract()
-        {
-            State.TreasuryContract.Value =
-                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-            State.TreasuryContract.InitialTreasuryContract.Send(new Empty());
-            State.TreasuryContract.InitialMiningRewardProfitItem.Send(new Empty());
         }
     }
 }

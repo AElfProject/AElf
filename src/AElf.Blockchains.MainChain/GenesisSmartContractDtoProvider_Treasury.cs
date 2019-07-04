@@ -4,7 +4,7 @@ using Acs0;
 using AElf.Contracts.Treasury;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.OS.Node.Application;
-using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -16,8 +16,22 @@ namespace AElf.Blockchains.MainChain
             l.AddGenesisSmartContract(
                 _codes.Single(kv => kv.Key.Contains("Treasury")).Value,
                 TreasurySmartContractAddressNameProvider.Name,
-                new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList());
+                GenerateTreasuryInitializationCallList());
             return l;
+        }
+
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+            GenerateTreasuryInitializationCallList()
+        {
+            var treasuryContractMethodCallList =
+                new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            treasuryContractMethodCallList.Add(
+                nameof(TreasuryContractContainer.TreasuryContractStub.InitialTreasuryContract),
+                new Empty());
+            treasuryContractMethodCallList.Add(
+                nameof(TreasuryContractContainer.TreasuryContractStub.InitialMiningRewardProfitItem),
+                new Empty());
+            return treasuryContractMethodCallList;
         }
     }
 }
