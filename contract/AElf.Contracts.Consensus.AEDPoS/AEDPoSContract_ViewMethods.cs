@@ -241,14 +241,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
                        !round.RealTimeMinersInformation.ContainsKey(k));
         }
 
-        private int GetMinersCount()
+
+        private int GetMinersCount(Round input)
         {
             if (!TryToGetRoundInformation(1, out var firstRound)) return 0;
-            // TODO: Maybe this should according to date, like every July 1st we increase 2 miners.
-            var initialMinersCount = firstRound.RealTimeMinersInformation.Count;
-            return initialMinersCount.Add(
-                (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
-                .Div(365 * 60 * 60 * 24).Mul(2));
+            //TODO: the configuration about the minercountinterval should become a const when online;
+            return input.RealTimeMinersInformation.Count < AEDPoSContractConstants.MinMinersCount
+                ? AEDPoSContractConstants.MinMinersCount
+                : AEDPoSContractConstants.MinMinersCount.Add(
+                    (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
+                    .Div(State.MinerIncreaseInterval.Value).Mul(2));
         }
     }
 }

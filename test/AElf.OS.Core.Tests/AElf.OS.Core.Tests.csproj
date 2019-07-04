@@ -12,7 +12,6 @@
       <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
       <ProjectReference Include="..\..\src\AElf.OS.Network.Grpc\AElf.OS.Network.Grpc.csproj" />
       <ProjectReference Include="..\AElf.OS.TestBase\AElf.OS.TestBase.csproj" />
-      <ProjectReference Include="..\AElf.Test.Helpers\AElf.Test.Helpers.csproj" />
       <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
     </ItemGroup>
     <ItemGroup>
