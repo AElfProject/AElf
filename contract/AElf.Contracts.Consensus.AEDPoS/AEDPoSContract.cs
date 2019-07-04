@@ -13,12 +13,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty InitialAElfConsensusContract(InitialAElfConsensusContractInput input)
         {
-            Assert(!State.Initialized.Value, "Already initialized.");
+            if (State.Initialized.Value) return new Empty();
 
             State.TimeEachTerm.Value = input.IsSideChain || input.IsTermStayOne
                 ? int.MaxValue
                 : input.TimeEachTerm;
-            
+
             State.MinerIncreaseInterval.Value = input.MinerIncreaseInterval;
 
             Context.LogDebug(() => $"Time each term: {State.TimeEachTerm.Value} seconds.");
@@ -47,8 +47,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty FirstRound(Round input)
         {
-            // Transfer token from Treasury Contract to Context.Self
-            Assert(State.CurrentRoundNumber.Value == 0, "Not first round.");
+            if (State.CurrentRoundNumber.Value != 0) return new Empty();
             Assert(input.RoundNumber == 1, "Invalid round number.");
             Assert(input.RealTimeMinersInformation.Any(), "No miner in input data.");
 
@@ -57,14 +56,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.FirstRoundNumberOfEachTerm[1] = 1L;
             SetBlockchainStartTimestamp(input.GetStartTime());
             State.MiningInterval.Value = input.GetMiningInterval();
-            
+
             var minerList = new MinerList
             {
                 Pubkeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}
             };
 
             State.MainChainCurrentMinerList.Value = minerList;
- 
+
             SetMinerListOfCurrentTerm(minerList);
 
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
@@ -85,6 +84,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(input.RoundId == round.RoundId, "Round Id not matched.");
 
             var publicKey = Context.RecoverPublicKey().ToHex();
+
+            if (!round.RealTimeMinersInformation.Keys.Contains(publicKey)) return new Empty();
 
             var minerInRound = round.RealTimeMinersInformation[publicKey];
             minerInRound.ActualMiningTimes.Add(input.ActualMiningTime);
@@ -154,6 +155,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var publicKey = Context.RecoverPublicKey().ToHex();
 
+            if (!round.RealTimeMinersInformation.Keys.Contains(publicKey)) return new Empty();
+
             round.RealTimeMinersInformation[publicKey].ActualMiningTimes.Add(input.ActualMiningTime);
             round.RealTimeMinersInformation[publicKey].ProducedBlocks = input.ProducedBlocks;
             var producedTinyBlocks = round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks;
@@ -170,12 +173,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty NextRound(Round input)
         {
-            if (TryToGetRoundNumber(out var currentRoundNumber))
+            if (TryToGetCurrentRoundInformation(out var currentRound))
             {
-                Assert(currentRoundNumber < input.RoundNumber, "Incorrect round number for next round.");
+                var publicKey = Context.RecoverPublicKey().ToHex();
+                if (!currentRound.RealTimeMinersInformation.Keys.Contains(publicKey)) return new Empty();
+                Assert(currentRound.RoundNumber < input.RoundNumber, "Incorrect round number for next round.");
             }
 
-            if (currentRoundNumber == 1)
+            if (currentRound.RoundNumber == 1)
             {
                 var actualBlockchainStartTimestamp = input.GetStartTime();
                 SetBlockchainStartTimestamp(actualBlockchainStartTimestamp);
@@ -203,6 +208,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty UpdateConsensusInformation(ConsensusInformation input)
         {
+            if (Context.Sender != Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName))
+            {
+                return new Empty();
+            }
+
             Assert(!State.IsMainChain.Value, "Only side chain can update consensus information.");
             // For now we just extract the miner list from main chain consensus information, then update miners list.
             if (input == null || input.Value.IsEmpty)

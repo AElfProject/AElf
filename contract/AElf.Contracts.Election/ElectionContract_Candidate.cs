@@ -42,11 +42,6 @@ namespace AElf.Contracts.Election
             var publicKey = recoveredPublicKey.ToHex();
             var publicKeyByteString = ByteString.CopyFrom(recoveredPublicKey);
 
-            // TODO: Reconsider.
-            Assert(
-                State.ElectorVotes[publicKey] == null || State.ElectorVotes[publicKey].ActiveVotingRecordIds == null ||
-                State.ElectorVotes[publicKey].ActiveVotedVotesAmount == 0, "Voter can't announce election.");
-
             Assert(!State.InitialMiners.Value.Value.Contains(publicKeyByteString),
                 "Initial miner cannot announce election.");
 
