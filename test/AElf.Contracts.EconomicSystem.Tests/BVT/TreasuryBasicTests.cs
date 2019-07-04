@@ -23,7 +23,6 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         public async Task EconomistSystem_CheckBasicInformation()
         {
             // Treasury contract created Treasury Profit Item and set Profit Id to Profit Contract.
-            ProfitItemsIds[ProfitType.Treasury].ShouldBe(await ProfitContractStub.GetTreasuryProfitId.CallAsync(new Empty()));
             var treasuryProfit = await ProfitContractStub.GetProfitItem.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
             treasuryProfit.Creator.ShouldBe(TreasuryContractAddress);
             treasuryProfit.SubProfitItems.Count.ShouldBe(3);

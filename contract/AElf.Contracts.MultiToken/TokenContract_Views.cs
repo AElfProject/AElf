@@ -1,4 +1,5 @@
-﻿using AElf.Contracts.MultiToken.Messages;
+﻿using System.Linq;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -46,7 +47,32 @@ namespace AElf.Contracts.MultiToken
             return State.ProfitReceivingInfos[input] ?? new ProfitReceivingInformation();
         }
 
+        public override GetLockedAmountOutput GetLockedAmount(GetLockedAmountInput input)
+        {
+            var virtualAddress = GetVirtualAddressForLocking(new GetVirtualAddressForLockingInput
+            {
+                Address = input.Address,
+                LockId = input.LockId
+            });
+            return new GetLockedAmountOutput
+            {
+                Symbol = input.Symbol,
+                Address = input.Address,
+                LockId = input.LockId,
+                Amount = State.Balances[virtualAddress][input.Symbol]
+            };
+        }
+
+        public override Address GetVirtualAddressForLocking(GetVirtualAddressForLockingInput input)
+        {
+            var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
+                .Concat(input.LockId.Value).ToArray());
+            var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
+            return virtualAddress;
+        }
+
         #region ForTests
+
         /*
         [View]
         
@@ -73,6 +99,7 @@ namespace AElf.Contracts.MultiToken
             })?.ToString();
         }
         */
+
         #endregion
     }
 }
