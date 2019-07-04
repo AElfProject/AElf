@@ -49,6 +49,8 @@ namespace AElf.Contracts.MultiToken
                 State.LockWhiteLists[input.Symbol][address] = true;
             }
 
+            Context.LogDebug(() => $"Token created: {input.Symbol}");
+
             return new Empty();
         }
 
@@ -444,12 +446,16 @@ namespace AElf.Contracts.MultiToken
             foreach (var symbol in TokenContractConstants.ResourceTokenSymbols)
             {
                 var amount = State.ChargedResources[symbol];
-                State.TreasuryContract.Donate.Send(new DonateInput
+                if (amount > 0)
                 {
-                    Symbol = symbol,
-                    Amount = amount
-                });
-                State.ChargedResources[symbol] = 0;
+                    State.TreasuryContract.Donate.Send(new DonateInput
+                    {
+                        Symbol = symbol,
+                        Amount = amount
+                    });
+
+                    State.ChargedResources[symbol] = 0;
+                }
             }
 
             return new Empty();

@@ -8,7 +8,6 @@ namespace AElf.Blockchains.BasicBaseChain
         public int Decimals { get; set; } = 8;
         public bool IsBurnable { get; set; } = true;
         public double DividendPoolRatio { get; set; } = 0.2;
-        public long LockForElection { get; set; } = 100_000_00000000;
         public long MaximumLockTime { get; set; } = 1080 * 86400;
         public long MinimumLockTime { get; set; } = 90 * 86400;
 
