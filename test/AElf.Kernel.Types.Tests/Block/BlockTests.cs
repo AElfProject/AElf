@@ -12,12 +12,7 @@ namespace AElf.Kernel.Types.Tests
         [Fact]
         public void BlockHeader_Test()
         {
-            var blockHeader = new BlockHeader()
-            {
-                PreviousBlockHash = Hash.Generate(),
-                ChainId = 1234,
-                Height = 3,
-            };
+            var blockHeader = GenerateBlockHeader();
             var hash = blockHeader.GetHash();
             hash.ShouldNotBe(null);
 
@@ -28,12 +23,7 @@ namespace AElf.Kernel.Types.Tests
         [Fact]
         public void BlockBody_Test()
         {
-            var blockHeader = new BlockHeader()
-            {
-                PreviousBlockHash = Hash.Generate(),
-                ChainId = 1234,
-                Height = 1,
-            };
+            var blockHeader = GenerateBlockHeader();
             var transactionItems = GenerateFakeTransactions(3);
             var blockBody = new BlockBody()
             {
@@ -77,16 +67,7 @@ namespace AElf.Kernel.Types.Tests
         [Fact]
         public void Get_BlockHash()
         {
-            var blockHeader = new BlockHeader
-            {
-                ChainId = 2111,
-                Height = 10,
-                PreviousBlockHash = Hash.Generate(),
-                MerkleTreeRootOfTransactions = Hash.Generate(),
-                MerkleTreeRootOfWorldState = Hash.Generate(),
-                Bloom = ByteString.Empty,
-                ExtraData = { ByteString.CopyFromUtf8("test")}
-            };
+            var blockHeader = GenerateBlockHeader();
             var hash = blockHeader.GetHash();
             hash.ShouldNotBeNull();   
             
@@ -111,6 +92,10 @@ namespace AElf.Kernel.Types.Tests
             block.Body.Transactions.AddRange(transactionItems.Item2);
             
             block.Header.MerkleTreeRootOfTransactions = block.Body.Transactions.ComputeBinaryMerkleTreeRootWithLeafNodes();
+            block.Header.MerkleTreeRootOfWorldState = Hash.Empty;
+            block.Header.MerkleTreeRootOfTransactionStatus = Hash.Empty;
+            block.Header.SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey");
+            block.Header.ExtraData.Add(ByteString.Empty);
             block.Body.BlockHeader = block.Header.GetHash();           
 
             return block;
@@ -136,6 +121,22 @@ namespace AElf.Kernel.Types.Tests
             }
 
             return (transactions, transactionHashes);
+        }
+
+        private BlockHeader GenerateBlockHeader()
+        {
+            return new BlockHeader
+            {
+                ChainId = 1234,
+                Height = 10,
+                PreviousBlockHash = Hash.Generate(),
+                MerkleTreeRootOfTransactions = Hash.Empty,
+                MerkleTreeRootOfWorldState = Hash.Empty,
+                ExtraData = { ByteString.Empty},
+                Time = TimestampHelper.GetUtcNow(),
+                MerkleTreeRootOfTransactionStatus = Hash.Empty,
+                SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey")
+            };
         }
     }
 }
