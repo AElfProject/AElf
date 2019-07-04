@@ -134,6 +134,12 @@ namespace AElf.Contracts.Treasury
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
+            if (State.TreasuryVirtualAddress.Value == null)
+            {
+                State.TreasuryVirtualAddress.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            }
+
             var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
 
             State.TokenContract.TransferFrom.Send(new TransferFromInput

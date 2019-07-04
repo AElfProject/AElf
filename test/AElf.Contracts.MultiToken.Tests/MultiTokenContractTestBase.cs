@@ -1,6 +1,8 @@
+using System;
 using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
+using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Types;
@@ -11,6 +13,8 @@ namespace AElf.Contracts.MultiToken
 {
     public class MultiTokenContractTestBase : ContractTestBase<MultiTokenContractTestAElfModule>
     {
+        protected long AliceCoinTotalAmount => 1_000_000_000_0000000L;
+        protected long BobCoinTotalAmout => 1_000_000_000_0000L;
         protected byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
         protected Address TokenContractAddress { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub;
@@ -35,5 +39,28 @@ namespace AElf.Contracts.MultiToken
         protected Address TokenConverterContractAddress { get; set; }
 
         internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub;
+        
+        protected Address BasicFunctionContractAddress { get; set; }
+        
+        protected Address OtherBasicFunctionContractAddress { get; set; }
+        
+        internal BasicFunctionContractContainer.BasicFunctionContractStub BasicFunctionContractStub { get; set; }
+        
+        internal BasicFunctionContractContainer.BasicFunctionContractStub OtherBasicFunctionContractStub { get; set; }
+        protected byte[] BasicFunctionContractCode => Codes.Single(kv => kv.Key.Contains("BasicFunction")).Value;
+        protected Hash BasicFunctionContractName => Hash.FromString("AElf.TestContractNames.BasicFunction");
+        protected Hash OtherBasicFunctionContractName => Hash.FromString("AElf.TestContractNames.OtherBasicFunction");
+        protected readonly Address _address = Address.Generate();
+        protected const string SymbolForTest = "ELFTEST";
+        protected const long Amount = 100;
+
+        
+        protected void CheckResult(TransactionResult result)
+        {
+            if (!string.IsNullOrEmpty(result.Error))
+            {
+                throw new Exception(result.Error);
+            }
+        }
     }
 }
