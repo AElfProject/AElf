@@ -24,9 +24,11 @@ namespace AElf.OS
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
             var taskQueueManager = context.ServiceProvider.GetService<ITaskQueueManager>();
+            
             taskQueueManager.CreateQueue(NetworkConstants.PeerReconnectionQueueName);
             taskQueueManager.CreateQueue(NetworkConstants.AnnouncementBroadcastQueueName);
             taskQueueManager.CreateQueue(NetworkConstants.TransactionBroadcastQueueName);
+            taskQueueManager.CreateQueue(NetworkConstants.BlockBroadcastQueueName);
         }
     }
 }

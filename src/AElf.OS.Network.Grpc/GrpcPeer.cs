@@ -64,6 +64,7 @@ namespace AElf.OS.Network.Grpc
         
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<PeerNewBlockAnnouncement, VoidReply> _announcementStreamCall;
+        private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, GrpcPeerInfo peerInfo)
         {
@@ -159,7 +160,7 @@ namespace AElf.OS.Network.Grpc
 
         public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash firstHash, int count)
         {
-            var blockRequest = new BlocksRequest {PreviousBlockHash = firstHash, Count = count};
+            var blockRequest = new BlocksRequest { PreviousBlockHash = firstHash, Count = count };
             var blockInfo = $"{{ first: {firstHash}, count: {count} }}";
             
             GrpcRequest request = new GrpcRequest
@@ -180,6 +181,27 @@ namespace AElf.OS.Network.Grpc
         }
 
         #region Streaming
+
+        public async Task SendBlockAsync(BlockWithTransactions blockWithTransactions)
+        {
+            if (!IsConnected)
+                return;
+            
+            if (_blockStreamCall == null)
+                _blockStreamCall = _client.BlockBroadcastStream();
+
+            try
+            {
+                await _blockStreamCall.RequestStream.WriteAsync(blockWithTransactions);
+            }
+            catch (RpcException e)
+            {
+                _blockStreamCall.Dispose();
+                _blockStreamCall = null;
+                
+                HandleFailure(e, $"Error during block broadcast: {blockWithTransactions.Header.GetHash()}.");
+            }
+        }
 
         /// <summary>
         /// Send a announcement to the peer using the stream call.

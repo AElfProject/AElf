@@ -47,20 +47,57 @@ namespace AElf.OS.Network.Application
         {
             return _peerPool.GetPeers(true).ToList(); 
         }
-
-        public Task BroadcastAnnounceAsync(BlockHeader blockHeader,bool hasFork)
+        
+        /// <summary>
+        /// returns false if the pool already knows about this announcement, true if not.
+        /// </summary>
+        private bool UpdatePool(BlockHeader blockHeader)
         {
             var blockHash = blockHeader.GetHash();
-            
             if (_peerPool.RecentBlockHeightAndHashMappings.TryGetValue(blockHeader.Height, out var recentBlockHash) &&
                 recentBlockHash == blockHash)
             {
                 Logger.LogDebug($"BlockHeight: {blockHeader.Height}, BlockHash: {blockHash} has been broadcast.");
-                return Task.CompletedTask;
+                return false;
             }
             
-            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHash, hasFork);
+            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHash, false);
+
+            return true;
+        }
+
+        public Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
+        {
+            if (!UpdatePool(blockWithTransactions.Header))
+                return Task.CompletedTask;
             
+            _taskQueueManager.Enqueue(async () =>
+            {
+                foreach (var peer in _peerPool.GetPeers())
+                {
+                    try
+                    {
+                        await peer.SendBlockAsync(blockWithTransactions);
+                    }
+                    catch (NetworkException ex)
+                    {
+                        Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
+                        await HandleNetworkException(peer, ex);
+                    }
+                }
+                
+            }, NetworkConstants.BlockBroadcastQueueName);
+            
+            return Task.CompletedTask;
+        }
+
+        public Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
+        {
+            var blockHash = blockHeader.GetHash();
+            
+            if (!UpdatePool(blockHeader))
+                return Task.CompletedTask;
+
             var announce = new PeerNewBlockAnnouncement
             {
                 BlockHash = blockHash,

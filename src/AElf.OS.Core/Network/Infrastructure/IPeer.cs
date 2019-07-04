@@ -33,7 +33,8 @@ namespace AElf.OS.Network.Infrastructure
         Task UpdateHandshakeAsync();
         Task<FinalizeConnectReply> FinalizeConnectAsync(Handshake handshake);
         Task SendDisconnectAsync();
-        
+
+        Task SendBlockAsync(BlockWithTransactions blockWithTransactions);
         Task AnnounceAsync(PeerNewBlockAnnouncement an);
         Task SendTransactionAsync(Transaction transaction);
         Task<BlockWithTransactions> RequestBlockAsync(Hash hash);

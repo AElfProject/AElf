@@ -190,6 +190,17 @@ namespace AElf.OS.Network.Grpc
             return Task.FromResult(new FinalizeConnectReply { Success = true });
         }
 
+        public override async Task<VoidReply> BlockBroadcastStream(IAsyncStreamReader<BlockWithTransactions> requestStream, ServerCallContext context)
+        {
+            await requestStream.ForEachAsync(r =>
+            {
+                _ = EventBus.PublishAsync(new BlockReceivedEvent(r));
+                return Task.CompletedTask;
+            });
+            
+            return new VoidReply();
+        }
+
         public override async Task<VoidReply> AnnouncementBroadcastStream(IAsyncStreamReader<PeerNewBlockAnnouncement> requestStream, ServerCallContext context)
         {
             await requestStream.ForEachAsync(async r => await ProcessAnnouncement(r, context));

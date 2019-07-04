@@ -72,7 +72,7 @@ namespace AElf.OS.BlockSync.Application
 
         public void EnqueueAttachBlockWithTransactionsJob(BlockWithTransactions blockWithTransactions)
         {
-            Logger.LogTrace($"Receive announcement and sync block {{ hash: {blockWithTransactions.GetHash()}, height: {blockWithTransactions.Header.Height} }} .");
+            Logger.LogTrace($"Receive block to sync {{ hash: {blockWithTransactions.GetHash()}, height: {blockWithTransactions.Header.Height} }} .");
             
             var enqueueTimestamp = TimestampHelper.GetUtcNow();
             _taskQueueManager.Enqueue(async () =>
