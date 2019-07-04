@@ -11,7 +11,7 @@ namespace AElf.Contracts.Treasury
 {
     public class TreasuryContract : TreasuryContractContainer.TreasuryContractBase
     {
-        public override Empty InitialTreasuryContract(InitialTreasuryContractInput input)
+        public override Empty InitialTreasuryContract(Empty input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
 
@@ -39,7 +39,7 @@ namespace AElf.Contracts.Treasury
             return new Empty();
         }
 
-        public override Empty InitialMiningRewardProfitItem(InitialMiningRewardProfitItemInput profitItemInput)
+        public override Empty InitialMiningRewardProfitItem(Empty input)
         {
             var createdProfitIds = State.ProfitContract.GetCreatedProfitIds.Call(new GetCreatedProfitIdsInput
             {
@@ -55,8 +55,6 @@ namespace AElf.Contracts.Treasury
             State.BasicRewardHash.Value = createdProfitIds[4];
             State.VotesWeightRewardHash.Value = createdProfitIds[5];
             State.ReElectionRewardHash.Value = createdProfitIds[6];
-
-            State.ProfitContract.SetTreasuryProfitId.Send(createdProfitIds[0]);
 
             BuildTreasury();
 

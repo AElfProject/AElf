@@ -13,26 +13,11 @@ namespace AElf.Blockchains.MainChain
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForTreasury()
         {
             var l = new List<GenesisSmartContractDto>();
-
             l.AddGenesisSmartContract(
                 _codes.Single(kv => kv.Key.Contains("Treasury")).Value,
-                TreasurySmartContractAddressNameProvider.Name, GenerateTreasuryInitializationCallList());
-
+                TreasurySmartContractAddressNameProvider.Name,
+                new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList());
             return l;
-        }
-
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateTreasuryInitializationCallList()
-        {
-            var treasuryContractMethodCallList =
-                new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            treasuryContractMethodCallList.Add(
-                nameof(TreasuryContractContainer.TreasuryContractStub.InitialTreasuryContract),
-                new InitialTreasuryContractInput());
-            treasuryContractMethodCallList.Add(
-                nameof(TreasuryContractContainer.TreasuryContractStub.InitialMiningRewardProfitItem),
-                new InitialMiningRewardProfitItemInput());
-            return treasuryContractMethodCallList;
         }
     }
 }

@@ -12,9 +12,9 @@ service TreasuryContract {
     option (aelf.csharp_state) = "AElf.Contracts.Treasury.TreasuryContractState";
 
     // Action
-    rpc InitialTreasuryContract (InitialTreasuryContractInput) returns (google.protobuf.Empty) {
+    rpc InitialTreasuryContract (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
-    rpc InitialMiningRewardProfitItem (InitialMiningRewardProfitItemInput) returns (google.protobuf.Empty) {
+    rpc InitialMiningRewardProfitItem (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc Donate (DonateInput) returns (google.protobuf.Empty) {
     }
@@ -37,12 +37,6 @@ service TreasuryContract {
     rpc GetCurrentWelfareReward (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-}
-
-message InitialTreasuryContractInput {
-}
-
-message InitialMiningRewardProfitItemInput {
 }
 
 message DonateInput {

@@ -28,6 +28,8 @@ namespace AElf.Contracts.Economic
 
             InitialMiningReward(input.MiningRewardTotalAmount);
 
+            InitializeTreasuryContract();
+
             RegisterElectionVotingEvent();
             SetTreasuryProfitIdsToElectionContract();
             SetResourceTokenUnitPrice();
@@ -135,12 +137,12 @@ namespace AElf.Contracts.Economic
         /// <returns></returns>
         public override Empty IssueNativeToken(IssueNativeTokenInput input)
         {
-            if (State.ACS0Contract.Value == null)
+            if (State.ZeroContract.Value == null)
             {
-                State.ACS0Contract.Value = Context.GetZeroSmartContractAddress();
+                State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
             }
 
-            var contractOwner = State.ACS0Contract.GetContractOwner.Call(Context.Self);
+            var contractOwner = State.ZeroContract.GetContractOwner.Call(Context.Self);
             if (contractOwner != Context.Sender)
             {
                 return new Empty();
@@ -271,6 +273,14 @@ namespace AElf.Contracts.Economic
                 BaseTokenSymbol = Context.Variables.NativeSymbol,
                 ManagerAddress = connectorManager
             });
+        }
+
+        private void InitializeTreasuryContract()
+        {
+            State.TreasuryContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            State.TreasuryContract.InitialTreasuryContract.Send(new Empty());
+            State.TreasuryContract.InitialMiningRewardProfitItem.Send(new Empty());
         }
     }
 }
