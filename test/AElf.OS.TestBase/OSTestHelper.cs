@@ -21,6 +21,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.OS.Network;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.Types;
@@ -28,6 +29,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 using Org.BouncyCastle.Asn1.TeleTrust;
+using Volo.Abp.Threading;
 
 namespace AElf.OS
 {
@@ -239,7 +241,7 @@ namespace AElf.OS
             return transaction;
         }
 
-        public async Task BroadcastTransactions(List<Transaction> transactions)
+        public async Task BroadcastTransactions(IEnumerable<Transaction> transactions)
         {
             var transactionsReceivedEvent = new TransactionsReceivedEvent
             {
@@ -267,7 +269,7 @@ namespace AElf.OS
             return block;
         }
 
-        public Block GenerateBlock(Hash preBlockHash, long preBlockHeight, List<Transaction> transactions)
+        public Block GenerateBlock(Hash preBlockHash, long preBlockHeight, IEnumerable<Transaction> transactions = null)
         {
             var block = new Block
             {
@@ -276,18 +278,42 @@ namespace AElf.OS
                     ChainId = _staticChainInformationProvider.ChainId,
                     Height = preBlockHeight + 1,
                     PreviousBlockHash = preBlockHash,
-                    Time = TimestampHelper.GetUtcNow()
+                    Time = TimestampHelper.GetUtcNow(),
+                    MerkleTreeRootOfTransactions = Hash.Empty,
+                    MerkleTreeRootOfWorldState = Hash.Empty,
+                    MerkleTreeRootOfTransactionStatus = Hash.Empty,
+                    ExtraData = {ByteString.Empty},
+                    SignerPubkey = ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync))
                 },
                 Body = new BlockBody()
             };
-            foreach (var transaction in transactions)
+            if (transactions != null)
             {
-                block.AddTransaction(transaction);
+                foreach (var transaction in transactions)
+                {
+                    block.AddTransaction(transaction);
+                }
+
+                block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoot();
             }
 
-            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoot();
-
             return block;
+        }
+
+        public BlockWithTransactions GenerateBlockWithTransactions(Hash preBlockHash, long preBlockHeight,
+            IEnumerable<Transaction> transactions = null)
+        {
+            var block = GenerateBlock(preBlockHash, preBlockHeight, transactions);
+            var blockWithTransactions = new BlockWithTransactions
+            {
+                Header = block.Header
+            };
+            if (transactions != null)
+            {
+                blockWithTransactions.Transactions.AddRange(transactions);
+            }
+
+            return blockWithTransactions;
         }
 
         public async Task<Address> DeployContract<T>()

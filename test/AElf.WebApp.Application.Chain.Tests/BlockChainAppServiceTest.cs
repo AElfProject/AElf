@@ -600,10 +600,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task Get_NotExisted_TransactionResults()
         {
-            var block = new Block
-            {
-                Header = new BlockHeader(),
-            };
+            var block = _osTestHelper.GenerateBlock(Hash.Empty, 10);
             var blockHash = block.GetHash().ToHex();
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
                 $"/api/blockChain/transactionResults?blockHash={blockHash}&offset=0&limit=10",
@@ -616,10 +613,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task Get_TransactionResults_With_InvalidParameter()
         {
-            var block = new Block
-            {
-                Header = new BlockHeader(),
-            };
+            var block = _osTestHelper.GenerateBlock(Hash.Empty, 10);
             var blockHash = block.GetHash().ToHex();
 
             var response1 = await GetResponseAsObjectAsync<WebAppErrorResponse>(
