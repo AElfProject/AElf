@@ -1,8 +1,11 @@
 using System.Threading.Tasks;
+using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Kernel.Token;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Shouldly;
 using Volo.Abp.Threading;
@@ -70,6 +73,25 @@ namespace AElf.Contracts.MultiToken
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
             }
+            
+            //BasicFunctionContract
+            {
+                BasicFunctionContractAddress = AsyncHelper.RunSync(()=> DeploySystemSmartContract(
+                    KernelConstants.CodeCoverageRunnerCategory, BasicFunctionContractCode,
+                    BasicFunctionContractName, DefaultKeyPair));
+                BasicFunctionContractStub =
+                    GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(BasicFunctionContractAddress,
+                        DefaultKeyPair);
+
+                OtherBasicFunctionContractAddress = AsyncHelper.RunSync(()=> DeploySystemSmartContract(
+                    KernelConstants.CodeCoverageRunnerCategory, BasicFunctionContractCode,
+                    OtherBasicFunctionContractName, DefaultKeyPair));
+                OtherBasicFunctionContractStub =
+                    GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(
+                        OtherBasicFunctionContractAddress,
+                        DefaultKeyPair);
+            }
+            
         }
 
         [Fact(DisplayName = "[MultiToken] Create token test.")]
@@ -130,5 +152,103 @@ namespace AElf.Contracts.MultiToken
                 tokenInfo.ShouldNotBe(AliceCoinTokenInfo);
             }
         }
+        
+        [Fact(DisplayName = "[MultiToken] Create Token use custom address")]
+        public async Task MultiTokenContract_Create_UseCustomAddress()
+        {
+            var transactionResult = (await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = AliceCoinTokenInfo.Symbol,
+                Decimals = 2,
+                IsBurnable = true,
+                Issuer = DefaultAddress,
+                TokenName = "elf test token",
+                TotalSupply = AliceCoinTotalAmount,
+                LockWhiteList =
+                {
+                    User1Address
+                }
+            })).TransactionResult;
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("Addresses in lock white list should be system contract addresses");
+        }
+
+        [Fact(DisplayName = "[MultiToken] Issue token test")]
+        public async Task MultiTokenContract_Issue()
+        {
+            MultiTokenContract_Create();
+            //issue AliceToken amount of 1000_00L to DefaultAddress 
+            {
+                var result = await TokenContractStub.Issue.SendAsync(new IssueInput()
+                {
+                    Symbol = AliceCoinTokenInfo.Symbol,
+                    Amount = AliceCoinTotalAmount,
+                    To = DefaultAddress,
+                    Memo = "first issue token."
+                });
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = DefaultAddress,
+                    Symbol = AliceCoinTokenInfo.Symbol
+                })).Balance;
+                balance.ShouldBe(AliceCoinTotalAmount);
+            }
+            //issue AliceToken amount of 1000L to User1Address 
+            {
+                var result = await TokenContractStub.Issue.SendAsync(new IssueInput()
+                {
+                    Symbol = AliceCoinTokenInfo.Symbol,
+                    Amount = 1000,
+                    To = User1Address,
+                    Memo = "first issue token."
+                });
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = User1Address,
+                    Symbol = AliceCoinTokenInfo.Symbol
+                })).Balance;
+                balance.ShouldBe(1000);
+            }
+            //Issue AliceToken amount of 1000L to User2Address  
+            {
+                var result = await TokenContractStub.Issue.SendAsync(new IssueInput()
+                {
+                    Symbol = AliceCoinTokenInfo.Symbol,
+                    Amount = 1000,
+                    To = User2Address,
+                    Memo = "second issue token."
+                });
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = User2Address,
+                    Symbol = AliceCoinTokenInfo.Symbol
+                })).Balance;
+                balance.ShouldBe(1000);
+            }
+        }
+
+        [Fact(DisplayName = "[MultiToken] Issue out of total amount")]
+        public async Task MultiTokenContract_Issue_OutOfAmount()
+        {
+            MultiTokenContract_Create();
+            //issue AliceToken amount of 1000L to User1Address 
+            var result = (await TokenContractStub.Issue.SendAsync(new IssueInput()
+            {
+                Symbol = AliceCoinTokenInfo.Symbol,
+                Amount = AliceCoinTokenInfo.TotalSupply+1,
+                To = User1Address,
+                Memo = "first issue token."
+            })).TransactionResult;
+            result.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.Error.Contains($"Total supply exceeded").ShouldBeTrue();
+        }
+        
+        
     }
 }
