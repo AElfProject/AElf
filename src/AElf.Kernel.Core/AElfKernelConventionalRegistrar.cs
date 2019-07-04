@@ -21,8 +21,7 @@ namespace AElf.Kernel
                         return ServiceLifetime.Transient;
                     }
 
-                    if (type.Name.EndsWith("Manager") || type.Name.EndsWith("Store") || type.Name.EndsWith("Service") ||
-                        type.Name.EndsWith("Provider"))
+                    if (type.Name.EndsWith("Store") || type.Name.EndsWith("Provider"))
                     {
                         return ServiceLifetime.Transient;
                     }
