@@ -273,12 +273,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private async Task InitializeTreasury()
         {
             {
-                var result = await TreasuryContractStub.InitialTreasuryContract.SendAsync(new Empty());
+                var result =
+                    await TreasuryContractStub.InitialTreasuryContract.SendAsync(new Empty());
                 CheckResult(result.TransactionResult);
             }
             {
                 var result =
-                    await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(new Empty());
+                    await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(
+                        new Empty());
                 CheckResult(result.TransactionResult);
             }
         }

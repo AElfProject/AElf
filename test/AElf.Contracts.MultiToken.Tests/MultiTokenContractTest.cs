@@ -181,8 +181,9 @@ namespace AElf.Contracts.MultiToken
             }
 
             {
-                var result = AsyncHelper.RunSync(() =>
-                    TreasuryContractStub.InitialTreasuryContract.SendAsync(new Empty()));
+                var result =
+                    AsyncHelper.RunSync(() =>
+                        TreasuryContractStub.InitialTreasuryContract.SendAsync(new Empty()));
                 CheckResult(result.TransactionResult);
             }
         }
