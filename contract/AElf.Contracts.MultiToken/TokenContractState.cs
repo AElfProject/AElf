@@ -3,6 +3,7 @@ using Acs1;
 using Acs8;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp.State;
@@ -41,15 +42,12 @@ namespace AElf.Contracts.MultiToken
         internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContract { get; set; }
 
         internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }
+        internal ParliamentAuthContractContainer.ParliamentAuthContractReferenceState ParliamentAuthContract { get; set; }
 
-        internal TokenConverterContractContainer.TokenConverterContractReferenceState TokenConverterContract
-        {
-            get;
-            set;
-        }
+        internal ACS0Container.ACS0ReferenceState ZeroContract { get; set; }
 
-        internal ACS0Container.ACS0ReferenceState ACS0Contract { get; set; }
-        internal ResourceConsumptionContractContainer.ResourceConsumptionContractReferenceState ACS8Contract { get; set; }
+        internal ResourceConsumptionContractContainer.ResourceConsumptionContractReferenceState
+            ResourceConsumptionContract { get; set; }
 
         public SingletonState<long> CpuUnitPrice { get; set; }
         public SingletonState<long> StoUnitPrice { get; set; }
