@@ -15,8 +15,6 @@ service ProfitContract {
     // Actions
     rpc CreateProfitItem (CreateProfitItemInput) returns (aelf.Hash) {
     }
-    rpc SetTreasuryProfitId (aelf.Hash) returns (google.protobuf.Empty) {
-    }
     rpc AddWeight (AddWeightInput) returns (google.protobuf.Empty) {
     }
     rpc SubWeight (SubWeightInput) returns (google.protobuf.Empty) {
@@ -55,12 +53,6 @@ service ProfitContract {
     rpc GetProfitAmount (ProfitInput) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetTreasuryProfitId (google.protobuf.Empty) returns (aelf.Hash) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetContractProfitItem (aelf.Address) returns (ProfitItem) {
-        option (aelf.is_view) = true;
-    }
 }
 
 message CreateProfitItemInput {
@@ -73,13 +65,11 @@ message ProfitItem {
     sint64 total_weight = 2;
     map<string, sint64> total_amounts = 3;// token_symbol -> total_amount
     sint64 current_period = 4;
-    repeated SubProfitItem sub_profit_items = 7;
-    aelf.Address creator = 8;
-    sint64 profit_receiving_due_period_count = 9;
-    bool is_release_all_balance_everytime_by_default = 10;
-    bool is_treasury_profit_item = 11;
-    aelf.Hash profit_id = 12;
-    string symbol = 13;
+    repeated SubProfitItem sub_profit_items = 5;
+    aelf.Address creator = 6;
+    sint64 profit_receiving_due_period_count = 7;
+    bool is_release_all_balance_everytime_by_default = 8;
+    aelf.Hash profit_id = 9;
 }
 
 message SubProfitItem {
@@ -185,4 +175,14 @@ message GetReleasedProfitsInformationInput {
 message GetProfitDetailsInput {
     aelf.Hash profit_id = 1;
     aelf.Address receiver = 2;
+}
+
+// Events
+message ProfitItemCreated {
+    option (aelf.is_event) = true;
+    aelf.Address virtual_address = 1;
+    aelf.Address creator = 2;
+    sint64 profit_receiving_due_period_count = 3;
+    bool is_release_all_balance_everytime_by_default = 4;
+    aelf.Hash profit_id = 5;
 }

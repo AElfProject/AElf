@@ -106,20 +106,5 @@ namespace AElf.Contracts.Profit
 
             return new SInt64Value {Value = amount};
         }
-
-        public override ProfitItem GetContractProfitItem(Address input)
-        {
-            var createdProfitIds = State.CreatedProfitIds[input];
-            foreach (var profitId in createdProfitIds.ProfitIds)
-            {
-                var profitItem = State.ProfitItemsMap[profitId];
-                if (profitItem.IsTreasuryProfitItem)
-                {
-                    return profitItem;
-                }
-            }
-
-            return new ProfitItem();
-        }
     }
 }

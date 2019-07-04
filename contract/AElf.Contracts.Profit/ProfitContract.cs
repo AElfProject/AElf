@@ -38,7 +38,7 @@ namespace AElf.Contracts.Profit
                 profitId = Hash.FromTwoHashes(profitId, createdProfitIds.Last());
             }
 
-            State.ProfitItemsMap[profitId] = new ProfitItem
+            var profitItem = new ProfitItem
             {
                 ProfitId = profitId,
                 // The address of general ledger for current profit item.
@@ -48,31 +48,34 @@ namespace AElf.Contracts.Profit
                 CurrentPeriod = 1,
                 IsReleaseAllBalanceEverytimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault
             };
+            State.ProfitItemsMap[profitId] = profitItem;
 
-            var createdProfitItems = State.CreatedProfitIds[Context.Sender];
-            if (createdProfitItems == null)
+            var profitIds = State.CreatedProfitIds[Context.Sender];
+            if (profitIds == null)
             {
-                createdProfitItems = new CreatedProfitIds
+                profitIds = new CreatedProfitIds
                 {
                     ProfitIds = {profitId}
                 };
             }
             else
             {
-                createdProfitItems.ProfitIds.Add(profitId);
+                profitIds.ProfitIds.Add(profitId);
             }
 
-            State.CreatedProfitIds[Context.Sender] = createdProfitItems;
+            State.CreatedProfitIds[Context.Sender] = profitIds;
 
             Context.LogDebug(() => $"Created profit item {State.ProfitItemsMap[profitId]}");
-            return profitId;
-        }
 
-        public override Empty SetTreasuryProfitId(Hash input)
-        {
-            Assert(State.TreasuryProfitId.Value == null, "Treasury profit id already set.");
-            State.TreasuryProfitId.Value = input;
-            return new Empty();
+            Context.Fire(new ProfitItemCreated
+            {
+                ProfitId = profitItem.ProfitId,
+                Creator = profitItem.Creator,
+                IsReleaseAllBalanceEverytimeByDefault = profitItem.IsReleaseAllBalanceEverytimeByDefault,
+                ProfitReceivingDuePeriodCount = profitItem.ProfitReceivingDuePeriodCount,
+                VirtualAddress = profitItem.VirtualAddress
+            });
+            return profitId;
         }
 
         /// <summary>
@@ -94,14 +97,6 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
 
-            if (profitItem.IsTreasuryProfitItem)
-            {
-                Assert(
-                    profitItem.TotalWeight.Add(input.SubItemWeight) <
-                    ProfitContractConsts.TreasuryProfitItemMaximumWeight,
-                    $"Treasury profit item weight cannot greater than {ProfitContractConsts.TreasuryProfitItemMaximumWeight}.");
-            }
-
             Assert(Context.Sender == profitItem.Creator, "Only creator can do the registration.");
 
             var subProfitItemId = input.SubProfitId;
@@ -121,7 +116,6 @@ namespace AElf.Contracts.Profit
                 Receiver = subItemVirtualAddress,
                 EndPeriod = long.MaxValue
             });
-
 
             // Add a sub profit item.
             profitItem.SubProfitItems.Add(new SubProfitItem
@@ -196,14 +190,6 @@ namespace AElf.Contracts.Profit
 
             Context.LogDebug(() =>
                 $"{input.ProfitId}.\n End Period: {input.EndPeriod}, Current Period: {profitItem.CurrentPeriod}");
-
-            if (profitItem.IsTreasuryProfitItem)
-            {
-                Assert(
-                    profitItem.TotalWeight.Add(input.Weight) <
-                    ProfitContractConsts.TreasuryProfitItemMaximumWeight,
-                    $"Treasury profit item weight cannot greater than {ProfitContractConsts.TreasuryProfitItemMaximumWeight}.");
-            }
 
             Assert(input.EndPeriod >= profitItem.CurrentPeriod, "Invalid end period.");
 
@@ -330,7 +316,7 @@ namespace AElf.Contracts.Profit
             Assert(input.Amount >= 0, "Amount must be greater than or equal to 0");
 
             Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
-            if (input.Symbol == null) return new Empty();// Just to avoid IDE warning.
+            if (input.Symbol == null) return new Empty(); // Just to avoid IDE warning.
 
             var profitItem = State.ProfitItemsMap[input.ProfitId];
             Assert(profitItem != null, "Profit item not found.");
@@ -381,7 +367,7 @@ namespace AElf.Contracts.Profit
 
             return new Empty();
         }
-        
+
         private long AssertBalanceIsEnough(Address virtualAddress, ReleaseProfitInput input)
         {
             if (State.TokenContract.Value == null)
@@ -399,7 +385,7 @@ namespace AElf.Contracts.Profit
 
             return balance;
         }
-        
+
         private Empty BurnProfits(ReleaseProfitInput input, ProfitItem profitItem, Address profitVirtualAddress)
         {
             Context.LogDebug(() => "Entered BurnProfits.");
@@ -432,7 +418,7 @@ namespace AElf.Contracts.Profit
             State.ProfitItemsMap[input.ProfitId] = profitItem;
             return new Empty();
         }
-        
+
         private ReleasedProfitsInformation UpdateReleasedProfits(ReleaseProfitInput input,
             Address profitsReceivingVirtualAddress, long totalWeight)
         {
@@ -490,7 +476,7 @@ namespace AElf.Contracts.Profit
             foreach (var subProfitItem in profitItem.SubProfitItems)
             {
                 Context.LogDebug(() => $"Releasing {subProfitItem.ProfitId}");
-                
+
                 // General ledger of this sub profit item.
                 var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItem.ProfitId);
 
@@ -522,7 +508,7 @@ namespace AElf.Contracts.Profit
 
             return remainAmount;
         }
-        
+
         private void UpdateSubProfitItemInformation(ReleaseProfitInput input, SubProfitItem subProfitItem, long amount)
         {
             var subItem = State.ProfitItemsMap[subProfitItem.ProfitId];
@@ -542,11 +528,11 @@ namespace AElf.Contracts.Profit
         public override Empty AddProfits(AddProfitsInput input)
         {
             Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
-            if (input.Symbol == null) return new Empty();// Just to avoid IDE warning.
+            if (input.Symbol == null) return new Empty(); // Just to avoid IDE warning.
 
             var profitItem = State.ProfitItemsMap[input.ProfitId];
             Assert(profitItem != null, "Profit item not found.");
-            if (profitItem == null) return new Empty();// Just to avoid IDE warning.
+            if (profitItem == null) return new Empty(); // Just to avoid IDE warning.
 
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
 
@@ -616,14 +602,15 @@ namespace AElf.Contracts.Profit
         public override Empty Profit(ProfitInput input)
         {
             Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
-            if (input.Symbol == null) return new Empty();// Just to avoid IDE warning.
+            if (input.Symbol == null) return new Empty(); // Just to avoid IDE warning.
             var profitItem = State.ProfitItemsMap[input.ProfitId];
             Assert(profitItem != null, "Profit item not found.");
             var profitDetails = State.ProfitDetailsMap[input.ProfitId][Context.Sender];
             Assert(profitDetails != null, "Profit details not found.");
-            if (profitDetails == null || profitItem == null) return new Empty();// Just to avoid IDE warning.
+            if (profitDetails == null || profitItem == null) return new Empty(); // Just to avoid IDE warning.
 
-            Context.LogDebug(() => $"{Context.Sender} is trying to profit {input.Symbol} from {input.ProfitId.ToHex()}.");
+            Context.LogDebug(
+                () => $"{Context.Sender} is trying to profit {input.Symbol} from {input.ProfitId.ToHex()}.");
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
 
@@ -683,11 +670,6 @@ namespace AElf.Contracts.Profit
             }
 
             profitDetail.LastProfitPeriod = lastProfitPeriod;
-        }
-
-        public override Hash GetTreasuryProfitId(Empty input)
-        {
-            return State.TreasuryProfitId.Value;
         }
     }
 }
