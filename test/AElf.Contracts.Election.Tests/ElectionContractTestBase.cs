@@ -283,23 +283,6 @@ namespace AElf.Contracts.Election
 
         private async Task InitializeToken()
         {
-//            var result1 = await TokenContractStub.Create.SendAsync(new CreateInput
-//            {
-//                Symbol = ElectionContractTestConstants.NativeTokenSymbol,
-//                Decimals = 2,
-//                IsBurnable = true,
-//                TokenName = "elf token",
-//                TotalSupply = ElectionContractTestConstants.NativeTokenTotalSupply,
-//                Issuer = BootMinerAddress,
-//                LockWhiteList =
-//                {
-//                    ElectionContractAddress,
-//                    VoteContractAddress,
-//                    ProfitContractAddress
-//                }
-//            });
-//            CheckResult(result1.TransactionResult);
-
             for (var i = 0; i < InitialMinersCount + FullNodesCount + VotersCount; i++)
             {
                 if (i < InitialMinersCount)
