@@ -187,7 +187,7 @@ namespace AElf.OS.Network.Grpc
         public IPeer FindPeerByAddress(string peerAddress)
         {
             return _authenticatedPeers
-                .Where(p => p.Value.PeerIpAddress == peerAddress)
+                .Where(p => p.Value.IpAddress == peerAddress)
                 .Select(p => p.Value)
                 .FirstOrDefault();
         }
@@ -215,11 +215,11 @@ namespace AElf.OS.Network.Grpc
             string localPubKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex();
 
             if (peer.PubKey == localPubKey)
-                throw new InvalidOperationException($"Connection to self detected {peer.PubKey} ({peer.PeerIpAddress})");
+                throw new InvalidOperationException($"Connection to self detected {peer.PubKey} ({peer.IpAddress})");
 
             if (!_authenticatedPeers.TryAdd(p.PubKey, p))
             {
-                Logger.LogWarning($"Could not add peer {peer.PubKey} ({peer.PeerIpAddress})");
+                Logger.LogWarning($"Could not add peer {peer.PubKey} ({peer.IpAddress})");
                 return false;
             }
             
@@ -258,7 +258,7 @@ namespace AElf.OS.Network.Grpc
 
         public async Task<bool> RemovePeerByAddressAsync(string address)
         {
-            var peer = _authenticatedPeers.FirstOrDefault(p => p.Value.PeerIpAddress == address).Value;
+            var peer = _authenticatedPeers.FirstOrDefault(p => p.Value.IpAddress == address).Value;
 
             if (peer != null) 
                 return await RemovePeerAsync(peer.PubKey, true) != null;

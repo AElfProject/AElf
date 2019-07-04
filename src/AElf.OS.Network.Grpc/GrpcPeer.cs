@@ -49,7 +49,7 @@ namespace AElf.OS.Network.Grpc
         public Hash CurrentBlockHash { get; private set; }
         public long CurrentBlockHeight { get; private set; }
         
-        public string PeerIpAddress { get; }
+        public string IpAddress { get; }
         public string PubKey { get; }
         public int ProtocolVersion { get; }
         public long ConnectionTime { get; }
@@ -70,7 +70,7 @@ namespace AElf.OS.Network.Grpc
             _channel = channel;
             _client = client;
 
-            PeerIpAddress = peerInfo.PeerIpAddress;
+            IpAddress = peerInfo.PeerIpAddress;
             PubKey = peerInfo.PublicKey;
             ProtocolVersion = peerInfo.ProtocolVersion;
             ConnectionTime = peerInfo.ConnectionTime;
@@ -138,7 +138,7 @@ namespace AElf.OS.Network.Grpc
             return finalizeConnectReply;
         }
 
-        public async Task<BlockWithTransactions> RequestBlockAsync(Hash hash)
+        public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
         {
             var blockRequest = new BlockRequest {Hash = hash};
 
@@ -185,7 +185,7 @@ namespace AElf.OS.Network.Grpc
         /// Send a announcement to the peer using the stream call.
         /// Note: this method is not thread safe.
         /// </summary>
-        public async Task AnnounceAsync(PeerNewBlockAnnouncement header)
+        public async Task SendAnnouncementAsync(PeerNewBlockAnnouncement header)
         {
             if (!IsConnected)
                 return;
@@ -319,7 +319,7 @@ namespace AElf.OS.Network.Grpc
             throw new NetworkException(message, exception, type);
         }
 
-        public async Task<bool> TryWaitForStateChangedAsync()
+        public async Task<bool> TryRecoverAsync()
         {
             await _channel.TryWaitForStateChangedAsync(_channel.State,
                 DateTime.UtcNow.AddSeconds(NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds));
@@ -343,7 +343,7 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement)
+        public void ProcessReceivedAnnouncement(PeerNewBlockAnnouncement peerNewBlockAnnouncement)
         {
             if (peerNewBlockAnnouncement.HasFork)
             {
@@ -367,7 +367,7 @@ namespace AElf.OS.Network.Grpc
 
         public override string ToString()
         {
-            return $"{{ listening-port: {PeerIpAddress}, key: {PubKey.Substring(0, 45)}... }}";
+            return $"{{ listening-port: {IpAddress}, key: {PubKey.Substring(0, 45)}... }}";
         }
     }
 }

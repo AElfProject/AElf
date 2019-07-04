@@ -40,7 +40,7 @@ namespace AElf.OS.Network.Application
 
         public List<string> GetPeerIpList()
         {
-            return _peerPool.GetPeers(true).Select(p => p.PeerIpAddress).ToList();
+            return _peerPool.GetPeers(true).Select(p => p.IpAddress).ToList();
         }
 
         public List<IPeer> GetPeers()
@@ -83,7 +83,7 @@ namespace AElf.OS.Network.Application
                 {
                     try
                     {
-                        await peer.AnnounceAsync(announce);
+                        await peer.SendAnnouncementAsync(announce);
                     }
                     catch (NetworkException ex)
                     {
@@ -184,7 +184,7 @@ namespace AElf.OS.Network.Application
             Logger.LogDebug($"Getting block by hash, hash: {hash} from {peer}.");
             
             var peers = SelectPeers(peer);
-            return await RequestAsync(peers, p => p.RequestBlockAsync(hash), blockWithTransactions => blockWithTransactions != null, peer);
+            return await RequestAsync(peers, p => p.GetBlockByHashAsync(hash), blockWithTransactions => blockWithTransactions != null, peer);
         }
 
         private async Task<(IPeer, T)> DoRequest<T>(IPeer peer, Func<IPeer, Task<T>> func) where T : class
@@ -197,7 +197,7 @@ namespace AElf.OS.Network.Application
             }
             catch (NetworkException ex)
             {
-                Logger.LogError(ex, $"Error while requesting block(s) from {peer.PeerIpAddress}.");
+                Logger.LogError(ex, $"Error while requesting block(s) from {peer.IpAddress}.");
                 await HandleNetworkException(peer, ex);
             }
             
@@ -212,7 +212,7 @@ namespace AElf.OS.Network.Application
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
             {
-                Logger.LogError($"Queuing peer for reconnection {peer.PeerIpAddress}.");
+                Logger.LogError($"Queuing peer for reconnection {peer.IpAddress}.");
                 QueueNetworkTask(async () => await RecoverPeerAsync(peer));
             }
         }
@@ -222,7 +222,7 @@ namespace AElf.OS.Network.Application
             if (peer.IsReady) // peer recovered already
                 return;
                 
-            var success = await peer.TryWaitForStateChangedAsync();
+            var success = await peer.TryRecoverAsync();
 
             if (!success)
                 await _peerPool.RemovePeerAsync(peer.PubKey, false);
@@ -291,14 +291,6 @@ namespace AElf.OS.Network.Application
             }
                 
             taskPeer.IsBest = true;
-        }
-
-        public Task<long> GetBestChainHeightAsync(string peerPubKey = null)
-        {
-            var peer = !peerPubKey.IsNullOrEmpty()
-                ? _peerPool.FindPeerByPublicKey(peerPubKey)
-                : _peerPool.GetPeers().OrderByDescending(p => p.CurrentBlockHeight).FirstOrDefault();
-            return Task.FromResult(peer?.CurrentBlockHeight ?? 0);
         }
     }
 }

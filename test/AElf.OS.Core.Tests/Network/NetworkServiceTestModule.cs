@@ -37,7 +37,7 @@ namespace AElf.OS
                     p1.Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions>()));
                     
-                    p1.Setup(p => p.RequestBlockAsync(It.Is<Hash>(h => h == Hash.FromString("bHash1"))))
+                    p1.Setup(p => p.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("bHash1"))))
                         .Returns<Hash>(h => Task.FromResult(new BlockWithTransactions()));
                         
                     return p1.Object;
@@ -48,7 +48,7 @@ namespace AElf.OS
                 {
                     var p1 = new Mock<IPeer>();
                     p1.Setup(p => p.PubKey).Returns("p1");
-                    p1.Setup(p => p.RequestBlockAsync(It.IsAny<Hash>())).Throws(new NetworkException());
+                    p1.Setup(p => p.GetBlockByHashAsync(It.IsAny<Hash>())).Throws(new NetworkException());
                     p1.Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>())).Throws(new NetworkException());
                     return p1.Object;
                 });
@@ -62,7 +62,7 @@ namespace AElf.OS
                     p2.Setup(p => p.PubKey).Returns("p2");
                     p2.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("block")), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { new BlockWithTransactions() }));
-                    p2.Setup(p => p.RequestBlockAsync(It.Is<Hash>(h => h == Hash.FromString("block"))))
+                    p2.Setup(p => p.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("block"))))
                         .Returns<Hash>(h => Task.FromResult(new BlockWithTransactions()));
                     peers.Add(p2.Object);
                     
@@ -71,13 +71,13 @@ namespace AElf.OS
                     p3.Setup(p => p.PubKey).Returns("p3");
                     p3.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("blocks")), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { new BlockWithTransactions(), new BlockWithTransactions() }));
-                    p3.Setup(p => p.RequestBlockAsync(It.Is<Hash>(h => h == Hash.FromString("bHash2"))))
+                    p3.Setup(p => p.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("bHash2"))))
                         .Returns<Hash>(h => Task.FromResult(new BlockWithTransactions()));
                     peers.Add(p3.Object);
                     
                     var exceptionOnBcast = new Mock<IPeer>();
                     exceptionOnBcast.Setup(p => p.PubKey).Returns("exceptionOnBcast");
-                    exceptionOnBcast.Setup(p => p.AnnounceAsync(It.IsAny<PeerNewBlockAnnouncement>()))
+                    exceptionOnBcast.Setup(p => p.SendAnnouncementAsync(It.IsAny<PeerNewBlockAnnouncement>()))
                         .Throws(new NetworkException());
                     exceptionOnBcast.Setup(p => p.SendTransactionAsync(It.IsAny<Transaction>()))
                         .Throws(new NetworkException());

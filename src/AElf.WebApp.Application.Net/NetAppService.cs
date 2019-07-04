@@ -59,7 +59,7 @@ namespace AElf.WebApp.Application.Net
             
             var peerDtoList = peerList.Select(p => new PeerDto
             {
-                IpAddress = p.PeerIpAddress,
+                IpAddress = p.IpAddress,
                 ProtocolVersion = p.ProtocolVersion,
                 ConnectionTime = p.ConnectionTime,
                 Inbound = p.Inbound,

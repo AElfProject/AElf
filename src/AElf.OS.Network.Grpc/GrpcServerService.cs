@@ -196,20 +196,20 @@ namespace AElf.OS.Network.Grpc
             return new VoidReply();
         }
 
-        public Task ProcessAnnouncement(PeerNewBlockAnnouncement an, ServerCallContext context)
+        public Task ProcessAnnouncement(PeerNewBlockAnnouncement announcement, ServerCallContext context)
         {
-            if (an?.BlockHash == null)
+            if (announcement?.BlockHash == null)
             {
                 Logger.LogError($"Received null announcement or header from {context.GetPeerInfo()}.");
                 return Task.CompletedTask;
             }
             
-            Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
+            Logger.LogDebug($"Received announce {announcement.BlockHash} from {context.GetPeerInfo()}.");
 
-            var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
-            peerInPool?.HandlerRemoteAnnounce(an);
+            var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+            peer?.ProcessReceivedAnnouncement(announcement);
 
-            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
+            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(announcement, context.GetPublicKey()));
             
             return Task.CompletedTask;
         }
