@@ -55,7 +55,7 @@ namespace AElf.OS.Network.Grpc
         public long ConnectionTime { get; }
         public bool Inbound { get; }
         public long StartHeight { get; }
-        
+
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
         
