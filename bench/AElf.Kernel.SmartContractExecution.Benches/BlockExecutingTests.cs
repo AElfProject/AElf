@@ -45,20 +45,8 @@ namespace AElf.Kernel.SmartContractExecution.Benches
             AsyncHelper.RunSync(async () =>
             {
                 var chain = await _blockchainService.GetChainAsync();
-            
-                _block = new Block
-                {
-                    Header = new BlockHeader
-                    {
-                        ChainId = chain.Id,
-                        Height = chain.BestChainHeight + 1,
-                        PreviousBlockHash = chain.BestChainHash,
-                        Time = TimestampHelper.GetUtcNow()
-                    },
-                    Body = new BlockBody()
-                };
-            
                 _transactions = await _osTestHelper.GenerateTransferTransactions(1000);
+                _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, _transactions);
             });
         }
 

@@ -79,8 +79,8 @@ namespace AElf.CrossChain.Communication.Grpc
 
             height = 3;
             irreversibleBlock = await _blockchainService.GetIrreversibleBlockByHeightAsync(height);
-            var expectedHash = new Block {Header = new BlockHeader {Height = height}}.GetHash();
-            irreversibleBlock.GetHash().Equals(expectedHash).ShouldBeTrue();
+            var expectedBlock = new Block {Header = new BlockHeader {Height = height}};
+            irreversibleBlock.Equals(expectedBlock).ShouldBeTrue();
         }
     }
 }

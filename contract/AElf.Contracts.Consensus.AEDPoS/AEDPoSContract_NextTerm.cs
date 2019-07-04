@@ -18,6 +18,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(TryToUpdateTermNumber(input.TermNumber), "Failed to update term number.");
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
 
+            var minersCount = GetMinersCount(input);
+            if (minersCount != 0 && State.ElectionContract.Value != null)
+            {
+                State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
+                {
+                    MinersCount = minersCount
+                });
+            }
             // Reset some fields of first two rounds of next term.
             foreach (var minerInRound in input.RealTimeMinersInformation.Values)
             {

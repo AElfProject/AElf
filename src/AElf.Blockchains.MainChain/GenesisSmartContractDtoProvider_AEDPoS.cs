@@ -32,7 +32,8 @@ namespace AElf.Blockchains.MainChain
                 nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    TimeEachTerm = _consensusOptions.TimeEachTerm
+                    TimeEachTerm = _consensusOptions.TimeEachTerm,
+                    MinerIncreaseInterval=_consensusOptions.MinerIncreaseInterval
                 });
             aelfConsensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
                 new MinerList

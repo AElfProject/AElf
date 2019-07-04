@@ -75,16 +75,7 @@ namespace AElf.Kernel.Blockchain.Application
         private (Block, List<TransactionResult>) GetNextBlockWithTransactionAndResults(BlockHeader previous,
             IEnumerable<Transaction> transactions, ByteString uniqueData = null)
         {
-            var block = new Block
-            {
-                Header = new BlockHeader()
-                {
-                    Height = previous.Height + 1,
-                    PreviousBlockHash = previous.GetHash(),
-                    MerkleTreeRootOfTransactions = Hash.FromString($"block {previous.Height + 1}")
-                },
-                Body = new BlockBody()
-            };
+            var block = _kernelTestHelper.GenerateBlock(previous.Height, previous.GetHash());
             if (uniqueData != null)
             {
                 // piggy back on Bloom to make block unique
