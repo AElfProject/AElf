@@ -195,56 +195,6 @@ namespace AElf.Contracts.Treasury
             });
         }
 
-        /// <summary>
-        /// Help the contract developer to create Smart Token for that contract,
-        /// and set corresponding connector.
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public override Empty Register(RegisterInput input)
-        {
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
-
-            if (State.TokenConverterContract.Value == null)
-            {
-                State.TokenConverterContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
-            }
-
-            var sender = Context.Sender;
-            Assert(State.ContractSymbols[sender] == null,
-                $"Token for contract {sender} already created.");
-
-            // Create Smart Token
-            State.TokenContract.Create.Send(new CreateInput
-            {
-                Symbol = input.TokenSymbol,
-                TokenName = input.TokenName,
-                Decimals = input.Decimals,
-                Issuer = Context.Sender,
-                IsBurnable = true,
-                TotalSupply = input.TotalSupply
-            });
-
-            // Set bancor connector.
-            State.TokenConverterContract.SetConnector.Send(new Connector
-            {
-                Symbol = input.TokenSymbol,
-                Weight = input.ConnectorWeight,
-                IsPurchaseEnabled = true,
-                IsVirtualBalanceEnabled = true,
-                VirtualBalance = 0
-            });
-
-            State.ContractSymbols[sender] = input.TokenSymbol;
-
-            return new Empty();
-        }
-
         #region Private methods
 
         private void BuildTreasury()

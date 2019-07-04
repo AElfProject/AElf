@@ -21,7 +21,6 @@ namespace AElf.Contracts.Profit
 {
     public class ProfitContractTestBase : ContractTestBase<ProfitContractTestAElfModule>
     {
-        protected Hash TreasuryHash { get; set; }
         protected ECKeyPair StarterKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address Starter => Address.FromPublicKey(StarterKeyPair.PublicKey);
         protected Address TokenContractAddress { get; set; }
@@ -73,20 +72,7 @@ namespace AElf.Contracts.Profit
 
         protected async Task CreateTreasury()
         {
-            await ProfitContractStub.CreateProfitItem.SendAsync(new CreateProfitItemInput
-            {
-                ProfitReceivingDuePeriodCount = 100,
-            });
-            TreasuryHash = ProfitContractStub.GetCreatedProfitIds.CallAsync(new GetCreatedProfitIdsInput
-            {
-                Creator = Address.FromPublicKey(StarterKeyPair.PublicKey)
-            }).Result.ProfitIds.First();
-            await ProfitContractStub.AddProfits.SendAsync(new AddProfitsInput
-            {
-                ProfitId = TreasuryHash,
-                Symbol = ProfitContractTestConsts.NativeTokenSymbol,
-                Amount = (long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2),
-            });
+
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
