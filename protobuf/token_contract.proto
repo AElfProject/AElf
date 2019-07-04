@@ -48,6 +48,8 @@ service TokenContract {
     }
     rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.Empty) {
     }
+    rpc DonateResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
     rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
     }
     rpc SetResourceTokenUnitPrice (SetResourceTokenUnitPriceInput) returns (google.protobuf.Empty) {

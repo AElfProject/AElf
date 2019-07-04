@@ -20,9 +20,9 @@ namespace AElf.Contracts.MultiToken
         public MappedState<Address, string, long> ChargedFees { get; set; }
 
         /// <summary>
-        /// Contract Address -> Resource Token Symbol -> Amount.
+        /// Resource Token Symbol -> Amount.
         /// </summary>
-        public MappedState<Address, string, long> ChangedResources { get; set; }
+        public MappedState<string, long> ChargedResources { get; set; }
 
         /// <summary>
         /// Contract Address -> Advance Address -> Resource Token Symbol -> Amount.

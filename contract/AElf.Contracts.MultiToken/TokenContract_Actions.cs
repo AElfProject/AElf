@@ -297,8 +297,8 @@ namespace AElf.Contracts.MultiToken
                 State.Balances[Context.Sender][pair.Key] = existingBalance.Sub(pair.Value);
                 State.Balances[Context.Self][pair.Key] =
                     State.Balances[Context.Self][pair.Key].Add(pair.Value);
-                State.ChangedResources[Context.Sender][pair.Key] =
-                    State.ChangedResources[Context.Sender][pair.Key].Add(pair.Value);
+                State.ChargedResources[pair.Key] =
+                    State.ChargedResources[pair.Key].Add(pair.Value);
             }
 
             TryToBuyMoreResourceTokenForSender();
@@ -415,6 +415,28 @@ namespace AElf.Contracts.MultiToken
             }
 
             State.PreviousBlockTransactionFeeTokenSymbolList.Value = new TokenSymbolList();
+
+            return new Empty();
+        }
+
+        public override Empty DonateResourceToken(Empty input)
+        {
+            if (State.TreasuryContract.Value == null)
+            {
+                State.TreasuryContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            }
+
+            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols)
+            {
+                var amount = State.ChargedResources[symbol];
+                State.TreasuryContract.Donate.Send(new DonateInput
+                {
+                    Symbol = symbol,
+                    Amount = amount
+                });
+                State.ChargedResources[symbol] = 0;
+            }
 
             return new Empty();
         }
