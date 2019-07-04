@@ -15,7 +15,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             Logger.LogTrace($"Received shake from chain {ChainHelper.ConvertChainIdToBase58(request.FromChainId)}.");
             _ = PublishCrossChainRequestReceivedEvent(request.Host, request.ListeningPort, request.FromChainId);
-            return Task.FromResult(new HandShakeReply {Result = true});
+            return Task.FromResult(new HandShakeReply {Success = true});
         }
         
         private Task PublishCrossChainRequestReceivedEvent(string host, int port, int chainId)

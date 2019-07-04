@@ -55,7 +55,7 @@ namespace AElf.CrossChain.Communication.Application
                 return parentChainBlockData;
             }
 
-            var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockDataResult(block);
+            var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockDataResultAsync(block);
             var enumerableMerklePath = GetEnumerableMerklePath(indexedSideChainBlockDataResult, remoteSideChainId);
             foreach (var kv in enumerableMerklePath)
             {
@@ -89,14 +89,11 @@ namespace AElf.CrossChain.Communication.Application
             return parentChainBlockData;
         }
         
-        private async Task<List<SideChainBlockData>> GetIndexedSideChainBlockDataResult(Block block)
+        private async Task<List<SideChainBlockData>> GetIndexedSideChainBlockDataResultAsync(Block block)
         {
             var crossChainBlockData =
                 await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
-            //Logger.LogTrace($"Indexed side chain block size {crossChainBlockData.SideChainBlockData.Count}");
-            //var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(message.ToByteString());
-            return crossChainBlockData.SideChainBlockData
-                .Select(m => SideChainBlockData.Parser.ParseFrom(m.ToByteString())).ToList();
+            return crossChainBlockData.SideChainBlockData.ToList();
         }
         
         private Dictionary<long, MerklePath> GetEnumerableMerklePath(IList<SideChainBlockData> indexedSideChainBlockDataResult, 

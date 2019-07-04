@@ -32,7 +32,7 @@ namespace AElf.CrossChain.Communication.Application
                     continue;
                 var targetHeight = _crossChainCacheEntityService.GetTargetHeightForChainCacheEntity(chainId);
                 Logger.LogTrace($" Request chain {ChainHelper.ConvertChainIdToBase58(chainId)} from {targetHeight}");
-                _ = _crossChainClientProvider.RequestAsync(client, c => c.RequestCrossChainDataAsync(targetHeight));
+                _ = client.RequestCrossChainDataAsync(targetHeight);
             }
         }
 
@@ -40,8 +40,7 @@ namespace AElf.CrossChain.Communication.Application
         {
             var client = _crossChainClientProvider.CreateClientForChainInitializationData(chainId);
             var chainInitializationData =
-                await _crossChainClientProvider.RequestAsync(client,
-                    c => c.RequestChainInitializationDataAsync(chainId));
+                await client.RequestChainInitializationDataAsync(chainId);
             return chainInitializationData;
         }
     }

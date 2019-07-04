@@ -17,7 +17,7 @@ namespace AElf.Contracts.Election
 {
     public partial class ElectionContractTests : ElectionContractTestBase
     {
-        public const int CandidatesCount = 7;
+        public const int CandidatesCount = 19;
         
         [Fact]
         public async Task ElectionContract_RegisterElectionVotingEvent()

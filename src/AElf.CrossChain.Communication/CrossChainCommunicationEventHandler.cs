@@ -23,7 +23,7 @@ namespace AElf.CrossChain.Communication
         {
             if (!await IsReadyToRequestAsync())
                 return;
-            await _crossChainRequestService.RequestCrossChainDataFromOtherChainsAsync();
+            _ = _crossChainRequestService.RequestCrossChainDataFromOtherChainsAsync();
         }
         
         private async Task<bool> IsReadyToRequestAsync()

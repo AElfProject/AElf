@@ -20,7 +20,6 @@
     <ProjectReference Include="..\..\src\AElf.OS\AElf.OS.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
     <ProjectReference Include="..\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
-    <ProjectReference Include="..\AElf.Test.Helpers\AElf.Test.Helpers.csproj" />
     <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
   </ItemGroup>
 

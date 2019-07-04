@@ -39,7 +39,14 @@ namespace AElf.CrossChain.Communication.Grpc
                             {
                                 ByteString.CopyFrom(new CrossChainExtraData().ToByteArray()),
                                 ByteString.CopyFrom(Hash.Generate().ToByteArray())
-                            }
+                            },
+                            Height = 10,
+                            PreviousBlockHash = Hash.Generate(),
+                            Time = TimestampHelper.GetUtcNow(),
+                            MerkleTreeRootOfWorldState = Hash.Empty,
+                            MerkleTreeRootOfTransactionStatus = Hash.Empty,
+                            MerkleTreeRootOfTransactions = Hash.Empty,
+                            SignerPubkey = ByteString.CopyFromUtf8("PubKey")
                         }
                     }));
 
