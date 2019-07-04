@@ -157,7 +157,7 @@ namespace AElf.Contract.CrossChain.Tests
                 {
                     Value = chainId
                 })).Value;
-            Assert.Equal(4, chainStatus);
+            Assert.Equal((int) SideChainStatus.Terminated, chainStatus);
         }
         
         [Fact]
@@ -504,7 +504,7 @@ namespace AElf.Contract.CrossChain.Tests
                 {
                     Value = chainId
                 })).Value;
-            Assert.Equal(4, status);
+            Assert.Equal((int) SideChainStatus.Terminated, status);
         }
 
         [Fact]
