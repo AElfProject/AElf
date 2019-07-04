@@ -39,7 +39,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var minersCount = currentRoundMiners.Count;
 
             var minimumCount = minersCount.Mul(2).Div(3).Add(1);
-
+            
             if (minersCount == 1)
             {
                 // Single node will set every previous block as LIB.
@@ -62,6 +62,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (TryToGetPreviousRoundInformation(out var previousRound))
             {
+                if (currentRound.RealTimeMinersInformation.Count != previousRound.RealTimeMinersInformation.Count)
+                    return false;
                 var preRoundMiners = previousRound.RealTimeMinersInformation.Values.OrderByDescending(m => m.Order)
                     .Select(m => m.Pubkey).ToList();
 

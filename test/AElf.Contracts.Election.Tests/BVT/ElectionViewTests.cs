@@ -33,7 +33,7 @@ namespace AElf.Contracts.Election
                 TermNumber = 1
             });
             electionResult.IsActive.ShouldBe(false);
-            electionResult.Results.Count.ShouldBe(7);
+            electionResult.Results.Count.ShouldBe(19);
             electionResult.Results.Values.ShouldAllBe(o => o==1000);
         }
 
