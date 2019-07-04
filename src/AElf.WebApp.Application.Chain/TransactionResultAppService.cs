@@ -1,16 +1,15 @@
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
+using AElf.WebApp.Application.Chain.Dto;
+using Google.Protobuf;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Domain;
-using AElf.Kernel.TransactionPool.Infrastructure;
-using AElf.Types;
-using AElf.WebApp.Application.Chain.Dto;
-using Google.Protobuf;
-using Newtonsoft.Json;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 
@@ -42,12 +41,12 @@ namespace AElf.WebApp.Application.Chain
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         }
 
-
         /// <summary>
         /// Get the current status of a transaction
         /// </summary>
         /// <param name="transactionId">transaction id</param>
         /// <returns></returns>
+        [Route("api/blockChain/transactionResult")]
         public async Task<TransactionResultDto> GetTransactionResultAsync(string transactionId)
         {
             Hash transactionHash;
@@ -91,7 +90,6 @@ namespace AElf.WebApp.Application.Chain
             return output;
         }
 
-
         /// <summary>
         /// Get multiple transaction results.
         /// </summary>
@@ -100,6 +98,7 @@ namespace AElf.WebApp.Application.Chain
         /// <param name="limit">limit</param>
         /// <returns></returns>
         /// <exception cref="UserFriendlyException"></exception>
+        [Route("api/blockChain/transactionResults")]
         public async Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
             int limit = 10)
         {
@@ -163,7 +162,7 @@ namespace AElf.WebApp.Application.Chain
 
             return output;
         }
-        
+
         private async Task<TransactionResult> GetTransactionResultAsync(Hash txHash)
         {
             // in storage

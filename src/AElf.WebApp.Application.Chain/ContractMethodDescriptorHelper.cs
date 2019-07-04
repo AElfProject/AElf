@@ -1,23 +1,20 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
 using Google.Protobuf.Reflection;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Volo.Abp;
 
 namespace AElf.WebApp.Application.Chain
 {
     public static class ContractMethodDescriptorHelper
     {
-
         private static IBlockchainService _blockchainService;
         private static ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
-        
-        
+
         internal static async Task<MethodDescriptor> GetContractMethodDescriptorAsync(
             IBlockchainService blockchainService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, Address contractAddress,
@@ -26,7 +23,7 @@ namespace AElf.WebApp.Application.Chain
             IEnumerable<FileDescriptor> fileDescriptors;
             _blockchainService = blockchainService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
-            
+
             try
             {
                 fileDescriptors = await GetFileDescriptorsAsync(contractAddress);
@@ -36,7 +33,7 @@ namespace AElf.WebApp.Application.Chain
                 throw new UserFriendlyException(Error.Message[Error.InvalidContractAddress],
                     Error.InvalidContractAddress.ToString());
             }
-            
+
             foreach (var fileDescriptor in fileDescriptors)
             {
                 var method = fileDescriptor.Services.Select(s => s.FindMethodByName(methodName)).FirstOrDefault();

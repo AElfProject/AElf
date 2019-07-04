@@ -1,7 +1,7 @@
-using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
+using System.Threading.Tasks;
 
 namespace AElf.WebApp.Application.Chain
 {
@@ -16,7 +16,5 @@ namespace AElf.WebApp.Application.Chain
         {
             return await blockchainService.GetBlockByHeightInBestChainBranchAsync(height);
         }
-        
-        
     }
 }

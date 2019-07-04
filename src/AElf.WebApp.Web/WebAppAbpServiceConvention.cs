@@ -16,11 +16,6 @@ namespace AElf.WebApp.Web
         protected override string CalculateRouteTemplate(string rootPath, string controllerName, ActionModel action, string httpMethod,
             ConventionalControllerSetting configuration)
         {
-            if (!controllerName.StartsWith("Net"))
-            {
-                controllerName = "blockChain";
-            }
-
             var controllerNameInUrl = NormalizeUrlControllerName(rootPath, controllerName, action, httpMethod, configuration);
 
             var url = $"api/{controllerNameInUrl.ToCamelCase()}";

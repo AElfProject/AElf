@@ -1,8 +1,9 @@
-using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 
@@ -12,7 +13,6 @@ namespace AElf.WebApp.Application.Chain
     {
         Task<byte[]> GetContractFileDescriptorSetAsync(string address);
     }
-
 
     public class ContractFileDescriptorSetAppService : IContractFileDescriptorSetAppService
     {
@@ -26,12 +26,12 @@ namespace AElf.WebApp.Application.Chain
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
         }
 
-
         /// <summary>
         /// Get the protobuf definitions related to a contract
         /// </summary>
         /// <param name="address">contract address</param>
         /// <returns></returns>
+        [Route("api/blockChain/contractFileDescriptorSet")]
         public async Task<byte[]> GetContractFileDescriptorSetAsync(string address)
         {
             try

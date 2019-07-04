@@ -1,22 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
-using Google.Protobuf;
-using Google.Protobuf.Reflection;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.EventBus.Local;
@@ -30,14 +24,14 @@ namespace AElf.WebApp.Application.Chain
         Task<BlockDto> GetBlockAsync(string blockHash, bool includeTransactions = false);
 
         Task<BlockDto> GetBlockByHeightAsync(long blockHeight, bool includeTransactions = false);
-        
+
         Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatusAsync();
-        
+
         Task<BlockStateDto> GetBlockStateAsync(string blockHash);
-        
+
         Task<RoundDto> GetCurrentRoundInformationAsync();
     }
-    
+
     public class BlockChainAppService : IBlockChainAppService
     {
         private readonly IBlockchainService _blockchainService;
@@ -45,9 +39,8 @@ namespace AElf.WebApp.Application.Chain
         private readonly ITxHub _txHub;
         private readonly IBlockchainStateManager _blockchainStateManager;
 
-
         public ILogger<BlockChainAppService> Logger { get; set; }
-        
+
         public ILocalEventBus LocalEventBus { get; set; }
 
         public BlockChainAppService(IBlockchainService blockchainService,
@@ -59,11 +52,10 @@ namespace AElf.WebApp.Application.Chain
             _blockExtraDataService = blockExtraDataService;
             _txHub = txHub;
             _blockchainStateManager = blockchainStateManager;
-            
+
             Logger = NullLogger<BlockChainAppService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
-
 
         /// <summary>
         /// Get the height of the current chain.
@@ -95,7 +87,7 @@ namespace AElf.WebApp.Application.Chain
             }
 
             var block = await GetBlockAsync(realBlockHash);
-            
+
             if (block == null)
             {
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
@@ -114,7 +106,7 @@ namespace AElf.WebApp.Application.Chain
                     Time = block.Header.Time.ToDateTime(),
                     ChainId = ChainHelpers.ConvertChainIdToBase58(block.Header.ChainId),
                     Bloom = block.Header.Bloom.ToByteArray().ToHex(),
-                    SignerPubkey =  block.Header.SignerPubkey.ToByteArray().ToHex()
+                    SignerPubkey = block.Header.SignerPubkey.ToByteArray().ToHex()
                 },
                 Body = new BlockBodyDto()
                 {
@@ -149,7 +141,7 @@ namespace AElf.WebApp.Application.Chain
             if (blockHeight == 0)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             var blockInfo = await GetBlockAtHeightAsync(blockHeight);
-            
+
             if (blockInfo == null)
             {
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
@@ -191,7 +183,7 @@ namespace AElf.WebApp.Application.Chain
 
             return blockDto;
         }
-        
+
         /// <summary>
         /// Get the transaction pool status.
         /// </summary>
@@ -204,7 +196,7 @@ namespace AElf.WebApp.Application.Chain
                 Queued = queued
             };
         }
-        
+
         /// <summary>
         /// Get the current state about a given block
         /// </summary>
@@ -255,7 +247,7 @@ namespace AElf.WebApp.Application.Chain
         {
             return await _blockchainService.GetBlockByHashAsync(blockHash);
         }
-        
+
         private async Task<Block> GetBlockAtHeightAsync(long height)
         {
             return await _blockchainService.GetBlockByHeightInBestChainBranchAsync(height);

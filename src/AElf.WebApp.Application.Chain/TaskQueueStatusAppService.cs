@@ -1,6 +1,7 @@
+using AElf.WebApp.Application.Chain.Dto;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.WebApp.Application.Chain.Dto;
 using Volo.Abp.Application.Services;
 
 namespace AElf.WebApp.Application.Chain
@@ -10,17 +11,16 @@ namespace AElf.WebApp.Application.Chain
         List<TaskQueueInfoDto> GetTaskQueueStatusAsync();
     }
 
-    public class TaskQueueStatusAppService :ITaskQueueStatusAppService
+    public class TaskQueueStatusAppService : ITaskQueueStatusAppService
     {
         private readonly ITaskQueueManager _taskQueueManager;
-        
-        
+
         public TaskQueueStatusAppService(ITaskQueueManager taskQueueManager)
         {
             _taskQueueManager = taskQueueManager;
         }
-        
-        
+
+        [Route("api/blockChain/taskQueueStatus")]
         public List<TaskQueueInfoDto> GetTaskQueueStatusAsync()
         {
             var taskQueueStatus = _taskQueueManager.GetQueueStatus();

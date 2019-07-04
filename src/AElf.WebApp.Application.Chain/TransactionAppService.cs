@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -10,17 +6,27 @@ using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.WebApp.Application.Chain
 {
-    public interface IPublishTransactionsAppService : IApplicationService
+    public interface ITransactionAppService : IApplicationService
     {
+        Task<string> ExecuteTransactionAsync(ExecuteTransactionDto input);
+
+        Task<string> ExecuteRawTransactionAsync(ExecuteRawTransactionDto input);
+
         Task<CreateRawTransactionOutput> CreateRawTransactionAsync(CreateRawTransactionInput input);
-        
+
         Task<SendRawTransactionOutput> SendRawTransactionAsync(SendRawTransactionInput input);
 
         Task<SendTransactionOutput> SendTransactionAsync(SendTransactionInput input);
@@ -28,32 +34,79 @@ namespace AElf.WebApp.Application.Chain
         Task<string[]> SendTransactionsAsync(SendTransactionsInput input);
     }
 
-
-    public class PublishTransactionsAppService : IPublishTransactionsAppService
+    public class TransactionAppService : ITransactionAppService
     {
+        private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
+        private readonly IBlockchainService _blockchainService;
+
         public ILocalEventBus LocalEventBus { get; set; }
 
-
-        private static IBlockchainService _blockchainService;
-        private static ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
-
-
-        public PublishTransactionsAppService(IBlockchainService blockchainService,
-            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
+        public TransactionAppService(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
+            IBlockchainService blockchainService)
         {
-            LocalEventBus = NullLocalEventBus.Instance;
-
-
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _blockchainService = blockchainService;
+
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
+        /// <summary>
+        /// Call a read-only method on a contract.
+        /// </summary>
+        /// <returns></returns>
+        [Route("api/blockChain/executeTransaction")]
+        public async Task<string> ExecuteTransactionAsync(ExecuteTransactionDto input)
+        {
+            try
+            {
+                var byteArray = ByteArrayHelpers.FromHexString(input.RawTransaction);
+                var transaction = Transaction.Parser.ParseFrom(byteArray);
+                if (!transaction.VerifySignature())
+                {
+                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
+                        Error.InvalidTransaction.ToString());
+                }
+
+                var response = await CallReadOnlyAsync(transaction);
+                return response?.ToHex();
+            }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
+                    Error.InvalidTransaction.ToString());
+            }
+        }
+
+        [Route("api/blockChain/executeRawTransaction")]
+        public async Task<string> ExecuteRawTransactionAsync(ExecuteRawTransactionDto input)
+        {
+            try
+            {
+                var byteArray = ByteArrayHelpers.FromHexString(input.RawTransaction);
+                var transaction = Transaction.Parser.ParseFrom(byteArray);
+                transaction.Signature = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature));
+                if (!transaction.VerifySignature())
+                {
+                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
+                        Error.InvalidTransaction.ToString());
+                }
+
+                var response = await CallReadOnlyReturnReadableValueAsync(transaction);
+                return response;
+            }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
+                    Error.InvalidTransaction.ToString());
+            }
+        }
 
         /// <summary>
-        /// Creates an unsigned serialized transaction 
+        /// Creates an unsigned serialized transaction
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
+        [Route("api/blockChain/rawTransaction")]
         public async Task<CreateRawTransactionOutput> CreateRawTransactionAsync(CreateRawTransactionInput input)
         {
             var transaction = new Transaction
@@ -86,17 +139,17 @@ namespace AElf.WebApp.Application.Chain
             };
         }
 
-
         /// <summary>
         /// send a transaction
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
+        [Route("api/blockChain/sendRawTransaction")]
         public async Task<SendRawTransactionOutput> SendRawTransactionAsync(SendRawTransactionInput input)
         {
             var transaction = Transaction.Parser.ParseFrom(ByteArrayHelpers.FromHexString(input.Transaction));
             transaction.Signature = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature));
-            var txIds = await PublishTransactionsAsync(new[] {transaction.ToByteArray().ToHex()});
+            var txIds = await PublishTransactionsAsync(new[] { transaction.ToByteArray().ToHex() });
 
             var output = new SendRawTransactionOutput
             {
@@ -104,7 +157,7 @@ namespace AElf.WebApp.Application.Chain
             };
 
             if (!input.ReturnTransaction) return output;
-            
+
             var transactionDto = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
             var contractMethodDescriptor =
                 await GetContractMethodDescriptorAsync(transaction.To, transaction.MethodName);
@@ -121,20 +174,21 @@ namespace AElf.WebApp.Application.Chain
         /// Broadcast a transaction
         /// </summary>
         /// <returns></returns>
+        [Route("api/blockChain/sendTransaction")]
         public async Task<SendTransactionOutput> SendTransactionAsync(SendTransactionInput input)
         {
-            var txIds = await PublishTransactionsAsync(new[] {input.RawTransaction});
+            var txIds = await PublishTransactionsAsync(new[] { input.RawTransaction });
             return new SendTransactionOutput
             {
                 TransactionId = txIds[0]
             };
         }
 
-
         /// <summary>
         /// Broadcast multiple transactions
         /// </summary>
         /// <returns></returns>
+        [Route("api/blockChain/sendTransactions")]
         public async Task<string[]> SendTransactionsAsync(SendTransactionsInput input)
         {
             var txIds = await PublishTransactionsAsync(input.RawTransactions.Split(","));
@@ -193,7 +247,7 @@ namespace AElf.WebApp.Application.Chain
             });
             return txIds;
         }
-        
+
         private async Task<MethodDescriptor> GetContractMethodDescriptorAsync(Address contractAddress,
             string methodName)
         {
@@ -201,6 +255,42 @@ namespace AElf.WebApp.Application.Chain
                 _transactionReadOnlyExecutionService, contractAddress, methodName);
         }
 
+        private async Task<byte[]> CallReadOnlyAsync(Transaction tx)
+        {
+            var chainContext = await GetChainContextAsync();
+
+            var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx,
+                DateTime.UtcNow.ToTimestamp());
+
+            if (!string.IsNullOrEmpty(trace.Error))
+                throw new Exception(trace.Error);
+
+            return trace.ReturnValue.ToByteArray();
+        }
+
+        private async Task<string> CallReadOnlyReturnReadableValueAsync(Transaction tx)
+        {
+            var chainContext = await GetChainContextAsync();
+
+            var trace = await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx,
+                DateTime.UtcNow.ToTimestamp());
+
+            if (!string.IsNullOrEmpty(trace.Error))
+                throw new Exception(trace.Error);
+
+            return trace.ReadableReturnValue;
+        }
+
+        private async Task<ChainContext> GetChainContextAsync()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var chainContext = new ChainContext()
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            };
+            return chainContext;
+        }
 
         private bool IsValidMessage(IMessage message)
         {

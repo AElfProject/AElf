@@ -1,11 +1,10 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
-using Newtonsoft.Json;
+using Microsoft.AspNetCore.Mvc;
+using System.Linq;
+using System.Threading.Tasks;
 using Volo.Abp.Application.Services;
 
 namespace AElf.WebApp.Application.Chain
@@ -18,20 +17,21 @@ namespace AElf.WebApp.Application.Chain
     public class ChainStatusAppService : IChainStatusAppService
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        
+
         private readonly IBlockchainService _blockchainService;
-        
+
         public ChainStatusAppService(ISmartContractAddressService smartContractAddressService,
             IBlockchainService blockchainService)
         {
             _smartContractAddressService = smartContractAddressService;
             _blockchainService = blockchainService;
         }
-        
+
         /// <summary>
         /// Get the current status of the block chain.
         /// </summary>
         /// <returns></returns>
+        [Route("api/blockChain/chainStatus")]
         public async Task<ChainStatusDto> GetChainStatusAsync()
         {
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
@@ -57,6 +57,5 @@ namespace AElf.WebApp.Application.Chain
                 BestChainHeight = chain.BestChainHeight
             };
         }
-
     }
 }
