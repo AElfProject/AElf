@@ -57,19 +57,9 @@ namespace AElf.Benchmark
         public async Task IterationSetup()
         {
             var chain = await _blockchainService.GetChainAsync();
-
-            _block = new Block
-            {
-                Header = new BlockHeader
-                {
-                    ChainId = chain.Id,
-                    Height = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash,
-                    Time = TimestampHelper.GetUtcNow()
-                }
-            };
             var tokenAmount = TransactionCount / GroupCount;
             (_prepareTransactions, _keyPairs) = await _osTestHelper.PrepareTokenForParallel(GroupCount, tokenAmount);
+            _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, _prepareTransactions);
             await _blockExecutingService.ExecuteBlockAsync(_block.Header, _prepareTransactions);
             await _osTestHelper.BroadcastTransactions(_prepareTransactions);
             _block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
@@ -78,16 +68,8 @@ namespace AElf.Benchmark
             _systemTransactions = await _osTestHelper.GenerateTransferTransactions(1);
             _cancellableTransactions = await _osTestHelper.GenerateTransactionsWithoutConflict(_keyPairs, tokenAmount);
             chain = await _blockchainService.GetChainAsync();
-            _block = new Block
-            {
-                Header = new BlockHeader
-                {
-                    ChainId = chain.Id,
-                    Height = chain.BestChainHeight + 1,
-                    PreviousBlockHash = chain.BestChainHash,
-                    Time = TimestampHelper.GetUtcNow()
-                }
-            };
+            _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
+                _systemTransactions.Concat(_cancellableTransactions));
         }
         
         [Benchmark]

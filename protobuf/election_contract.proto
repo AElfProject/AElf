@@ -110,6 +110,7 @@ message InitialElectionContractInput {
 message ConfigElectionContractInput {
     repeated string miner_list = 1;
     sint64 time_each_term = 2;
+    sint64 miner_increase_interval = 3;
 }
 
 message GetTermSnapshotInput {
