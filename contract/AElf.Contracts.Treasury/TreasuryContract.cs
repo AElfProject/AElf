@@ -65,38 +65,6 @@ namespace AElf.Contracts.Treasury
             return new Empty();
         }
 
-        public override Empty ReleaseMiningReward(ReleaseMiningRewardInput input)
-        {
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
-
-            if (State.AEDPoSContract.Value == null)
-            {
-                State.AEDPoSContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-            }
-
-            Assert(
-                Context.Sender == State.AEDPoSContract.Value,
-                "Only AElf Consensus Contract can release mining rewards.");
-
-            var rewardAmount = TreasuryContractConstants.RewardPerBlock.Mul(input.MinedBlocksCount);
-            State.TokenContract.Transfer.Send(new TransferInput
-            {
-                To = State.TreasuryVirtualAddress.Value,
-                Symbol = Context.Variables.NativeSymbol,
-                Amount = rewardAmount,
-                Memo = "Mining rewards."
-            });
-
-            Context.LogDebug(() => $"Released {rewardAmount} mining rewards to {State.TreasuryVirtualAddress.Value}");
-
-            return new Empty();
-        }
-
         public override Empty Release(ReleaseInput input)
         {
             if (State.AEDPoSContract.Value == null)

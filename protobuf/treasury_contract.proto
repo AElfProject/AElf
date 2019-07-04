@@ -22,8 +22,6 @@ service TreasuryContract {
     }
     rpc DonateAll (DonateAllInput) returns (google.protobuf.Empty) {
     }
-    rpc ReleaseMiningReward (ReleaseMiningRewardInput) returns (google.protobuf.Empty) {
-    }
 
     // View
     rpc GetCurrentTreasuryBalance (google.protobuf.Empty) returns (aelf.SInt64Value) {
