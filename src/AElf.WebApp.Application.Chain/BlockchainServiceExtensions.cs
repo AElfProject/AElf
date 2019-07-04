@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace AElf.WebApp.Application.Chain
 {
-    public static class BlockHelper
+    public static class BlockchainServiceExtensions
     {
         internal static async Task<Block> GetBlockAsync(this IBlockchainService blockchainService, Hash blockHash)
         {
