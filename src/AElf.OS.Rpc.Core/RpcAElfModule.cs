@@ -21,14 +21,14 @@ namespace AElf.OS.Rpc
 
         public override void PostConfigureServices(ServiceConfigurationContext context)
         {
-            RpcServerHelpers.ConfigureServices(context.Services);
+            RpcServerHelper.ConfigureServices(context.Services);
             _serviceCollection = context.Services;
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var app = context.GetApplicationBuilder();
-            RpcServerHelpers.Configure(app, _serviceCollection);
+            RpcServerHelper.Configure(app, _serviceCollection);
         }
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)

@@ -13,7 +13,7 @@ namespace AElf.CrossChain.Communication.Grpc
         
         public override Task<HandShakeReply> CrossChainHandShakeAsync(HandShake request, ServerCallContext context)
         {
-            Logger.LogTrace($"Received shake from chain {ChainHelpers.ConvertChainIdToBase58(request.FromChainId)}.");
+            Logger.LogTrace($"Received shake from chain {ChainHelper.ConvertChainIdToBase58(request.FromChainId)}.");
             _ = PublishCrossChainRequestReceivedEvent(request.Host, request.ListeningPort, request.FromChainId);
             return Task.FromResult(new HandShakeReply {Success = true});
         }

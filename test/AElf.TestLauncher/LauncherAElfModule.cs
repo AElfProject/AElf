@@ -68,7 +68,7 @@ namespace AElf.TestLauncher
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var config = context.Services.GetConfiguration();
-            Configure<ChainOptions>(option => option.ChainId = ChainHelpers.ConvertBase58ToChainId(config["ChainId"]));
+            Configure<ChainOptions>(option => option.ChainId = ChainHelper.ConvertBase58ToChainId(config["ChainId"]));
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)

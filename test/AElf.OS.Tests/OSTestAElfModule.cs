@@ -22,9 +22,9 @@ namespace AElf.OS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<ChainOptions>(o => { o.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF"); });
+            Configure<ChainOptions>(o => { o.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
 
-            var ecKeyPair = CryptoHelpers.GenerateKeyPair();
+            var ecKeyPair = CryptoHelper.GenerateKeyPair();
             var nodeAccount = Address.FromPublicKey(ecKeyPair.PublicKey).GetFormatted();
             var nodeAccountPassword = "123";
 

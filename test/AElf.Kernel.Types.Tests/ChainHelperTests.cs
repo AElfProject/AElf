@@ -3,7 +3,7 @@ using Shouldly;
 
 namespace AElf.Kernel.Types.Tests
 {
-    public class ChainHelpersTests
+    public class ChainHelperTests
     {
         [Fact]
         public void GetChainId_By_SerialNumber()
@@ -15,9 +15,9 @@ namespace AElf.Kernel.Types.Tests
             for (var i = 0; i < 1000; i++)
             {
                 var chainId = 2111;
-                var base58String = ChainHelpers.ConvertChainIdToBase58(chainId);
+                var base58String = ChainHelper.ConvertChainIdToBase58(chainId);
                 base58String.Length.ShouldBe(4);
-                var newChainId = ChainHelpers.ConvertBase58ToChainId(base58String);
+                var newChainId = ChainHelper.ConvertBase58ToChainId(base58String);
                 newChainId.ShouldBe(chainId);
                 // Uncomment this for go through all conditions
                 // base58HashSet.Add(base58String).ShouldBe(true);

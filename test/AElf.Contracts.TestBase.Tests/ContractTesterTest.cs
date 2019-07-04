@@ -26,7 +26,7 @@ namespace AElf.Contracts.TestBase.Tests
         public byte[] ConsensusContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value;
         public byte[] TokenContractCode => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
-        private int ChainId { get; } = ChainHelpers.ConvertBase58ToChainId("AELF");
+        private int ChainId { get; } = ChainHelper.ConvertBase58ToChainId("AELF");
         private int DefaultCategory { get; } = SmartContractTestConstants.TestRunnerCategory;
 
         [Fact]
@@ -104,7 +104,7 @@ namespace AElf.Contracts.TestBase.Tests
         [Fact]
         public async Task CallContractTest()
         {
-            var callerKeyPair = CryptoHelpers.GenerateKeyPair();
+            var callerKeyPair = CryptoHelper.GenerateKeyPair();
             var tester = new ContractTester<ContractTestAElfModule>(ChainId, callerKeyPair);
             await tester.InitialChainAsync(list =>
             {
@@ -169,7 +169,7 @@ namespace AElf.Contracts.TestBase.Tests
 
             await tester.MineAsync(new List<Transaction> {tx});
 
-            var newTester = tester.CreateNewContractTester(CryptoHelpers.GenerateKeyPair());
+            var newTester = tester.CreateNewContractTester(CryptoHelper.GenerateKeyPair());
             var chain = await newTester.GetChainAsync();
 
             Assert.Equal(2L, chain.BestChainHeight);

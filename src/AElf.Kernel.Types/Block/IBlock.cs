@@ -4,6 +4,5 @@
     {
         BlockHeader Header { get; }
         BlockBody Body { get; }
-        byte[] GetHashBytes();
     }
 }

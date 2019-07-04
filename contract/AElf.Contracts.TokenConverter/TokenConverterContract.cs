@@ -111,7 +111,7 @@ namespace AElf.Contracts.TokenConverter
             var fromConnector = State.Connectors[State.BaseTokenSymbol.Value];
             var toConnector = State.Connectors[input.Symbol];
             Assert(toConnector != null, "Can't find connector.");
-            var amountToPay = BancorHelpers.GetAmountToPayFromReturn(
+            var amountToPay = BancorHelper.GetAmountToPayFromReturn(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),
                 input.Amount);
@@ -168,7 +168,7 @@ namespace AElf.Contracts.TokenConverter
             var fromConnector = State.Connectors[input.Symbol];
             Assert(fromConnector != null, "Can't find connector.");
             var toConnector = State.Connectors[State.BaseTokenSymbol.Value];
-            var amountToReceive = BancorHelpers.GetReturnFromPaid(
+            var amountToReceive = BancorHelper.GetReturnFromPaid(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),
                 input.Amount
