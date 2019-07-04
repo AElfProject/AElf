@@ -90,7 +90,7 @@ namespace AElf.OS.Network
                 return Task.CompletedTask;
             });
             
-            var header = new PeerNewBlockAnnouncement
+            var header = new BlockAnnouncement
             {
                 BlockHeight = 100,
                 BlockHash = Hash.Generate()

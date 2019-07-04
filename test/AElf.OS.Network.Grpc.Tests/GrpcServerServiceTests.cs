@@ -60,7 +60,7 @@ namespace AElf.OS.Network
             });
 
             Hash hash = Hash.Generate();
-            await _service.Announce(new PeerNewBlockAnnouncement
+            await _service.SendAnnounce(new BlockAnnouncement
             {
                 BlockHeight = 10, BlockHash = hash
             }, BuildServerCallContext());

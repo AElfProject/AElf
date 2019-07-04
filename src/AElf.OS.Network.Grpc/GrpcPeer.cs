@@ -63,7 +63,7 @@ namespace AElf.OS.Network.Grpc
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
         
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
-        private AsyncClientStreamingCall<PeerNewBlockAnnouncement, VoidReply> _announcementStreamCall;
+        private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, GrpcPeerInfo peerInfo)
         {
@@ -185,7 +185,7 @@ namespace AElf.OS.Network.Grpc
         /// Send a announcement to the peer using the stream call.
         /// Note: this method is not thread safe.
         /// </summary>
-        public async Task SendAnnouncementAsync(PeerNewBlockAnnouncement header)
+        public async Task SendAnnouncementAsync(BlockAnnouncement header)
         {
             if (!IsConnected)
                 return;
@@ -343,16 +343,16 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public void ProcessReceivedAnnouncement(PeerNewBlockAnnouncement peerNewBlockAnnouncement)
+        public void ProcessReceivedAnnouncement(BlockAnnouncement blockAnnouncement)
         {
-            if (peerNewBlockAnnouncement.HasFork)
+            if (blockAnnouncement.HasFork)
             {
                 _recentBlockHeightAndHashMappings.Clear();
                 return;
             }
             
-            CurrentBlockHeight = peerNewBlockAnnouncement.BlockHeight;
-            CurrentBlockHash = peerNewBlockAnnouncement.BlockHash;
+            CurrentBlockHeight = blockAnnouncement.BlockHeight;
+            CurrentBlockHash = blockAnnouncement.BlockHash;
             _recentBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;
             while (_recentBlockHeightAndHashMappings.Count > 10)
             {

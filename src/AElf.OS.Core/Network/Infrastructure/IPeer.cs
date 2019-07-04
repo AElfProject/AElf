@@ -21,12 +21,12 @@ namespace AElf.OS.Network.Infrastructure
         bool Inbound { get; }
         long StartHeight { get; }
 
-        Task SendAnnouncementAsync(PeerNewBlockAnnouncement an);
+        Task SendAnnouncementAsync(BlockAnnouncement an);
         Task SendTransactionAsync(Transaction transaction);
         Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash);
         Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);
 
-        void ProcessReceivedAnnouncement(PeerNewBlockAnnouncement peerNewBlockAnnouncement);
+        void ProcessReceivedAnnouncement(BlockAnnouncement blockAnnouncement);
 
         Task<bool> TryRecoverAsync();
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();

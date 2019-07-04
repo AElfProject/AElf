@@ -61,7 +61,7 @@ namespace AElf.OS.Network.Application
             
             _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHash, hasFork);
             
-            var announce = new PeerNewBlockAnnouncement
+            var announce = new BlockAnnouncement
             {
                 BlockHash = blockHash,
                 BlockHeight = blockHeader.Height,

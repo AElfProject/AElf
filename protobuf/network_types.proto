@@ -25,7 +25,7 @@ message FinalizeConnectReply {
     bool success = 1;
 }
 
-message PeerNewBlockAnnouncement {
+message BlockAnnouncement {
     aelf.Hash block_hash = 1;
     int64 block_height = 2;
     bool has_fork = 3;
@@ -34,4 +34,29 @@ message PeerNewBlockAnnouncement {
 message BlockWithTransactions {
     aelf.BlockHeader header = 1;
     repeated aelf.Transaction transactions = 2;
+}
+
+message BlocksRequest {
+    aelf.Hash previous_block_hash = 1;
+    int32 count = 2;
+}
+
+message BlockList {
+    repeated BlockWithTransactions blocks = 1;
+}
+
+message DisconnectReason {
+    Reason why = 1;
+    enum Reason {
+        SHUTDOWN = 0;
+    }
+}
+
+message BlockRequest {
+    aelf.Hash hash = 1;
+}
+
+message BlockReply {
+    string error = 1;
+    BlockWithTransactions block = 2;
 }

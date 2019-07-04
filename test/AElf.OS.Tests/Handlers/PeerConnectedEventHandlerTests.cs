@@ -37,7 +37,7 @@ namespace AElf.OS.Handlers
             var peerBlocks = await _networkService.GetBlocksAsync(chain.BestChainHash, 20);
 
             var block = peerBlocks[0];
-            var announcement = new PeerNewBlockAnnouncement
+            var announcement = new BlockAnnouncement
             {
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Header.Height
@@ -76,7 +76,7 @@ namespace AElf.OS.Handlers
                 // Receive a higher fork block, sync from the lib
                 // BestChainHeight: 21
                 block = peerBlocks[9];
-                announcement = new PeerNewBlockAnnouncement
+                announcement = new BlockAnnouncement
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Header.Height
@@ -104,7 +104,7 @@ namespace AElf.OS.Handlers
             var peerBlocks = await _networkService.GetBlocksAsync(chain.BestChainHash, 20);
 
             var block = peerBlocks.First();
-            var announcement = new PeerNewBlockAnnouncement
+            var announcement = new BlockAnnouncement
             {
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Header.Height
@@ -128,7 +128,7 @@ namespace AElf.OS.Handlers
             var peerBlocks = await _networkService.GetBlocksAsync(chain.BestChainHash, 20);
 
             var block = peerBlocks.First();
-            var announcement = new PeerNewBlockAnnouncement
+            var announcement = new BlockAnnouncement
             {
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Header.Height

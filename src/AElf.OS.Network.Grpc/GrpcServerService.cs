@@ -190,13 +190,13 @@ namespace AElf.OS.Network.Grpc
             return Task.FromResult(new FinalizeConnectReply { Success = true });
         }
 
-        public override async Task<VoidReply> AnnouncementBroadcastStream(IAsyncStreamReader<PeerNewBlockAnnouncement> requestStream, ServerCallContext context)
+        public override async Task<VoidReply> AnnouncementBroadcastStream(IAsyncStreamReader<BlockAnnouncement> requestStream, ServerCallContext context)
         {
             await requestStream.ForEachAsync(async r => await ProcessAnnouncement(r, context));
             return new VoidReply();
         }
 
-        public Task ProcessAnnouncement(PeerNewBlockAnnouncement announcement, ServerCallContext context)
+        public Task ProcessAnnouncement(BlockAnnouncement announcement, ServerCallContext context)
         {
             if (announcement?.BlockHash == null)
             {
@@ -244,7 +244,7 @@ namespace AElf.OS.Network.Grpc
         /// <summary>
         /// This method is called when a peer wants to broadcast an announcement.
         /// </summary>
-        public override async Task<VoidReply> Announce(PeerNewBlockAnnouncement an, ServerCallContext context)
+        public override async Task<VoidReply> SendAnnounce(BlockAnnouncement an, ServerCallContext context)
         {
             await ProcessAnnouncement(an, context);
             return new VoidReply();

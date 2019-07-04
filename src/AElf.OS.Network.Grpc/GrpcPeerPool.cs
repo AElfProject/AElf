@@ -115,7 +115,7 @@ namespace AElf.OS.Network.Grpc
 
         private void FireConnectionEvent(ConnectReply connectReply, string pubKey)
         {
-            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(new PeerNewBlockAnnouncement
+            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(new BlockAnnouncement
             {
                 BlockHash = connectReply.Handshake.BestChainBlockHeader.GetHash(),
                 BlockHeight = connectReply.Handshake.BestChainBlockHeader.Height
