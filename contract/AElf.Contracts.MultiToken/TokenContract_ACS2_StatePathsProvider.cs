@@ -1,4 +1,6 @@
-﻿using Acs2;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Acs2;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -66,7 +68,7 @@ namespace AElf.Contracts.MultiToken
                 }
             };
 
-            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols)
+            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"MEM"}))
             {
                 resourceInfo.Reources.Add(GetPathHashCode(nameof(TokenContractState.ChargedResources), symbol));
             }
