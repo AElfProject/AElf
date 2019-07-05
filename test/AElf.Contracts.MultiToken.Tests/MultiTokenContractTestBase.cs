@@ -50,11 +50,12 @@ namespace AElf.Contracts.MultiToken
         protected byte[] BasicFunctionContractCode => Codes.Single(kv => kv.Key.Contains("BasicFunction")).Value;
         protected Hash BasicFunctionContractName => Hash.FromString("AElf.TestContractNames.BasicFunction");
         protected Hash OtherBasicFunctionContractName => Hash.FromString("AElf.TestContractNames.OtherBasicFunction");
-        protected readonly Address _address = Address.Generate();
-        protected const string SymbolForTest = "ELFTEST";
-        protected const long Amount = 100;
-
         
+        protected readonly Address _address = Address.Generate();
+        
+        protected const string SymbolForTest = "ELFTEST";
+        
+        protected const long Amount = 100;
         protected void CheckResult(TransactionResult result)
         {
             if (!string.IsNullOrEmpty(result.Error))

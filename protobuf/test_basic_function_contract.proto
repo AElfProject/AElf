@@ -32,6 +32,8 @@ service BasicFunctionContract {
     }
     rpc QueryUserLoseMoney(aelf.Address) returns (MoneyOutput) {
     }
+    rpc TransferTokenToContract(TransferTokenToContractInput) returns (google.protobuf.Empty){
+    }
 }
 
 //Input
@@ -75,4 +77,10 @@ message MoneyOutput {
 
 message BetStatus {
     bool BoolValue = 1;
+}
+
+message TransferTokenToContractInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    string memo = 3;
 }

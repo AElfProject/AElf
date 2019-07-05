@@ -108,5 +108,20 @@ namespace AElf.Contracts.TestContract.BasicFunction
                 return betAmount * 50;
             return 0;
         }
+
+        public override Empty TransferTokenToContract(TransferTokenToContractInput input)
+        {
+            State.TokenContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            
+            State.TokenContract.TransferToContract.Send(new TransferToContractInput
+            {
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                Memo = input.Memo
+            });
+            
+            return new Empty();
+        }
     }
 }

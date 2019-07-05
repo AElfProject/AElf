@@ -1,9 +1,13 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestKit;
+using AElf.Contracts.TokenConverter;
+using AElf.Contracts.Treasury;
 using AElf.Kernel;
+using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -61,6 +65,15 @@ namespace AElf.Contracts.MultiToken
             Supply = 0
         };
 
+        private Connector RamConnector = new Connector
+        {
+            Symbol = "ALICE",
+            VirtualBalance = 0,
+            Weight = "0.5",
+            IsPurchaseEnabled = true,
+            IsVirtualBalanceEnabled = false
+        };
+
         public MultiTokenContractTests()
         {
             var category = KernelConstants.CodeCoverageRunnerCategory;
@@ -73,25 +86,57 @@ namespace AElf.Contracts.MultiToken
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
             }
-            
+
+            // ProfitContract
+            {
+                var code = ProfitContractCode;
+                ProfitContractAddress = AsyncHelper.RunSync(() =>
+                    DeploySystemSmartContract(category, code, ProfitSmartContractAddressNameProvider.Name,
+                        DefaultKeyPair)
+                );
+                ProfitContractStub =
+                    GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress,
+                        DefaultKeyPair);
+            }
+
+            // TreasuryContract
+            {
+                var code = TreasuryContractCode;
+                TreasuryContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
+                    TreasurySmartContractAddressNameProvider.Name, DefaultKeyPair));
+                TreasuryContractStub =
+                    GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress,
+                        DefaultKeyPair);
+            }
+
+            //TokenConvertContract
+            {
+                var code = TokenConverterContractCode;
+                TokenConverterContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
+                    TokenConverterSmartContractAddressNameProvider.Name, DefaultKeyPair));
+                TokenConverterContractStub =
+                    GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+                        DefaultKeyPair);
+            }
+
             //BasicFunctionContract
             {
-                BasicFunctionContractAddress = AsyncHelper.RunSync(()=> DeploySystemSmartContract(
-                    KernelConstants.CodeCoverageRunnerCategory, BasicFunctionContractCode,
+                BasicFunctionContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
+                    category, BasicFunctionContractCode,
                     BasicFunctionContractName, DefaultKeyPair));
                 BasicFunctionContractStub =
                     GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(BasicFunctionContractAddress,
                         DefaultKeyPair);
 
-                OtherBasicFunctionContractAddress = AsyncHelper.RunSync(()=> DeploySystemSmartContract(
-                    KernelConstants.CodeCoverageRunnerCategory, BasicFunctionContractCode,
+                OtherBasicFunctionContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
+                    category, BasicFunctionContractCode,
                     OtherBasicFunctionContractName, DefaultKeyPair));
                 OtherBasicFunctionContractStub =
                     GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(
                         OtherBasicFunctionContractAddress,
                         DefaultKeyPair);
             }
-            
+
         }
 
         [Fact(DisplayName = "[MultiToken] Create token test.")]
@@ -152,7 +197,7 @@ namespace AElf.Contracts.MultiToken
                 tokenInfo.ShouldNotBe(AliceCoinTokenInfo);
             }
         }
-        
+
         [Fact(DisplayName = "[MultiToken] Create Token use custom address")]
         public async Task MultiTokenContract_Create_UseCustomAddress()
         {
@@ -241,14 +286,14 @@ namespace AElf.Contracts.MultiToken
             var result = (await TokenContractStub.Issue.SendAsync(new IssueInput()
             {
                 Symbol = AliceCoinTokenInfo.Symbol,
-                Amount = AliceCoinTokenInfo.TotalSupply+1,
+                Amount = AliceCoinTokenInfo.TotalSupply + 1,
                 To = User1Address,
                 Memo = "first issue token."
             })).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains($"Total supply exceeded").ShouldBeTrue();
         }
-        
-        
+
+
     }
 }

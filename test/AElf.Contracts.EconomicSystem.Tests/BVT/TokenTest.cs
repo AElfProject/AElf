@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Economic;
+using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -38,6 +40,15 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     Memo = "Used to transfer other testers"
                 }));
             issueResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            {
+                var result = AsyncHelper.RunSync(()=> EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
+                {
+                    Amount = EconomicContractsTestConstants.TotalSupply / 5,
+                    To = TokenContractAddress,
+                    Memo = "Set mining rewards."
+                }));
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
         }
 
         [Fact]
@@ -78,5 +89,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
+        
+        
     }
 }
