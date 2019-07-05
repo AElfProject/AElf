@@ -40,15 +40,10 @@ namespace AElf
         public async Task Enqueue_MultipleTimes()
         {
             _taskQueue.Start();
-            var taskList = new List<Task>();
             for (var i = 0; i < 10; i++)
-            {
-                var awaitTask = ProcessTask();
-                taskList.Add(awaitTask);
-                _taskQueue.Enqueue(async () => await awaitTask);
-            }
-
-            Task.WaitAll(taskList.ToArray());
+                _taskQueue.Enqueue(ProcessTask);
+            
+            _taskQueue.Dispose();
             _counter.ShouldBe(10);
         }
 
