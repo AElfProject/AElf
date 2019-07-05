@@ -79,6 +79,21 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             return true;
         }
+
+        private async Task SetBestChainAsync(List<ChainBlockLink> successLinks, Chain chain)
+        {
+            if (successLinks.Count == 0)
+                return;
+            
+            var blockLink = successLinks.Last();
+            await _blockchainService.SetBestChainAsync(chain, blockLink.Height, blockLink.BlockHash);
+            await LocalEventBus.PublishAsync(new BestChainFoundEventData
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight,
+                ExecutedBlocks = successLinks.Select(p => p.BlockHash).ToList()
+            });
+        }
         
         public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain,
             BlockAttachOperationStatus status)
@@ -117,6 +132,16 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     });
                 }
             }
+            catch (BlockValidationException ex)
+            {
+                Logger.LogWarning(
+                    $"Block validation failed at height: {successLinks.Last().Height}, hash: {successLinks.Last().BlockHash}. Exception message {ex.Message}.");
+                if (!(ex.InnerException is ValidateNextTimeBlockValidationException) || successLinks.Count == 0)
+                {
+                    await _chainManager.RemoveLongestBranchAsync(chain);
+                    throw;
+                }
+            }
             catch (Exception ex)
             {
                 await _chainManager.RemoveLongestBranchAsync(chain);
@@ -124,18 +149,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 throw;
             }
 
-            if (successLinks.Count > 0)
-            {
-                var blockLink = successLinks.Last();
-                await _blockchainService.SetBestChainAsync(chain, blockLink.Height, blockLink.BlockHash);
-                await LocalEventBus.PublishAsync(new BestChainFoundEventData
-                {
-                    BlockHash = chain.BestChainHash,
-                    BlockHeight = chain.BestChainHeight,
-                    ExecutedBlocks = successLinks.Select(p => p.BlockHash).ToList()
-                });
-            }
-
+            await SetBestChainAsync(successLinks, chain);
+            
             Logger.LogInformation(
                 $"Attach blocks to best chain, status: {status}, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");
 

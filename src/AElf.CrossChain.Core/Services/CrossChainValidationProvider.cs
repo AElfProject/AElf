@@ -54,6 +54,10 @@ namespace AElf.CrossChain
                 var res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, extraData, block);
                 return res;
             }
+            catch (ValidateNextTimeBlockValidationException ex)
+            {
+                throw new BlockValidationException("Cross chain data is not ready.", ex);
+            }
             finally
             {
                 await LocalEventBus.PublishAsync(new CrossChainDataValidatedEvent());
