@@ -2,19 +2,19 @@
 using Xunit;
 using Shouldly;
 
-namespace AElf.Types.Tests.Helpers
+namespace AElf.Types.Tests.Helper
 {
-    public class ByteArrayHelpersTests
+    public class ByteArrayHelperTests
     {
         [Fact]
         public void Convert_Byte_FromString()
         {
             var hexValue = Hash.Generate().ToHex();
-            var hashArray = ByteArrayHelpers.FromHexString(hexValue);
+            var hashArray = ByteArrayHelper.FromHexString(hexValue);
             hashArray.Length.ShouldBe(32);
 
             var value = "0x00";
-            var valueArrary = ByteArrayHelpers.FromHexString(value);
+            var valueArrary = ByteArrayHelper.FromHexString(value);
             valueArrary.Length.ShouldBe(1);
         }
         
@@ -36,13 +36,13 @@ namespace AElf.Types.Tests.Helpers
             var byteArray1 = RandomFill(10);
             var byteArray2 = RandomFill(10);
             var byteArray3 = RandomFill(11);
-            var result = ByteArrayHelpers.BytesEqual(byteArray1, byteArray2);
+            var result = ByteArrayHelper.BytesEqual(byteArray1, byteArray2);
             result.ShouldBe(false);
 
-            var result1 = ByteArrayHelpers.BytesEqual(byteArray1, byteArray1);
+            var result1 = ByteArrayHelper.BytesEqual(byteArray1, byteArray1);
             result1.ShouldBe(true);
 
-            var result2 = ByteArrayHelpers.BytesEqual(byteArray1, byteArray3);
+            var result2 = ByteArrayHelper.BytesEqual(byteArray1, byteArray3);
             result2.ShouldBe(false);
         }
 
@@ -51,14 +51,14 @@ namespace AElf.Types.Tests.Helpers
         {
             var byteArray1 = Hash.Generate().DumpByteArray();
             var byteArray2 = Hash.Generate().DumpByteArray();
-            var bytes = ByteArrayHelpers.Combine(byteArray1, byteArray2);
+            var bytes = ByteArrayHelper.Combine(byteArray1, byteArray2);
             bytes.Length.ShouldBe(byteArray1.Length + byteArray2.Length);
 
-            var bytes1 = ByteArrayHelpers.ConcatArrays(byteArray1, byteArray2, bytes);
+            var bytes1 = ByteArrayHelper.ConcatArrays(byteArray1, byteArray2, bytes);
             bytes1.Length.ShouldBe(byteArray1.Length + byteArray2.Length + bytes.Length);
 
-            var subArray1 = ByteArrayHelpers.SubArray(bytes, 0, byteArray1.Length);
-            var subArray2 = ByteArrayHelpers.SubArray(bytes, byteArray1.Length, byteArray2.Length);
+            var subArray1 = ByteArrayHelper.SubArray(bytes, 0, byteArray1.Length);
+            var subArray2 = ByteArrayHelper.SubArray(bytes, byteArray1.Length, byteArray2.Length);
             subArray1.ShouldBe(byteArray1);
             subArray2.ShouldBe(byteArray2);
         }

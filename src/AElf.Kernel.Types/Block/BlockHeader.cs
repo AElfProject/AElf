@@ -8,11 +8,6 @@ namespace AElf.Kernel
     {
         private Hash _blockHash;
 
-        partial void OnConstruction()
-        {
-            Bloom = ByteString.CopyFrom(new Bloom().Data);
-        }
-
         public BlockHeader(Hash preBlockHash)
         {
             PreviousBlockHash = preBlockHash;

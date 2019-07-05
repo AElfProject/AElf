@@ -147,7 +147,7 @@ namespace AElf.Contract.CrossChain.Tests
             var transactionResult = await ReleaseProposalAsync(proposalId);
             var chainId = CreationRequested.Parser.ParseFrom(transactionResult.Logs[0].NonIndexed).ChainId;
 
-            var ecKeyPair = CryptoHelpers.GenerateKeyPair();
+            var ecKeyPair = CryptoHelper.GenerateKeyPair();
             var other = Tester.CreateNewContractTester(ecKeyPair);
             var txResult = await other.ExecuteContractWithMiningAsync(CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub.LockedBalance),
@@ -224,7 +224,7 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task Disposal_SideChain__NotFound()
         {
             await InitializeCrossChainContractAsync();
-            var chainId = ChainHelpers.GetChainId(1);
+            var chainId = ChainHelper.GetChainId(1);
             var proposalId = await DisposalSideChainProposalAsync(new SInt32Value
             {
                 Value = chainId
@@ -267,7 +267,7 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task GetChainStatus_NotExist()
         {
-            var chainId = ChainHelpers.GetChainId(1);
+            var chainId = ChainHelper.GetChainId(1);
             var txResult = await Tester.ExecuteContractWithMiningAsync(CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub.GetChainStatus),
                 new SInt32Value()
@@ -311,7 +311,7 @@ namespace AElf.Contract.CrossChain.Tests
             long lockedTokenAmount = 10;
             await ApproveBalanceAsync(lockedTokenAmount);
 
-            var chainId = ChainHelpers.GetChainId(1);
+            var chainId = ChainHelper.GetChainId(1);
             var transactionResult = await Tester.ExecuteContractWithMiningAsync(CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub.GetSideChainHeight),
                 new SInt32Value()

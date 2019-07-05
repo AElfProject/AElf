@@ -43,7 +43,7 @@ namespace AElf.Contracts.CrossChain
 
             State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value + 1;
             var serialNumber = State.SideChainSerialNumber.Value;
-            int chainId = ChainHelpers.GetChainId(serialNumber);
+            int chainId = ChainHelper.GetChainId(serialNumber);
 
             // lock token and resource
             LockTokenAndResource(sideChainCreationRequest, chainId);

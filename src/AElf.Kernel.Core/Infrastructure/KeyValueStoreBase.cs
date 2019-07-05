@@ -71,9 +71,9 @@ namespace AElf.Kernel.Infrastructure
             return value?.ToByteArray();
         }
 
-        public async Task PipelineSetAsync(Dictionary<string, T> pipelineSet)
+        public async Task SetAllAsync(Dictionary<string, T> pipelineSet)
         {
-            await _collection.PipelineSetAsync(
+            await _collection.SetAllAsync(
                 pipelineSet.ToDictionary(k => k.Key, v => Serialize(v.Value)));
         }
 

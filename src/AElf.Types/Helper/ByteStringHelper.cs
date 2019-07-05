@@ -3,7 +3,7 @@ using Google.Protobuf;
 
 namespace AElf
 {
-    public static class ByteStringHelpers
+    public static class ByteStringHelper
     {
         public static int Compare(ByteString xValue, ByteString yValue)
         {
