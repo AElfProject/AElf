@@ -48,7 +48,7 @@ namespace AElf.OS.Network.Application
             return _peerPool.GetPeers(true).ToList(); 
         }
 
-        public Task BroadcastAnnounceAsync(BlockHeader blockHeader,bool hasFork)
+        public Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
         {
             var blockHash = blockHeader.GetHash();
             

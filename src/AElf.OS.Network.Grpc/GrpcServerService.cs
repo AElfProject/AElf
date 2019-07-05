@@ -247,7 +247,7 @@ namespace AElf.OS.Network.Grpc
         /// <summary>
         /// This method is called when a peer wants to broadcast an announcement.
         /// </summary>
-        public override async Task<VoidReply> SendAnnounce(BlockAnnouncement an, ServerCallContext context)
+        public override async Task<VoidReply> SendAnnouncement(BlockAnnouncement an, ServerCallContext context)
         {
             await ProcessAnnouncement(an, context);
             return new VoidReply();

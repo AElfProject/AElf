@@ -6,33 +6,7 @@ import "google/protobuf/timestamp.proto";
 import "aelf/core.proto";
 import "kernel.proto";
 
-message Node {
-    string endpoint = 1;
-    bytes pubkey = 2;
-}
-
-message NodeList {
-    repeated Node nodes = 1;
-}
-
-message Handshake {
-    HandshakeData handshake_data = 1;
-    bytes signature = 2;
-    bool success = 3;
-    aelf.BlockHeader best_chain_block_header = 4;
-    sint64 lib_block_height = 5;
-}
-
-message HandshakeData {
-    int32 chain_id = 1;
-    int32 version = 2;
-    int64 listening_port = 3;
-    bytes pubkey = 4;
-}
-
-message FinalizeConnectReply {
-    bool success = 1;
-}
+// Messages related to block propagation/syncing
 
 message BlockAnnouncement {
     aelf.Hash block_hash = 1;
@@ -54,13 +28,6 @@ message BlockList {
     repeated BlockWithTransactions blocks = 1;
 }
 
-message DisconnectReason {
-    Reason why = 1;
-    enum Reason {
-        SHUTDOWN = 0;
-    }
-}
-
 message BlockRequest {
     aelf.Hash hash = 1;
 }
@@ -70,7 +37,26 @@ message BlockReply {
     BlockWithTransactions block = 2;
 }
 
-// **** Connection *****
+// Messages related to connection and handshaking
+
+message Handshake {
+    HandshakeData handshake_data = 1;
+    bytes signature = 2;
+    bool success = 3;
+    aelf.BlockHeader best_chain_block_header = 4;
+    sint64 lib_block_height = 5;
+}
+
+message HandshakeData {
+    int32 chain_id = 1;
+    int32 version = 2;
+    int64 listening_port = 3;
+    bytes pubkey = 4;
+}
+
+message FinalizeConnectReply {
+    bool success = 1;
+}
 
 message ConnectReply {
     Handshake handshake = 1;
@@ -88,7 +74,25 @@ enum AuthError {
     CONNECTION_REFUSED = 7;
 }
 
+message DisconnectReason {
+    Reason why = 1;
+    enum Reason {
+        SHUTDOWN = 0;
+    }
+}
+
 message UpdateHandshakeRequest {
+}
+
+// Messages related to peer discovery
+
+message Node {
+    string endpoint = 1;
+    bytes pubkey = 2;
+}
+
+message NodeList {
+    repeated Node nodes = 1;
 }
 
 message NodesRequest {
