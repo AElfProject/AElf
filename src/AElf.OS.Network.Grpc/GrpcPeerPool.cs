@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.OS.Network.Application;
+using AElf.OS.Network.Domain;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
@@ -27,6 +29,7 @@ namespace AElf.OS.Network.Grpc
 
         private readonly IAccountService _accountService;
         private readonly IBlockchainService _blockchainService;
+        private readonly INodeManager _nodeManager;
 
         private readonly ConcurrentDictionary<string, GrpcPeer> _authenticatedPeers;
 
@@ -38,11 +41,12 @@ namespace AElf.OS.Network.Grpc
         public ILogger<GrpcPeerPool> Logger { get; set; }
 
         public GrpcPeerPool(IOptionsSnapshot<NetworkOptions> networkOptions, IAccountService accountService, 
-            IBlockchainService blockChainService)
+            IBlockchainService blockChainService, INodeManager nodeManager)
         {
             _networkOptions = networkOptions.Value;
             _accountService = accountService;
             _blockchainService = blockChainService;
+            _nodeManager = nodeManager;
 
             _authenticatedPeers = new ConcurrentDictionary<string, GrpcPeer>();
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
@@ -107,6 +111,8 @@ namespace AElf.OS.Network.Grpc
             }
             
             Logger.LogTrace($"Connected to {peer} -- height {peer.Info.StartHeight}.");
+            
+            await _nodeManager.AddNodeAsync(new Node { Pubkey = pubKey.ToByteString(), Endpoint = ipAddress});
             
             FireConnectionEvent(connectReply, pubKey);
 
@@ -222,6 +228,8 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogWarning($"Could not add peer {peer.Pubkey} ({peer.IpAddress})");
                 return false;
             }
+            
+            AsyncHelper.RunSync(() => _nodeManager.AddNodeAsync(new Node { Pubkey = p.Pubkey.ToByteString(), Endpoint = p.IpAddress}));
             
             return true;
         }

@@ -40,7 +40,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             var grpcCrossChainClientDto = new CrossChainClientDto()
             {
-                RemoteChainId = ChainHelpers.ConvertBase58ToChainId("AELF"),
+                RemoteChainId = ChainHelper.ConvertBase58ToChainId("AELF"),
                 RemoteServerHost = _grpcCrossChainConfigOption.RemoteParentChainServerHost,
                 RemoteServerPort = _grpcCrossChainConfigOption.RemoteParentChainServerPort
             };

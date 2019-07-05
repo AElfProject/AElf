@@ -2,8 +2,11 @@
 using AElf.Modularity;
 using AElf.OS.Consensus.DPos;
 using AElf.OS.Handlers;
+using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Worker;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
@@ -24,17 +27,26 @@ namespace AElf.OS
             context.Services.AddAssemblyOf<OSAElfModule>();
 
             context.Services.AddSingleton<AnnouncementReceivedEventHandler>();
+            context.Services.AddSingleton<PeerDiscoveryWorker>();
 
             Configure<AccountOptions>(configuration.GetSection("Account"));
         }
         
-        public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
+        public override async void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
             var taskQueueManager = context.ServiceProvider.GetService<ITaskQueueManager>();
 
             taskQueueManager.CreateQueue(OSConsts.BlockSyncAttachQueueName);
             taskQueueManager.CreateQueue(OSConsts.BlockSyncQueueName);
             taskQueueManager.CreateQueue(OSConsts.InitialSyncQueueName);
+
+            var networkOptions = context.ServiceProvider.GetService<IOptionsSnapshot<NetworkOptions>>().Value;
+
+            if (networkOptions.EnablePeerDiscovery)
+            {
+                var peerDiscoveryWorker = context.ServiceProvider.GetService<PeerDiscoveryWorker>();
+                await peerDiscoveryWorker.StartAsync();
+            }
         }
     }
 }

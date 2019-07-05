@@ -71,7 +71,7 @@ namespace AElf.Contract.CrossChain.Tests
             var crossChainInitializationTransaction = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub.Initialize), new InitializeInput
                 {
-                    ParentChainId = parentChainId == 0 ? ChainHelpers.ConvertBase58ToChainId("AELF") : parentChainId,
+                    ParentChainId = parentChainId == 0 ? ChainHelper.ConvertBase58ToChainId("AELF") : parentChainId,
                     CreationHeightOnParentChain = parentChainHeightOfCreation
                 });
             await Tester.MineAsync(new List<Transaction> {crossChainInitializationTransaction});
@@ -87,7 +87,7 @@ namespace AElf.Contract.CrossChain.Tests
                 nameof(CrossChainContractContainer.CrossChainContractStub.RequestChainCreation),
                 sideChainCreationRequest);
             await ApproveWithMiners(RequestChainCreationOutput.Parser.ParseFrom(requestTxResult.ReturnValue).ProposalId);
-            var chainId = ChainHelpers.GetChainId(1);
+            var chainId = ChainHelper.GetChainId(1);
             
             return chainId;
         }

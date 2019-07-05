@@ -5,7 +5,6 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Node.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
@@ -37,16 +36,20 @@ namespace AElf.OS.Network.Grpc
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockchainService;
         private readonly IAccountService _accountService;
+        private readonly IPeerDiscoveryService _peerDiscoveryService;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
 
-        public GrpcServerService(ISyncStateService syncStateService, IPeerPool peerPool, IBlockchainService blockchainService, IAccountService accountService)
+        public GrpcServerService(ISyncStateService syncStateService, IPeerPool peerPool, 
+            IBlockchainService blockchainService, IAccountService accountService, 
+            IPeerDiscoveryService peerDiscoveryService)
         {
             _syncStateService = syncStateService;
             _peerPool = peerPool;
             _blockchainService = blockchainService;
             _accountService = accountService;
+            _peerDiscoveryService = peerDiscoveryService;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
@@ -160,7 +163,7 @@ namespace AElf.OS.Network.Grpc
                 return AuthError.ProtocolMismatch;
 
             // verify signature
-            var validData = CryptoHelpers.VerifySignature(handshake.Signature.ToByteArray(),
+            var validData = CryptoHelper.VerifySignature(handshake.Signature.ToByteArray(),
                 Hash.FromMessage(handshake.HandshakeData).ToByteArray(), handshake.HandshakeData.Pubkey.ToByteArray());
             
             if (!validData)
@@ -303,6 +306,20 @@ namespace AElf.OS.Network.Grpc
             Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested handshake data.");
             
             return await _peerPool.GetHandshakeAsync();
+        }
+
+        public override async Task<NodeList> GetNodes(NodesRequest request, ServerCallContext context)
+        {
+            if (request == null) 
+                return new NodeList();
+            
+            Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.MaxCount} nodes.");
+            
+            var nodes = await _peerDiscoveryService.GetNodesAsync(request.MaxCount);
+            
+            Logger.LogDebug($"Sending {nodes.Nodes.Count} to {context.GetPeerInfo()}.");
+
+            return nodes;
         }
 
         /// <summary>

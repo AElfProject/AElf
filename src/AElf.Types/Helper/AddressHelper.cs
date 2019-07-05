@@ -1,6 +1,6 @@
 namespace AElf
 {
-    public static class AddressHelpers
+    public static class AddressHelper
     {
         public static bool VerifyFormattedAddress(string formattedAddress)
         {

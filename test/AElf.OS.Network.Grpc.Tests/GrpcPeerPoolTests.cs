@@ -23,7 +23,7 @@ namespace AElf.OS.Network
         {
             _pool = GetRequiredService<GrpcPeerPool>();
 
-            var keyPair = CryptoHelpers.GenerateKeyPair();
+            var keyPair = CryptoHelper.GenerateKeyPair();
             _testPubKey = keyPair.PublicKey.ToHex();
             
             _peerInfo = new PeerInfo

@@ -63,7 +63,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task Deploy_Contract_success()
         {
-            var keyPair = CryptoHelpers.GenerateKeyPair();
+            var keyPair = CryptoHelper.GenerateKeyPair();
             var chain = await _blockchainService.GetChainAsync();
             var transaction = new Transaction
             {
@@ -79,7 +79,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 RefBlockPrefix = ByteString.CopyFrom(chain.BestChainHash.Value.Take(4).ToArray()),
             };
             transaction.Signature =
-                ByteString.CopyFrom(CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey,
+                ByteString.CopyFrom(CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey,
                     transaction.GetHash().DumpByteArray()));
 
             var parameters = new Dictionary<string, string>
@@ -174,7 +174,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var createTransactionResponse =
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
-            var transactionHash = Hash.FromRawBytes(ByteArrayHelpers.FromHexString(createTransactionResponse.RawTransaction));
+            var transactionHash = Hash.FromRawBytes(ByteArrayHelper.FromHexString(createTransactionResponse.RawTransaction));
 
             var signature = await _accountService.SignAsync(transactionHash.DumpByteArray());
             parameters = new Dictionary<string, string>
@@ -658,7 +658,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Header.MerkleTreeRootOfWorldState.ShouldBe(block.Header.MerkleTreeRootOfWorldState.ToHex());
             response.Header.Height.ShouldBe(block.Height);
             response.Header.Time.ShouldBe(block.Header.Time.ToDateTime());
-            response.Header.ChainId.ShouldBe(ChainHelpers.ConvertChainIdToBase58(chain.Id));
+            response.Header.ChainId.ShouldBe(ChainHelper.ConvertChainIdToBase58(chain.Id));
             response.Header.Bloom.ShouldBe(block.Header.Bloom.ToByteArray().ToHex());
             response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToHex());
             response.Body.TransactionsCount.ShouldBe(3);
@@ -690,7 +690,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Header.MerkleTreeRootOfWorldState.ShouldBe(block.Header.MerkleTreeRootOfWorldState.ToHex());
             response.Header.Height.ShouldBe(block.Height);
             response.Header.Time.ShouldBe(block.Header.Time.ToDateTime());
-            response.Header.ChainId.ShouldBe(ChainHelpers.ConvertChainIdToBase58(chain.Id));
+            response.Header.ChainId.ShouldBe(ChainHelper.ConvertChainIdToBase58(chain.Id));
             response.Header.Bloom.ShouldBe(block.Header.Bloom.ToByteArray().ToHex());
             response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToHex());
             response.Body.TransactionsCount.ShouldBe(3);
@@ -735,7 +735,7 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             var response = await GetResponseAsObjectAsync<ChainStatusDto>("/api/blockChain/chainStatus");
             response.Branches.ShouldNotBeNull();
-            var responseChainId = ChainHelpers.ConvertBase58ToChainId(response.ChainId);
+            var responseChainId = ChainHelper.ConvertBase58ToChainId(response.ChainId);
             responseChainId.ShouldBe(chain.Id);
             response.GenesisContractAddress.ShouldBe(basicContractZero.GetFormatted());
             response.BestChainHeight.ShouldBe(11);
@@ -864,7 +864,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task CreateRawTransaction_Failed()
         {
-            var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
+            var newUserKeyPair = CryptoHelper.GenerateKeyPair();
             var toAddressValue =
                 Base64.ToBase64String(Address.FromPublicKey(newUserKeyPair.PublicKey).Value.ToByteArray());
             var parameters = new Dictionary<string, string>
@@ -999,7 +999,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var contractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var chain = await _blockchainService.GetChainAsync();
-            var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
+            var newUserKeyPair = CryptoHelper.GenerateKeyPair();
             var accountAddress = await _accountService.GetAccountAsync();
             var toAddress = Base64.ToBase64String(Address.FromPublicKey(newUserKeyPair.PublicKey).Value.ToByteArray());
             var parameters = new Dictionary<string, string>
@@ -1018,7 +1018,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
             var transactionHash =
-                Hash.FromRawBytes(ByteArrayHelpers.FromHexString(createTransactionResponse.RawTransaction));
+                Hash.FromRawBytes(ByteArrayHelper.FromHexString(createTransactionResponse.RawTransaction));
 
             var signature = await _accountService.SignAsync(transactionHash.DumpByteArray());
             parameters = new Dictionary<string, string>
@@ -1202,7 +1202,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         private Task<List<Transaction>> GenerateTwoInitializeTransaction()
         {
             var transactionList = new List<Transaction>();
-            var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
+            var newUserKeyPair = CryptoHelper.GenerateKeyPair();
 
             for (int i = 0; i < 2; i++)
             {
@@ -1219,7 +1219,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                     });
 
                 var signature =
-                    CryptoHelpers.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
+                    CryptoHelper.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
                 transaction.Signature = ByteString.CopyFrom(signature);
 
                 transactionList.Add(transaction);
@@ -1230,13 +1230,13 @@ namespace AElf.WebApp.Application.Chain.Tests
 
         private Task<Transaction> GenerateViewTransaction(string method, IMessage input)
         {
-            var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
+            var newUserKeyPair = CryptoHelper.GenerateKeyPair();
 
             var transaction = _osTestHelper.GenerateTransaction(Address.FromPublicKey(newUserKeyPair.PublicKey),
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
                 method, input);
 
-            var signature = CryptoHelpers.SignWithPrivateKey(newUserKeyPair.PrivateKey,
+            var signature = CryptoHelper.SignWithPrivateKey(newUserKeyPair.PrivateKey,
                 transaction.GetHash().DumpByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
 

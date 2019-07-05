@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace AElf
 {
-    public static class ByteArrayHelpers
+    public static class ByteArrayHelper
     {
         private static bool IsWithPrefix(string value)
         {

@@ -72,8 +72,7 @@ enum SideChainStatus
     APPLY = 0;
     REVIEW = 1;
     ACTIVE = 2;
-    INSUFFICIENT_BALANCE = 3;
-    TERMINATED = 4;
+    TERMINATED = 3;
 }
 
 message SideChainIdAndHeightDict {

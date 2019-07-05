@@ -8,7 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.OS.Rpc
 {
-    internal static class RpcServerHelpers
+    internal static class RpcServerHelper
     {
         private static List<Type> GetServiceTypes(IServiceCollection scope)
         {

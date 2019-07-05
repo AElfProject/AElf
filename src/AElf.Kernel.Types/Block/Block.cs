@@ -40,15 +40,5 @@ namespace AElf.Kernel
         {
             return Header.GetHashWithoutCache();
         }
-
-        public byte[] GetHashBytes()
-        {
-            return Header.GetHashBytes();
-        }
-
-        public byte[] Serialize()
-        {
-            return this.ToByteArray();
-        }
     }
 }

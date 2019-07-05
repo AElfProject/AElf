@@ -20,6 +20,7 @@ namespace AElf.OS.Network.Grpc
         
         private const int BlockRequestTimeout = 300;
         private const int BlocksRequestTimeout = 500;
+        private const int GetNodesTimeout = 500;
 
         private const int FinalizeConnectTimeout = 500;
         private const int UpdateHandshakeTimeout = 400;
@@ -118,6 +119,21 @@ namespace AElf.OS.Network.Grpc
                 LastKnownLibHeight = handshake.LibBlockHeight;
         }
 
+        public Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest)
+        {
+            GrpcRequest request = new GrpcRequest
+            {
+                ErrorMessage = $"Request nodes failed."
+            };
+            
+            Metadata data = new Metadata
+            {
+                {GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString()}
+            };
+            
+            return RequestAsync(_client, c => c.GetNodesAsync(new NodesRequest { MaxCount = count }, data), request);
+        }
+        
         public async Task<FinalizeConnectReply> FinalizeConnectAsync(Handshake handshake)
         {
             GrpcRequest request = new GrpcRequest { ErrorMessage = $"Error while finalizing request to {this}." };
