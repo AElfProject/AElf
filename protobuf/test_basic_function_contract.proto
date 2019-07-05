@@ -34,6 +34,8 @@ service BasicFunctionContract {
     }
     rpc TransferTokenToContract(TransferTokenToContractInput) returns (google.protobuf.Empty){
     }
+    rpc GetLockedAmount(GetLockedTokenAmountInput) returns(GetLockedTokenAmountOutput){
+    }
 }
 
 //Input
@@ -70,6 +72,19 @@ message UnlockTokenInput {
     int64 amount = 5;
 }
 //Output
+
+message GetLockedTokenAmountInput {
+    aelf.Address address = 1;
+    string symbol = 3;
+    aelf.Hash lock_id = 4;
+}
+
+message GetLockedTokenAmountOutput {
+    aelf.Address address = 1;
+    string symbol = 3;
+    aelf.Hash lock_id = 4;
+    sint64 amount = 5;
+}
 
 message MoneyOutput {
     int64 Int64Value = 1;

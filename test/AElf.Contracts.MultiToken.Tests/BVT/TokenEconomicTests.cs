@@ -176,32 +176,32 @@ namespace AElf.Contracts.MultiToken
             balanceOutput.Balance.ShouldBe(100_000_000L - 1000L - 10L);
         }
 
-        [Fact]
-        public async Task Claim_Transaction_Fees()
-        {
-            await MultiTokenContract_ChargeTransactionFees();
-
-            var originBalanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = TreasuryContractAddress,
-                Symbol = AliceCoinTokenInfo.Symbol
-            });
-            originBalanceOutput.Balance.ShouldBe(10L);
-
-            {
-                var result = (await TokenContractStub.ClaimTransactionFees.SendAsync(new Empty()
-                )).TransactionResult;
-                result.Status.ShouldBe(TransactionResultStatus.Mined);
-            }
-
-            var balanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = TreasuryContractAddress,
-                Symbol = AliceCoinTokenInfo.Symbol
-            });
-            balanceOutput.Balance.ShouldBe(10L);
-
-        }
+//        [Fact]
+//        public async Task Claim_Transaction_Fees()
+//        {
+//            await MultiTokenContract_ChargeTransactionFees();
+//
+//            var originBalanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+//            {
+//                Owner = TreasuryContractAddress,
+//                Symbol = AliceCoinTokenInfo.Symbol
+//            });
+//            originBalanceOutput.Balance.ShouldBe(10L);
+//
+//            {
+//                var result = (await TokenContractStub.ClaimTransactionFees.SendAsync(new Empty()
+//                )).TransactionResult;
+//                result.Status.ShouldBe(TransactionResultStatus.Mined);
+//            }
+//
+//            var balanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+//            {
+//                Owner = TreasuryContractAddress,
+//                Symbol = AliceCoinTokenInfo.Symbol
+//            });
+//            balanceOutput.Balance.ShouldBe(10L);
+//
+//        }
 
         [Fact]
         public async Task Set_And_Get_Method_Fee()

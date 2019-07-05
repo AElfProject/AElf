@@ -305,7 +305,7 @@ namespace AElf.Contracts.MultiToken
 
             // Check locked amount
             {
-                var amount = await TokenContractStub.GetLockedAmount.CallAsync(new GetLockedAmountInput
+                var amount = await BasicFunctionContractStub.GetLockedAmount.CallAsync(new GetLockedTokenAmountInput
                 {
                     Symbol = SymbolForTest,
                     Address = _address,
@@ -333,6 +333,17 @@ namespace AElf.Contracts.MultiToken
                     Symbol = SymbolForTest
                 });
                 result.Balance.ShouldBe(Amount);
+            }
+
+            //Check amount of lock address after unlocking
+            {
+                var amount = await BasicFunctionContractStub.GetLockedAmount.CallAsync(new GetLockedTokenAmountInput
+                {
+                    Symbol = SymbolForTest,
+                    Address = _address,
+                    LockId = lockId,
+                });
+                amount.Amount.ShouldBe(0);
             }
         }
 
