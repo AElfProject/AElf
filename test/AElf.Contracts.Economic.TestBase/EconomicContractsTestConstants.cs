@@ -1,3 +1,5 @@
+using System;
+
 namespace AElf.Contracts.Economic.TestBase
 {
     public class EconomicContractsTestConstants
@@ -14,8 +16,10 @@ namespace AElf.Contracts.Economic.TestBase
         public const int ValidateDataCenterCount = 35;
         public const int ValidateDataCenterCandidateCount = 13;
         public const int VoterCount = 10;
-
+        
         public const int MiningInterval = 4000;
+        public const long TimeEachTerm = 604800;
+        public const long MinerIncreaseInterval = 31536000;
         
         public const string VoteSymbol = "VOTE";
         public const long LockTokenForElection = 100_000_00000000;

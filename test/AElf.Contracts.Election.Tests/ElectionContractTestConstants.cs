@@ -9,7 +9,5 @@ namespace AElf.Contracts.Election
         
         public const int Decimals = 8;
         public const bool IsBurnable = true;
-        
-        
     }
 }

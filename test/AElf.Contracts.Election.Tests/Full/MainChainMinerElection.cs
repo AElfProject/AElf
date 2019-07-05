@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Profit;
 using Shouldly;
 using Xunit;
@@ -11,20 +12,20 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task UserVote_And_GetProfitAmount()
         {
-            FullNodesKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+            ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
 
-            var moreVotesCandidates = FullNodesKeyPairs.Take(InitialMinersCount).ToList();
+            var moreVotesCandidates = ValidationDataCenterKeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
             moreVotesCandidates.ForEach(async kp =>
-                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 2));
+                await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 2));
 
-            var lessVotesCandidates = FullNodesKeyPairs.Skip(InitialMinersCount).Take(InitialMinersCount).ToList();
+            var lessVotesCandidates = ValidationDataCenterKeyPairs.Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount).Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
             lessVotesCandidates.ForEach(async kp =>
-                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 1));
+                await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 1));
 
             await ProduceBlocks(BootMinerKeyPair, 10);
             await NextRound(BootMinerKeyPair);
 
-            var profitTester = GetProfitContractStub(VotersKeyPairs[0]);
+            var profitTester = GetProfitContractTester(VoterKeyPairs[0]);
             var profitBalance = (await profitTester.GetProfitAmount.CallAsync(new ProfitInput
             {
                 ProfitId = ProfitItemsIds[ProfitType.CitizenWelfare],

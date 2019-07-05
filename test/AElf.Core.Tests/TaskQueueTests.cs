@@ -42,9 +42,7 @@ namespace AElf
             for (var i = 0; i < 10; i++)
                 _taskQueue.Enqueue(ProcessTask);
 
-            while (_taskQueue.Size != 0)
-                Thread.Sleep(10);
-            
+           _taskQueue.Dispose();
             _counter.ShouldBe(10);
         }
 

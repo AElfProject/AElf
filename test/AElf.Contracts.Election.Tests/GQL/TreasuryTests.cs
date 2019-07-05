@@ -24,7 +24,7 @@ namespace AElf.Contracts.Election
 
             var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
-            foreach (var initialMinersKeyPair in InitialMinersKeyPairs)
+            foreach (var initialMinersKeyPair in InitialCoreDataCenterKeyPairs)
             {
                 round.RealTimeMinersInformation.Keys.ShouldContain(initialMinersKeyPair.PublicKey.ToHex());
             }
@@ -39,7 +39,7 @@ namespace AElf.Contracts.Election
 
             var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
-            foreach (var initialMinersKeyPair in InitialMinersKeyPairs)
+            foreach (var initialMinersKeyPair in InitialCoreDataCenterKeyPairs)
             {
                 round.RealTimeMinersInformation.Keys.ShouldContain(initialMinersKeyPair.PublicKey.ToHex());
             }

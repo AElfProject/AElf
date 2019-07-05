@@ -12,7 +12,7 @@ namespace AElf.Contracts.Economic.TestBase
     {
         #region Other Contracts Action and View
 
-        internal async Task NextTerm(ECKeyPair keyPair)
+        protected async Task NextTerm(ECKeyPair keyPair)
         {
             var miner = GetConsensusContractTester(keyPair);
             var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
@@ -31,7 +31,7 @@ namespace AElf.Contracts.Economic.TestBase
             executionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
-        internal async Task NextRound(ECKeyPair keyPair)
+        protected async Task NextRound(ECKeyPair keyPair)
         {
             var miner = GetConsensusContractTester(keyPair);
             var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
@@ -41,7 +41,7 @@ namespace AElf.Contracts.Economic.TestBase
             await miner.NextRound.SendAsync(nextRound);
         }
 
-        internal async Task NormalBlock(ECKeyPair keyPair)
+        protected async Task NormalBlock(ECKeyPair keyPair)
         {
             var miner = GetConsensusContractTester(keyPair);
             var round = await miner.GetCurrentRoundInformation.CallAsync(new Empty());
@@ -58,7 +58,7 @@ namespace AElf.Contracts.Economic.TestBase
             });
         }
 
-        internal async Task<long> GetNativeTokenBalance(byte[] publicKey)
+        protected async Task<long> GetNativeTokenBalance(byte[] publicKey)
         {
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -69,7 +69,7 @@ namespace AElf.Contracts.Economic.TestBase
             return balance;
         }
 
-        internal async Task<long> GetVoteTokenBalance(byte[] publicKey)
+        protected async Task<long> GetVoteTokenBalance(byte[] publicKey)
         {
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
