@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Shouldly;
@@ -39,12 +40,15 @@ namespace AElf
         public async Task Enqueue_MultipleTimes()
         {
             _taskQueue.Start();
+            var taskList = new List<Task>();
             for (var i = 0; i < 10; i++)
-                _taskQueue.Enqueue(ProcessTask);
+            {
+                var awaitTask = ProcessTask();
+                taskList.Add(awaitTask);
+                _taskQueue.Enqueue(async () => await awaitTask);
+            }
 
-            while (_taskQueue.Size != 0)
-                await Task.Delay(10);
-            
+            Task.WaitAll(taskList.ToArray());
             _counter.ShouldBe(10);
         }
 
