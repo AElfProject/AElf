@@ -42,7 +42,7 @@ namespace AElf.OS.BlockSync.Application
             {
                 // Limit block sync job count, control memory usage
                 var chain = await _blockchainService.GetChainAsync();
-                if (chain.LongestChainHeight <= lastDownloadBlockHeight - BlockSyncConstants.BlockDownloadHeightLimit)
+                if (chain.LongestChainHeight <= lastDownloadBlockHeight - BlockSyncConstants.BlockDownloadHeightOffset)
                 {
                     Logger.LogWarning(
                         $"Pause sync task and wait for synced block to be processed, best chain height: {chain.BestChainHeight}");

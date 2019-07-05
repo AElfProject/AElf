@@ -35,16 +35,17 @@ namespace AElf.OS.BlockSync.Application
 
         public async Task SyncBlockAsync(Chain chain, SyncBlockDto syncBlockDto)
         {
-            if (syncBlockDto.SyncBlockHash != null && syncBlockDto.SyncBlockHeight <= chain.LongestChainHeight + 12)
+            if (syncBlockDto.SyncBlockHash != null && syncBlockDto.SyncBlockHeight <=
+                chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset)
             {
-                EnqueueFetchBlockJob(syncBlockDto, 3);
+                EnqueueFetchBlockJob(syncBlockDto, BlockSyncConstants.FetchBlockRetryTimes);
             }
             else
             {
                 EnqueueDownloadBlocksJob(syncBlockDto);
             }
         }
-        
+
         private void EnqueueFetchBlockJob(SyncBlockDto syncBlockDto, int retryTimes)
         {
             var enqueueTimestamp = TimestampHelper.GetUtcNow();
@@ -89,7 +90,7 @@ namespace AElf.OS.BlockSync.Application
                     if (BlockAttachAndExecuteQueueIsAvailable())
                     {
                         var chain = await _blockchainService.GetChainAsync();
-                        
+
                         if (syncBlockDto.SyncBlockHeight <= chain.LastIrreversibleBlockHeight)
                         {
                             Logger.LogWarning(
@@ -108,7 +109,8 @@ namespace AElf.OS.BlockSync.Application
                                 syncBlockDto.SuggestedPeerPubKey);
                         }
 
-                        if (syncBlockCount == 0 && syncBlockDto.SyncBlockHeight > chain.LongestChainHeight + 12)
+                        if (syncBlockCount == 0 && syncBlockDto.SyncBlockHeight >
+                            chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset)
                         {
                             Logger.LogDebug(
                                 $"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
@@ -124,7 +126,7 @@ namespace AElf.OS.BlockSync.Application
                 }
             }, OSConstants.BlockDownloadQueueName);
         }
-        
+
         private bool BlockAttachAndExecuteQueueIsAvailable()
         {
             var blockSyncAttachBlockEnqueueTime = _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime;

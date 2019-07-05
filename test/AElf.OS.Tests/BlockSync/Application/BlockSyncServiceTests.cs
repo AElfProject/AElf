@@ -145,7 +145,7 @@ namespace AElf.OS.BlockSync.Application
             var chain = await _blockchainService.GetChainAsync();
 
             var peerBlockHash = Hash.FromString("PeerBlock");
-            var peerBlockHeight = chain.LongestChainHeight + 13;
+            var peerBlockHeight = chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset +1;
 
             await _blockSyncService.SyncBlockAsync(chain, new SyncBlockDto
             {
@@ -170,7 +170,7 @@ namespace AElf.OS.BlockSync.Application
             await _blockSyncService.SyncBlockAsync(chain, new SyncBlockDto
             {
                 SyncBlockHash = peerBlock.GetHash(),
-                SyncBlockHeight = chain.LongestChainHeight + 12,
+                SyncBlockHeight = chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset,
                 BatchRequestBlockCount = 5
             });
 
@@ -193,7 +193,7 @@ namespace AElf.OS.BlockSync.Application
             await _blockSyncService.SyncBlockAsync(chain, new SyncBlockDto
             {
                 SyncBlockHash = peerBlock.GetHash(),
-                SyncBlockHeight = chain.LongestChainHeight + 13,
+                SyncBlockHeight = chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset +1 ,
                 BatchRequestBlockCount = 5
             });
 
@@ -214,7 +214,7 @@ namespace AElf.OS.BlockSync.Application
             await _blockSyncService.SyncBlockAsync(chain, new SyncBlockDto
             {
                 SyncBlockHash = peerBlock.GetHash(),
-                SyncBlockHeight = chain.LongestChainHeight + 12,
+                SyncBlockHeight = chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset,
                 BatchRequestBlockCount = 5
             });
 
@@ -237,7 +237,7 @@ namespace AElf.OS.BlockSync.Application
             await _blockSyncService.SyncBlockAsync(chain, new SyncBlockDto
             {
                 SyncBlockHash = peerBlock.GetHash(),
-                SyncBlockHeight = chain.LongestChainHeight + 13,
+                SyncBlockHeight = chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset +1,
                 BatchRequestBlockCount = 5
             });
 
