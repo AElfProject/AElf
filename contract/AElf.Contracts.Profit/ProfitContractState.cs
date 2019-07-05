@@ -1,3 +1,4 @@
+using Acs1;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
@@ -13,5 +14,7 @@ namespace AElf.Contracts.Profit
         public MappedState<Hash, Address, ProfitDetails> ProfitDetailsMap { get; set; }
 
         public MappedState<Address, CreatedProfitIds> CreatedProfitIds { get; set; }
+        
+        public MappedState<string, TokenAmount> TransactionFees { get; set; }
     }
 }
