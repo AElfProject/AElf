@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.Economic.TestBase;
 using AElf.Cryptography.ECDSA;
 using AElf.Types;
 using Google.Protobuf;
@@ -18,14 +19,14 @@ namespace AElf.Contracts.Election
             await ElectionContract_AnnounceElection();
 
             var minersCount = await ElectionContractStub.GetMinersCount.CallAsync(new Empty());
-            minersCount.Value.ShouldBe(InitialMinersCount);
+            minersCount.Value.ShouldBe(EconomicContractsTestConstants.InitialCoreDataCenterCount);
         }
 
         [Fact]
         public async Task GetElectionResult()
         {
             await ElectionContract_Vote();
-            await NextTerm(InitialMinersKeyPairs[0]);
+            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
 
             //verify term 1
             var electionResult = await ElectionContractStub.GetElectionResult.CallAsync(new GetElectionResultInput
@@ -44,12 +45,12 @@ namespace AElf.Contracts.Election
 
             var voteRecords = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringInput
             {
-                Value = FullNodesKeyPairs.Last().PublicKey.ToHex()
+                Value = ValidationDataCenterKeyPairs.Last().PublicKey.ToHex()
             });
             
             voteRecords.ShouldBe(new ElectorVote
             {
-                Pubkey = ByteString.CopyFrom(FullNodesKeyPairs.Last().PublicKey)
+                Pubkey = ByteString.CopyFrom(ValidationDataCenterKeyPairs.Last().PublicKey)
             });
         }
         
@@ -67,7 +68,7 @@ namespace AElf.Contracts.Election
             allRecords.WithdrawnVotingRecordIds.Count.ShouldBe(0);
             
             //withdraw
-            await NextTerm(InitialMinersKeyPairs[0]);
+            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
             BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime().AddSeconds(100*60*60*24 + 1));
             var voteId =
                 (await ElectionContractStub.GetElectorVote.CallAsync(new StringInput
@@ -106,7 +107,7 @@ namespace AElf.Contracts.Election
 
             var candidatesKeyPairs = await ElectionContract_AnnounceElection();
 
-            var votersKeyPairs = VotersKeyPairs.Take(voterCount).ToList();
+            var votersKeyPairs = VoterKeyPairs.Take(voterCount).ToList();
             var voterKeyPair = votersKeyPairs[0];
             var balanceBeforeVoting = await GetNativeTokenBalance(voterKeyPair.PublicKey);
             balanceBeforeVoting.ShouldBeGreaterThan(0);

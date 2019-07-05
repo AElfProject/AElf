@@ -20,7 +20,7 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task ElectionContract_NextTerm()
         {
-            await NextTerm(InitialMinersKeyPairs[0]);
+            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
             var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             round.TermNumber.ShouldBe(2);
         }
@@ -28,7 +28,7 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task ElectionContract_NormalBlock()
         {
-            await NormalBlock(InitialMinersKeyPairs[0]);
+            await NormalBlock(InitialCoreDataCenterKeyPairs[0]);
             var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             round.GetMinedBlocks().ShouldBe(1);
             round.GetMinedMiners().Count.ShouldBe(1);
@@ -36,7 +36,7 @@ namespace AElf.Contracts.Election
         
         private async Task<TransactionResult> AnnounceElectionAsync(ECKeyPair keyPair)
         {
-            var electionStub = GetElectionContractStub(keyPair);
+            var electionStub = GetElectionContractTester(keyPair);
             var announceResult = (await electionStub.AnnounceElection.SendAsync(new Empty())).TransactionResult;
             
             return announceResult;
@@ -44,14 +44,14 @@ namespace AElf.Contracts.Election
 
         private async Task<TransactionResult> QuitElectionAsync(ECKeyPair keyPair)
         {
-            var electionStub = GetElectionContractStub(keyPair);
+            var electionStub = GetElectionContractTester(keyPair);
             return (await electionStub.QuitElection.SendAsync(new Empty())).TransactionResult;
         }
 
         private async Task<TransactionResult> VoteToCandidate(ECKeyPair voterKeyPair, string candidatePublicKey,
             int lockTime, long amount)
         {
-            var electionStub = GetElectionContractStub(voterKeyPair);
+            var electionStub = GetElectionContractTester(voterKeyPair);
             var voteResult = (await electionStub.Vote.SendAsync(new VoteMinerInput
             {
                 CandidatePubkey = candidatePublicKey,
@@ -82,7 +82,7 @@ namespace AElf.Contracts.Election
 
         private async Task<TransactionResult> WithdrawVotes(ECKeyPair keyPair, Hash voteId)
         {
-            var electionStub = GetElectionContractStub(keyPair);
+            var electionStub = GetElectionContractTester(keyPair);
             return (await electionStub.Withdraw.SendAsync(voteId)).TransactionResult;
         }
 

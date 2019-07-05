@@ -110,7 +110,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return RealTimeMinersInformation.Values.First(m => m.Order == 1).ExpectedMiningTime.ToDateTime();
         }
         
-        public Consensus.AEDPoS.Round ApplyNormalConsensusData(string publicKey, Hash previousInValue,
+        public Round ApplyNormalConsensusData(string publicKey, Hash previousInValue,
             Hash outValue, Hash signature)
         {
             if (!RealTimeMinersInformation.ContainsKey(publicKey))
@@ -280,7 +280,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return RealTimeMinersInformation.Values.Sum(minerInRound => minerInRound.ProducedBlocks);
         }
 
-        public bool IsTimeToChangeTerm(Consensus.AEDPoS.Round previousRound, Timestamp blockchainStartTimestamp,
+        public bool IsTimeToChangeTerm(Round previousRound, Timestamp blockchainStartTimestamp,
             long termNumber, long timeEachTerm)
         {
             var minersCount = previousRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null);
