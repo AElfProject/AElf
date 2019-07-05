@@ -2,9 +2,9 @@
 using Google.Protobuf;
 using Shouldly;
 
-namespace AElf.Types.Tests.Helpers
+namespace AElf.Types.Tests.Helper
 {
-    public class ByteStringHelpersTests
+    public class ByteStringHelperTests
     {
         [Fact]
         public void ByteString_Compare()
@@ -15,11 +15,11 @@ namespace AElf.Types.Tests.Helpers
             var byteString4 = ByteString.CopyFrom(new byte[3] { 10, 12, 14 });
             var byteString5 = ByteString.CopyFrom(new byte[3] { 00, 12, 14 });
 
-            ByteStringHelpers.Compare(ByteString.Empty, ByteString.Empty).ShouldBe(0);
-            ByteStringHelpers.Compare(byteString1, byteString2).ShouldBe(0);
-            ByteStringHelpers.Compare(byteString2, byteString3).ShouldBe(-1);
-            ByteStringHelpers.Compare(byteString3, byteString4).ShouldBe(-1);
-            ByteStringHelpers.Compare(byteString4, byteString5).ShouldBe(1);
+            ByteStringHelper.Compare(ByteString.Empty, ByteString.Empty).ShouldBe(0);
+            ByteStringHelper.Compare(byteString1, byteString2).ShouldBe(0);
+            ByteStringHelper.Compare(byteString2, byteString3).ShouldBe(-1);
+            ByteStringHelper.Compare(byteString3, byteString4).ShouldBe(-1);
+            ByteStringHelper.Compare(byteString4, byteString5).ShouldBe(1);
         }
     }
 }

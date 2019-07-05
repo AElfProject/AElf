@@ -29,8 +29,8 @@ namespace AElf.Contracts.Resource.FeeReceiver
             FeeReceiverContractAddress =
                 Tester.GetContractAddress(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
 
-            FeeKeyPair = CryptoHelpers.GenerateKeyPair();
-            FoundationKeyPair = CryptoHelpers.GenerateKeyPair();
+            FeeKeyPair = CryptoHelper.GenerateKeyPair();
+            FoundationKeyPair = CryptoHelper.GenerateKeyPair();
 
             AsyncHelper.RunSync(()=>InitFeeReceiverContract());
         }
@@ -61,7 +61,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         [Fact]
         public async Task FeeReceiver_WithDraw_WithoutPermission()
         {
-            var anotherUser = Tester.CreateNewContractTester(CryptoHelpers.GenerateKeyPair());
+            var anotherUser = Tester.CreateNewContractTester(CryptoHelper.GenerateKeyPair());
             var withdrawResult = await anotherUser.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
                 nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Withdraw), new SInt32Value {Value = 100});
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);

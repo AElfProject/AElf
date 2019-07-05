@@ -110,7 +110,7 @@ namespace AElf.CrossChain.Communication.Grpc
         
         private Task ConnectAsync(ICrossChainClient client)
         {
-            Logger.LogTrace($"Try handshake with chain {ChainHelpers.ConvertChainIdToBase58(client.RemoteChainId)}");
+            Logger.LogTrace($"Try handshake with chain {ChainHelper.ConvertChainIdToBase58(client.RemoteChainId)}");
             return client.ConnectAsync();
         }
         
