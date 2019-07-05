@@ -36,12 +36,12 @@ namespace AElf.OS.Network
             base.OnApplicationInitialization(context);
             
             var pool = context.ServiceProvider.GetRequiredService<IPeerPool>();
-            var channel = new Channel(GrpcTestConstants.FakeListeningPort, ChannelCredentials.Insecure);
+            var channel = new Channel(GrpcTestConstants.FakeIpEndpoint, ChannelCredentials.Insecure);
             
-            var connectionInfo = new GrpcPeerInfo
+            var connectionInfo = new PeerInfo
             {
-                PublicKey = GrpcTestConstants.FakePubKey2,
-                PeerIpAddress = GrpcTestConstants.FakeListeningPort,
+                Pubkey = GrpcTestConstants.FakePubkey2,
+                IpAddress = GrpcTestConstants.FakeIpEndpoint,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = 1,

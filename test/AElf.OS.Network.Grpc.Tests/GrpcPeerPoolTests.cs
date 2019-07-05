@@ -15,7 +15,7 @@ namespace AElf.OS.Network
         private const string TestIp = "127.0.0.1:6800";
         private readonly string _testPubKey;
 
-        private readonly GrpcPeerInfo _peerInfo;
+        private readonly PeerInfo _peerInfo;
 
         private readonly GrpcPeerPool _pool;
 
@@ -26,10 +26,10 @@ namespace AElf.OS.Network
             var keyPair = CryptoHelpers.GenerateKeyPair();
             _testPubKey = keyPair.PublicKey.ToHex();
             
-            _peerInfo = new GrpcPeerInfo
+            _peerInfo = new PeerInfo
             {
-                PublicKey = _testPubKey,
-                PeerIpAddress = TestIp,
+                Pubkey = _testPubKey,
+                IpAddress = TestIp,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = 1,
@@ -68,7 +68,7 @@ namespace AElf.OS.Network
         [Fact]
         public void IsAuthenticatePeer_Success()
         {
-            var result = _pool.FindPeerByAddress(GrpcTestConstants.FakePubKey);
+            var result = _pool.FindPeerByAddress(GrpcTestConstants.FakePubkey);
             result.ShouldBeNull();
         }
 

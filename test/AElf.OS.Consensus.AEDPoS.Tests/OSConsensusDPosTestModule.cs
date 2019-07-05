@@ -26,10 +26,10 @@ namespace AElf.OS.Consensus.DPos
             var peerList = new List<IPeer>();
             for (int i = 0; i < 3; i++)
             {
-                var connectionInfo = new GrpcPeerInfo
+                var connectionInfo = new PeerInfo
                 {
-                    PublicKey = $"bp{i + 1}-pubkey", 
-                    PeerIpAddress = $"127.0.0.1:68{i + 1}0",
+                    Pubkey = $"bp{i + 1}-pubkey", 
+                    IpAddress = $"127.0.0.1:68{i + 1}0",
                     ProtocolVersion = KernelConstants.ProtocolVersion,
                     ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                     StartHeight = 1,

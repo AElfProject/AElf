@@ -206,7 +206,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Disconnect_ShouldRemovePeer()
         {
-            await _service.Disconnect(new DisconnectReason(), BuildServerCallContext(new Metadata {{ GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubKey2}}));
+            await _service.Disconnect(new DisconnectReason(), BuildServerCallContext(new Metadata {{ GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubkey2}}));
             Assert.Empty(_peerPool.GetPeers(true));
         }
         
@@ -234,7 +234,7 @@ namespace AElf.OS.Network
             await _service.Connect(handshake, BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
             await _service.Connect(handshake, BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
 
-            var peers = _peerPool.GetPeers(true).Select(p => p.PubKey)
+            var peers = _peerPool.GetPeers(true).Select(p => p.Pubkey)
                 .Where(key => key == peerKeyPair.PublicKey.ToHex())
                 .ToList();
             
@@ -411,7 +411,7 @@ namespace AElf.OS.Network
             
             var continuation = new UnaryServerMethod<string, string>((s, y) => Task.FromResult(s));
             var metadata = new Metadata
-                {{GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubKey2}};
+                {{GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubkey2}};
             var context = BuildServerCallContext(metadata);
             var headerCount = context.RequestHeaders.Count;
             var result = await authInterceptor.UnaryServerHandler("test", context, continuation);

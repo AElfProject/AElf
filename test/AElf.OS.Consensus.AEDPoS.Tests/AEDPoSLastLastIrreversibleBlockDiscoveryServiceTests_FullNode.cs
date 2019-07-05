@@ -80,10 +80,10 @@ namespace AElf.OS.Consensus.DPos
         {
             var channel = new Channel(OSConsensusDPosTestConstants.FakeListeningPort, ChannelCredentials.Insecure);
             
-            var connectionInfo = new GrpcPeerInfo
+            var connectionInfo = new PeerInfo
             {
-                PublicKey = publicKey,
-                PeerIpAddress = OSConsensusDPosTestConstants.FakeListeningPort,
+                Pubkey = publicKey,
+                IpAddress = OSConsensusDPosTestConstants.FakeListeningPort,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = _connectionTime,
                 StartHeight = 1,

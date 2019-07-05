@@ -40,10 +40,10 @@ namespace AElf.WebApp.Application.Net.Tests
             var ipAddressOne = "192.168.1.1:1680";
             var channelOne = new Channel(ipAddressOne, ChannelCredentials.Insecure);
             
-            var connectionInfo = new GrpcPeerInfo
+            var connectionInfo = new PeerInfo
             {
-                PublicKey = "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399",
-                PeerIpAddress = ipAddressOne,
+                Pubkey = "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399",
+                IpAddress = ipAddressOne,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = connectionTime,
                 StartHeight = startHeight,
@@ -57,10 +57,10 @@ namespace AElf.WebApp.Application.Net.Tests
             var ipAddressTwo = "192.168.1.2:1680";
             var channelTwo = new Channel(ipAddressTwo, ChannelCredentials.Insecure);
             
-            var connectionInfoPeerTwo = new GrpcPeerInfo
+            var connectionInfoPeerTwo = new PeerInfo
             {
-                PublicKey = "0624dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab390",
-                PeerIpAddress = ipAddressTwo,
+                Pubkey = "0624dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab390",
+                IpAddress = ipAddressTwo,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = connectionTime,
                 StartHeight = startHeight,
@@ -86,10 +86,10 @@ namespace AElf.WebApp.Application.Net.Tests
             var ipAddressOne = "192.168.1.1:1680";
             var channelOne = new Channel(ipAddressOne, ChannelCredentials.Insecure);
             
-            var connectionInfoPeer = new GrpcPeerInfo
+            var connectionInfoPeer = new PeerInfo
             {
-                PublicKey = "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399",
-                PeerIpAddress = ipAddressOne,
+                Pubkey = "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399",
+                IpAddress = ipAddressOne,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = connectionTime,
                 StartHeight = 1,
@@ -102,10 +102,10 @@ namespace AElf.WebApp.Application.Net.Tests
             var ipAddressTwo = "192.168.1.2:1680";
             var channelTwo = new Channel(ipAddressTwo, ChannelCredentials.Insecure);
             
-            var connectionInfoPeerTwo = new GrpcPeerInfo
+            var connectionInfoPeerTwo = new PeerInfo
             {
-                PublicKey = "0624dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab390",
-                PeerIpAddress = ipAddressTwo,
+                Pubkey = "0624dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab390",
+                IpAddress = ipAddressTwo,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = connectionTime,
                 StartHeight = 1,
@@ -130,10 +130,10 @@ namespace AElf.WebApp.Application.Net.Tests
             var ipAddressOne = "192.168.1.1:1680";
             var channelOne = new Channel(ipAddressOne, ChannelCredentials.Insecure);
             
-            var connectionInfoPeer = new GrpcPeerInfo
+            var connectionInfoPeer = new PeerInfo
             {
-                PublicKey = "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399",
-                PeerIpAddress = ipAddressOne,
+                Pubkey = "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399",
+                IpAddress = ipAddressOne,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = connectionTime,
                 StartHeight = 1,
@@ -146,10 +146,10 @@ namespace AElf.WebApp.Application.Net.Tests
             var ipAddressTwo = "192.168.1.2:1680";
             var channelTwo = new Channel(ipAddressTwo, ChannelCredentials.Insecure);
             
-            var connectionInfoPeerTwo = new GrpcPeerInfo
+            var connectionInfoPeerTwo = new PeerInfo
             {
-                PublicKey = "0624dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab390",
-                PeerIpAddress = ipAddressTwo,
+                Pubkey = "0624dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab390",
+                IpAddress = ipAddressTwo,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = connectionTime,
                 StartHeight = 1,

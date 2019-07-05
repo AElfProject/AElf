@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.OS.Network.Grpc;
 using AElf.Types;
 
 namespace AElf.OS.Network.Infrastructure
@@ -9,18 +10,13 @@ namespace AElf.OS.Network.Infrastructure
         bool IsBest { get; set; }
         bool IsConnected { get; set; }
         bool IsReady { get; }
-
-        Hash CurrentBlockHash { get; }
-        long CurrentBlockHeight { get; }
-        long LastKnowLibHeight { get; }
-
-        string IpAddress { get; }
-        string PubKey { get; }
-        int ProtocolVersion { get; }
-        long ConnectionTime { get; }
-        bool Inbound { get; }
-        long StartHeight { get; }
         
+        long LastKnownLibHeight { get; }
+        string IpAddress { get; }
+        string Pubkey { get; }
+
+        PeerInfo Info { get; }
+
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
 
         Task UpdateHandshakeAsync();

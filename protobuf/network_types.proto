@@ -60,3 +60,24 @@ message BlockReply {
     string error = 1;
     BlockWithTransactions block = 2;
 }
+
+// **** Connection *****
+
+message ConnectReply {
+    Handshake handshake = 1;
+    AuthError error = 2;
+}
+
+enum AuthError {
+    NONE = 0;
+    UNKNOWN = 1;
+    WRONG_SIGNATURE = 2;
+    INVALID_HANDSHAKE = 3;
+    INVALID_PEER = 4;
+    CHAIN_MISMATCH = 5;
+    PROTOCOL_MISMATCH = 6;
+    CONNECTION_REFUSED = 7;
+}
+
+message UpdateHandshakeRequest {
+}

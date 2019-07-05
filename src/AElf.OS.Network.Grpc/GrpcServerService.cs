@@ -102,7 +102,7 @@ namespace AElf.OS.Network.Grpc
             
             // If auth ok -> add it to our peers
             if (_peerPool.AddPeer(grpcPeer))
-                Logger.LogDebug($"Added to pool {grpcPeer.PubKey}.");
+                Logger.LogDebug($"Added to pool {grpcPeer.Pubkey}.");
 
             // todo handle case where add is false (edge case)
 
@@ -132,10 +132,10 @@ namespace AElf.OS.Network.Grpc
 
             var pubKey = handshake.HandshakeData.Pubkey.ToHex();
             
-            var connectionInfo = new GrpcPeerInfo
+            var connectionInfo = new PeerInfo
             {
-                PublicKey = pubKey,
-                PeerIpAddress = peerAddress,
+                Pubkey = pubKey,
+                IpAddress = peerAddress,
                 ProtocolVersion = handshake.HandshakeData.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = handshake.BestChainBlockHeader.Height,

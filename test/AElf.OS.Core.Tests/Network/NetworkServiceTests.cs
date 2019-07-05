@@ -60,7 +60,7 @@ namespace AElf.OS.Network
         [Fact]
         public void GetPeers_ShouldIncludeFailing()
         {
-            Assert.Equal(_networkService.GetPeerIpList().Count, _peerPool.GetPeers(true).Count);
+            Assert.Equal(_networkService.GetPeers().Count, _peerPool.GetPeers(true).Count);
         }
         
         #endregion GetPeers

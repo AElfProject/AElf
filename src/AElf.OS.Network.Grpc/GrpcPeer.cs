@@ -42,19 +42,17 @@ namespace AElf.OS.Network.Grpc
             get { return (_channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready) && IsConnected; }
         }
         
-        public long LastKnowLibHeight { get; private set; }
+        public long LastKnownLibHeight { get; private set; }
 
         public bool IsBest { get; set; }
         public bool IsConnected { get; set; }
         public Hash CurrentBlockHash { get; private set; }
         public long CurrentBlockHeight { get; private set; }
-        
-        public string IpAddress { get; }
-        public string PubKey { get; }
-        public int ProtocolVersion { get; }
-        public long ConnectionTime { get; }
-        public bool Inbound { get; }
-        public long StartHeight { get; }
+
+        public string IpAddress => Info.IpAddress;
+        public string Pubkey => Info.Pubkey;
+
+        public PeerInfo Info { get; }
 
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
@@ -65,18 +63,12 @@ namespace AElf.OS.Network.Grpc
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
 
-        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, GrpcPeerInfo peerInfo)
+        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, PeerInfo peerInfo)
         {
             _channel = channel;
             _client = client;
-
-            IpAddress = peerInfo.PeerIpAddress;
-            PubKey = peerInfo.PublicKey;
-            ProtocolVersion = peerInfo.ProtocolVersion;
-            ConnectionTime = peerInfo.ConnectionTime;
-            Inbound = peerInfo.IsInbound;
-            StartHeight = peerInfo.StartHeight;
-            LastKnowLibHeight = peerInfo.LibHeightAtHandshake;
+            
+            Info = peerInfo;
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
@@ -112,7 +104,7 @@ namespace AElf.OS.Network.Grpc
         {
             GrpcRequest request = new GrpcRequest
             {
-                ErrorMessage = $"Error while updating handshake."
+                ErrorMessage = "Error while updating handshake."
             };
             
             Metadata data = new Metadata
@@ -123,7 +115,7 @@ namespace AElf.OS.Network.Grpc
             var handshake = await RequestAsync(_client, c => c.UpdateHandshakeAsync(new UpdateHandshakeRequest(), data), request);
              
             if (handshake != null)
-                LastKnowLibHeight = handshake.LibBlockHeight;
+                LastKnownLibHeight = handshake.LibBlockHeight;
         }
 
         public async Task<FinalizeConnectReply> FinalizeConnectAsync(Handshake handshake)
@@ -352,6 +344,8 @@ namespace AElf.OS.Network.Grpc
         {
             IsConnected = false;
             
+            // send disconnect message if the peer is still connected and the connection
+            // is stable.
             if (gracefulDisconnect && IsReady)
             {
                 GrpcRequest request = new GrpcRequest { ErrorMessage = "Error while sending disconnect." };
@@ -378,7 +372,7 @@ namespace AElf.OS.Network.Grpc
 
         public override string ToString()
         {
-            return $"{{ listening-port: {IpAddress}, key: {PubKey.Substring(0, 45)}... }}";
+            return $"{{ listening-port: {IpAddress}, key: {Pubkey.Substring(0, 45)}... }}";
         }
     }
 }

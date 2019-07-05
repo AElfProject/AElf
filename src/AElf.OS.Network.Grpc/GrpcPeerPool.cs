@@ -78,10 +78,10 @@ namespace AElf.OS.Network.Grpc
             
             var pubKey = connectReply.Handshake.HandshakeData.Pubkey.ToHex();
             
-            var connectionInfo = new GrpcPeerInfo 
+            var connectionInfo = new PeerInfo 
             { 
-                PublicKey = pubKey, 
-                PeerIpAddress = ipAddress,
+                Pubkey = pubKey, 
+                IpAddress = ipAddress,
                 ProtocolVersion = connectReply.Handshake.HandshakeData.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = connectReply.Handshake.BestChainBlockHeader.Height,
@@ -106,7 +106,7 @@ namespace AElf.OS.Network.Grpc
                 return false;
             }
             
-            Logger.LogTrace($"Connected to {peer} -- height {peer.StartHeight}.");
+            Logger.LogTrace($"Connected to {peer} -- height {peer.Info.StartHeight}.");
             
             FireConnectionEvent(connectReply, pubKey);
 
@@ -214,12 +214,12 @@ namespace AElf.OS.Network.Grpc
             
             string localPubKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex();
 
-            if (peer.PubKey == localPubKey)
-                throw new InvalidOperationException($"Connection to self detected {peer.PubKey} ({peer.IpAddress})");
+            if (peer.Pubkey == localPubKey)
+                throw new InvalidOperationException($"Connection to self detected {peer.Pubkey} ({peer.IpAddress})");
 
-            if (!_authenticatedPeers.TryAdd(p.PubKey, p))
+            if (!_authenticatedPeers.TryAdd(p.Pubkey, p))
             {
-                Logger.LogWarning($"Could not add peer {peer.PubKey} ({peer.IpAddress})");
+                Logger.LogWarning($"Could not add peer {peer.Pubkey} ({peer.IpAddress})");
                 return false;
             }
             
@@ -261,7 +261,7 @@ namespace AElf.OS.Network.Grpc
             var peer = _authenticatedPeers.FirstOrDefault(p => p.Value.IpAddress == address).Value;
 
             if (peer != null) 
-                return await RemovePeerAsync(peer.PubKey, true) != null;
+                return await RemovePeerAsync(peer.Pubkey, true) != null;
             
             Logger.LogWarning($"Could not find peer {address}.");
             

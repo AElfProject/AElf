@@ -60,10 +60,10 @@ namespace AElf.WebApp.Application.Net
             var peerDtoList = peerList.Select(p => new PeerDto
             {
                 IpAddress = p.IpAddress,
-                ProtocolVersion = p.ProtocolVersion,
-                ConnectionTime = p.ConnectionTime,
-                Inbound = p.Inbound,
-                StartHeight = p.StartHeight,
+                ProtocolVersion = p.Info.ProtocolVersion,
+                ConnectionTime = p.Info.ConnectionTime,
+                Inbound = p.Info.IsInbound,
+                StartHeight = p.Info.StartHeight,
                 RequestMetrics = p.GetRequestMetrics().Values.SelectMany(kvp => kvp).ToList()
             }).ToList();
             
@@ -80,7 +80,7 @@ namespace AElf.WebApp.Application.Net
             {
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 Version = Version,
-                Connections = _networkService.GetPeerIpList().Count
+                Connections = _networkService.GetPeers().Count
             };
             return Task.FromResult(output);
         }
