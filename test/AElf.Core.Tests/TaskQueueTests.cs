@@ -43,7 +43,7 @@ namespace AElf
                 _taskQueue.Enqueue(ProcessTask);
 
             while (_taskQueue.Size != 0)
-                Thread.Sleep(10);
+                await Task.Delay(10);
             
             _counter.ShouldBe(10);
         }
