@@ -41,14 +41,13 @@ namespace AElf.OS.Network
             var connectionInfo = new PeerInfo
             {
                 Pubkey = GrpcTestConstants.FakePubkey2,
-                IpAddress = GrpcTestConstants.FakeIpEndpoint,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = 1,
                 IsInbound = true
             };
             
-            pool.AddPeer(new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), connectionInfo));
+            pool.AddPeer(new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), GrpcTestConstants.FakeIpEndpoint, connectionInfo));
         }
     }
 }

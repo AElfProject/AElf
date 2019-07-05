@@ -60,7 +60,7 @@ namespace AElf.OS.Network
             });
 
             Hash hash = Hash.Generate();
-            await _service.SendAnnounce(new BlockAnnouncement
+            await _service.SendAnnouncement(new BlockAnnouncement
             {
                 BlockHeight = 10, BlockHash = hash
             }, BuildServerCallContext());
@@ -234,7 +234,7 @@ namespace AElf.OS.Network
             await _service.Connect(handshake, BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
             await _service.Connect(handshake, BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
 
-            var peers = _peerPool.GetPeers(true).Select(p => p.Pubkey)
+            var peers = _peerPool.GetPeers(true).Select(p => p.Info.Pubkey)
                 .Where(key => key == peerKeyPair.PublicKey.ToHex())
                 .ToList();
             

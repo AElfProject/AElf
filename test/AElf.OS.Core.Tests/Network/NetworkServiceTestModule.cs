@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +24,7 @@ namespace AElf.OS
             
             Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
             var p3 = new Mock<IPeer>();
+            p3.Setup(p => p.Info).Returns(new PeerInfo { Pubkey = "pBestPeer" });
             
             var recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             
@@ -37,7 +39,7 @@ namespace AElf.OS
                     
                     var blockWithTransactions = osTestHelper.Value.GenerateBlockWithTransactions(Hash.Empty, 10);
 
-                    p1.Setup(p => p.Pubkey).Returns("p1");
+                    p1.Setup(p => p.Info).Returns(new PeerInfo { Pubkey = "p1" });
                     p1.Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions>()));
                     
@@ -51,7 +53,7 @@ namespace AElf.OS
                 .Returns<string>(adr =>
                 {
                     var p1 = new Mock<IPeer>();
-                    p1.Setup(p => p.Pubkey).Returns("p1");
+                    p1.Setup(p => p.Info).Returns(new PeerInfo { Pubkey = "p1" });
                     p1.Setup(p => p.GetBlockByHashAsync(It.IsAny<Hash>())).Throws(new NetworkException());
                     p1.Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>())).Throws(new NetworkException());
                     return p1.Object;
@@ -65,7 +67,7 @@ namespace AElf.OS
                     var blockWithTransactions = osTestHelper.Value.GenerateBlockWithTransactions(Hash.Empty, 10);
 
                     var p2 = new Mock<IPeer>();
-                    p2.Setup(p => p.Pubkey).Returns("p2");
+                    p2.Setup(p => p.Info).Returns(new PeerInfo { Pubkey = "p2" });
                     p2.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("block")), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { blockWithTransactions }));
                     p2.Setup(p => p.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("block"))))
@@ -74,7 +76,7 @@ namespace AElf.OS
                     
                     
                     p3.SetupProperty(p => p.IsBest, true);
-                    p3.Setup(p => p.Pubkey).Returns("p3");
+                    p3.Setup(p => p.Info).Returns(new PeerInfo { Pubkey = "p3" });
                     p3.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("blocks")), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { blockWithTransactions, blockWithTransactions }));
                     p3.Setup(p => p.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("bHash2"))))
@@ -82,7 +84,7 @@ namespace AElf.OS
                     peers.Add(p3.Object);
                     
                     var exceptionOnBcast = new Mock<IPeer>();
-                    exceptionOnBcast.Setup(p => p.Pubkey).Returns("exceptionOnBcast");
+                    exceptionOnBcast.Setup(p => p.Info).Returns(new PeerInfo { Pubkey = "exceptionOnBcast" });
                     exceptionOnBcast.Setup(p => p.SendAnnouncementAsync(It.IsAny<BlockAnnouncement>()))
                         .Throws(new NetworkException());
                     exceptionOnBcast.Setup(p => p.SendTransactionAsync(It.IsAny<Transaction>()))

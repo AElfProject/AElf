@@ -13,7 +13,6 @@ namespace AElf.OS.Network.Infrastructure
         
         long LastKnownLibHeight { get; }
         string IpAddress { get; }
-        string Pubkey { get; }
 
         PeerInfo Info { get; }
 

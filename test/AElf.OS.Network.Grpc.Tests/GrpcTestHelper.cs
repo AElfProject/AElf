@@ -25,14 +25,13 @@ namespace AElf.OS.Network
             var connectionInfo = new PeerInfo
             {
                 Pubkey = GrpcTestConstants.FakePubkey,
-                IpAddress = ipAddress,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = 1,
                 IsInbound = true
             };
 
-            return new GrpcPeer(channel, client, connectionInfo);
+            return new GrpcPeer(channel, client, ipAddress, connectionInfo);
         }
     }
 }

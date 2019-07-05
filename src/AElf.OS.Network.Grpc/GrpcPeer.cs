@@ -50,8 +50,7 @@ namespace AElf.OS.Network.Grpc
         public Hash CurrentBlockHash { get; private set; }
         public long CurrentBlockHeight { get; private set; }
 
-        public string IpAddress => Info.IpAddress;
-        public string Pubkey => Info.Pubkey;
+        public string IpAddress { get; }
 
         public PeerInfo Info { get; }
 
@@ -64,12 +63,13 @@ namespace AElf.OS.Network.Grpc
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
 
-        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, PeerInfo peerInfo)
+        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string ipAddress, PeerInfo peerExtraInfo)
         {
             _channel = channel;
             _client = client;
-            
-            Info = peerInfo;
+
+            IpAddress = ipAddress;
+            Info = peerExtraInfo;
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
@@ -388,7 +388,7 @@ namespace AElf.OS.Network.Grpc
 
         public override string ToString()
         {
-            return $"{{ listening-port: {IpAddress}, key: {Pubkey.Substring(0, 45)}... }}";
+            return $"{{ listening-port: {IpAddress}, key: {Info.Pubkey.Substring(0, 45)}... }}";
         }
     }
 }

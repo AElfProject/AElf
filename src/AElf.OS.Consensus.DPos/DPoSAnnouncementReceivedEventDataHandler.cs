@@ -94,7 +94,7 @@ namespace AElf.OS.Consensus.DPos
             var chainContext = new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight};
             var pubkeyList = (await _dpoSInformationProvider.GetCurrentMinerList(chainContext)).ToList();
 
-            var peers = _peerPool.GetPeers().Where(p => pubkeyList.Contains(p.Pubkey)).ToList();
+            var peers = _peerPool.GetPeers().Where(p => pubkeyList.Contains(p.Info.Pubkey)).ToList();
 
             var pubKey = (await _accountService.GetPublicKeyAsync()).ToHex();
             if (peers.Count == 0 && !pubkeyList.Contains(pubKey))

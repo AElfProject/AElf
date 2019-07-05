@@ -105,7 +105,7 @@ namespace AElf.OS.Network.Grpc
             
             // If auth ok -> add it to our peers
             if (_peerPool.AddPeer(grpcPeer))
-                Logger.LogDebug($"Added to pool {grpcPeer.Pubkey}.");
+                Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
 
             // todo handle case where add is false (edge case)
 
@@ -138,7 +138,6 @@ namespace AElf.OS.Network.Grpc
             var connectionInfo = new PeerInfo
             {
                 Pubkey = pubKey,
-                IpAddress = peerAddress,
                 ProtocolVersion = handshake.HandshakeData.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = handshake.BestChainBlockHeader.Height,
@@ -146,7 +145,7 @@ namespace AElf.OS.Network.Grpc
                 LibHeightAtHandshake = handshake.LibBlockHeight
             };
             
-            return new GrpcPeer(channel, client, connectionInfo);
+            return new GrpcPeer(channel, client, peerAddress, connectionInfo);
         }
 
         private AuthError ValidateHandshake(Handshake handshake)

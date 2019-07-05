@@ -29,7 +29,6 @@ namespace AElf.OS.Network
             _peerInfo = new PeerInfo
             {
                 Pubkey = _testPubKey,
-                IpAddress = TestIp,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = 1,
@@ -40,7 +39,7 @@ namespace AElf.OS.Network
         [Fact]
         public void GetPeer_RemoteAddressOrPubKeyAlreadyPresent_ShouldReturnPeer()
         {
-            _pool.AddPeer(new GrpcPeer(null, null, _peerInfo));
+            _pool.AddPeer(new GrpcPeer(null, null, TestIp, _peerInfo));
             
             Assert.NotNull(_pool.FindPeerByAddress(TestIp));
             Assert.NotNull(_pool.FindPeerByPublicKey(_testPubKey));
@@ -49,7 +48,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task AddPeerAsync_PeerAlreadyConnected_ShouldReturnFalse()
         {
-            _pool.AddPeer( new GrpcPeer(null, null, _peerInfo));
+            _pool.AddPeer( new GrpcPeer(null, null, TestIp, _peerInfo));
 
             var added = await _pool.AddPeerAsync(TestIp);
             
@@ -85,7 +84,7 @@ namespace AElf.OS.Network
         {
             var channel = new Channel(TestIp, ChannelCredentials.Insecure);
             var client = new PeerService.PeerServiceClient(channel);
-            _pool.AddPeer(new GrpcPeer(channel, client, _peerInfo));
+            _pool.AddPeer(new GrpcPeer(channel, client, TestIp, _peerInfo));
             _pool.FindPeerByAddress(TestIp).ShouldNotBeNull();
 
             await _pool.RemovePeerByAddressAsync(TestIp);

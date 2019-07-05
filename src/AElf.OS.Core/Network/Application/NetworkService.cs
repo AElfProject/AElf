@@ -160,14 +160,14 @@ namespace AElf.OS.Network.Application
             
             if (bestPeer == null)
                 Logger.LogWarning("No best peer.");
-            else if (bestPeer.Pubkey != peerPubKey)
+            else if (bestPeer.Info.Pubkey != peerPubKey)
                 peers.Add(bestPeer);
             
             Random rnd = new Random();
             
             // Fill with random peers.
             List<IPeer> randomPeers = _peerPool.GetPeers()
-                .Where(p => p.Pubkey != peerPubKey && (bestPeer == null || p.Pubkey != bestPeer.Pubkey))
+                .Where(p => p.Info.Pubkey != peerPubKey && (bestPeer == null || p.Info.Pubkey != bestPeer.Info.Pubkey))
                 .OrderBy(x => rnd.Next())
                 .Take(NetworkConstants.DefaultMaxRandomPeersPerRequest)
                 .ToList();
@@ -208,7 +208,7 @@ namespace AElf.OS.Network.Application
         {
             if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
             {
-                await _peerPool.RemovePeerAsync(peer.Pubkey, false);
+                await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false);
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
             {
@@ -225,7 +225,7 @@ namespace AElf.OS.Network.Application
             var success = await peer.TryRecoverAsync();
 
             if (!success)
-                await _peerPool.RemovePeerAsync(peer.Pubkey, false);
+                await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false);
         }
         
         private void QueueNetworkTask(Func<Task> task)
@@ -270,8 +270,8 @@ namespace AElf.OS.Network.Application
             
             UpdateBestPeer(taskPeer);
             
-            if (suggested != taskPeer.Pubkey)
-                Logger.LogWarning($"Suggested {suggested}, used {taskPeer.Pubkey}");
+            if (suggested != taskPeer.Info.Pubkey)
+                Logger.LogWarning($"Suggested {suggested}, used {taskPeer.Info.Pubkey}");
             
             Logger.LogDebug($"First replied {taskRes} : {taskPeer}.");
 

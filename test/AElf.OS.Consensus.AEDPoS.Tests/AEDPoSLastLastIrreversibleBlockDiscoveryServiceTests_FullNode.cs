@@ -78,19 +78,18 @@ namespace AElf.OS.Consensus.DPos
 
         private void AddPeer(string publicKey,int blockHeight)
         {
-            var channel = new Channel(OSConsensusDPosTestConstants.FakeListeningPort, ChannelCredentials.Insecure);
+            var channel = new Channel(OSConsensusDPosTestConstants.FakeIpEndpoint, ChannelCredentials.Insecure);
             
             var connectionInfo = new PeerInfo
             {
                 Pubkey = publicKey,
-                IpAddress = OSConsensusDPosTestConstants.FakeListeningPort,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = _connectionTime,
                 StartHeight = 1,
                 IsInbound = true
             };
             
-            var peer = new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), connectionInfo);
+            var peer = new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), OSConsensusDPosTestConstants.FakeIpEndpoint, connectionInfo);
             peer.IsConnected = true;
             var blocks = _osTestHelper.BestBranchBlockList.GetRange(0, blockHeight);
             foreach (var block in blocks)

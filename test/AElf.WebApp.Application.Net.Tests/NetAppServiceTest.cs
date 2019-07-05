@@ -43,14 +43,13 @@ namespace AElf.WebApp.Application.Net.Tests
             var connectionInfo = new PeerInfo
             {
                 Pubkey = "048f5ced21f8d687cb9ade1c22dc0e183b05f87124c82073f5d82a09b139cc466efbfb6f28494d0a9d7366fcb769fe5436cfb7b5d322a2b0f69c4bcb1c33ac24ad",
-                IpAddress = ipAddressOne,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = connectionTime,
                 StartHeight = startHeight,
                 IsInbound = true
             };
             
-            var peerOne = new GrpcPeer(channelOne, new PeerService.PeerServiceClient(channelOne), connectionInfo);
+            var peerOne = new GrpcPeer(channelOne, new PeerService.PeerServiceClient(channelOne), ipAddressOne, connectionInfo);
             
             _peerPool.AddPeer(peerOne);
             
@@ -60,14 +59,13 @@ namespace AElf.WebApp.Application.Net.Tests
             var connectionInfoPeerTwo = new PeerInfo
             {
                 Pubkey = "040a7bf44d2c79fe5e270943773783a24eed5cda3e71fa49470cdba394a23832d5c831e233cddebea2720c194dffadd656d4dedf84643818ca77edeee17ad4307a",
-                IpAddress = ipAddressTwo,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = connectionTime,
                 StartHeight = startHeight,
                 IsInbound = false
             };
             
-            var peerTwo = new GrpcPeer(channelTwo, new PeerService.PeerServiceClient(channelTwo), connectionInfoPeerTwo);
+            var peerTwo = new GrpcPeer(channelTwo, new PeerService.PeerServiceClient(channelTwo), ipAddressOne, connectionInfoPeerTwo);
             _peerPool.AddPeer(peerTwo);
             var peers = await GetResponseAsObjectAsync<List<PeerDto>>("api/net/peers");
             peers.Count.ShouldBe(2);
@@ -89,14 +87,13 @@ namespace AElf.WebApp.Application.Net.Tests
             var connectionInfoPeer = new PeerInfo
             {
                 Pubkey = "048f5ced21f8d687cb9ade1c22dc0e183b05f87124c82073f5d82a09b139cc466efbfb6f28494d0a9d7366fcb769fe5436cfb7b5d322a2b0f69c4bcb1c33ac24ad",
-                IpAddress = ipAddressOne,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = connectionTime,
                 StartHeight = 1,
                 IsInbound = false
             };
             
-            var peerOne = new GrpcPeer(channelOne, new PeerService.PeerServiceClient(channelOne), connectionInfoPeer);
+            var peerOne = new GrpcPeer(channelOne, new PeerService.PeerServiceClient(channelOne), ipAddressOne, connectionInfoPeer);
             _peerPool.AddPeer(peerOne);
             
             var ipAddressTwo = "192.168.1.2:1680";
@@ -105,14 +102,13 @@ namespace AElf.WebApp.Application.Net.Tests
             var connectionInfoPeerTwo = new PeerInfo
             {
                 Pubkey = "040a7bf44d2c79fe5e270943773783a24eed5cda3e71fa49470cdba394a23832d5c831e233cddebea2720c194dffadd656d4dedf84643818ca77edeee17ad4307a",
-                IpAddress = ipAddressTwo,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = connectionTime,
                 StartHeight = 1,
                 IsInbound = false
             };
             
-            var peerTwo = new GrpcPeer(channelTwo, new PeerService.PeerServiceClient(channelTwo), connectionInfoPeerTwo);
+            var peerTwo = new GrpcPeer(channelTwo, new PeerService.PeerServiceClient(channelTwo), ipAddressTwo, connectionInfoPeerTwo);
             _peerPool.AddPeer(peerTwo);
             
             var response = await DeleteResponseAsObjectAsync<bool>($"/api/net/peer?address={ipAddressOne}");
@@ -133,14 +129,13 @@ namespace AElf.WebApp.Application.Net.Tests
             var connectionInfoPeer = new PeerInfo
             {
                 Pubkey = "048f5ced21f8d687cb9ade1c22dc0e183b05f87124c82073f5d82a09b139cc466efbfb6f28494d0a9d7366fcb769fe5436cfb7b5d322a2b0f69c4bcb1c33ac24ad",
-                IpAddress = ipAddressOne,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = connectionTime,
                 StartHeight = 1,
                 IsInbound = true
             };
             
-            var peerOne = new GrpcPeer(channelOne, new PeerService.PeerServiceClient(channelOne), connectionInfoPeer);
+            var peerOne = new GrpcPeer(channelOne, new PeerService.PeerServiceClient(channelOne), ipAddressOne, connectionInfoPeer);
             _peerPool.AddPeer(peerOne);
             
             var ipAddressTwo = "192.168.1.2:1680";
@@ -149,14 +144,13 @@ namespace AElf.WebApp.Application.Net.Tests
             var connectionInfoPeerTwo = new PeerInfo
             {
                 Pubkey = "040a7bf44d2c79fe5e270943773783a24eed5cda3e71fa49470cdba394a23832d5c831e233cddebea2720c194dffadd656d4dedf84643818ca77edeee17ad4307a",
-                IpAddress = ipAddressTwo,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = connectionTime,
                 StartHeight = 1,
                 IsInbound = false
             };
             
-            var peerTwo = new GrpcPeer(channelTwo, new PeerService.PeerServiceClient(channelTwo),connectionInfoPeerTwo);
+            var peerTwo = new GrpcPeer(channelTwo, new PeerService.PeerServiceClient(channelTwo), ipAddressTwo, connectionInfoPeerTwo);
             _peerPool.AddPeer(peerTwo);
             
             var peers = await GetResponseAsObjectAsync<List<PeerDto>>("api/net/peers");
