@@ -12,7 +12,7 @@ namespace AElf
             var lifeTime = base.GetServiceLifetimeFromClassHierarcy(type);
             if (lifeTime != null)
             {
-                return lifeTime;
+                return null;
             }
 
             var interfaceName = "I" + type.Name;

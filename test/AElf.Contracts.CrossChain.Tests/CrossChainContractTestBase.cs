@@ -42,7 +42,7 @@ namespace AElf.Contract.CrossChain.Tests
             CrossChainContractAddress = Tester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
             ConsensusContractAddress = Tester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
-            ParliamentAddress = Tester.GetContractAddress(ParliamentAuthContractAddressNameProvider.Name);
+            ParliamentAddress = Tester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
         }
 
         protected async Task ApproveBalance(long amount)
