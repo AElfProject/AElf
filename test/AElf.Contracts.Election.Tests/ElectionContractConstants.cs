@@ -16,6 +16,5 @@ namespace AElf.Contracts.Election
         public const int BasicMinerRewardWeight = 4;
         public const int VotesWeightRewardWeight = 1;
         public const int ReElectionRewardWeight = 1;
-
     }
 }
