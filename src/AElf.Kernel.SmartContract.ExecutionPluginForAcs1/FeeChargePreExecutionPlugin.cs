@@ -44,7 +44,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 Name = context.TransactionContext.Transaction.MethodName
             });
             
-            if (!fee.SymbolToAmount.Any())
+            if (!fee.Amounts.Any())
             {
                 return new List<Transaction>();
             }
@@ -72,7 +72,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 
             var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
             {
-                SymbolToAmount = {fee.SymbolToAmount}
+                SymbolToAmount = {fee.Amounts.ToDictionary(a => a.Symbol, a => a.Amount)}
             })).Transaction;
             return new List<Transaction>
             {

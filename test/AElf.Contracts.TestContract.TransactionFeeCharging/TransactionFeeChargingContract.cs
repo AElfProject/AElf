@@ -34,13 +34,13 @@ namespace AElf.Contracts.TestContract.TransactionFeeCharging
             return new Empty();
         }
 
-        public override Empty SetMethodFee(SetMethodFeeInput input)
+        public override Empty SetMethodFee(TokenAmounts input)
         {
-            State.TransactionFees[input.Method] = new TokenAmount {SymbolToAmount = {input.SymbolToAmount}};
+            State.TransactionFees[input.Method] = input;
             return new Empty();
         }
 
-        public override TokenAmount GetMethodFee(MethodName input)
+        public override TokenAmounts GetMethodFee(MethodName input)
         {
             return State.TransactionFees[input.Name];
         }

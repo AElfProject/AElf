@@ -15,6 +15,6 @@ namespace AElf.Contracts.Profit
 
         public MappedState<Address, CreatedProfitIds> CreatedProfitIds { get; set; }
         
-        public MappedState<string, TokenAmount> TransactionFees { get; set; }
+        public MappedState<string, TokenAmounts> TransactionFees { get; set; }
     }
 }

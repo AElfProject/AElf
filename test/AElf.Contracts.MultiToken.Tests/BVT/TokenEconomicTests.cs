@@ -217,25 +217,25 @@ namespace AElf.Contracts.MultiToken
                     {
                         Name = nameof(TokenContractContainer.TokenContractStub.Transfer)
                     });
-                fee.SymbolToAmount.Keys.ShouldNotContain(AliceCoinTokenInfo.Symbol);
+                fee.Amounts.Select(a => a.Symbol).ShouldNotContain(AliceCoinTokenInfo.Symbol);
             }
 
             // Set method fee.
-            var resultSet = (await feeChargerStub.SetMethodFee.SendAsync(new SetMethodFeeInput
+            var resultSet = (await feeChargerStub.SetMethodFee.SendAsync(new TokenAmounts
             {
                 Method = nameof(TokenContractContainer.TokenContractStub.Transfer),
-                SymbolToAmount = {new Dictionary<string, long> {{AliceCoinTokenInfo.Symbol, 10L}}}
+                Amounts = {new TokenAmount {Symbol = AliceCoinTokenInfo.Symbol, Amount = 10L}}
             })).TransactionResult;
             resultSet.Status.ShouldBe(TransactionResultStatus.Mined);
 
             // Check fee.
             {
                 var fee = await feeChargerStub.GetMethodFee.CallAsync(
-                    new MethodName()
+                    new MethodName
                     {
                         Name = nameof(TokenContractContainer.TokenContractStub.Transfer)
                     });
-                fee.SymbolToAmount[AliceCoinTokenInfo.Symbol].ShouldBe(10L);
+                fee.Amounts.First(a => a.Symbol == AliceCoinTokenInfo.Symbol).Amount.ShouldBe(10L);
             }
         }
     }

@@ -7,30 +7,30 @@ namespace AElf.Contracts.Vote
 {
     public partial class VoteContract
     {
-        public override TokenAmount GetMethodFee(MethodName input)
+        public override TokenAmounts GetMethodFee(MethodName input)
         {
-            var tokenAmount = State.TransactionFees[input.Name];
-            if (tokenAmount != null)
+            var tokenAmounts = State.TransactionFees[input.Name];
+            if (tokenAmounts != null)
             {
-                return tokenAmount;
+                return tokenAmounts;
             }
 
             switch (input.Name)
             {
                 case nameof(Register):
-                    return new TokenAmount
+                    return new TokenAmounts
                     {
-                        SymbolToAmount = { {Context.Variables.NativeSymbol, 10_00000000}}
+                        Amounts = {new TokenAmount {Symbol = Context.Variables.NativeSymbol, Amount = 10_00000000}}
                     };
                 default:
-                    return new TokenAmount
+                    return new TokenAmounts
                     {
-                        SymbolToAmount = { {Context.Variables.NativeSymbol, 1_00000000}}
+                        Amounts = {new TokenAmount {Symbol = Context.Variables.NativeSymbol, Amount = 1_00000000}}
                     };
             }
         }
 
-        public override Empty SetMethodFee(SetMethodFeeInput input)
+        public override Empty SetMethodFee(TokenAmounts input)
         {
             if (State.ParliamentAuthContract.Value == null)
             {
@@ -39,7 +39,7 @@ namespace AElf.Contracts.Vote
             }
 
             Assert(Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()));
-            State.TransactionFees[input.Method] = new TokenAmount {SymbolToAmount = {input.SymbolToAmount}};
+            State.TransactionFees[input.Method] = input;
 
             return new Empty();
         }

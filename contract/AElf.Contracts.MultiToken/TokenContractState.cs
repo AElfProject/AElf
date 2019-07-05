@@ -13,7 +13,7 @@ namespace AElf.Contracts.MultiToken
     public class TokenContractState : ContractState
     {
         public StringState NativeTokenSymbol { get; set; }
-        public MappedState<string, TokenAmount> MethodFees { get; set; }
+        public MappedState<string, TokenAmounts> MethodFees { get; set; }
         public MappedState<string, TokenInfo> TokenInfos { get; set; }
         public MappedState<Address, string, long> Balances { get; set; }
         public MappedState<Address, Address, string, long> Allowances { get; set; }

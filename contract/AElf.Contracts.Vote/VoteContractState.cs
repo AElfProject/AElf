@@ -26,6 +26,6 @@ namespace AElf.Contracts.Vote
         /// </summary>
         public MappedState<Address, VotedItems> VotedItemsMap { get; set; }
 
-        public MappedState<string, TokenAmount> TransactionFees { get; set; }
+        public MappedState<string, TokenAmounts> TransactionFees { get; set; }
     }
 }

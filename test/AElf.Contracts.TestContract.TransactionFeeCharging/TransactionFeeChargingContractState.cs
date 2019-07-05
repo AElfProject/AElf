@@ -6,6 +6,6 @@ namespace AElf.Contracts.TestContract.TransactionFeeCharging
 {
     public partial class TransactionFeeChargingContractState : ContractState
     {
-        public MappedState<string, TokenAmount> TransactionFees { get; set; }
+        public MappedState<string, TokenAmounts> TransactionFees { get; set; }
     }
 }

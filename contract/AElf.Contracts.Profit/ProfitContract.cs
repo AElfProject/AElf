@@ -9,16 +9,24 @@ using Google.Protobuf.WellKnownTypes;
 namespace AElf.Contracts.Profit
 {
     /// <summary>
-    /// Ean created a profit item A: Ean call CreateProfitItem
-    /// GL created another profit item B: GL call CreateProfitItem
-    /// Ean register profit item B as a sub profit item as A: Ean call RegisterSubProfitItem (Weight : 1)
-    /// Anil has an account, address is C.
-    /// Ean register address C as a profit receiver as A: Ean call AddWeight (Weight : 1)
-    /// PI_A : PI_B & Receiver_C (Total Weight: 2)
-    /// Ean add some ELF tokens to PI_A: Ean call AddProfits ("ELF", 1000L)
-    /// When Ean call ReleaseProfit: Balance of PI_B is 500L (PI_B's general ledger balance, also the virtual address of PI_B is 500L),
-    /// Balance of PI_A's virtual address of first period is 500L.
-    /// Anil can only get his profits by calling Profit (profit id of PI_A, "ELF")
+    /// Let's imagine a scenario:
+    /// 1. Ean creates a profit item FOO: Ean calls CreateProfitItem. We call this profit item PI_FOO.
+    /// 2. GL creates another profit item BAR: GL calls CreateProfitItem. We call this profit item PI_BAR.
+    /// 3. Ean (as the creator of PI_FOO) register PI_BAR as a sub profit item as PI_FOO:
+    /// Ean call RegisterSubProfitItem (ProfitId: PI_BAR's profit id, Weight : 1)
+    /// 4. Anil has an account which address is ADDR_Anil.
+    /// 5. Ean registers address ADDR_Anil as a profit receiver of PI_FOO: Ean calls AddWeight (Receiver: ADDR_Anil, Weight : 1)
+    /// 6: Now PI_FOO is organized like this:
+    ///         PI_FOO
+    ///        /      \
+    ///       1        1
+    ///      /          \
+    ///    PI_BAR     ADDR_Anil
+    ///    (Total Weight is 2)
+    /// 7. Ean adds some ELF tokens to PI_FOO: Ean calls AddProfits (Symbol: "ELF", Amount: 1000L, Period: 1)
+    /// 8. Ean calls ReleaseProfit: Balance of PI_BAR is 500L (PI_BAR's general ledger balance, also we can say balance of virtual address of PI_BAR is 500L),
+    /// 9. Balance of PI_FOO's virtual address of first period is 500L.
+    /// 10. Anil can only get his profits by calling Profit (ProfitId: PI_BAR's profit id, Symbol: "ELF")
     /// </summary>
     public partial class ProfitContract : ProfitContractContainer.ProfitContractBase
     {
