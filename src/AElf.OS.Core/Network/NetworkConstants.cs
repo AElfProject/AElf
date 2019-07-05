@@ -10,6 +10,10 @@ namespace AElf.OS.Network
         public const int DefaultMaxPeers = 25;
         
         public const int DefaultInitialSyncOffset = 512;
+        
+        public const int DefaultDiscoveryMaxNodesToRequest = 10;
+        public const int DefaultDiscoveryPeriodInMilliSeconds = 60_000;
+        public const int DefaultDiscoveryPeersToRequestCount = 5;
 
         public const string PeerReconnectionQueueName = "PeerReconnectionQueue";
     }
