@@ -19,10 +19,10 @@ namespace AElf.Kernel.Types.Tests
 
         private Hash GetHashFromHexString(params string[] strings)
         {
-            var hash = Hash.LoadByteArray(ByteArrayHelpers.FromHexString(strings[0]));
+            var hash = Hash.LoadByteArray(ByteArrayHelper.FromHexString(strings[0]));
             foreach (var s in strings.Skip(1))
             {
-                hash = Hash.FromRawBytes(hash.DumpByteArray().Concat(ByteArrayHelpers.FromHexString(s)).ToArray());
+                hash = Hash.FromRawBytes(hash.DumpByteArray().Concat(ByteArrayHelper.FromHexString(s)).ToArray());
             }
 
             return hash;
@@ -56,7 +56,7 @@ namespace AElf.Kernel.Types.Tests
             //See if the hash of merkle tree is equal to the element’s hash.
             var root = tree.ComputeRootHash();
             var path = tree.GenerateMerklePath(0);
-            var hash = Hash.LoadByteArray(ByteArrayHelpers.FromHexString(hex));
+            var hash = Hash.LoadByteArray(ByteArrayHelper.FromHexString(hex));
             var calculatedRoot = path.ComputeBinaryMerkleTreeRootWithLeafNodes();
             Assert.Contains(hash, path);
             Assert.Equal(root, calculatedRoot);
@@ -98,7 +98,7 @@ namespace AElf.Kernel.Types.Tests
             var hash4 = CreateLeafFromHex(hex4);
 
             string hex5 = "bac4adcf8066921237320cdcddb721f5ba5d34065b9c54fe7f9893d8dfe52f17";
-            var hash5 = Hash.FromRawBytes(ByteArrayHelpers.FromHexString(hex5)
+            var hash5 = Hash.FromRawBytes(ByteArrayHelper.FromHexString(hex5)
                 .Concat(Encoding.UTF8.GetBytes(TransactionResultStatus.Mined.ToString())).ToArray());
             tree.AddNodes(new []{hash1, hash2, hash3, hash4, hash5});
 
@@ -297,7 +297,7 @@ namespace AElf.Kernel.Types.Tests
 
         private Hash CreateLeafFromHex(string hex)
         {
-            return Hash.LoadByteArray(ByteArrayHelpers.FromHexString(hex));
+            return Hash.LoadByteArray(ByteArrayHelper.FromHexString(hex));
         }
 
         private Hash ComputeMerklePath(Hash leaf, IList<Hash> path)

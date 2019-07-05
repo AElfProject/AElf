@@ -11,7 +11,7 @@ using Virgil.Crypto;
 
 namespace AElf.Cryptography
 {
-    public static class CryptoHelpers
+    public static class CryptoHelper
     {
         private static readonly Secp256k1 Secp256K1 = new Secp256k1();
 
@@ -20,7 +20,7 @@ namespace AElf.Cryptography
         // ReaderWriterLock for thread-safe with Secp256k1 APIs
         private static readonly ReaderWriterLock Lock = new ReaderWriterLock();
 
-        static CryptoHelpers()
+        static CryptoHelper()
         {
             AppDomain.CurrentDomain.ProcessExit += (sender, arg) => { Secp256K1.Dispose(); };
         }

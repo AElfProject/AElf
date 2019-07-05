@@ -13,7 +13,7 @@ using AElf.Contracts.Profit;
 using AElf.Contracts.ReferendumAuth;
 using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.TokenConverter;
-using AElf.Runtime.CSharp.Helpers;
+using AElf.Runtime.CSharp.Helper;
 using AElf.Runtime.CSharp.Validators;
 using AElf.Runtime.CSharp.Validators.Method;
 using Mono.Cecil.Cil;

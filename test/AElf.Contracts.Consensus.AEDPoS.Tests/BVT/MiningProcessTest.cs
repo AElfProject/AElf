@@ -32,7 +32,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }).ToDictionary(t => t.Pubkey.ToHex(), t => t);
 
             var voter = GetElectionContractTester(VotersKeyPairs[0]);
-            var oneMoreCandidateKeyPair = CryptoHelpers.GenerateKeyPair();
+            var oneMoreCandidateKeyPair = CryptoHelper.GenerateKeyPair();
             await GetTokenContractTester(BootMinerKeyPair).Transfer.SendAsync(new TransferInput
             {
                 Symbol = "ELF",

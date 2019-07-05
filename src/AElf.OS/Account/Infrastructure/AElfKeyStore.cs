@@ -104,7 +104,7 @@ namespace AElf.OS.Account.Infrastructure
 
         public async Task<ECKeyPair> CreateAccountKeyPairAsync(string password)
         {
-            var keyPair = CryptoHelpers.GenerateKeyPair();
+            var keyPair = CryptoHelper.GenerateKeyPair();
             var res = await WriteKeyPairAsync(keyPair, password);
             return !res ? null : keyPair;
         }

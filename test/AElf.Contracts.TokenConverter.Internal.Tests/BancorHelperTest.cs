@@ -4,14 +4,14 @@ using Shouldly;
 
 namespace AElf.Contracts.TokenConverter
 {
-    public class BancorHelpersTest
+    public class BancorHelperTest
     {
         //init connector
         private Connector _elfConnector;
 
         private Connector _ramConnector;
 
-        public BancorHelpersTest()
+        public BancorHelperTest()
         {
             _ramConnector = new Connector
             {
@@ -35,23 +35,23 @@ namespace AElf.Contracts.TokenConverter
         [Fact]
         public void Pow_Test()
         {
-            var result1 = BancorHelpers.Pow(1.5m, 1);
+            var result1 = BancorHelper.Pow(1.5m, 1);
             result1.ShouldBe(1.5m);
 
-            BancorHelpers.Pow(1.5m, 2);
+            BancorHelper.Pow(1.5m, 2);
         }
 
         [Fact]
         public void GetAmountToPay_GetReturnFromPaid_Failed()
         {
             //fromConnectorBalance <= 0
-            Should.Throw<InvalidValueException>(() => BancorHelpers.GetAmountToPayFromReturn(0, 1000, 1000, 1000, 1000));
+            Should.Throw<InvalidValueException>(() => BancorHelper.GetAmountToPayFromReturn(0, 1000, 1000, 1000, 1000));
             //paidAmount <= 0
-            Should.Throw<InvalidValueException>(() => BancorHelpers.GetAmountToPayFromReturn(1000, 1000, 1000, 1000, 0));
+            Should.Throw<InvalidValueException>(() => BancorHelper.GetAmountToPayFromReturn(1000, 1000, 1000, 1000, 0));
             //toConnectorBalance <= 0
-            Should.Throw<InvalidValueException>(() => BancorHelpers.GetReturnFromPaid(1000, 1000, 0, 1000, 1000));
+            Should.Throw<InvalidValueException>(() => BancorHelper.GetReturnFromPaid(1000, 1000, 0, 1000, 1000));
             //amountToReceive <= 0
-            Should.Throw<InvalidValueException>(() => BancorHelpers.GetReturnFromPaid(1000, 1000, 1000, 1000, 0));
+            Should.Throw<InvalidValueException>(() => BancorHelper.GetReturnFromPaid(1000, 1000, 1000, 1000, 0));
         }
         
         [Theory]
@@ -80,7 +80,7 @@ namespace AElf.Contracts.TokenConverter
        
         private long BuyOperation(long paidElf)
         {
-            var getAmountToPayout = BancorHelpers.GetAmountToPayFromReturn(
+            var getAmountToPayout = BancorHelper.GetAmountToPayFromReturn(
                 _elfConnector.VirtualBalance, Decimal.Parse(_elfConnector.Weight),
                 _ramConnector.VirtualBalance, Decimal.Parse(_ramConnector.Weight),
                 paidElf);
@@ -89,7 +89,7 @@ namespace AElf.Contracts.TokenConverter
 
         private long SellOperation(long paidRes)
         {
-            var getReturnFromPaid = BancorHelpers.GetReturnFromPaid(
+            var getReturnFromPaid = BancorHelper.GetReturnFromPaid(
                 _ramConnector.VirtualBalance, Decimal.Parse(_ramConnector.Weight),
                 _elfConnector.VirtualBalance, Decimal.Parse(_elfConnector.Weight),
                 paidRes);

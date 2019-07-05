@@ -24,7 +24,7 @@ namespace AElf.Kernel.TransactionPool.Domain
         public async Task AddOrUpdateReceiptsAsync(IEnumerable<TransactionReceipt> receipts)
         {
             var dict = receipts.ToDictionary(r => r.TransactionId.ToStorageKey(), r => r);
-            await _transactionReceiptStore.PipelineSetAsync(dict);
+            await _transactionReceiptStore.SetAllAsync(dict);
         }
 
         public async Task<TransactionReceipt> GetReceiptAsync(Hash txId)
