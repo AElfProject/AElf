@@ -29,7 +29,8 @@ namespace AElf
         {
             _taskQueue.Start();
             _taskQueue.Enqueue(ProcessTask);
-            Thread.Sleep(10);
+            
+            _taskQueue.Dispose();
             _counter.ShouldBe(1);
             
             _taskQueue.Dispose();
