@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package profit;
 
+import "acs1.proto";
 import "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
@@ -9,8 +10,8 @@ import "google/protobuf/empty.proto";
 option csharp_namespace = "AElf.Contracts.Profit";
 
 service ProfitContract {
-
     option (aelf.csharp_state) = "AElf.Contracts.Profit.ProfitContractState";
+    option (aelf.base) = "acs1.proto";
 
     // Actions
     rpc CreateProfitItem (CreateProfitItemInput) returns (aelf.Hash) {

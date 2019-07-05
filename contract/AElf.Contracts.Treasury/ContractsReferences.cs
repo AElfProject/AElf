@@ -6,6 +6,7 @@ using AElf.Contracts.TokenConverter;
 
 namespace AElf.Contracts.Treasury
 {
+    // ReSharper disable InconsistentNaming
     public partial class TreasuryContractState
     {
         internal ProfitContractContainer.ProfitContractReferenceState ProfitContract { get; set; }
