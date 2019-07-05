@@ -157,7 +157,7 @@ namespace AElf
         private static byte[] _AddCheckSum(byte[] data)
         {
             var checkSum = _GetCheckSum(data);
-            var dataWithCheckSum = ByteArrayHelpers.ConcatArrays(data, checkSum);
+            var dataWithCheckSum = ByteArrayHelper.ConcatArrays(data, checkSum);
 
             return dataWithCheckSum;
         }
@@ -165,8 +165,8 @@ namespace AElf
         //Returns null if the checksum is invalid
         private static byte[] _VerifyAndRemoveCheckSum(byte[] data)
         {
-            var result = ByteArrayHelpers.SubArray(data, 0, data.Length - CheckSumSize);
-            var givenCheckSum = ByteArrayHelpers.SubArray(data, data.Length - CheckSumSize);
+            var result = ByteArrayHelper.SubArray(data, 0, data.Length - CheckSumSize);
+            var givenCheckSum = ByteArrayHelper.SubArray(data, data.Length - CheckSumSize);
             var correctCheckSum = _GetCheckSum(result);
 
             return givenCheckSum.SequenceEqual(correctCheckSum) ? result : null;

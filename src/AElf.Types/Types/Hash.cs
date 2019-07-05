@@ -148,7 +148,7 @@ namespace AElf.Types
                 throw new InvalidOperationException("Cannot compare hash when hash is null");
             }
 
-            return ByteStringHelpers.Compare(x.Value, y.Value);
+            return ByteStringHelper.Compare(x.Value, y.Value);
         }
 
         public int CompareTo(Hash that)
@@ -242,7 +242,7 @@ namespace AElf.Types
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Hash LoadHex(string hex)
         {
-            var bytes = ByteArrayHelpers.FromHexString(hex);
+            var bytes = ByteArrayHelper.FromHexString(hex);
             return LoadByteArray(bytes);
         }
 

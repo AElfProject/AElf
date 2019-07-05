@@ -1,5 +1,4 @@
 using System;
-using System.Security.Cryptography;
 using Google.Protobuf;
 
 namespace AElf.Types
@@ -14,11 +13,6 @@ namespace AElf.Types
                 _transactionHash = Hash.FromRawBytes(GetSignatureData());
 
             return _transactionHash;
-        }
-
-        public byte[] GetHashBytes()
-        {
-            return SHA256.Create().ComputeHash(GetSignatureData());
         }
 
         public bool VerifyFields()
