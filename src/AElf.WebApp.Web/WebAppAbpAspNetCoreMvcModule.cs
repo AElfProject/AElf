@@ -13,7 +13,6 @@ namespace AElf.WebApp.Web
     {
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddConventionalRegistrar(new WebAppAbpAspNetCoreMvcConventionalRegistrar());
         }
 
         public override void ConfigureServices(ServiceConfigurationContext context)
