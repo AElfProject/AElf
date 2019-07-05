@@ -86,7 +86,7 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContractAsync();
             await ApproveBalanceAsync(lockedTokenAmount);
 
-            var chainId = ChainHelpers.GetChainId(5);
+            var chainId = ChainHelper.GetChainId(5);
             var transactionResult =
                 await ExecuteContractWithMiningAsync(CrossChainContractAddress,
                     nameof(CrossChainContractContainer.CrossChainContractStub.CreateSideChain),
@@ -123,7 +123,7 @@ namespace AElf.Contract.CrossChain.Tests
         [Fact]
         public async Task CheckLockedBalance_NotExist()
         {
-            var chainId = ChainHelpers.GetChainId(1);
+            var chainId = ChainHelper.GetChainId(1);
             var txResult = await Tester.ExecuteContractWithMiningAsync(CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub.LockedBalance),
                 new SInt32Value()
@@ -194,7 +194,7 @@ namespace AElf.Contract.CrossChain.Tests
                 Value = chainId
             };
 
-            var ecKeyPair = CryptoHelpers.GenerateKeyPair();
+            var ecKeyPair = CryptoHelper.GenerateKeyPair();
             var other = Tester.CreateNewContractTester(ecKeyPair);
             var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
                     ParliamentAddress,

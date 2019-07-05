@@ -13,7 +13,7 @@ namespace AElf.Contracts.ParliamentAuth
         public async Task CreateProposal_WithPrivileged()
         {
             var organizationAddress = await GetGenesisOwnerAddressAsync();
-            var ecKeyPair = CryptoHelpers.GenerateKeyPair();
+            var ecKeyPair = CryptoHelper.GenerateKeyPair();
             var otherTester = Tester.CreateNewContractTester(ecKeyPair);
             var transferInput = TransferInput(otherTester.GetCallOwnerAddress());
             var createProposalInput = CreateProposalInput(transferInput, organizationAddress);
@@ -29,7 +29,7 @@ namespace AElf.Contracts.ParliamentAuth
         public async Task CreateProposal_Creator()
         {
             var organizationAddress = await GetGenesisOwnerAddressAsync();
-            var ecKeyPair = CryptoHelpers.GenerateKeyPair();
+            var ecKeyPair = CryptoHelper.GenerateKeyPair();
             var otherTester = Tester.CreateNewContractTester(ecKeyPair);
             var transferInput = TransferInput(otherTester.GetCallOwnerAddress());
             var createProposalInput = CreateProposalInput(transferInput, organizationAddress);
@@ -58,7 +58,7 @@ namespace AElf.Contracts.ParliamentAuth
         public async Task CreateProposal_WithoutPrivilege()
         {
             var organizationAddress = await CreateOrganizationAsync();
-            var ecKeyPair = CryptoHelpers.GenerateKeyPair();
+            var ecKeyPair = CryptoHelper.GenerateKeyPair();
             var otherTester = Tester.CreateNewContractTester(ecKeyPair);
             var transferInput = TransferInput(otherTester.GetCallOwnerAddress());
             var createProposalInput = CreateProposalInput(transferInput, organizationAddress);
