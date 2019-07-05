@@ -16,11 +16,6 @@ namespace AElf.Kernel
     [DependsOn(typeof(DatabaseAElfModule), typeof(CoreAElfModule))]
     public class CoreKernelAElfModule : AElfModule
     {
-        public override void PreConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.AddConventionalRegistrar(new AElfKernelConventionalRegistrar());
-        }
-
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
