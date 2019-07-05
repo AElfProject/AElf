@@ -44,7 +44,7 @@ namespace AElf.WebApp.Application.Chain
 
             return new ChainStatusDto
             {
-                ChainId = ChainHelpers.ConvertChainIdToBase58(chain.Id),
+                ChainId = ChainHelper.ConvertChainIdToBase58(chain.Id),
                 GenesisContractAddress = basicContractZero?.GetFormatted(),
                 Branches = branches,
                 NotLinkedBlocks = notLinkedBlocks,

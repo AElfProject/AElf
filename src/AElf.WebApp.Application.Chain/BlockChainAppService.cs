@@ -104,7 +104,7 @@ namespace AElf.WebApp.Application.Chain
                     Extra = block.Header.ExtraData.ToString(),
                     Height = block.Header.Height,
                     Time = block.Header.Time.ToDateTime(),
-                    ChainId = ChainHelpers.ConvertChainIdToBase58(block.Header.ChainId),
+                    ChainId = ChainHelper.ConvertChainIdToBase58(block.Header.ChainId),
                     Bloom = block.Header.Bloom.ToByteArray().ToHex(),
                     SignerPubkey = block.Header.SignerPubkey.ToByteArray().ToHex()
                 },
@@ -158,7 +158,7 @@ namespace AElf.WebApp.Application.Chain
                     Extra = blockInfo.Header.ExtraData.ToString(),
                     Height = blockInfo.Header.Height,
                     Time = blockInfo.Header.Time.ToDateTime(),
-                    ChainId = ChainHelpers.ConvertChainIdToBase58(blockInfo.Header.ChainId),
+                    ChainId = ChainHelper.ConvertChainIdToBase58(blockInfo.Header.ChainId),
                     Bloom = blockInfo.Header.Bloom.ToByteArray().ToHex(),
                     SignerPubkey = blockInfo.Header.SignerPubkey.ToByteArray().ToHex()
                 },

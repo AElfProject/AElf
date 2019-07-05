@@ -30,7 +30,7 @@ namespace AElf.CrossChain.Cache.Application
                 return false;
             var res = chainCacheEntity.TryAdd(blockCacheEntity);
             Logger.LogTrace(
-                $"Cached height {blockCacheEntity.Height} from chain {ChainHelpers.ConvertChainIdToBase58(blockCacheEntity.ChainId)}");
+                $"Cached height {blockCacheEntity.Height} from chain {ChainHelper.ConvertChainIdToBase58(blockCacheEntity.ChainId)}");
             return res;
         }
     }

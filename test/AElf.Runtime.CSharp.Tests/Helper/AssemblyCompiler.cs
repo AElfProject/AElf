@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Mono.Cecil;
 
-namespace AElf.Runtime.CSharp.Helpers
+namespace AElf.Runtime.CSharp.Helper
 {
     public static class AssemblyCompiler
     {

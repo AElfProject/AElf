@@ -59,7 +59,7 @@ namespace AElf.WebApp.Application.Chain
         {
             try
             {
-                var byteArray = ByteArrayHelpers.FromHexString(input.RawTransaction);
+                var byteArray = ByteArrayHelper.FromHexString(input.RawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(byteArray);
                 if (!transaction.VerifySignature())
                 {
@@ -82,9 +82,9 @@ namespace AElf.WebApp.Application.Chain
         {
             try
             {
-                var byteArray = ByteArrayHelpers.FromHexString(input.RawTransaction);
+                var byteArray = ByteArrayHelper.FromHexString(input.RawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(byteArray);
-                transaction.Signature = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature));
+                transaction.Signature = ByteString.CopyFrom(ByteArrayHelper.FromHexString(input.Signature));
                 if (!transaction.VerifySignature())
                 {
                     throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
@@ -147,8 +147,8 @@ namespace AElf.WebApp.Application.Chain
         [Route("api/blockChain/sendRawTransaction")]
         public async Task<SendRawTransactionOutput> SendRawTransactionAsync(SendRawTransactionInput input)
         {
-            var transaction = Transaction.Parser.ParseFrom(ByteArrayHelpers.FromHexString(input.Transaction));
-            transaction.Signature = ByteString.CopyFrom(ByteArrayHelpers.FromHexString(input.Signature));
+            var transaction = Transaction.Parser.ParseFrom(ByteArrayHelper.FromHexString(input.Transaction));
+            transaction.Signature = ByteString.CopyFrom(ByteArrayHelper.FromHexString(input.Signature));
             var txIds = await PublishTransactionsAsync(new[] { transaction.ToByteArray().ToHex() });
 
             var output = new SendRawTransactionOutput
@@ -205,7 +205,7 @@ namespace AElf.WebApp.Application.Chain
                 Transaction transaction;
                 try
                 {
-                    var hexString = ByteArrayHelpers.FromHexString(rawTransactions[i]);
+                    var hexString = ByteArrayHelper.FromHexString(rawTransactions[i]);
                     transaction = Transaction.Parser.ParseFrom(hexString);
                 }
                 catch

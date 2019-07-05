@@ -20,7 +20,7 @@ namespace AElf.Kernel
             if (!transaction.VerifyFields())
                 return false;
 
-            var recovered = CryptoHelpers.RecoverPublicKey(transaction.Signature.ToByteArray(), 
+            var recovered = CryptoHelper.RecoverPublicKey(transaction.Signature.ToByteArray(), 
                 transaction.GetHash().DumpByteArray(), out var publicKey);
 
             if (!recovered)
