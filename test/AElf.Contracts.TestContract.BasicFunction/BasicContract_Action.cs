@@ -13,8 +13,9 @@ namespace AElf.Contracts.TestContract.BasicFunction
         public override Empty InitialBasicFunctionContract(InitialBasicContractInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
-            Assert(input.MinValue >0 && input.MaxValue >0 && input.MaxValue >= input.MinValue, "Invalid min/max value input setting.");
-            
+            Assert(input.MinValue > 0 && input.MaxValue > 0 && input.MaxValue >= input.MinValue,
+                "Invalid min/max value input setting.");
+
             State.Initialized.Value = true;
             State.ContractName.Value = input.ContractName;
             State.ContractManager.Value = input.Manager;
@@ -27,9 +28,10 @@ namespace AElf.Contracts.TestContract.BasicFunction
 
         public override Empty UpdateBetLimit(BetLimitInput input)
         {
-            Assert(Context.Sender == State.ContractManager.Value, "Only manager can perform this action."); 
-            Assert(input.MinValue >0 && input.MaxValue >0 && input.MaxValue >= input.MinValue, "Invalid min/max value input setting.");
-            
+            Assert(Context.Sender == State.ContractManager.Value, "Only manager can perform this action.");
+            Assert(input.MinValue > 0 && input.MaxValue > 0 && input.MaxValue >= input.MinValue,
+                "Invalid min/max value input setting.");
+
             State.MinBet.Value = input.MinValue;
             State.MaxBet.Value = input.MaxValue;
 
@@ -38,10 +40,11 @@ namespace AElf.Contracts.TestContract.BasicFunction
 
         public override Empty UserPlayBet(BetInput input)
         {
-            Assert(input.Int64Value >= State.MinBet.Value && input.Int64Value <=State.MaxBet.Value, $"Input balance not in boundary({State.MinBet.Value}, {State.MaxBet.Value}).");
+            Assert(input.Int64Value >= State.MinBet.Value && input.Int64Value <= State.MaxBet.Value,
+                $"Input balance not in boundary({State.MinBet.Value}, {State.MaxBet.Value}).");
             Assert(input.Int64Value > State.WinerHistory[Context.Sender], "Should bet bigger than your reward money.");
             State.TotalBetBalance.Value = State.TotalBetBalance.Value.Add(input.Int64Value);
-            
+
             var result = WinOrLose(input.Int64Value);
 
             if (result == 0)
@@ -53,7 +56,7 @@ namespace AElf.Contracts.TestContract.BasicFunction
                 State.RewardBalance.Value = State.RewardBalance.Value.Add(result);
                 State.WinerHistory[Context.Sender] = State.WinerHistory[Context.Sender].Add(result);
             }
-            
+
             return new Empty();
         }
 
@@ -61,7 +64,7 @@ namespace AElf.Contracts.TestContract.BasicFunction
         {
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            
+
             State.TokenContract.Lock.Send(new LockInput
             {
                 Symbol = input.Symbol,
@@ -70,7 +73,7 @@ namespace AElf.Contracts.TestContract.BasicFunction
                 LockId = input.LockId,
                 Usage = input.Usage
             });
-            
+
             return new Empty();
         }
 
@@ -78,7 +81,7 @@ namespace AElf.Contracts.TestContract.BasicFunction
         {
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            
+
             State.TokenContract.Unlock.Send(new UnlockInput
             {
                 Symbol = input.Symbol,
@@ -90,6 +93,25 @@ namespace AElf.Contracts.TestContract.BasicFunction
             return new Empty();
         }
 
+        public override GetLockedTokenAmountOutput GetLockedAmount(GetLockedTokenAmountInput input)
+        {
+            State.TokenContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            var output = State.TokenContract.GetLockedAmount.Call(new GetLockedAmountInput
+            {
+                Symbol = input.Symbol,
+                Address = input.Address,
+                LockId = input.LockId,
+            });
+            return new GetLockedTokenAmountOutput
+            {
+                Address = output.Address,
+                Symbol = output.Symbol,
+                LockId = output.LockId,
+                Amount = output.Amount
+            };
+        }
+
         public override Empty ValidateOrigin(Address address)
         {
             Assert(address == Context.Origin, "Validation failed, origin is not expected.");
@@ -99,9 +121,9 @@ namespace AElf.Contracts.TestContract.BasicFunction
         private long WinOrLose(long betAmount)
         {
             var data = State.TotalBetBalance.Value.Sub(State.RewardBalance.Value);
-            if(data < 0)
-                data = data *(-1);
-                
+            if (data < 0)
+                data = data * (-1);
+
             if (data % 100 == 1)
                 return betAmount * 1000;
             if (data % 50 == 5)
@@ -113,14 +135,14 @@ namespace AElf.Contracts.TestContract.BasicFunction
         {
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            
+
             State.TokenContract.TransferToContract.Send(new TransferToContractInput
             {
                 Symbol = input.Symbol,
                 Amount = input.Amount,
                 Memo = input.Memo
             });
-            
+
             return new Empty();
         }
     }
