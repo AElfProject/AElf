@@ -36,26 +36,19 @@ namespace AElf.Kernel.Node.Application
     public class BlockchainNodeContextService : IBlockchainNodeContextService
     {
         private readonly ITxHub _txHub;
-        private readonly IBlockchainService _blockchainService;
-        private readonly IChainCreationService _chainCreationService;
-        private readonly ISmartContractAddressUpdateService _smartContractAddressUpdateService;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
-        private readonly IConsensusService _consensusService;
-        
+        private readonly IBlockchainNodeContextProxyService _blockchainNodeContextProxyService;
+
         public ILocalEventBus EventBus { get; set; }
 
-        public BlockchainNodeContextService(
-            IBlockchainService blockchainService, IChainCreationService chainCreationService, ITxHub txHub,
-            ISmartContractAddressUpdateService smartContractAddressUpdateService,
-            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider, IConsensusService consensusService)
+        public BlockchainNodeContextService(ITxHub txHub,
+            IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
+            IBlockchainNodeContextProxyService blockchainNodeContextProxyService)
         {
-            _blockchainService = blockchainService;
-            _chainCreationService = chainCreationService;
             _txHub = txHub;
-            _smartContractAddressUpdateService = smartContractAddressUpdateService;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
-            _consensusService = consensusService;
-            
+            _blockchainNodeContextProxyService = blockchainNodeContextProxyService;
+
             EventBus = NullLocalEventBus.Instance;
         }
 
@@ -68,13 +61,16 @@ namespace AElf.Kernel.Node.Application
                 ChainId = dto.ChainId,
                 TxHub = _txHub,
             };
-            var chain = await _blockchainService.GetChainAsync() ??
-                        await _chainCreationService.CreateNewChainAsync(dto.Transactions);
+            var chain = await _blockchainNodeContextProxyService.BlockchainService.GetChainAsync() ??
+                        await _blockchainNodeContextProxyService.ChainCreationService.CreateNewChainAsync(
+                            dto.Transactions);
 
-            await _smartContractAddressUpdateService.UpdateSmartContractAddressesAsync(
-                await _blockchainService.GetBlockHeaderByHashAsync(chain.BestChainHash));
+            await _blockchainNodeContextProxyService.SmartContractAddressUpdateService
+                .UpdateSmartContractAddressesAsync(
+                    await _blockchainNodeContextProxyService.BlockchainService.GetBlockHeaderByHashAsync(
+                        chain.BestChainHash));
 
-            await _consensusService.TriggerConsensusAsync(new ChainContext
+            await _blockchainNodeContextProxyService.ConsensusService.TriggerConsensusAsync(new ChainContext
             {
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
