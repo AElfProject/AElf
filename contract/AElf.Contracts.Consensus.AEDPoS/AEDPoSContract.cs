@@ -86,29 +86,65 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty UpdateValue(UpdateValueInput input)
         {
+            Context.LogDebug(() => "Entered UpdateValue.");
             Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
             Assert(input.RoundId == round.RoundId, "Round Id not matched.");
 
             var publicKey = Context.RecoverPublicKey().ToHex();
 
+            Context.LogDebug(() => "Start to update own information.");
             var minerInRound = round.RealTimeMinersInformation[publicKey];
             minerInRound.ActualMiningTimes.Add(input.ActualMiningTime);
             minerInRound.ProducedBlocks = input.ProducedBlocks;
-            var producedTinyBlocks = round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks;
-            minerInRound.ProducedTinyBlocks = producedTinyBlocks.Add(1);
-
+            minerInRound.ProducedTinyBlocks = round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks.Add(1);
             minerInRound.Signature = input.Signature;
             minerInRound.OutValue = input.OutValue;
             minerInRound.SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
             minerInRound.FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
 
+            Context.LogDebug(() => "Start secret sharing process.");
+            PerformSecretSharing(input, minerInRound, round, publicKey);
+
+            Context.LogDebug(() => "Start to update real time miner information.");
+            UpdatePreviousInValues(input, publicKey, round);
+
+            foreach (var tuneOrder in input.TuneOrderInformation)
+            {
+                round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound = tuneOrder.Value;
+            }
+
+            // For first round of each term, no one need to publish in value.
+            if (input.PreviousInValue != Hash.Empty)
+            {
+                minerInRound.PreviousInValue = input.PreviousInValue;
+            }
+            
+            Context.LogDebug(() => "Start to update round information.");
+            if (!TryToUpdateRoundInformation(round))
+            {
+                Assert(false, "Failed to update round information.");
+            }
+
+            Context.LogDebug(() => "Start to find LIB.");
+            TryToFindLastIrreversibleBlock();
+            
+            Context.LogDebug(() => "Leaving UpdateValue.");
+            return new Empty();
+        }
+
+        private static void PerformSecretSharing(UpdateValueInput input, MinerInRound minerInRound, Round round,
+            string publicKey)
+        {
             minerInRound.EncryptedInValues.Add(input.EncryptedInValues);
             foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)
             {
                 round.RealTimeMinersInformation[decryptedPreviousInValue.Key].DecryptedPreviousInValues
                     .Add(publicKey, decryptedPreviousInValue.Value);
             }
+        }
 
+        private void UpdatePreviousInValues(UpdateValueInput input, string publicKey, Round round)
+        {
             foreach (var previousInValue in input.MinersPreviousInValues)
             {
                 if (previousInValue.Key == publicKey)
@@ -129,23 +165,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue = previousInValue.Value;
             }
-
-            foreach (var tuneOrder in input.TuneOrderInformation)
-            {
-                round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound = tuneOrder.Value;
-            }
-
-            // For first round of each term, no one need to publish in value.
-            if (input.PreviousInValue != Hash.Empty)
-            {
-                minerInRound.PreviousInValue = input.PreviousInValue;
-            }
-
-            Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
-
-            TryToFindLastIrreversibleBlock();
-
-            return new Empty();
         }
 
         #endregion
