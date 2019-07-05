@@ -40,10 +40,11 @@ namespace AElf
         {
             _taskQueue.Start();
             for (var i = 0; i < 10; i++)
-            {
                 _taskQueue.Enqueue(ProcessTask);
+
+            while (_taskQueue.Size != 0)
                 Thread.Sleep(10);
-            }
+            
             _counter.ShouldBe(10);
         }
 
