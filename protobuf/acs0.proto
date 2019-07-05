@@ -30,9 +30,6 @@ service ACS0 {
     rpc GetContractInfo (aelf.Address) returns (ContractInfo) {
         option (aelf.is_view) = true;
     }
-    rpc GetContractOwner (aelf.Address) returns (aelf.Address) {
-        option (aelf.is_view) = true;
-    }
     rpc GetContractAuthor (aelf.Address) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }

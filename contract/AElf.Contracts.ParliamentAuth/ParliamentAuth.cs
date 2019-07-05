@@ -21,8 +21,8 @@ namespace AElf.Contracts.ParliamentAuth
             var proposal = State.Proposals[proposalId];
             Assert(proposal != null, "Not found proposal.");
             var organization = State.Organisations[proposal.OrganizationAddress];
-            var representatives = GetCurrentMinerList();
-            var readyToRelease = IsReadyToRelease(proposal, organization, representatives);
+            var minerList = GetCurrentMinerList();
+            var readyToRelease = IsReadyToRelease(proposal, organization, minerList);
             var result = new ProposalOutput
             {
                 ProposalId = proposalId,
@@ -127,8 +127,8 @@ namespace AElf.Contracts.ParliamentAuth
             // check approval not existed
             Assert(!proposalInfo.ApprovedRepresentatives.Contains(Context.Sender),
                 "Approval already existed.");
-            var representatives = GetCurrentMinerList();
-            Assert(IsValidRepresentative(representatives), "Not authorized approval.");
+            var minerList = GetCurrentMinerList();
+            Assert(IsValidRepresentative(minerList), "Not authorized approval.");
             proposalInfo.ApprovedRepresentatives.Add(Context.Sender);
             State.Proposals[approvalInput.ProposalId] = proposalInfo;
 
@@ -141,8 +141,8 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(proposalInfo != null, "Proposal not found.");
             Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
             var organization = State.Organisations[proposalInfo.OrganizationAddress];
-            var representatives = GetCurrentMinerList();
-            Assert(IsReadyToRelease(proposalInfo, organization, representatives), "Not approved.");
+            var minerList = GetCurrentMinerList();
+            Assert(IsReadyToRelease(proposalInfo, organization, minerList), "Not approved.");
             Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
                 proposalInfo.ContractMethodName, proposalInfo.Params);
             

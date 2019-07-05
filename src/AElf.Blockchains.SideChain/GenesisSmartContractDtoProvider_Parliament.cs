@@ -2,7 +2,6 @@ using Acs0;
 using Acs7;
 using AElf.Contracts.ParliamentAuth;
 using AElf.OS.Node.Application;
-using AElf.Types;
 
 namespace AElf.Blockchains.SideChain
 {

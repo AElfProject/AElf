@@ -345,7 +345,7 @@ namespace AElf.OS
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ZeroSmartContract = typeof(BasicContractZero),
-                ChainId = _chainOptions.ChainId,
+                ChainId = _chainOptions.ChainId
             };
 
             dto.InitializationSmartContracts.AddGenesisSmartContract(
