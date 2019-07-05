@@ -45,7 +45,9 @@ namespace AElf.Contracts.Vote
             input.Options.Clear();
             var votingItemId = Hash.FromTwoHashes(Hash.FromMessage(input), Hash.FromMessage(sender));
             return await VoteContractStub.GetVotingItem.CallAsync(new GetVotingItemInput
-                {VotingItemId = votingItemId});
+            {
+                VotingItemId = votingItemId
+            });
         }
 
         private async Task<TransactionResult> TakeSnapshot(Hash votingItemId, long snapshotNumber)

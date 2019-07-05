@@ -29,7 +29,7 @@ namespace AElf.Contracts.Vote
 
         internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
 
-        protected const string TestTokenSymbol = "TELF";
+        protected const string TestTokenSymbol = "ELF";
 
         protected void InitializeContracts()
         {

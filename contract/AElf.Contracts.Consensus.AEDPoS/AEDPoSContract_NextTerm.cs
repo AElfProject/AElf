@@ -28,6 +28,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     MinersCount = minersCount
                 });
             }
+
             // Reset some fields of first two rounds of next term.
             foreach (var minerInRound in input.RealTimeMinersInformation.Values)
             {
@@ -83,8 +84,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var miningRewardAmount = previousRound.GetMinedBlocks().Mul(AEDPoSContractConstants.MiningRewardPerBlock);
-            TransferMiningReward(miningRewardAmount);
-            
+            DonateMiningReward(miningRewardAmount);
+
             State.TreasuryContract.Release.Send(new ReleaseInput
             {
                 TermNumber = termNumber
@@ -149,18 +150,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return true;
         }
 
-        private void TransferMiningReward(long amount)
+        private void DonateMiningReward(long amount)
         {
             if (amount > 0)
             {
-                State.TokenContract.Transfer.Send(new TransferInput
+                State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = Context.Variables.NativeSymbol,
                     Amount = amount,
-                    To = State.TreasuryContract.Value
                 });
             }
-            
+
             Context.LogDebug(() => $"Released {amount} mining rewards.");
         }
     }

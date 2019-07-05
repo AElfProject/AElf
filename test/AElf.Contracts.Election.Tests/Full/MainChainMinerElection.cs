@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using Shouldly;
 using Xunit;
@@ -23,7 +24,7 @@ namespace AElf.Contracts.Election
                 await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 1));
 
             await ProduceBlocks(BootMinerKeyPair, 10);
-            await NextRound(BootMinerKeyPair);
+            await NextTerm(BootMinerKeyPair);
 
             var profitTester = GetProfitContractTester(VoterKeyPairs[0]);
             var profitBalance = (await profitTester.GetProfitAmount.CallAsync(new ProfitInput
@@ -31,7 +32,19 @@ namespace AElf.Contracts.Election
                 ProfitId = ProfitItemsIds[ProfitType.CitizenWelfare],
                 Symbol = "ELF"
             })).Value;
-            profitBalance.ShouldBeGreaterThanOrEqualTo(0);
+            var firstPeriodVirtualAddress = await ProfitContractStub.GetProfitItemVirtualAddress.CallAsync(
+                new GetProfitItemVirtualAddressInput
+                {
+                    ProfitId = ProfitItemsIds[ProfitType.BasicMinerReward],
+                    Period = 1
+                });
+            var releasedBasicMinerRewards = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = firstPeriodVirtualAddress, 
+                Symbol = "ELF"
+            })).Balance;
+            releasedBasicMinerRewards.ShouldBeGreaterThan(0);
+            profitBalance.ShouldBeGreaterThan(0);
         }
     }
 }
