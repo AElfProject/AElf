@@ -82,7 +82,7 @@ namespace AElf.Contracts.Vote
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
         {
-            const long totalSupply = 1_000_000_000;
+            const long totalSupply = 1_000_000_000_0000_0000;
             
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenContractCallList.Add(nameof(TokenContract.Create), new CreateInput
@@ -103,7 +103,7 @@ namespace AElf.Contracts.Vote
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = TestTokenSymbol,
-                Amount = totalSupply - 20 * 100_000L,
+                Amount = totalSupply - 20 * 100_000_0000_0000L,
                 To = DefaultSender,
                 Memo = "Issue token to default user for vote.",
             });
@@ -114,7 +114,7 @@ namespace AElf.Contracts.Vote
                 tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                 {
                     Symbol = TestTokenSymbol,
-                    Amount = 100_000L,
+                    Amount = 100_000_0000_0000L,
                     To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
                     Memo = "set voters few amount for voting."
                 });
