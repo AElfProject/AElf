@@ -34,9 +34,9 @@ namespace AElf.Contracts.MultiToken
                         new Empty());
                 CheckResult(result.TransactionResult);
             }
-            
+
             {
-                var result =(await TokenContractStub.Create.SendAsync(new CreateInput
+                var result = (await TokenContractStub.Create.SendAsync(new CreateInput
                 {
                     Symbol = AliceCoinTokenInfo.Symbol,
                     TokenName = "Native Token",
@@ -106,6 +106,28 @@ namespace AElf.Contracts.MultiToken
                     Weight = "0.2",
                     IsVirtualBalanceEnabled = true
                 };
+
+                var result = AsyncHelper.RunSync(() =>
+                    TokenConverterContractStub.Initialize.SendAsync(new InitializeInput
+                    {
+                        BaseTokenSymbol = "ELF",
+                        FeeRate = "0.005",
+                        ManagerAddress = ManagerAddress,
+                        TokenContractAddress = TokenContractAddress,
+                        FeeReceiverAddress = ManagerAddress,
+                        Connectors = {RamConnector}
+                    }));
+                CheckResult(result.TransactionResult);
+
+                var parliamentAuthContractAddress = AsyncHelper.RunSync(() =>
+                    DeploySystemSmartContract(30, Codes.Single(kv => kv.Key.Contains("ParliamentAuth")).Value,
+                        Hash.FromString("AElf.ContractsName.Parliament"),
+                        DefaultKeyPair));
+                var ParliamentAuthContractStub =
+                    GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(parliamentAuthContractAddress,
+                        DefaultKeyPair);
+                var initializeResult = await ParliamentAuthContractStub.Initialize.SendAsync(new Empty());
+                CheckResult(initializeResult.TransactionResult);
                 var connectorManagerAddress = await TokenConverterContractStub.GetManagerAddress.CallAsync(new Empty());
                 var proposal = new CreateProposalInput
                 {
@@ -115,15 +137,6 @@ namespace AElf.Contracts.MultiToken
                     Params = connector.ToByteString(),
                     ToAddress = TokenConverterContractAddress
                 };
-
-                var parliamentAuthContractAddress = AsyncHelper.RunSync(() =>
-                    DeploySystemSmartContract(30, Codes.Single(kv => kv.Key.Contains("ParliamentAuth")).Value, Hash.FromString("AElf.ContractsName.Parliament"),
-                        DefaultKeyPair));
-                var ParliamentAuthContractStub =
-                    GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(parliamentAuthContractAddress,
-                        DefaultKeyPair);
-                var initializeResult = await ParliamentAuthContractStub.Initialize.SendAsync(new Empty());
-                CheckResult(initializeResult.TransactionResult);
                 var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
                 CheckResult(createResult.TransactionResult);
 
@@ -133,23 +146,62 @@ namespace AElf.Contracts.MultiToken
                     ProposalId = proposalHash,
                 });
                 CheckResult(approveResult.TransactionResult);
-                
-                var result = AsyncHelper.RunSync(() =>
-                    TokenConverterContractStub.Initialize.SendAsync(new InitializeInput
-                    {
-                        BaseTokenSymbol = AliceCoinTokenInfo.Symbol,
-                        FeeRate = "0.005",
-                        ManagerAddress = ManagerAddress,
-                        TokenContractAddress = TokenContractAddress,
-                        FeeReceiverAddress = ManagerAddress,
-                        Connectors = {RamConnector}
-                    }));
-                CheckResult(result.TransactionResult);
+
+
             }
-            
+
         }
-        
-        
+
+        [Fact(DisplayName = "[MultiToken] MultiToken_ChargeTransactionFees_Test")]
+        public async Task MultiTokenContract_ChargeTransactionFees()
+        {
+            InitialEconomic();
+            var result = (await TokenContractStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
+            {
+                SymbolToAmount = {new Dictionary<string, long> {{AliceCoinTokenInfo.Symbol, 10L}}}
+            })).TransactionResult;
+            result.Status.ShouldBe(TransactionResultStatus.Mined);
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                Symbol = AliceCoinTokenInfo.Symbol,
+                Amount = 1000L,
+                Memo = "transfer test",
+                To = TreasuryContractAddress
+            });
+            var balanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = DefaultAddress,
+                Symbol = AliceCoinTokenInfo.Symbol
+            });
+            balanceOutput.Balance.ShouldBe(100_000_000L - 1000L - 10L);
+        }
+
+        [Fact]
+        public async Task Claim_Transaction_Fees()
+        {
+            await MultiTokenContract_ChargeTransactionFees();
+
+            var originBalanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = TreasuryContractAddress,
+                Symbol = AliceCoinTokenInfo.Symbol
+            });
+            originBalanceOutput.Balance.ShouldBe(10L);
+
+            {
+                var result = (await TokenContractStub.ClaimTransactionFees.SendAsync(new Empty()
+                )).TransactionResult;
+                result.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+
+            var balanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = TreasuryContractAddress,
+                Symbol = AliceCoinTokenInfo.Symbol
+            });
+            balanceOutput.Balance.ShouldBe(10L);
+
+        }
 
         [Fact]
         public async Task Set_And_Get_Method_Fee()

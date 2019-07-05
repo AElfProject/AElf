@@ -20,15 +20,6 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class MultiTokenContractTests : MultiTokenContractTestBase
     {
-        
-        private Connector RamConnector = new Connector
-        {
-            Symbol = "AETC",
-            VirtualBalance = 0,
-            Weight = "0.5",
-            IsPurchaseEnabled = true,
-            IsVirtualBalanceEnabled = false
-        };
         /// <summary>
         /// Burnable & Transferable
         /// </summary>
@@ -74,6 +65,15 @@ namespace AElf.Contracts.MultiToken
             Supply = 0
         };
 
+        private Connector RamConnector = new Connector
+        {
+            Symbol = "ALICE",
+            VirtualBalance = 0,
+            Weight = "0.5",
+            IsPurchaseEnabled = true,
+            IsVirtualBalanceEnabled = false
+        };
+
         public MultiTokenContractTests()
         {
             var category = KernelConstants.CodeCoverageRunnerCategory;
@@ -86,7 +86,7 @@ namespace AElf.Contracts.MultiToken
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
             }
-            
+
             // ProfitContract
             {
                 var code = ProfitContractCode;
@@ -118,17 +118,17 @@ namespace AElf.Contracts.MultiToken
                     GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
                         DefaultKeyPair);
             }
-            
+
             //BasicFunctionContract
             {
-                BasicFunctionContractAddress = AsyncHelper.RunSync(()=> DeploySystemSmartContract(
+                BasicFunctionContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
                     category, BasicFunctionContractCode,
                     BasicFunctionContractName, DefaultKeyPair));
                 BasicFunctionContractStub =
                     GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(BasicFunctionContractAddress,
                         DefaultKeyPair);
 
-                OtherBasicFunctionContractAddress = AsyncHelper.RunSync(()=> DeploySystemSmartContract(
+                OtherBasicFunctionContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
                     category, BasicFunctionContractCode,
                     OtherBasicFunctionContractName, DefaultKeyPair));
                 OtherBasicFunctionContractStub =
@@ -136,7 +136,7 @@ namespace AElf.Contracts.MultiToken
                         OtherBasicFunctionContractAddress,
                         DefaultKeyPair);
             }
-            
+
         }
 
         [Fact(DisplayName = "[MultiToken] Create token test.")]
@@ -197,7 +197,7 @@ namespace AElf.Contracts.MultiToken
                 tokenInfo.ShouldNotBe(AliceCoinTokenInfo);
             }
         }
-        
+
         [Fact(DisplayName = "[MultiToken] Create Token use custom address")]
         public async Task MultiTokenContract_Create_UseCustomAddress()
         {
@@ -286,14 +286,14 @@ namespace AElf.Contracts.MultiToken
             var result = (await TokenContractStub.Issue.SendAsync(new IssueInput()
             {
                 Symbol = AliceCoinTokenInfo.Symbol,
-                Amount = AliceCoinTokenInfo.TotalSupply+1,
+                Amount = AliceCoinTokenInfo.TotalSupply + 1,
                 To = User1Address,
                 Memo = "first issue token."
             })).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains($"Total supply exceeded").ShouldBeTrue();
         }
-        
-        
+
+
     }
 }

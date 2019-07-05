@@ -302,7 +302,7 @@ namespace AElf.Contracts.MultiToken
                 });
                 result.Balance.ShouldBe(0);
             }
-            
+
             // Check locked amount
             {
                 var amount = await TokenContractStub.GetLockedAmount.CallAsync(new GetLockedAmountInput
@@ -347,7 +347,6 @@ namespace AElf.Contracts.MultiToken
                 To = _address
             })).TransactionResult;
             transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
             // Check balance before locking.
             {
                 var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
@@ -357,13 +356,10 @@ namespace AElf.Contracts.MultiToken
                 });
                 result.Balance.ShouldBe(Amount);
             }
-
             // Try to lock.
             var lockId = Hash.Generate();
-
             var defaultSenderStub =
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
-
             // Lock.
             var lockResult = (await defaultSenderStub.Lock.SendAsync(new LockInput
             {
@@ -389,7 +385,6 @@ namespace AElf.Contracts.MultiToken
                 To = _address
             })).TransactionResult;
             transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
             // Check balance before locking.
             {
                 var result = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
@@ -401,7 +396,6 @@ namespace AElf.Contracts.MultiToken
             }
 
             var lockId = Hash.Generate();
-
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
             {
@@ -574,7 +568,7 @@ namespace AElf.Contracts.MultiToken
             unlockResult.Status.ShouldBe(TransactionResultStatus.Failed);
             unlockResult.Error.ShouldContain("Insufficient balance");
         }
-        
+
         [Fact(DisplayName =
             "[MultiToken] Unlock the token through strange lockId which is different from locking lockId")]
         public async Task MultiTokenContract_Unlock_StrangeLockId()
