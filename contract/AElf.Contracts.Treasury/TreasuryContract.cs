@@ -9,6 +9,30 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Treasury
 {
+    /// <summary>
+    /// The Treasury is the largest profit item in AElf main chain.
+    /// Actually the Treasury is our Dividends Pool.
+    /// Income of the Treasury is mining rewards
+    /// (AEDPoS Contract will:
+    /// 1. transfer ELF tokens to general ledger of Treasury every time we change term (7 days),
+    /// the amount of ELF should be based on blocks produced during last term. 1,000,000 * 1250000 ELF,
+    /// then release the Treasury;
+    /// 2. Release Treasury)
+    /// 3 sub profit items:
+    /// (Mining Reward for Miners) - 3
+    /// (Subsidy for Candidates / Backups) - 1
+    /// (Welfare for Electors / Voters / Citizens) - 1
+    ///
+    /// 3 sub profit items for Mining Rewards:
+    /// (Basic Rewards) - 4
+    /// (Miner's Votes Weight) - 1
+    /// (Re-Election Rewards) - 1
+    ///
+    /// 3 incomes:
+    /// 1. 20% total supply of elf, from consensus contract
+    /// 2. tx fees.
+    /// 3. resource consumption of developer's contracts.
+    /// </summary>
     public class TreasuryContract : TreasuryContractContainer.TreasuryContractBase
     {
         public override Empty InitialTreasuryContract(Empty input)

@@ -10,11 +10,11 @@ option (aelf.identity) = "acs1";
 service FeeChargedContract {
     
     // Actions
-    rpc SetMethodFee (SetMethodFeeInput) returns (google.protobuf.Empty) {
+    rpc SetMethodFee (TokenAmounts) returns (google.protobuf.Empty) {
     }
     
     // Views
-    rpc GetMethodFee (MethodName) returns (TokenAmount) {
+    rpc GetMethodFee (MethodName) returns (TokenAmounts) {
         option (aelf.is_view) = true;
     }
 
@@ -24,13 +24,14 @@ message MethodName {
     string name = 1;
 }
 
-message TokenAmount {
-    map<string, sint64> symbol_to_amount = 1;
+message TokenAmounts {
+    string method = 1;
+    repeated TokenAmount amounts = 3;
 }
 
-message SetMethodFeeInput {
-    string method = 1;
-    map<string, sint64> symbol_to_amount = 2;// The order matters.
+message TokenAmount {
+    string symbol = 1;
+    sint64 amount = 2;
 }
 
 // Events

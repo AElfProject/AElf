@@ -76,6 +76,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             // Transaction trace state set related to STO Token.
             var writesCount = transactionContext.Trace.StateSet.Writes.Count;
             // Transaction executing time related to CPU Token.
+            // TODO: 
             var executingTime = Convert.ToInt32((transactionContext.Trace.EndTime - transactionContext.Trace.StartTime)
                 .TotalMilliseconds);
 

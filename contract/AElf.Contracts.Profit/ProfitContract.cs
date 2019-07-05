@@ -8,6 +8,18 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Profit
 {
+    /// <summary>
+    /// Ean created a profit item A: Ean call CreateProfitItem
+    /// GL created another profit item B: GL call CreateProfitItem
+    /// Ean register profit item B as a sub profit item as A: Ean call RegisterSubProfitItem (Weight : 1)
+    /// Anil has an account, address is C.
+    /// Ean register address C as a profit receiver as A: Ean call AddWeight (Weight : 1)
+    /// PI_A : PI_B & Receiver_C (Total Weight: 2)
+    /// Ean add some ELF tokens to PI_A: Ean call AddProfits ("ELF", 1000L)
+    /// When Ean call ReleaseProfit: Balance of PI_B is 500L (PI_B's general ledger balance, also the virtual address of PI_B is 500L),
+    /// Balance of PI_A's virtual address of first period is 500L.
+    /// Anil can only get his profits by calling Profit (profit id of PI_A, "ELF")
+    /// </summary>
     public partial class ProfitContract : ProfitContractContainer.ProfitContractBase
     {
         /// <summary>
@@ -307,6 +319,7 @@ namespace AElf.Contracts.Profit
         }
 
         /// <summary>
+        /// 
         /// Will burn/destroy a certain amount of profits if `input.Period` is less than 0.
         /// </summary>
         /// <param name="input"></param>
