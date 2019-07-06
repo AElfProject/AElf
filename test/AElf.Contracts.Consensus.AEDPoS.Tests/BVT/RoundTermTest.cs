@@ -30,7 +30,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var firstRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
 
-            var randomHashes = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(_ => Hash.Generate()).ToList();
+            var randomHashes = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(_ => HashHelper.Generate()).ToList();
             var triggers = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(i => new AElfConsensusTriggerInformation
             {
                 Pubkey = ByteString.CopyFrom(InitialMinersKeyPairs[i].PublicKey),

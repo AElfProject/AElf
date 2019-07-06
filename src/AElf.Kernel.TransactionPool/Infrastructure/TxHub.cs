@@ -127,7 +127,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private async Task<ByteString> GetPrefixByHeightAsync(Chain chain, long height, Hash bestChainHash)
         {
             var hash = await _blockchainService.GetBlockHashByHeightAsync(chain, height, bestChainHash);
-            return hash == null ? null : ByteString.CopyFrom(hash.DumpByteArray().Take(4).ToArray());
+            return hash == null ? null : ByteString.CopyFrom(hash.ToByteArray().Take(4).ToArray());
         }
 
         private async Task<ByteString> GetPrefixByHeightAsync(long height, Hash bestChainHash)

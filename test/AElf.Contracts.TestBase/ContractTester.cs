@@ -411,7 +411,7 @@ namespace AElf.Contracts.TestBase
                 RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
             };
 
-            var signature = CryptoHelper.SignWithPrivateKey(KeyPair.PrivateKey, tx.GetHash().DumpByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(KeyPair.PrivateKey, tx.GetHash().ToByteArray());
             tx.Signature = ByteString.CopyFrom(signature);
 
             return tx;
@@ -442,7 +442,7 @@ namespace AElf.Contracts.TestBase
                 RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
             };
 
-            var signature = CryptoHelper.SignWithPrivateKey(ecKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(ecKeyPair.PrivateKey, tx.GetHash().ToByteArray());
             tx.Signature = ByteString.CopyFrom(signature);
 
             return tx;
@@ -568,7 +568,7 @@ namespace AElf.Contracts.TestBase
             foreach (var transaction in transactions)
             {
                 var signature =
-                    CryptoHelper.SignWithPrivateKey(callerKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
+                    CryptoHelper.SignWithPrivateKey(callerKeyPair.PrivateKey, transaction.GetHash().ToByteArray());
                 transaction.Signature = ByteString.CopyFrom(signature);
             }
         }

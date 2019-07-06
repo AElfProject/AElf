@@ -52,7 +52,7 @@ namespace AElf.Kernel.TransactionPool.Domain
         [Fact]
         public async Task GetReceipt_Test()
         {
-            var randomHash = Hash.Generate();
+            var randomHash = HashHelper.Generate();
             var transactionReceipt0 = await _transactionReceiptManager.GetReceiptAsync(randomHash);
             transactionReceipt0.ShouldBe(null);
 
@@ -69,7 +69,7 @@ namespace AElf.Kernel.TransactionPool.Domain
             var transactionReceipts = new List<TransactionReceipt>();
             for (int i = 0; i < count; i++)
             {
-                var transactionId = Hash.Generate();
+                var transactionId = HashHelper.Generate();
                 var transactionReceipt = new TransactionReceipt()
                 {
                     TransactionId = transactionId,

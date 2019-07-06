@@ -17,18 +17,13 @@ namespace AElf.Types
         /// <returns></returns>
         public string ToDiagnosticString()
         {
-            return $@"""{ToHex()}""";
+            return ToHex();
         }
 
         // Make private to avoid confusion
         private Hash(byte[] bytes)
         {
-            if (bytes.Length != TypeConsts.HashByteArrayLength)
-            {
-                throw new ArgumentOutOfRangeException($"Hash bytes has to be " +
-                                                      $"{TypeConsts.HashByteArrayLength} bytes long. The input is {bytes.Length} bytes long.");
-            }
-
+            CheckLength(bytes);                        
             Value = ByteString.CopyFrom(bytes.ToArray());
         }
 
@@ -44,6 +39,7 @@ namespace AElf.Types
             return new Hash(bytes.CalculateHash());
         }
 
+        // TODO: From / Calc / Compute / Load ??
         /// <summary>
         /// Gets the hash from a string encoded in UTF8.
         /// </summary>
@@ -73,6 +69,7 @@ namespace AElf.Types
         /// <returns></returns>
         public static Hash FromTwoHashes(Hash hash1, Hash hash2)
         {
+            // TODO: XOR??
             var hashes = new List<Hash>
             {
                 hash1, hash2
@@ -91,16 +88,11 @@ namespace AElf.Types
             }
         }
 
-        public static Hash Generate()
-        {
-            return FromRawBytes(Guid.NewGuid().ToByteArray());
-        }
-
         #endregion
 
         #region Predefined
 
-        public static readonly Hash Empty = LoadByteArray(Enumerable.Range(0, 32).Select(x => byte.MinValue).ToArray());
+        public static readonly Hash Empty = FromByteArray(Enumerable.Range(0, 32).Select(x => byte.MinValue).ToArray());
 
         #endregion
 
@@ -128,6 +120,7 @@ namespace AElf.Types
 
         private static int CompareHash(Hash hash1, Hash hash2)
         {
+            // TODO: why not use Hash.Value??
             if (hash1 != null)
             {
                 return hash2 == null ? 1 : Compare(hash1, hash2);
@@ -168,10 +161,8 @@ namespace AElf.Types
         /// <returns></returns>
         public static Hash Xor(Hash h1, Hash h2)
         {
-            // Fix: The chainId & general hash are not the same length.
-            var newBytes = h1.Value.Length > h2.Value.Length ? h1.ToByteArray() : h2.ToByteArray();
-            var minLength = Math.Min(h1.Value.Length, h2.Value.Length);
-            for (var i = 0; i < minLength; i++)
+            var newBytes = new byte[TypeConsts.HashByteArrayLength];
+            for (var i = 0; i < newBytes.Length; i++)
             {
                 newBytes[i] = (byte) (h1.Value[i] ^ h2.Value[i]);
             }
@@ -184,13 +175,12 @@ namespace AElf.Types
 
         #endregion
 
-        #region Load and dump
-
+        // TODO: Rename
         /// <summary>
         /// Dumps the content value to byte array.
         /// </summary>
         /// <returns></returns>
-        public byte[] DumpByteArray()
+        public byte[] ToByteArray()
         {
             return Value.ToByteArray();
         }
@@ -201,11 +191,7 @@ namespace AElf.Types
         /// <returns></returns>
         public string ToHex()
         {
-            if (Value.Length != TypeConsts.HashByteArrayLength)
-            {
-                throw new ArgumentOutOfRangeException($"Hash bytes has to be " +
-                                                      $"{TypeConsts.HashByteArrayLength} bytes long. The input is {Value.Length} bytes long.");
-            }
+            CheckLength();
             return Value.ToHex();
         }
 
@@ -221,38 +207,14 @@ namespace AElf.Types
         /// <param name="bytes"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Hash LoadByteArray(byte[] bytes)
+        public static Hash FromByteArray(byte[] bytes)
         {
-            if (bytes.Length != TypeConsts.HashByteArrayLength)
-            {
-                throw new ArgumentOutOfRangeException(nameof(bytes));
-            }
-
+            CheckLength(bytes);
             return new Hash
             {
                 Value = ByteString.CopyFrom(bytes)
             };
         }
-
-        /// <summary>
-        /// Loads the content value represented in hex string.
-        /// </summary>
-        /// <param name="hex"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Hash LoadHex(string hex)
-        {
-            var bytes = ByteArrayHelper.FromHexString(hex);
-            return LoadByteArray(bytes);
-        }
-
-        public static Hash LoadBase64(string base64)
-        {
-            var bytes = Convert.FromBase64String(base64);
-            return LoadByteArray(bytes);
-        }
-
-        #endregion Load and dump
 
         public IEnumerator<byte> GetEnumerator()
         {
@@ -262,6 +224,24 @@ namespace AElf.Types
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+        
+        private void CheckLength()
+        {
+            if (Value.Length != TypeConsts.HashByteArrayLength)
+            {
+                throw new ArgumentOutOfRangeException($"Hash bytes has to be " +
+                                                      $"{TypeConsts.HashByteArrayLength} bytes long. The input is {Value.Length} bytes long.");
+            }
+        }
+
+        private static void CheckLength(byte[] bytes)
+        {
+            if (bytes.Length != TypeConsts.HashByteArrayLength)
+            {
+                throw new ArgumentOutOfRangeException($"Hash bytes has to be " +
+                                                      $"{TypeConsts.HashByteArrayLength} bytes long. The input is {bytes.Length} bytes long.");
+            }
         }
     }
 }

@@ -26,7 +26,7 @@ namespace AElf.Kernel.Blockchain.Domain
         [Fact]
         public async Task AddBlockBody_Test()
         {
-            var hash = Hash.Generate();
+            var hash = HashHelper.Generate();
             var body = new BlockBody();
             await _blockManager.AddBlockBodyAsync(hash, body);
         }

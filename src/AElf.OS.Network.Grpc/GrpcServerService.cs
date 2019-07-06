@@ -156,7 +156,7 @@ namespace AElf.OS.Network.Grpc
 
             // verify signature
             var validData = CryptoHelper.VerifySignature(handshake.Signature.ToByteArray(),
-                Hash.FromMessage(handshake.HandshakeData).ToByteArray(), handshake.HandshakeData.Pubkey.ToByteArray());
+                MessageExtensions.ToByteArray(Hash.FromMessage(handshake.HandshakeData)), handshake.HandshakeData.Pubkey.ToByteArray());
             
             if (!validData)
                 return AuthError.WrongSignature;

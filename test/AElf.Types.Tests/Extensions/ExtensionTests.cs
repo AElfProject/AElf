@@ -9,7 +9,7 @@ namespace AElf.Types.Tests.Extensions
         [Fact]
         public void Strinig_Extension_Methods()
         {
-            var hexValue = Hash.Generate().ToHex();
+            var hexValue = HashHelper.Generate().ToHex();
 
             var hexValueWithPrefix = hexValue.AppendHexPrefix();
             hexValueWithPrefix.Substring(0, 2).ShouldBe("0x");

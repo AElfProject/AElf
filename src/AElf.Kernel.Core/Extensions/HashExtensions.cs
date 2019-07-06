@@ -28,7 +28,7 @@ namespace AElf.Kernel
                 newBytes[i] = (byte) (hash.Value[i] ^ another.Value[i]);
             }
 
-            return Hash.LoadByteArray(newBytes);
+            return Hash.FromByteArray(newBytes);
         }
     }
 }

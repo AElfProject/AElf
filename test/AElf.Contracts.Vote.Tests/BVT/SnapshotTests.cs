@@ -32,7 +32,7 @@ namespace AElf.Contracts.Vote
             var transactionResult = (await VoteContractStub.TakeSnapshot.SendAsync(
                 new TakeSnapshotInput
                 {
-                    VotingItemId = Hash.Generate(),
+                    VotingItemId = HashHelper.Generate(),
                     SnapshotNumber = 1
                 })).TransactionResult;
 

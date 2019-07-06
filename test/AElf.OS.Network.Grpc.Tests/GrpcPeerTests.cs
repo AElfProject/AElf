@@ -48,7 +48,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task RequestBlockAsync_Success()
         {
-            var block = await _grpcPeer.RequestBlockAsync(Hash.Generate());
+            var block = await _grpcPeer.RequestBlockAsync(HashHelper.Generate());
             block.ShouldBeNull();
 
             var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
@@ -92,7 +92,7 @@ namespace AElf.OS.Network
             var header = new PeerNewBlockAnnouncement
             {
                 BlockHeight = 100,
-                BlockHash = Hash.Generate()
+                BlockHash = HashHelper.Generate()
             };
 
             await _grpcPeer.AnnounceAsync(header);

@@ -235,7 +235,7 @@ namespace AElf.OS.Network.Grpc
                 ChainId = _blockchainService.GetChainId()
             };
 
-            byte[] sig = await _accountService.SignAsync(Hash.FromMessage(nd).ToByteArray());
+            byte[] sig = await _accountService.SignAsync(MessageExtensions.ToByteArray(Hash.FromMessage(nd)));
 
             var chain = await _blockchainService.GetChainAsync();
                 

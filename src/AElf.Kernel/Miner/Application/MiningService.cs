@@ -60,7 +60,7 @@ namespace AElf.Kernel.Miner.Application
 
         private async Task SignAsync(Transaction notSignerTransaction)
         {
-            var signature = await _accountService.SignAsync(notSignerTransaction.GetHash().DumpByteArray());
+            var signature = await _accountService.SignAsync(notSignerTransaction.GetHash().ToByteArray());
             notSignerTransaction.Signature = ByteString.CopyFrom(signature);
         }
 
@@ -82,7 +82,7 @@ namespace AElf.Kernel.Miner.Application
 
         private async Task SignBlockAsync(Block block)
         {
-            var signature = await _accountService.SignAsync(block.GetHash().DumpByteArray());
+            var signature = await _accountService.SignAsync(block.GetHash().ToByteArray());
             block.Header.Signature = ByteString.CopyFrom(signature);
         }
 

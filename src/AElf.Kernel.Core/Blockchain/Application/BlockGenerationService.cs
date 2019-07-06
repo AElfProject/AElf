@@ -108,7 +108,7 @@ namespace AElf.Kernel.Blockchain.Application
                 }
 
                 hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
-                merkleTreeRootOfWorldState = Hash.LoadByteArray(hashAlgorithm.Hash);
+                merkleTreeRootOfWorldState = Hash.FromByteArray(hashAlgorithm.Hash);
             }
 
             return merkleTreeRootOfWorldState;
@@ -146,7 +146,7 @@ namespace AElf.Kernel.Blockchain.Application
             TransactionResultStatus executionReturnStatus)
         {
             // combine tx result status
-            var rawBytes = txId.DumpByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
+            var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
                 .ToArray();
             return Hash.FromRawBytes(rawBytes);
         }

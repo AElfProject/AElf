@@ -180,7 +180,7 @@ namespace AElf.WebApp.Application.Chain
                 From = Address.Parse(input.From),
                 To = Address.Parse(input.To),
                 RefBlockNumber = input.RefBlockNumber,
-                RefBlockPrefix = ByteString.CopyFrom(Hash.LoadHex(input.RefBlockHash).Value.Take(4).ToArray()),
+                RefBlockPrefix = ByteString.CopyFrom(HashHelper.HexStringToHash(input.RefBlockHash).Value.Take(4).ToArray()),
                 MethodName = input.MethodName
             };
             var methodDescriptor = await GetContractMethodDescriptorAsync(Address.Parse(input.To), input.MethodName);
@@ -270,7 +270,7 @@ namespace AElf.WebApp.Application.Chain
             Hash transactionHash;
             try
             {
-                transactionHash = Hash.LoadHex(transactionId);
+                transactionHash = HashHelper.HexStringToHash(transactionId);
             }
             catch
             {
@@ -330,7 +330,7 @@ namespace AElf.WebApp.Application.Chain
             Hash realBlockHash;
             try
             {
-                realBlockHash = Hash.LoadHex(blockHash);
+                realBlockHash = HashHelper.HexStringToHash(blockHash);
             }
             catch
             {
@@ -397,7 +397,7 @@ namespace AElf.WebApp.Application.Chain
             Hash realBlockHash;
             try
             {
-                realBlockHash = Hash.LoadHex(blockHash);
+                realBlockHash = HashHelper.HexStringToHash(blockHash);
             }
             catch
             {
@@ -526,9 +526,9 @@ namespace AElf.WebApp.Application.Chain
 
             var chain = await _blockchainService.GetChainAsync();
 
-            var branches = chain.Branches.ToDictionary(b => Hash.LoadBase64(b.Key).ToHex(), b => b.Value);
-            var notLinkedBlocks = chain.NotLinkedBlocks.ToDictionary(b => Hash.LoadBase64(b.Key).ToHex(),
-                b => Hash.LoadBase64(b.Value).ToHex());
+            var branches = chain.Branches.ToDictionary(b => HashHelper.LoadBase64ToHash(b.Key).ToHex(), b => b.Value);
+            var notLinkedBlocks = chain.NotLinkedBlocks.ToDictionary(b => HashHelper.LoadBase64ToHash(b.Key).ToHex(),
+                b => HashHelper.LoadBase64ToHash(b.Value).ToHex());
 
             return new ChainStatusDto
             {
@@ -553,7 +553,7 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<BlockStateDto> GetBlockStateAsync(string blockHash)
         {
-            var blockState = await _blockchainStateManager.GetBlockStateSetAsync(Hash.LoadHex(blockHash));
+            var blockState = await _blockchainStateManager.GetBlockStateSetAsync(HashHelper.HexStringToHash(blockHash));
             if (blockState == null)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());

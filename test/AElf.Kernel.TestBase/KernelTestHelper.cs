@@ -112,10 +112,10 @@ namespace AElf.Kernel
                 RefBlockNumber = refBlockNumber,
                 RefBlockPrefix = refBlockHash == null
                     ? ByteString.Empty
-                    : ByteString.CopyFrom(refBlockHash.DumpByteArray().Take(4).ToArray())
+                    : ByteString.CopyFrom(refBlockHash.ToByteArray().Take(4).ToArray())
             };
 
-            var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, transaction.GetHash().DumpByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, transaction.GetHash().ToByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
             return transaction;
         }

@@ -136,7 +136,7 @@ namespace AElf.Kernel.SmartContract
         public byte[] RecoverPublicKey()
         {
             return RecoverPublicKey(TransactionContext.Transaction.Signature.ToByteArray(),
-                TransactionContext.Transaction.GetHash().DumpByteArray());
+                TransactionContext.Transaction.GetHash().ToByteArray());
         }
 
         public T Call<T>(Address address, string methodName, ByteString args) where T : IMessage<T>, new()
