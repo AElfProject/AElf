@@ -639,7 +639,9 @@ namespace AElf.Contracts.Profit
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
 
-            var availableDetails = profitDetails.Details.Where(d => d.LastProfitPeriod < profitItem.CurrentPeriod).ToList();
+            var availableDetails = profitDetails.Details.Where(d =>
+                d.LastProfitPeriod < profitItem.CurrentPeriod && d.EndPeriod >= d.LastProfitPeriod
+            ).ToList();
 
             Context.LogDebug(() =>
                 $"Available details: {availableDetails.Aggregate("\n", (profit1, profit2) => profit1.ToString() + "\n" + profit2.ToString())}");
@@ -657,7 +659,7 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                ProfitAllPeriods(input, ref profitDetail, profitItem, profitVirtualAddress);
+                ProfitAllPeriods(profitItem, input.Symbol, profitDetail, profitVirtualAddress);
             }
 
             State.ProfitDetailsMap[input.ProfitId][Context.Sender] = new ProfitDetails {Details = {availableDetails}};
@@ -665,11 +667,11 @@ namespace AElf.Contracts.Profit
             return new Empty();
         }
 
-        private void ProfitAllPeriods(ProfitInput input, ref ProfitDetail profitDetail, ProfitItem profitItem,
-            Address profitVirtualAddress)
+        private long ProfitAllPeriods(ProfitItem profitItem, string symbol, ProfitDetail profitDetail,
+            Address profitVirtualAddress, bool isView = false)
         {
+            var totalAmount = 0L;
             var lastProfitPeriod = profitDetail.LastProfitPeriod;
-            Context.LogDebug(() => $"Last profit period: {lastProfitPeriod}");
             for (var period = profitDetail.LastProfitPeriod;
                 period <= (profitDetail.EndPeriod == long.MaxValue
                     ? profitItem.CurrentPeriod - 1
@@ -682,26 +684,34 @@ namespace AElf.Contracts.Profit
                     GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
                 var releasedProfitsInformation = State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
                 Context.LogDebug(() => $"Released profit information: {releasedProfitsInformation}");
-                var amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount[input.Symbol])
+                var amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount[symbol])
                     .Div(releasedProfitsInformation.TotalWeight);
-                Context.LogDebug(() =>
-                    $"{Context.Sender} is profiting {amount} {input.Symbol} tokens from {input.ProfitId.ToHex()} in period {periodToPrint}." +
-                    $"Sender's weight: {detailToPrint.Weight}, total weight: {releasedProfitsInformation.TotalWeight}");
-                if (releasedProfitsInformation.IsReleased && amount > 0)
+
+                if (!isView)
                 {
-                    State.TokenContract.TransferFrom.Send(new TransferFromInput
+                    Context.LogDebug(() =>
+                        $"{Context.Sender} is profiting {amount} {symbol} tokens from {profitItem.ProfitId.ToHex()} in period {periodToPrint}." +
+                        $"Sender's weight: {detailToPrint.Weight}, total weight: {releasedProfitsInformation.TotalWeight}");
+                    if (releasedProfitsInformation.IsReleased && amount > 0)
                     {
-                        From = releasedProfitsVirtualAddress,
-                        To = Context.Sender,
-                        Symbol = input.Symbol,
-                        Amount = amount
-                    });
+                        State.TokenContract.TransferFrom.Send(new TransferFromInput
+                        {
+                            From = releasedProfitsVirtualAddress,
+                            To = Context.Sender,
+                            Symbol = symbol,
+                            Amount = amount
+                        });
+                    }
+
+                    lastProfitPeriod = period + 1;
                 }
 
-                lastProfitPeriod = period + 1;
+                totalAmount = totalAmount.Add(amount);
             }
 
             profitDetail.LastProfitPeriod = lastProfitPeriod;
+
+            return totalAmount;
         }
     }
 }

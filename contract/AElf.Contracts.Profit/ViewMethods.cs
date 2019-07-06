@@ -72,8 +72,9 @@ namespace AElf.Contracts.Profit
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
 
-            var availableDetails = profitDetails.Details.Where(d => d.LastProfitPeriod != profitItem.CurrentPeriod)
-                .ToList();
+            var availableDetails = profitDetails.Details.Where(d =>
+                d.LastProfitPeriod < profitItem.CurrentPeriod && d.EndPeriod >= d.LastProfitPeriod
+            ).ToList();
 
             var amount = 0L;
 
@@ -87,21 +88,7 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                for (var period = profitDetail.LastProfitPeriod;
-                    period <= (profitDetail.EndPeriod == long.MaxValue
-                        ? profitItem.CurrentPeriod - 1
-                        : Math.Min(profitItem.CurrentPeriod - 1, profitDetail.EndPeriod));
-                    period++)
-                {
-                    var releasedProfitsVirtualAddress =
-                        GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
-                    var releasedProfitsInformation = State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
-                    if (releasedProfitsInformation.IsReleased)
-                    {
-                        amount = amount.Add(profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount[input.Symbol])
-                            .Div(releasedProfitsInformation.TotalWeight));
-                    }
-                }
+                amount = amount.Add(ProfitAllPeriods(profitItem, input.Symbol, profitDetail, profitVirtualAddress, true));
             }
 
             return new SInt64Value {Value = amount};
