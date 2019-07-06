@@ -338,7 +338,7 @@ namespace AElf.Contracts.Treasury
                 .RealTimeMinersInformation.Keys.ToList();
 
             var previousMinersAddresses =
-                previousMiners.Select(k => Address.FromPublicKey(ByteArrayHelpers.FromHexString(k))).ToList();
+                previousMiners.Select(k => Address.FromPublicKey(ByteArrayHelper.FromHexString(k))).ToList();
 
             var treasuryVirtualAddress = State.TreasuryVirtualAddress.Value;
 

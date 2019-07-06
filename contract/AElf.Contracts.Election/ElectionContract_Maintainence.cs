@@ -106,7 +106,7 @@ namespace AElf.Contracts.Election
             };
             foreach (var publicKey in previousMiners)
             {
-                var address = Address.FromPublicKey(ByteArrayHelpers.FromHexString(publicKey));
+                var address = Address.FromPublicKey(ByteArrayHelper.FromHexString(publicKey));
 
                 UpdateCandidateInformation(publicKey, input.TermNumber, address, previousMiners,
                     ref reElectionProfitAddWeights);
@@ -202,7 +202,7 @@ namespace AElf.Contracts.Election
 
             if (input.IsEvilNode)
             {
-                var publicKeyByte = ByteArrayHelpers.FromHexString(input.Pubkey);
+                var publicKeyByte = ByteArrayHelper.FromHexString(input.Pubkey);
                 State.BlackList.Value.Value.Add(ByteString.CopyFrom(publicKeyByte));
                 State.ProfitContract.SubWeight.Send(new SubWeightInput
                 {

@@ -114,7 +114,7 @@ namespace AElf.Types
                 throw new InvalidOperationException("Cannot compare address when address is null");
             }
 
-            return ByteStringHelpers.Compare(x.Value, y.Value);
+            return ByteStringHelper.Compare(x.Value, y.Value);
         }
 
         public int CompareTo(Address that)

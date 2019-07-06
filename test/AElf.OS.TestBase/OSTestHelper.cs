@@ -151,7 +151,7 @@ namespace AElf.OS
 
         public async Task<Transaction> GenerateTransferTransaction()
         {
-            var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
+            var newUserKeyPair = CryptoHelper.GenerateKeyPair();
             var accountAddress = await _accountService.GetAccountAsync();
 
             var transaction = GenerateTransaction(accountAddress,
@@ -173,7 +173,7 @@ namespace AElf.OS
             var accountAddress = await _accountService.GetAccountAsync();
             for (var i = 0; i < count; i++)
             {
-                var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
+                var newUserKeyPair = CryptoHelper.GenerateKeyPair();
                 var transaction = GenerateTransaction(accountAddress,
                     _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
                     nameof(TokenContractContainer.TokenContractStub.Transfer),
@@ -197,7 +197,7 @@ namespace AElf.OS
                 var from = Address.FromPublicKey(keyPair.PublicKey);
                 for (var i = 0; i < count; i++)
                 {
-                    var to = CryptoHelpers.GenerateKeyPair();
+                    var to = CryptoHelper.GenerateKeyPair();
                     var transaction = GenerateTransaction(from,
                         _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
                         nameof(TokenContractContainer.TokenContractStub.Transfer),

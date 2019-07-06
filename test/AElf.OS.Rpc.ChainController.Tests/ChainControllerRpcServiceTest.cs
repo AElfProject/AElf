@@ -85,7 +85,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var response = await JsonCallAsJObject("/chain", "GetChainInformation");
 
             var responseZeroContractAddress = response["result"]["GenesisContractAddress"].ToString();
-            var responseChainId = ChainHelpers.ConvertBase58ToChainId(response["result"]["ChainId"].ToString());
+            var responseChainId = ChainHelper.ConvertBase58ToChainId(response["result"]["ChainId"].ToString());
 
             responseZeroContractAddress.ShouldBe(basicContractZero.GetFormatted());
             responseChainId.ShouldBe(chainId);
@@ -128,7 +128,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             resultString.ShouldNotBeNullOrEmpty();
 
             // The following is always true
-//            var bs = ByteArrayHelpers.FromHexString(resultString);
+//            var bs = ByteArrayHelper.FromHexString(resultString);
 //            var contractInfo = ContractInfo.Parser.ParseFrom(bs);
 //            contractInfo.ShouldNotBeNull();
         }
@@ -359,7 +359,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
                 .ShouldBe(block.Header.MerkleTreeRootOfWorldState.ToHex());
             ((long) responseResult["Header"]["Height"]).ShouldBe(block.Height);
             Convert.ToDateTime(responseResult["Header"]["Time"]).ShouldBe(block.Header.Time.ToDateTime());
-            responseResult["Header"]["ChainId"].ToString().ShouldBe(ChainHelpers.ConvertChainIdToBase58(chain.Id));
+            responseResult["Header"]["ChainId"].ToString().ShouldBe(ChainHelper.ConvertChainIdToBase58(chain.Id));
             responseResult["Header"]["Bloom"].ToString().ShouldBe(block.Header.Bloom.ToByteArray().ToHex());
             ((int) responseResult["Body"]["TransactionsCount"]).ShouldBe(3);
 
@@ -529,7 +529,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         private List<Transaction> GenerateTwoInitializeTransaction()
         {
             var transactionList = new List<Transaction>();
-            var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
+            var newUserKeyPair = CryptoHelper.GenerateKeyPair();
 
             for (int i = 0; i < 2; i++)
             {
@@ -546,7 +546,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
                     });
 
                 var signature =
-                    CryptoHelpers.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
+                    CryptoHelper.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
                 transaction.Signature = ByteString.CopyFrom(signature);
 
                 transactionList.Add(transaction); 

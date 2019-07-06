@@ -78,11 +78,20 @@ namespace AElf.OS.BlockSync.Application
             }
             else
             {
-                var syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
-                    chain.BestChainHeight, batchRequestBlockCount, suggestedPeerPubKey);
+                // sync from longest chain height
+                var syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.LongestChainHash,
+                    chain.LongestChainHeight, batchRequestBlockCount, suggestedPeerPubKey);
+                
+                if (syncBlockCount == 0)
+                {
+                    // sync from best chain height
+                    syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
+                        chain.BestChainHeight, batchRequestBlockCount, suggestedPeerPubKey);
+                }
 
                 if (syncBlockCount == 0 && blockHeight > chain.LongestChainHeight)
                 {
+                    // sync from lib height
                     Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
                     syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.LastIrreversibleBlockHash,
                         chain.LastIrreversibleBlockHeight, batchRequestBlockCount, suggestedPeerPubKey);

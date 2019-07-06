@@ -281,7 +281,7 @@ namespace AElf.Contract.CrossChain.Tests
                 nameof(CrossChainContractContainer.CrossChainContractStub.RequestChainCreation),
                 sideChainCreationRequest);
             var chainId = RequestChainCreationOutput.Parser.ParseFrom(requestTxResult.ReturnValue).ChainId;
-            var otherChainId = ChainHelpers.GetChainId(5);
+            var otherChainId = ChainHelper.GetChainId(5);
             var rechargeInput = new RechargeInput()
             {
                 ChainId = otherChainId,
@@ -356,7 +356,7 @@ namespace AElf.Contract.CrossChain.Tests
             var tx1 = await GenerateTransactionAsync(CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub.RequestChainCreation), null, sideChainCreationRequest);
             await MineAsync(new List<Transaction> {tx1});
-            var sideChainId2 = ChainHelpers.GetChainId(2);
+            var sideChainId2 = ChainHelper.GetChainId(2);
             var tx2 = await GenerateTransactionAsync(
                 CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub.CreateSideChain),
@@ -452,7 +452,7 @@ namespace AElf.Contract.CrossChain.Tests
                 {
                     Value = sideChainId
                 })).Value;
-            Assert.Equal(3, chainStatus);
+            Assert.Equal((int) SideChainStatus.Terminated, chainStatus);
         }
 
         [Fact]
@@ -682,7 +682,7 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task CrossChainReceiveToken()
         {
             int parentChainId = 123;
-            int chainId1 = ChainHelpers.ConvertBase58ToChainId("AELF");
+            int chainId1 = ChainHelper.ConvertBase58ToChainId("AELF");
             long lockedToken = 10;
             long parentChainHeightOfCreation = 10;
             var sidechainId = await InitAndCreateSideChain(parentChainHeightOfCreation, parentChainId, lockedToken);
@@ -735,7 +735,7 @@ namespace AElf.Contract.CrossChain.Tests
             var indexingTx = await GenerateTransactionAsync(CrossChainContractAddress,
                 CrossChainConstants.CrossChainIndexingMethodName, null, crossChainBlockData);
             await MineAsync(new List<Transaction> {indexingTx});
-            int chainId2 = ChainHelpers.ConvertBase58ToChainId("2113");
+            int chainId2 = ChainHelper.ConvertBase58ToChainId("2113");
             var crossChainReceiveTokenInput = new CrossChainReceiveTokenInput
             {
                 FromChainId = chainId2,

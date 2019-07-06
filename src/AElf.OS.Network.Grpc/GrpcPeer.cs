@@ -7,12 +7,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -24,6 +22,7 @@ namespace AElf.OS.Network.Grpc
         private const int BlockRequestTimeout = 300;
         private const int TransactionBroadcastTimeout = 300;
         private const int BlocksRequestTimeout = 500;
+        private const int GetNodesTimeout = 500;
         private const int UpdateHandshakeTimeout = 400;
         
         private enum MetricNames
@@ -103,6 +102,21 @@ namespace AElf.OS.Network.Grpc
             }
 
             return metrics;
+        }
+
+        public Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest)
+        {
+            GrpcRequest request = new GrpcRequest
+            {
+                ErrorMessage = $"Request nodes failed."
+            };
+            
+            Metadata data = new Metadata
+            {
+                {GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString()}
+            };
+            
+            return RequestAsync(_client, c => c.GetNodesAsync(new NodesRequest { MaxCount = count }, data), request);
         }
 
         public async Task<BlockWithTransactions> RequestBlockAsync(Hash hash)

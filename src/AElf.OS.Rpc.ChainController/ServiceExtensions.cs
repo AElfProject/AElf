@@ -30,7 +30,7 @@ namespace AElf.OS.Rpc.ChainController
                 Transaction transaction;
                 try
                 {
-                    var hexString = ByteArrayHelpers.FromHexString(rawTransactions[i]);
+                    var hexString = ByteArrayHelper.FromHexString(rawTransactions[i]);
                     transaction = Transaction.Parser.ParseFrom(hexString);
                 }
                 catch

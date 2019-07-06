@@ -94,7 +94,7 @@ namespace AElf.Contracts.TestBase
         {
             for (var i = 0; i < 3; i++)
             {
-                var generateKeyPair = CryptoHelpers.GenerateKeyPair();
+                var generateKeyPair = CryptoHelper.GenerateKeyPair();
                 InitialMinerList.Add(generateKeyPair);
             }
             KeyPair = keyPair ?? InitialMinerList[0];
@@ -128,7 +128,7 @@ namespace AElf.Contracts.TestBase
                         {
                             var mockService = new Mock<IAccountService>();
                             mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
-                                Task.FromResult(CryptoHelpers.SignWithPrivateKey(KeyPair.PrivateKey, data)));
+                                Task.FromResult(CryptoHelper.SignWithPrivateKey(KeyPair.PrivateKey, data)));
 
                             mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(KeyPair.PublicKey);
 
@@ -146,7 +146,7 @@ namespace AElf.Contracts.TestBase
             {
                 var mockService = new Mock<IAccountService>();
                 mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
-                    Task.FromResult(CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, data)));
+                    Task.FromResult(CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, data)));
 
                 mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(keyPair.PublicKey);
 
@@ -179,7 +179,7 @@ namespace AElf.Contracts.TestBase
                     {
                         var mockService = new Mock<IAccountService>();
                         mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
-                            Task.FromResult(CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, data)));
+                            Task.FromResult(CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, data)));
 
                         mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(keyPair.PublicKey);
 
@@ -225,7 +225,7 @@ namespace AElf.Contracts.TestBase
         {
             if (initialMiners == null)
             {
-                initialMiners = Enumerable.Range(0, 3).Select(i => CryptoHelpers.GenerateKeyPair().PublicKey.ToHex())
+                initialMiners = Enumerable.Range(0, 3).Select(i => CryptoHelper.GenerateKeyPair().PublicKey.ToHex())
                     .ToList();
             }
 
@@ -411,7 +411,7 @@ namespace AElf.Contracts.TestBase
                 RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
             };
 
-            var signature = CryptoHelpers.SignWithPrivateKey(KeyPair.PrivateKey, tx.GetHash().DumpByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(KeyPair.PrivateKey, tx.GetHash().DumpByteArray());
             tx.Signature = ByteString.CopyFrom(signature);
 
             return tx;
@@ -442,7 +442,7 @@ namespace AElf.Contracts.TestBase
                 RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
             };
 
-            var signature = CryptoHelpers.SignWithPrivateKey(ecKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(ecKeyPair.PrivateKey, tx.GetHash().DumpByteArray());
             tx.Signature = ByteString.CopyFrom(signature);
 
             return tx;
@@ -568,7 +568,7 @@ namespace AElf.Contracts.TestBase
             foreach (var transaction in transactions)
             {
                 var signature =
-                    CryptoHelpers.SignWithPrivateKey(callerKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
+                    CryptoHelper.SignWithPrivateKey(callerKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
                 transaction.Signature = ByteString.CopyFrom(signature);
             }
         }
