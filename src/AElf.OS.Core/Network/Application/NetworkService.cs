@@ -38,11 +38,6 @@ namespace AElf.OS.Network.Application
             return await _peerPool.RemovePeerByAddressAsync(address);
         }
 
-        public List<string> GetPeerIpList()
-        {
-            return _peerPool.GetPeers(true).Select(p => p.IpAddress).ToList();
-        }
-
         public List<IPeer> GetPeers()
         {
             return _peerPool.GetPeers(true).ToList(); 
