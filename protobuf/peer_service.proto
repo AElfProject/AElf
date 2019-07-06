@@ -12,6 +12,8 @@ service PeerService {
     
     rpc Announce (PeerNewBlockAnnouncement) returns (VoidReply) {}
     rpc SendTransaction (aelf.Transaction) returns (VoidReply) {}
+
+    rpc BlockBroadcastStream (stream BlockWithTransactions) returns (VoidReply) {}
     
     rpc GetNodes (NodesRequest) returns (NodeList) {}
     

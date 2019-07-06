@@ -16,5 +16,6 @@ namespace AElf.OS.Network
         public const int DefaultDiscoveryPeersToRequestCount = 5;
 
         public const string PeerReconnectionQueueName = "PeerReconnectionQueue";
+        public const string BlockBroadcastQueueName = "BlockBroadcastQueue";
     }
 }

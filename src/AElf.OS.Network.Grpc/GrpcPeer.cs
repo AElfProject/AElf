@@ -61,6 +61,8 @@ namespace AElf.OS.Network.Grpc
         
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
+        
+        private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, GrpcPeerInfo peerInfo)
         {
@@ -173,6 +175,26 @@ namespace AElf.OS.Network.Grpc
 
             return RequestAsync(_client, c => c.AnnounceAsync(header, data), request);
         }
+        
+        public async Task SendBlockAsync(BlockWithTransactions blockWithTransactions)
+        {
+            // todo isConnected here
+            
+            if (_blockStreamCall == null)
+                _blockStreamCall = _client.BlockBroadcastStream();
+
+            try
+            {
+                await _blockStreamCall.RequestStream.WriteAsync(blockWithTransactions);
+            }
+            catch (RpcException e)
+            {
+                _blockStreamCall.Dispose();
+                _blockStreamCall = null;
+                
+                HandleFailure(e, $"Error during block broadcast: {blockWithTransactions.Header.GetHash()}.");
+            }
+        }
 
         public Task SendTransactionAsync(Transaction tx)
         {
@@ -267,7 +289,7 @@ namespace AElf.OS.Network.Grpc
         /// This method handles the case where the peer is potentially down. If the Rpc call
         /// put the channel in TransientFailure or Connecting, we give the connection a certain time to recover.
         /// </summary>
-        private void HandleFailure(AggregateException exceptions, string errorMessage)
+        private void HandleFailure(Exception exceptions, string errorMessage)
         {
             // If channel has been shutdown (unrecoverable state) remove it.
             string message = $"Failed request to {this}: {errorMessage}";

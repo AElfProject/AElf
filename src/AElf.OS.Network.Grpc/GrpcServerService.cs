@@ -13,6 +13,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
+using Grpc.Core.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -174,6 +175,17 @@ namespace AElf.OS.Network.Grpc
             }
 
             return AuthError.None;
+        }
+        
+        public override async Task<VoidReply> BlockBroadcastStream(IAsyncStreamReader<BlockWithTransactions> requestStream, ServerCallContext context)
+        {
+            await requestStream.ForEachAsync(r =>
+            {
+                _ = EventBus.PublishAsync(new BlockReceivedEvent(r));
+                return Task.CompletedTask;
+            });
+            
+            return new VoidReply();
         }
 
         /// <summary>

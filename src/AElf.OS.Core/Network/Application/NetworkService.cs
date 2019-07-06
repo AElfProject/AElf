@@ -127,7 +127,32 @@ namespace AElf.OS.Network.Application
             
             return successfulBcasts;
         }
-
+        
+        public Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
+        {
+            if (!UpdatePool(blockWithTransactions.Header))
+                return Task.CompletedTask;
+            
+            _taskQueueManager.Enqueue(async () =>
+            {
+                foreach (var peer in _peerPool.GetPeers())
+                {
+                    try
+                    {
+                        await peer.SendBlockAsync(blockWithTransactions);
+                    }
+                    catch (NetworkException ex)
+                    {
+                        Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
+                        await HandleNetworkException(peer, ex);
+                    }
+                }
+                
+            }, NetworkConstants.BlockBroadcastQueueName);
+            
+            return Task.CompletedTask;
+        }
+        
         public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, 
             string peerPubKey = null)
         {
@@ -141,6 +166,24 @@ namespace AElf.OS.Network.Application
                 Logger.LogWarning($"Block count miss match, asked for {count} but got {blocks.Count}");
 
             return blocks;
+        }
+        
+        /// <summary>
+        /// returns false if the pool already knows about this announcement, true if not.
+        /// </summary>
+        private bool UpdatePool(BlockHeader blockHeader)
+        {
+            var blockHash = blockHeader.GetHash();
+            if (_peerPool.RecentBlockHeightAndHashMappings.TryGetValue(blockHeader.Height, out var recentBlockHash) &&
+                recentBlockHash == blockHash)
+            {
+                Logger.LogDebug($"BlockHeight: {blockHeader.Height}, BlockHash: {blockHash} has been broadcast.");
+                return false;
+            }
+            
+            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHash, false);
+
+            return true;
         }
         
         private List<IPeer> SelectPeers(string peerPubKey)
