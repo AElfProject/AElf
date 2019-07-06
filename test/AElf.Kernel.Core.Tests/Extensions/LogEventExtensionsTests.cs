@@ -10,7 +10,7 @@ namespace AElf.Kernel.Extensions
         [Fact]
         public void LogEvent_GetBloomAndCompare()
         {
-            var address = AddressHelper.Generate();
+            var address = AddressHelper.FromString("address");
             var logEvent = new LogEvent()
             {
                 Address = address,

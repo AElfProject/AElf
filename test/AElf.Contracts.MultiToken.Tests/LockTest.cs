@@ -15,7 +15,7 @@ namespace AElf.Contracts.MultiToken
 {
     public class LockTest : MultiTokenContractTestBase
     {
-        private readonly Address _address = AddressHelper.Generate();
+        private readonly Address _address = AddressHelper.FromString("dress");
         private const string SymbolForTest = "ELFTEST";
         private const long Amount = 100;
         private Address BasicFunctionContractAddress { get; set; }

@@ -55,8 +55,8 @@ namespace AElf.Kernel
             {
                 new Transaction
                 {
-                    From = AddressHelper.Generate(),
-                    To = AddressHelper.Generate(),
+                    From = AddressHelper.FromString("from"),
+                    To = AddressHelper.FromString("to"),
                     MethodName = "GenerateConsensusTransactions"
                 }
             };

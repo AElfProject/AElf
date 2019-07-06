@@ -39,7 +39,7 @@ namespace AElf.Benchmark
         [IterationSetup]
         public async Task IterationSetup()
         {
-            _transaction = _osTestHelper.GenerateTransaction(AddressHelper.Generate(), _contractAddress,
+            _transaction = _osTestHelper.GenerateTransaction(AddressHelper.FromString("address"), _contractAddress,
                 nameof(PerformanceTestContract.PerformanceTestContract.Fibonacci), new UInt64Value
                 {
                     Value = 16

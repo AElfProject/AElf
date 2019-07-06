@@ -38,7 +38,7 @@ namespace AElf.CrossChain
             {
                 var mockSmartContractAddressService = new Mock<ISmartContractAddressService>();
                 mockSmartContractAddressService.Setup(m => m.GetAddressByContractName(It.IsAny<Hash>()))
-                    .Returns(AddressHelper.Generate);
+                    .Returns(AddressHelper.FromString("address"));
                 return mockSmartContractAddressService.Object;
             });
             context.Services.AddTransient(provider =>

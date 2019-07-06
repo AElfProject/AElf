@@ -180,13 +180,12 @@ namespace AElf.Types
 
         private string _formatted;
 
-        // TODO: add property
-        public string GetFormatted()
+        public string GetFormatted(string addressPrefix,int chainId)
         {
             if (_formatted != null)
                 return _formatted;
-            return _formatted = (TypeConsts.AElfAddressPrefix + "_") + Address.GetFormatted() +
-                                ("_" + Base58CheckEncoding.Encode(ChainId.DumpByteArray()));
+            return _formatted = (addressPrefix + "_") + Address.GetFormatted() +
+                                ("_" + Base58CheckEncoding.Encode(chainId.DumpByteArray()));
         }
     }
 }

@@ -116,7 +116,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
             var transaction = new Transaction
             {
-                From = AddressHelper.Generate(),
+                From = AddressHelper.FromString("from"),
                 To = basicContractZero,
                 MethodName = "GetContractInfo",
                 Params = basicContractZero.ToByteString()
@@ -457,12 +457,12 @@ namespace AElf.OS.Rpc.ChainController.Tests
         [Fact]
         public void Transaction_To_JObject()
         {
-            var transaction = _osTestHelper.GenerateTransaction(AddressHelper.Generate(), AddressHelper.Generate(),
+            var transaction = _osTestHelper.GenerateTransaction(AddressHelper.FromString("fromwhere"), AddressHelper.FromString("towhere"),
                 nameof(TokenContractContainer.TokenContractStub.Transfer), new TransferInput
                 {
                     Symbol = "ELF",
                     Amount = 1000L,
-                    To = AddressHelper.Generate()
+                    To = AddressHelper.FromString("to")
                 });
             var transactionObj = transaction.GetTransactionInfo();
             transactionObj.ShouldNotBeNull();
@@ -491,7 +491,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         [Fact]
         public async Task Get_FileDescriptorSet_Failed()
         {
-            var addressInfo = AddressHelper.Generate().GetFormatted();
+            var addressInfo = AddressHelper.FromString("info").GetFormatted();
             var response = await JsonCallAsJObject("/chain", "GetFileDescriptorSet",
                 new {address = addressInfo});
             response["error"]["code"].To<long>().ShouldBe(Error.NotFound);
@@ -541,7 +541,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
                         TokenName= $"elf token {i}",
                         TotalSupply = 1000_0000,
                         Decimals = 2,
-                        Issuer = AddressHelper.Generate(),
+                        Issuer = AddressHelper.FromString("issuer"),
                         IsBurnable = true
                     });
 

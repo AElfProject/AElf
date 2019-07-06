@@ -67,9 +67,9 @@ namespace AElf.Contracts.Vote
                 //add some more option
                 var options = new[]
                 {
-                    AddressHelper.Generate().GetFormatted(),
-                    AddressHelper.Generate().GetFormatted(),
-                    AddressHelper.Generate().GetFormatted()
+                    AddressHelper.FromString("address1").GetFormatted(),
+                    AddressHelper.FromString("address2").GetFormatted(),
+                    AddressHelper.FromString("address3").GetFormatted()
                 };
                 var optionResult = (await VoteContractStub.AddOptions.SendAsync(new AddOptionsInput
                 {

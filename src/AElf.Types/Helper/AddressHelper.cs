@@ -11,12 +11,7 @@ namespace AElf
                 return false;
             return Base58CheckEncoding.Verify(formattedAddress);
         }
-        
-        public static Address Generate()
-        {
-            return Address.FromBytes(Guid.NewGuid().ToByteArray().CalculateHash());
-        }
-        
+
         /// <summary>
         /// Creates an address from a string. This method is supposed to be used for test only.
         /// The hash bytes of the string will be used to create the address.

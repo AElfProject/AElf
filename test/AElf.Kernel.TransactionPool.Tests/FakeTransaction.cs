@@ -9,8 +9,8 @@ namespace AElf.Kernel.TransactionPool
         {
             var transaction = new Transaction()
             {
-                From = AddressHelper.Generate(),
-                To = AddressHelper.Generate(),
+                From = AddressHelper.FromString("from"),
+                To = AddressHelper.FromString("to"),
                 MethodName = "test",
                 Params = ByteString.CopyFromUtf8("test")
             };

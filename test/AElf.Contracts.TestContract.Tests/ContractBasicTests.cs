@@ -30,7 +30,7 @@ namespace AElf.Contract.TestContract
                     ContractName = "Test initialize again",
                     MinValue = 1000,
                     MaxValue = 10000,
-                    Manager = AddressHelper.Generate()
+                    Manager = AddressHelper.FromString("manager")
                 })).TransactionResult;
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -137,7 +137,7 @@ namespace AElf.Contract.TestContract
                 new Acs0.ChangeContractOwnerInput
                 {
                     ContractAddress = BasicFunctionContractAddress,
-                    NewOwner = AddressHelper.Generate()
+                    NewOwner = AddressHelper.FromString("newowner")
                 }
             )).TransactionResult;
             
@@ -148,7 +148,7 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task ChangeOwner_With_Permission_Success()
         {
-            var otherUser = AddressHelper.Generate();
+            var otherUser = AddressHelper.FromString("otheruser");
             var transactionResult = (await BasicContractZeroStub.ChangeContractOwner.SendAsync(
                 new Acs0.ChangeContractOwnerInput
                 {
