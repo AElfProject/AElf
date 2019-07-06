@@ -82,7 +82,7 @@ message Int32Input {
 }
 
 message UInt32Input {
-    uint32 unint32_value = 1;
+    uint32 uint32_value = 1;
 }
 
 message Int64Input {
@@ -145,7 +145,7 @@ message Int32Output {
 }
 
 message UInt32Output {
-    uint32 unint32_value = 1;
+    uint32 uint32_value = 1;
 }
 
 message UInt64Output {
