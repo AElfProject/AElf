@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Infrastructure;
+using AElf.OS.Network;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -52,6 +53,31 @@ namespace AElf.OS.BlockSync.Application
             if (syncBlockHeight <= chain.LastIrreversibleBlockHeight)
             {
                 Logger.LogWarning($"Receive lower header {{ hash: {syncBlockHash}, height: {syncBlockHeight} }} ignore.");
+                return false;
+            }
+
+            return true;
+        }
+
+        public async Task<bool> ValidateBeforeHandleBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions)
+        {
+            var blockFetchEnqueueTime = _blockSyncStateProvider.BlockSyncFetchBlockEnqueueTime;
+            if (blockFetchEnqueueTime != null && TimestampHelper.GetUtcNow() > blockFetchEnqueueTime +
+                TimestampHelper.DurationFromMilliseconds(BlockSyncConstants.BlockSyncFetchBlockAgeLimit))
+            {
+                Logger.LogWarning(
+                    $"Block sync fetch queue is too busy, enqueue timestamp: {blockFetchEnqueueTime}");
+                return false;
+            }
+            
+            if (!_announcementCacheProvider.TryAddAnnouncementCache(blockWithTransactions.GetHash(), blockWithTransactions.Height))
+            {
+                return false;
+            }
+
+            if (blockWithTransactions.Height <= chain.LastIrreversibleBlockHeight)
+            {
+                Logger.LogWarning($"Receive lower block {blockWithTransactions} ignore.");
                 return false;
             }
 

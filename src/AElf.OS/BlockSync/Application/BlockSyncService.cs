@@ -3,6 +3,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Dto;
 using AElf.OS.BlockSync.Infrastructure;
+using AElf.OS.Network;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -15,6 +16,7 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockDownloadService _blockDownloadService;
         private readonly IBlockSyncStateProvider _blockSyncStateProvider;
         private readonly ITaskQueueManager _taskQueueManager;
+        private readonly IBlockSyncAttachService _blockSyncAttachService;
 
         public ILogger<BlockSyncService> Logger { get; set; }
 
@@ -22,7 +24,8 @@ namespace AElf.OS.BlockSync.Application
             IBlockFetchService blockFetchService,
             IBlockDownloadService blockDownloadService,
             IBlockSyncStateProvider blockSyncStateProvider,
-            ITaskQueueManager taskQueueManager)
+            ITaskQueueManager taskQueueManager,
+            IBlockSyncAttachService blockSyncAttachService)
         {
             Logger = NullLogger<BlockSyncService>.Instance;
 
@@ -31,6 +34,7 @@ namespace AElf.OS.BlockSync.Application
             _blockDownloadService = blockDownloadService;
             _blockSyncStateProvider = blockSyncStateProvider;
             _taskQueueManager = taskQueueManager;
+            _blockSyncAttachService = blockSyncAttachService;
         }
 
         public async Task SyncBlockAsync(Chain chain, SyncBlockDto syncBlockDto)
@@ -44,6 +48,11 @@ namespace AElf.OS.BlockSync.Application
             {
                 EnqueueDownloadBlocksJob(syncBlockDto);
             }
+        }
+
+        public async Task SyncByBlockAsync(BlockWithTransactions blockWithTransactions)
+        {
+            EnqueueSyncBlockJob(blockWithTransactions, BlockSyncConstants.FetchBlockRetryTimes);
         }
 
         private void EnqueueFetchBlockJob(SyncBlockDto syncBlockDto, int retryTimes)
@@ -125,6 +134,33 @@ namespace AElf.OS.BlockSync.Application
                     _blockSyncStateProvider.BlockSyncDownloadBlockEnqueueTime = null;
                 }
             }, OSConstants.BlockDownloadQueueName);
+        }
+        
+        private void EnqueueSyncBlockJob(BlockWithTransactions blockWithTransactions, int retryTimes)
+        {
+            var enqueueTimestamp = TimestampHelper.GetUtcNow();
+            _taskQueueManager.Enqueue(async () =>
+            {
+                try
+                {
+                    _blockSyncStateProvider.BlockSyncFetchBlockEnqueueTime = enqueueTimestamp;
+                    Logger.LogTrace(
+                        $"Block sync: sync block, block height: {blockWithTransactions.Height}, block hash: {blockWithTransactions.GetHash()}, enqueue time: {enqueueTimestamp}");
+                    
+                    if (BlockAttachAndExecuteQueueIsAvailable())
+                    {
+                        _blockSyncAttachService.EnqueueAttachBlockWithTransactionsJob(blockWithTransactions);
+                    }
+                    else if (retryTimes > 1)
+                    {
+                        EnqueueSyncBlockJob(blockWithTransactions, retryTimes - 1);
+                    }
+                }
+                finally
+                {
+                    _blockSyncStateProvider.BlockSyncFetchBlockEnqueueTime = null;
+                }
+            }, OSConstants.BlockFetchQueueName);
         }
 
         private bool BlockAttachAndExecuteQueueIsAvailable()
