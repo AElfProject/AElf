@@ -23,7 +23,7 @@ service PerformanceTestContract {
 message PerformanceTesteInput {
     int32 exponent = 1;
     int32 seed = 2;
-    uint32 n =3;
+    uint32 n = 3;
 }
 
 message DivAddTestInput{
