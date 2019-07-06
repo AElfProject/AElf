@@ -44,7 +44,7 @@ message Int32Input {
 }
 
 message UInt32Input {
-    uint32 uint32_value = 1;
+    uint32 u_int32_value = 1;
 }
 
 message Int64Input {
@@ -52,7 +52,7 @@ message Int64Input {
 }
 
 message UInt64Input {
-    uint64 uint64_value = 1;
+    uint64 u_int64_value = 1;
 }
 
 message StringInput {
@@ -107,11 +107,11 @@ message Int32Output {
 }
 
 message UInt32Output {
-    uint32 uint32_value = 1;
+    uint32 u_int32_value = 1;
 }
 
 message UInt64Output {
-    uint64 uint64_value = 1;
+    uint64 u_int64_value = 1;
 }
 
 message Int64Output {
