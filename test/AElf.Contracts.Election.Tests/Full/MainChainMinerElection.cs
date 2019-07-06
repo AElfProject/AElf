@@ -23,7 +23,10 @@ namespace AElf.Contracts.Election
                 await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 1));
 
             await ProduceBlocks(BootMinerKeyPair, 10);
-            await NextRound(BootMinerKeyPair);
+            await NextTerm(BootMinerKeyPair);
+            
+            await ProduceBlocks(ValidationDataCenterKeyPairs[0], 10);
+            await NextTerm(ValidationDataCenterKeyPairs[0]);
 
             var profitTester = GetProfitContractTester(VoterKeyPairs[0]);
             var profitBalance = (await profitTester.GetProfitAmount.CallAsync(new ProfitInput
