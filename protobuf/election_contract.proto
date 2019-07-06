@@ -39,6 +39,9 @@ service ElectionContract {
     rpc GetCandidates (google.protobuf.Empty) returns (PubkeyList) {
         option (aelf.is_view) = true;
     }
+    rpc GetVotedCandidates (google.protobuf.Empty) returns (PubkeyList) {
+        option (aelf.is_view) = true;
+    }
     rpc GetCandidateInformation (StringInput) returns (CandidateInformation) {
         option (aelf.is_view) = true;
     }

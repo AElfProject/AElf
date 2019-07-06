@@ -18,7 +18,27 @@ namespace AElf.Contracts.Election
 
         public override PubkeyList GetCandidates(Empty input)
         {
-            return State.Candidates.Value;
+            return State.Candidates.Value ?? new PubkeyList();
+        }
+
+        public override PubkeyList GetVotedCandidates(Empty input)
+        {
+            var votedCandidates = new PubkeyList();
+            if (State.Candidates.Value == null)
+            {
+                return votedCandidates;
+            }
+
+            foreach (var pubkey in State.Candidates.Value.Value)
+            {
+                var candidateVotes = State.CandidateVotes[pubkey.ToHex()];
+                if (candidateVotes != null && candidateVotes.ObtainedActiveVotedVotesAmount > 0)
+                {
+                    votedCandidates.Value.Add(pubkey);
+                }
+            }
+
+            return votedCandidates;
         }
 
         public override PubkeyList GetVictories(Empty input)
@@ -28,6 +48,7 @@ namespace AElf.Contracts.Election
                 State.AEDPoSContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
             }
+
             var currentMiners = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
             return new PubkeyList {Value = {GetVictories(currentMiners)}};
