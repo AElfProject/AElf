@@ -134,13 +134,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
             catch (BlockValidationException ex)
             {
-                Logger.LogWarning(
-                    $"Block validation failed at height: {successLinks.Last().Height}, hash: {successLinks.Last().BlockHash}. Exception message {ex.Message}.");
                 if (!(ex.InnerException is ValidateNextTimeBlockValidationException) || successLinks.Count == 0)
                 {
                     await _chainManager.RemoveLongestBranchAsync(chain);
                     throw;
                 }
+                
+                Logger.LogWarning(
+                    $"Block validation failed at height: {successLinks.Last().Height}, hash: {successLinks.Last().BlockHash}. Exception message {ex.Message}.");
             }
             catch (Exception ex)
             {
