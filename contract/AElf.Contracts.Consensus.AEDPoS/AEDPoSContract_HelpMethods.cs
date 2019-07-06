@@ -36,8 +36,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private bool TryToGetCurrentRoundInformation(out Round round)
         {
             round = null;
-            if (!TryToGetRoundNumber(out var roundNumber)) return false;
+            if (!TryToGetRoundNumber(out var roundNumber))
+            {
+                Context.LogDebug(() => "Failed to get current round number.");
+                return false;
+            }
             round = State.Rounds[roundNumber];
+            var roundToPrint = round.Clone();
+            Context.LogDebug(() => $"Got current round information:\n{roundToPrint}");
             return !round.IsEmpty;
         }
 
@@ -96,9 +102,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool TryToUpdateRoundInformation(Round round)
         {
+            Context.LogDebug(() => $"Try to update round information. {round}");
             var ri = State.Rounds[round.RoundNumber];
             if (ri == null)
             {
+                Context.LogDebug(() => "Round information not found");
                 return false;
             }
 

@@ -125,7 +125,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Assert(false, "Failed to update round information.");
             }
 
-            Context.LogDebug(() => "Start to find LIB.");
             TryToFindLastIrreversibleBlock();
             
             Context.LogDebug(() => "Leaving UpdateValue.");
@@ -173,10 +172,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty UpdateTinyBlockInformation(TinyBlockInput input)
         {
+            Context.LogDebug(() => "Entered UpdateTinyBlockInformation");
             Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
+            if (input.RoundId != round.RoundId)
+            {
+                Context.LogDebug(() => "Round Id not matched.");
+            }
             Assert(input.RoundId == round.RoundId, "Round Id not matched.");
 
             var publicKey = Context.RecoverPublicKey().ToHex();
+            
+            Context.LogDebug(() => "Start to update sender's real time information.");
 
             round.RealTimeMinersInformation[publicKey].ActualMiningTimes.Add(input.ActualMiningTime);
             round.RealTimeMinersInformation[publicKey].ProducedBlocks = input.ProducedBlocks;
@@ -184,6 +190,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks = producedTinyBlocks.Add(1);
 
             Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
+
+            Context.LogDebug(() => "Leaving UpdateTinyBlockInformation");
 
             return new Empty();
         }
@@ -194,6 +202,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Empty NextRound(Round input)
         {
+            Context.LogDebug(() => "Entered NextRound");
             if (TryToGetRoundNumber(out var currentRoundNumber))
             {
                 Assert(currentRoundNumber < input.RoundNumber, "Incorrect round number for next round.");
