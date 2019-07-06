@@ -9,7 +9,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     internal partial class MinerList
     {
-        public Consensus.AEDPoS.Round GenerateFirstRoundOfNewTerm(int miningInterval,
+        public Round GenerateFirstRoundOfNewTerm(int miningInterval,
             Timestamp currentBlockTime, long currentRoundNumber = 0, long currentTermNumber = 0)
         {
             var sortedMiners =
