@@ -22,10 +22,5 @@ namespace AElf
             var bytes = ByteArrayHelper.FromHexString(hex);
             return Hash.FromByteArray(bytes);
         }
-        
-        public static Hash Generate()
-        {
-            return Hash.FromRawBytes(Guid.NewGuid().ToByteArray());
-        }
     }
 }

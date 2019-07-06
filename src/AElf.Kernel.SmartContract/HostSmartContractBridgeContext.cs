@@ -197,7 +197,7 @@ namespace AElf.Kernel.SmartContract
         public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress)
         {
             return Address.FromPublicKey(Self.Value.Concat(
-                virtualAddress.Value.ToByteArray().CalculateHash()).ToArray());
+                virtualAddress.Value.ToByteArray().ComputeHash()).ToArray());
         }
 
         public Address GetZeroSmartContractAddress()

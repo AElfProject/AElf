@@ -49,7 +49,7 @@ namespace AElf
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        public static byte[] CalculateHash(this byte[] bytes)
+        public static byte[] ComputeHash(this byte[] bytes)
         {
             return SHA256.Create().ComputeHash(bytes);
         }

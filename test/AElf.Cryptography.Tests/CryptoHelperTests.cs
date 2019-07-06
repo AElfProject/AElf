@@ -58,7 +58,7 @@ namespace AElf.Cryptography.Tests
 
             // Alice want to transmit plain text "aelf" to Bob.
 
-            var plainText = Encoding.UTF8.GetBytes(HashHelper.Generate().ToHex());
+            var plainText = Encoding.UTF8.GetBytes(Hash.FromString("hash").ToHex());
             var cipherText = CryptoHelper.EncryptMessage(alice.PrivateKey, bob.PublicKey, plainText);
 
             // Bob decrypt the message.

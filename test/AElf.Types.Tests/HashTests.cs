@@ -11,8 +11,8 @@ namespace AElf.Types.Tests
         public void Generate_Hash()
         {
             //Generate randomly
-            var hash1 = HashHelper.Generate();
-            var hash2 = HashHelper.Generate();
+            var hash1 = Hash.FromString("hash1");
+            var hash2 = Hash.FromString("hash2");
             hash1.ShouldNotBe(hash2);
 
             //Generate from string
@@ -36,7 +36,7 @@ namespace AElf.Types.Tests
         [Fact]
         public void Get_Hash_Info()
         {
-            var hash = HashHelper.Generate();
+            var hash = Hash.FromString("hash");
             var byteArray = hash.ToByteArray();
             var hexString = hash.ToHex();
             byteArray.Length.ShouldBe(32);

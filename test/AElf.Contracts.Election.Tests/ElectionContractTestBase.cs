@@ -345,8 +345,8 @@ namespace AElf.Contracts.Election
             var minerInRound = round.RealTimeMinersInformation[keyPair.PublicKey.ToHex()];
             await miner.UpdateValue.SendAsync(new UpdateValueInput
             {
-                OutValue = HashHelper.Generate(),
-                Signature = HashHelper.Generate(),
+                OutValue = Hash.FromString("outvalue"),
+                Signature = Hash.FromString("sigature"),
                 PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
                 RoundId = round.RoundId,
                 ProducedBlocks = minerInRound.ProducedBlocks + 1,

@@ -63,7 +63,7 @@ namespace AElf.Kernel.SmartContract
         [Fact]
         public void Send_VirtualInline_Success()
         {
-            var from = HashHelper.Generate();
+            var from = Hash.FromString("hash");
             var to = Address.Genesis;
             var methodName = "TestVirtualInline";
             var arg = "Arg";
@@ -168,7 +168,7 @@ namespace AElf.Kernel.SmartContract
             {
                 Category = KernelConstants.DefaultRunnerCategory,
                 Code = ByteString.Empty,
-                CodeHash = HashHelper.Generate()
+                CodeHash = Hash.FromString("hash")
             };
 
             _bridgeContext.DeployContract(Address.Zero, registration, Hash.FromMessage(registration.CodeHash));

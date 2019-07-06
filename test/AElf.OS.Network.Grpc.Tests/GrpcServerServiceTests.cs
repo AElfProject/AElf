@@ -59,7 +59,7 @@ namespace AElf.OS.Network
                 return Task.CompletedTask;
             });
 
-            Hash hash = HashHelper.Generate();
+            Hash hash = Hash.FromString("hash");
             await _service.Announce(new PeerNewBlockAnnouncement
             {
                 BlockHeight = 10, BlockHash = hash
@@ -152,7 +152,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task RequestBlock_NonExistant_ReturnsEmpty()
         {
-            var reply = await _service.RequestBlock(new BlockRequest { Hash = HashHelper.Generate() }, BuildServerCallContext());
+            var reply = await _service.RequestBlock(new BlockRequest { Hash = Hash.FromString("hash2") }, BuildServerCallContext());
             
             Assert.NotNull(reply);
             Assert.Null(reply.Block);
@@ -184,7 +184,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task RequestBlocks_NonExistant_ReturnsEmpty()
         {
-            var reply = await _service.RequestBlocks(new BlocksRequest { PreviousBlockHash = HashHelper.Generate(), Count = 5 }, BuildServerCallContext());
+            var reply = await _service.RequestBlocks(new BlocksRequest { PreviousBlockHash = Hash.FromString("hash"), Count = 5 }, BuildServerCallContext());
             
             Assert.NotNull(reply?.Blocks);
             Assert.Empty(reply.Blocks);

@@ -36,7 +36,7 @@ namespace AElf.Types
         /// <returns></returns>
         public static Hash FromRawBytes(byte[] bytes)
         {
-            return new Hash(bytes.CalculateHash());
+            return new Hash(bytes.ComputeHash());
         }
 
         // TODO: From / Calc / Compute / Load ??

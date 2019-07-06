@@ -50,7 +50,7 @@ namespace AElf.Kernel.Types.Tests
         [Fact]
         public void BlockTest()
         {
-            var block = CreateBlock(HashHelper.Generate(), 1234, 10);
+            var block = CreateBlock(Hash.FromString("hash"), 1234, 10);
             block.Height.ShouldBe(10u);
 
             var hash = block.GetHash();
@@ -75,7 +75,7 @@ namespace AElf.Kernel.Types.Tests
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Empty, null);
 
-            var block = new Block(HashHelper.Generate());
+            var block = new Block(Hash.FromString("hash1"));
 
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
@@ -122,7 +122,7 @@ namespace AElf.Kernel.Types.Tests
             {
                 ChainId = 1234,
                 Height = 10,
-                PreviousBlockHash = HashHelper.Generate(),
+                PreviousBlockHash = Hash.FromString("hash3"),
                 MerkleTreeRootOfTransactions = Hash.Empty,
                 MerkleTreeRootOfWorldState = Hash.Empty,
                 ExtraData = { ByteString.Empty},

@@ -44,7 +44,7 @@ namespace AElf.Contracts.Profit
 
         private Address GetReleasedPeriodProfitsVirtualAddress(Address profitId, long period)
         {
-            return Address.FromPublicKey(period.ToString().CalculateHash().Concat(profitId.Value).ToArray());
+            return Address.FromPublicKey(period.ToString().ComputeHash().Concat(profitId.Value).ToArray());
         }
 
         public override SInt64Value GetProfitAmount(ProfitInput input)
