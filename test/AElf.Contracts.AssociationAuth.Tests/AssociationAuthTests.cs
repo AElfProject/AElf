@@ -42,7 +42,7 @@ namespace AElf.Contracts.AssociationAuth
         public async Task Get_OrganizationFailed()
         {
             var transactionResult =
-                await AssociationAuthContractStub.GetOrganization.SendAsync(Address.FromString("Test"));
+                await AssociationAuthContractStub.GetOrganization.SendAsync(AddressHelper.FromString("Test"));
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.Contains("No registered organization.").ShouldBeTrue();
         }
@@ -118,7 +118,7 @@ namespace AElf.Contracts.AssociationAuth
             var blockTime = BlockTimeProvider.GetBlockTime();
             _createProposalInput = new CreateProposalInput
             {
-                ToAddress = Address.FromString("Test"),
+                ToAddress = AddressHelper.FromString("Test"),
                 Params = ByteString.CopyFromUtf8("Test"),
                 ExpiredTime = blockTime.AddDays(1),
                 OrganizationAddress = _organizationAddress
@@ -142,7 +142,7 @@ namespace AElf.Contracts.AssociationAuth
             //ExpiredTime is null
             {
                 _createProposalInput.ExpiredTime = null;
-                _createProposalInput.ToAddress = Address.FromString("Test");
+                _createProposalInput.ToAddress = AddressHelper.FromString("Test");
                 
                 var transactionResult = await AssociationAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -160,7 +160,7 @@ namespace AElf.Contracts.AssociationAuth
             //"No registered organization."
             {
                 _createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1);
-                _createProposalInput.OrganizationAddress = Address.FromString("NoRegisteredOrganizationAddress");
+                _createProposalInput.OrganizationAddress = AddressHelper.FromString("NoRegisteredOrganizationAddress");
                 
                 var transactionResult = await AssociationAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);

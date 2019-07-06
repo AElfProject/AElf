@@ -15,14 +15,14 @@ namespace AElf.Sdk.CSharp.Tests
         public void Verify_Transaction_Origin_SetValue()
         {
             var bridgeContext = GetRequiredService<IHostSmartContractBridgeContextService>().Create();
-            var origin = Address.FromString("origin");
+            var origin = AddressHelper.FromString("origin");
             bridgeContext.TransactionContext = new TransactionContext
             {
                 Origin = origin,
                 Transaction = new Transaction()
                 {
-                    From = Address.FromString("from"),
-                    To = Address.FromString("to")
+                    From = AddressHelper.FromString("from"),
+                    To = AddressHelper.FromString("to")
                 }
             };
             var contractContext = new CSharpSmartContractContext(bridgeContext);

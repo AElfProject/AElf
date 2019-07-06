@@ -468,7 +468,7 @@ namespace AElf.Contracts.TokenConverter
             
             //valid address
             {
-                var address = Address.Generate();
+                var address = AddressHelper.Generate();
                 
                 var transactionResult = (await testManager.SetManagerAddress.SendAsync(address)).TransactionResult;
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);

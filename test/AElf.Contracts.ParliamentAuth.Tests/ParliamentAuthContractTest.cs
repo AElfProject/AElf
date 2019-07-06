@@ -58,7 +58,7 @@ namespace AElf.Contracts.ParliamentAuth
         public async Task Get_OrganizationFailed()
         {
             var transactionResult =
-                await ParliamentAuthContractStub.GetOrganization.SendAsync(Address.FromString("Test"));
+                await ParliamentAuthContractStub.GetOrganization.SendAsync(AddressHelper.FromString("Test"));
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.Contains("No registered organization.").ShouldBeTrue();
         }
@@ -115,7 +115,7 @@ namespace AElf.Contracts.ParliamentAuth
             var blockTime = BlockTimeProvider.GetBlockTime();
             _createProposalInput = new CreateProposalInput
             {
-                ToAddress = Address.FromString("Test"),
+                ToAddress = AddressHelper.FromString("Test"),
                 Params = ByteString.CopyFromUtf8("Test"),
                 ExpiredTime = blockTime.AddDays(1),
                 OrganizationAddress =_defaultOrganizationAddress
@@ -139,7 +139,7 @@ namespace AElf.Contracts.ParliamentAuth
             //ExpiredTime is null
             {
                 _createProposalInput.ExpiredTime = null;
-                _createProposalInput.ToAddress = Address.FromString("Test");
+                _createProposalInput.ToAddress = AddressHelper.FromString("Test");
                 
                 var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -157,7 +157,7 @@ namespace AElf.Contracts.ParliamentAuth
             //"No registered organization."
             {
                 _createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1);
-                _createProposalInput.OrganizationAddress = Address.FromString("NoRegisteredOrganizationAddress");
+                _createProposalInput.OrganizationAddress = AddressHelper.FromString("NoRegisteredOrganizationAddress");
                 
                 var transactionResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);

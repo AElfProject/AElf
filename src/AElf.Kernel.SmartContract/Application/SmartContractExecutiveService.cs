@@ -166,7 +166,7 @@ namespace AElf.Kernel.SmartContract.Application
         {
             var transaction = new Transaction()
             {
-                From = Address.Zero,
+                From = Address.FromBytes(new byte[] { }.CalculateHash()),
                 To = _defaultContractZeroCodeProvider.ContractZeroAddress,
                 MethodName = "GetSmartContractRegistrationByAddress",
                 Params = address.ToByteString()

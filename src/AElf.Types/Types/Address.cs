@@ -32,43 +32,12 @@ namespace AElf.Types
             Value = ByteString.CopyFrom(bytes);
         }
 
+        // TODO: define for pubkey/private key
         public static Address FromPublicKey(byte[] bytes)
         {
             var hash = bytes.CalculateHash().CalculateHash();
             return new Address(hash);
         }
-
-        //TODO: move this method into test project
-        /// <summary>
-        /// Creates an address from a string. This method is supposed to be used for test only.
-        /// The hash bytes of the string will be used to create the address.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public static Address FromString(string name)
-        {
-            return new Address(name.CalculateHash());
-        }
-
-        //TODO: move to test project
-        /// <summary>
-        /// Only used in tests to generate random addresses.
-        /// </summary>
-        /// <returns></returns>
-        public static Address Generate()
-        {
-            return new Address(Guid.NewGuid().ToByteArray().CalculateHash());
-        }
-
-        #region Predefined
-
-        public static readonly Address AElf = FromString("AElf");
-
-        public static readonly Address Zero = new Address(new byte[] { }.CalculateHash());
-
-        public static readonly Address Genesis = FromString("Genesis");
-
-        #endregion
 
         #region Comparing
 
@@ -211,6 +180,7 @@ namespace AElf.Types
 
         private string _formatted;
 
+        // TODO: add property
         public string GetFormatted()
         {
             if (_formatted != null)

@@ -50,7 +50,7 @@ namespace AElf.Sdk.CSharp.Tests
 
             if (typeof(T) == typeof(Address))
             {
-                return (T) (object) Address.FromString("a");
+                return (T) (object) AddressHelper.FromString("a");
             }
 
             throw new Exception("Not supported type.");
@@ -103,7 +103,7 @@ namespace AElf.Sdk.CSharp.Tests
             var mockProvider = new Mock<IStateProvider>();
             var mockContext = new Mock<ISmartContractBridgeContext>();
             mockContext.SetupGet(o => o.StateProvider).Returns(mockProvider.Object);
-            mockContext.SetupGet(o => o.Self).Returns(Address.Zero);
+            mockContext.SetupGet(o => o.Self).Returns(AddressHelper.FromString("get"));
 
             var state = new MockContractState
             {

@@ -80,8 +80,8 @@ namespace AElf.OS.Network
         {
             var successfulBcasts = await _networkService.BroadcastTransactionAsync(new Transaction
             {
-                From = Address.Generate(),
-                To = Address.Generate(),
+                From = AddressHelper.Generate(),
+                To = AddressHelper.Generate(),
                 MethodName = "Test"
             });
             Assert.Equal(successfulBcasts, _peerPool.GetPeers().Count-1);

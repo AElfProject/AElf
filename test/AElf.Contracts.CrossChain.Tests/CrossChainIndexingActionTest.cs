@@ -700,7 +700,7 @@ namespace AElf.Contract.CrossChain.Tests
                     Symbol = "ELF"
                 });
             var balanceBefore = GetBalanceOutput.Parser.ParseFrom(balanceBeforeTransfer).Balance;
-            var receiver = Address.FromString("CrossChainReceiver");
+            var receiver = AddressHelper.FromString("CrossChainReceiver");
             var crossChainTransferTransaction = await GenerateTransactionAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainTransfer), null, new CrossChainTransferInput
                 {

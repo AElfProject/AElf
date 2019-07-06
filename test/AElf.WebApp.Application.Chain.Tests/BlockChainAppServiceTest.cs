@@ -846,7 +846,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task Get_ContractFileDescriptorSet_Failed()
         {
-            var addressInfo = Address.Generate().GetFormatted();
+            var addressInfo = AddressHelper.Generate().GetFormatted();
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
                 $"/api/blockChain/contractFileDescriptorSet?address={addressInfo}",
                 expectedStatusCode: HttpStatusCode.Forbidden);
@@ -1214,7 +1214,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                         TokenName = $"elf token {i}",
                         TotalSupply = 1000_0000,
                         Decimals = 2,
-                        Issuer = Address.Generate(),
+                        Issuer = AddressHelper.Generate(),
                         IsBurnable = true
                     });
 

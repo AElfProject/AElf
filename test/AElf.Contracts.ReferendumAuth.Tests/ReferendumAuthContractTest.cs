@@ -53,7 +53,7 @@ namespace AElf.Contracts.ReferendumAuth
         public async Task Get_OrganizationFailed()
         {
             var transactionResult =
-                await ReferendumAuthContractStub.GetOrganization.SendAsync(Address.FromString("Test"));
+                await ReferendumAuthContractStub.GetOrganization.SendAsync(AddressHelper.FromString("Test"));
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.Contains("No registered organization.").ShouldBeTrue();
         }
@@ -88,7 +88,7 @@ namespace AElf.Contracts.ReferendumAuth
             var blockTime = BlockTimeProvider.GetBlockTime();
             _createProposalInput = new CreateProposalInput
             {
-                ToAddress = Address.FromString("Test"),
+                ToAddress = AddressHelper.FromString("Test"),
                 Params = ByteString.CopyFromUtf8("Test"),
                 ExpiredTime = blockTime.AddDays(1),
                 OrganizationAddress =_organizationAddress
@@ -109,7 +109,7 @@ namespace AElf.Contracts.ReferendumAuth
             }
             {
                 _createProposalInput.ExpiredTime = null;
-                _createProposalInput.ToAddress = Address.FromString("Test");
+                _createProposalInput.ToAddress = AddressHelper.FromString("Test");
                 
                 var transactionResult = await ReferendumAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -127,7 +127,7 @@ namespace AElf.Contracts.ReferendumAuth
             {
                 //"No registered organization."
                 _createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1);
-                _createProposalInput.OrganizationAddress = Address.FromString("NoRegisteredOrganizationAddress");
+                _createProposalInput.OrganizationAddress = AddressHelper.FromString("NoRegisteredOrganizationAddress");
                 
                 var transactionResult = await ReferendumAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
