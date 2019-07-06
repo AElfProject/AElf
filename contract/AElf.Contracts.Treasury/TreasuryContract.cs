@@ -331,7 +331,7 @@ namespace AElf.Contracts.Treasury
 
             var votesWeightRewardProfitSubWeights = new SubWeightsInput
             {
-                ProfitId = State.BasicRewardHash.Value
+                ProfitId = State.VotesWeightRewardHash.Value
             };
 
             var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
@@ -348,14 +348,14 @@ namespace AElf.Contracts.Treasury
 
             // Manage weights of `MinerBasicReward`
             basicRewardProfitSubWeights.Receivers.AddRange(previousMinersAddresses);
-            State.ProfitContract.SubWeights.Send(basicRewardProfitSubWeights);
+            //State.ProfitContract.SubWeights.Send(basicRewardProfitSubWeights);
             basicRewardProfitAddWeights.Weights.AddRange(newMiners);
             State.ProfitContract.AddWeights.Send(basicRewardProfitAddWeights);
 
             // Manage weights of `ReElectedMinerReward`
             reElectionProfitSubWeights.Receivers.AddRange(previousMinersAddresses);
             reElectionProfitSubWeights.Receivers.Add(treasuryVirtualAddress);
-            State.ProfitContract.SubWeights.Send(reElectionProfitSubWeights);
+            //State.ProfitContract.SubWeights.Send(reElectionProfitSubWeights);
             if (!reElectionProfitAddWeights.Weights.Any())
             {
                 // Give this part of reward back to Treasury Virtual Address.
@@ -371,7 +371,7 @@ namespace AElf.Contracts.Treasury
             // Manage weights of `MinerVotesWeightReward`
             votesWeightRewardProfitSubWeights.Receivers.AddRange(previousMinersAddresses);
             votesWeightRewardProfitSubWeights.Receivers.Add(treasuryVirtualAddress);
-            State.ProfitContract.SubWeights.Send(votesWeightRewardProfitSubWeights);
+            //State.ProfitContract.SubWeights.Send(votesWeightRewardProfitSubWeights);
             if (!votesWeightRewardProfitAddWeights.Weights.Any())
             {
                 // Give this part of reward back to Treasury Virtual Address.

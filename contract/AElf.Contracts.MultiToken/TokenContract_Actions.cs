@@ -381,7 +381,7 @@ namespace AElf.Contracts.MultiToken
             }
 
             // Traversed all available tokens, can't find balance of any token enough to pay transaction fee.
-            Assert(existingBalance >= amount, "Insufficient balance to pay.");
+            Assert(existingBalance >= amount, "Insufficient balance to pay transaction fee.");
         }
 
         public override Empty ClaimTransactionFees(Empty input)
@@ -415,6 +415,8 @@ namespace AElf.Contracts.MultiToken
                     totalFee = totalFee.Add(State.ChargedFees[sender][symbol]);
                     State.ChargedFees[sender][symbol] = 0;
                 }
+
+                State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalFee);
 
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
