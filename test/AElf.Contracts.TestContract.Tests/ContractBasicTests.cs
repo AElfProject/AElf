@@ -110,34 +110,17 @@ namespace AElf.Contract.TestContract
                 DefaultSender)).Int64Value;
             (winData + loseData).ShouldBe(100);
         }
-
+        
         [Fact]
-        public async Task UpdateContract_Without_Permission_Failed()
+        public async Task ChangeAuthor_Without_Permission_Failed()
         {
             var otherUser = SampleECKeyPairs.KeyPairs[2];
             var otherZeroStub = GetContractZeroTester(otherUser);
-            var transactionResult = (await otherZeroStub.UpdateSmartContract.SendAsync(
-                new Acs0.ContractUpdateInput
-                {
-                    Address = BasicFunctionContractAddress,
-                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("BasicUpdate")).Value) 
-                }
-            )).TransactionResult;
-            
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("Only owner is allowed to update code").ShouldBeTrue();
-        }
-
-        [Fact]
-        public async Task ChangeOwner_Without_Permission_Failed()
-        {
-            var otherUser = SampleECKeyPairs.KeyPairs[2];
-            var otherZeroStub = GetContractZeroTester(otherUser);
-            var transactionResult = (await otherZeroStub.ChangeContractOwner.SendAsync(
-                new Acs0.ChangeContractOwnerInput
+            var transactionResult = (await otherZeroStub.ChangeContractAuthor.SendAsync(
+                new Acs0.ChangeContractAuthorInput()
                 {
                     ContractAddress = BasicFunctionContractAddress,
-                    NewOwner = Address.Generate()
+                    NewAuthor = Address.Generate()
                 }
             )).TransactionResult;
             
@@ -146,20 +129,20 @@ namespace AElf.Contract.TestContract
         }
         
         [Fact]
-        public async Task ChangeOwner_With_Permission_Success()
+        public async Task ChangeAuthor_With_Permission_Success()
         {
             var otherUser = Address.Generate();
-            var transactionResult = (await BasicContractZeroStub.ChangeContractOwner.SendAsync(
-                new Acs0.ChangeContractOwnerInput
+            var transactionResult = (await BasicContractZeroStub.ChangeContractAuthor.SendAsync(
+                new Acs0.ChangeContractAuthorInput()
                 {
                     ContractAddress = BasicFunctionContractAddress,
-                    NewOwner = otherUser
+                    NewAuthor = otherUser
                 }
             )).TransactionResult;
             
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var ownerAddress = (await BasicContractZeroStub.GetContractOwner.CallAsync(BasicFunctionContractAddress)).GetFormatted();
+            var ownerAddress = (await BasicContractZeroStub.GetContractAuthor.CallAsync(BasicFunctionContractAddress)).GetFormatted();
             ownerAddress.ShouldBe(otherUser.GetFormatted());
         }
     }

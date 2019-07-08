@@ -8,7 +8,6 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
 service ACS0 {
-    
     // Actions
     rpc DeploySystemSmartContract (SystemContractDeploymentInput) returns (aelf.Address) {
     }
@@ -16,9 +15,14 @@ service ACS0 {
     }
     rpc UpdateSmartContract (ContractUpdateInput) returns (aelf.Address) {
     }
-    rpc ChangeContractOwner (ChangeContractOwnerInput) returns (google.protobuf.Empty) {
+    rpc ChangeContractAuthor (ChangeContractAuthorInput) returns (google.protobuf.Empty) {
+    }
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
     
+    rpc ChangeGenesisOwner (aelf.Address) returns (google.protobuf.Empty) {
+    }
+
     // Views
     rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.UInt64Value) {
         option (aelf.is_view) = true;
@@ -26,7 +30,7 @@ service ACS0 {
     rpc GetContractInfo (aelf.Address) returns (ContractInfo) {
         option (aelf.is_view) = true;
     }
-    rpc GetContractOwner (aelf.Address) returns (aelf.Address) {
+    rpc GetContractAuthor (aelf.Address) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
     rpc GetContractHash (aelf.Address) returns (aelf.Hash) {
@@ -45,7 +49,7 @@ service ACS0 {
 message ContractInfo
 {
     uint64 serial_number = 1;
-    aelf.Address owner = 2;
+    aelf.Address author = 2;
     int32 category = 3;
     aelf.Hash code_hash = 4;
 }
@@ -74,9 +78,13 @@ message ContractUpdateInput {
     bytes code = 2;
 }
 
-message ChangeContractOwnerInput {
+message ChangeContractAuthorInput {
     aelf.Address contract_address = 1;
-    aelf.Address new_owner = 2;
+    aelf.Address new_author = 2;
+}
+
+message InitializeInput{
+    bool contractDeploymentAuthorityRequired = 1;
 }
 
 // Events
@@ -96,10 +104,10 @@ message CodeUpdated
     aelf.Hash new_code_hash = 3;
 }
 
-message OwnerChanged
+message AuthorChanged
 {
     option (aelf.is_event) = true;
     aelf.Address address = 1 [(aelf.is_indexed) = true];
-    aelf.Address old_owner = 2;
-    aelf.Address new_owner = 3;
+    aelf.Address old_author = 2;
+    aelf.Address new_author = 3;
 }
