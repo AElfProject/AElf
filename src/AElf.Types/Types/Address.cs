@@ -156,7 +156,7 @@ namespace AElf.Types
                 throw new ArgumentException("invalid chain address", nameof(str));
             }
 
-            var address = AddressHelper.Parse(arr[1]);
+            var address = AddressHelper.Base58ToAddress(arr[1]);
 
             var chainId = BitConverter.ToInt32(Base58CheckEncoding.Decode(arr[2]), 0);
 

@@ -23,7 +23,7 @@ namespace AElf
             return Address.FromBytes(name.CalculateHash());
         }
 
-        public static Address Parse(string inputStr)
+        public static Address Base58ToAddress(string inputStr)
         {
             return Address.FromBytes(Base58CheckEncoding.Decode(inputStr));
         }

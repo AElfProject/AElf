@@ -87,7 +87,7 @@ namespace AElf.OS.Rpc.ChainController
         {
             try
             {
-                return await this.GetFileDescriptorSetAsync(AddressHelper.Parse(address));
+                return await this.GetFileDescriptorSetAsync(AddressHelper.Base58ToAddress(address));
             }
             catch(Exception)
             {
