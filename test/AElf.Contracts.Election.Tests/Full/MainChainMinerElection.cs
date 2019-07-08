@@ -88,23 +88,12 @@ namespace AElf.Contracts.Election
             ProfitContractContainer.ProfitContractStub stub;
             switch (type)
             {
-                case ProfitType.BackupSubsidy:
-                    stub = GetProfitContractTester(ValidationDataCenterKeyPairs[0]);
-                    break;
                 case ProfitType.CitizenWelfare:
                     stub = GetProfitContractTester(VoterKeyPairs[0]);
                     break;
-                case ProfitType.BasicMinerReward:
-                    stub = GetProfitContractTester(ValidationDataCenterKeyPairs[0]);
-                    break;
-                case ProfitType.VotesWeightReward:
-                    stub = GetProfitContractTester(ValidationDataCenterKeyPairs[0]);
-                    break;
-                case ProfitType.ReElectionReward:
-                    stub = GetProfitContractTester(ValidationDataCenterKeyPairs[0]);
-                    break;
                 default:
-                    throw new ArgumentOutOfRangeException(nameof(type), type, null);
+                    stub = GetProfitContractTester(ValidationDataCenterKeyPairs[0]);
+                    break;
             }
 
             return (await stub.GetProfitAmount.CallAsync(new ProfitInput
@@ -125,7 +114,7 @@ namespace AElf.Contracts.Election
         public async Task UserVote_CheckAllProfits()
         {
             const long txFee = 1_00000000L;
-            var rewardAmount = 0L;
+            long rewardAmount;
             var oldBackupSubsidy = 0L;
 
             // Prepare candidates and votes.
@@ -166,7 +155,7 @@ namespace AElf.Contracts.Election
             // Check released profits of first term. No one can receive released profits of first term.
             {
                 rewardAmount = await GetReleasedAmount();
-                var currentPeriod = 1L;
+                const long currentPeriod = 1L;
 
                 // Backup subsidy.
                 {
@@ -252,7 +241,7 @@ namespace AElf.Contracts.Election
             // Check released profits of second term.
             {
                 rewardAmount = await GetReleasedAmount();
-                var currentPeriod = 2L;
+                const long currentPeriod = 2L;
 
                 // Backup subsidy.
                 {
@@ -297,16 +286,14 @@ namespace AElf.Contracts.Election
                 // Amount of votes weight reward.
                 {
                     var amount = await GetProfitAmount(ProfitType.VotesWeightReward);
-                    amount.ShouldBe(0);
+                    amount.ShouldBe(rewardAmount / 10 * 2 / 14);
                 }
 
                 // Re-election reward.
                 {
                     var releasedInformation =
                         await GetReleasedProfitsInformation(ProfitType.ReElectionReward, currentPeriod);
-                    releasedInformation.TotalWeight.ShouldBe(0);
-                    releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
-                        .ShouldBe(rewardAmount / 10);
+                    releasedInformation.TotalWeight.ShouldBe(-1);
                 }
 
                 // Amount of votes weight reward.
@@ -318,14 +305,17 @@ namespace AElf.Contracts.Election
                 // Citizen welfare.
                 {
                     var releasedInformation =
-                        await GetReleasedProfitsInformation(ProfitType.CitizenWelfare, currentPeriod);
+                        await GetReleasedProfitsInformation(ProfitType.CitizenWelfare, currentPeriod - 1);
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
                         .ShouldBe(rewardAmount / 5);
-                }
 
-                // Amount of citizen welfare.
-                {
+                    // Amount of citizen welfare.
+                    var electorVote = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringInput
+                        {Value = VoterKeyPairs[0].PublicKey.ToHex()});
+                    var electorWeights = electorVote.ActiveVotingRecords.Sum(r => r.Weight);
+                    electorWeights.ShouldBe(releasedInformation.TotalWeight);
                     var amount = await GetProfitAmount(ProfitType.CitizenWelfare);
+                    amount.ShouldBeLessThan(electorWeights * rewardAmount / 5 / releasedInformation.TotalWeight);
                 }
             }
 

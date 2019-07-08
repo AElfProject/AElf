@@ -189,6 +189,7 @@ message ElectionVotingRecord {
     google.protobuf.Timestamp withdraw_timestamp = 11;
     google.protobuf.Timestamp vote_timestamp = 12;
     bool is_withdrawn = 13;
+    sint64 weight = 14;
 }
 
 message PageInformation {

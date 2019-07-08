@@ -34,7 +34,7 @@ namespace AElf.Contracts.Election
             Assert(lockSeconds <= State.MaximumLockTime.Value,
                 $"Invalid lock time. At most {State.MaximumLockTime.Value.Div(60).Div(60).Div(24)} days");
 
-            State.LockTimeMap[Context.TransactionId] = input.EndTimestamp.Seconds.Sub(Context.CurrentBlockTime.Seconds);
+            State.LockTimeMap[Context.TransactionId] = lockSeconds;
 
             var recoveredPublicKey = Context.RecoverPublicKey();
 

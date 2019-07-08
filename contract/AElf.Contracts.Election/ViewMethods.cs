@@ -289,7 +289,8 @@ namespace AElf.Contracts.Election
                 VoteTimestamp = votingRecord.VoteTimestamp,
                 WithdrawTimestamp = votingRecord.WithdrawTimestamp,
                 UnlockTimestamp = votingRecord.VoteTimestamp.AddSeconds(lockSeconds),
-                IsWithdrawn = votingRecord.IsWithdrawn
+                IsWithdrawn = votingRecord.IsWithdrawn,
+                Weight = GetVotesWeight(votingRecord.Amount, lockSeconds)
             };
         }
     }
