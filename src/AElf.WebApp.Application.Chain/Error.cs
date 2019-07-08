@@ -16,6 +16,7 @@ namespace AElf.WebApp.Application.Chain
         public const int InvalidContractAddress = 20010;
         public const int NoMatchMethodInContractAddress = 20011;
         public const int InvalidParams = 20012;
+        public const int InvalidSignature = 20013;
 
         public static readonly Dictionary<int, string> Message = new Dictionary<int, string>
         {
@@ -30,7 +31,8 @@ namespace AElf.WebApp.Application.Chain
             {CannotBroadcastTransaction, "Sync still in progress, cannot broadcast transactions"},
             {InvalidContractAddress, "Invalid contract address"},
             {NoMatchMethodInContractAddress, "No match method in contract address"},
-            {InvalidParams, "Invalid params"}
+            {InvalidParams, "Invalid params"},
+            {InvalidSignature, "Invalid signature"}
         };
     }
 }

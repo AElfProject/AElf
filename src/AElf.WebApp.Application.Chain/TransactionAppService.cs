@@ -63,8 +63,8 @@ namespace AElf.WebApp.Application.Chain
                 var transaction = Transaction.Parser.ParseFrom(byteArray);
                 if (!transaction.VerifySignature())
                 {
-                    throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
-                        Error.InvalidTransaction.ToString());
+                    throw new UserFriendlyException(Error.Message[Error.InvalidSignature],
+                        Error.InvalidSignature.ToString());
                 }
 
                 var response = await CallReadOnlyAsync(transaction);
