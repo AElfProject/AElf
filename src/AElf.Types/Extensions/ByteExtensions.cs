@@ -43,7 +43,7 @@ namespace AElf
 
             return new string(c);
         }
-        
+
         /// <summary>
         /// Calculates the hash for a byte array.
         /// </summary>
