@@ -105,7 +105,7 @@ namespace AElf.CrossChain
                     _blockCacheEntityConsumer.Take<SideChainBlockData>(sideChainBlockData.ChainId, targetHeight, false);
                 if (cachedSideChainBlockData == null)
                     throw new ValidateNextTimeBlockValidationException(
-                        $"Side chain data not found, chainId: {ChainHelper.ConvertChainIdToBase58(sideChainBlockData.ChainId)}, height: {targetHeight}.");
+                        $"Side chain data not found, chainId: {ChainHelper.ConvertChainIdToBase58(sideChainBlockData.ChainId)}, side chain height: {targetHeight}.");
                 if (!cachedSideChainBlockData.Equals(sideChainBlockData))
                     return false;
                 
@@ -180,7 +180,7 @@ namespace AElf.CrossChain
                     _blockCacheEntityConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, false);
                 if (parentChainBlockData == null)
                     throw new ValidateNextTimeBlockValidationException(
-                        $"Parent chain data not found, chainId: {ChainHelper.ConvertChainIdToBase58(parentChainId)}, height: {targetHeight}.");
+                        $"Parent chain data not found, chainId: {ChainHelper.ConvertChainIdToBase58(parentChainId)}, parent chain height: {targetHeight}.");
                 
                 if (!parentChainBlockDataList[i].Equals(parentChainBlockData))
                     return false;

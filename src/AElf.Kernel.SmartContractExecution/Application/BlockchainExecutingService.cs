@@ -140,8 +140,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     throw;
                 }
                 
-                Logger.LogWarning(
-                    $"Block validation failed at height: {successLinks.Last().Height}, hash: {successLinks.Last().BlockHash}. Exception message {ex.Message}.");
+                Logger.LogWarning($"Block validation failed: {ex.Message}.");
             }
             catch (Exception ex)
             {
