@@ -32,7 +32,7 @@ namespace AElf.Types.Tests
             var pk = CryptoHelper.GenerateKeyPair().PublicKey;
             var address5 = Address.FromPublicKey(pk);
             address5.ShouldNotBe(null);
-            address5.DumpByteArray().Length.ShouldBe(32);
+            address5.ToByteArray().Length.ShouldBe(32);
         }
 
         [Fact]
@@ -61,13 +61,13 @@ namespace AElf.Types.Tests
         public void Parse_Address_FromString()
         {
             string addStr = "ddnF1dEsp51QbASCqQKPZ7vs2zXxUxyu5BuGRKFQAsT9JKrra";
-            var address = Address.Parse(addStr);
+            var address = AddressHelper.Parse(addStr);
             address.ShouldNotBe(null);
             var addStr1 = address.GetFormatted();
             addStr1.ShouldBe(addStr);
 
             addStr = "345678icdfvbghnjmkdfvgbhtn";
-            Should.Throw<FormatException>(() => { address = Address.Parse(addStr); });
+            Should.Throw<FormatException>(() => { address = AddressHelper.Parse(addStr); });
         }
         
         [Fact]

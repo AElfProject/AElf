@@ -23,7 +23,7 @@ namespace AElf.Types.Tests
         public void Encode_And_Decode_Address()
         {
             var address = AddressHelper.FromString("address");
-            var data = address.DumpByteArray();
+            var data = address.ToByteArray();
 
             var enCode = Base58CheckEncoding.Encode(data);
             enCode.ShouldNotBe(string.Empty);
@@ -58,7 +58,7 @@ namespace AElf.Types.Tests
         public void EncodePlain_And_DecodePlain_Address()
         {
             var address = AddressHelper.FromString("address");
-            var data = address.DumpByteArray();
+            var data = address.ToByteArray();
 
             var enCode = Base58CheckEncoding.EncodePlain(data);
             enCode.ShouldNotBe(string.Empty);

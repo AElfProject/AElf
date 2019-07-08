@@ -22,5 +22,10 @@ namespace AElf
         {
             return Address.FromBytes(name.CalculateHash());
         }
+
+        public static Address Parse(string inputStr)
+        {
+            return Address.FromBytes(Base58CheckEncoding.Decode(inputStr));
+        }
     }
 }

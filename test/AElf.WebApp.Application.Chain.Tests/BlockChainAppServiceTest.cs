@@ -969,7 +969,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task CreateRawTransaction_Success()
         {
-            var toAddress = Base64.ToBase64String(Address.Parse("21oXyCxvUd7YUUkgbZxkbmu4EWs65yos6iVC39rPwPknune6qZ")
+            var toAddress = Base64.ToBase64String(AddressHelper.Parse("21oXyCxvUd7YUUkgbZxkbmu4EWs65yos6iVC39rPwPknune6qZ")
                 .Value.ToByteArray());
             var contractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);

@@ -111,13 +111,13 @@ namespace AElf.WebApp.Application.Chain
         {
             var transaction = new Transaction
             {
-                From = Address.Parse(input.From),
-                To = Address.Parse(input.To),
+                From = AddressHelper.Parse(input.From),
+                To = AddressHelper.Parse(input.To),
                 RefBlockNumber = input.RefBlockNumber,
                 RefBlockPrefix = ByteString.CopyFrom(Hash.LoadHex(input.RefBlockHash).Value.Take(4).ToArray()),
                 MethodName = input.MethodName
             };
-            var methodDescriptor = await GetContractMethodDescriptorAsync(Address.Parse(input.To), input.MethodName);
+            var methodDescriptor = await GetContractMethodDescriptorAsync(AddressHelper.Parse(input.To), input.MethodName);
             if (methodDescriptor == null)
                 throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
                     Error.NoMatchMethodInContractAddress.ToString());

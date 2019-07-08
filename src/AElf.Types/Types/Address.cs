@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using Google.Protobuf;
 
@@ -23,16 +22,11 @@ namespace AElf.Types
         // Make private to avoid confusion
         private Address(byte[] bytes)
         {
-            if (bytes.Length != TypeConsts.AddressHashLength)
-            {
-                throw new ArgumentOutOfRangeException(
-                    $"Address (sha256 of pubkey) bytes has to be {TypeConsts.AddressHashLength}. The input is {bytes.Length} bytes long.");
-            }
+            CheckLength(bytes);
 
             Value = ByteString.CopyFrom(bytes);
         }
 
-        // TODO: define for pubkey/private key
         public static Address FromPublicKey(byte[] bytes)
         {
             var hash = bytes.CalculateHash().CalculateHash();
@@ -65,7 +59,7 @@ namespace AElf.Types
         {
             if (address1 != null)
             {
-                return address2 == null ? 1 : Compare(address1, address2);
+                return address2 == null ? 1 : ByteStringHelper.Compare(address1.Value, address2.Value);
             }
 
             if (address2 == null)
@@ -76,19 +70,14 @@ namespace AElf.Types
             return -1;
         }
 
-        private static int Compare(Address x, Address y)
+        public int CompareTo(Address that)
         {
-            if (x == null || y == null)
+            if (that == null)
             {
                 throw new InvalidOperationException("Cannot compare address when address is null");
             }
 
-            return ByteStringHelper.Compare(x.Value, y.Value);
-        }
-
-        public int CompareTo(Address that)
-        {
-            return Compare(this, that);
+            return CompareAddress(this, that);
         }
 
         #endregion
@@ -99,7 +88,7 @@ namespace AElf.Types
         /// Dumps the content value to byte array.
         /// </summary>
         /// <returns></returns>
-        public byte[] DumpByteArray()
+        public byte[] ToByteArray()
         {
             return Value.ToByteArray();
         }
@@ -111,11 +100,7 @@ namespace AElf.Types
             if (_formattedAddress != null)
                 return _formattedAddress;
 
-            if (Value.Length != TypeConsts.AddressHashLength)
-            {
-                throw new ArgumentOutOfRangeException(
-                    $"Serialized value does not represent a valid address. The input is {Value.Length} bytes long.");
-            }
+            CheckLength(Value.ToByteArray());
 
             var pubKeyHash = Base58CheckEncoding.Encode(Value.ToByteArray());
 
@@ -131,11 +116,7 @@ namespace AElf.Types
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Address FromBytes(byte[] bytes)
         {
-            if (bytes.Length != TypeConsts.AddressHashLength)
-            {
-                throw new ArgumentOutOfRangeException(
-                    $"Input value does not represent a valid address. The input is {bytes.Length} bytes long.");
-            }
+            CheckLength(bytes);
 
             return new Address
             {
@@ -143,12 +124,16 @@ namespace AElf.Types
             };
         }
 
-        public static Address Parse(string inputStr)
-        {
-            return new Address(Base58CheckEncoding.Decode(inputStr));
-        }
-
         #endregion Load and dump
+
+        private static void CheckLength(byte[] bytes)
+        {
+            if (bytes.Length != TypeConsts.HashByteArrayLength)
+            {
+                throw new ArgumentOutOfRangeException($"Hash bytes has to be " +
+                                                      $"{TypeConsts.HashByteArrayLength} bytes long. The input is {bytes.Length} bytes long.");
+            }
+        }
     }
 
     public class ChainAddress
@@ -171,7 +156,7 @@ namespace AElf.Types
                 throw new ArgumentException("invalid chain address", nameof(str));
             }
 
-            var address = Address.Parse(arr[1]);
+            var address = AddressHelper.Parse(arr[1]);
 
             var chainId = BitConverter.ToInt32(Base58CheckEncoding.Decode(arr[2]), 0);
 
@@ -180,7 +165,7 @@ namespace AElf.Types
 
         private string _formatted;
 
-        public string GetFormatted(string addressPrefix,int chainId)
+        public string GetFormatted(string addressPrefix, int chainId)
         {
             if (_formatted != null)
                 return _formatted;
