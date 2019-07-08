@@ -17,11 +17,14 @@ namespace AElf.Contracts.ReferendumAuth
             Assert(organization != null, "No registered organization.");
             return organization;
         }
+        
         public override ProposalOutput GetProposal(Hash proposalId)
         {
             var proposal = State.Proposals[proposalId];
             Assert(proposal != null, "Proposal not found.");
 
+            var organization = State.Organisations[proposal.OrganizationAddress];
+            var readyToRelease = IsReadyToRelease(proposalId, organization);
             var result = new ProposalOutput
             {
                 ProposalId = proposalId,
@@ -31,6 +34,7 @@ namespace AElf.Contracts.ReferendumAuth
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
                 ToAddress = proposal.ToAddress,
+                ToBeReleased = readyToRelease
             };
 
             return result;
@@ -119,13 +123,7 @@ namespace AElf.Contracts.ReferendumAuth
                 LockId = Context.TransactionId,
                 Usage = "Referendum."
             });
-
-            if (IsReadyToRelease(approval.ProposalId, organization))
-            {
-                Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
-                    proposalInfo.Params);
-                //State.Proposals[approval.ProposalId] = null;
-            }
+            
             return new BoolValue{Value = true};
         }
 
@@ -145,6 +143,19 @@ namespace AElf.Contracts.ReferendumAuth
                 Symbol = voteToken.TokenSymbol,
                 Usage = "Referendum."
             });
+            return new Empty();
+        }
+        
+        public override Empty Release(Hash proposalId)
+        {
+            var proposalInfo = State.Proposals[proposalId];
+            Assert(proposalInfo != null, "Proposal not found.");
+            Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
+            var organization = State.Organisations[proposalInfo.OrganizationAddress];
+            Assert(IsReadyToRelease(proposalId, organization), "Not approved.");
+            Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
+                proposalInfo.ContractMethodName, proposalInfo.Params);
+            
             return new Empty();
         }
     }

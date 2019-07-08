@@ -85,7 +85,6 @@ namespace AElf.OS
             IOptionsSnapshot<ChainOptions> chainOptions)
         {
             _chainOptions = chainOptions.Value;
-
             _osBlockchainNodeContextService = osBlockchainNodeContextService;
             _accountService = accountService;
             _minerService = minerService;
@@ -114,9 +113,9 @@ namespace AElf.OS
         ///        Fork Branch:                    (e)-> q -> r -> s -> t -> u
         ///    Unlinked Branch:                                              v  -> w  -> x  -> y  -> z
         /// </returns>
-        public async Task MockChain()
+        public async Task MockChainAsync()
         {
-            await StartNode();
+            await StartNodeAsync();
             var chain = await _blockchainService.GetChainAsync();
 
             if (chain.BestChainHeight == 1)
@@ -341,7 +340,7 @@ namespace AElf.OS
 
         #region private methods
 
-        private async Task StartNode()
+        private async Task StartNodeAsync()
         {
             var dto = new OsBlockchainNodeContextStartDto
             {

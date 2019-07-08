@@ -47,7 +47,7 @@ namespace AElf.Contracts.AssociationAuth
                     new ContractDeploymentInput()
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AssociationAuthContract).Assembly.Location)),  
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AssociationAuthContract).Assembly.Location))
                     })).Output;
             AssociationAuthContractStub = GetAssociationAuthContractTester(DefaultSenderKeyPair);
             

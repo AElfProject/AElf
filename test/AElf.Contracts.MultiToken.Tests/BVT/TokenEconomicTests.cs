@@ -108,7 +108,7 @@ namespace AElf.Contracts.MultiToken
                 };
 
                 var result = AsyncHelper.RunSync(() =>
-                    TokenConverterContractStub.Initialize.SendAsync(new InitializeInput
+                    TokenConverterContractStub.Initialize.SendAsync(new TokenConverter.InitializeInput
                     {
                         BaseTokenSymbol = "ELF",
                         FeeRate = "0.005",
@@ -126,7 +126,7 @@ namespace AElf.Contracts.MultiToken
                 var ParliamentAuthContractStub =
                     GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(parliamentAuthContractAddress,
                         DefaultKeyPair);
-                var initializeResult = await ParliamentAuthContractStub.Initialize.SendAsync(new Empty());
+                var initializeResult = await ParliamentAuthContractStub.Initialize.SendAsync(new ParliamentAuth.InitializeInput());
                 CheckResult(initializeResult.TransactionResult);
                 var connectorManagerAddress = await TokenConverterContractStub.GetManagerAddress.CallAsync(new Empty());
                 var proposal = new CreateProposalInput

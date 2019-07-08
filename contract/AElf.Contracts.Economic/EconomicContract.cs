@@ -8,6 +8,7 @@ using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
+using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
 
 namespace AElf.Contracts.Economic
 {
@@ -143,7 +144,7 @@ namespace AElf.Contracts.Economic
                 State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
             }
 
-            var contractOwner = State.ZeroContract.GetContractOwner.Call(Context.Self);
+            var contractOwner = State.ZeroContract.GetContractAuthor.Call(Context.Self);
             if (contractOwner != Context.Sender)
             {
                 return new Empty();

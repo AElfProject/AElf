@@ -23,6 +23,7 @@ using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
 using ApproveInput = AElf.Contracts.MultiToken.Messages.ApproveInput;
+using InitializeInput = AElf.Contracts.ParliamentAuth.InitializeInput;
 
 namespace AElf.Contracts.Economic.TestBase
 {
@@ -470,7 +471,7 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected async Task InitializeParliamentContract()
         {
-            var initializeResult = await ParliamentAuthContractStub.Initialize.SendAsync(new Empty());
+            var initializeResult = await ParliamentAuthContractStub.Initialize.SendAsync(new InitializeInput());
             CheckResult(initializeResult.TransactionResult);
         }
 
