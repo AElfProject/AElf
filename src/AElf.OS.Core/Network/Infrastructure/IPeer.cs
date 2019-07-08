@@ -10,6 +10,7 @@ namespace AElf.OS.Network.Infrastructure
         bool IsReady { get; }
         Hash CurrentBlockHash { get; }
         long CurrentBlockHeight { get; }
+        long LastKnowLibHeight { get; }
         
         string PeerIpAddress { get; }
         string PubKey { get; }
@@ -26,6 +27,7 @@ namespace AElf.OS.Network.Infrastructure
 
         Task<bool> TryWaitForStateChangedAsync();
         
+        Task UpdateHandshakeAsync();
         Task SendDisconnectAsync();
         Task StopAsync();
 
@@ -33,5 +35,6 @@ namespace AElf.OS.Network.Infrastructure
         Task SendTransactionAsync(Transaction tx);
         Task<BlockWithTransactions> RequestBlockAsync(Hash hash);
         Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);
+        Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest);
     }
 }

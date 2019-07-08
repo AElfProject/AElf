@@ -16,7 +16,6 @@ using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.OS.Rpc.ChainController;
 using AElf.OS.Rpc.Net;
-using AElf.OS.Rpc.Wallet;
 using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
 using AElf.WebApp.Web;
@@ -41,7 +40,6 @@ namespace AElf.Blockchains.BasicBaseChain
 
         //TODO: should move to OSAElfModule
         typeof(ChainControllerRpcModule),
-        typeof(WalletRpcModule),
         typeof(NetRpcAElfModule),
         typeof(RuntimeSetupAElfModule),
         typeof(GrpcCrossChainAElfModule),
@@ -85,7 +83,7 @@ namespace AElf.Blockchains.BasicBaseChain
             Configure<ChainOptions>(option =>
             {
                 option.ChainId =
-                    ChainHelpers.ConvertBase58ToChainId(context.Services.GetConfiguration()["ChainId"]);
+                    ChainHelper.ConvertBase58ToChainId(context.Services.GetConfiguration()["ChainId"]);
                 option.ChainType = context.Services.GetConfiguration().GetValue("ChainType", ChainType.MainChain);
                 option.NetType = context.Services.GetConfiguration().GetValue("NetType", NetType.MainNet);
             });
@@ -95,6 +93,8 @@ namespace AElf.Blockchains.BasicBaseChain
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = context.Services
                     .GetConfiguration().GetValue("TokenInitial:Symbol", "ELF");
             });
+            
+            Configure<ContractOptions>(configuration.GetSection("Contract"));
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -111,7 +111,9 @@ namespace AElf.Blockchains.BasicBaseChain
             var dtoProvider = context.ServiceProvider.GetRequiredService<IGenesisSmartContractDtoProvider>();
 
             dto.InitializationSmartContracts = dtoProvider.GetGenesisSmartContractDtos(zeroContractAddress).ToList();
-
+            var contractOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
+            dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
+            
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });

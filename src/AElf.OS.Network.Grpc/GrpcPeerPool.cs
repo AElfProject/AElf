@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.OS.Network.Application;
+using AElf.OS.Network.Domain;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
@@ -29,6 +31,7 @@ namespace AElf.OS.Network.Grpc
 
         private readonly IAccountService _accountService;
         private readonly IBlockchainService _blockchainService;
+        private readonly INodeManager _nodeManager;
 
         private readonly ConcurrentDictionary<string, GrpcPeer> _authenticatedPeers;
 
@@ -40,11 +43,12 @@ namespace AElf.OS.Network.Grpc
         public ILogger<GrpcPeerPool> Logger { get; set; }
 
         public GrpcPeerPool(IOptionsSnapshot<NetworkOptions> networkOptions, IAccountService accountService, 
-            IBlockchainService blockChainService)
+            IBlockchainService blockChainService, INodeManager nodeManager)
         {
             _networkOptions = networkOptions.Value;
             _accountService = accountService;
             _blockchainService = blockChainService;
+            _nodeManager = nodeManager;
 
             _authenticatedPeers = new ConcurrentDictionary<string, GrpcPeer>();
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
@@ -52,6 +56,8 @@ namespace AElf.OS.Network.Grpc
 
             Logger = NullLogger<GrpcPeerPool>.Instance;
         }
+
+        public int PeerCount => _authenticatedPeers.Count;
 
         public async Task<bool> AddPeerAsync(string address)
         {
@@ -83,7 +89,8 @@ namespace AElf.OS.Network.Grpc
                 PeerIpAddress = ipAddress,
                 ProtocolVersion = connectReply.Handshake.HandshakeData.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                StartHeight = connectReply.Handshake.BestChainBlockHeader.Height
+                StartHeight = connectReply.Handshake.BestChainBlockHeader.Height,
+                LibHeightAtHandshake = connectReply.Handshake.LibBlockHeight
             };
 
             var peer = new GrpcPeer(channel, client, connectionInfo);
@@ -96,6 +103,8 @@ namespace AElf.OS.Network.Grpc
             }
             
             Logger.LogTrace($"Connected to {peer} -- height {peer.StartHeight}.");
+            
+            await _nodeManager.AddNodeAsync(new Node { Pubkey = pubKey.ToByteString(), Endpoint = ipAddress});
             
             FireConnectionEvent(connectReply, pubKey);
 
@@ -214,6 +223,8 @@ namespace AElf.OS.Network.Grpc
                 return false;
             }
             
+            AsyncHelper.RunSync(() => _nodeManager.AddNodeAsync(new Node { Pubkey = p.PubKey.ToByteString(), Endpoint = p.PeerIpAddress}));
+            
             return true;
         }
 
@@ -234,11 +245,14 @@ namespace AElf.OS.Network.Grpc
 
             byte[] sig = await _accountService.SignAsync(Hash.FromMessage(nd).ToByteArray());
 
+            var chain = await _blockchainService.GetChainAsync();
+                
             var hsk = new Handshake
             {
                 HandshakeData = nd,
                 Signature = ByteString.CopyFrom(sig),
-                BestChainBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync()
+                BestChainBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync(),
+                LibBlockHeight = chain?.LastIrreversibleBlockHeight ?? 0
             };
 
             return hsk;

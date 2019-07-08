@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Acs7;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
@@ -88,7 +87,7 @@ namespace AElf.CrossChain.Communication.Grpc
             var indexingHandShakeReply = await BasicCrossChainRpcBase.CrossChainHandShakeAsync(request, context);
             
             indexingHandShakeReply.ShouldNotBeNull();
-            indexingHandShakeReply.Result.ShouldBeTrue();
+            indexingHandShakeReply.Success.ShouldBeTrue();
         }
         
         private ServerCallContext BuildServerCallContext(Metadata metadata = null)

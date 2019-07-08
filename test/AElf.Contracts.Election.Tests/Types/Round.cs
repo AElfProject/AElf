@@ -84,7 +84,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return new Timestamp {Seconds = long.MaxValue};;
             }
 
-            if (GetExtraBlockProducerInformation().PublicKey == publicKey)
+            if (GetExtraBlockProducerInformation().Pubkey == publicKey)
             {
                 var distance = (GetExtraBlockMiningTime() - dateTime).TotalMilliseconds;
                 if (distance > 0)
@@ -150,7 +150,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     var maybeNewOrder = i > minersCount ? i % minersCount : i;
                     if (RealTimeMinersInformation.Values.All(m => m.FinalOrderOfNextRound != maybeNewOrder))
                     {
-                        RealTimeMinersInformation[orderConflictedMiner.PublicKey].FinalOrderOfNextRound =
+                        RealTimeMinersInformation[orderConflictedMiner.Pubkey].FinalOrderOfNextRound =
                             maybeNewOrder;
                         break;
                     }
@@ -254,14 +254,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var tuneOrderInformation = RealTimeMinersInformation.Values
                 .Where(m => m.FinalOrderOfNextRound != m.SupposedOrderOfNextRound)
-                .ToDictionary(m => m.PublicKey, m => m.FinalOrderOfNextRound);
+                .ToDictionary(m => m.Pubkey, m => m.FinalOrderOfNextRound);
 
             var decryptedPreviousInValues = RealTimeMinersInformation.Values.Where(v =>
-                    v.PublicKey != publicKey && v.DecryptedPreviousInValues.ContainsKey(publicKey))
-                .ToDictionary(info => info.PublicKey, info => info.DecryptedPreviousInValues[publicKey]);
+                    v.Pubkey != publicKey && v.DecryptedPreviousInValues.ContainsKey(publicKey))
+                .ToDictionary(info => info.Pubkey, info => info.DecryptedPreviousInValues[publicKey]);
 
             var minersPreviousInValues =
-                RealTimeMinersInformation.Values.Where(info => info.PreviousInValue != null).ToDictionary(info => info.PublicKey,
+                RealTimeMinersInformation.Values.Where(info => info.PreviousInValue != null).ToDictionary(info => info.Pubkey,
                     info => info.PreviousInValue);
 
             return new UpdateValueInput

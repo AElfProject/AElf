@@ -7,12 +7,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -24,6 +22,8 @@ namespace AElf.OS.Network.Grpc
         private const int BlockRequestTimeout = 300;
         private const int TransactionBroadcastTimeout = 300;
         private const int BlocksRequestTimeout = 500;
+        private const int GetNodesTimeout = 500;
+        private const int UpdateHandshakeTimeout = 400;
         
         private enum MetricNames
         {
@@ -42,6 +42,8 @@ namespace AElf.OS.Network.Grpc
         {
             get { return _channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready; }
         }
+        
+        public long LastKnowLibHeight { get; private set; }
 
         public bool IsBest { get; set; }
         public Hash CurrentBlockHash { get; private set; }
@@ -71,6 +73,7 @@ namespace AElf.OS.Network.Grpc
             ConnectionTime = peerInfo.ConnectionTime;
             Inbound = peerInfo.IsInbound;
             StartHeight = peerInfo.StartHeight;
+            LastKnowLibHeight = peerInfo.LibHeightAtHandshake;
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
@@ -99,6 +102,21 @@ namespace AElf.OS.Network.Grpc
             }
 
             return metrics;
+        }
+
+        public Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest)
+        {
+            GrpcRequest request = new GrpcRequest
+            {
+                ErrorMessage = $"Request nodes failed."
+            };
+            
+            Metadata data = new Metadata
+            {
+                {GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString()}
+            };
+            
+            return RequestAsync(_client, c => c.GetNodesAsync(new NodesRequest { MaxCount = count }, data), request);
         }
 
         public async Task<BlockWithTransactions> RequestBlockAsync(Hash hash)
@@ -169,6 +187,24 @@ namespace AElf.OS.Network.Grpc
             };
             
             return RequestAsync(_client, c => c.SendTransactionAsync(tx, data), request);
+        }
+
+        public async Task UpdateHandshakeAsync()
+        {
+            GrpcRequest request = new GrpcRequest
+            {
+                ErrorMessage = $"Error while updating handshake."
+            };
+            
+            Metadata data = new Metadata
+            {
+                {GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString()}
+            };
+            
+             var handshake = await RequestAsync(_client, c => c.UpdateHandshakeAsync(new UpdateHandshakeRequest(), data), request);
+             
+             if (handshake != null)
+                LastKnowLibHeight = handshake.LibBlockHeight;
         }
 
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,

@@ -42,7 +42,7 @@ namespace AElf.Database
             _pooledRedisLite.Remove(key);
         }
 
-        public async Task PipelineSetAsync(Dictionary<string, byte[]> cache)
+        public async Task SetAllAsync(Dictionary<string, byte[]> cache)
         {
             if (cache.Count == 0)
                 return;

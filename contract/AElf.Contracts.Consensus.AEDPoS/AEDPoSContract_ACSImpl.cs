@@ -42,10 +42,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var triggerInformation = new AElfConsensusTriggerInformation();
             triggerInformation.MergeFrom(input.Value);
             // Some basic checks.
-            Assert(triggerInformation.PublicKey.Any(),
+            Assert(triggerInformation.Pubkey.Any(),
                 "Data to request consensus information should contain public key.");
 
-            var publicKey = triggerInformation.PublicKey;
+            var publicKey = triggerInformation.Pubkey;
             var consensusInformation = new AElfConsensusHeaderInformation();
             consensusInformation.MergeFrom(GetConsensusBlockExtraData(input, true).Value);
             var round = consensusInformation.Round;

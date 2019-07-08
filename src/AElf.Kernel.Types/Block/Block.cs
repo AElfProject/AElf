@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using AElf.Types;
-using System.Linq;
 using Google.Protobuf;
 
 namespace AElf.Kernel
@@ -30,21 +29,16 @@ namespace AElf.Kernel
         public IEnumerable<Hash> TransactionHashList => Body.Transactions;
 
         public long Height => Header?.Height ?? 0;
-        
+
 
         public Hash GetHash()
         {
             return Header.GetHash();
         }
 
-        public byte[] GetHashBytes()
+        public Hash GetHashWithoutCache()
         {
-            return Header.GetHashBytes();
-        }
-
-        public byte[] Serialize()
-        {
-            return this.ToByteArray();
+            return Header.GetHashWithoutCache();
         }
     }
 }

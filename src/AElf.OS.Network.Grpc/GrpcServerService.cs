@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
 using AElf.OS.Network.Infrastructure;
@@ -28,19 +29,25 @@ namespace AElf.OS.Network.Grpc
     {
         private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
-        
+
+        private readonly ISyncStateService _syncStateService;
         private readonly IPeerPool _peerPool;
         private readonly IBlockchainService _blockchainService;
         private readonly IAccountService _accountService;
+        private readonly IPeerDiscoveryService _peerDiscoveryService;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
 
-        public GrpcServerService(IPeerPool peerPool, IBlockchainService blockchainService, IAccountService accountService)
+        public GrpcServerService(ISyncStateService syncStateService, IPeerPool peerPool, 
+            IBlockchainService blockchainService, IAccountService accountService, 
+            IPeerDiscoveryService peerDiscoveryService)
         {
+            _syncStateService = syncStateService;
             _peerPool = peerPool;
             _blockchainService = blockchainService;
             _accountService = accountService;
+            _peerDiscoveryService = peerDiscoveryService;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
@@ -130,7 +137,8 @@ namespace AElf.OS.Network.Grpc
                 ProtocolVersion = handshake.HandshakeData.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = handshake.BestChainBlockHeader.Height,
-                IsInbound = true
+                IsInbound = true,
+                LibHeightAtHandshake = handshake.LibBlockHeight
             };
             
             return new GrpcPeer(channel, client, connectionInfo);
@@ -150,7 +158,7 @@ namespace AElf.OS.Network.Grpc
                 return AuthError.ProtocolMismatch;
 
             // verify signature
-            var validData = CryptoHelpers.VerifySignature(handshake.Signature.ToByteArray(),
+            var validData = CryptoHelper.VerifySignature(handshake.Signature.ToByteArray(),
                 Hash.FromMessage(handshake.HandshakeData).ToByteArray(), handshake.HandshakeData.Pubkey.ToByteArray());
             
             if (!validData)
@@ -177,7 +185,7 @@ namespace AElf.OS.Network.Grpc
             
             // if this transaction's ref block is a lot higher than our chain 
             // then don't participate in p2p network
-            if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultMinBlockGapBeforeSync)
+            if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultInitialSyncOffset)
                 return new VoidReply();
             
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent { Transactions = new List<Transaction> {tx} });
@@ -213,7 +221,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override async Task<BlockReply> RequestBlock(BlockRequest request, ServerCallContext context)
         {
-            if (request == null || request.Hash == null) 
+            if (request == null || request.Hash == null || _syncStateService.SyncState != SyncState.Finished) 
                 return new BlockReply();
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested block {request.Hash}.");
@@ -228,7 +236,7 @@ namespace AElf.OS.Network.Grpc
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
         {
-            if (request == null || request.PreviousBlockHash == null) 
+            if (request == null || request.PreviousBlockHash == null || _syncStateService.SyncState != SyncState.Finished)
                 return new BlockList();
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.Count} blocks from {request.PreviousBlockHash}.");
@@ -252,6 +260,27 @@ namespace AElf.OS.Network.Grpc
             }
             
             return blockList;
+        }
+
+        public override async Task<Handshake> UpdateHandshake(UpdateHandshakeRequest request, ServerCallContext context)
+        {
+            Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested handshake data.");
+            
+            return await _peerPool.GetHandshakeAsync();
+        }
+
+        public override async Task<NodeList> GetNodes(NodesRequest request, ServerCallContext context)
+        {
+            if (request == null) 
+                return new NodeList();
+            
+            Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.MaxCount} nodes.");
+            
+            var nodes = await _peerDiscoveryService.GetNodesAsync(request.MaxCount);
+            
+            Logger.LogDebug($"Sending {nodes.Nodes.Count} to {context.GetPeerInfo()}.");
+
+            return nodes;
         }
 
         /// <summary>

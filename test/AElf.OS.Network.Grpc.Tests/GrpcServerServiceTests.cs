@@ -106,7 +106,7 @@ namespace AElf.OS.Network
             tx.To = Address.Generate();
 
             var chain = await  _blockchainService.GetChainAsync();
-            tx.RefBlockNumber = chain.BestChainHeight + NetworkConstants.DefaultMinBlockGapBeforeSync + 1;
+            tx.RefBlockNumber = chain.BestChainHeight + NetworkConstants.DefaultInitialSyncOffset + 1;
             
             await _service.SendTransaction(tx, BuildServerCallContext());
             
@@ -228,7 +228,7 @@ namespace AElf.OS.Network
         public async Task Connect_Cleanup_Test()
         {
             // Generate peer identity
-            var peerKeyPair = CryptoHelpers.GenerateKeyPair();
+            var peerKeyPair = CryptoHelper.GenerateKeyPair();
             var handshake = CreateHandshake(peerKeyPair);
             
             await _service.Connect(handshake, BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
@@ -252,7 +252,7 @@ namespace AElf.OS.Network
                 ChainId = _blockchainService.GetChainId()
             };
 
-            byte[] sig = CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, Hash.FromMessage(nd).ToByteArray());
+            byte[] sig = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, Hash.FromMessage(nd).ToByteArray());
 
             var hsk = new Handshake
             {
@@ -281,7 +281,7 @@ namespace AElf.OS.Network
             // wrong sig
             {
                 var handshake = await _peerPool.GetHandshakeAsync();
-                handshake.HandshakeData.Pubkey = ByteString.CopyFrom(CryptoHelpers.GenerateKeyPair().PublicKey);
+                handshake.HandshakeData.Pubkey = ByteString.CopyFrom(CryptoHelper.GenerateKeyPair().PublicKey);
                 var metadata = new Metadata
                     {{GrpcConstants.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
                 var context = TestServerCallContext.Create("mock", "127.0.0.1", TimestampHelper.GetUtcNow().AddHours(1).ToDateTime(), metadata, CancellationToken.None, 
@@ -310,8 +310,8 @@ namespace AElf.OS.Network
             var serverService = _service as GrpcServerService;
             
             // authorized 
-            ECKeyPair authorizedPeer = CryptoHelpers.GenerateKeyPair();
-            ECKeyPair nonAuthorizedPeer = CryptoHelpers.GenerateKeyPair();
+            ECKeyPair authorizedPeer = CryptoHelper.GenerateKeyPair();
+            ECKeyPair nonAuthorizedPeer = CryptoHelper.GenerateKeyPair();
             
             // miners only options
             var minersOnlyOptions = new NetworkOptions {

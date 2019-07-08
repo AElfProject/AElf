@@ -6,11 +6,21 @@ import "google/protobuf/timestamp.proto";
 import "aelf/core.proto";
 import "kernel.proto";
 
+message Node {
+    string endpoint = 1;
+    bytes pubkey = 2;
+}
+
+message NodeList {
+    repeated Node nodes = 1;
+}
+
 message Handshake {
     HandshakeData handshake_data = 1;
     bytes signature = 2;
     bool success = 3;
     aelf.BlockHeader best_chain_block_header = 4;
+    sint64 lib_block_height = 5;
 }
 
 message HandshakeData {

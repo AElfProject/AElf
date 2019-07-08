@@ -1,27 +1,38 @@
 using System;
-using System.Security.Cryptography;
 using Google.Protobuf;
 
 namespace AElf.Types
 {
     public partial class Transaction
     {
+        private Hash _transactionHash;
+
         public Hash GetHash()
         {
-            return Hash.FromRawBytes(GetSignatureData());
+            if (_transactionHash == null)
+                _transactionHash = Hash.FromRawBytes(GetSignatureData());
+
+            return _transactionHash;
         }
 
-        public byte[] GetHashBytes()
+        public bool VerifyFields()
         {
-            return SHA256.Create().ComputeHash(GetSignatureData());
+            if (To == null || From == null)
+                return false;
+
+            if (RefBlockNumber < 0)
+                return false;
+
+            if (string.IsNullOrEmpty(MethodName))
+                return false;
+
+            return true;
         }
 
         private byte[] GetSignatureData()
         {
-            if (To == null || From == null || string.IsNullOrEmpty(MethodName) || RefBlockNumber < 0)
-            {
+            if (!VerifyFields())
                 throw new InvalidOperationException($"Invalid transaction: {this}");
-            }
 
             if (Signature.IsEmpty)
                 return this.ToByteArray();

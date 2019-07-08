@@ -10,14 +10,14 @@ namespace AElf.Contracts.Election
         public BoolState TreasuryCreated { get; set; }
         public BoolState TreasuryRegistered { get; set; }
         public BoolState VotingEventRegistered { get; set; }
-        
+
         // TODO: We can merge some Ids.
         public SingletonState<Hash> TreasuryHash { get; set; }
-        
+
         public SingletonState<Hash> WelfareHash { get; set; }
         public SingletonState<Hash> SubsidyHash { get; set; }
         public SingletonState<Hash> RewardHash { get; set; }
-        
+
         public SingletonState<Hash> BasicRewardHash { get; set; }
         public SingletonState<Hash> VotesWeightRewardHash { get; set; }
         public SingletonState<Hash> ReElectionRewardHash { get; set; }
@@ -26,6 +26,10 @@ namespace AElf.Contracts.Election
 
         public MappedState<string, CandidateVote> CandidateVotes { get; set; }
 
+
+        /// <summary>
+        /// CandidateInformationMap=>publicKey->CandidateInformation
+        /// </summary>
         public MappedState<string, CandidateInformation> CandidateInformationMap { get; set; }
 
         public SingletonState<int> CurrentTermNumber { get; set; }
@@ -57,8 +61,10 @@ namespace AElf.Contracts.Election
 
         public SingletonState<long> TimeEachTerm { get; set; }
 
+        public SingletonState<long> MinerIncreaseInterval { get; set; }
+
         public SingletonState<Hash> MinerElectionVotingItemId { get; set; }
-        
+
         public SingletonState<long> CachedWelfareWeight { get; set; }
     }
 }

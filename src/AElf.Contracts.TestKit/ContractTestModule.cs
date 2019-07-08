@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Acs0;
 using AElf.Cryptography;
 using AElf.Contracts.Genesis;
 using AElf.Database;
@@ -26,6 +27,7 @@ using AElf.Runtime.CSharp;
 using MartinCostello.Logging.XUnit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Volo.Abp;
 using Volo.Abp.EventBus;
@@ -111,15 +113,16 @@ namespace AElf.Contracts.TestKit
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            
-            context.ServiceProvider.GetService<IAElfAsymmetricCipherKeyPairProvider>().SetKeyPair(CryptoHelpers.GenerateKeyPair());
-            
+            context.ServiceProvider.GetService<IAElfAsymmetricCipherKeyPairProvider>().SetKeyPair(CryptoHelper.GenerateKeyPair());
+
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
-            };
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
+            };            
+            var contractOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
+            dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });

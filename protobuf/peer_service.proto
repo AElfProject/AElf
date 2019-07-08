@@ -12,7 +12,10 @@ service PeerService {
     
     rpc Announce (PeerNewBlockAnnouncement) returns (VoidReply) {}
     rpc SendTransaction (aelf.Transaction) returns (VoidReply) {}
-
+    
+    rpc GetNodes (NodesRequest) returns (NodeList) {}
+    
+    rpc UpdateHandshake(UpdateHandshakeRequest) returns (Handshake) {}
     rpc Connect (Handshake) returns (ConnectReply) {}
     
     rpc Disconnect (DisconnectReason) returns (VoidReply) {}
@@ -34,6 +37,9 @@ enum AuthError {
     CHAIN_MISMATCH = 5;
     PROTOCOL_MISMATCH = 6;
     CONNECTION_REFUSED = 7;
+}
+
+message UpdateHandshakeRequest {
 }
 
 // **** Blocks *****
@@ -66,6 +72,10 @@ message BlockReply {
 // **** No reply *****
 
 message VoidReply {
+}
+
+message NodesRequest {
+    int32 max_count = 1;
 }
 
 
