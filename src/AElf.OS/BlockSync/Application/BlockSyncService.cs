@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Dto;
-using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -14,175 +13,137 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockFetchService _blockFetchService;
         private readonly IBlockDownloadService _blockDownloadService;
-        private readonly IBlockSyncStateProvider _blockSyncStateProvider;
-        private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockSyncAttachService _blockSyncAttachService;
+        private readonly IBlockSyncQueueService _blockSyncQueueService;
 
         public ILogger<BlockSyncService> Logger { get; set; }
 
         public BlockSyncService(IBlockchainService blockchainService,
             IBlockFetchService blockFetchService,
             IBlockDownloadService blockDownloadService,
-            IBlockSyncStateProvider blockSyncStateProvider,
-            ITaskQueueManager taskQueueManager,
-            IBlockSyncAttachService blockSyncAttachService)
+            IBlockSyncAttachService blockSyncAttachService,
+            IBlockSyncQueueService blockSyncQueueService)
         {
             Logger = NullLogger<BlockSyncService>.Instance;
 
             _blockchainService = blockchainService;
             _blockFetchService = blockFetchService;
             _blockDownloadService = blockDownloadService;
-            _blockSyncStateProvider = blockSyncStateProvider;
-            _taskQueueManager = taskQueueManager;
             _blockSyncAttachService = blockSyncAttachService;
+            _blockSyncQueueService = blockSyncQueueService;
         }
 
-        public async Task SyncBlockAsync(Chain chain, SyncBlockDto syncBlockDto)
+        public async Task SyncByAnnounceAsync(Chain chain, SyncAnnounceDto syncAnnounceDto)
         {
-            if (syncBlockDto.SyncBlockHash != null && syncBlockDto.SyncBlockHeight <=
+            if (syncAnnounceDto.SyncBlockHash != null && syncAnnounceDto.SyncBlockHeight <=
                 chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset)
             {
-                EnqueueFetchBlockJob(syncBlockDto, BlockSyncConstants.FetchBlockRetryTimes);
+                EnqueueFetchBlockJob(syncAnnounceDto, BlockSyncConstants.FetchBlockRetryTimes);
             }
             else
             {
-                EnqueueDownloadBlocksJob(syncBlockDto);
+                EnqueueDownloadBlocksJob(syncAnnounceDto);
             }
         }
-
+        
         public async Task SyncByBlockAsync(BlockWithTransactions blockWithTransactions)
         {
             EnqueueSyncBlockJob(blockWithTransactions, BlockSyncConstants.FetchBlockRetryTimes);
         }
-
-        private void EnqueueFetchBlockJob(SyncBlockDto syncBlockDto, int retryTimes)
+        
+        private void EnqueueFetchBlockJob(SyncAnnounceDto syncAnnounceDto, int retryTimes)
         {
-            var enqueueTimestamp = TimestampHelper.GetUtcNow();
-            _taskQueueManager.Enqueue(async () =>
+            _blockSyncQueueService.Enqueue(async () =>
             {
-                try
-                {
-                    _blockSyncStateProvider.BlockSyncFetchBlockEnqueueTime = enqueueTimestamp;
-                    Logger.LogTrace(
-                        $"Block sync: Fetch block, block height: {syncBlockDto.SyncBlockHeight}, block hash: {syncBlockDto.SyncBlockHash}, enqueue time: {enqueueTimestamp}");
-                    
-                    var fetchResult = false;
-                    if (BlockAttachAndExecuteQueueIsAvailable())
-                    {
-                        fetchResult = await _blockFetchService.FetchBlockAsync(syncBlockDto.SyncBlockHash,
-                            syncBlockDto.SyncBlockHeight, syncBlockDto.SuggestedPeerPubKey);
-                    }
+                Logger.LogTrace(
+                    $"Block sync: Fetch block, block height: {syncAnnounceDto.SyncBlockHeight}, block hash: {syncAnnounceDto.SyncBlockHash}.");
 
-                    if (!fetchResult && retryTimes > 1)
-                    {
-                        EnqueueFetchBlockJob(syncBlockDto, retryTimes - 1);
-                    }
-                }
-                finally
+                var fetchResult = false;
+                if (BlockAttachAndExecuteQueueIsAvailable())
                 {
-                    _blockSyncStateProvider.BlockSyncFetchBlockEnqueueTime = null;
+                    fetchResult = await _blockFetchService.FetchBlockAsync(syncAnnounceDto.SyncBlockHash,
+                        syncAnnounceDto.SyncBlockHeight, syncAnnounceDto.SuggestedPeerPubKey);
+                }
+
+                if (!fetchResult && retryTimes > 1)
+                {
+                    EnqueueFetchBlockJob(syncAnnounceDto, retryTimes - 1);
                 }
             }, OSConstants.BlockFetchQueueName);
         }
 
-        private void EnqueueDownloadBlocksJob(SyncBlockDto syncBlockDto)
+        private void EnqueueDownloadBlocksJob(SyncAnnounceDto syncAnnounceDto)
         {
-            var enqueueTimestamp = TimestampHelper.GetUtcNow();
-            _taskQueueManager.Enqueue(async () =>
+            _blockSyncQueueService.Enqueue(async () =>
             {
-                try
-                {
-                    _blockSyncStateProvider.BlockSyncDownloadBlockEnqueueTime = enqueueTimestamp;
-                    Logger.LogTrace(
-                        $"Block sync: Download blocks, block height: {syncBlockDto.SyncBlockHeight}, block hash: {syncBlockDto.SyncBlockHash}, enqueue time: {enqueueTimestamp}");
+                Logger.LogTrace(
+                    $"Block sync: Download blocks, block height: {syncAnnounceDto.SyncBlockHeight}, block hash: {syncAnnounceDto.SyncBlockHash}.");
 
-                    if (BlockAttachAndExecuteQueueIsAvailable())
+                if (BlockAttachAndExecuteQueueIsAvailable())
+                {
+                    var chain = await _blockchainService.GetChainAsync();
+
+                    if (syncAnnounceDto.SyncBlockHeight <= chain.LastIrreversibleBlockHeight)
                     {
-                        var chain = await _blockchainService.GetChainAsync();
-
-                        if (syncBlockDto.SyncBlockHeight <= chain.LastIrreversibleBlockHeight)
-                        {
-                            Logger.LogWarning(
-                                $"Receive lower header {{ hash: {syncBlockDto.SyncBlockHash}, height: {syncBlockDto.SyncBlockHeight} }}.");
-                            return;
-                        }
-
-                        var syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.LongestChainHash,
-                            chain.LongestChainHeight, syncBlockDto.BatchRequestBlockCount,
-                            syncBlockDto.SuggestedPeerPubKey);
-
-                        if (syncBlockCount == 0)
-                        {
-                            syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
-                                chain.BestChainHeight, syncBlockDto.BatchRequestBlockCount,
-                                syncBlockDto.SuggestedPeerPubKey);
-                        }
-
-                        if (syncBlockCount == 0 && syncBlockDto.SyncBlockHeight >
-                            chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset)
-                        {
-                            Logger.LogDebug(
-                                $"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
-                            await _blockDownloadService.DownloadBlocksAsync(
-                                chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight,
-                                syncBlockDto.BatchRequestBlockCount, syncBlockDto.SuggestedPeerPubKey);
-                        }
+                        Logger.LogWarning(
+                            $"Receive lower header {{ hash: {syncAnnounceDto.SyncBlockHash}, height: {syncAnnounceDto.SyncBlockHeight} }}.");
+                        return;
                     }
-                }
-                finally
-                {
-                    _blockSyncStateProvider.BlockSyncDownloadBlockEnqueueTime = null;
+
+                    var syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.LongestChainHash,
+                        chain.LongestChainHeight, syncAnnounceDto.BatchRequestBlockCount,
+                        syncAnnounceDto.SuggestedPeerPubKey);
+
+                    if (syncBlockCount == 0)
+                    {
+                        syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
+                            chain.BestChainHeight, syncAnnounceDto.BatchRequestBlockCount,
+                            syncAnnounceDto.SuggestedPeerPubKey);
+                    }
+
+                    if (syncBlockCount == 0 && syncAnnounceDto.SyncBlockHeight >
+                        chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset)
+                    {
+                        Logger.LogDebug(
+                            $"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
+                        await _blockDownloadService.DownloadBlocksAsync(
+                            chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight,
+                            syncAnnounceDto.BatchRequestBlockCount, syncAnnounceDto.SuggestedPeerPubKey);
+                    }
                 }
             }, OSConstants.BlockDownloadQueueName);
         }
-        
+
         private void EnqueueSyncBlockJob(BlockWithTransactions blockWithTransactions, int retryTimes)
         {
-            var enqueueTimestamp = TimestampHelper.GetUtcNow();
-            _taskQueueManager.Enqueue(async () =>
+            _blockSyncQueueService.Enqueue(async () =>
             {
-                try
+                Logger.LogTrace(
+                    $"Block sync: sync block, block height: {blockWithTransactions.Height}, block hash: {blockWithTransactions.GetHash()}.");
+
+                if (BlockAttachAndExecuteQueueIsAvailable())
                 {
-                    _blockSyncStateProvider.BlockSyncFetchBlockEnqueueTime = enqueueTimestamp;
-                    Logger.LogTrace(
-                        $"Block sync: sync block, block height: {blockWithTransactions.Height}, block hash: {blockWithTransactions.GetHash()}, enqueue time: {enqueueTimestamp}");
-                    
-                    if (BlockAttachAndExecuteQueueIsAvailable())
-                    {
-                        _blockSyncAttachService.EnqueueAttachBlockWithTransactionsJob(blockWithTransactions);
-                    }
-                    else if (retryTimes > 1)
-                    {
-                        EnqueueSyncBlockJob(blockWithTransactions, retryTimes - 1);
-                    }
+                    _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions);
                 }
-                finally
+                else if (retryTimes > 1)
                 {
-                    _blockSyncStateProvider.BlockSyncFetchBlockEnqueueTime = null;
+                    EnqueueSyncBlockJob(blockWithTransactions, retryTimes - 1);
                 }
             }, OSConstants.BlockFetchQueueName);
         }
 
         private bool BlockAttachAndExecuteQueueIsAvailable()
         {
-            var blockSyncAttachBlockEnqueueTime = _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime;
-            if (blockSyncAttachBlockEnqueueTime != null && TimestampHelper.GetUtcNow() >
-                blockSyncAttachBlockEnqueueTime +
-                TimestampHelper.DurationFromMilliseconds(BlockSyncConstants.BlockSyncAttachBlockAgeLimit))
+            if(!_blockSyncQueueService.IsQueueAvailable(OSConstants.BlockSyncAttachQueueName))
             {
-                Logger.LogWarning(
-                    $"Block sync attach queue is too busy, enqueue timestamp: {blockSyncAttachBlockEnqueueTime}");
+                Logger.LogWarning($"Block sync attach queue is too busy.");
                 return false;
             }
 
-            var blockSyncAttachAndExecuteBlockEnqueueTime =
-                _blockSyncStateProvider.BlockSyncAttachAndExecuteBlockJobEnqueueTime;
-            if (blockSyncAttachAndExecuteBlockEnqueueTime != null && TimestampHelper.GetUtcNow() >
-                blockSyncAttachAndExecuteBlockEnqueueTime +
-                TimestampHelper.DurationFromMilliseconds(BlockSyncConstants.BlockSyncAttachAndExecuteBlockAgeLimit))
+            if(!_blockSyncQueueService.IsQueueAvailable(KernelConstants.UpdateChainQueueName))
             {
                 Logger.LogWarning(
-                    $"Block sync attach and execute queue is too busy, enqueue timestamp: {blockSyncAttachAndExecuteBlockEnqueueTime}");
+                    $"Block sync attach and execute queue is too busy.");
                 return false;
             }
 

@@ -17,5 +17,7 @@ namespace AElf.OS.Node.Application
         public Type ZeroSmartContract { get; set; }
 
         public int SmartContractRunnerCategory { get; set; } = KernelConstants.DefaultRunnerCategory;
+        
+        public bool ContractDeploymentAuthorityRequired { get; set; }
     }
 }

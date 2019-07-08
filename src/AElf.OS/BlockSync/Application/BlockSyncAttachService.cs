@@ -1,7 +1,8 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network;
 using AElf.OS.Network.Extensions;
 using Microsoft.Extensions.Logging;
@@ -11,71 +12,41 @@ namespace AElf.OS.BlockSync.Application
 {
     public class BlockSyncAttachService : IBlockSyncAttachService
     {
+        private readonly IBlockchainService _blockchainService;
         private readonly IBlockAttachService _blockAttachService;
-        private readonly ITaskQueueManager _taskQueueManager;
-        private readonly IBlockSyncStateProvider _blockSyncStateProvider;
-        private readonly IBlockSyncBlockService _blockSyncBlockService;
+        private readonly IBlockSyncQueueService _blockSyncQueueService;
+        private readonly IBlockValidationService _validationService;
         
         public ILogger<BlockSyncAttachService> Logger { get; set; }
 
-        public BlockSyncAttachService(IBlockAttachService blockAttachService,
-            ITaskQueueManager taskQueueManager,
-            IBlockSyncStateProvider blockSyncStateProvider,
-            IBlockSyncBlockService blockSyncBlockService)
+        public BlockSyncAttachService(IBlockchainService blockchainService,
+            IBlockAttachService blockAttachService,
+            IBlockValidationService validationService,
+            IBlockSyncQueueService blockSyncQueueService)
         {
             Logger = NullLogger<BlockSyncAttachService>.Instance;
             
+            _blockchainService = blockchainService;
             _blockAttachService = blockAttachService;
-            _taskQueueManager = taskQueueManager;
-            _blockSyncStateProvider = blockSyncStateProvider;
-            _blockSyncBlockService = blockSyncBlockService;
+            _validationService = validationService;
+            _blockSyncQueueService = blockSyncQueueService;
         }
 
-        private async Task AttachBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
+        public async Task AttachBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
         {
+            var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
+            if (!valid)
+            {
+                throw new InvalidOperationException(
+                    $"The block was invalid, block hash: {blockWithTransactions}.");
+            }
+
+            await _blockchainService.AddTransactionsAsync(blockWithTransactions.Transactions);
             var block = blockWithTransactions.ToBlock();
-            await _blockSyncBlockService.AddBlockWithTransactionsAsync(block, blockWithTransactions.Transactions);
+            await _blockchainService.AddBlockAsync(block);
 
-            var enqueueTimestamp = TimestampHelper.GetUtcNow();
-            _taskQueueManager.Enqueue(async () =>
-                {
-                    try
-                    {
-                        _blockSyncStateProvider.BlockSyncAttachAndExecuteBlockJobEnqueueTime = enqueueTimestamp;
-                        Logger.LogTrace(
-                            $"Block sync: Attach and execute block, block height: {blockWithTransactions.Height}, block hash: {blockWithTransactions.GetHash()}, enqueue time: {enqueueTimestamp}");
-                            
-                        await _blockAttachService.AttachBlockAsync(block);
-                    }
-                    finally
-                    {
-                        _blockSyncStateProvider.BlockSyncAttachAndExecuteBlockJobEnqueueTime = null;
-                    }
-                },
+            _blockSyncQueueService.Enqueue(async () => { await _blockAttachService.AttachBlockAsync(block); },
                 KernelConstants.UpdateChainQueueName);
-        }
-
-        public void EnqueueAttachBlockWithTransactionsJob(BlockWithTransactions blockWithTransactions)
-        {
-            Logger.LogTrace($"Receive announcement and sync block {{ hash: {blockWithTransactions.GetHash()}, height: {blockWithTransactions.Header.Height} }} .");
-            
-            var enqueueTimestamp = TimestampHelper.GetUtcNow();
-            _taskQueueManager.Enqueue(async () =>
-                {
-                    try
-                    {
-                        _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime = enqueueTimestamp;
-                        Logger.LogTrace(
-                            $"Block sync: Attach block, block height: {blockWithTransactions.Height}, block hash: {blockWithTransactions.GetHash()}, enqueue time: {enqueueTimestamp}");
-                        
-                        await AttachBlockWithTransactionsAsync(blockWithTransactions);
-                    }
-                    finally
-                    {
-                        _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime = null;
-                    }
-                },
-                OSConstants.BlockSyncAttachQueueName);
         }
     }
 }

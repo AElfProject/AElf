@@ -14,18 +14,21 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
         private readonly IBlockSyncAttachService _blockSyncAttachService;
+        private readonly IBlockSyncQueueService _blockSyncQueueService;
 
         public ILogger<BlockDownloadService> Logger { get; set; }
 
         public BlockDownloadService(IBlockchainService blockchainService,
             INetworkService networkService,
-            IBlockSyncAttachService blockSyncAttachService)
+            IBlockSyncAttachService blockSyncAttachService,
+            IBlockSyncQueueService blockSyncQueueService)
         {
             Logger = NullLogger<BlockDownloadService>.Instance;
 
             _blockchainService = blockchainService;
             _networkService = networkService;
             _blockSyncAttachService = blockSyncAttachService;
+            _blockSyncQueueService = blockSyncQueueService;
         }
 
         public async Task<int> DownloadBlocksAsync(Hash previousBlockHash, long previousBlockHeight,
@@ -71,7 +74,12 @@ namespace AElf.OS.BlockSync.Application
                     Logger.LogDebug(
                         $"Processing block {blockWithTransactions},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
 
-                    _blockSyncAttachService.EnqueueAttachBlockWithTransactionsJob(blockWithTransactions);
+                    _blockSyncQueueService.Enqueue(
+                        async () =>
+                        {
+                            await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions);
+                        },
+                        OSConstants.BlockSyncAttachQueueName);
 
                     downloadBlockCount++;
                 }

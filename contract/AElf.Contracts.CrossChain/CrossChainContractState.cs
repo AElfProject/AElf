@@ -14,7 +14,7 @@ namespace AElf.Contracts.CrossChain
         
         #region side chain
 
-        public MappedState<int, SideChainInfo> SideChainInfos { get; set; }
+        public MappedState<int, SideChainInfo> SideChainInfo { get; set; }
         public MappedState<int, long> CurrentSideChainHeight { get; set; }
         
         internal MappedState<int, BytesValue> SideChainInitialConsensusInfo { get; set; }

@@ -20,7 +20,7 @@ namespace AElf.OS.Handlers
 
         public Task HandleEventAsync(BlockReceivedEvent eventData)
         {
-            _blockSyncAttachService.EnqueueAttachBlockWithTransactionsJob(eventData.BlockWithTransactions);
+            _blockSyncAttachService.AttachBlockWithTransactionsAsync(eventData.BlockWithTransactions);
             return Task.CompletedTask;
         }
     }
