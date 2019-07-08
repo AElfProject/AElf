@@ -17,7 +17,7 @@ namespace AElf.Types
         /// <returns></returns>
         public string ToDiagnosticString()
         {
-            return ToHex();
+            return $@"""{ToHex()}""";
         }
 
         // Make private to avoid confusion
@@ -69,24 +69,9 @@ namespace AElf.Types
         /// <returns></returns>
         public static Hash FromTwoHashes(Hash hash1, Hash hash2)
         {
-            // TODO: XOR??
-            var hashes = new List<Hash>
-            {
-                hash1, hash2
-            };
-            using (var mm = new MemoryStream())
-            using (var stream = new CodedOutputStream(mm))
-            {
-                foreach (var hash in hashes.OrderBy(x => x))
-                {
-                    hash.WriteTo(stream);
-                }
-
-                stream.Flush();
-                mm.Flush();
-                return FromRawBytes(mm.ToArray());
-            }
+            return FromXor(hash1, hash2);
         }
+
         #endregion
 
         #region Predefined
@@ -119,10 +104,9 @@ namespace AElf.Types
 
         private static int CompareHash(Hash hash1, Hash hash2)
         {
-            // TODO: why not use Hash.Value??
             if (hash1 != null)
             {
-                return hash2 == null ? 1 : Compare(hash1, hash2);
+                return hash2 == null ? 1 : ByteStringHelper.Compare(hash1.Value, hash2.Value);
             }
 
             if (hash2 == null)
@@ -133,19 +117,11 @@ namespace AElf.Types
             return -1;
         }
 
-        private static int Compare(Hash x, Hash y)
-        {
-            if (x == null || y == null)
-            {
-                throw new InvalidOperationException("Cannot compare hash when hash is null");
-            }
-
-            return ByteStringHelper.Compare(x.Value, y.Value);
-        }
-
         public int CompareTo(Hash that)
         {
-            return Compare(this, that);
+            if (that == null)
+                throw new InvalidOperationException("Cannot compare hash when hash is null");
+            return CompareHash(this, that);
         }
 
         #endregion
@@ -158,7 +134,7 @@ namespace AElf.Types
         /// <param name="h1"></param>
         /// <param name="h2"></param>
         /// <returns></returns>
-        public static Hash Xor(Hash h1, Hash h2)
+        public static Hash FromXor(Hash h1, Hash h2)
         {
             var newBytes = new byte[TypeConsts.HashByteArrayLength];
             for (var i = 0; i < newBytes.Length; i++)
@@ -166,10 +142,7 @@ namespace AElf.Types
                 newBytes[i] = (byte) (h1.Value[i] ^ h2.Value[i]);
             }
 
-            return new Hash
-            {
-                Value = ByteString.CopyFrom(newBytes)
-            };
+            return FromRawBytes(newBytes);
         }
 
         #endregion

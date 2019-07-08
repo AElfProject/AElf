@@ -68,7 +68,7 @@ namespace AElf.WebApp.Application.Chain.Dto
 
             try
             {
-                HashHelper.HexStringToHash(RefBlockHash);
+                HashHelper.FromHexString(RefBlockHash);
             }
             catch
             {

@@ -5,7 +5,7 @@ namespace AElf
 {
     public class HashHelper
     {
-        public static Hash LoadBase64ToHash(string base64)
+        public static Hash FromBase64(string base64)
         {
             var bytes = Convert.FromBase64String(base64);
             return Hash.FromByteArray(bytes);
@@ -17,7 +17,7 @@ namespace AElf
         /// <param name="hex"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Hash HexStringToHash(string hex)
+        public static Hash FromHexString(string hex)
         {
             var bytes = ByteArrayHelper.FromHexString(hex);
             return Hash.FromByteArray(bytes);

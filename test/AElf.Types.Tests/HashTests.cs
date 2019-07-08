@@ -29,7 +29,7 @@ namespace AElf.Types.Tests
             hash5.ShouldNotBe(null);
             
             //Generate from xor
-            var hash6 = Hash.Xor(hash1, hash2);
+            var hash6 = Hash.FromXor(hash1, hash2);
             hash6.ShouldNotBe(null);
         }
 
