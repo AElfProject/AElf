@@ -474,14 +474,21 @@ namespace AElf.Contracts.MultiToken
                 meetBalanceSymbolList.Add(symbolToThreshold.Key);
             }
 
-            if (meetBalanceSymbolList.Count > 0 && input.IsCheckAllowance)
+            if (meetBalanceSymbolList.Count > 0)
             {
-                foreach (var symbol in meetBalanceSymbolList)
+                if (input.IsCheckAllowance)
                 {
-                    if (State.Allowances[input.Sender][Context.Sender][symbol] <
-                        input.SymbolToThreshold[symbol]) continue;
+                    foreach (var symbol in meetBalanceSymbolList)
+                    {
+                        if (State.Allowances[input.Sender][Context.Sender][symbol] <
+                            input.SymbolToThreshold[symbol]) continue;
+                        meetThreshold = true;
+                        break;
+                    }
+                }
+                else
+                {
                     meetThreshold = true;
-                    break;
                 }
             }
 

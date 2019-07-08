@@ -9,6 +9,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
     }
 }
