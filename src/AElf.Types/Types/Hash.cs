@@ -39,7 +39,7 @@ namespace AElf.Types
             return new Hash(bytes.ComputeHash());
         }
 
-        // TODO: From / Calc / Compute / Load ??
+        // TODO: From / Calc / Compute / Load ??  
         /// <summary>
         /// Gets the hash from a string encoded in UTF8.
         /// </summary>
@@ -87,7 +87,6 @@ namespace AElf.Types
                 return FromRawBytes(mm.ToArray());
             }
         }
-
         #endregion
 
         #region Predefined
@@ -174,8 +173,7 @@ namespace AElf.Types
         }
 
         #endregion
-
-        // TODO: Rename
+        
         /// <summary>
         /// Dumps the content value to byte array.
         /// </summary>
@@ -191,7 +189,7 @@ namespace AElf.Types
         /// <returns></returns>
         public string ToHex()
         {
-            CheckLength();
+            CheckLength(Value.ToByteArray());
             return Value.ToHex();
         }
 
@@ -224,15 +222,6 @@ namespace AElf.Types
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
-        }
-        
-        private void CheckLength()
-        {
-            if (Value.Length != TypeConsts.HashByteArrayLength)
-            {
-                throw new ArgumentOutOfRangeException($"Hash bytes has to be " +
-                                                      $"{TypeConsts.HashByteArrayLength} bytes long. The input is {Value.Length} bytes long.");
-            }
         }
 
         private static void CheckLength(byte[] bytes)
