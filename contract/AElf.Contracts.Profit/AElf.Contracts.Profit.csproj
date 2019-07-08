@@ -31,5 +31,8 @@
             <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractBase>
     </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Protobuf\Generated" />
+    </ItemGroup>
 
 </Project>

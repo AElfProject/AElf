@@ -7,9 +7,9 @@ namespace AElf.Contracts.Profit
 {
     public partial class ProfitContractState : ContractState
     {
-        public MappedState<Hash, ProfitItem> ProfitItemsMap { get; set; }
+        public MappedState<Hash, Scheme> SchemeInfos { get; set; }
 
-        public MappedState<Address, ReleasedProfitsInformation> ReleasedProfitsMap { get; set; }
+        public MappedState<Address, DistributedProfitsInfo> ReleasedProfitsMap { get; set; }
 
         public MappedState<Hash, Address, ProfitDetails> ProfitDetailsMap { get; set; }
 

@@ -15,9 +15,9 @@ namespace AElf.Contracts.Profit
             return State.CreatedProfitIds[input.Creator];
         }
 
-        public override ProfitItem GetProfitItem(Hash input)
+        public override Scheme GetScheme(Hash input)
         {
-            return State.ProfitItemsMap[input];
+            return State.SchemeInfos[input];
         }
 
         /// <summary>
@@ -27,28 +27,27 @@ namespace AElf.Contracts.Profit
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override Address GetProfitItemVirtualAddress(GetProfitItemVirtualAddressInput input)
+        public override Address GetSchemeAddress(SchemePeriod input)
         {
-            var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
+            var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
             return input.Period == 0
                 ? virtualAddress
                 : GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
         }
 
-        public override ReleasedProfitsInformation GetReleasedProfitsInformation(
-            GetReleasedProfitsInformationInput input)
+        public override DistributedProfitsInfo GetDistributedProfitsInfo(SchemePeriod input)
         {
-            var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
+            var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
             var releasedProfitsVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
-            return State.ReleasedProfitsMap[releasedProfitsVirtualAddress] ?? new ReleasedProfitsInformation
+            return State.ReleasedProfitsMap[releasedProfitsVirtualAddress] ?? new DistributedProfitsInfo
             {
-                TotalWeight = -1
+                TotalShares = -1
             };
         }
 
         public override ProfitDetails GetProfitDetails(GetProfitDetailsInput input)
         {
-            return State.ProfitDetailsMap[input.ProfitId][input.Receiver];
+            return State.ProfitDetailsMap[input.SchemeId][input.Beneficiary];
         }
 
         private Address GetReleasedPeriodProfitsVirtualAddress(Address profitId, long period)
@@ -56,12 +55,12 @@ namespace AElf.Contracts.Profit
             return Address.FromPublicKey(period.ToString().CalculateHash().Concat(profitId.Value).ToArray());
         }
 
-        public override SInt64Value GetProfitAmount(ProfitInput input)
+        public override SInt64Value GetProfitAmount(ClaimProfitsInput input)
         {
-            var profitItem = State.ProfitItemsMap[input.ProfitId];
+            var profitItem = State.SchemeInfos[input.SchemeId];
             Assert(profitItem != null, "Profit item not found.");
 
-            var profitDetails = State.ProfitDetailsMap[input.ProfitId][Context.Sender];
+            var profitDetails = State.ProfitDetailsMap[input.SchemeId][Context.Sender];
 
             Assert(profitDetails != null, "Profit details not found.");
 
@@ -70,7 +69,7 @@ namespace AElf.Contracts.Profit
                 return new SInt64Value {Value = 0};
             }
 
-            var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
+            var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
             var availableDetails = profitDetails.Details.Where(d =>
                 d.LastProfitPeriod < profitItem.CurrentPeriod && d.EndPeriod >= d.LastProfitPeriod
@@ -88,7 +87,8 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                amount = amount.Add(ProfitAllPeriods(profitItem, input.Symbol, profitDetail, profitVirtualAddress, true));
+                amount = amount.Add(
+                    ProfitAllPeriods(profitItem, input.Symbol, profitDetail, profitVirtualAddress, true));
             }
 
             return new SInt64Value {Value = amount};
