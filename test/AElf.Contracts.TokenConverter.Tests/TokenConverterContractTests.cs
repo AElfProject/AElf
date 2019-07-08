@@ -205,7 +205,7 @@ namespace AElf.Contracts.TokenConverter
             var toConnectorBalance = await GetBalanceAsync(_ramSymbol, TokenConverterContractAddress);
             var toConnectorWeight = decimal.Parse(RamConnector.Weight);
             
-            var amountToPay = BancorHelpers.GetAmountToPayFromReturn(fromConnectorBalance,fromConnectorWeight,toConnectorBalance,toConnectorWeight,1000L);
+            var amountToPay = BancorHelper.GetAmountToPayFromReturn(fromConnectorBalance,fromConnectorWeight,toConnectorBalance,toConnectorWeight,1000L);
             var fee = Convert.ToInt64(amountToPay * 5 / 1000);
 
             var buyResult = (await DefaultStub.Buy.SendAsync(
@@ -302,7 +302,7 @@ namespace AElf.Contracts.TokenConverter
             var fromConnectorBalance = await GetBalanceAsync(_ramSymbol,TokenConverterContractAddress);
             var fromConnectorWeight = decimal.Parse(RamConnector.Weight);
             
-            var amountToReceive = BancorHelpers.GetReturnFromPaid(fromConnectorBalance,fromConnectorWeight,toConnectorBalance,toConnectorWeight,1000L);
+            var amountToReceive = BancorHelper.GetReturnFromPaid(fromConnectorBalance,fromConnectorWeight,toConnectorBalance,toConnectorWeight,1000L);
             var fee = Convert.ToInt64(amountToReceive * 5 / 1000);
             
             var sellResult =(await DefaultStub.Sell.SendAsync(new SellInput

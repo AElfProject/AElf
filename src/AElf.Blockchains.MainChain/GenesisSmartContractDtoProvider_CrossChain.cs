@@ -3,12 +3,9 @@ using System.Linq;
 using Acs0;
 using AElf.Contracts.CrossChain;
 using AElf.CrossChain;
-using AElf.Kernel;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.AEDPoS;
-using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
+using InitializeInput = AElf.Contracts.CrossChain.InitializeInput;
 
 namespace AElf.Blockchains.MainChain
 {

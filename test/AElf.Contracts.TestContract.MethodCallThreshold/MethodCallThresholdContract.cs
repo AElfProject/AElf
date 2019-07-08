@@ -33,7 +33,7 @@ namespace AElf.Contracts.TestContract.MethodCallThreshold
             }
             
             var contractInfo = State.Acs0Contract.GetContractInfo.Call(Context.Self);
-            Assert(Context.Sender == contractInfo.Owner, "Only owner are permitted to call this method.");
+            Assert(Context.Sender == contractInfo.Author, "Only owner are permitted to call this method.");
         }
     }
 }

@@ -84,7 +84,7 @@ namespace AElf.Blockchains.BasicBaseChain
             Configure<ChainOptions>(option =>
             {
                 option.ChainId =
-                    ChainHelpers.ConvertBase58ToChainId(context.Services.GetConfiguration()["ChainId"]);
+                    ChainHelper.ConvertBase58ToChainId(context.Services.GetConfiguration()["ChainId"]);
                 option.ChainType = context.Services.GetConfiguration().GetValue("ChainType", ChainType.MainChain);
                 option.NetType = context.Services.GetConfiguration().GetValue("NetType", NetType.MainNet);
             });
@@ -94,6 +94,8 @@ namespace AElf.Blockchains.BasicBaseChain
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = context.Services
                     .GetConfiguration().GetValue("TokenInitial:Symbol", "ELF");
             });
+            
+            Configure<ContractOptions>(configuration.GetSection("Contract"));
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -110,7 +112,9 @@ namespace AElf.Blockchains.BasicBaseChain
             var dtoProvider = context.ServiceProvider.GetRequiredService<IGenesisSmartContractDtoProvider>();
 
             dto.InitializationSmartContracts = dtoProvider.GetGenesisSmartContractDtos(zeroContractAddress).ToList();
-
+            var contractOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
+            dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
+            
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });

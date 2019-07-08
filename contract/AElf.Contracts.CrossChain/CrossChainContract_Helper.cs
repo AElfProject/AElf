@@ -15,6 +15,8 @@ namespace AElf.Contracts.CrossChain
 {
     public partial class CrossChainContract
     {
+        private const string ConsensusExtraDataName = "Consensus";
+        
         /// <summary>
         /// Bind parent chain height together with self height.
         /// </summary>
@@ -58,17 +60,9 @@ namespace AElf.Contracts.CrossChain
             //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
             // update locked token balance
             
-            var balance = GetBalance(new GetBalanceInput
-            {
-                Owner = Context.Sender,
-                Symbol = Context.Variables.NativeSymbol
-            });
-
-            Assert(balance > 0);
-            
             TransferFrom(new TransferFromInput
             {
-                From = Context.Sender,
+                From = Context.Origin,
                 To = Context.Self,
                 Amount = sideChainInfo.LockedTokenAmount,
                 Symbol = Context.Variables.NativeSymbol
@@ -151,7 +145,7 @@ namespace AElf.Contracts.CrossChain
         
         private Hash GetSideChainMerkleTreeRoot(long parentChainHeight)
         {
-            var indexedSideChainData = State.IndexedCrossChainBlockData[parentChainHeight];
+            var indexedSideChainData = State.IndexedSideChainBlockData[parentChainHeight];
             return ComputeRootWithMultiHash(
                 indexedSideChainData.SideChainBlockData.Select(d => d.TransactionMerkleTreeRoot));
         }
@@ -179,7 +173,7 @@ namespace AElf.Contracts.CrossChain
             if (State.Owner.Value != null) 
                 return State.Owner.Value;
             ValidateContractState(State.ParliamentAuthContract, SmartContractConstants.ParliamentAuthContractSystemName);
-            Address organizationAddress = State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty());
+            Address organizationAddress = State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty());
             State.Owner.Value = organizationAddress;
 
             return State.Owner.Value;

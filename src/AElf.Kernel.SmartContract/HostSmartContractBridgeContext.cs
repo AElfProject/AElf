@@ -125,7 +125,7 @@ namespace AElf.Kernel.SmartContract
 
         private byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
-            var cabBeRecovered = CryptoHelpers.RecoverPublicKey(signature, hash, out var publicKey);
+            var cabBeRecovered = CryptoHelper.RecoverPublicKey(signature, hash, out var publicKey);
             return !cabBeRecovered ? null : publicKey;
         }
 

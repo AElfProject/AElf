@@ -79,7 +79,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
             //Test contract
             {
                 var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
-                TestContractAddress = await DeployContractAsync(category, code, DefaultSenderKeyPair);
+                TestContractAddress = await DeployContractAsync(category, code, Hash.FromString("TestContract"),
+                    DefaultSenderKeyPair);
                 DefaultTester =
                     GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);
             }

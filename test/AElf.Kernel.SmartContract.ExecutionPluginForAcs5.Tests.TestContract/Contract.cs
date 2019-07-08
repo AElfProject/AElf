@@ -44,7 +44,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract
                 State.Acs0Contract.Value = Context.GetZeroSmartContractAddress();
             }
             var contractInfo = State.Acs0Contract.GetContractInfo.Call(Context.Self);
-            Assert(Context.Sender == contractInfo.Owner, "Only owner are permitted to call this method.");
+            Assert(Context.Sender == contractInfo.Author, "Only owner are permitted to call this method.");
         }
     }
 }

@@ -512,7 +512,7 @@ namespace AElf.Contracts.MultiToken
                 State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
             }
 
-            var contractOwner = State.ZeroContract.GetContractOwner.Call(input.ContractAddress);
+            var contractOwner = State.ZeroContract.GetContractAuthor.Call(input.ContractAddress);
             Assert(contractOwner == Context.Sender || input.ContractAddress == Context.Sender,
                 "Either contract owner or contract itself can set profit receiving information.");
 
@@ -584,11 +584,11 @@ namespace AElf.Contracts.MultiToken
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
             }
 
-            var contractOwner = State.ZeroContract.GetContractOwner.Call(Context.Self);
+            var contractOwner = State.ZeroContract.GetContractAuthor.Call(Context.Self);
 
             Assert(
                 contractOwner == Context.Sender ||
-                Context.Sender == State.ParliamentAuthContract.GetDefaultOrganizationAddress.Call(new Empty()) ||
+                Context.Sender == State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty()) ||
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set resource token unit price.");
 

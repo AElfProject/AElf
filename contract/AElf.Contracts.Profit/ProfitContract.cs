@@ -247,7 +247,8 @@ namespace AElf.Contracts.Profit
 
             State.ProfitDetailsMap[profitId][input.Receiver] = currentProfitDetails;
 
-            Context.LogDebug(() => $"Add {input.Weight} weights to profit item {input.ProfitId.ToHex()}");
+            Context.LogDebug(() =>
+                $"Added {input.Weight} weights to profit item {input.ProfitId.ToHex()}: {profitDetail}");
 
             return new Empty();
         }
@@ -638,8 +639,12 @@ namespace AElf.Contracts.Profit
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.ProfitId);
 
-            var availableDetails = profitDetails.Details.Where(d => d.LastProfitPeriod < profitItem.CurrentPeriod)
-                .ToList();
+            var availableDetails = profitDetails.Details.Where(d =>
+                d.LastProfitPeriod < profitItem.CurrentPeriod && d.EndPeriod >= d.LastProfitPeriod
+            ).ToList();
+
+            Context.LogDebug(() =>
+                $"Available details: {availableDetails.Aggregate("\n", (profit1, profit2) => profit1.ToString() + "\n" + profit2.ToString())}");
 
             // Only can get profit from last profit period to actual last period (profit.CurrentPeriod - 1),
             // because current period not released yet.
@@ -650,20 +655,22 @@ namespace AElf.Contracts.Profit
                 var profitDetail = availableDetails[i];
                 if (profitDetail.LastProfitPeriod == 0)
                 {
+                    // This detail never performed profit before.
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                ProfitAllPeriods(input, profitDetail, profitItem, profitVirtualAddress);
+                ProfitAllPeriods(profitItem, input.Symbol, profitDetail, profitVirtualAddress);
             }
 
-            State.ProfitDetailsMap[input.ProfitId][Context.Sender] = profitDetails;
+            State.ProfitDetailsMap[input.ProfitId][Context.Sender] = new ProfitDetails {Details = {availableDetails}};
 
             return new Empty();
         }
 
-        private void ProfitAllPeriods(ProfitInput input, ProfitDetail profitDetail, ProfitItem profitItem,
-            Address profitVirtualAddress)
+        private long ProfitAllPeriods(ProfitItem profitItem, string symbol, ProfitDetail profitDetail,
+            Address profitVirtualAddress, bool isView = false)
         {
+            var totalAmount = 0L;
             var lastProfitPeriod = profitDetail.LastProfitPeriod;
             for (var period = profitDetail.LastProfitPeriod;
                 period <= (profitDetail.EndPeriod == long.MaxValue
@@ -671,29 +678,40 @@ namespace AElf.Contracts.Profit
                     : Math.Min(profitItem.CurrentPeriod - 1, profitDetail.EndPeriod));
                 period++)
             {
+                var periodToPrint = period;
+                var detailToPrint = profitDetail;
                 var releasedProfitsVirtualAddress =
                     GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
                 var releasedProfitsInformation = State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
-                var amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount[input.Symbol])
+                Context.LogDebug(() => $"Released profit information: {releasedProfitsInformation}");
+                var amount = profitDetail.Weight.Mul(releasedProfitsInformation.ProfitsAmount[symbol])
                     .Div(releasedProfitsInformation.TotalWeight);
-                var periodToPrint = period;
-                Context.LogDebug(() =>
-                    $"{Context.Sender} is profiting {amount} tokens from {input.ProfitId.ToHex()} in period {periodToPrint}");
-                if (releasedProfitsInformation.IsReleased && amount > 0)
+
+                if (!isView)
                 {
-                    State.TokenContract.TransferFrom.Send(new TransferFromInput
+                    Context.LogDebug(() =>
+                        $"{Context.Sender} is profiting {amount} {symbol} tokens from {profitItem.ProfitId.ToHex()} in period {periodToPrint}." +
+                        $"Sender's weight: {detailToPrint.Weight}, total weight: {releasedProfitsInformation.TotalWeight}");
+                    if (releasedProfitsInformation.IsReleased && amount > 0)
                     {
-                        From = releasedProfitsVirtualAddress,
-                        To = Context.Sender,
-                        Symbol = input.Symbol,
-                        Amount = amount
-                    });
+                        State.TokenContract.TransferFrom.Send(new TransferFromInput
+                        {
+                            From = releasedProfitsVirtualAddress,
+                            To = Context.Sender,
+                            Symbol = symbol,
+                            Amount = amount
+                        });
+                    }
+
+                    lastProfitPeriod = period + 1;
                 }
 
-                lastProfitPeriod = period + 1;
+                totalAmount = totalAmount.Add(amount);
             }
 
             profitDetail.LastProfitPeriod = lastProfitPeriod;
+
+            return totalAmount;
         }
     }
 }

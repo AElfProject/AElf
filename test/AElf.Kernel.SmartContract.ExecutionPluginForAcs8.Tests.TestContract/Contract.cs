@@ -32,7 +32,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract
                 State.Acs0Contract.Value = Context.GetZeroSmartContractAddress();
             }
 
-            Assert(State.Acs0Contract.GetContractOwner.Call(Context.Self) == Context.Sender,
+            Assert(State.Acs0Contract.GetContractAuthor.Call(Context.Self) == Context.Sender,
                 "Only owner can set resource token buying preferences.");
             State.ResourceTokenBuyingPreferences.Value = input;
             return new Empty();

@@ -13,7 +13,7 @@ service ACS7 {
     
     rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) {
     }
-    rpc RequestChainCreation (SideChainCreationRequest) returns (RequestChainCreationOutput) {
+    rpc CreateSideChain (SideChainCreationRequest) returns (aelf.SInt32Value) {
     }
     rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
         option (aelf.is_view) = true;
@@ -69,11 +69,9 @@ message CrossChainExtraData {
 
 enum SideChainStatus
 {
-    APPLY = 0;
-    REVIEW = 1;
-    ACTIVE = 2;
-    INSUFFICIENT_BALANCE = 3;
-    TERMINATED = 4;
+    FATAL = 0;
+    ACTIVE = 1;
+    TERMINATED = 2;
 }
 
 message SideChainIdAndHeightDict {
@@ -107,9 +105,8 @@ message ChainInitializationData {
     google.protobuf.Timestamp creation_timestamp = 3;
     repeated bytes extra_information = 4;
     int64 creation_height_on_parent_chain = 5;
+    bool chain_creator_privilege_preserved = 6;
 }
-
-// from resource.proto
 
 enum ResourceType
 {
@@ -138,6 +135,7 @@ message SideChainCreationRequest {
     int64 indexing_price = 1;
     int64 locked_token_amount = 2;
     bytes contract_code = 3;
+    bool is_privilege_preserved = 4;
 }
 
 message RequestChainCreationOutput {

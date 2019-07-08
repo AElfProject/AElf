@@ -15,7 +15,7 @@ namespace AElf.Kernel
 {
     public class KernelTestHelper
     {
-        private ECKeyPair _keyPair = CryptoHelpers.GenerateKeyPair();
+        private ECKeyPair _keyPair = CryptoHelper.GenerateKeyPair();
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultService _transactionResultService;
         private readonly IChainManager _chainManager;
@@ -69,7 +69,7 @@ namespace AElf.Kernel
         ///        Fork Branch:                    (e)-> q -> r -> s -> t -> u
         ///    Unlinked Branch:                                              v  -> w  -> x  -> y  -> z
         /// </returns>
-        public async Task<Chain> MockChain()
+        public async Task<Chain> MockChainAsync()
         {
             var chain = await CreateChain();
 
@@ -115,7 +115,7 @@ namespace AElf.Kernel
                     : ByteString.CopyFrom(refBlockHash.DumpByteArray().Take(4).ToArray())
             };
 
-            var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, transaction.GetHash().DumpByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, transaction.GetHash().DumpByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
             return transaction;
         }
