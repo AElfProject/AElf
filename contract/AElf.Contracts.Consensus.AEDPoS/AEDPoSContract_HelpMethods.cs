@@ -42,8 +42,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return false;
             }
             round = State.Rounds[roundNumber];
-            var roundToPrint = round.Clone();
-            Context.LogDebug(() => $"Got current round information:\n{roundToPrint}");
             return !round.IsEmpty;
         }
 
@@ -102,7 +100,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool TryToUpdateRoundInformation(Round round)
         {
-            Context.LogDebug(() => $"Try to update round information. {round}");
             var ri = State.Rounds[round.RoundNumber];
             if (ri == null)
             {
