@@ -69,7 +69,7 @@ namespace AElf.Kernel
         ///        Fork Branch:                    (e)-> q -> r -> s -> t -> u
         ///    Unlinked Branch:                                              v  -> w  -> x  -> y  -> z
         /// </returns>
-        public async Task<Chain> MockChain()
+        public async Task<Chain> MockChainAsync()
         {
             var chain = await CreateChain();
 
