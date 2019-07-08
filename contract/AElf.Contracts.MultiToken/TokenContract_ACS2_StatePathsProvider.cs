@@ -68,7 +68,7 @@ namespace AElf.Contracts.MultiToken
                 }
             };
 
-            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"MEM"}))
+            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"RAM"}))
             {
                 resourceInfo.Reources.Add(GetPathHashCode(nameof(TokenContractState.ChargedResources), symbol));
             }

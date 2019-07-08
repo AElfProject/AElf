@@ -201,7 +201,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             await SetResourceTokenBuyingPreferences();
             var cpuConsumingResult = await DefaultTester.CpuConsumingMethod.SendAsync(new Empty());
             cpuConsumingResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
-            cpuConsumingResult.TransactionResult.Error.Contains("CPU token is not enough").ShouldBeTrue();
+            cpuConsumingResult.TransactionResult.Error.ShouldContain("CPU token is not enough");
         }
 
         [Fact]
