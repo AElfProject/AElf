@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Cache.Application;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Communication.Application
@@ -11,17 +12,23 @@ namespace AElf.CrossChain.Communication.Application
     {
         private readonly ICrossChainClientService _crossChainClientService;
         private readonly ICrossChainCacheEntityService _crossChainCacheEntityService;
+        private readonly CrossChainConfigOptions _crossChainConfigOptions;
+
         public ILogger<CrossChainRequestService> Logger { get; set; }
 
         public CrossChainRequestService(ICrossChainCacheEntityService crossChainCacheEntityService, 
-            ICrossChainClientService crossChainClientService)
+            ICrossChainClientService crossChainClientService, IOptionsSnapshot<CrossChainConfigOptions> crossChainConfigOptions)
         {
             _crossChainCacheEntityService = crossChainCacheEntityService;
             _crossChainClientService = crossChainClientService;
+            _crossChainConfigOptions = crossChainConfigOptions.Value;
         }
 
         public async Task RequestCrossChainDataFromOtherChainsAsync()
         {
+            if (_crossChainConfigOptions.CrossChainDataValidationIgnored)
+                return;
+            
             var chainIds = _crossChainCacheEntityService.GetCachedChainIds();
             Logger.LogTrace(
                 $"Try to request from chain {string.Join(",", chainIds.Select(ChainHelper.ConvertChainIdToBase58))}");

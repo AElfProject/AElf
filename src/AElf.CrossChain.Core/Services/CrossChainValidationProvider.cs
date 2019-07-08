@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.CrossChain
@@ -13,12 +14,15 @@ namespace AElf.CrossChain
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
         private readonly IBlockExtraDataService _blockExtraDataService;
+        private readonly CrossChainConfigOptions _crossChainConfigOptions;
+        
         public ILocalEventBus LocalEventBus { get; set; }
         
-        public CrossChainValidationProvider(ICrossChainDataProvider crossChainDataProvider, IBlockExtraDataService blockExtraDataService)
+        public CrossChainValidationProvider(ICrossChainDataProvider crossChainDataProvider, IBlockExtraDataService blockExtraDataService, IOptionsSnapshot<CrossChainConfigOptions> crossChainConfigOptions)
         {
             _crossChainDataProvider = crossChainDataProvider;
             _blockExtraDataService = blockExtraDataService;
+            _crossChainConfigOptions = crossChainConfigOptions.Value;
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
@@ -72,12 +76,8 @@ namespace AElf.CrossChain
                 return false;
             
             // check cache identity
-            var res =
-                await _crossChainDataProvider.ValidateSideChainBlockDataAsync(
-                    crossChainBlockData.SideChainBlockData.ToList(), block.Header.PreviousBlockHash,
-                    block.Header.Height - 1) && await _crossChainDataProvider.ValidateParentChainBlockDataAsync(
-                    crossChainBlockData.ParentChainBlockData.ToList(), block.Header.PreviousBlockHash,
-                    block.Header.Height - 1);
+            var res = await ValidateCrossChainBlockDataAsync(crossChainBlockData, block.Header.PreviousBlockHash,
+                block.Header.Height - 1);
             return res;
         }
 
@@ -85,6 +85,27 @@ namespace AElf.CrossChain
         {
             var bytes = _blockExtraDataService.GetExtraDataFromBlockHeader("CrossChain", header);
             return bytes == ByteString.Empty || bytes == null ? null : CrossChainExtraData.Parser.ParseFrom(bytes);
+        }
+
+        private async Task<bool> ValidateCrossChainBlockDataAsync(CrossChainBlockData crossChainBlockData, 
+            Hash blockHash, long blockHeight)
+        {
+            if (_crossChainConfigOptions.CrossChainDataValidationIgnored)
+                return true;
+            
+            var sideChainBlockDataValidationResult =
+                await _crossChainDataProvider.ValidateSideChainBlockDataAsync(
+                    crossChainBlockData.SideChainBlockData.ToList(), blockHash, blockHeight);
+            if (!sideChainBlockDataValidationResult)
+                return false;
+            
+            var parentChainBlockDataValidationResult =
+                await _crossChainDataProvider.ValidateParentChainBlockDataAsync(
+                    crossChainBlockData.ParentChainBlockData.ToList(), blockHash, blockHeight);
+            if (!parentChainBlockDataValidationResult)
+                return false;
+
+            return true;
         }
     }
 }
