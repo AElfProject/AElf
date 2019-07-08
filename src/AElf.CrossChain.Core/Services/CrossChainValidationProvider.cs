@@ -56,7 +56,8 @@ namespace AElf.CrossChain
             }
             catch (ValidateNextTimeBlockValidationException ex)
             {
-                throw new BlockValidationException("Cross chain data is not ready.", ex);
+                throw new BlockValidationException(
+                    $"Cross chain data is not ready at height: {block.Header.Height}, hash: {block.GetHash()}.", ex);
             }
             finally
             {
