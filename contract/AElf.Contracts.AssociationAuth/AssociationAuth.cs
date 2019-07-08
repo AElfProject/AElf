@@ -24,6 +24,8 @@ namespace AElf.Contracts.AssociationAuth
             var proposal = State.Proposals[proposalId];
             Assert(proposal !=null,"Not found proposal.");
             
+            var organization = State.Organisations[proposal.OrganizationAddress];
+            var readyToRelease = IsReadyToRelease(proposal, organization);
             var result = new ProposalOutput
             {
                 ProposalId = proposalId,
@@ -32,7 +34,8 @@ namespace AElf.Contracts.AssociationAuth
                 OrganizationAddress = proposal.OrganizationAddress,
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
-                ToAddress = proposal.ToAddress
+                ToAddress = proposal.ToAddress,
+                ToBeReleased = readyToRelease
             };
 
             return result;
@@ -63,6 +66,7 @@ namespace AElf.Contracts.AssociationAuth
                 organization.Reviewers.AddRange(input.Reviewers);
                 State.Organisations[organizationAddress] = organization;
             }
+            
             return organizationAddress;
         }
 
@@ -103,6 +107,7 @@ namespace AElf.Contracts.AssociationAuth
                 //State.Proposals[approvalInput.ProposalId] = null;
                 return new BoolValue{Value = false};
             }
+            
             // check approval not existed
             Assert(!proposalInfo.ApprovedReviewer.Contains(Context.Sender), "Approval already exists.");
             var organization = GetOrganization(proposalInfo.OrganizationAddress);
@@ -112,13 +117,20 @@ namespace AElf.Contracts.AssociationAuth
             proposalInfo.ApprovedWeight += reviewer.Weight;
             State.Proposals[approvalInput.ProposalId] = proposalInfo;
 
-            if (IsReadyToRelease(proposalInfo, organization))
-            {
-                Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
-                    proposalInfo.Params);
-                //State.Proposals[approvalInput.ProposalId] = null;
-            }
-            return new BoolValue{Value = true};
+            return new BoolValue {Value = true};
+        }
+
+        public override Empty Release(Hash proposalId)
+        {
+            var proposalInfo = State.Proposals[proposalId];
+            Assert(proposalInfo != null, "Proposal not found.");
+            Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
+            var organization = State.Organisations[proposalInfo.OrganizationAddress];
+            Assert(IsReadyToRelease(proposalInfo, organization), "Not approved.");
+            Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
+                proposalInfo.ContractMethodName, proposalInfo.Params);
+            
+            return new Empty();
         }
 
         #endregion
