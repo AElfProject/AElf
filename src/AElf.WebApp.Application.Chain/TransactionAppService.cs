@@ -72,7 +72,6 @@ namespace AElf.WebApp.Application.Chain
             }
             catch(Exception e)
             {
-                throw e;
                 throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
                     Error.InvalidTransaction.ToString());
             }

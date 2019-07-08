@@ -141,7 +141,7 @@ namespace AElf.Contracts.Election
 
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
-            return lockTime.Mul(1_00000000).Div(86400).Div(270).Mul(votesAmount).Add(votesAmount.Mul(2).Div(3));
+            return lockTime.Mul(1_0000).Div(86400).Div(270).Mul(votesAmount).Add(votesAmount.Mul(2).Div(3));
         }
 
         private long GetEndPeriod(long lockTime)
