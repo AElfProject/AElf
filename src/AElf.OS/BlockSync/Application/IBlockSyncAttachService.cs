@@ -13,6 +13,6 @@ namespace AElf.OS.BlockSync.Application
 {
     public interface IBlockSyncAttachService
     {
-        void EnqueueAttachBlockWithTransactionsJob(BlockWithTransactions blockWithTransactions);
+        Task AttachBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions);
     }
 }

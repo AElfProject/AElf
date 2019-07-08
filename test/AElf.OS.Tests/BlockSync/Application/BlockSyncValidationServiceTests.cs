@@ -15,7 +15,7 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockSyncStateProvider _blockSyncStateProvider;
         private readonly IAnnouncementCacheProvider _announcementCacheProvider;
-        
+
         public BlockSyncValidationServiceTests()
         {
             _blockSyncValidationService = GetRequiredService<IBlockSyncValidationService>();
@@ -25,80 +25,85 @@ namespace AElf.OS.BlockSync.Application
         }
 
         [Fact]
-        public async Task ValidateBeforeEnqueue_Success()
+        public async Task ValidateBeforeHandleAnnounceAsync_Success()
         {
             var chain = await _blockchainService.GetChainAsync();
-            
+
             var syncBlockHash = Hash.FromString("SyncBlockHash");
             var syncBlockHeight = chain.LastIrreversibleBlockHeight + 1;
 
             var validateResult =
-                await _blockSyncValidationService.ValidateBeforeSync(chain, syncBlockHash, syncBlockHeight);
-            
+                await _blockSyncValidationService.ValidateBeforeHandleAnnounceAsync(chain, syncBlockHash,
+                    syncBlockHeight);
+
             validateResult.ShouldBeTrue();
         }
-        
-        [Fact]
-        public async Task ValidateBeforeEnqueue_WithEnqueueTime_Success()
-        {
-//            var chain = await _blockchainService.GetChainAsync();
-//            
-//            var syncBlockHash = Hash.FromString("SyncBlockHash");
-//            var syncBlockHeight = chain.LastIrreversibleBlockHeight + 1;
-//
-//            _blockSyncStateProvider.BlockSyncAnnouncementEnqueueTime = TimestampHelper.GetUtcNow()
-//                .AddMilliseconds(-(BlockSyncConstants.BlockSyncAnnouncementAgeLimit - 1000));
-//
-//            var validateResult =
-//                await _blockSyncValidationService.ValidateBeforeSync(syncBlockHash, syncBlockHeight);
-//            
-//            validateResult.ShouldBeTrue();
-        }
 
         [Fact]
-        public async Task ValidateBeforeEnqueue_BlockSyncQueueIsBusy()
-        {
-//            var chain = await _blockchainService.GetChainAsync();
-//            
-//            var syncBlockHash = Hash.FromString("SyncBlockHash");
-//            var syncBlockHeight = chain.LastIrreversibleBlockHeight + 1;
-//
-//            _blockSyncStateProvider.BlockSyncAnnouncementEnqueueTime = TimestampHelper.GetUtcNow()
-//                .AddMilliseconds(-(BlockSyncConstants.BlockSyncAnnouncementAgeLimit + 100));
-//
-//            var validateResult =
-//                await _blockSyncValidationService.ValidateBeforeSync(syncBlockHash, syncBlockHeight);
-//            
-//            validateResult.ShouldBeFalse();
-        }
-
-        [Fact]
-        public async Task ValidateBeforeEnqueue_AlreadySynchronized()
+        public async Task ValidateBeforeHandleAnnounceAsync_FetchQueueIsBusy()
         {
             var chain = await _blockchainService.GetChainAsync();
-            
+
+            var syncBlockHash = Hash.FromString("SyncBlockHash");
+            var syncBlockHeight = chain.LastIrreversibleBlockHeight + 1;
+
+            _blockSyncStateProvider.BlockSyncFetchBlockEnqueueTime = TimestampHelper.GetUtcNow()
+                .AddMilliseconds(-(BlockSyncConstants.BlockSyncFetchBlockAgeLimit + 100));
+
+            var validateResult =
+                await _blockSyncValidationService.ValidateBeforeHandleAnnounceAsync(chain, syncBlockHash,
+                    syncBlockHeight);
+
+            validateResult.ShouldBeFalse();
+        }
+
+        [Fact]
+        public async Task ValidateBeforeHandleAnnounceAsync_DownloadQueueIsBusy()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+
+            var syncBlockHash = Hash.FromString("SyncBlockHash");
+            var syncBlockHeight = chain.LastIrreversibleBlockHeight + 1;
+
+            _blockSyncStateProvider.BlockSyncDownloadBlockEnqueueTime = TimestampHelper.GetUtcNow()
+                .AddMilliseconds(-(BlockSyncConstants.BlockSyncDownloadBlockAgeLimit + 100));
+
+            var validateResult =
+                await _blockSyncValidationService.ValidateBeforeHandleAnnounceAsync(chain, syncBlockHash,
+                    syncBlockHeight);
+
+            validateResult.ShouldBeFalse();
+        }
+
+        [Fact]
+        public async Task ValidateBeforeHandleAnnounceAsync_AlreadySynchronized()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+
             var syncBlockHash = Hash.FromString("SyncBlockHash");
             var syncBlockHeight = chain.LastIrreversibleBlockHeight - 1;
 
             _announcementCacheProvider.TryAddAnnouncementCache(syncBlockHash, syncBlockHeight);
-            
+
             var validateResult =
-                await _blockSyncValidationService.ValidateBeforeSync(chain, syncBlockHash, syncBlockHeight);
-            
+                await _blockSyncValidationService.ValidateBeforeHandleAnnounceAsync(chain, syncBlockHash,
+                    syncBlockHeight);
+
             validateResult.ShouldBeFalse();
         }
-        
+
         [Fact]
-        public async Task ValidateBeforeEnqueue_LessThenLIBHeight()
+        public async Task ValidateBeforeHandleAnnounceAsync_LessThenLIBHeight()
         {
             var chain = await _blockchainService.GetChainAsync();
-            
+
             var syncBlockHash = Hash.FromString("SyncBlockHash");
             var syncBlockHeight = chain.LastIrreversibleBlockHeight - 1;
-            
+
             var validateResult =
-                await _blockSyncValidationService.ValidateBeforeSync(chain, syncBlockHash, syncBlockHeight);
-            
+                await _blockSyncValidationService.ValidateBeforeHandleAnnounceAsync(chain, syncBlockHash,
+                    syncBlockHeight);
+
             validateResult.ShouldBeFalse();
         }
     }

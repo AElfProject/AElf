@@ -2,7 +2,7 @@ using AElf.Types;
 
 namespace AElf.OS.BlockSync.Dto
 {
-    public class SyncBlockDto
+    public class SyncAnnounceDto
     {
         public Hash SyncBlockHash { get; set; }
 
