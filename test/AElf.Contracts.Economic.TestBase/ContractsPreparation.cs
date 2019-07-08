@@ -471,7 +471,10 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected async Task InitializeParliamentContract()
         {
-            var initializeResult = await ParliamentAuthContractStub.Initialize.SendAsync(new InitializeInput());
+            var initializeResult = await ParliamentAuthContractStub.Initialize.SendAsync(new InitializeInput
+            {
+                GenesisOwnerReleaseThreshold = 1
+            });
             CheckResult(initializeResult.TransactionResult);
         }
 

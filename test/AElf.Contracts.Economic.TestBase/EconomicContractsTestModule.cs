@@ -1,5 +1,6 @@
 using AElf.Contracts.TestKit;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs1;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs5;
@@ -14,7 +15,8 @@ namespace AElf.Contracts.Economic.TestBase
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            // Justification: Some test cases need to mock current block time.
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+
             context.Services.AddSingleton<ITransactionExecutor, EconomicTransactionExecutor>();
             context.Services.AddSingleton<IBlockValidationService, MockBlockValidationService>();
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
