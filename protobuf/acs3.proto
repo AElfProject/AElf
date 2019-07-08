@@ -15,6 +15,8 @@ service AuthorizationContract {
     }
     rpc Approve (ApproveInput) returns (google.protobuf.BoolValue) {
     }
+    rpc Release(aelf.Hash) returns (google.protobuf.Empty){
+    }
     rpc GetProposal(aelf.Hash) returns (ProposalOutput) {
         option (aelf.is_view) = true;
     }
@@ -41,4 +43,5 @@ message ProposalOutput {
     google.protobuf.Timestamp expired_time = 5;
     aelf.Address organization_address = 6;
     aelf.Address proposer = 7;
+    bool to_be_released = 8;
 }
