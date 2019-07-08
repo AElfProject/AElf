@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.CrossChain.Cache.Application;
+using AElf.CrossChain.Communication.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
@@ -44,6 +47,21 @@ namespace AElf.CrossChain.Communication.Grpc
             };
             var client = new ClientForParentChain(clientInitializationContext, _blockCacheEntityProducer);
             return client;
+        }
+
+        public ICrossChainClient CreateCrossClient(CrossChainClientDto crossChainClientDto)
+        {
+            var uriStr = GetUriStr(crossChainClientDto.RemoteServerHost, crossChainClientDto.RemoteServerPort);
+
+            var client = CreateGrpcClient(uriStr, crossChainClientDto.LocalChainId, crossChainClientDto.RemoteChainId,
+                crossChainClientDto.IsClientToParentChain);
+
+            return client;
+        }
+
+        public List<ICrossChainClient> GetAllCrossChainClients()
+        {
+            return _grpcCrossChainClients.Values.ToList();
         }
 
         public void CreateAndCacheClient(CrossChainClientDto crossChainClientDto)
@@ -116,14 +134,6 @@ namespace AElf.CrossChain.Communication.Grpc
         
         #endregion      
         
-        public async Task CloseClientsAsync()
-        {
-            foreach (var client in _grpcCrossChainClients.Values)
-            {
-                await client.CloseAsync();
-            }
-        }
-
         private string GetUriStr(string host, int port)
         {
             return new UriBuilder("http", host, port).Uri.Authority;

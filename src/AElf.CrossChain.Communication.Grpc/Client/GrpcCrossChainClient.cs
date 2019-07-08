@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Cache;
+using AElf.CrossChain.Communication.Infrastructure;
 using AElf.Kernel;
 using Grpc.Core;
 

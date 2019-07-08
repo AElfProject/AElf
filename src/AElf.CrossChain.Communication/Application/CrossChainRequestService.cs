@@ -9,15 +9,15 @@ namespace AElf.CrossChain.Communication.Application
 {
     public class CrossChainRequestService : ICrossChainRequestService, ITransientDependency
     {
-        private readonly ICrossChainClientProvider _crossChainClientProvider;
+        private readonly ICrossChainClientService _crossChainClientService;
         private readonly ICrossChainCacheEntityService _crossChainCacheEntityService;
         public ILogger<CrossChainRequestService> Logger { get; set; }
 
-        public CrossChainRequestService(ICrossChainClientProvider crossChainClientProvider, 
-            ICrossChainCacheEntityService crossChainCacheEntityService)
+        public CrossChainRequestService(ICrossChainCacheEntityService crossChainCacheEntityService, 
+            ICrossChainClientService crossChainClientService)
         {
-            _crossChainClientProvider = crossChainClientProvider;
             _crossChainCacheEntityService = crossChainCacheEntityService;
+            _crossChainClientService = crossChainClientService;
         }
 
         public async Task RequestCrossChainDataFromOtherChainsAsync()
@@ -27,7 +27,7 @@ namespace AElf.CrossChain.Communication.Application
                 $"Try to request from chain {string.Join(",", chainIds.Select(ChainHelper.ConvertChainIdToBase58))}");
             foreach (var chainId in chainIds)
             {
-                var client = await _crossChainClientProvider.GetClientAsync(chainId);
+                var client = await _crossChainClientService.GetClientAsync(chainId);
                 if (client == null)
                     continue;
                 var targetHeight = _crossChainCacheEntityService.GetTargetHeightForChainCacheEntity(chainId);
@@ -36,9 +36,9 @@ namespace AElf.CrossChain.Communication.Application
             }
         }
 
-        public async Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId)
+        public async Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId)
         {
-            var client = _crossChainClientProvider.CreateClientForChainInitializationData(chainId);
+            var client = _crossChainClientService.CreateClientForChainInitializationData(chainId);
             var chainInitializationData =
                 await client.RequestChainInitializationDataAsync(chainId);
             return chainInitializationData;

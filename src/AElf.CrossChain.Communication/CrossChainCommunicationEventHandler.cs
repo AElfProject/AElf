@@ -1,40 +1,47 @@
 using System.Threading.Tasks;
+using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Communication.Application;
-using AElf.Kernel.Blockchain.Application;
-using Volo.Abp.DependencyInjection;
+using AElf.CrossChain.Communication.Infrastructure;
+using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.Node.Events;
 using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain.Communication
 {
-    public class CrossChainCommunicationEventHandler : ILocalEventHandler<CrossChainDataValidatedEvent>, ISingletonDependency
+    public class CrossChainCommunicationEventHandler : ILocalEventHandler<CrossChainDataValidatedEvent>, ILocalEventHandler<InitialSyncFinishedEvent>, ILocalEventHandler<NewIrreversibleBlockFoundEvent>
     {
         private readonly ICrossChainRequestService _crossChainRequestService;
-        private readonly IBlockchainService _blockchainService;
-        private bool _readyToLaunchClient;
-        
+        private readonly ICrossChainCacheEntityService _crossChainCacheEntityService;
+        private readonly IIrreversibleBlockStateProvider _irreversibleBlockStateProvider;
+
         public CrossChainCommunicationEventHandler(ICrossChainRequestService crossChainRequestService, 
-            IBlockchainService blockchainService)
+            ICrossChainCacheEntityService crossChainCacheEntityService, IIrreversibleBlockStateProvider irreversibleBlockStateProvider)
         {
             _crossChainRequestService = crossChainRequestService;
-            _blockchainService = blockchainService;
+            _crossChainCacheEntityService = crossChainCacheEntityService;
+            _irreversibleBlockStateProvider = irreversibleBlockStateProvider;
         }
 
         public async Task HandleEventAsync(CrossChainDataValidatedEvent eventData)
         {
-            if (!await IsReadyToRequestAsync())
+            var isReadyToRequest = await _irreversibleBlockStateProvider.ValidateIrreversibleBlockExistsAsync();
+            if (!isReadyToRequest)
                 return;
             _ = _crossChainRequestService.RequestCrossChainDataFromOtherChainsAsync();
         }
-        
-        private async Task<bool> IsReadyToRequestAsync()
-        {
-            if (!_readyToLaunchClient)
-            {
-                var libIdHeight = await _blockchainService.GetLibHashAndHeightAsync();
-                _readyToLaunchClient = libIdHeight.BlockHeight > Constants.GenesisBlockHeight;
-            }
 
-            return _readyToLaunchClient;
+        public async Task HandleEventAsync(InitialSyncFinishedEvent eventData)
+        {
+            var isReadyToCreateChainCache = await _irreversibleBlockStateProvider.ValidateIrreversibleBlockExistsAsync();
+            if (!isReadyToCreateChainCache)
+                return;
+            var libIdHeight = await _irreversibleBlockStateProvider.GetLibHashAndHeightAsync();
+            _ = _crossChainCacheEntityService.RegisterNewChainsAsync(libIdHeight.BlockHash, libIdHeight.BlockHeight);
+        }
+
+        public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
+        {
+            return _crossChainCacheEntityService.RegisterNewChainsAsync(eventData.BlockHash, eventData.BlockHeight);
         }
     }
 }
