@@ -23,7 +23,7 @@ namespace AElf.Types
         // Make private to avoid confusion
         private Hash(byte[] bytes)
         {
-            CheckLength(bytes);                        
+            CheckLength(bytes);
             Value = ByteString.CopyFrom(bytes.ToArray());
         }
 
@@ -39,7 +39,6 @@ namespace AElf.Types
             return new Hash(bytes.ComputeHash());
         }
 
-        // TODO: From / Calc / Compute / Load ??  
         /// <summary>
         /// Gets the hash from a string encoded in UTF8.
         /// </summary>
@@ -69,7 +68,22 @@ namespace AElf.Types
         /// <returns></returns>
         public static Hash FromTwoHashes(Hash hash1, Hash hash2)
         {
-            return FromXor(hash1, hash2);
+            var hashes = new List<Hash>
+            {
+                hash1, hash2
+            };
+            using (var mm = new MemoryStream())
+            using (var stream = new CodedOutputStream(mm))
+            {
+                foreach (var hash in hashes.OrderBy(x => x))
+                {
+                    hash.WriteTo(stream);
+                }
+
+                stream.Flush();
+                mm.Flush();
+                return FromRawBytes(mm.ToArray());
+            }
         }
 
         #endregion
@@ -134,7 +148,7 @@ namespace AElf.Types
         /// <param name="h1"></param>
         /// <param name="h2"></param>
         /// <returns></returns>
-        public static Hash FromXor(Hash h1, Hash h2)
+        public static Hash Xor(Hash h1, Hash h2)
         {
             var newBytes = new byte[TypeConsts.HashByteArrayLength];
             for (var i = 0; i < newBytes.Length; i++)
@@ -146,7 +160,7 @@ namespace AElf.Types
         }
 
         #endregion
-        
+
         /// <summary>
         /// Dumps the content value to byte array.
         /// </summary>

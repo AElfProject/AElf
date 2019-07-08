@@ -117,7 +117,7 @@ namespace AElf.OS.Rpc.ChainController
             Hash transactionHash;
             try
             {
-                transactionHash = HashHelper.FromHexString(transactionId);
+                transactionHash = HashHelper.HexStringToHash(transactionId);
             }
             catch
             {
@@ -168,7 +168,7 @@ namespace AElf.OS.Rpc.ChainController
             Hash realBlockHash;
             try
             {
-                realBlockHash = HashHelper.FromHexString(blockHash);
+                realBlockHash = HashHelper.HexStringToHash(blockHash);
             }
             catch
             {
@@ -271,7 +271,7 @@ namespace AElf.OS.Rpc.ChainController
 
             foreach (var notLinkedBlock in chain.NotLinkedBlocks)
             {
-                var block = await this.GetBlock(HashHelper.FromBase64(notLinkedBlock.Value));
+                var block = await this.GetBlock(HashHelper.Base64ToHash(notLinkedBlock.Value));
                 formattedNotLinkedBlocks.Add(new JObject
                     {
                         ["BlockHash"] = block.GetHash().ToHex(),
@@ -298,7 +298,7 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("GetBlockState", "blockHash")]
         public async Task<JObject> GetBlockState(string blockHash)
         {
-            var stateStorageKey = HashHelper.FromHexString(blockHash).ToStorageKey();
+            var stateStorageKey = HashHelper.HexStringToHash(blockHash).ToStorageKey();
             var blockState = await BlockStateSets.GetAsync(stateStorageKey);
             
             if (blockState == null)
