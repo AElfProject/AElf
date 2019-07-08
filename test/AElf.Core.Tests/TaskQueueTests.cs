@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Shouldly;
@@ -28,7 +29,8 @@ namespace AElf
         {
             _taskQueue.Start();
             _taskQueue.Enqueue(ProcessTask);
-            Thread.Sleep(10);
+            
+            _taskQueue.Dispose();
             _counter.ShouldBe(1);
             
             _taskQueue.Dispose();
@@ -40,10 +42,9 @@ namespace AElf
         {
             _taskQueue.Start();
             for (var i = 0; i < 10; i++)
-            {
                 _taskQueue.Enqueue(ProcessTask);
-                Thread.Sleep(10);
-            }
+            
+            _taskQueue.Dispose();
             _counter.ShouldBe(10);
         }
 
