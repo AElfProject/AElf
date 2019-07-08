@@ -51,7 +51,7 @@ namespace AElf
             return new Address(name.CalculateHash());
         }
 
-        //TODO: move to test project
+        //Done: move to test project
         /// <summary>
         /// Only used in tests to generate random addresses.
         /// </summary>
@@ -63,13 +63,13 @@ namespace AElf
 
         #region Predefined
 
-        // TODO: remove
+        // Done: remove
         public static readonly Address AElf = FromString("AElf");
 
-        // TODO: remove
+        // Done: remove
         public static readonly Address Zero = new Address(new byte[] { }.CalculateHash());
 
-        // TODO: remove
+        // Done: remove
         public static readonly Address Genesis = FromString("Genesis");
 
         #endregion
@@ -215,7 +215,7 @@ namespace AElf
 
         private string _formatted;
 
-        // TODO: add property
+        // Done: add property
         public string GetFormatted()
         {
             if (_formatted != null)

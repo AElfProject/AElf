@@ -57,7 +57,7 @@ namespace AElf
 
             return rv;
         }
-        // TODO: remove Combine/ConcatArrays
+        // Done: remove Combine/ConcatArrays
         public static byte[] ConcatArrays(params byte[][] arrays)
         {
             var result = new byte[arrays.Sum(arr => arr.Length)];
