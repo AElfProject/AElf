@@ -48,7 +48,7 @@ namespace AElf.OS.BlockSync.Application
         
         public async Task SyncByBlockAsync(BlockWithTransactions blockWithTransactions)
         {
-            EnqueueSyncBlockJob(blockWithTransactions, BlockSyncConstants.FetchBlockRetryTimes);
+            EnqueueSyncBlockJob(blockWithTransactions, BlockSyncConstants.SyncBlockRetryTimes);
         }
         
         private void EnqueueFetchBlockJob(SyncAnnounceDto syncAnnounceDto, int retryTimes)
@@ -118,8 +118,7 @@ namespace AElf.OS.BlockSync.Application
         {
             _blockSyncQueueService.Enqueue(async () =>
             {
-                Logger.LogTrace(
-                    $"Block sync: sync block, block height: {blockWithTransactions.Height}, block hash: {blockWithTransactions.GetHash()}.");
+                Logger.LogTrace($"Block sync: sync block, block: {blockWithTransactions}.");
 
                 if (BlockAttachAndExecuteQueueIsAvailable())
                 {
