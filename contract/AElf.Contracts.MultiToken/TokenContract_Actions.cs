@@ -466,26 +466,23 @@ namespace AElf.Contracts.MultiToken
         public override Empty CheckThreshold(CheckThresholdInput input)
         {
             var meetThreshold = false;
-
+            var meetBalanceSymbolList = new List<string>();
             foreach (var symbolToThreshold in input.SymbolToThreshold)
             {
-                if (State.Balances[input.Sender][symbolToThreshold.Key] < symbolToThreshold.Value) continue;
-                meetThreshold = true;
-                break;
+                if (State.Balances[input.Sender][symbolToThreshold.Key] < symbolToThreshold.Value)
+                    continue;
+                meetBalanceSymbolList.Add(symbolToThreshold.Key);
             }
 
-            if (meetThreshold && input.IsCheckAllowance)
+            if (meetBalanceSymbolList.Count > 0 && input.IsCheckAllowance)
             {
-                var meetAllowanceThreshold = false;
-                foreach (var symbolToThreshold in input.SymbolToThreshold)
+                foreach (var symbol in meetBalanceSymbolList)
                 {
-                    if (State.Allowances[input.Sender][Context.Sender][symbolToThreshold.Key] <
-                        symbolToThreshold.Value) continue;
-                    meetAllowanceThreshold = true;
+                    if (State.Allowances[input.Sender][Context.Sender][symbol] <
+                        input.SymbolToThreshold[symbol]) continue;
+                    meetThreshold = true;
                     break;
                 }
-
-                meetThreshold = meetAllowanceThreshold;
             }
 
             if (input.SymbolToThreshold.Count == 0)
