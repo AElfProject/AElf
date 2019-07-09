@@ -381,7 +381,7 @@ namespace AElf.Contracts.Economic.TestBase
             {
                 var result = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
                 {
-                    Amount = EconomicContractsTestConstants.LockTokenForElection,
+                    Amount = EconomicContractsTestConstants.UserInitializeTokenAmount,
                     To = Address.FromPublicKey(validationDataCenterKeyPair.PublicKey),
                     Memo = "Used to announce election."
                 });
@@ -392,7 +392,7 @@ namespace AElf.Contracts.Economic.TestBase
             {
                 var result = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
                 {
-                    Amount = EconomicContractsTestConstants.LockTokenForElection,
+                    Amount = EconomicContractsTestConstants.UserInitializeTokenAmount,
                     To = Address.FromPublicKey(validationDataCenterCandidateKeyPair.PublicKey),
                     Memo = "Used to announce election."
                 });
@@ -403,7 +403,7 @@ namespace AElf.Contracts.Economic.TestBase
             {
                 var result = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
                 {
-                    Amount = EconomicContractsTestConstants.LockTokenForElection,
+                    Amount = EconomicContractsTestConstants.UserInitializeTokenAmount,
                     To = Address.FromPublicKey(voterKeyPair.PublicKey),
                     Memo = "Used to vote data center."
                 });
@@ -523,6 +523,9 @@ namespace AElf.Contracts.Economic.TestBase
                 ProposalId = proposalHash,
             });
             CheckResult(approveResult.TransactionResult);
+            
+            var releaseResult = await ParliamentAuthContractStub.Release.SendAsync(proposalHash);
+            CheckResult(releaseResult.TransactionResult);
         }
 
         #endregion

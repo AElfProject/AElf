@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
@@ -70,46 +71,9 @@ namespace AElf.Contracts.Election
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                 Symbol = "ELF"
             })).Value;
-            profitBalance.ShouldBe(25000000);
+            profitBalance.ShouldBeGreaterThan(24000000);
         }
-
-        private async Task<DistributedProfitsInfo> GetDistributedProfitsInfo(ProfitType type, long period)
-        {
-            return await ProfitContractStub.GetDistributedProfitsInfo.CallAsync(
-                new SchemePeriod
-                {
-                    SchemeId = ProfitItemsIds[type],
-                    Period = period
-                });
-        }
-
-        private async Task<long> GetProfitAmount(ProfitType type)
-        {
-            ProfitContractContainer.ProfitContractStub stub;
-            switch (type)
-            {
-                case ProfitType.CitizenWelfare:
-                    stub = GetProfitContractTester(VoterKeyPairs[0]);
-                    break;
-                default:
-                    stub = GetProfitContractTester(ValidationDataCenterKeyPairs[0]);
-                    break;
-            }
-
-            return (await stub.GetProfitAmount.CallAsync(new ClaimProfitsInput
-            {
-                SchemeId = ProfitItemsIds[type],
-                Symbol = EconomicContractsTestConstants.NativeTokenSymbol
-            })).Value;
-        }
-
-        private async Task<long> GetReleasedAmount()
-        {
-            var previousRound = await AEDPoSContractStub.GetPreviousRoundInformation.CallAsync(new Empty());
-            var minedBlocks = previousRound.GetMinedBlocks();
-            return EconomicContractsTestConstants.ElfTokenPerBlock * minedBlocks;
-        }
-
+        
         [Fact]
         public async Task UserVote_CheckAllProfits()
         {
@@ -533,6 +497,43 @@ namespace AElf.Contracts.Election
                                         reElectionBalance + backupBalance - txFee * 4);
                 }
             }
+        }
+
+        private async Task<DistributedProfitsInfo> GetDistributedProfitsInfo(ProfitType type, long period)
+        {
+            return await ProfitContractStub.GetDistributedProfitsInfo.CallAsync(
+                new SchemePeriod
+                {
+                    SchemeId = ProfitItemsIds[type],
+                    Period = period
+                });
+        }
+
+        private async Task<long> GetProfitAmount(ProfitType type)
+        {
+            ProfitContractContainer.ProfitContractStub stub;
+            switch (type)
+            {
+                case ProfitType.CitizenWelfare:
+                    stub = GetProfitContractTester(VoterKeyPairs[0]);
+                    break;
+                default:
+                    stub = GetProfitContractTester(ValidationDataCenterKeyPairs[0]);
+                    break;
+            }
+
+            return (await stub.GetProfitAmount.CallAsync(new ClaimProfitsInput
+            {
+                SchemeId = ProfitItemsIds[type],
+                Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+            })).Value;
+        }
+
+        private async Task<long> GetReleasedAmount()
+        {
+            var previousRound = await AEDPoSContractStub.GetPreviousRoundInformation.CallAsync(new Empty());
+            var minedBlocks = previousRound.GetMinedBlocks();
+            return EconomicContractsTestConstants.ElfTokenPerBlock * minedBlocks;
         }
     }
 }
