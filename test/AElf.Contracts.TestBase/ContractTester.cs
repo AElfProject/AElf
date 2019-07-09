@@ -81,9 +81,9 @@ namespace AElf.Contracts.TestBase
 
         public string PublicKey => KeyPair.PublicKey.ToHex();
 
-        public long TokenTotalSupply = 1000_000L;
-        public long InitialTreasuryAmount = 200_000L;
-        public long InitialBalanceOfStarter = 800_000L;
+        public long TokenTotalSupply = 1_000_000_000_00000000L;
+        public long InitialTreasuryAmount = 200_000_000_00000000L;
+        public long InitialBalanceOfStarter = 800_000_000_00000000L;
         public bool IsPrivilegePreserved = true;
 
         public ContractTester() : this(0, null)

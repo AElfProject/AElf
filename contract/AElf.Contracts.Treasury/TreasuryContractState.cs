@@ -10,7 +10,6 @@ namespace AElf.Contracts.Treasury
 
         public SingletonState<bool> Initialized { get; set; }
 
-        // TODO: We can merge some Ids.
         public SingletonState<Hash> TreasuryHash { get; set; }
 
         public SingletonState<Hash> WelfareHash { get; set; }
@@ -20,9 +19,5 @@ namespace AElf.Contracts.Treasury
         public SingletonState<Hash> BasicRewardHash { get; set; }
         public SingletonState<Hash> VotesWeightRewardHash { get; set; }
         public SingletonState<Hash> ReElectionRewardHash { get; set; }
-
-        public SingletonState<long> CachedWelfareWeight { get; set; }
-
-        public MappedState<Address, string> ContractSymbols { get; set; }
     }
 }

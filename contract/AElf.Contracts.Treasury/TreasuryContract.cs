@@ -56,7 +56,9 @@ namespace AElf.Contracts.Treasury
                 Context.LogDebug(() => profitItemNameList[index]);
                 State.ProfitContract.CreateScheme.Send(new CreateSchemeInput
                 {
-                    IsReleaseAllBalanceEveryTimeByDefault = true
+                    IsReleaseAllBalanceEveryTimeByDefault = true,
+                    // Distribution of Citizen Welfare will delay one period.
+                    DelayDistributePeriodCount = i == 3 ? 1 : 0
                 });
             }
 
@@ -279,18 +281,12 @@ namespace AElf.Contracts.Treasury
                 Symbol = Context.Variables.NativeSymbol
             });
 
-            // Citizen Welfare release should delay one term.
-            // Voter voted during term x, can profit after term (x + 1).
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.WelfareHash.Value,
-                Period = termNumber > 1 ? termNumber - 1 : -1,
-                TotalShares = State.CachedWelfareWeight.Value,
+                Period = termNumber,
                 Symbol = Context.Variables.NativeSymbol
             });
-
-            State.CachedWelfareWeight.Value =
-                State.ProfitContract.GetScheme.Call(State.WelfareHash.Value).TotalShares;
         }
 
         private void UpdateTreasurySubItemsWeights(long termNumber)

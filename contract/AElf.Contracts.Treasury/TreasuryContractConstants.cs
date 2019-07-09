@@ -9,7 +9,5 @@ namespace AElf.Contracts.Treasury
         public const int BasicMinerRewardWeight = 4;
         public const int VotesWeightRewardWeight = 1;
         public const int ReElectionRewardWeight = 1;
-
-        public const long RewardPerBlock = 1250_0000;
     }
 }

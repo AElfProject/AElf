@@ -55,7 +55,7 @@ namespace AElf.Contract.CrossChain.Tests
                 nameof(TokenContractContainer.TokenContractStub.Approve), new ApproveInput
                 {
                     Spender = CrossChainContractAddress,
-                    Symbol = "ELF",
+                    Symbol = "ELF", 
                     Amount = amount
                 });
             approveResult.Status.ShouldBe(TransactionResultStatus.Mined);

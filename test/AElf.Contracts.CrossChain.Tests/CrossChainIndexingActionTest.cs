@@ -705,14 +705,14 @@ namespace AElf.Contract.CrossChain.Tests
                     Symbol = "ELF"
                 });
             var balanceBefore = GetBalanceOutput.Parser.ParseFrom(balanceBeforeTransfer).Balance;
-            var Beneficiary = Address.FromString("CrossChainReceiver");
+            var receiver = Address.FromString("CrossChainReceiver");
             var crossChainTransferTransaction = await GenerateTransactionAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainTransfer), null, new CrossChainTransferInput
                 {
                     ToChainId = chainId1,
                     Amount = transferAmount,
                     TokenInfo = tokenInfo,
-                    To = Beneficiary
+                    To = receiver
                 });
             var binaryMerkleTree = new BinaryMerkleTree();
             var fakeHash1 = Hash.FromString("fake1");
@@ -754,7 +754,7 @@ namespace AElf.Contract.CrossChain.Tests
             var balanceAfterTransfer = await Tester.CallContractMethodAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.GetBalance), new GetBalanceInput
                 {
-                    Owner = Beneficiary,
+                    Owner = receiver,
                     Symbol = "ELF"
                 });
             var balanceAfter = GetBalanceOutput.Parser.ParseFrom(balanceAfterTransfer).Balance;
