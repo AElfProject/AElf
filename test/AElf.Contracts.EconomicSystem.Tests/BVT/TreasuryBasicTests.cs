@@ -26,7 +26,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var treasuryProfit = await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
             treasuryProfit.Creator.ShouldBe(TreasuryContractAddress);
             treasuryProfit.SubSchemes.Count.ShouldBe(3);
-            treasuryProfit.IsReleaseAllBalanceEverytimeByDefault.ShouldBe(true);
+            treasuryProfit.IsReleaseAllBalanceEveryTimeByDefault.ShouldBe(true);
 
             // Token Converter Contract created AETC token.
             var tokenInformation = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput
