@@ -27,14 +27,14 @@ namespace AElf.OS.BlockSync.Application
         {
             if(!_blockSyncQueueService.IsQueueAvailable(OSConstants.BlockFetchQueueName))
             {
-                Logger.LogWarning($"Block sync fetch queue is too busy.");
+                Logger.LogWarning("Block sync fetch queue is too busy.");
                 return false;
             }
             
             if(!_blockSyncQueueService.IsQueueAvailable(OSConstants.BlockDownloadQueueName))
             {
                 Logger.LogWarning(
-                    $"Block sync download queue is too busy.");
+                    "Block sync download queue is too busy.");
                 return false;
             }
 

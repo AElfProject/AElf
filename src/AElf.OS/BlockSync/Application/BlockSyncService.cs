@@ -109,14 +109,13 @@ namespace AElf.OS.BlockSync.Application
         {
             if(!_blockSyncQueueService.IsQueueAvailable(OSConstants.BlockSyncAttachQueueName))
             {
-                Logger.LogWarning($"Block sync attach queue is too busy.");
+                Logger.LogWarning("Block sync attach queue is too busy.");
                 return false;
             }
 
             if(!_blockSyncQueueService.IsQueueAvailable(KernelConstants.UpdateChainQueueName))
             {
-                Logger.LogWarning(
-                    $"Block sync attach and execute queue is too busy.");
+                Logger.LogWarning("Block sync attach and execute queue is too busy.");
                 return false;
             }
 

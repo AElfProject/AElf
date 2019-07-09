@@ -58,7 +58,7 @@ namespace AElf.OS.BlockSync.Application
             {
                 try
                 {
-                    Logger.LogTrace($"Execute block sync job, enqueue time: {enqueueTime}");
+                    Logger.LogTrace($"Execute block sync job: {queueName}, enqueue time: {enqueueTime}");
                     SetEnqueueTimeByQueueName(queueName, enqueueTime);
                     await task();
                 }
@@ -66,7 +66,7 @@ namespace AElf.OS.BlockSync.Application
                 {
                     SetEnqueueTimeByQueueName(queueName, null);
                 }
-            });
+            }, queueName);
         }
 
         private void SetEnqueueTimeByQueueName(string queueName, Timestamp enqueueTime)
