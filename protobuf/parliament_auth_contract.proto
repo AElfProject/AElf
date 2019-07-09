@@ -14,26 +14,30 @@ service ParliamentAuthContract {
     option (aelf.base) = "acs3.proto";
     
     // Actions
-    rpc Initialize(google.protobuf.Empty) returns (google.protobuf.Empty) {
+    rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {
     }
     rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
     }
     rpc GetOrganization (aelf.Address) returns (Organization) {
         option (aelf.is_view) = true;
     }
-    rpc GetDefaultOrganizationAddress (google.protobuf.Empty) returns (aelf.Address) {
+    rpc GetGenesisOwnerAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
 }
 
 message CreateOrganizationInput {
     sint32 release_threshold = 1;
+    bool proposer_authority_required = 2;
+    repeated aelf.Address proposer_white_list = 3;
 }
 
 message Organization {
     sint32 release_threshold = 1;
     aelf.Address organization_address = 2;
     aelf.Hash organization_hash = 3;
+    bool proposer_authority_required = 4;
+    repeated aelf.Address proposer_white_list = 5;
 }
 
 message ProposalInfo {
@@ -45,4 +49,10 @@ message ProposalInfo {
     aelf.Address proposer = 6;
     aelf.Address organization_address = 7;
     repeated aelf.Address approved_representatives = 8;
+}
+
+message InitializeInput{
+    int32 genesis_owner_releaseThreshold = 1;
+    aelf.Address privileged_proposer = 2;
+    bool proposer_authority_required = 3;
 }
