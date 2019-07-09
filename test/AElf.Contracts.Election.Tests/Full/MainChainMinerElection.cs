@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
@@ -70,7 +71,53 @@ namespace AElf.Contracts.Election
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                 Symbol = "ELF"
             })).Value;
-            profitBalance.ShouldBe(25000000);
+            profitBalance.ShouldBeGreaterThan(24000000);
+        }
+
+        [Fact]
+        public async Task GetTermSnapshot_Test()
+        {
+            //first round
+            {
+                await ProduceBlocks(InitialCoreDataCenterKeyPairs[0], 5);
+
+                await ProduceBlocks(InitialCoreDataCenterKeyPairs[1], 10);
+                await ProduceBlocks(InitialCoreDataCenterKeyPairs[2], 15);
+                await NextTerm(BootMinerKeyPair);
+
+                var snapshot = await ElectionContractStub.GetTermSnapshot.CallAsync(new GetTermSnapshotInput
+                {
+                    TermNumber = 1
+                });
+                snapshot.MinedBlocks.ShouldBeGreaterThanOrEqualTo(30);
+                snapshot.ElectionResult.Count.ShouldBe(0);
+            }
+            
+            //second round
+            {
+                ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+
+                var candidates = await ElectionContractStub.GetCandidates.CallAsync(new Empty());
+                candidates.Value.Count.ShouldBe(ValidationDataCenterKeyPairs.Count);
+
+                var moreVotesCandidates = ValidationDataCenterKeyPairs
+                    .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
+                moreVotesCandidates.ForEach(async kp =>
+                    await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 2));
+             
+                await ProduceBlocks(InitialCoreDataCenterKeyPairs[1], 10);
+                await NextTerm(BootMinerKeyPair);
+                
+                var snapshot = await ElectionContractStub.GetTermSnapshot.CallAsync(new GetTermSnapshotInput
+                {
+                    TermNumber = 2
+                });
+                snapshot.MinedBlocks.ShouldBeGreaterThanOrEqualTo(10);
+                snapshot.ElectionResult.Count.ShouldBe(ValidationDataCenterKeyPairs.Count);
+                snapshot.ElectionResult.Values
+                    .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToArray()
+                    .ShouldAllBe(item => item == 2);
+            }
         }
 
         private async Task<DistributedProfitsInfo> GetDistributedProfitsInfo(ProfitType type, long period)

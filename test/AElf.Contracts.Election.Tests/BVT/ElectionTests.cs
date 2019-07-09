@@ -47,7 +47,7 @@ namespace AElf.Contracts.Election
             var candidatesKeyPairs = ValidationDataCenterKeyPairs.Take(CandidatesCount).ToList();
 
             var balanceBeforeAnnouncing = await GetNativeTokenBalance(candidatesKeyPairs[0].PublicKey);
-            balanceBeforeAnnouncing.ShouldBe(ElectionContractConstants.LockTokenForElection);
+            balanceBeforeAnnouncing.ShouldBe(ElectionContractConstants.UserInitializeTokenAmount);
 
             candidatesKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
 
@@ -78,7 +78,7 @@ namespace AElf.Contracts.Election
             var candidatesKeyPair = ValidationDataCenterKeyPairs.First();
 
             var balanceBeforeAnnouncing = await GetNativeTokenBalance(candidatesKeyPair.PublicKey);
-            balanceBeforeAnnouncing.ShouldBe(ElectionContractConstants.LockTokenForElection);
+            balanceBeforeAnnouncing.ShouldBe(ElectionContractConstants.UserInitializeTokenAmount);
 
             await AnnounceElectionAsync(candidatesKeyPair);
 

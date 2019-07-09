@@ -22,7 +22,8 @@ namespace AElf.Contracts.Economic.TestBase
         public const long MinerIncreaseInterval = 31536000;
         
         public const string VoteSymbol = "VOTE";
-        public const long LockTokenForElection = 110_000_00000000;
+        public const long LockTokenForElection = 100_000_00000000;
+        public const long UserInitializeTokenAmount = 110_000_00000000;
         public const long ElfTokenPerBlock = 1250_0000;
         public const int ElfTokenDecimals = 8;
         public const int VoteTokenDecimals = 0;
