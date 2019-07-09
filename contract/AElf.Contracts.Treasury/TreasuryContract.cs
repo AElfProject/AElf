@@ -415,17 +415,18 @@ namespace AElf.Contracts.Treasury
                     SchemeId = welfareHash,
                     Period = welfareItem.CurrentPeriod.Sub(1)
                 });
-            var TotalShares = releasedInformation.TotalShares;
+            var totalShares = releasedInformation.TotalShares;
             var totalAmount = releasedInformation.ProfitsAmount;
             foreach (var lockTime in input.Value)
             {
-                var Shares = GetVotesWeight(sampleAmount, lockTime);
-                output.Value.Add(totalAmount[Context.Variables.NativeSymbol].Mul(Shares).Div(TotalShares));
+                var shares = GetVotesWeight(sampleAmount, lockTime);
+                output.Value.Add(totalAmount[Context.Variables.NativeSymbol].Mul(shares).Div(totalShares));
             }
 
             return output;
         }
 
+        //TODO: Remove, will implement in AEDPoS contract
         public override SInt64Value GetCurrentWelfareReward(Empty input)
         {
             var welfareVirtualAddress = Context.ConvertVirtualAddressToContractAddress(State.WelfareHash.Value);
