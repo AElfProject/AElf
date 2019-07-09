@@ -73,90 +73,7 @@ namespace AElf.Contracts.Election
             })).Value;
             profitBalance.ShouldBeGreaterThan(24000000);
         }
-
-        [Fact]
-        public async Task GetTermSnapshot_Test()
-        {
-            //first round
-            {
-                await ProduceBlocks(InitialCoreDataCenterKeyPairs[0], 5);
-
-                await ProduceBlocks(InitialCoreDataCenterKeyPairs[1], 10);
-                await ProduceBlocks(InitialCoreDataCenterKeyPairs[2], 15);
-                await NextTerm(BootMinerKeyPair);
-
-                var snapshot = await ElectionContractStub.GetTermSnapshot.CallAsync(new GetTermSnapshotInput
-                {
-                    TermNumber = 1
-                });
-                snapshot.MinedBlocks.ShouldBeGreaterThanOrEqualTo(30);
-                snapshot.ElectionResult.Count.ShouldBe(0);
-            }
-            
-            //second round
-            {
-                ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
-
-                var candidates = await ElectionContractStub.GetCandidates.CallAsync(new Empty());
-                candidates.Value.Count.ShouldBe(ValidationDataCenterKeyPairs.Count);
-
-                var moreVotesCandidates = ValidationDataCenterKeyPairs
-                    .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
-                moreVotesCandidates.ForEach(async kp =>
-                    await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 2));
-             
-                await ProduceBlocks(InitialCoreDataCenterKeyPairs[1], 10);
-                await NextTerm(BootMinerKeyPair);
-                
-                var snapshot = await ElectionContractStub.GetTermSnapshot.CallAsync(new GetTermSnapshotInput
-                {
-                    TermNumber = 2
-                });
-                snapshot.MinedBlocks.ShouldBeGreaterThanOrEqualTo(10);
-                snapshot.ElectionResult.Count.ShouldBe(ValidationDataCenterKeyPairs.Count);
-                snapshot.ElectionResult.Values
-                    .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToArray()
-                    .ShouldAllBe(item => item == 2);
-            }
-        }
-
-        private async Task<DistributedProfitsInfo> GetDistributedProfitsInfo(ProfitType type, long period)
-        {
-            return await ProfitContractStub.GetDistributedProfitsInfo.CallAsync(
-                new SchemePeriod
-                {
-                    SchemeId = ProfitItemsIds[type],
-                    Period = period
-                });
-        }
-
-        private async Task<long> GetProfitAmount(ProfitType type)
-        {
-            ProfitContractContainer.ProfitContractStub stub;
-            switch (type)
-            {
-                case ProfitType.CitizenWelfare:
-                    stub = GetProfitContractTester(VoterKeyPairs[0]);
-                    break;
-                default:
-                    stub = GetProfitContractTester(ValidationDataCenterKeyPairs[0]);
-                    break;
-            }
-
-            return (await stub.GetProfitAmount.CallAsync(new ClaimProfitsInput
-            {
-                SchemeId = ProfitItemsIds[type],
-                Symbol = EconomicContractsTestConstants.NativeTokenSymbol
-            })).Value;
-        }
-
-        private async Task<long> GetReleasedAmount()
-        {
-            var previousRound = await AEDPoSContractStub.GetPreviousRoundInformation.CallAsync(new Empty());
-            var minedBlocks = previousRound.GetMinedBlocks();
-            return EconomicContractsTestConstants.ElfTokenPerBlock * minedBlocks;
-        }
-
+        
         [Fact]
         public async Task UserVote_CheckAllProfits()
         {
@@ -580,6 +497,43 @@ namespace AElf.Contracts.Election
                                         reElectionBalance + backupBalance - txFee * 4);
                 }
             }
+        }
+
+        private async Task<DistributedProfitsInfo> GetDistributedProfitsInfo(ProfitType type, long period)
+        {
+            return await ProfitContractStub.GetDistributedProfitsInfo.CallAsync(
+                new SchemePeriod
+                {
+                    SchemeId = ProfitItemsIds[type],
+                    Period = period
+                });
+        }
+
+        private async Task<long> GetProfitAmount(ProfitType type)
+        {
+            ProfitContractContainer.ProfitContractStub stub;
+            switch (type)
+            {
+                case ProfitType.CitizenWelfare:
+                    stub = GetProfitContractTester(VoterKeyPairs[0]);
+                    break;
+                default:
+                    stub = GetProfitContractTester(ValidationDataCenterKeyPairs[0]);
+                    break;
+            }
+
+            return (await stub.GetProfitAmount.CallAsync(new ClaimProfitsInput
+            {
+                SchemeId = ProfitItemsIds[type],
+                Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+            })).Value;
+        }
+
+        private async Task<long> GetReleasedAmount()
+        {
+            var previousRound = await AEDPoSContractStub.GetPreviousRoundInformation.CallAsync(new Empty());
+            var minedBlocks = previousRound.GetMinedBlocks();
+            return EconomicContractsTestConstants.ElfTokenPerBlock * minedBlocks;
         }
     }
 }

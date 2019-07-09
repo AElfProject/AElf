@@ -299,7 +299,8 @@ namespace AElf.Contracts.Election
             announcedFullNodesKeyPairs.Count.ShouldBe(candidates.Value.Count);
             foreach (var keyPair in announcedFullNodesKeyPairs)
             {
-                candidates.Value.ShouldContain(ByteString.CopyFrom(keyPair.PublicKey));            }
+                candidates.Value.ShouldContain(ByteString.CopyFrom(keyPair.PublicKey));            
+            }
         }
         
         [Fact]
