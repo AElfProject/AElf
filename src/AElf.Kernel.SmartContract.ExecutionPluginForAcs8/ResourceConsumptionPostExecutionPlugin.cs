@@ -27,7 +27,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
         {
             return descriptors.Any(service => service.File.GetIndentity() == AcsSymbol);
         }
-        
+
         public async Task<IEnumerable<Transaction>> GetPostTransactionsAsync(
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
@@ -73,19 +73,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 
             // Transaction size related to NET Token.
             var transactionSize = transactionContext.Transaction.Size();
-            // Transaction trace state set related to STO Token.
+            // Transaction trace state set writes count related to STO Token.
             var writesCount = transactionContext.Trace.StateSet.Writes.Count;
-            // Transaction executing time related to CPU Token.
-            // TODO: 
-            var executingTime = Convert.ToInt32((transactionContext.Trace.EndTime - transactionContext.Trace.StartTime)
-                .TotalMilliseconds);
+            // Transaction trace state set reads count related to CPU Token.
+            var readsCount = transactionContext.Trace.StateSet.Reads.Count;
 
             var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(
                 new ChargeResourceTokenInput
                 {
                     TransactionSize = transactionSize,
                     WritesCount = writesCount,
-                    ExecutingTime = executingTime
+                    ExecutingTime = readsCount
                 })).Transaction;
 
             return new List<Transaction>

@@ -105,7 +105,7 @@ namespace AElf.Contracts.Profit
                 Decimals = 2,
                 IsBurnable = true,
                 TokenName = "elf token",
-                TotalSupply = ProfitContractTestConsts.NativeTokenTotalSupply,
+                TotalSupply = ProfitContractTestConstants.NativeTokenTotalSupply,
                 Issuer = Starter,
                 LockWhiteList =
                 {
@@ -117,7 +117,7 @@ namespace AElf.Contracts.Profit
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = symbol,
-                Amount = (long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2),
+                Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.2),
                 To = Address.FromPublicKey(StarterKeyPair.PublicKey),
                 Memo = "Issue token to default user for vote.",
             });
@@ -126,7 +126,7 @@ namespace AElf.Contracts.Profit
                 new IssueInput
                 {
                     Symbol = symbol,
-                    Amount = (long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.1),
+                    Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.1),
                     To = Address.FromPublicKey(creatorKeyPair.PublicKey),
                     Memo = "set voters few amount for voting."
                 }));
@@ -135,7 +135,7 @@ namespace AElf.Contracts.Profit
                 new IssueInput
                 {
                     Symbol = symbol,
-                    Amount = (long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.05),
+                    Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.05),
                     To = Address.FromPublicKey(normalKeyPair.PublicKey),
                     Memo = "set voters few amount for voting."
                 }));
