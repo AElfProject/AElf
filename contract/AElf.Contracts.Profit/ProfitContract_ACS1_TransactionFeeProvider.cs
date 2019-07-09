@@ -17,7 +17,7 @@ namespace AElf.Contracts.Profit
 
             switch (input.Name)
             {
-                case nameof(CreateProfitItem):
+                case nameof(CreateScheme):
                     return new TokenAmounts
                     {
                         Amounts = {new TokenAmount {Symbol = Context.Variables.NativeSymbol, Amount = 10_00000000}}
