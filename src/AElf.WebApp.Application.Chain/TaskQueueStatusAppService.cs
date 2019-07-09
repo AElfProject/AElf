@@ -11,6 +11,7 @@ namespace AElf.WebApp.Application.Chain
         List<TaskQueueInfoDto> GetTaskQueueStatusAsync();
     }
 
+    [ControllerName("BlockChain")]
     public class TaskQueueStatusAppService : ITaskQueueStatusAppService
     {
         private readonly ITaskQueueManager _taskQueueManager;
@@ -20,7 +21,6 @@ namespace AElf.WebApp.Application.Chain
             _taskQueueManager = taskQueueManager;
         }
 
-        [Route("api/blockChain/taskQueueStatus")]
         public List<TaskQueueInfoDto> GetTaskQueueStatusAsync()
         {
             var taskQueueStatus = _taskQueueManager.GetQueueStatus();
