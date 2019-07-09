@@ -15,7 +15,7 @@ namespace AElf.Blockchains.MainChain
 //            l.AddGenesisSmartContract<ParliamentAuthContract>(
             l.AddGenesisSmartContract(
                 _codes.Single(kv=>kv.Key.Contains("ParliamentAuth")).Value,
-                ParliamentAuthContractAddressNameProvider.Name,
+                ParliamentAuthSmartContractAddressNameProvider.Name,
                 GenerateParliamentInitializationCallList());
 
             return l;

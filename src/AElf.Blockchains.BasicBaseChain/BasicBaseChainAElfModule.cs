@@ -33,6 +33,7 @@ namespace AElf.Blockchains.BasicBaseChain
     [DependsOn(
         typeof(KernelAElfModule),
         typeof(AEDPoSAElfModule),
+        typeof(TokenKernelAElfModule),
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
         typeof(CSharpRuntimeAElfModule),
@@ -70,7 +71,7 @@ namespace AElf.Blockchains.BasicBaseChain
             s.TryAddSingleton<ISmartContractAddressNameProvider, ConsensusSmartContractAddressNameProvider>();
             s.TryAddSingleton<ISmartContractAddressNameProvider, CrossChainSmartContractAddressNameProvider>();
             s.TryAddSingleton<ISmartContractAddressNameProvider, ElectionSmartContractAddressNameProvider>();
-            s.TryAddSingleton<ISmartContractAddressNameProvider, ParliamentAuthContractAddressNameProvider>();
+            s.TryAddSingleton<ISmartContractAddressNameProvider, ParliamentAuthSmartContractAddressNameProvider>();
             s.TryAddSingleton<ISmartContractAddressNameProvider, ProfitSmartContractAddressNameProvider>();
             s.TryAddSingleton<ISmartContractAddressNameProvider, ResourceSmartContractAddressNameProvider>();
             s.TryAddSingleton<ISmartContractAddressNameProvider, ResourceFeeReceiverSmartContractAddressNameProvider>();
