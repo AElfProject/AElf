@@ -32,15 +32,15 @@ namespace AElf.Contract.CrossChain.Tests
         protected Address ConsensusContractAddress;
         protected Address ParliamentAddress;
 
-        protected long _totalSupply;
-        protected long _balanceOfStarter;
+        protected long TotalSupply;
+        protected long BalanceOfStarter;
 
         public CrossChainContractTestBase()
         {
             AsyncHelper.RunSync(() =>
-                Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply,
+                Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out TotalSupply,
                     out _,
-                    out _balanceOfStarter)));
+                    out BalanceOfStarter)));
             CrossChainContractAddress = Tester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
             ConsensusContractAddress = Tester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
