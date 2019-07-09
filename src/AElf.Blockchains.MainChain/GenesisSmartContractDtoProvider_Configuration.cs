@@ -18,7 +18,7 @@ namespace AElf.Blockchains.MainChain
             var l = new List<GenesisSmartContractDto>();
 
             l.AddGenesisSmartContract(_codes.Single(kv => kv.Key.Contains("Configuration")).Value,
-                ConfigurationContractNameProvider.Name);
+                ConfigurationSmartContractAddressNameProvider.Name);
 
             return l;
         }
