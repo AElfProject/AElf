@@ -84,7 +84,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
         {
             if (successLinks.Count == 0)
                 return;
-            
+
+            Logger.LogTrace($"Set best chain for block height {string.Join(",", successLinks.Select(l => l.Height))}");
             var blockLink = successLinks.Last();
             await _blockchainService.SetBestChainAsync(chain, blockLink.Height, blockLink.BlockHash);
             await LocalEventBus.PublishAsync(new BestChainFoundEventData
@@ -136,6 +137,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 if (!(ex.InnerException is ValidateNextTimeBlockValidationException) || successLinks.Count == 0)
                 {
+                    Logger.LogWarning($"Block validation failed: {ex.Message}.");
+                    Logger.LogWarning("Delete longest chain..");
                     await _chainManager.RemoveLongestBranchAsync(chain);
                     throw;
                 }
