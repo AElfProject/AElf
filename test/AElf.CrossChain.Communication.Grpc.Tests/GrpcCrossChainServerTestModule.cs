@@ -38,7 +38,7 @@ namespace AElf.CrossChain.Communication.Grpc
                             ExtraData =
                             {
                                 ByteString.CopyFrom(new CrossChainExtraData().ToByteArray()),
-                                ByteString.CopyFrom(MessageExtensions.ToByteArray(Hash.FromString("hash1")))
+                                ByteString.CopyFrom(Hash.FromString("hash1").ToByteArray())
                             },
                             Height = 10,
                             PreviousBlockHash = Hash.FromString("hash2"),

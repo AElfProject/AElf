@@ -17,7 +17,7 @@ namespace AElf.Kernel.Types.Tests
             var hashArray1 = stateValue.Get();
             hashArray.ShouldBe(hashArray1);
 
-            var hashArray2 = Hash.FromString("hash").ToByteArray();
+            var hashArray2 = Hash.FromString("hash1").ToByteArray();
             stateValue.Set(hashArray2);
 
             isDirty = stateValue.IsDirty;

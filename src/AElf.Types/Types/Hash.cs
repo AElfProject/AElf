@@ -11,6 +11,9 @@ namespace AElf.Types
 {
     public partial class Hash : ICustomDiagnosticMessage, IComparable<Hash>, IEnumerable<byte>
     {
+        public static readonly Hash Empty = FromByteArray(Enumerable.Range(0, TypeConsts.HashByteArrayLength)
+            .Select(x => byte.MinValue).ToArray());
+
         /// <summary>
         /// Used to override IMessage's default string representation.
         /// </summary>
@@ -23,11 +26,11 @@ namespace AElf.Types
         // Make private to avoid confusion
         private Hash(byte[] bytes)
         {
-            CheckLength(bytes);
-            Value = ByteString.CopyFrom(bytes.ToArray());
-        }
+            if (bytes == null || bytes.Length != TypeConsts.HashByteArrayLength)
+                throw new ArgumentOutOfRangeException($"Invalid bytes.");
 
-        #region Hashes from various types
+            Value = ByteString.CopyFrom(bytes);
+        }
 
         /// <summary>
         /// Gets the hash from a byte array.
@@ -36,7 +39,27 @@ namespace AElf.Types
         /// <returns></returns>
         public static Hash FromRawBytes(byte[] bytes)
         {
+            if (bytes == null)
+                throw new ArgumentOutOfRangeException($"Invalid bytes.");
+
             return new Hash(bytes.ComputeHash());
+        }
+
+        /// <summary>
+        /// Loads the content value from 32-byte long byte array.
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Hash FromByteArray(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length != TypeConsts.HashByteArrayLength)
+                throw new ArgumentOutOfRangeException($"Invalid bytes.");
+
+            return new Hash
+            {
+                Value = ByteString.CopyFrom(bytes)
+            };
         }
 
         /// <summary>
@@ -86,15 +109,49 @@ namespace AElf.Types
             }
         }
 
-        #endregion
+        /// <summary>
+        /// Dumps the content value to byte array.
+        /// </summary>
+        /// <returns></returns>
+        public byte[] ToByteArray()
+        {
+            return Value.ToByteArray();
+        }
 
-        #region Predefined
+        /// <summary>
+        /// Dumps the content value to hex string.
+        /// </summary>
+        /// <returns></returns>
+        public string ToHex()
+        {
+            if (Value.Length != TypeConsts.HashByteArrayLength)
+                throw new ArgumentOutOfRangeException($"Invalid bytes.");
 
-        public static readonly Hash Empty = FromByteArray(Enumerable.Range(0, 32).Select(x => byte.MinValue).ToArray());
+            return Value.ToHex();
+        }
 
-        #endregion
+        public Int64 ToInt64()
+        {
+            return BitConverter.ToInt64(
+                BitConverter.IsLittleEndian ? Value.Reverse().ToArray() : Value.ToArray(), 0);
+        }
 
-        #region Comparing
+        /// <summary>
+        /// Gets a new hash from two input hashes from bitwise xor operation.
+        /// </summary>
+        /// <param name="h1"></param>
+        /// <param name="h2"></param>
+        /// <returns></returns>
+        public static Hash Xor(Hash h1, Hash h2)
+        {
+            var newBytes = new byte[TypeConsts.HashByteArrayLength];
+            for (var i = 0; i < newBytes.Length; i++)
+            {
+                newBytes[i] = (byte) (h1.Value[i] ^ h2.Value[i]);
+            }
+
+            return FromRawBytes(newBytes);
+        }
 
         public static bool operator ==(Hash h1, Hash h2)
         {
@@ -116,6 +173,14 @@ namespace AElf.Types
             return CompareHash(h1, h2) > 0;
         }
 
+        public int CompareTo(Hash that)
+        {
+            if (that == null)
+                throw new InvalidOperationException("Cannot compare hash when hash is null");
+
+            return CompareHash(this, that);
+        }
+
         private static int CompareHash(Hash hash1, Hash hash2)
         {
             if (hash1 != null)
@@ -131,76 +196,6 @@ namespace AElf.Types
             return -1;
         }
 
-        public int CompareTo(Hash that)
-        {
-            if (that == null)
-                throw new InvalidOperationException("Cannot compare hash when hash is null");
-            return CompareHash(this, that);
-        }
-
-        #endregion
-
-        #region Bitwise operations
-
-        /// <summary>
-        /// Gets a new hash from two input hashes from bitwise xor operation.
-        /// </summary>
-        /// <param name="h1"></param>
-        /// <param name="h2"></param>
-        /// <returns></returns>
-        public static Hash Xor(Hash h1, Hash h2)
-        {
-            var newBytes = new byte[TypeConsts.HashByteArrayLength];
-            for (var i = 0; i < newBytes.Length; i++)
-            {
-                newBytes[i] = (byte) (h1.Value[i] ^ h2.Value[i]);
-            }
-
-            return FromRawBytes(newBytes);
-        }
-
-        #endregion
-
-        /// <summary>
-        /// Dumps the content value to byte array.
-        /// </summary>
-        /// <returns></returns>
-        public byte[] ToByteArray()
-        {
-            return Value.ToByteArray();
-        }
-
-        /// <summary>
-        /// Dumps the content value to hex string.
-        /// </summary>
-        /// <returns></returns>
-        public string ToHex()
-        {
-            CheckLength(Value.ToByteArray());
-            return Value.ToHex();
-        }
-
-        public Int64 ToInt64()
-        {
-            return BitConverter.ToInt64(
-                BitConverter.IsLittleEndian ? this.Value.Reverse().ToArray() : this.Value.ToArray(), 0);
-        }
-
-        /// <summary>
-        /// Loads the content value from 32-byte long byte array.
-        /// </summary>
-        /// <param name="bytes"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Hash FromByteArray(byte[] bytes)
-        {
-            CheckLength(bytes);
-            return new Hash
-            {
-                Value = ByteString.CopyFrom(bytes)
-            };
-        }
-
         public IEnumerator<byte> GetEnumerator()
         {
             return Value.GetEnumerator();
@@ -209,15 +204,6 @@ namespace AElf.Types
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
-        }
-
-        private static void CheckLength(byte[] bytes)
-        {
-            if (bytes.Length != TypeConsts.HashByteArrayLength)
-            {
-                throw new ArgumentOutOfRangeException($"Hash bytes has to be " +
-                                                      $"{TypeConsts.HashByteArrayLength} bytes long. The input is {bytes.Length} bytes long.");
-            }
         }
     }
 }
