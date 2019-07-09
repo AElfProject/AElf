@@ -191,7 +191,7 @@ message Block {
 //    Hash CodeHash = 3;
 //}
 
-// TODO: move to related project
+// Done: move to related project
 enum DataAccessMode {
     ReadOnlyAccountSharing = 0;
     ReadWriteAccountSharing = 1;

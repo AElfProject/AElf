@@ -1,6 +1,6 @@
 namespace AElf.Kernel.Types.SmartContract
 {
-    // TODO: move to project
+    // Done: move to project
     public interface IFeeChargedContract
     {
         ulong GetMethodFee(string methodName);

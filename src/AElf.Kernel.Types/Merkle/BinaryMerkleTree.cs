@@ -19,7 +19,7 @@ namespace AElf.Kernel
             return Root == null;
         }
 
-        // TODO: refector
+        // Done: refector
         public BinaryMerkleTree AddNodes(IEnumerable<Hash> hashes)
         {
             var enumerable = hashes as Hash[] ?? hashes.ToArray();
@@ -130,7 +130,7 @@ namespace AElf.Kernel
             return res;
         }
 
-        // TODO: refector
+        // Done: refector
         public static Hash CalculateRootFromMultiHash(IEnumerable<Hash> hashList)
         {
             var res = hashList.OrderBy(b => b).Select(h => h.DumpByteArray())
