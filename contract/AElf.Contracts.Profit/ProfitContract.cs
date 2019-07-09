@@ -119,7 +119,7 @@ namespace AElf.Contracts.Profit
 
             Assert(Context.Sender == scheme.Creator, "Only creator can do the registration.");
 
-            var subProfitItemId = input.SchemeId;
+            var subProfitItemId = input.SubSchemeId;
             var subProfitItem = State.SchemeInfos[subProfitItemId];
             Assert(subProfitItem != null, "Sub profit item not found.");
 

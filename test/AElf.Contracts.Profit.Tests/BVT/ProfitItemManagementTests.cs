@@ -37,49 +37,33 @@ namespace AElf.Contracts.Profit.BVT
 
             DefaultSchemeId = createdSchemeIds.First();
 
-            await ProfitContractStub.DistributeProfits.SendAsync(new DistributeProfitsInput
+            const long contributeAmount = (long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.1);
+
+            await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
             {
                 SchemeId = DefaultSchemeId,
                 Symbol = ProfitContractTestConsts.NativeTokenSymbol,
-                Amount = (long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2),
+                Amount = contributeAmount
             });
 
-            var treasury = await ProfitContractStub.GetScheme.CallAsync(DefaultSchemeId);
+            var scheme = await ProfitContractStub.GetScheme.CallAsync(DefaultSchemeId);
 
-            treasury.Creator.ShouldBe(Address.FromPublicKey(StarterKeyPair.PublicKey));
-            treasury.UndistributedProfits[ProfitContractTestConsts.NativeTokenSymbol]
-                .ShouldBe((long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2));
+            scheme.Creator.ShouldBe(Address.FromPublicKey(CreatorMinerKeyPair[0].PublicKey));
+            scheme.UndistributedProfits[ProfitContractTestConsts.NativeTokenSymbol]
+                .ShouldBe(contributeAmount);
 
-            var treasuryAddress = await ProfitContractStub.GetSchemeAddress.CallAsync(
+            var schemeAddress = await ProfitContractStub.GetSchemeAddress.CallAsync(
                 new SchemePeriod
                 {
                     SchemeId = DefaultSchemeId
                 });
-            var treasuryBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            var schemeBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = ProfitContractTestConsts.NativeTokenSymbol,
-                Owner = treasuryAddress
+                Owner = schemeAddress
             })).Balance;
 
-            treasuryBalance.ShouldBe((long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2));
-
-            var schemeId = createdSchemeIds.First();
-            var profitItem = await creator.GetScheme.CallAsync(schemeId);
-
-            profitItem.Creator.ShouldBe(creatorAddress);
-            profitItem.CurrentPeriod.ShouldBe(1);
-            profitItem.ProfitReceivingDuePeriodCount.ShouldBe(ProfitContractConsts
-                .DefaultProfitReceivingDuePeriodCount);
-            profitItem.TotalShares.ShouldBe(0);
-            profitItem.UndistributedProfits.Count.ShouldBe(0);
-
-            var itemBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Symbol = ProfitContractTestConsts.NativeTokenSymbol,
-                Owner = profitItem.VirtualAddress
-            })).Balance;
-
-            Assert.Equal(0, itemBalance);
+            schemeBalance.ShouldBe(contributeAmount);
         }
     }
 }

@@ -216,7 +216,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     Symbol = "ELF",
                     To = Address.FromPublicKey(candidatesKeyPair.PublicKey),
-                    Amount = 10_0000
+                    Amount = 100_000_00000000
                 });
                 await GetElectionContractTester(candidatesKeyPair).AnnounceElection.SendAsync(new Empty());
             }
@@ -231,7 +231,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     Symbol = "ELF",
                     To = Address.FromPublicKey(voterKeyPair.PublicKey),
-                    Amount = 10_0000,
+                    Amount = 100_000_00000000,
                     Memo = "transfer token for voter candidate."
                 });
             }

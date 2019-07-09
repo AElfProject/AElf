@@ -189,18 +189,18 @@ namespace AElf.Contracts.Economic
         {
             State.ProfitContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
-            var SchemeIdsCreatedByTreasuryContract = State.ProfitContract.GetCreatedSchemeIds.Call(
+            var schemeIdsCreatedByTreasuryContract = State.ProfitContract.GetCreatedSchemeIds.Call(
                 new GetCreatedSchemeIdsInput
                 {
                     Creator = Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
                 }).SchemeIds;
             State.ElectionContract.SetTreasurySchemeIds.Send(new SetTreasurySchemeIdsInput
             {
-                TreasuryHash = SchemeIdsCreatedByTreasuryContract[0],
-                SubsidyHash = SchemeIdsCreatedByTreasuryContract[2],
-                WelfareHash = SchemeIdsCreatedByTreasuryContract[3],
-                VotesRewardHash = SchemeIdsCreatedByTreasuryContract[5],
-                ReElectionRewardHash = SchemeIdsCreatedByTreasuryContract[6]
+                TreasuryHash = schemeIdsCreatedByTreasuryContract[0],
+                SubsidyHash = schemeIdsCreatedByTreasuryContract[2],
+                WelfareHash = schemeIdsCreatedByTreasuryContract[3],
+                VotesRewardHash = schemeIdsCreatedByTreasuryContract[5],
+                ReElectionRewardHash = schemeIdsCreatedByTreasuryContract[6]
             });
         }
 

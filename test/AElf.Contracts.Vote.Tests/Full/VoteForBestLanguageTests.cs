@@ -54,8 +54,8 @@ namespace AElf.Contracts.Vote
                 var beforeBalance = GetUserBalance(Address.FromPublicKey(user1.PublicKey));
                 await Withdraw(user1, voteIds.ActiveVotes.First());
                 var afterBalance = GetUserBalance(Address.FromPublicKey(user1.PublicKey));
-                
-                beforeBalance.ShouldBe(afterBalance - 100);
+                var txFee = 1_00000000;
+                beforeBalance.ShouldBe(afterBalance - 100 + txFee);
                 
                 voteIds = await GetVoteIds(user1, registerItem.VotingItemId);
                 voteIds.ActiveVotes.Count.ShouldBe(0);

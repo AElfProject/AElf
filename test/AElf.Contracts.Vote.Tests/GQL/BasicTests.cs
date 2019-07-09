@@ -96,7 +96,7 @@ namespace AElf.Contracts.Vote
                 {
                     VotingItemId = votingItemId.VotingItemId,
                     Option = votingItemId.Options.First(),
-                    Amount = 2000_000_000L
+                    Amount = 2000_000_000_00000000L
                 };
                 var otherKeyPair = SampleECKeyPairs.KeyPairs[1];
                 var otherVoteStub = GetVoteContractTester(otherKeyPair);

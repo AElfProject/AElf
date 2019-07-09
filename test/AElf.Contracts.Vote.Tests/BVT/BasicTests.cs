@@ -66,8 +66,7 @@ namespace AElf.Contracts.Vote
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1); 
                 var voter = SampleECKeyPairs.KeyPairs[31];
                 var voteResult = await Vote(voter, registerItem.VotingItemId, registerItem.Options[0], 100);
-                voteResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                voteResult.Error.Contains("Insufficient balance").ShouldBeTrue();
+                voteResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
             }
             
             //vote option not exist
@@ -152,9 +151,10 @@ namespace AElf.Contracts.Vote
                 var transactionResult = await Withdraw(voteUser, voteIds.ActiveVotes.First());
                 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                
+
+                var txFee = 1_00000000;
                 var afterBalance = GetUserBalance(voteAddress);
-                beforeBalance.ShouldBe(afterBalance - 100);
+                beforeBalance.ShouldBe(afterBalance - 100 + txFee);
             }
         }
         

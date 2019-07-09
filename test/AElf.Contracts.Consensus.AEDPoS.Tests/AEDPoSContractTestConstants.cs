@@ -18,7 +18,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         internal const string Symbol = "ELF";
 
-        internal const long TotalSupply = 1000_000_000;
+        internal const long TotalSupply = 1000_000_000_00000000;
 
         internal static readonly int SmallBlockMiningInterval = MiningInterval.Div(TinySlots)
             .Mul(AEDPoSContractConstants.LimitBlockExecutionTimeWeight)
