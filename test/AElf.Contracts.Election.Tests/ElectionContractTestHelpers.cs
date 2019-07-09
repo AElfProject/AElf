@@ -85,22 +85,5 @@ namespace AElf.Contracts.Election
             var electionStub = GetElectionContractTester(keyPair);
             return (await electionStub.Withdraw.SendAsync(voteId)).TransactionResult;
         }
-
-        private async Task ProduceBlocks(ECKeyPair keyPair, int roundsCount, bool changeTerm = false)
-        {
-            for (var i = 0; i < roundsCount; i++)
-            {
-                await NormalBlock(keyPair);
-                if (i != roundsCount - 1) continue;
-                if (changeTerm)
-                {
-                    await NextTerm(keyPair);
-                }
-                else
-                {
-                    await NextRound(keyPair);
-                }
-            }
-        }
     }
 }
