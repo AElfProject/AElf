@@ -108,6 +108,16 @@ namespace AElf.Contracts.Vote
                 VotingItemId = votingItemId
             });
         }
+
+        private async Task<VotedItems> GetVotedItems(Address address)
+        {
+            return await VoteContractStub.GetVotedItems.CallAsync(address);
+        }
+
+        private async Task<VotingResult> GetLatestVotingResult(Hash hash)
+        {
+            return await VoteContractStub.GetLatestVotingResult.CallAsync(hash);
+        }
         
         private async Task<VotedIds> GetVoteIds(ECKeyPair voterKeyPair, Hash votingItemId)
         {
