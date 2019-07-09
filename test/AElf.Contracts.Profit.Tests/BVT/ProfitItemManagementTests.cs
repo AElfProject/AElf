@@ -21,7 +21,7 @@ namespace AElf.Contracts.Profit.BVT
         public async Task ProfitContract_CreateScheme()
         {
             var creator = Creators[0];
-            var creatorAddress = Address.FromPublicKey(CreatorMinerKeyPair[0].PublicKey);
+            var creatorAddress = Address.FromPublicKey(CreatorKeyPair[0].PublicKey);
 
             await creator.CreateScheme.SendAsync(new CreateSchemeInput
             {
@@ -48,7 +48,7 @@ namespace AElf.Contracts.Profit.BVT
 
             var scheme = await ProfitContractStub.GetScheme.CallAsync(DefaultSchemeId);
 
-            scheme.Creator.ShouldBe(Address.FromPublicKey(CreatorMinerKeyPair[0].PublicKey));
+            scheme.Creator.ShouldBe(Address.FromPublicKey(CreatorKeyPair[0].PublicKey));
             scheme.UndistributedProfits[ProfitContractTestConsts.NativeTokenSymbol]
                 .ShouldBe(contributeAmount);
 
