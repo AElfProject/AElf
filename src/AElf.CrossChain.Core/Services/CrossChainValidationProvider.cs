@@ -14,15 +14,14 @@ namespace AElf.CrossChain
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
         private readonly IBlockExtraDataService _blockExtraDataService;
-        private readonly CrossChainConfigOptions _crossChainConfigOptions;
-        
+        public IOptionsMonitor<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
+
         public ILocalEventBus LocalEventBus { get; set; }
         
-        public CrossChainValidationProvider(ICrossChainDataProvider crossChainDataProvider, IBlockExtraDataService blockExtraDataService, IOptionsSnapshot<CrossChainConfigOptions> crossChainConfigOptions)
+        public CrossChainValidationProvider(ICrossChainDataProvider crossChainDataProvider, IBlockExtraDataService blockExtraDataService)
         {
             _crossChainDataProvider = crossChainDataProvider;
             _blockExtraDataService = blockExtraDataService;
-            _crossChainConfigOptions = crossChainConfigOptions.Value;
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
@@ -90,7 +89,7 @@ namespace AElf.CrossChain
         private async Task<bool> ValidateCrossChainBlockDataAsync(CrossChainBlockData crossChainBlockData, 
             Hash blockHash, long blockHeight)
         {
-            if (_crossChainConfigOptions.CrossChainDataValidationIgnored)
+            if (CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored)
                 return true;
             
             var sideChainBlockDataValidationResult =
