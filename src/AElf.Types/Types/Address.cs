@@ -151,7 +151,7 @@ namespace AElf.Types
         {
             var arr = str.Split('_');
 
-            if (arr[0] != TypeConsts.AElfAddressPrefix)
+            if (arr[0] != "ELF")
             {
                 throw new ArgumentException("invalid chain address", nameof(str));
             }

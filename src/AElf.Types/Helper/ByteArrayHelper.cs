@@ -5,14 +5,9 @@ namespace AElf
 {
     public static class ByteArrayHelper
     {
-        private static bool IsWithPrefix(string value)
-        {
-            return value.Length >= 2 && value[0] == '0' && (value[1] == 'x' || value[1] == 'X');
-        }
-
         public static byte[] FromHexString(string hex)
         {
-            if (IsWithPrefix(hex))
+            if (hex.Length >= 2 && hex[0] == '0' && (hex[1] == 'x' || hex[1] == 'X'))
                 hex = hex.Substring(2);
             int numberChars = hex.Length;
             byte[] bytes = new byte[numberChars / 2];
@@ -40,34 +35,6 @@ namespace AElf
             }
 
             return true;
-        }
-
-
-        public static byte[] Combine(params byte[][] arrays)
-        {
-            byte[] rv = new byte[arrays.Sum(a => a.Length)];
-            int offset = 0;
-            foreach (byte[] array in arrays)
-            {
-                Buffer.BlockCopy(array, 0, rv, offset, array.Length);
-                offset += array.Length;
-            }
-
-            return rv;
-        }
-
-        public static byte[] ConcatArrays(params byte[][] arrays)
-        {
-            var result = new byte[arrays.Sum(arr => arr.Length)];
-            var offset = 0;
-
-            foreach (var arr in arrays)
-            {
-                Buffer.BlockCopy(arr, 0, result, offset, arr.Length);
-                offset += arr.Length;
-            }
-
-            return result;
         }
 
         public static byte[] ConcatArrays(byte[] arr1, byte[] arr2)

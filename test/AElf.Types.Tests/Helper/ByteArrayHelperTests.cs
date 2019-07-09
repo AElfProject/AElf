@@ -17,7 +17,7 @@ namespace AElf.Types.Tests.Helper
             var valueArrary = ByteArrayHelper.FromHexString(value);
             valueArrary.Length.ShouldBe(1);
         }
-        
+
 
         static Random _rnd = new Random();
 
@@ -44,23 +44,6 @@ namespace AElf.Types.Tests.Helper
 
             var result2 = ByteArrayHelper.BytesEqual(byteArray1, byteArray3);
             result2.ShouldBe(false);
-        }
-
-        [Fact]
-        public void Bytes_Combine_And_SubArray()
-        {
-            var byteArray1 = Hash.Generate().DumpByteArray();
-            var byteArray2 = Hash.Generate().DumpByteArray();
-            var bytes = ByteArrayHelper.Combine(byteArray1, byteArray2);
-            bytes.Length.ShouldBe(byteArray1.Length + byteArray2.Length);
-
-            var bytes1 = ByteArrayHelper.ConcatArrays(byteArray1, byteArray2, bytes);
-            bytes1.Length.ShouldBe(byteArray1.Length + byteArray2.Length + bytes.Length);
-
-            var subArray1 = ByteArrayHelper.SubArray(bytes, 0, byteArray1.Length);
-            var subArray2 = ByteArrayHelper.SubArray(bytes, byteArray1.Length, byteArray2.Length);
-            subArray1.ShouldBe(byteArray1);
-            subArray2.ShouldBe(byteArray2);
         }
 
         [Fact]

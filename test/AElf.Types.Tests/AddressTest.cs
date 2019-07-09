@@ -77,7 +77,7 @@ namespace AElf.Types.Tests
             var chainId = 2111;
             var chainAddress1 = new ChainAddress(address, chainId);
 
-            string str = chainAddress1.GetFormatted(TypeConsts.AElfAddressPrefix,chainAddress1.ChainId);
+            string str = chainAddress1.GetFormatted("ELF",chainAddress1.ChainId);
             var chainAddress2 = ChainAddress.Parse(str);
             chainAddress1.Address.ShouldBe(chainAddress2.Address);
             chainAddress1.ChainId.ShouldBe(chainAddress2.ChainId);
