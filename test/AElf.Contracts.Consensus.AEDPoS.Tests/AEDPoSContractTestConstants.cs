@@ -22,7 +22,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         internal static readonly int SmallBlockMiningInterval = MiningInterval.Div(TinySlots)
             .Mul(AEDPoSContractConstants.LimitBlockExecutionTimeWeight)
-            .Div(AEDPoSContractConstants.LimitBlockExecutionTimeTotalWeight);
+            .Div(AEDPoSContractConstants.LimitBlockExecutionTimeTotalShares);
 
         /// <summary>
         /// 7 days.

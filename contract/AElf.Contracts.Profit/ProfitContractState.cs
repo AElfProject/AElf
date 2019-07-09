@@ -13,7 +13,7 @@ namespace AElf.Contracts.Profit
 
         public MappedState<Hash, Address, ProfitDetails> ProfitDetailsMap { get; set; }
 
-        public MappedState<Address, CreatedProfitIds> CreatedProfitIds { get; set; }
+        public MappedState<Address, CreatedSchemeIds> CreatedSchemeIds { get; set; }
         
         public MappedState<string, TokenAmounts> TransactionFees { get; set; }
     }

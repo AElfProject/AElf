@@ -114,12 +114,11 @@ namespace AElf.Contracts.Election
                     Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
             }
 
-            // Add 1 weight for this candidate in subsidy profit item.
-            State.ProfitContract.AddWeight.Send(new AddWeightInput
+            // Add 1 Shares for this candidate in subsidy profit item.
+            State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {
-                ProfitId = State.SubsidyHash.Value,
-                Receiver = Context.Sender,
-                Weight = 1
+                SchemeId = State.SubsidyHash.Value,
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Context.Sender, Shares = 1}
             });
         }
 
@@ -128,7 +127,7 @@ namespace AElf.Contracts.Election
         #region QuitElection
 
         /// <summary>
-        /// delete a option of voting,then sub the weight from the corresponding ProfitItem 
+        /// delete a option of voting,then sub the Shares from the corresponding ProfitItem 
         /// </summary>
         /// <param name="input">Empty</param>
         /// <returns></returns>
@@ -163,10 +162,10 @@ namespace AElf.Contracts.Election
             });
 
             // Remove this candidate from subsidy profit item.
-            State.ProfitContract.SubWeight.Send(new SubWeightInput
+            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
             {
-                ProfitId = State.SubsidyHash.Value,
-                Receiver = Context.Sender
+                SchemeId = State.SubsidyHash.Value,
+                Beneficiary = Context.Sender
             });
 
             return new Empty();

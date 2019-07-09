@@ -36,7 +36,7 @@ service ProfitContract {
     }
 
     // Views
-    rpc GetCreatedProfitIds (GetCreatedProfitIdsInput) returns (CreatedProfitIds) {
+    rpc GetCreatedSchemeIds (GetCreatedSchemeIdsInput) returns (CreatedSchemeIds) {
         option (aelf.is_view) = true;
     }
     rpc GetScheme (aelf.Hash) returns (Scheme) {
@@ -154,11 +154,11 @@ message DistributedProfitsInfo {
     bool is_released = 3;
 }
 
-message CreatedProfitIds {
-    repeated aelf.Hash ProfitIds = 1;
+message CreatedSchemeIds {
+    repeated aelf.Hash scheme_ids = 1;
 }
 
-message GetCreatedProfitIdsInput {
+message GetCreatedSchemeIdsInput {
     aelf.Address creator = 1;
 }
 

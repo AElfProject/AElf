@@ -154,7 +154,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
 
         private async Task InitFeeReceiverContract()
         {
-            //init fee receiver contract
+            //init fee Beneficiary contract
             var foundationAddress = Tester.GetAddress(FoundationKeyPair);
             var feeReceiverResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
                 nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Initialize),

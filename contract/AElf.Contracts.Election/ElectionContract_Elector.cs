@@ -68,11 +68,14 @@ namespace AElf.Contracts.Election
                 VoteId = Context.TransactionId
             });
 
-            State.ProfitContract.AddWeight.Send(new AddWeightInput
+            State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {
-                ProfitId = State.WelfareHash.Value,
-                Receiver = Context.Sender,
-                Weight = GetVotesWeight(input.Amount, lockSeconds),
+                SchemeId = State.WelfareHash.Value,
+                BeneficiaryShare = new BeneficiaryShare
+                {
+                    Beneficiary = Context.Sender,
+                    Shares = GetVotesWeight(input.Amount, lockSeconds)
+                },
                 EndPeriod = GetEndPeriod(lockSeconds) + 1
             });
 
@@ -146,7 +149,7 @@ namespace AElf.Contracts.Election
 
         private long GetEndPeriod(long lockTime)
         {
-            var treasury = State.ProfitContract.GetProfitItem.Call(State.TreasuryHash.Value);
+            var treasury = State.ProfitContract.GetScheme.Call(State.TreasuryHash.Value);
             return lockTime.Div(State.TimeEachTerm.Value).Add(treasury.CurrentPeriod);
         }
 
@@ -156,7 +159,7 @@ namespace AElf.Contracts.Election
 
         /// <summary>
         /// Withdraw a voting,recall the votes the voted by sender.
-        /// At the same time,the weight that the voter occupied will sub form totalWeight.
+        /// At the same time,the Shares that the voter occupied will sub form TotalShares.
         /// and the "VOTE" token will be returned to ElectionContract;
         /// </summary>
         /// <param name="input">Hash</param>
@@ -208,10 +211,10 @@ namespace AElf.Contracts.Election
                 VoteId = input
             });
 
-            State.ProfitContract.SubWeight.Send(new SubWeightInput
+            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
             {
-                ProfitId = State.WelfareHash.Value,
-                Receiver = Context.Sender
+                SchemeId = State.WelfareHash.Value,
+                Beneficiary = Context.Sender
             });
 
             return new Empty();

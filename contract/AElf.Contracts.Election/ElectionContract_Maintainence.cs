@@ -94,14 +94,14 @@ namespace AElf.Contracts.Election
             var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
 
-            var reElectionProfitAddWeights = new AddWeightsInput
+            var reElectionProfitAddWeights = new AddBeneficiariesInput
             {
-                ProfitId = State.ReElectionRewardHash.Value,
+                SchemeId = State.ReElectionRewardHash.Value,
                 EndPeriod = input.TermNumber.Add(1)
             };
-            var votesWeightRewardProfitAddWeights = new AddWeightsInput
+            var votesWeightRewardProfitAddWeights = new AddBeneficiariesInput
             {
-                ProfitId = State.VotesRewardHash.Value,
+                SchemeId = State.VotesRewardHash.Value,
                 EndPeriod = input.TermNumber.Add(1)
             };
             foreach (var publicKey in previousMiners)
@@ -119,8 +119,8 @@ namespace AElf.Contracts.Election
                         Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
                 }
 
-                State.ProfitContract.AddWeights.Send(reElectionProfitAddWeights);
-                State.ProfitContract.AddWeights.Send(votesWeightRewardProfitAddWeights);
+                State.ProfitContract.AddBeneficiaries.Send(reElectionProfitAddWeights);
+                State.ProfitContract.AddBeneficiaries.Send(votesWeightRewardProfitAddWeights);
             }
 
             return new Empty();
@@ -150,7 +150,7 @@ namespace AElf.Contracts.Election
         }
 
         private void UpdateCandidateInformation(string publicKey, long lastTermNumber, Address minerAddress,
-            List<string> previousMiners, ref AddWeightsInput reElectionProfitAddWeights)
+            List<string> previousMiners, ref AddBeneficiariesInput reElectionProfitAddWeights)
         {
             var candidateInformation = State.CandidateInformationMap[publicKey];
             candidateInformation.Terms.Add(lastTermNumber);
@@ -161,10 +161,10 @@ namespace AElf.Contracts.Election
             {
                 candidateInformation.ContinualAppointmentCount =
                     candidateInformation.ContinualAppointmentCount.Add(1);
-                reElectionProfitAddWeights.Weights.Add(new WeightMap
+                reElectionProfitAddWeights.BeneficiaryShares.Add(new BeneficiaryShare
                 {
-                    Receiver = minerAddress,
-                    Weight = candidateInformation.ContinualAppointmentCount
+                    Beneficiary = minerAddress,
+                    Shares = candidateInformation.ContinualAppointmentCount
                 });
             }
             else
@@ -176,15 +176,15 @@ namespace AElf.Contracts.Election
         }
 
         private void UpdateVotesWeightRewardProfit(string publicKey, Address minerAddress,
-            ref AddWeightsInput votesWeightRewardProfitAddWeights)
+            ref AddBeneficiariesInput votesWeightRewardProfitAddWeights)
         {
             var votes = State.CandidateVotes[publicKey];
             if (votes != null)
             {
-                votesWeightRewardProfitAddWeights.Weights.Add(new WeightMap
+                votesWeightRewardProfitAddWeights.BeneficiaryShares.Add(new BeneficiaryShare
                 {
-                    Receiver = minerAddress,
-                    Weight = votes.ObtainedActiveVotedVotesAmount
+                    Beneficiary = minerAddress,
+                    Shares = votes.ObtainedActiveVotedVotesAmount
                 });
             }
         }
@@ -204,10 +204,10 @@ namespace AElf.Contracts.Election
             {
                 var publicKeyByte = ByteArrayHelper.FromHexString(input.Pubkey);
                 State.BlackList.Value.Value.Add(ByteString.CopyFrom(publicKeyByte));
-                State.ProfitContract.SubWeight.Send(new SubWeightInput
+                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
                 {
-                    ProfitId = State.SubsidyHash.Value,
-                    Receiver = Address.FromPublicKey(publicKeyByte)
+                    SchemeId = State.SubsidyHash.Value,
+                    Beneficiary = Address.FromPublicKey(publicKeyByte)
                 });
                 Context.LogDebug(() => $"Marked {input.Pubkey.Substring(0, 10)} as an evil node.");
                 // TODO: Set to null.
@@ -237,7 +237,7 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
-        public override Empty SetTreasuryProfitIds(SetTreasuryProfitIdsInput input)
+        public override Empty SetTreasurySchemeIds(SetTreasurySchemeIdsInput input)
         {
             Assert(State.TreasuryHash.Value == null, "Treasury profit ids already set.");
             State.TreasuryHash.Value = input.TreasuryHash;

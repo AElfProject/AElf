@@ -231,7 +231,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 limitMillisecondsOfMiningBlock = limitMillisecondsOfMiningBlock
                     .Mul(AEDPoSContractConstants.LimitBlockExecutionTimeWeight)
-                    .Div(AEDPoSContractConstants.LimitBlockExecutionTimeTotalWeight);
+                    .Div(AEDPoSContractConstants.LimitBlockExecutionTimeTotalShares);
                 return;
             }
 
@@ -249,7 +249,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 limitMillisecondsOfMiningBlock = limitMillisecondsOfMiningBlock
                     .Mul(AEDPoSContractConstants.LimitBlockExecutionTimeWeight)
-                    .Div(AEDPoSContractConstants.LimitBlockExecutionTimeTotalWeight);
+                    .Div(AEDPoSContractConstants.LimitBlockExecutionTimeTotalShares);
             }
         }
 

@@ -10,7 +10,7 @@ namespace AElf.Contracts.Profit.BVT
 {
     public partial class ProfitContractTests : ProfitContractTestBase
     {
-        protected Hash DefaultProfitId { get; set; }
+        protected Hash DefaultSchemeId { get; set; }
 
         public ProfitContractTests()
         {
@@ -18,42 +18,42 @@ namespace AElf.Contracts.Profit.BVT
         }
 
         [Fact]
-        public async Task ProfitContract_CreateProfitItem()
+        public async Task ProfitContract_CreateScheme()
         {
             var creator = Creators[0];
             var creatorAddress = Address.FromPublicKey(CreatorMinerKeyPair[0].PublicKey);
 
-            await creator.CreateProfitItem.SendAsync(new CreateProfitItemInput
+            await creator.CreateScheme.SendAsync(new CreateSchemeInput
             {
                 ProfitReceivingDuePeriodCount = 100,
             });
 
-            var createdProfitIds = (await creator.GetCreatedProfitIds.CallAsync(new GetCreatedProfitIdsInput
+            var createdSchemeIds = (await creator.GetCreatedSchemeIds.CallAsync(new GetCreatedSchemeIdsInput
             {
                 Creator = creatorAddress
-            })).ProfitIds;
+            })).SchemeIds;
 
-            createdProfitIds.Count.ShouldBe(1);
+            createdSchemeIds.Count.ShouldBe(1);
 
-            DefaultProfitId = createdProfitIds.First();
+            DefaultSchemeId = createdSchemeIds.First();
 
-            await ProfitContractStub.AddProfits.SendAsync(new AddProfitsInput
+            await ProfitContractStub.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
-                ProfitId = DefaultProfitId,
+                SchemeId = DefaultSchemeId,
                 Symbol = ProfitContractTestConsts.NativeTokenSymbol,
                 Amount = (long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2),
             });
 
-            var treasury = await ProfitContractStub.GetProfitItem.CallAsync(DefaultProfitId);
+            var treasury = await ProfitContractStub.GetScheme.CallAsync(DefaultSchemeId);
 
             treasury.Creator.ShouldBe(Address.FromPublicKey(StarterKeyPair.PublicKey));
-            treasury.TotalAmounts[ProfitContractTestConsts.NativeTokenSymbol]
+            treasury.UndistributedProfits[ProfitContractTestConsts.NativeTokenSymbol]
                 .ShouldBe((long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2));
 
-            var treasuryAddress = await ProfitContractStub.GetProfitItemVirtualAddress.CallAsync(
-                new GetProfitItemVirtualAddressInput
+            var treasuryAddress = await ProfitContractStub.GetSchemeAddress.CallAsync(
+                new SchemePeriod
                 {
-                    ProfitId = DefaultProfitId
+                    SchemeId = DefaultSchemeId
                 });
             var treasuryBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -63,15 +63,15 @@ namespace AElf.Contracts.Profit.BVT
 
             treasuryBalance.ShouldBe((long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2));
 
-            var profitId = createdProfitIds.First();
-            var profitItem = await creator.GetProfitItem.CallAsync(profitId);
+            var schemeId = createdSchemeIds.First();
+            var profitItem = await creator.GetScheme.CallAsync(schemeId);
 
             profitItem.Creator.ShouldBe(creatorAddress);
             profitItem.CurrentPeriod.ShouldBe(1);
             profitItem.ProfitReceivingDuePeriodCount.ShouldBe(ProfitContractConsts
                 .DefaultProfitReceivingDuePeriodCount);
-            profitItem.TotalWeight.ShouldBe(0);
-            profitItem.TotalAmounts.Count.ShouldBe(0);
+            profitItem.TotalShares.ShouldBe(0);
+            profitItem.UndistributedProfits.Count.ShouldBe(0);
 
             var itemBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {

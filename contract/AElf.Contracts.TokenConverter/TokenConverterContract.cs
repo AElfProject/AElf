@@ -308,7 +308,7 @@ namespace AElf.Contracts.TokenConverter
         {
             Assert(IsValidSymbol(connector.Symbol), "Invalid symbol.");
             var weight = AssertedDecimal(connector.Weight);
-            Assert(IsBetweenZeroAndOne(weight), "Connector weight has to be a decimal between 0 and 1.");
+            Assert(IsBetweenZeroAndOne(weight), "Connector Shares has to be a decimal between 0 and 1.");
             connector.Weight = weight.ToString(CultureInfo.InvariantCulture);
         }
 

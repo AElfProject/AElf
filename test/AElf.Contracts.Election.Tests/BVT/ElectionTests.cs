@@ -232,8 +232,8 @@ namespace AElf.Contracts.Election
                 var welfareHash = ProfitItemsIds[ProfitType.CitizenWelfare];
                 var details = await ProfitContractStub.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
-                    ProfitId = welfareHash,
-                    Receiver = Address.FromPublicKey(votersKeyPairs.First().PublicKey)
+                    SchemeId = welfareHash,
+                    Beneficiary = Address.FromPublicKey(votersKeyPairs.First().PublicKey)
                 });
                 details.Details.Count.ShouldBe(candidatesKeyPairs.Count);
             }
@@ -276,7 +276,7 @@ namespace AElf.Contracts.Election
 
             // Profit
             var voter = GetProfitContractTester(voterKeyPair);
-            await voter.Profit.SendAsync(new ProfitInput {ProfitId = ProfitItemsIds[ProfitType.CitizenWelfare]});
+            await voter.ClaimProfits.SendAsync(new ClaimProfitsInput {SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]});
 
             // Check ELF token balance
             {

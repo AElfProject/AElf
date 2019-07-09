@@ -294,11 +294,11 @@ namespace AElf.Contracts.Economic.TestBase
             }
             //get profit ids
             {
-                var profitIds = (await ProfitContractStub.GetCreatedProfitIds.CallAsync(
-                    new GetCreatedProfitIdsInput
+                var profitIds = (await ProfitContractStub.GetCreatedSchemeIds.CallAsync(
+                    new GetCreatedSchemeIdsInput()
                     {
                         Creator = TreasuryContractAddress
-                    })).ProfitIds;
+                    })).SchemeIds;
                 ProfitItemsIds = new Dictionary<ProfitType, Hash>
                 {
                     {ProfitType.Treasury, profitIds[0]},

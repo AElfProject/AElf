@@ -275,7 +275,7 @@ namespace AElf.Contracts.ParliamentAuth
 
             ParliamentAuthContractStub = GetParliamentAuthContractTester(DefaultSenderKeyPair);
             var result = await ParliamentAuthContractStub.Release.SendAsync(proposalId);
-            //Reviewer weight < ReleaseThreshold, release failed
+            //Reviewer Shares < ReleaseThreshold, release failed
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("Not approved.").ShouldBeTrue();
         }

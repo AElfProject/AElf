@@ -90,8 +90,8 @@ namespace AElf.Contracts.MultiToken
             }
 
             {
-                var result = AsyncHelper.RunSync(() => ProfitContractStub.CreateProfitItem.SendAsync(
-                    new CreateProfitItemInput
+                var result = AsyncHelper.RunSync(() => ProfitContractStub.CreateScheme.SendAsync(
+                    new CreateSchemeInput
                     {
                         ProfitReceivingDuePeriodCount = 10
                     }));

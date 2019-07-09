@@ -21,32 +21,32 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task ElectionContract_RegisterToTreasury()
         {
-            var treasury = await ProfitContractStub.GetProfitItem.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
-            // MinerReward (weight 3) -> Treasury
-            treasury.SubProfitItems.Select(s => s.ProfitId).ShouldContain(ProfitItemsIds[ProfitType.MinerReward]);
-            treasury.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.MinerReward]).Weight
+            var treasury = await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
+            // MinerReward (Shares 3) -> Treasury
+            treasury.SubSchemes.Select(s => s.SchemeId).ShouldContain(ProfitItemsIds[ProfitType.MinerReward]);
+            treasury.SubSchemes.First(s => s.SchemeId == ProfitItemsIds[ProfitType.MinerReward]).Shares
                 .ShouldBe(ElectionContractConstants.MinerRewardWeight);
-            // BackupSubsidy (weight 1) -> Treasury
-            treasury.SubProfitItems.Select(s => s.ProfitId).ShouldContain(ProfitItemsIds[ProfitType.BackupSubsidy]);
-            treasury.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.BackupSubsidy]).Weight
+            // BackupSubsidy (Shares 1) -> Treasury
+            treasury.SubSchemes.Select(s => s.SchemeId).ShouldContain(ProfitItemsIds[ProfitType.BackupSubsidy]);
+            treasury.SubSchemes.First(s => s.SchemeId == ProfitItemsIds[ProfitType.BackupSubsidy]).Shares
                 .ShouldBe(ElectionContractConstants.BackupSubsidyWeight);
-            // CitizenWelfare (weight 1) -> Treasury
-            treasury.SubProfitItems.Select(s => s.ProfitId).ShouldContain(ProfitItemsIds[ProfitType.CitizenWelfare]);
-            treasury.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.CitizenWelfare]).Weight
+            // CitizenWelfare (Shares 1) -> Treasury
+            treasury.SubSchemes.Select(s => s.SchemeId).ShouldContain(ProfitItemsIds[ProfitType.CitizenWelfare]);
+            treasury.SubSchemes.First(s => s.SchemeId == ProfitItemsIds[ProfitType.CitizenWelfare]).Shares
                 .ShouldBe(ElectionContractConstants.CitizenWelfareWeight);
 
-            var reward = await ProfitContractStub.GetProfitItem.CallAsync(ProfitItemsIds[ProfitType.MinerReward]);
-            // BasicMinerReward (weight 4) -> Reward
-            reward.SubProfitItems.Select(s => s.ProfitId).ShouldContain(ProfitItemsIds[ProfitType.BasicMinerReward]);
-            reward.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.BasicMinerReward]).Weight
+            var reward = await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.MinerReward]);
+            // BasicMinerReward (Shares 4) -> Reward
+            reward.SubSchemes.Select(s => s.SchemeId).ShouldContain(ProfitItemsIds[ProfitType.BasicMinerReward]);
+            reward.SubSchemes.First(s => s.SchemeId == ProfitItemsIds[ProfitType.BasicMinerReward]).Shares
                 .ShouldBe(ElectionContractConstants.BasicMinerRewardWeight);
-            // VotesWeightReward (weight 1) -> Reward
-            reward.SubProfitItems.Select(s => s.ProfitId).ShouldContain(ProfitItemsIds[ProfitType.VotesWeightReward]);
-            reward.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.VotesWeightReward]).Weight
+            // VotesWeightReward (Shares 1) -> Reward
+            reward.SubSchemes.Select(s => s.SchemeId).ShouldContain(ProfitItemsIds[ProfitType.VotesWeightReward]);
+            reward.SubSchemes.First(s => s.SchemeId == ProfitItemsIds[ProfitType.VotesWeightReward]).Shares
                 .ShouldBe(ElectionContractConstants.VotesWeightRewardWeight);
-            // ReElectionReward (weight 1) -> Reward
-            reward.SubProfitItems.Select(s => s.ProfitId).ShouldContain(ProfitItemsIds[ProfitType.ReElectionReward]);
-            reward.SubProfitItems.First(s => s.ProfitId == ProfitItemsIds[ProfitType.ReElectionReward]).Weight
+            // ReElectionReward (Shares 1) -> Reward
+            reward.SubSchemes.Select(s => s.SchemeId).ShouldContain(ProfitItemsIds[ProfitType.ReElectionReward]);
+            reward.SubSchemes.First(s => s.SchemeId == ProfitItemsIds[ProfitType.ReElectionReward]).Shares
                 .ShouldBe(ElectionContractConstants.ReElectionRewardWeight);
 
             // Check the balance of Treasury

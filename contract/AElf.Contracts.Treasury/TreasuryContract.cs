@@ -26,7 +26,7 @@ namespace AElf.Contracts.Treasury
     ///
     /// 3 sub profit items for Mining Rewards:
     /// (Basic Rewards) - 4
-    /// (Miner's Votes Weight) - 1
+    /// (Miner's Votes Shares) - 1
     /// (Re-Election Rewards) - 1
     ///
     /// 3 incomes:
@@ -47,13 +47,14 @@ namespace AElf.Contracts.Treasury
             // `MinerBasicReward`, `MinerVotesWeightReward`, `ReElectedMinerReward`
             var profitItemNameList = new List<string>
             {
-                "Treasury", "MinerReward", "Subsidy", "Welfare", "Basic Reward", "Votes Weight Reward",
+                "Treasury", "MinerReward", "Subsidy", "Welfare", "Basic Reward", "Votes Shares Reward",
                 "Re-Election Reward"
             };
             for (var i = 0; i < 7; i++)
             {
-                Context.LogDebug(() => profitItemNameList[i]);
-                State.ProfitContract.CreateProfitItem.Send(new CreateProfitItemInput
+                var index = i;
+                Context.LogDebug(() => profitItemNameList[index]);
+                State.ProfitContract.CreateScheme.Send(new CreateSchemeInput
                 {
                     IsReleaseAllBalanceEveryTimeByDefault = true
                 });
@@ -66,25 +67,25 @@ namespace AElf.Contracts.Treasury
 
         public override Empty InitialMiningRewardProfitItem(Empty input)
         {
-            var createdProfitIds = State.ProfitContract.GetCreatedProfitIds.Call(new GetCreatedProfitIdsInput
+            var createdSchemeIds = State.ProfitContract.GetCreatedSchemeIds.Call(new GetCreatedSchemeIdsInput
             {
                 Creator = Context.Self
-            }).ProfitIds;
+            }).SchemeIds;
 
-            Assert(createdProfitIds.Count == 7, "Incorrect profit items count.");
+            Assert(createdSchemeIds.Count == 7, "Incorrect profit items count.");
 
-            State.TreasuryHash.Value = createdProfitIds[0];
-            State.RewardHash.Value = createdProfitIds[1];
-            State.SubsidyHash.Value = createdProfitIds[2];
-            State.WelfareHash.Value = createdProfitIds[3];
-            State.BasicRewardHash.Value = createdProfitIds[4];
-            State.VotesWeightRewardHash.Value = createdProfitIds[5];
-            State.ReElectionRewardHash.Value = createdProfitIds[6];
+            State.TreasuryHash.Value = createdSchemeIds[0];
+            State.RewardHash.Value = createdSchemeIds[1];
+            State.SubsidyHash.Value = createdSchemeIds[2];
+            State.WelfareHash.Value = createdSchemeIds[3];
+            State.BasicRewardHash.Value = createdSchemeIds[4];
+            State.VotesWeightRewardHash.Value = createdSchemeIds[5];
+            State.ReElectionRewardHash.Value = createdSchemeIds[6];
 
             BuildTreasury();
 
             var treasuryVirtualAddress = Address.FromPublicKey(State.ProfitContract.Value.Value.Concat(
-                createdProfitIds[0].Value.ToByteArray().CalculateHash()).ToArray());
+                createdSchemeIds[0].Value.ToByteArray().CalculateHash()).ToArray());
             State.TreasuryVirtualAddress.Value = treasuryVirtualAddress;
 
             return new Empty();
@@ -103,9 +104,9 @@ namespace AElf.Contracts.Treasury
                 "Only AElf Consensus Contract can release profits from Treasury.");
 
             var releasingPeriodNumber = input.TermNumber;
-            State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
+            State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
-                ProfitId = State.TreasuryHash.Value,
+                SchemeId = State.TreasuryHash.Value,
                 Period = releasingPeriodNumber,
                 Symbol = Context.Variables.NativeSymbol
             });
@@ -193,103 +194,103 @@ namespace AElf.Contracts.Treasury
         private void BuildTreasury()
         {
             // Register `CitizenWelfare` to `Treasury`
-            State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
+            State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
             {
-                ProfitId = State.TreasuryHash.Value,
-                SubProfitId = State.WelfareHash.Value,
-                SubItemWeight = TreasuryContractConstants.CitizenWelfareWeight
+                SchemeId = State.TreasuryHash.Value,
+                SubSchemeId = State.WelfareHash.Value,
+                SubSchemeShares = TreasuryContractConstants.CitizenWelfareWeight
             });
 
             // Register `BackupSubsidy` to `Treasury`
-            State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
+            State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
             {
-                ProfitId = State.TreasuryHash.Value,
-                SubProfitId = State.SubsidyHash.Value,
-                SubItemWeight = TreasuryContractConstants.BackupSubsidyWeight
+                SchemeId = State.TreasuryHash.Value,
+                SubSchemeId = State.SubsidyHash.Value,
+                SubSchemeShares = TreasuryContractConstants.BackupSubsidyWeight
             });
 
             // Register `MinerReward` to `Treasury`
-            State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
+            State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
             {
-                ProfitId = State.TreasuryHash.Value,
-                SubProfitId = State.RewardHash.Value,
-                SubItemWeight = TreasuryContractConstants.MinerRewardWeight
+                SchemeId = State.TreasuryHash.Value,
+                SubSchemeId = State.RewardHash.Value,
+                SubSchemeShares = TreasuryContractConstants.MinerRewardWeight
             });
 
             // Register `MinerBasicReward` to `MinerReward`
-            State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
+            State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
             {
-                ProfitId = State.RewardHash.Value,
-                SubProfitId = State.BasicRewardHash.Value,
-                SubItemWeight = TreasuryContractConstants.BasicMinerRewardWeight
+                SchemeId = State.RewardHash.Value,
+                SubSchemeId = State.BasicRewardHash.Value,
+                SubSchemeShares = TreasuryContractConstants.BasicMinerRewardWeight
             });
 
             // Register `MinerVotesWeightReward` to `MinerReward`
-            State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
+            State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
             {
-                ProfitId = State.RewardHash.Value,
-                SubProfitId = State.VotesWeightRewardHash.Value,
-                SubItemWeight = TreasuryContractConstants.VotesWeightRewardWeight
+                SchemeId = State.RewardHash.Value,
+                SubSchemeId = State.VotesWeightRewardHash.Value,
+                SubSchemeShares = TreasuryContractConstants.VotesWeightRewardWeight
             });
 
             // Register `ReElectionMinerReward` to `MinerReward`
-            State.ProfitContract.RegisterSubProfitItem.Send(new RegisterSubProfitItemInput
+            State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
             {
-                ProfitId = State.RewardHash.Value,
-                SubProfitId = State.ReElectionRewardHash.Value,
-                SubItemWeight = TreasuryContractConstants.ReElectionRewardWeight
+                SchemeId = State.RewardHash.Value,
+                SubSchemeId = State.ReElectionRewardHash.Value,
+                SubSchemeShares = TreasuryContractConstants.ReElectionRewardWeight
             });
         }
 
         private void ReleaseTreasurySubProfitItems(long termNumber)
         {
-            State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
+            State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
-                ProfitId = State.RewardHash.Value,
+                SchemeId = State.RewardHash.Value,
                 Period = termNumber,
                 Symbol = Context.Variables.NativeSymbol
             });
 
-            State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
+            State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
-                ProfitId = State.SubsidyHash.Value,
+                SchemeId = State.SubsidyHash.Value,
                 Period = termNumber,
                 Symbol = Context.Variables.NativeSymbol
             });
 
-            State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
+            State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
-                ProfitId = State.BasicRewardHash.Value,
+                SchemeId = State.BasicRewardHash.Value,
                 Period = termNumber,
                 Symbol = Context.Variables.NativeSymbol
             });
 
-            State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
+            State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
-                ProfitId = State.VotesWeightRewardHash.Value,
+                SchemeId = State.VotesWeightRewardHash.Value,
                 Period = termNumber,
                 Symbol = Context.Variables.NativeSymbol
             });
 
-            State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
+            State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
-                ProfitId = State.ReElectionRewardHash.Value,
+                SchemeId = State.ReElectionRewardHash.Value,
                 Period = termNumber,
                 Symbol = Context.Variables.NativeSymbol
             });
 
             // Citizen Welfare release should delay one term.
             // Voter voted during term x, can profit after term (x + 1).
-            State.ProfitContract.ReleaseProfit.Send(new ReleaseProfitInput
+            State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
-                ProfitId = State.WelfareHash.Value,
+                SchemeId = State.WelfareHash.Value,
                 Period = termNumber > 1 ? termNumber - 1 : -1,
-                TotalWeight = State.CachedWelfareWeight.Value,
+                TotalShares = State.CachedWelfareWeight.Value,
                 Symbol = Context.Variables.NativeSymbol
             });
 
             State.CachedWelfareWeight.Value =
-                State.ProfitContract.GetProfitItem.Call(State.WelfareHash.Value).TotalWeight;
+                State.ProfitContract.GetScheme.Call(State.WelfareHash.Value).TotalShares;
         }
 
         private void UpdateTreasurySubItemsWeights(long termNumber)
@@ -319,9 +320,9 @@ namespace AElf.Contracts.Treasury
             var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
 
-            var reElectionProfitAddWeights = new AddWeightsInput
+            var reElectionProfitAddWeights = new AddBeneficiariesInput
             {
-                ProfitId = State.ReElectionRewardHash.Value,
+                SchemeId = State.ReElectionRewardHash.Value,
                 EndPeriod = endPeriod
             };
             foreach (var previousMiner in previousMiners)
@@ -330,32 +331,32 @@ namespace AElf.Contracts.Treasury
                     State.ElectionContract.GetCandidateInformation.Call(new StringInput {Value = previousMiner})
                         .ContinualAppointmentCount;
                 var minerAddress = Address.FromPublicKey(ByteArrayHelper.FromHexString(previousMiner));
-                reElectionProfitAddWeights.Weights.Add(new WeightMap
+                reElectionProfitAddWeights.BeneficiaryShares.Add(new BeneficiaryShare
                 {
-                    Receiver = minerAddress,
-                    Weight = continualAppointmentCount
+                    Beneficiary = minerAddress,
+                    Shares = continualAppointmentCount
                 });
             }
 
-            if (!reElectionProfitAddWeights.Weights.Any())
+            if (!reElectionProfitAddWeights.BeneficiaryShares.Any())
             {
                 // Give this part of reward back to Treasury Virtual Address.
-                reElectionProfitAddWeights.Weights.Add(new WeightMap
+                reElectionProfitAddWeights.BeneficiaryShares.Add(new BeneficiaryShare
                 {
-                    Receiver = treasuryVirtualAddress,
-                    Weight = 1
+                    Beneficiary = treasuryVirtualAddress,
+                    Shares = 1
                 });
             }
 
-            State.ProfitContract.AddWeights.Send(reElectionProfitAddWeights);
+            State.ProfitContract.AddBeneficiaries.Send(reElectionProfitAddWeights);
         }
 
         private void UpdateVotesWeightRewardWeights(long endPeriod, IEnumerable<string> victories,
             Address treasuryVirtualAddress)
         {
-            var votesWeightRewardProfitAddWeights = new AddWeightsInput
+            var votesWeightRewardProfitAddWeights = new AddBeneficiariesInput
             {
-                ProfitId = State.VotesWeightRewardHash.Value,
+                SchemeId = State.VotesWeightRewardHash.Value,
                 EndPeriod = endPeriod
             };
 
@@ -365,38 +366,38 @@ namespace AElf.Contracts.Treasury
                     State.ElectionContract.GetCandidateVote.Call(new StringInput {Value = victory})
                         .ObtainedActiveVotedVotesAmount;
                 var minerAddress = Address.FromPublicKey(ByteArrayHelper.FromHexString(victory));
-                votesWeightRewardProfitAddWeights.Weights.Add(new WeightMap
+                votesWeightRewardProfitAddWeights.BeneficiaryShares.Add(new BeneficiaryShare
                 {
-                    Receiver = minerAddress,
-                    Weight = obtainedVotes
+                    Beneficiary = minerAddress,
+                    Shares = obtainedVotes
                 });
             }
 
-            if (!votesWeightRewardProfitAddWeights.Weights.Any())
+            if (!votesWeightRewardProfitAddWeights.BeneficiaryShares.Any())
             {
                 // Give this part of reward back to Treasury Virtual Address.
-                votesWeightRewardProfitAddWeights.Weights.Add(new WeightMap
+                votesWeightRewardProfitAddWeights.BeneficiaryShares.Add(new BeneficiaryShare
                 {
-                    Receiver = treasuryVirtualAddress,
-                    Weight = 1
+                    Beneficiary = treasuryVirtualAddress,
+                    Shares = 1
                 });
             }
 
-            State.ProfitContract.AddWeights.Send(votesWeightRewardProfitAddWeights);
+            State.ProfitContract.AddBeneficiaries.Send(votesWeightRewardProfitAddWeights);
         }
 
         private void UpdateBasicMinerRewardWeights(long endPeriod, IEnumerable<string> victories)
         {
-            var basicRewardProfitAddWeights = new AddWeightsInput
+            var basicRewardProfitAddWeights = new AddBeneficiariesInput
             {
-                ProfitId = State.BasicRewardHash.Value,
+                SchemeId = State.BasicRewardHash.Value,
                 EndPeriod = endPeriod
             };
             var newMinerWeights = victories.Select(k => Address.FromPublicKey(k.ToByteString().ToByteArray()))
-                .Select(a => new WeightMap {Receiver = a, Weight = 1});
-            basicRewardProfitAddWeights.Weights.AddRange(newMinerWeights);
+                .Select(a => new BeneficiaryShare {Beneficiary = a, Shares = 1});
+            basicRewardProfitAddWeights.BeneficiaryShares.AddRange(newMinerWeights);
             // Manage weights of `MinerBasicReward`
-            State.ProfitContract.AddWeights.Send(basicRewardProfitAddWeights);
+            State.ProfitContract.AddBeneficiaries.Send(basicRewardProfitAddWeights);
         }
 
         #endregion
@@ -407,19 +408,19 @@ namespace AElf.Contracts.Treasury
             const long sampleAmount = 10000;
             var welfareHash = State.WelfareHash.Value;
             var output = new GetWelfareRewardAmountSampleOutput();
-            var welfareItem = State.ProfitContract.GetProfitItem.Call(welfareHash);
-            var releasedInformation = State.ProfitContract.GetReleasedProfitsInformation.Call(
-                new GetReleasedProfitsInformationInput
+            var welfareItem = State.ProfitContract.GetScheme.Call(welfareHash);
+            var releasedInformation = State.ProfitContract.GetDistributedProfitsInfo.Call(
+                new SchemePeriod
                 {
-                    ProfitId = welfareHash,
+                    SchemeId = welfareHash,
                     Period = welfareItem.CurrentPeriod.Sub(1)
                 });
-            var totalWeight = releasedInformation.TotalWeight;
+            var TotalShares = releasedInformation.TotalShares;
             var totalAmount = releasedInformation.ProfitsAmount;
             foreach (var lockTime in input.Value)
             {
-                var weight = GetVotesWeight(sampleAmount, lockTime);
-                output.Value.Add(totalAmount[Context.Variables.NativeSymbol].Mul(weight).Div(totalWeight));
+                var Shares = GetVotesWeight(sampleAmount, lockTime);
+                output.Value.Add(totalAmount[Context.Variables.NativeSymbol].Mul(Shares).Div(TotalShares));
             }
 
             return output;

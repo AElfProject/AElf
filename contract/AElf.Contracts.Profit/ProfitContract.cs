@@ -10,31 +10,29 @@ namespace AElf.Contracts.Profit
 {
     /// <summary>
     /// Let's imagine a scenario:
-    /// 1. Ean creates a profit item FOO: Ean calls CreateProfitItem. We call this profit item PI_FOO.
-    /// 2. GL creates another profit item BAR: GL calls CreateProfitItem. We call this profit item PI_BAR.
+    /// 1. Ean creates a profit item FOO: Ean calls CreateScheme. We call this profit item PI_FOO.
+    /// 2. GL creates another profit item BAR: GL calls CreateScheme. We call this profit item PI_BAR.
     /// 3. Ean (as the creator of PI_FOO) register PI_BAR as a sub profit item as PI_FOO:
-    /// Ean call RegisterSubProfitItem (ProfitId: PI_BAR's profit id, Weight : 1)
+    /// Ean call RemoveSubScheme (SchemeId: PI_BAR's profit id, Shares : 1)
     /// 4. Anil has an account which address is ADDR_Anil.
-    /// 5. Ean registers address ADDR_Anil as a profit receiver of PI_FOO: Ean calls AddWeight (Receiver: ADDR_Anil, Weight : 1)
+    /// 5. Ean registers address ADDR_Anil as a profit Beneficiary of PI_FOO: Ean calls AddBeneficiary (Beneficiary: ADDR_Anil, Shares : 1)
     /// 6: Now PI_FOO is organized like this:
     ///         PI_FOO
     ///        /      \
     ///       1        1
     ///      /          \
     ///    PI_BAR     ADDR_Anil
-    ///    (Total Weight is 2)
-    /// 7. Ean adds some ELF tokens to PI_FOO: Ean calls AddProfits (Symbol: "ELF", Amount: 1000L, Period: 1)
-    /// 8. Ean calls ReleaseProfit: Balance of PI_BAR is 500L (PI_BAR's general ledger balance, also we can say balance of virtual address of PI_BAR is 500L),
+    ///    (Total Shares is 2)
+    /// 7. Ean adds some ELF tokens to PI_FOO: Ean calls DistributeProfits (Symbol: "ELF", Amount: 1000L, Period: 1)
+    /// 8. Ean calls DistributeProfits: Balance of PI_BAR is 500L (PI_BAR's general ledger balance, also we can say balance of virtual address of PI_BAR is 500L),
     /// 9. Balance of PI_FOO's virtual address of first period is 500L.
-    /// 10. Anil can only get his profits by calling Profit (ProfitId: PI_BAR's profit id, Symbol: "ELF")
+    /// 10. Anil can only get his profits by calling Profit (SchemeId: PI_BAR's profit id, Symbol: "ELF")
     /// </summary>
     public partial class ProfitContract : ProfitContractContainer.ProfitContractBase
     {
-
-
         /// <summary>
         /// Create a ProfitItem
-        /// At the first time,the profitItem's id is unknown,it may create by transaction id and createdProfitIds;
+        /// At the first time,the profitItem's id is unknown,it may create by transaction id and createdSchemeIds;
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -53,11 +51,11 @@ namespace AElf.Contracts.Profit
 
             var schemeId = Context.TransactionId;
             // Why? Because one transaction may create many profit items via inline transactions.
-            var createdProfitIds = State.CreatedProfitIds[Context.Sender]?.ProfitIds;
-            if (createdProfitIds != null && createdProfitIds.Contains(schemeId))
+            var createdSchemeIds = State.CreatedSchemeIds[Context.Sender]?.SchemeIds;
+            if (createdSchemeIds != null && createdSchemeIds.Contains(schemeId))
             {
                 // So we choose this way to avoid profit id conflicts in aforementioned situation.
-                schemeId = Hash.FromTwoHashes(schemeId, createdProfitIds.Last());
+                schemeId = Hash.FromTwoHashes(schemeId, createdSchemeIds.Last());
             }
 
             var scheme = new Scheme
@@ -72,20 +70,20 @@ namespace AElf.Contracts.Profit
             };
             State.SchemeInfos[schemeId] = scheme;
 
-            var profitIds = State.CreatedProfitIds[Context.Sender];
-            if (profitIds == null)
+            var schemeIds = State.CreatedSchemeIds[Context.Sender];
+            if (schemeIds == null)
             {
-                profitIds = new CreatedProfitIds
+                schemeIds = new CreatedSchemeIds
                 {
-                    ProfitIds = {schemeId}
+                    SchemeIds = {schemeId}
                 };
             }
             else
             {
-                profitIds.ProfitIds.Add(schemeId);
+                schemeIds.SchemeIds.Add(schemeId);
             }
 
-            State.CreatedProfitIds[Context.Sender] = profitIds;
+            State.CreatedSchemeIds[Context.Sender] = schemeIds;
 
             Context.LogDebug(() => $"Created profit item {State.SchemeInfos[schemeId]}");
 
@@ -102,14 +100,14 @@ namespace AElf.Contracts.Profit
 
         /// <summary>
         /// Register a SubProfitItem,binding to a ProfitItem as child.
-        /// Then add the father ProfitItem's weight.
+        /// Then add the father ProfitItem's Shares.
         /// </summary>
-        /// <param name="input">RegisterSubProfitItemInput</param>
+        /// <param name="input">RemoveSubSchemeInput</param>
         /// <returns></returns>
         public override Empty AddSubScheme(AddSubSchemeInput input)
         {
             Assert(input.SchemeId != input.SubSchemeId, "Two profit items cannot be same.");
-            Assert(input.SubSchemeShares > 0, "Weight of sub profit item should greater than 0.");
+            Assert(input.SubSchemeShares > 0, "Shares of sub profit item should greater than 0.");
 
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Profit item not found.");
@@ -156,7 +154,7 @@ namespace AElf.Contracts.Profit
 
         public override Empty RemoveSubScheme(RemoveSubSchemeInput input)
         {
-            Assert(input.SchemeId != input.SchemeId, "Two profit items cannot be same.");
+            Assert(input.SchemeId != input.SubSchemeId, "Two profit items cannot be same.");
 
             var profitItem = State.SchemeInfos[input.SchemeId];
             Assert(profitItem != null, "Profit item not found.");
@@ -194,17 +192,17 @@ namespace AElf.Contracts.Profit
         public override Empty AddBeneficiary(AddBeneficiaryInput input)
         {
             Assert(input.SchemeId != null, "Invalid profit id.");
-            Assert(input.BeneficiaryShare?.Beneficiary != null, "Invalid receiver address.");
-            Assert(input.BeneficiaryShare?.Shares >= 0, "Invalid weight.");
+            Assert(input.BeneficiaryShare?.Beneficiary != null, "Invalid beneficiary address.");
+            Assert(input.BeneficiaryShare?.Shares >= 0, "Invalid share.");
 
             if (input.EndPeriod == 0)
             {
-                // Which means this profit receiver will never expired.
+                // Which means this profit Beneficiary will never expired.
                 input.EndPeriod = long.MaxValue;
             }
 
-            var profitId = input.SchemeId;
-            var profitItem = State.SchemeInfos[profitId];
+            var schemeId = input.SchemeId;
+            var profitItem = State.SchemeInfos[schemeId];
 
             Assert(profitItem != null, "Profit item not found.");
 
@@ -220,7 +218,7 @@ namespace AElf.Contracts.Profit
 
             profitItem.TotalShares = profitItem.TotalShares.Add(input.BeneficiaryShare.Shares);
 
-            State.SchemeInfos[profitId] = profitItem;
+            State.SchemeInfos[schemeId] = profitItem;
 
             var profitDetail = new ProfitDetail
             {
@@ -229,7 +227,7 @@ namespace AElf.Contracts.Profit
                 Shares = input.BeneficiaryShare.Shares,
             };
 
-            var currentProfitDetails = State.ProfitDetailsMap[profitId][input.BeneficiaryShare.Beneficiary];
+            var currentProfitDetails = State.ProfitDetailsMap[schemeId][input.BeneficiaryShare.Beneficiary];
             if (currentProfitDetails == null)
             {
                 currentProfitDetails = new ProfitDetails
@@ -250,7 +248,7 @@ namespace AElf.Contracts.Profit
                 currentProfitDetails.Details.Remove(detail);
             }
 
-            State.ProfitDetailsMap[profitId][input.BeneficiaryShare.Beneficiary] = currentProfitDetails;
+            State.ProfitDetailsMap[schemeId][input.BeneficiaryShare.Beneficiary] = currentProfitDetails;
 
             Context.LogDebug(() =>
                 $"Added {input.BeneficiaryShare.Shares} weights to profit item {input.SchemeId.ToHex()}: {profitDetail}");
@@ -261,7 +259,7 @@ namespace AElf.Contracts.Profit
         public override Empty RemoveBeneficiary(RemoveBeneficiaryInput input)
         {
             Assert(input.SchemeId != null, "Invalid profit id.");
-            Assert(input.Beneficiary != null, "Invalid receiver address.");
+            Assert(input.Beneficiary != null, "Invalid Beneficiary address.");
 
             var profitItem = State.SchemeInfos[input.SchemeId];
 
@@ -293,11 +291,11 @@ namespace AElf.Contracts.Profit
             // TODO: Recover this after key deletion in contract feature impled.
 //            if (currentDetail.Details.Count != 0)
 //            {
-//                State.ProfitDetailsMap[input.ProfitId][input.Receiver] = currentDetail;
+//                State.ProfitDetailsMap[input.SchemeId][input.Beneficiary] = currentDetail;
 //            }
 //            else
 //            {
-//                State.ProfitDetailsMap[input.ProfitId][input.Receiver] = null;
+//                State.ProfitDetailsMap[input.SchemeId][input.Beneficiary] = null;
 //            }
 
             profitItem.TotalShares -= shares;
@@ -383,7 +381,7 @@ namespace AElf.Contracts.Profit
 
             Context.LogDebug(() =>
                 $"Released profit information of {input.SchemeId.ToHex()} in period {input.Period}, " +
-                $"total weight {releasedProfitInformation.TotalShares}, total amount {releasedProfitInformation.ProfitsAmount} {input.Symbol}s");
+                $"total Shares {releasedProfitInformation.TotalShares}, total amount {releasedProfitInformation.ProfitsAmount} {input.Symbol}s");
 
             PerformReleaseProfits(input, profitItem, totalShares, profitsReceivingVirtualAddress);
 
@@ -471,7 +469,7 @@ namespace AElf.Contracts.Profit
             }
             else
             {
-                // This means someone used `AddProfits` do donate to the specific account period of current profit item.
+                // This means someone used `DistributeProfits` do donate to the specific account period of current profit item.
                 releasedProfitInformation.TotalShares = totalShares;
                 releasedProfitInformation.ProfitsAmount[input.Symbol] = balance.Add(input.Amount);
                 releasedProfitInformation.IsReleased = true;
@@ -481,12 +479,12 @@ namespace AElf.Contracts.Profit
             return releasedProfitInformation;
         }
 
-        private void PerformReleaseProfits(DistributeProfitsInput input, Scheme scheme, long totalWeight,
+        private void PerformReleaseProfits(DistributeProfitsInput input, Scheme scheme, long TotalShares,
             Address profitsReceivingVirtualAddress)
         {
             var remainAmount = input.Amount;
 
-            remainAmount = ReleaseProfitsForSubProfitItems(input, scheme, totalWeight, remainAmount);
+            remainAmount = ReleaseProfitsForSubProfitItems(input, scheme, TotalShares, remainAmount);
 
             // Transfer remain amount to individuals' receiving profits address.
             if (remainAmount != 0)
@@ -501,7 +499,7 @@ namespace AElf.Contracts.Profit
             }
         }
 
-        private long ReleaseProfitsForSubProfitItems(DistributeProfitsInput input, Scheme scheme, long totalWeight,
+        private long ReleaseProfitsForSubProfitItems(DistributeProfitsInput input, Scheme scheme, long TotalShares,
             long remainAmount)
         {
             Context.LogDebug(() => $"Sub profit items count: {scheme.SubSchemes.Count}");
@@ -512,7 +510,7 @@ namespace AElf.Contracts.Profit
                 // General ledger of this sub profit item.
                 var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItem.SchemeId);
 
-                var amount = subProfitItem.Shares.Mul(input.Amount).Div(totalWeight);
+                var amount = subProfitItem.Shares.Mul(input.Amount).Div(TotalShares);
                 if (amount != 0)
                 {
                     State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -627,9 +625,9 @@ namespace AElf.Contracts.Profit
         }
         
         /// <summary>
-        /// Gain the profit form profitId from Details.lastPeriod to profitItem.currentPeriod-1;
+        /// Gain the profit form SchemeId from Details.lastPeriod to profitItem.currentPeriod-1;
         /// </summary>
-        /// <param name="input">ProfitInput</param>
+        /// <param name="input">ClaimProfitsInput</param>
         /// <returns></returns>
         public override Empty ClaimProfits(ClaimProfitsInput input)
         {
@@ -698,7 +696,7 @@ namespace AElf.Contracts.Profit
                 {
                     Context.LogDebug(() =>
                         $"{Context.Sender} is profiting {amount} {symbol} tokens from {scheme.SchemeId.ToHex()} in period {periodToPrint}." +
-                        $"Sender's weight: {detailToPrint.Shares}, total weight: {releasedProfitsInformation.TotalShares}");
+                        $"Sender's Shares: {detailToPrint.Shares}, total Shares: {releasedProfitsInformation.TotalShares}");
                     if (releasedProfitsInformation.IsReleased && amount > 0)
                     {
                         State.TokenContract.TransferFrom.Send(new TransferFromInput

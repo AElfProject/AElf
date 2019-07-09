@@ -23,9 +23,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         public async Task EconomistSystem_CheckBasicInformation()
         {
             // Treasury contract created Treasury Profit Item and set Profit Id to Profit Contract.
-            var treasuryProfit = await ProfitContractStub.GetProfitItem.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
+            var treasuryProfit = await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
             treasuryProfit.Creator.ShouldBe(TreasuryContractAddress);
-            treasuryProfit.SubProfitItems.Count.ShouldBe(3);
+            treasuryProfit.SubSchemes.Count.ShouldBe(3);
             treasuryProfit.IsReleaseAllBalanceEverytimeByDefault.ShouldBe(true);
 
             // Token Converter Contract created AETC token.

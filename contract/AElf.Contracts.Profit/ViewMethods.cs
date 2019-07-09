@@ -10,9 +10,9 @@ namespace AElf.Contracts.Profit
 {
     public partial class ProfitContract
     {
-        public override CreatedProfitIds GetCreatedProfitIds(GetCreatedProfitIdsInput input)
+        public override CreatedSchemeIds GetCreatedSchemeIds(GetCreatedSchemeIdsInput input)
         {
-            return State.CreatedProfitIds[input.Creator];
+            return State.CreatedSchemeIds[input.Creator];
         }
 
         public override Scheme GetScheme(Hash input)
@@ -50,9 +50,9 @@ namespace AElf.Contracts.Profit
             return State.ProfitDetailsMap[input.SchemeId][input.Beneficiary];
         }
 
-        private Address GetReleasedPeriodProfitsVirtualAddress(Address profitId, long period)
+        private Address GetReleasedPeriodProfitsVirtualAddress(Address SchemeId, long period)
         {
-            return Address.FromPublicKey(period.ToString().CalculateHash().Concat(profitId.Value).ToArray());
+            return Address.FromPublicKey(period.ToString().CalculateHash().Concat(SchemeId.Value).ToArray());
         }
 
         public override SInt64Value GetProfitAmount(ClaimProfitsInput input)

@@ -33,7 +33,7 @@ namespace AElf.Contracts.Economic
             InitialMiningReward(input.MiningRewardTotalAmount);
 
             RegisterElectionVotingEvent();
-            SetTreasuryProfitIdsToElectionContract();
+            SetTreasurySchemeIdsToElectionContract();
             SetResourceTokenUnitPrice();
 
             InitializeTokenConverterContract();
@@ -185,22 +185,22 @@ namespace AElf.Contracts.Economic
             State.ElectionContract.RegisterElectionVotingEvent.Send(new Empty());
         }
 
-        private void SetTreasuryProfitIdsToElectionContract()
+        private void SetTreasurySchemeIdsToElectionContract()
         {
             State.ProfitContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
-            var profitIdsCreatedByTreasuryContract = State.ProfitContract.GetCreatedProfitIds.Call(
-                new GetCreatedProfitIdsInput
+            var SchemeIdsCreatedByTreasuryContract = State.ProfitContract.GetCreatedSchemeIds.Call(
+                new GetCreatedSchemeIdsInput
                 {
                     Creator = Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
-                }).ProfitIds;
-            State.ElectionContract.SetTreasuryProfitIds.Send(new SetTreasuryProfitIdsInput
+                }).SchemeIds;
+            State.ElectionContract.SetTreasurySchemeIds.Send(new SetTreasurySchemeIdsInput
             {
-                TreasuryHash = profitIdsCreatedByTreasuryContract[0],
-                SubsidyHash = profitIdsCreatedByTreasuryContract[2],
-                WelfareHash = profitIdsCreatedByTreasuryContract[3],
-                VotesRewardHash = profitIdsCreatedByTreasuryContract[5],
-                ReElectionRewardHash = profitIdsCreatedByTreasuryContract[6]
+                TreasuryHash = SchemeIdsCreatedByTreasuryContract[0],
+                SubsidyHash = SchemeIdsCreatedByTreasuryContract[2],
+                WelfareHash = SchemeIdsCreatedByTreasuryContract[3],
+                VotesRewardHash = SchemeIdsCreatedByTreasuryContract[5],
+                ReElectionRewardHash = SchemeIdsCreatedByTreasuryContract[6]
             });
         }
 
