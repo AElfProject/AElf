@@ -30,7 +30,7 @@ namespace AElf.OS.BlockSync.Application
         }
         
         [Fact]
-        public async Task SyncBlock_Success()
+        public async Task SyncByAnnounce_Success()
         {
             var chain = await _blockchainService.GetChainAsync();
             var peerBlocks = await _networkService.GetBlocksAsync(chain.BestChainHash, 30);
@@ -97,7 +97,7 @@ namespace AElf.OS.BlockSync.Application
         }
 
         [Fact]
-        public async Task SyncBlock_LessThenFetchLimit_Success()
+        public async Task SyncByAnnounce_LessThenFetchLimit_Success()
         {
             var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
 
@@ -121,7 +121,7 @@ namespace AElf.OS.BlockSync.Application
         }
         
         [Fact]
-        public async Task SyncBlock_LessThenFetchLimit_FetchReturnFalse()
+        public async Task SyncByAnnounce_LessThenFetchLimit_FetchReturnFalse()
         {
             var chain = await _blockchainService.GetChainAsync();
             var bestChainHash = chain.BestChainHash;
@@ -140,7 +140,7 @@ namespace AElf.OS.BlockSync.Application
         }
 
         [Fact]
-        public async Task SyncBlock_MoreThenFetchLimit_Success()
+        public async Task SyncByAnnounce_MoreThenFetchLimit_Success()
         {
             var chain = await _blockchainService.GetChainAsync();
 
@@ -159,10 +159,11 @@ namespace AElf.OS.BlockSync.Application
         }
 
         [Fact]
-        public async Task SyncBlock_Fetch_AttachAndExecuteQueueIsBusy()
+        public async Task SyncByAnnounce_Fetch_AttachAndExecuteQueueIsBusy()
         {
-            _blockSyncStateProvider.BlockSyncAttachAndExecuteBlockJobEnqueueTime = TimestampHelper.GetUtcNow()
-                .AddMilliseconds(-(BlockSyncConstants.BlockSyncAttachAndExecuteBlockAgeLimit + 100));
+            _blockSyncStateProvider.SetEnqueueTime(KernelConstants.UpdateChainQueueName,
+                TimestampHelper.GetUtcNow()
+                    .AddMilliseconds(-(BlockSyncConstants.BlockSyncAttachAndExecuteBlockAgeLimit + 100)));
 
             var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
 
@@ -179,10 +180,11 @@ namespace AElf.OS.BlockSync.Application
         }
 
         [Fact]
-        public async Task SyncBlock_Download_AttachAndExecuteQueueIsBusy()
+        public async Task SyncByAnnounce_Download_AttachAndExecuteQueueIsBusy()
         {
-            _blockSyncStateProvider.BlockSyncAttachAndExecuteBlockJobEnqueueTime = TimestampHelper.GetUtcNow()
-                .AddMilliseconds(-(BlockSyncConstants.BlockSyncAttachAndExecuteBlockAgeLimit + 100));
+            _blockSyncStateProvider.SetEnqueueTime(KernelConstants.UpdateChainQueueName,
+                TimestampHelper.GetUtcNow()
+                .AddMilliseconds(-(BlockSyncConstants.BlockSyncAttachAndExecuteBlockAgeLimit + 100)));
             
             var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
 
@@ -203,11 +205,11 @@ namespace AElf.OS.BlockSync.Application
         }
         
         [Fact]
-        public async Task SyncBlock_Fetch_AttachQueueIsBusy()
+        public async Task SyncByAnnounce_Fetch_AttachQueueIsBusy()
         {
-            _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime = TimestampHelper.GetUtcNow()
-                .AddMilliseconds(-(BlockSyncConstants.BlockSyncAttachBlockAgeLimit + 100));
-            
+            _blockSyncStateProvider.SetEnqueueTime(OSConstants.BlockSyncAttachQueueName,
+                TimestampHelper.GetUtcNow().AddMilliseconds(-(BlockSyncConstants.BlockSyncAttachBlockAgeLimit + 100)));
+
             var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
 
             var chain = await _blockchainService.GetChainAsync();
@@ -223,11 +225,11 @@ namespace AElf.OS.BlockSync.Application
         }
         
         [Fact]
-        public async Task SyncBlock_Download_AttachQueueIsBusy()
+        public async Task SyncByAnnounce_Download_AttachQueueIsBusy()
         {
-            _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime = TimestampHelper.GetUtcNow()
-                .AddMilliseconds(-(BlockSyncConstants.BlockSyncAttachBlockAgeLimit + 100));
-            
+            _blockSyncStateProvider.SetEnqueueTime(OSConstants.BlockSyncAttachQueueName,
+                TimestampHelper.GetUtcNow().AddMilliseconds(-(BlockSyncConstants.BlockSyncAttachBlockAgeLimit + 100)));
+
             var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
 
             var chain = await _blockchainService.GetChainAsync();

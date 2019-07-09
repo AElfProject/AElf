@@ -26,23 +26,20 @@ namespace AElf.OS.BlockSync.Application
         public bool IsQueueAvailable(string queueName)
         {
             bool isAvailable;
+            var enqueueTime = _blockSyncStateProvider.GetEnqueueTime(queueName);
             switch (queueName)
             {
                 case OSConstants.BlockFetchQueueName:
-                    isAvailable = CheckAgeLimit(_blockSyncStateProvider.BlockSyncFetchBlockEnqueueTime,
-                        BlockSyncConstants.BlockSyncFetchBlockAgeLimit);
+                    isAvailable = CheckAgeLimit(enqueueTime, BlockSyncConstants.BlockSyncFetchBlockAgeLimit);
                     break;
                 case OSConstants.BlockDownloadQueueName:
-                    isAvailable = CheckAgeLimit(_blockSyncStateProvider.BlockSyncDownloadBlockEnqueueTime,
-                        BlockSyncConstants.BlockSyncDownloadBlockAgeLimit);
+                    isAvailable = CheckAgeLimit(enqueueTime, BlockSyncConstants.BlockSyncDownloadBlockAgeLimit);
                     break;
                 case OSConstants.BlockSyncAttachQueueName:
-                    isAvailable = CheckAgeLimit(_blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime,
-                        BlockSyncConstants.BlockSyncAttachBlockAgeLimit);
+                    isAvailable = CheckAgeLimit(enqueueTime, BlockSyncConstants.BlockSyncAttachBlockAgeLimit);
                     break;
                 case KernelConstants.UpdateChainQueueName:
-                    isAvailable = CheckAgeLimit(_blockSyncStateProvider.BlockSyncAttachAndExecuteBlockJobEnqueueTime,
-                        BlockSyncConstants.BlockSyncAttachAndExecuteBlockAgeLimit);
+                    isAvailable = CheckAgeLimit(enqueueTime, BlockSyncConstants.BlockSyncAttachAndExecuteBlockAgeLimit);
                     break;
                 default:
                     throw new InvalidOperationException($"invalid queue name: {queueName}");
@@ -59,35 +56,15 @@ namespace AElf.OS.BlockSync.Application
                 try
                 {
                     Logger.LogTrace($"Execute block sync job: {queueName}, enqueue time: {enqueueTime}");
-                    SetEnqueueTimeByQueueName(queueName, enqueueTime);
+
+                    _blockSyncStateProvider.SetEnqueueTime(queueName, enqueueTime);
                     await task();
                 }
                 finally
                 {
-                    SetEnqueueTimeByQueueName(queueName, null);
+                    _blockSyncStateProvider.SetEnqueueTime(queueName, null);
                 }
             }, queueName);
-        }
-
-        private void SetEnqueueTimeByQueueName(string queueName, Timestamp enqueueTime)
-        {
-            switch (queueName)
-            {
-                case OSConstants.BlockFetchQueueName:
-                    _blockSyncStateProvider.BlockSyncFetchBlockEnqueueTime = enqueueTime;
-                    break;
-                case OSConstants.BlockDownloadQueueName:
-                    _blockSyncStateProvider.BlockSyncDownloadBlockEnqueueTime = enqueueTime;
-                    break;
-                case OSConstants.BlockSyncAttachQueueName:
-                    _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime = enqueueTime;
-                    break;
-                case KernelConstants.UpdateChainQueueName:
-                    _blockSyncStateProvider.BlockSyncAttachAndExecuteBlockJobEnqueueTime = enqueueTime;
-                    break;
-                default:
-                    throw new InvalidOperationException($"invalid queue name: {queueName}");
-            }
         }
 
         private bool CheckAgeLimit(Timestamp enqueueTime, long ageLimit)

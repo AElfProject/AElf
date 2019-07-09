@@ -25,7 +25,7 @@ namespace AElf.OS.BlockSync.Application
         }
 
         [Fact]
-        public async Task ValidateBeforeHandleAnnounceAsync_Success()
+        public async Task ValidateBeforeHandleAnnounce_Success()
         {
             var chain = await _blockchainService.GetChainAsync();
 
@@ -40,15 +40,15 @@ namespace AElf.OS.BlockSync.Application
         }
 
         [Fact]
-        public async Task ValidateBeforeHandleAnnounceAsync_FetchQueueIsBusy()
+        public async Task ValidateBeforeHandleAnnounce_FetchQueueIsBusy()
         {
             var chain = await _blockchainService.GetChainAsync();
 
             var syncBlockHash = Hash.FromString("SyncBlockHash");
             var syncBlockHeight = chain.LastIrreversibleBlockHeight + 1;
 
-            _blockSyncStateProvider.BlockSyncFetchBlockEnqueueTime = TimestampHelper.GetUtcNow()
-                .AddMilliseconds(-(BlockSyncConstants.BlockSyncFetchBlockAgeLimit + 100));
+            _blockSyncStateProvider.SetEnqueueTime(OSConstants.BlockFetchQueueName, TimestampHelper.GetUtcNow()
+                .AddMilliseconds(-(BlockSyncConstants.BlockSyncFetchBlockAgeLimit + 100)));
 
             var validateResult =
                 await _blockSyncValidationService.ValidateBeforeHandleAnnounceAsync(chain, syncBlockHash,
@@ -58,15 +58,15 @@ namespace AElf.OS.BlockSync.Application
         }
 
         [Fact]
-        public async Task ValidateBeforeHandleAnnounceAsync_DownloadQueueIsBusy()
+        public async Task ValidateBeforeHandleAnnounce_DownloadQueueIsBusy()
         {
             var chain = await _blockchainService.GetChainAsync();
 
             var syncBlockHash = Hash.FromString("SyncBlockHash");
             var syncBlockHeight = chain.LastIrreversibleBlockHeight + 1;
 
-            _blockSyncStateProvider.BlockSyncDownloadBlockEnqueueTime = TimestampHelper.GetUtcNow()
-                .AddMilliseconds(-(BlockSyncConstants.BlockSyncDownloadBlockAgeLimit + 100));
+            _blockSyncStateProvider.SetEnqueueTime(OSConstants.BlockDownloadQueueName,TimestampHelper.GetUtcNow()
+                .AddMilliseconds(-(BlockSyncConstants.BlockSyncDownloadBlockAgeLimit + 100)));
 
             var validateResult =
                 await _blockSyncValidationService.ValidateBeforeHandleAnnounceAsync(chain, syncBlockHash,
@@ -76,7 +76,7 @@ namespace AElf.OS.BlockSync.Application
         }
 
         [Fact]
-        public async Task ValidateBeforeHandleAnnounceAsync_AlreadySynchronized()
+        public async Task ValidateBeforeHandleAnnounce_AlreadySynchronized()
         {
             var chain = await _blockchainService.GetChainAsync();
 
@@ -93,7 +93,7 @@ namespace AElf.OS.BlockSync.Application
         }
 
         [Fact]
-        public async Task ValidateBeforeHandleAnnounceAsync_LessThenLIBHeight()
+        public async Task ValidateBeforeHandleAnnounce_LessThenLIBHeight()
         {
             var chain = await _blockchainService.GetChainAsync();
 
