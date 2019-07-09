@@ -245,5 +245,61 @@ namespace AElf.OS.BlockSync.Application
             chain.BestChainHash.ShouldBe(bestChainHash);
             chain.BestChainHeight.ShouldBe(bestChainHeight);
         }
+
+        [Fact]
+        public async Task SyncByBlock_Success()
+        {
+            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+
+            var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
+            block.ShouldBeNull();
+
+            await _blockSyncService.SyncByBlockAsync(peerBlock);
+
+            block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
+            block.GetHash().ShouldBe(peerBlock.GetHash());
+
+            var chain = await _blockchainService.GetChainAsync();
+            chain.BestChainHash.ShouldBe(peerBlock.GetHash());
+            chain.BestChainHeight.ShouldBe(peerBlock.Height);
+        }
+        
+        [Fact]
+        public async Task SyncByBlock_AttachQueueIsBusy()
+        {
+            _blockSyncStateProvider.BlockSyncAttachBlockEnqueueTime = TimestampHelper.GetUtcNow()
+                .AddMilliseconds(-(BlockSyncConstants.BlockSyncAttachBlockAgeLimit + 100));
+            
+            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+
+            var chain = await _blockchainService.GetChainAsync();
+            var bestChainHash = chain.BestChainHash;
+            var bestChainHeight = chain.BestChainHeight;
+            
+            await _blockSyncService.SyncByBlockAsync(peerBlock);
+            
+            chain = await _blockchainService.GetChainAsync();
+            chain.BestChainHash.ShouldBe(bestChainHash);
+            chain.BestChainHeight.ShouldBe(bestChainHeight);
+        }
+        
+        [Fact]
+        public async Task SyncByBlock_AttachAndExecuteQueueIsBusy()
+        {
+            _blockSyncStateProvider.BlockSyncAttachAndExecuteBlockJobEnqueueTime = TimestampHelper.GetUtcNow()
+                .AddMilliseconds(-(BlockSyncConstants.BlockSyncAttachAndExecuteBlockAgeLimit + 100));
+            
+            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+
+            var chain = await _blockchainService.GetChainAsync();
+            var bestChainHash = chain.BestChainHash;
+            var bestChainHeight = chain.BestChainHeight;
+            
+            await _blockSyncService.SyncByBlockAsync(peerBlock);
+
+            chain = await _blockchainService.GetChainAsync();
+            chain.BestChainHash.ShouldBe(bestChainHash);
+            chain.BestChainHeight.ShouldBe(bestChainHeight);
+        }
     }
 }
