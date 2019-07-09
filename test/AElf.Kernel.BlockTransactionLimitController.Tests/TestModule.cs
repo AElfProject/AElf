@@ -1,5 +1,5 @@
 using AElf.Contracts.TestKit;
-using Microsoft.Extensions.DependencyInjection;
+using AElf.Kernel.SmartContract;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.BlockTransactionLimitController.Tests
@@ -10,7 +10,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
     }
 }
