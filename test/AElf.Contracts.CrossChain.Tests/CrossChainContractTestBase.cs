@@ -34,10 +34,12 @@ namespace AElf.Contract.CrossChain.Tests
 
         protected long _totalSupply;
         protected long _balanceOfStarter;
+
         public CrossChainContractTestBase()
         {
             AsyncHelper.RunSync(() =>
-                Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply, out _,
+                Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply,
+                    out _,
                     out _balanceOfStarter)));
             CrossChainContractAddress = Tester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
@@ -45,7 +47,7 @@ namespace AElf.Contract.CrossChain.Tests
             ParliamentAddress = Tester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
         }
 
-        protected async Task ApproveBalance(long amount)
+        protected async Task ApproveBalanceAsync(long amount)
         {
             var callOwner = Address.FromPublicKey(Tester.KeyPair.PublicKey);
 
@@ -57,7 +59,8 @@ namespace AElf.Contract.CrossChain.Tests
                     Amount = amount
                 });
             approveResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            await Tester.CallContractMethodAsync(TokenContractAddress, nameof(TokenContractContainer.TokenContractStub.GetAllowance),
+            await Tester.CallContractMethodAsync(TokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.GetAllowance),
                 new GetAllowanceInput
                 {
                     Symbol = "ELF",
@@ -66,7 +69,8 @@ namespace AElf.Contract.CrossChain.Tests
                 });
         }
 
-        protected async Task InitializeCrossChainContract(long parentChainHeightOfCreation = 0, int parentChainId = 0)
+        protected async Task InitializeCrossChainContractAsync(long parentChainHeightOfCreation = 0,
+            int parentChainId = 0)
         {
             var crossChainInitializationTransaction = await Tester.GenerateTransactionAsync(CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub.Initialize), new InitializeInput
@@ -77,18 +81,17 @@ namespace AElf.Contract.CrossChain.Tests
             await Tester.MineAsync(new List<Transaction> {crossChainInitializationTransaction});
         }
 
-        protected async Task<int> InitAndCreateSideChain(long parentChainHeightOfCreation = 0, int parentChainId = 0, long lockedTokenAmount = 10)
+        protected async Task<int> InitAndCreateSideChainAsync(long parentChainHeightOfCreation = 0,
+            int parentChainId = 0, long lockedTokenAmount = 10)
         {
-            await InitializeCrossChainContract(parentChainHeightOfCreation, parentChainId);
+            await InitializeCrossChainContractAsync(parentChainHeightOfCreation, parentChainId);
+            await ApproveBalanceAsync(lockedTokenAmount);
+            var proposalId = await CreateSideChainProposalAsync(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test"));
+            await ApproveWithMinersAsync(proposalId);
 
-            await ApproveBalance(lockedTokenAmount);
-            var sideChainCreationRequest = CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test"));
-            var requestTxResult =await ExecuteContractWithMiningAsync(CrossChainContractAddress,
-                nameof(CrossChainContractContainer.CrossChainContractStub.RequestChainCreation),
-                sideChainCreationRequest);
-            await ApproveWithMiners(RequestChainCreationOutput.Parser.ParseFrom(requestTxResult.ReturnValue).ProposalId);
-            var chainId = ChainHelper.GetChainId(1);
-            
+            var transactionResult = await ReleaseProposalAsync(proposalId);
+            var chainId = CreationRequested.Parser.ParseFrom(transactionResult.Logs[0].NonIndexed).ChainId;
+
             return chainId;
         }
 
@@ -96,20 +99,22 @@ namespace AElf.Contract.CrossChain.Tests
         {
             return await Tester.MineAsync(txs);
         }
-        
-        protected  async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress, string methodName, IMessage input)
+
+        protected async Task<TransactionResult> ExecuteContractWithMiningAsync(Address contractAddress,
+            string methodName, IMessage input)
         {
             return await Tester.ExecuteContractWithMiningAsync(contractAddress, methodName, input);
         }
 
-        protected async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName, ECKeyPair ecKeyPair, IMessage input)
+        protected async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName,
+            ECKeyPair ecKeyPair, IMessage input)
         {
             return ecKeyPair == null
                 ? await Tester.GenerateTransactionAsync(contractAddress, methodName, input)
                 : await Tester.GenerateTransactionAsync(contractAddress, methodName, ecKeyPair, input);
         }
 
-        protected async Task<TransactionResult> GetTransactionResult(Hash txId)
+        protected async Task<TransactionResult> GetTransactionResultAsync(Hash txId)
         {
             return await Tester.GetTransactionResultAsync(txId);
         }
@@ -128,7 +133,8 @@ namespace AElf.Contract.CrossChain.Tests
             return bytes.Skip(Array.FindIndex(bytes, Convert.ToBoolean)).ToArray();
         }
 
-        internal SideChainCreationRequest CreateSideChainCreationRequest(long indexingPrice, long lockedTokenAmount, ByteString contractCode, IEnumerable<ResourceTypeBalancePair> resourceTypeBalancePairs = null)
+        internal SideChainCreationRequest CreateSideChainCreationRequest(long indexingPrice, long lockedTokenAmount,
+            ByteString contractCode, IEnumerable<ResourceTypeBalancePair> resourceTypeBalancePairs = null)
         {
             var res = new SideChainCreationRequest
             {
@@ -142,7 +148,52 @@ namespace AElf.Contract.CrossChain.Tests
             return res;
         }
 
-        protected async Task ApproveWithMiners(Hash proposalId)
+        internal async Task<Hash> CreateSideChainProposalAsync(long indexingPrice, long lockedTokenAmount,
+            ByteString contractCode, IEnumerable<ResourceTypeBalancePair> resourceTypeBalancePairs = null)
+        {
+            var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount, contractCode);
+            var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
+                    ParliamentAddress,
+                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetGenesisOwnerAddress),
+                    new Empty()))
+                .ReturnValue);
+            var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
+                new CreateProposalInput
+                {
+                    ContractMethodName = "CreateSideChain",
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                    Params = createProposalInput.ToByteString(),
+                    ToAddress = CrossChainContractAddress,
+                    OrganizationAddress = organizationAddress
+                });
+            var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
+            return proposalId;
+        }
+
+        internal async Task<Hash> DisposalSideChainProposalAsync(SInt32Value chainId)
+        {
+            var disposalInput = chainId;
+            var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
+                    ParliamentAddress,
+                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetGenesisOwnerAddress),
+                    new Empty()))
+                .ReturnValue);
+            var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
+                new CreateProposalInput
+                {
+                    ContractMethodName = "DisposeSideChain",
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                    Params = disposalInput.ToByteString(),
+                    ToAddress = CrossChainContractAddress,
+                    OrganizationAddress = organizationAddress
+                });
+            var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
+            return proposalId;
+        }
+
+        protected async Task ApproveWithMinersAsync(Hash proposalId)
         {
             var approveTransaction1 = await GenerateTransactionAsync(ParliamentAddress,
                 nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve), Tester.InitialMinerList[0],
@@ -151,32 +202,19 @@ namespace AElf.Contract.CrossChain.Tests
                     ProposalId = proposalId
                 });
             var approveTransaction2 = await GenerateTransactionAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve), Tester.InitialMinerList[1], new Acs3.ApproveInput
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Approve), Tester.InitialMinerList[1],
+                new Acs3.ApproveInput
                 {
                     ProposalId = proposalId
                 });
             await Tester.MineAsync(new List<Transaction> {approveTransaction1, approveTransaction2});
         }
 
-        protected async Task<Hash> CreateProposal(int chainId, string methodName)
+        protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId)
         {
-            var createProposalInput = new SInt32Value
-            {
-                Value = chainId
-            };
-            var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetDefaultOrganizationAddress), new Empty())).ReturnValue);
-            var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal), new CreateProposalInput
-                {
-                    ContractMethodName = methodName,
-                    ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                    Params = createProposalInput.ToByteString(),
-                    ToAddress = CrossChainContractAddress,
-                    OrganizationAddress = organizationAddress
-                });
-            var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
-            return proposalId;
+            var transactionResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Release), proposalId);
+            return transactionResult;
         }
     }
 }

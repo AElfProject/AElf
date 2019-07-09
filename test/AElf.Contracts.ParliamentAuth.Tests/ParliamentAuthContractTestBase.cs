@@ -1,20 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using Acs3;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
-using AElf.OS.Node.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -32,10 +28,8 @@ namespace AElf.Contracts.ParliamentAuth
         protected byte[] TokenContractCoe => Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
         protected byte[] ParliamentAuthCode => Codes.Single(kv => kv.Key.Contains("Parliament")).Value;
         protected byte[] DPoSConsensusCode => Codes.Single(kv => kv.Key.Contains("Consensus.AEDPoS")).Value;
-        
-        protected DateTime BlockchainStartTimestamp => DateTime.Parse("2019-01-01 00:00:00.000").ToUniversalTime();
 
-        protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
+        protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[10];
         protected ECKeyPair TesterKeyPair => SampleECKeyPairs.KeyPairs[MinersCount + 1];
         protected List<ECKeyPair> InitialMinersKeyPairs => SampleECKeyPairs.KeyPairs.Take(MinersCount).ToList();
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
@@ -49,7 +43,6 @@ namespace AElf.Contracts.ParliamentAuth
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
 
-//        internal BasicContractZeroContainer BasicContractZeroStub { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractStub ConsensusContractStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthContractStub { get; set; }
@@ -62,36 +55,35 @@ namespace AElf.Contracts.ParliamentAuth
 
         protected void InitializeContracts()
         {
-//            BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
-
             //deploy parliamentAuth contract
             ParliamentAuthContractAddress = AsyncHelper.RunSync(() =>
                 DeploySystemSmartContract(
                     KernelConstants.CodeCoverageRunnerCategory,
                     ParliamentAuthCode,
-                    Hash.FromString("AElf.ContractNames.ParliamentAuth"),
+                    ParliamentAuthSmartContractAddressNameProvider.Name,
                     DefaultSenderKeyPair
                 ));
             ParliamentAuthContractStub = GetParliamentAuthContractTester(DefaultSenderKeyPair);
-            AsyncHelper.RunSync(async () => await InitializationParliamentAuth());
 
             var otherParliamentAuthContractAddress = AsyncHelper.RunSync(() =>
                 DeployContractAsync(
                     KernelConstants.CodeCoverageRunnerCategory,
                     ParliamentAuthCode,
+                    Hash.FromString("ParliamentAuth"),
                     DefaultSenderKeyPair));
-            OtherParliamentAuthContractStub = GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(otherParliamentAuthContractAddress, DefaultSenderKeyPair);
-            
+            OtherParliamentAuthContractStub =
+                GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(
+                    otherParliamentAuthContractAddress, DefaultSenderKeyPair);
+
             //deploy token contract
             TokenContractAddress = AsyncHelper.RunSync(() =>
                 DeploySystemSmartContract(
-
                     KernelConstants.CodeCoverageRunnerCategory,
                     TokenContractCoe,
                     TokenSmartContractAddressNameProvider.Name,
                     DefaultSenderKeyPair));
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
-            AsyncHelper.RunSync(async () => await InitializeToken());
+            AsyncHelper.RunSync(async () => await InitializeTokenAsync());
 
             ConsensusContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
@@ -99,10 +91,10 @@ namespace AElf.Contracts.ParliamentAuth
                 ConsensusSmartContractAddressNameProvider.Name,
                 DefaultSenderKeyPair));
             ConsensusContractStub = GetConsensusContractTester(DefaultSenderKeyPair);
-            AsyncHelper.RunSync(async () => await InitializeConsensus());
+            AsyncHelper.RunSync(async () => await InitializeConsensusAsync());
         }
-        
-        
+
+
         internal ACS0Container.ACS0Stub GetContractZeroTester(ECKeyPair keyPair)
         {
             return GetTester<ACS0Container.ACS0Stub>(ContractZeroAddress, keyPair);
@@ -125,23 +117,7 @@ namespace AElf.Contracts.ParliamentAuth
                 keyPair);
         }
 
-        private async Task InitializationParliamentAuth()
-        {
-            await ParliamentAuthContractStub.Initialize.SendAsync(new Empty());
-        }
-//        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateParliamentAuthInitializationCallList()
-//        {
-//            var parliamentMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-//            parliamentMethodCallList.Add(nameof(ParliamentAuthContractStub.Initialize),
-//                new ParliamentAuthInitializationInput
-//                {
-//                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
-//                });
-//
-//            return parliamentMethodCallList;
-//        }
-
-        private async Task InitializeToken()
+        private async Task InitializeTokenAsync()
         {
             const string symbol = "ELF";
             const long totalSupply = 100_000_000;
@@ -162,53 +138,65 @@ namespace AElf.Contracts.ParliamentAuth
                 Memo = "Issue token to default user.",
             });
         }
-//        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
-//        {
-//            const string symbol = "ELF";
-//            const long totalSupply = 100_000_000;
-//            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-//            tokenContractCallList.Add(nameof(TokenContractStub.CreateNativeToken), new CreateNativeTokenInput
-//            {
-//                Symbol = symbol,
-//                Decimals = 2,
-//                IsBurnable = true,
-//                TokenName = "elf token",
-//                TotalSupply = totalSupply,
-//                Issuer = DefaultSender,
-//            });
-//
-//            //issue default user
-//            tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
-//            {
-//                Symbol = symbol,
-//                Amount = totalSupply - 20 * 100_000L,
-//                To = DefaultSender,
-//                Memo = "Issue token to default user.",
-//            });
-//            return tokenContractCallList;
-//        }
-        private async Task InitializeConsensus()
+
+        private async Task InitializeConsensusAsync()
         {
             await ConsensusContractStub.InitialAElfConsensusContract.SendAsync(new InitialAElfConsensusContractInput
             {
                 IsTermStayOne = true
             });
-            var minerList = new MinerList {Pubkeys = {InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex().ToByteString())}};
-            await ConsensusContractStub.FirstRound.SendAsync(minerList.GenerateFirstRoundOfNewTerm(MiningInterval, BlockchainStartTime));
+            var minerList = new MinerList
+                {Pubkeys = {InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex().ToByteString())}};
+            await ConsensusContractStub.FirstRound.SendAsync(
+                minerList.GenerateFirstRoundOfNewTerm(MiningInterval, BlockchainStartTime));
         }
-//        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateConsensusInitializationCallList()
-//        {
-//            var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-//            consensusMethodCallList.Add(nameof(AEDPoSContract.InitialAElfConsensusContract),
-//                new InitialAElfConsensusContractInput
-//                {
-//                    IsTermStayOne = true
-//                });
-//            consensusMethodCallList.Add(nameof(AEDPoSContract.FirstRound),
-//                InitialMinersKeyPairs.Select(m => m.PublicKey.ToHex()).ToList().ToMiners().GenerateFirstRoundOfNewTerm(
-//                    MiningInterval, BlockchainStartTime));
-//            
-//            return consensusMethodCallList;
-//        }
+    }
+
+    public class ParliamentAuthContractPrivilegeTestBase : TestBase.ContractTestBase<ParliamentAuthContractPrivilegeTestAElfModule>
+    {
+        protected Address ParliamentAddress;
+        protected Address BasicContractZeroAddress;
+        protected Address TokenContractAddress;
+
+        protected long TotalSupply;
+        protected long BalanceOfStarter;
+        protected bool IsPrivilegePreserved;
+
+        public ParliamentAuthContractPrivilegeTestBase()
+        {
+            AsyncHelper.RunSync(() =>
+                Tester.InitialChainAsyncWithAuthAsync(Tester.GetSideChainSystemContractDtos(
+                    Tester.GetCallOwnerAddress(), out TotalSupply,
+                    out _,
+                    out BalanceOfStarter, Tester.GetCallOwnerAddress(), out IsPrivilegePreserved)));
+            BasicContractZeroAddress = Tester.GetZeroContractAddress();
+            ParliamentAddress = Tester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
+            TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
+        }
+
+        internal TransferInput TransferInput(Address address)
+        {
+            var transferInput = new TransferInput
+            {
+                Symbol = "ELF",
+                Amount = 100,
+                To = address,
+                Memo = "Transfer"
+            };
+            return transferInput;
+        }
+
+        internal CreateProposalInput CreateProposalInput(IMessage input, Address organizationAddress)
+        {
+            var createProposalInput = new CreateProposalInput
+            {
+                ContractMethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+                ExpiredTime = DateTime.UtcNow.AddDays(1).ToTimestamp(),
+                Params = input.ToByteString(),
+                ToAddress = TokenContractAddress,
+                OrganizationAddress = organizationAddress
+            };
+            return createProposalInput;
+        }
     }
 }
