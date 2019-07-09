@@ -29,26 +29,26 @@ service BadContract {
 }
 
 message DoubleInput {
-    double DoubleValue = 1;
+    double double_value = 1;
 }
 
 message FloatInput {
-    float FloatValue = 1;
+    float float_value = 1;
 }
 
 message RandomOutput {
-    int32 RandomValue = 1;
+    int32 random_value = 1;
 }
 
 message DateTimeOutput {
-    google.protobuf.Timestamp DateTimeValue = 1;
+    google.protobuf.Timestamp date_time_value = 1;
 }
 
 message FileInfoInput {
-    string FilePath = 1;
-    string FileContent = 2;
+    string file_path = 1;
+    string file_content = 2;
 }
 
 message InitLargeStringDynamicInput {
-    int32 StringSizeValue = 1;
+    int32 string_size_value = 1;
 }
