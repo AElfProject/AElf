@@ -31,8 +31,8 @@ namespace AElf.Contracts.Profit
     public partial class ProfitContract : ProfitContractContainer.ProfitContractBase
     {
         /// <summary>
-        /// Create a ProfitItem
-        /// At the first time,the profitItem's id is unknown,it may create by transaction id and createdSchemeIds;
+        /// Create a Scheme of profit distribution.
+        /// At the first time,the scheme's id is unknown,it may create by transaction id and createdSchemeIds;
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -64,6 +64,7 @@ namespace AElf.Contracts.Profit
                 // The address of general ledger for current profit item.
                 VirtualAddress = Context.ConvertVirtualAddressToContractAddress(schemeId),
                 Creator = Context.Sender,
+                Sponsor = input.Sponsor == null ? Context.Sender : input.Sponsor,
                 ProfitReceivingDuePeriodCount = input.ProfitReceivingDuePeriodCount,
                 CurrentPeriod = 1,
                 IsReleaseAllBalanceEveryTimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault,
@@ -92,6 +93,7 @@ namespace AElf.Contracts.Profit
             {
                 SchemeId = scheme.SchemeId,
                 Creator = scheme.Creator,
+                Sponsor = scheme.Sponsor,
                 IsReleaseAllBalanceEveryTimeByDefault = scheme.IsReleaseAllBalanceEveryTimeByDefault,
                 ProfitReceivingDuePeriodCount = scheme.ProfitReceivingDuePeriodCount,
                 VirtualAddress = scheme.VirtualAddress
@@ -100,8 +102,7 @@ namespace AElf.Contracts.Profit
         }
 
         /// <summary>
-        /// Register a SubProfitItem,binding to a ProfitItem as child.
-        /// Then add the father ProfitItem's Shares.
+        /// Add a child to a existed scheme.
         /// </summary>
         /// <param name="input">RemoveSubSchemeInput</param>
         /// <returns></returns>
@@ -118,18 +119,18 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
 
-            Assert(Context.Sender == scheme.Creator, "Only creator can do the registration.");
+            Assert(Context.Sender == scheme.Sponsor, "Only sponsor can add sub-scheme.");
 
-            var subProfitItemId = input.SubSchemeId;
-            var subProfitItem = State.SchemeInfos[subProfitItemId];
-            Assert(subProfitItem != null, "Sub profit item not found.");
+            var subSchemeId = input.SubSchemeId;
+            var subScheme = State.SchemeInfos[subSchemeId];
+            Assert(subScheme != null, "Sub profit item not found.");
 
-            if (subProfitItem == null)
+            if (subScheme == null)
             {
                 return new Empty();
             }
 
-            var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItemId);
+            var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeId);
             AddBeneficiary(new AddBeneficiaryInput
             {
                 SchemeId = input.SchemeId,
@@ -157,35 +158,26 @@ namespace AElf.Contracts.Profit
         {
             Assert(input.SchemeId != input.SubSchemeId, "Two profit items cannot be same.");
 
-            var profitItem = State.SchemeInfos[input.SchemeId];
-            Assert(profitItem != null, "Profit item not found.");
+            var scheme = State.SchemeInfos[input.SchemeId];
+            Assert(scheme != null, "Profit item not found.");
+            if (scheme == null) return new Empty();
 
-            if (profitItem == null)
-            {
-                return new Empty();
-            }
+            Assert(Context.Sender == scheme.Sponsor, "Only sponsor can remove sub-scheme.");
 
-            Assert(input.SubItemCreator == profitItem.Creator, "Only creator can do the Cancel.");
+            var subSchemeId = input.SubSchemeId;
+            var subScheme = State.SchemeInfos[subSchemeId];
+            Assert(subScheme != null, "Sub profit item not found.");
+            if (subScheme == null) return new Empty();
 
-            var subProfitItemId = input.SubSchemeId;
-            var subProfitItem = State.SchemeInfos[subProfitItemId];
-            Assert(subProfitItem != null, "Sub profit item not found.");
-
-            if (subProfitItem == null)
-            {
-                return new Empty();
-            }
-
-            var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItemId);
+            var subSchemeVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeId);
             RemoveBeneficiary(new RemoveBeneficiaryInput
             {
                 SchemeId = input.SchemeId,
-                Beneficiary = subItemVirtualAddress
+                Beneficiary = subSchemeVirtualAddress
             });
 
-
-            profitItem.SubSchemes.Remove(profitItem.SubSchemes.Single(d => d.SchemeId == input.SubSchemeId));
-            State.SchemeInfos[input.SchemeId] = profitItem;
+            scheme.SubSchemes.Remove(scheme.SubSchemes.Single(d => d.SchemeId == input.SubSchemeId));
+            State.SchemeInfos[input.SchemeId] = scheme;
 
             return new Empty();
         }
@@ -206,13 +198,9 @@ namespace AElf.Contracts.Profit
             var scheme = State.SchemeInfos[schemeId];
 
             Assert(scheme != null, "Profit item not found.");
-
-            if (scheme == null)
-            {
-                return new Empty();
-            }
+            if (scheme == null) return new Empty();
             
-            Assert(Context.Sender == scheme.Creator, "Only creator can add beneficiary.");
+            Assert(Context.Sender == scheme.Sponsor, "Only sponsor can add beneficiary.");
 
             Context.LogDebug(() =>
                 $"{input.SchemeId}.\n End Period: {input.EndPeriod}, Current Period: {scheme.CurrentPeriod}");
@@ -264,24 +252,20 @@ namespace AElf.Contracts.Profit
             Assert(input.SchemeId != null, "Invalid profit id.");
             Assert(input.Beneficiary != null, "Invalid Beneficiary address.");
 
-            var profitItem = State.SchemeInfos[input.SchemeId];
+            var scheme = State.SchemeInfos[input.SchemeId];
 
-            Assert(profitItem != null, "Profit item not found.");
-
+            Assert(scheme != null, "Profit item not found.");
+            
             var currentDetail = State.ProfitDetailsMap[input.SchemeId][input.Beneficiary];
 
-            if (profitItem == null || currentDetail == null)
-            {
-                return new Empty();
-            }
+            if (scheme == null || currentDetail == null) return new Empty();
+
+            Assert(Context.Sender == scheme.Sponsor, "Only sponsor can remove beneficiary.");
 
             var expiryDetails = currentDetail.Details
-                .Where(d => d.EndPeriod < profitItem.CurrentPeriod).ToList();
+                .Where(d => d.EndPeriod < scheme.CurrentPeriod).ToList();
 
-            if (!expiryDetails.Any())
-            {
-                return new Empty();
-            }
+            if (!expiryDetails.Any()) return new Empty();
 
             var shares = expiryDetails.Sum(d => d.Shares);
             foreach (var profitDetail in expiryDetails)
@@ -301,8 +285,8 @@ namespace AElf.Contracts.Profit
 //                State.ProfitDetailsMap[input.SchemeId][input.Beneficiary] = null;
 //            }
 
-            profitItem.TotalShares -= shares;
-            State.SchemeInfos[input.SchemeId] = profitItem;
+            scheme.TotalShares -= shares;
+            State.SchemeInfos[input.SchemeId] = scheme;
 
             return new Empty();
         }
@@ -352,11 +336,11 @@ namespace AElf.Contracts.Profit
             Assert(scheme != null, "Profit item not found.");
             if (scheme == null) return new Empty(); // Just to avoid IDE warning.
 
-            Assert(Context.Sender == scheme.Creator, "Only creator can release profits.");
+            Assert(Context.Sender == scheme.Sponsor, "Only sponsor can distribute profits.");
 
             if (scheme.IsReleaseAllBalanceEveryTimeByDefault && input.Amount == 0)
             {
-                // Release all from general ledger.
+                // Distribute all from general ledger.
                 if (State.TokenContract.Value == null)
                 {
                     State.TokenContract.Value =
@@ -394,7 +378,7 @@ namespace AElf.Contracts.Profit
                 $"Invalid period. When release profit item {input.SchemeId.ToHex()} of period {input.Period}. Current period is {releasingPeriod}");
 
             var profitsReceivingVirtualAddress =
-                GetReleasedPeriodProfitsVirtualAddress(scheme.VirtualAddress, releasingPeriod);
+                GetDistributedPeriodProfitsVirtualAddress(scheme.VirtualAddress, releasingPeriod);
 
             if (input.Period < 0 || totalShares <= 0)
             {
@@ -403,13 +387,13 @@ namespace AElf.Contracts.Profit
 
             Context.LogDebug(() => $"Receiving virtual address: {profitsReceivingVirtualAddress}");
 
-            var releasedProfitInformation = UpdateReleasedProfits(input, profitsReceivingVirtualAddress, totalShares);
+            var distributedProfitInformation = UpdateDistributedProfits(input, profitsReceivingVirtualAddress, totalShares);
 
             Context.LogDebug(() =>
-                $"Released profit information of {input.SchemeId.ToHex()} in period {input.Period}, " +
-                $"total Shares {releasedProfitInformation.TotalShares}, total amount {releasedProfitInformation.ProfitsAmount} {input.Symbol}s");
+                $"Distributed profit information of {input.SchemeId.ToHex()} in period {input.Period}, " +
+                $"total Shares {distributedProfitInformation.TotalShares}, total amount {distributedProfitInformation.ProfitsAmount} {input.Symbol}s");
 
-            PerformReleaseProfits(input, scheme, totalShares, profitsReceivingVirtualAddress);
+            PerformDistributeProfits(input, scheme, totalShares, profitsReceivingVirtualAddress);
 
             scheme.CurrentPeriod = input.Period.Add(1);
             scheme.UndistributedProfits[input.Symbol] = scheme.IsReleaseAllBalanceEveryTimeByDefault
@@ -433,7 +417,7 @@ namespace AElf.Contracts.Profit
                 Symbol = input.Symbol
             }).Balance;
 
-            // Release to an address that no one can receive this amount of profits.
+            // Distribute profits to an address that no one can receive this amount of profits.
             if (input.Amount.Add(balance) == 0)
             {
                 State.SchemeInfos[input.SchemeId] = scheme;
@@ -484,7 +468,7 @@ namespace AElf.Contracts.Profit
             return new Empty();
         }
 
-        private DistributedProfitsInfo UpdateReleasedProfits(DistributeProfitsInput input,
+        private DistributedProfitsInfo UpdateDistributedProfits(DistributeProfitsInput input,
             Address profitsReceivingVirtualAddress, long totalShares)
         {
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
@@ -492,10 +476,10 @@ namespace AElf.Contracts.Profit
                 Owner = profitsReceivingVirtualAddress,
                 Symbol = input.Symbol
             }).Balance;
-            var releasedProfitInformation = State.DistributedProfitsMap[profitsReceivingVirtualAddress];
-            if (releasedProfitInformation == null)
+            var distributedPoriftsInformation = State.DistributedProfitsMap[profitsReceivingVirtualAddress];
+            if (distributedPoriftsInformation == null)
             {
-                releasedProfitInformation = new DistributedProfitsInfo
+                distributedPoriftsInformation = new DistributedProfitsInfo
                 {
                     TotalShares = totalShares,
                     ProfitsAmount = {{input.Symbol, input.Amount.Add(balance)}},
@@ -505,21 +489,21 @@ namespace AElf.Contracts.Profit
             else
             {
                 // This means someone used `DistributeProfits` do donate to the specific account period of current profit item.
-                releasedProfitInformation.TotalShares = totalShares;
-                releasedProfitInformation.ProfitsAmount[input.Symbol] = balance.Add(input.Amount);
-                releasedProfitInformation.IsReleased = true;
+                distributedPoriftsInformation.TotalShares = totalShares;
+                distributedPoriftsInformation.ProfitsAmount[input.Symbol] = balance.Add(input.Amount);
+                distributedPoriftsInformation.IsReleased = true;
             }
 
-            State.DistributedProfitsMap[profitsReceivingVirtualAddress] = releasedProfitInformation;
-            return releasedProfitInformation;
+            State.DistributedProfitsMap[profitsReceivingVirtualAddress] = distributedPoriftsInformation;
+            return distributedPoriftsInformation;
         }
 
-        private void PerformReleaseProfits(DistributeProfitsInput input, Scheme scheme, long TotalShares,
+        private void PerformDistributeProfits(DistributeProfitsInput input, Scheme scheme, long TotalShares,
             Address profitsReceivingVirtualAddress)
         {
             var remainAmount = input.Amount;
 
-            remainAmount = ReleaseProfitsForSubProfitItems(input, scheme, TotalShares, remainAmount);
+            remainAmount = DistributeProfitsForSubSchemes(input, scheme, TotalShares, remainAmount);
 
             // Transfer remain amount to individuals' receiving profits address.
             if (remainAmount != 0)
@@ -534,18 +518,18 @@ namespace AElf.Contracts.Profit
             }
         }
 
-        private long ReleaseProfitsForSubProfitItems(DistributeProfitsInput input, Scheme scheme, long TotalShares,
+        private long DistributeProfitsForSubSchemes(DistributeProfitsInput input, Scheme scheme, long TotalShares,
             long remainAmount)
         {
             Context.LogDebug(() => $"Sub profit items count: {scheme.SubSchemes.Count}");
-            foreach (var subProfitItem in scheme.SubSchemes)
+            foreach (var subScheme in scheme.SubSchemes)
             {
-                Context.LogDebug(() => $"Releasing {subProfitItem.SchemeId}");
+                Context.LogDebug(() => $"Releasing {subScheme.SchemeId}");
 
                 // General ledger of this sub profit item.
-                var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subProfitItem.SchemeId);
+                var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subScheme.SchemeId);
 
-                var amount = subProfitItem.Shares.Mul(input.Amount).Div(TotalShares);
+                var amount = subScheme.Shares.Mul(input.Amount).Div(TotalShares);
                 if (amount != 0)
                 {
                     State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -559,7 +543,7 @@ namespace AElf.Contracts.Profit
 
                 remainAmount -= amount;
 
-                UpdateSubProfitItemInformation(input, subProfitItem, amount);
+                UpdateSubSchemeInformation(input, subScheme, amount);
 
                 // Update current_period of detail of sub profit item.
                 var subItemDetail = State.ProfitDetailsMap[input.SchemeId][subItemVirtualAddress];
@@ -574,10 +558,10 @@ namespace AElf.Contracts.Profit
             return remainAmount;
         }
 
-        private void UpdateSubProfitItemInformation(DistributeProfitsInput input, SchemeBeneficiaryShare subProfitItem,
+        private void UpdateSubSchemeInformation(DistributeProfitsInput input, SchemeBeneficiaryShare subScheme,
             long amount)
         {
-            var subItem = State.SchemeInfos[subProfitItem.SchemeId];
+            var subItem = State.SchemeInfos[subScheme.SchemeId];
             if (subItem.UndistributedProfits.ContainsKey(input.Symbol))
             {
                 subItem.UndistributedProfits[input.Symbol] =
@@ -588,7 +572,7 @@ namespace AElf.Contracts.Profit
                 subItem.UndistributedProfits.Add(input.Symbol, amount);
             }
 
-            State.SchemeInfos[subProfitItem.SchemeId] = subItem;
+            State.SchemeInfos[subScheme.SchemeId] = subItem;
         }
 
         public override Empty ContributeProfits(ContributeProfitsInput input)
@@ -596,9 +580,9 @@ namespace AElf.Contracts.Profit
             Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
             if (input.Symbol == null) return new Empty(); // Just to avoid IDE warning.
 
-            var profitItem = State.SchemeInfos[input.SchemeId];
-            Assert(profitItem != null, "Profit item not found.");
-            if (profitItem == null) return new Empty(); // Just to avoid IDE warning.
+            var scheme = State.SchemeInfos[input.SchemeId];
+            Assert(scheme != null, "Profit item not found.");
+            if (scheme == null) return new Empty(); // Just to avoid IDE warning.
 
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
@@ -612,56 +596,70 @@ namespace AElf.Contracts.Profit
                     Amount = input.Amount,
                     Memo = $"Add {input.Amount} dividends for {input.SchemeId}."
                 });
-                if (!profitItem.UndistributedProfits.ContainsKey(input.Symbol))
+                if (!scheme.UndistributedProfits.ContainsKey(input.Symbol))
                 {
-                    profitItem.UndistributedProfits.Add(input.Symbol, input.Amount);
+                    scheme.UndistributedProfits.Add(input.Symbol, input.Amount);
                 }
                 else
                 {
-                    profitItem.UndistributedProfits[input.Symbol] =
-                        profitItem.UndistributedProfits[input.Symbol].Add(input.Amount);
+                    scheme.UndistributedProfits[input.Symbol] =
+                        scheme.UndistributedProfits[input.Symbol].Add(input.Amount);
                 }
 
-                State.SchemeInfos[input.SchemeId] = profitItem;
+                State.SchemeInfos[input.SchemeId] = scheme;
             }
             else
             {
-                var releasedProfitsVirtualAddress =
-                    GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
+                var distributedPeriodProfitsVirtualAddress =
+                    GetDistributedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
 
-                var releasedProfitsInformation = State.DistributedProfitsMap[releasedProfitsVirtualAddress];
-                if (releasedProfitsInformation == null)
+                var distributedProfitsInformation = State.DistributedProfitsMap[distributedPeriodProfitsVirtualAddress];
+                if (distributedProfitsInformation == null)
                 {
-                    releasedProfitsInformation = new DistributedProfitsInfo
+                    distributedProfitsInformation = new DistributedProfitsInfo
                     {
                         ProfitsAmount = {{input.Symbol, input.Amount}}
                     };
                 }
                 else
                 {
-                    Assert(!releasedProfitsInformation.IsReleased,
+                    Assert(!distributedProfitsInformation.IsReleased,
                         $"Profit item of period {input.Period} already released.");
-                    releasedProfitsInformation.ProfitsAmount[input.Symbol] =
-                        releasedProfitsInformation.ProfitsAmount[input.Symbol].Add(input.Amount);
+                    distributedProfitsInformation.ProfitsAmount[input.Symbol] =
+                        distributedProfitsInformation.ProfitsAmount[input.Symbol].Add(input.Amount);
                 }
 
                 State.TokenContract.TransferFrom.Send(new TransferFromInput
                 {
                     From = Context.Sender,
-                    To = releasedProfitsVirtualAddress,
+                    To = distributedPeriodProfitsVirtualAddress,
                     Symbol = input.Symbol,
                     Amount = input.Amount,
                     Memo = $"Add dividends for {input.SchemeId} (period {input.Period})."
                 });
 
-                State.DistributedProfitsMap[releasedProfitsVirtualAddress] = releasedProfitsInformation;
+                State.DistributedProfitsMap[distributedPeriodProfitsVirtualAddress] = distributedProfitsInformation;
             }
 
             return new Empty();
         }
 
+        public override Empty ResetSponsor(ResetSponsorInput input)
+        {
+            var scheme = State.SchemeInfos[input.SchemeId];
+            Assert(scheme != null, "Profit item not found.");
+            if (scheme == null) return new Empty(); // Just to avoid IDE warning.
+
+            Assert(Context.Sender == scheme.Creator, "Only scheme creator can reset sponsor.");
+            Assert(input.NewSponsor.Value.Any(), "Invalid new sponsor.");
+
+            scheme.Sponsor = input.NewSponsor;
+            State.SchemeInfos[input.SchemeId] = scheme;
+            return new Empty();
+        }
+
         /// <summary>
-        /// Gain the profit form SchemeId from Details.lastPeriod to profitItem.currentPeriod-1;
+        /// Gain the profit form SchemeId from Details.lastPeriod to scheme.currentPeriod - 1;
         /// </summary>
         /// <param name="input">ClaimProfitsInput</param>
         /// <returns></returns>
@@ -669,11 +667,11 @@ namespace AElf.Contracts.Profit
         {
             Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
             if (input.Symbol == null) return new Empty(); // Just to avoid IDE warning.
-            var profitItem = State.SchemeInfos[input.SchemeId];
-            Assert(profitItem != null, "Profit item not found.");
+            var scheme = State.SchemeInfos[input.SchemeId];
+            Assert(scheme != null, "Profit item not found.");
             var profitDetails = State.ProfitDetailsMap[input.SchemeId][Context.Sender];
             Assert(profitDetails != null, "Profit details not found.");
-            if (profitDetails == null || profitItem == null) return new Empty(); // Just to avoid IDE warning.
+            if (profitDetails == null || scheme == null) return new Empty(); // Just to avoid IDE warning.
 
             Context.LogDebug(
                 () => $"{Context.Sender} is trying to profit {input.Symbol} from {input.SchemeId.ToHex()}.");
@@ -681,7 +679,7 @@ namespace AElf.Contracts.Profit
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
             var availableDetails = profitDetails.Details.Where(d =>
-                d.LastProfitPeriod < profitItem.CurrentPeriod && d.EndPeriod >= d.LastProfitPeriod
+                d.LastProfitPeriod < scheme.CurrentPeriod && d.EndPeriod >= d.LastProfitPeriod
             ).ToList();
 
             Context.LogDebug(() =>
@@ -700,7 +698,7 @@ namespace AElf.Contracts.Profit
                     profitDetail.LastProfitPeriod = profitDetail.StartPeriod;
                 }
 
-                ProfitAllPeriods(profitItem, input.Symbol, profitDetail, profitVirtualAddress);
+                ProfitAllPeriods(scheme, input.Symbol, profitDetail, profitVirtualAddress);
             }
 
             State.ProfitDetailsMap[input.SchemeId][Context.Sender] = new ProfitDetails {Details = {availableDetails}};
@@ -721,28 +719,28 @@ namespace AElf.Contracts.Profit
             {
                 var periodToPrint = period;
                 var detailToPrint = profitDetail;
-                var releasedProfitsVirtualAddress =
-                    GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
-                var releasedProfitsInformation = State.DistributedProfitsMap[releasedProfitsVirtualAddress];
-                if (releasedProfitsInformation == null || releasedProfitsInformation.TotalShares == 0)
+                var distributedPeriodProfitsVirtualAddress =
+                    GetDistributedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
+                var distributedProfitsInformation = State.DistributedProfitsMap[distributedPeriodProfitsVirtualAddress];
+                if (distributedProfitsInformation == null || distributedProfitsInformation.TotalShares == 0)
                 {
                     continue;
                 }
 
-                Context.LogDebug(() => $"Released profit information: {releasedProfitsInformation}");
-                var amount = profitDetail.Shares.Mul(releasedProfitsInformation.ProfitsAmount[symbol])
-                    .Div(releasedProfitsInformation.TotalShares);
+                Context.LogDebug(() => $"Released profit information: {distributedProfitsInformation}");
+                var amount = profitDetail.Shares.Mul(distributedProfitsInformation.ProfitsAmount[symbol])
+                    .Div(distributedProfitsInformation.TotalShares);
 
                 if (!isView)
                 {
                     Context.LogDebug(() =>
                         $"{Context.Sender} is profiting {amount} {symbol} tokens from {scheme.SchemeId.ToHex()} in period {periodToPrint}." +
-                        $"Sender's Shares: {detailToPrint.Shares}, total Shares: {releasedProfitsInformation.TotalShares}");
-                    if (releasedProfitsInformation.IsReleased && amount > 0)
+                        $"Sender's Shares: {detailToPrint.Shares}, total Shares: {distributedProfitsInformation.TotalShares}");
+                    if (distributedProfitsInformation.IsReleased && amount > 0)
                     {
                         State.TokenContract.TransferFrom.Send(new TransferFromInput
                         {
-                            From = releasedProfitsVirtualAddress,
+                            From = distributedPeriodProfitsVirtualAddress,
                             To = Context.Sender,
                             Symbol = symbol,
                             Amount = amount

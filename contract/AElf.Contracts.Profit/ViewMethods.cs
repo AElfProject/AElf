@@ -32,13 +32,13 @@ namespace AElf.Contracts.Profit
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
             return input.Period == 0
                 ? virtualAddress
-                : GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
+                : GetDistributedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
         }
 
         public override DistributedProfitsInfo GetDistributedProfitsInfo(SchemePeriod input)
         {
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
-            var releasedProfitsVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
+            var releasedProfitsVirtualAddress = GetDistributedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
             return State.DistributedProfitsMap[releasedProfitsVirtualAddress] ?? new DistributedProfitsInfo
             {
                 TotalShares = -1
@@ -50,7 +50,7 @@ namespace AElf.Contracts.Profit
             return State.ProfitDetailsMap[input.SchemeId][input.Beneficiary];
         }
 
-        private Address GetReleasedPeriodProfitsVirtualAddress(Address SchemeId, long period)
+        private Address GetDistributedPeriodProfitsVirtualAddress(Address SchemeId, long period)
         {
             return Address.FromPublicKey(period.ToString().CalculateHash().Concat(SchemeId.Value).ToArray());
         }
