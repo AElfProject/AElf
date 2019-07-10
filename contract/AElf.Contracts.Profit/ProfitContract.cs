@@ -203,27 +203,29 @@ namespace AElf.Contracts.Profit
             }
 
             var schemeId = input.SchemeId;
-            var profitItem = State.SchemeInfos[schemeId];
+            var scheme = State.SchemeInfos[schemeId];
 
-            Assert(profitItem != null, "Profit item not found.");
+            Assert(scheme != null, "Profit item not found.");
 
-            if (profitItem == null)
+            if (scheme == null)
             {
                 return new Empty();
             }
+            
+            Assert(Context.Sender == scheme.Creator, "Only creator can add beneficiary.");
 
             Context.LogDebug(() =>
-                $"{input.SchemeId}.\n End Period: {input.EndPeriod}, Current Period: {profitItem.CurrentPeriod}");
+                $"{input.SchemeId}.\n End Period: {input.EndPeriod}, Current Period: {scheme.CurrentPeriod}");
 
-            Assert(input.EndPeriod >= profitItem.CurrentPeriod, "Invalid end period.");
+            Assert(input.EndPeriod >= scheme.CurrentPeriod, "Invalid end period.");
 
-            profitItem.TotalShares = profitItem.TotalShares.Add(input.BeneficiaryShare.Shares);
+            scheme.TotalShares = scheme.TotalShares.Add(input.BeneficiaryShare.Shares);
 
-            State.SchemeInfos[schemeId] = profitItem;
+            State.SchemeInfos[schemeId] = scheme;
 
             var profitDetail = new ProfitDetail
             {
-                StartPeriod = profitItem.CurrentPeriod,
+                StartPeriod = scheme.CurrentPeriod,
                 EndPeriod = input.EndPeriod,
                 Shares = input.BeneficiaryShare.Shares,
             };
@@ -244,7 +246,7 @@ namespace AElf.Contracts.Profit
             // Remove details too old.
             foreach (var detail in currentProfitDetails.Details.Where(
                 d => d.EndPeriod != long.MaxValue && d.LastProfitPeriod >= d.EndPeriod &&
-                     d.EndPeriod.Add(profitItem.ProfitReceivingDuePeriodCount) < profitItem.CurrentPeriod))
+                     d.EndPeriod.Add(scheme.ProfitReceivingDuePeriodCount) < scheme.CurrentPeriod))
             {
                 currentProfitDetails.Details.Remove(detail);
             }
