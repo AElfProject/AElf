@@ -17,7 +17,11 @@ namespace AElf.Contracts.Election
         {
             const long txFee = 1_00000000L;
             long rewardAmount;
-            var oldBackupSubsidy = 0L;
+            var updatedBackupSubsidy = 0L;
+            var updatedBasicReward = 0L;
+            var updatedVotesWeightReward = 0L;
+            var updatedReElectionReward = 0L;
+            var updatedCitizenWelfare = 0L;
 
             var treasuryScheme =
                 await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
@@ -84,8 +88,8 @@ namespace AElf.Contracts.Election
                 // Amount of backup subsidy.
                 {
                     var amount = await GetProfitAmount(ProfitType.BackupSubsidy);
-                    amount.ShouldBe(rewardAmount / 5 / ValidationDataCenterKeyPairs.Count);
-                    oldBackupSubsidy += amount;
+                    updatedBackupSubsidy += rewardAmount / 5 / ValidationDataCenterKeyPairs.Count;
+                    amount.ShouldBe(updatedBackupSubsidy);
                 }
 
                 // Basic reward.
@@ -192,7 +196,8 @@ namespace AElf.Contracts.Election
                 // Amount of backup subsidy.
                 {
                     var amount = await GetProfitAmount(ProfitType.BackupSubsidy);
-                    amount.ShouldBe(rewardAmount / 5 / ValidationDataCenterKeyPairs.Count + oldBackupSubsidy);
+                    updatedBackupSubsidy += rewardAmount / 5 / ValidationDataCenterKeyPairs.Count;
+                    amount.ShouldBe(updatedBackupSubsidy);
                 }
 
                 // Basic reward.
@@ -207,7 +212,8 @@ namespace AElf.Contracts.Election
                 // Amount of basic reward.
                 {
                     var amount = await GetProfitAmount(ProfitType.BasicMinerReward);
-                    amount.ShouldBe(rewardAmount * 2 / 5 / 9);
+                    updatedBasicReward += rewardAmount * 2 / 5 / 9;
+                    amount.ShouldBe(updatedBasicReward);
                 }
 
                 // Votes weights reward.
@@ -223,7 +229,8 @@ namespace AElf.Contracts.Election
                 // Amount of votes weights reward.
                 {
                     var amount = await GetProfitAmount(ProfitType.VotesWeightReward);
-                    amount.ShouldBe(rewardAmount / 10 * 2 / 14);
+                    updatedVotesWeightReward += rewardAmount / 10 * 2 / 14;
+                    amount.ShouldBe(updatedVotesWeightReward);
                 }
 
                 // Re-election reward.
@@ -255,7 +262,119 @@ namespace AElf.Contracts.Election
                     var electorWeights = electorVote.ActiveVotingRecords.Sum(r => r.Weight);
                     electorWeights.ShouldBe(releasedInformation.TotalShares);
                     var amount = await GetProfitAmount(ProfitType.CitizenWelfare);
-                    amount.ShouldBeLessThan(electorWeights * rewardAmount / 5 / releasedInformation.TotalShares);
+                    updatedCitizenWelfare += electorWeights * rewardAmount / 5 / releasedInformation.TotalShares;
+                    amount.ShouldBeLessThan(updatedCitizenWelfare);
+                }
+            }
+
+            // Third term. 50 blocks.
+            {
+                for (var i = 0; i < EconomicContractsTestConstants.InitialCoreDataCenterCount; i++)
+                {
+                    await ProduceBlocks(ValidationDataCenterKeyPairs[i], 10);
+                }
+
+                await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+                var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
+                round.TermNumber.ShouldBe(4);
+            }
+
+            // Check released profits of third term.
+            {
+                rewardAmount = await GetReleasedAmount();
+                const long currentPeriod = 3L;
+
+                // Check balance of Treasury general ledger.
+                {
+                    var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                    {
+                        Owner = treasuryScheme.VirtualAddress,
+                        Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                    });
+                    balance.Balance.ShouldBe(0);
+                }
+
+                // Backup subsidy.
+                {
+                    var releasedInformation =
+                        await GetDistributedProfitsInfo(ProfitType.BackupSubsidy, currentPeriod);
+                    releasedInformation.TotalShares.ShouldBe(ValidationDataCenterKeyPairs.Count);
+                    releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
+                        .ShouldBe(rewardAmount / 5);
+                }
+
+                // Amount of backup subsidy.
+                {
+                    var amount = await GetProfitAmount(ProfitType.BackupSubsidy);
+                    updatedBackupSubsidy +=
+                        rewardAmount / 5 / ValidationDataCenterKeyPairs.Count;
+                    amount.ShouldBe(updatedBackupSubsidy);
+                }
+
+                // Basic reward.
+                {
+                    var releasedInformation =
+                        await GetDistributedProfitsInfo(ProfitType.BasicMinerReward, currentPeriod);
+                    releasedInformation.TotalShares.ShouldBe(9);
+                    releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
+                        .ShouldBe(rewardAmount * 2 / 5);
+                }
+
+                // Amount of basic reward.
+                {
+                    var amount = await GetProfitAmount(ProfitType.BasicMinerReward);
+                    updatedBasicReward += rewardAmount * 2 / 5 / 9;
+                    amount.ShouldBe(updatedBasicReward);
+                }
+
+                // Votes weights reward.
+                {
+                    var releasedInformation =
+                        await GetDistributedProfitsInfo(ProfitType.VotesWeightReward, currentPeriod);
+                    // First 5 victories each obtained 2 votes, last 4 victories each obtained 1 vote.
+                    releasedInformation.TotalShares.ShouldBe(2 * 5 + 4);
+                    releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
+                        .ShouldBe(rewardAmount / 10);
+                }
+
+                // Amount of votes weights reward.
+                {
+                    var amount = await GetProfitAmount(ProfitType.VotesWeightReward);
+                    updatedVotesWeightReward += rewardAmount / 10 * 2 / 14;
+                    amount.ShouldBe(updatedVotesWeightReward);
+                }
+
+                // Re-election reward.
+                {
+                    var releasedInformation =
+                        await GetDistributedProfitsInfo(ProfitType.ReElectionReward, currentPeriod);
+                    releasedInformation.IsReleased.ShouldBeTrue();
+                    releasedInformation.TotalShares.ShouldBe(0);
+                    releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
+                        .ShouldBe(-rewardAmount / 10);
+                }
+
+                // Amount of re-election reward.
+                {
+                    var amount = await GetProfitAmount(ProfitType.ReElectionReward);
+                    amount.ShouldBe(0);
+                }
+
+                // Citizen welfare.
+                {
+                    var releasedInformation =
+                        await GetDistributedProfitsInfo(ProfitType.CitizenWelfare, currentPeriod);
+                    releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
+                        .ShouldBe(rewardAmount / 5);
+
+                    // Amount of citizen welfare.
+                    var electorVote = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringInput
+                        {Value = VoterKeyPairs[0].PublicKey.ToHex()});
+                    var electorWeights = electorVote.ActiveVotingRecords.Sum(r => r.Weight);
+                    electorWeights.ShouldBe(releasedInformation.TotalShares);
+                    var amount = await GetProfitAmount(ProfitType.CitizenWelfare);
+                    updatedCitizenWelfare += electorWeights * rewardAmount / 5 / releasedInformation.TotalShares;
+                    amount.ShouldBeLessThan(updatedCitizenWelfare);
                 }
             }
 
@@ -290,12 +409,17 @@ namespace AElf.Contracts.Election
                 afterBalance.ShouldBe(beforeBalance + profitAmount - txFee);
             }
 
-            for (var i = 0; i < EconomicContractsTestConstants.InitialCoreDataCenterCount; i++)
             {
-                await ProduceBlocks(ValidationDataCenterKeyPairs[i], 10);
-            }
+                for (var i = 0; i < EconomicContractsTestConstants.InitialCoreDataCenterCount; i++)
+                {
+                    await ProduceBlocks(ValidationDataCenterKeyPairs[i], 10);
+                }
 
-            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+                await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+
+                var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
+                round.TermNumber.ShouldBe(5);
+            }
 
             //query and profit miner profit
             {
@@ -382,12 +506,17 @@ namespace AElf.Contracts.Election
                 }
             }
 
-            for (var i = 0; i < EconomicContractsTestConstants.InitialCoreDataCenterCount; i++)
             {
-                await ProduceBlocks(ValidationDataCenterKeyPairs[i], 10);
-            }
+                for (var i = 0; i < EconomicContractsTestConstants.InitialCoreDataCenterCount; i++)
+                {
+                    await ProduceBlocks(ValidationDataCenterKeyPairs[i], 10);
+                }
 
-            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+                await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+
+                var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
+                round.TermNumber.ShouldBe(6);
+            }
 
             //query and profit miner profit
             {

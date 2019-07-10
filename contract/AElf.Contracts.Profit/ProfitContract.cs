@@ -263,14 +263,14 @@ namespace AElf.Contracts.Profit
             Assert(Context.Sender == scheme.Sponsor, "Only sponsor can remove beneficiary.");
 
             var expiryDetails = currentDetail.Details
-                .Where(d => d.EndPeriod < scheme.CurrentPeriod).ToList();
+                .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
 
             if (!expiryDetails.Any()) return new Empty();
 
             var shares = expiryDetails.Sum(d => d.Shares);
-            foreach (var profitDetail in expiryDetails)
+            foreach (var expiryDetail in expiryDetails)
             {
-                currentDetail.Details.Remove(profitDetail);
+                expiryDetail.IsWeightRemoved = true;
             }
 
             State.ProfitDetailsMap[input.SchemeId][input.Beneficiary] = currentDetail;
@@ -336,7 +336,7 @@ namespace AElf.Contracts.Profit
             Assert(scheme != null, "Profit item not found.");
             if (scheme == null) return new Empty(); // Just to avoid IDE warning.
 
-            Assert(Context.Sender == scheme.Sponsor, "Only sponsor can distribute profits.");
+            Assert(Context.Sender == scheme.Sponsor || Context.Sender == scheme.Creator, "Only sponsor or creator can distribute profits.");
 
             if (scheme.IsReleaseAllBalanceEveryTimeByDefault && input.Amount == 0)
             {

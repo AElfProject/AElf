@@ -133,6 +133,7 @@ message ProfitDetail {
     sint64 end_period = 2;
     sint64 shares = 3;
     sint64 last_profit_period = 4;
+    bool is_weight_removed = 5;
 }
 
 message ContributeProfitsInput {

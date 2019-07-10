@@ -32,7 +32,7 @@ namespace AElf.Contracts.Election
 
             AddCandidateAsOption(publicKey);
 
-            RegisterCandidateToSubsidyProfitItem();
+            RegisterCandidateToSubsidyProfitScheme();
 
             return new Empty();
         }
@@ -106,7 +106,7 @@ namespace AElf.Contracts.Election
             });
         }
 
-        private void RegisterCandidateToSubsidyProfitItem()
+        private void RegisterCandidateToSubsidyProfitScheme()
         {
             if (State.ProfitContract.Value == null)
             {

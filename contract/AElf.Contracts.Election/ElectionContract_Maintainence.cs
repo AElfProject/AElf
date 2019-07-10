@@ -94,33 +94,9 @@ namespace AElf.Contracts.Election
             var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
 
-            var reElectionProfitAddWeights = new AddBeneficiariesInput
-            {
-                SchemeId = State.ReElectionRewardHash.Value,
-                EndPeriod = input.TermNumber.Add(1)
-            };
-            var votesWeightRewardProfitAddWeights = new AddBeneficiariesInput
-            {
-                SchemeId = State.VotesRewardHash.Value,
-                EndPeriod = input.TermNumber.Add(1)
-            };
             foreach (var publicKey in previousMiners)
             {
-                var address = Address.FromPublicKey(ByteArrayHelper.FromHexString(publicKey));
-
-                UpdateCandidateInformation(publicKey, input.TermNumber, address, previousMiners,
-                    ref reElectionProfitAddWeights);
-
-                UpdateVotesWeightRewardProfit(publicKey, address, ref votesWeightRewardProfitAddWeights);
-
-                if (State.ProfitContract.Value == null)
-                {
-                    State.ProfitContract.Value =
-                        Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
-                }
-
-                State.ProfitContract.AddBeneficiaries.Send(reElectionProfitAddWeights);
-                State.ProfitContract.AddBeneficiaries.Send(votesWeightRewardProfitAddWeights);
+                UpdateCandidateInformation(publicKey, input.TermNumber, previousMiners);
             }
 
             return new Empty();
@@ -149,8 +125,8 @@ namespace AElf.Contracts.Election
             State.Snapshots[input.TermNumber] = snapshot;
         }
 
-        private void UpdateCandidateInformation(string publicKey, long lastTermNumber, Address minerAddress,
-            List<string> previousMiners, ref AddBeneficiariesInput reElectionProfitAddWeights)
+        private void UpdateCandidateInformation(string publicKey, long lastTermNumber,
+            List<string> previousMiners)
         {
             var candidateInformation = State.CandidateInformationMap[publicKey];
             candidateInformation.Terms.Add(lastTermNumber);
@@ -161,11 +137,6 @@ namespace AElf.Contracts.Election
             {
                 candidateInformation.ContinualAppointmentCount =
                     candidateInformation.ContinualAppointmentCount.Add(1);
-                reElectionProfitAddWeights.BeneficiaryShares.Add(new BeneficiaryShare
-                {
-                    Beneficiary = minerAddress,
-                    Shares = candidateInformation.ContinualAppointmentCount
-                });
             }
             else
             {
@@ -173,20 +144,6 @@ namespace AElf.Contracts.Election
             }
 
             State.CandidateInformationMap[publicKey] = candidateInformation;
-        }
-
-        private void UpdateVotesWeightRewardProfit(string publicKey, Address minerAddress,
-            ref AddBeneficiariesInput votesWeightRewardProfitAddWeights)
-        {
-            var votes = State.CandidateVotes[publicKey];
-            if (votes != null)
-            {
-                votesWeightRewardProfitAddWeights.BeneficiaryShares.Add(new BeneficiaryShare
-                {
-                    Beneficiary = minerAddress,
-                    Shares = votes.ObtainedActiveVotedVotesAmount
-                });
-            }
         }
 
         #endregion

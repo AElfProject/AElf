@@ -28,9 +28,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForConstrainedTransaction
 
         private static bool IsConstrainedTransaction(IHostSmartContractBridgeContext context)
         {
-            var consensusContract = context.GetContractAddressByName(ConsensusSmartContractAddressNameProvider.Name);
+            var consensusContractAddress = context.GetContractAddressByName(ConsensusSmartContractAddressNameProvider.Name);
             var transaction = context.TransactionContext.Transaction;
-            if (transaction.To == consensusContract)
+            if (transaction.To == consensusContractAddress)
             {
                 var consensusConstrainedTransactions = new List<string>
                 {

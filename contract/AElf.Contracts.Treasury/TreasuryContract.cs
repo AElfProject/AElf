@@ -43,11 +43,14 @@ namespace AElf.Contracts.Treasury
             State.ProfitContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
 
+            var electionContractAddress =
+                Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
+
             // Create profit items: `Treasury`, `CitizenWelfare`, `BackupSubsidy`, `MinerReward`,
             // `MinerBasicReward`, `MinerVotesWeightReward`, `ReElectedMinerReward`
             var profitItemNameList = new List<string>
             {
-                "Treasury", "MinerReward", "Subsidy", "Welfare", "Basic Reward", "Votes Shares Reward",
+                "Treasury", "MinerReward", "Subsidy", "Welfare", "Basic Reward", "Votes Weight Reward",
                 "Re-Election Reward"
             };
             for (var i = 0; i < 7; i++)
@@ -58,7 +61,8 @@ namespace AElf.Contracts.Treasury
                 {
                     IsReleaseAllBalanceEveryTimeByDefault = true,
                     // Distribution of Citizen Welfare will delay one period.
-                    DelayDistributePeriodCount = i == 3 ? 1 : 0
+                    DelayDistributePeriodCount = i == 3 ? 1 : 0,
+                    Sponsor = i == 2 || i == 3 ? electionContractAddress : Context.Self
                 });
             }
 
@@ -304,19 +308,53 @@ namespace AElf.Contracts.Treasury
             var victories = State.ElectionContract.GetVictories.Call(new Empty()).Value.Select(bs => bs.ToHex())
                 .ToList();
 
-            UpdateBasicMinerRewardWeights(endPeriod, victories);
-
-            UpdateReElectionRewardWeights(endPeriod, treasuryVirtualAddress);
-
-            UpdateVotesWeightRewardWeights(endPeriod, victories, treasuryVirtualAddress);
-        }
-
-        private void UpdateReElectionRewardWeights(long endPeriod, Address treasuryVirtualAddress)
-        {
             var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
+            var previousMinerAddress =
+                previousMiners.Select(m => Address.FromPublicKey(ByteArrayHelper.FromHexString(m))).ToList();
 
-            var reElectionProfitAddWeights = new AddBeneficiariesInput
+            UpdateBasicMinerRewardWeights(endPeriod, victories, previousMinerAddress);
+
+            UpdateReElectionRewardWeights(endPeriod, treasuryVirtualAddress, previousMiners, previousMinerAddress);
+
+            UpdateVotesWeightRewardWeights(endPeriod, victories, treasuryVirtualAddress, previousMinerAddress);
+        }
+        
+        private void UpdateBasicMinerRewardWeights(long endPeriod, IEnumerable<string> victories,
+            IEnumerable<Address> previousMinerAddresses)
+        {
+            var basicRewardProfitSubBeneficiaries = new RemoveBeneficiariesInput
+            {
+                SchemeId = State.BasicRewardHash.Value,
+                Beneficiaries = {previousMinerAddresses}
+            };
+            State.ProfitContract.RemoveBeneficiaries.Send(basicRewardProfitSubBeneficiaries);
+
+            var basicRewardProfitAddBeneficiaries = new AddBeneficiariesInput
+            {
+                SchemeId = State.BasicRewardHash.Value,
+                EndPeriod = endPeriod,
+                BeneficiaryShares =
+                {
+                    victories.Select(k => Address.FromPublicKey(k.ToByteString().ToByteArray()))
+                        .Select(a => new BeneficiaryShare {Beneficiary = a, Shares = 1})
+                }
+            };
+            // Manage weights of `MinerBasicReward`
+            State.ProfitContract.AddBeneficiaries.Send(basicRewardProfitAddBeneficiaries);
+        }
+
+        private void UpdateReElectionRewardWeights(long endPeriod, Address treasuryVirtualAddress,
+            IEnumerable<string> previousMiners, IEnumerable<Address> previousMinerAddresses)
+        {
+            var reElectionRewardProfitSubBeneficiaries = new RemoveBeneficiariesInput
+            {
+                SchemeId = State.ReElectionRewardHash.Value,
+                Beneficiaries = {previousMinerAddresses}
+            };
+            State.ProfitContract.RemoveBeneficiaries.Send(reElectionRewardProfitSubBeneficiaries);
+
+            var reElectionProfitAddBeneficiaries = new AddBeneficiariesInput
             {
                 SchemeId = State.ReElectionRewardHash.Value,
                 EndPeriod = endPeriod
@@ -327,30 +365,37 @@ namespace AElf.Contracts.Treasury
                     State.ElectionContract.GetCandidateInformation.Call(new StringInput {Value = previousMiner})
                         .ContinualAppointmentCount;
                 var minerAddress = Address.FromPublicKey(ByteArrayHelper.FromHexString(previousMiner));
-                reElectionProfitAddWeights.BeneficiaryShares.Add(new BeneficiaryShare
+                reElectionProfitAddBeneficiaries.BeneficiaryShares.Add(new BeneficiaryShare
                 {
                     Beneficiary = minerAddress,
                     Shares = continualAppointmentCount
                 });
             }
 
-            if (!reElectionProfitAddWeights.BeneficiaryShares.Any())
+            if (!reElectionProfitAddBeneficiaries.BeneficiaryShares.Any())
             {
                 // Give this part of reward back to Treasury Virtual Address.
-                reElectionProfitAddWeights.BeneficiaryShares.Add(new BeneficiaryShare
+                reElectionProfitAddBeneficiaries.BeneficiaryShares.Add(new BeneficiaryShare
                 {
                     Beneficiary = treasuryVirtualAddress,
                     Shares = 1
                 });
             }
 
-            State.ProfitContract.AddBeneficiaries.Send(reElectionProfitAddWeights);
+            State.ProfitContract.AddBeneficiaries.Send(reElectionProfitAddBeneficiaries);
         }
 
         private void UpdateVotesWeightRewardWeights(long endPeriod, IEnumerable<string> victories,
-            Address treasuryVirtualAddress)
+            Address treasuryVirtualAddress, IEnumerable<Address> previousMinerAddresses)
         {
-            var votesWeightRewardProfitAddWeights = new AddBeneficiariesInput
+            var votesWeightRewardProfitSubBeneficiaries = new RemoveBeneficiariesInput
+            {
+                SchemeId = State.VotesWeightRewardHash.Value,
+                Beneficiaries = {previousMinerAddresses}
+            };
+            State.ProfitContract.RemoveBeneficiaries.Send(votesWeightRewardProfitSubBeneficiaries);
+
+            var votesWeightRewardProfitAddBeneficiaries = new AddBeneficiariesInput
             {
                 SchemeId = State.VotesWeightRewardHash.Value,
                 EndPeriod = endPeriod
@@ -362,38 +407,24 @@ namespace AElf.Contracts.Treasury
                     State.ElectionContract.GetCandidateVote.Call(new StringInput {Value = victory})
                         .ObtainedActiveVotedVotesAmount;
                 var minerAddress = Address.FromPublicKey(ByteArrayHelper.FromHexString(victory));
-                votesWeightRewardProfitAddWeights.BeneficiaryShares.Add(new BeneficiaryShare
+                votesWeightRewardProfitAddBeneficiaries.BeneficiaryShares.Add(new BeneficiaryShare
                 {
                     Beneficiary = minerAddress,
                     Shares = obtainedVotes
                 });
             }
 
-            if (!votesWeightRewardProfitAddWeights.BeneficiaryShares.Any())
+            if (!votesWeightRewardProfitAddBeneficiaries.BeneficiaryShares.Any())
             {
                 // Give this part of reward back to Treasury Virtual Address.
-                votesWeightRewardProfitAddWeights.BeneficiaryShares.Add(new BeneficiaryShare
+                votesWeightRewardProfitAddBeneficiaries.BeneficiaryShares.Add(new BeneficiaryShare
                 {
                     Beneficiary = treasuryVirtualAddress,
                     Shares = 1
                 });
             }
 
-            State.ProfitContract.AddBeneficiaries.Send(votesWeightRewardProfitAddWeights);
-        }
-
-        private void UpdateBasicMinerRewardWeights(long endPeriod, IEnumerable<string> victories)
-        {
-            var basicRewardProfitAddWeights = new AddBeneficiariesInput
-            {
-                SchemeId = State.BasicRewardHash.Value,
-                EndPeriod = endPeriod
-            };
-            var newMinerWeights = victories.Select(k => Address.FromPublicKey(k.ToByteString().ToByteArray()))
-                .Select(a => new BeneficiaryShare {Beneficiary = a, Shares = 1});
-            basicRewardProfitAddWeights.BeneficiaryShares.AddRange(newMinerWeights);
-            // Manage weights of `MinerBasicReward`
-            State.ProfitContract.AddBeneficiaries.Send(basicRewardProfitAddWeights);
+            State.ProfitContract.AddBeneficiaries.Send(votesWeightRewardProfitAddBeneficiaries);
         }
 
         #endregion

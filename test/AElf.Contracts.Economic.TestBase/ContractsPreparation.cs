@@ -230,7 +230,7 @@ namespace AElf.Contracts.Economic.TestBase
             switch (contract)
             {
                 case Contracts.ParliamentAuth:
-                    hash = Hash.FromString("AElf.ContractsName.Parliament");
+                    hash = Hash.FromString("AElf.ContractNames.Parliament");
                     break;
                 case Contracts.AEDPoS:
                     hash = Hash.FromString("AElf.ContractNames.Consensus");
@@ -473,7 +473,9 @@ namespace AElf.Contracts.Economic.TestBase
         {
             var initializeResult = await ParliamentAuthContractStub.Initialize.SendAsync(new InitializeInput
             {
-                GenesisOwnerReleaseThreshold = 1
+                GenesisOwnerReleaseThreshold = 1,
+                PrivilegedProposer = BootMinerAddress,
+                ProposerAuthorityRequired = true
             });
             CheckResult(initializeResult.TransactionResult);
         }
