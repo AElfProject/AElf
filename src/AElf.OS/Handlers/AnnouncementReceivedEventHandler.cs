@@ -12,16 +12,16 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
-    public class PeerConnectedEventHandler : ILocalEventHandler<AnnouncementReceivedEventData>, ITransientDependency
+    public class AnnouncementReceivedEventHandler : ILocalEventHandler<AnnouncementReceivedEventData>, ITransientDependency
     {
-        public ILogger<PeerConnectedEventHandler> Logger { get; set; }
+        public ILogger<AnnouncementReceivedEventHandler> Logger { get; set; }
 
         private readonly IBlockSyncService _blockSyncService;
         private readonly IBlockSyncValidationService _blockSyncValidationService;
         private readonly IBlockchainService _blockchainService;
         private readonly NetworkOptions _networkOptions;
 
-        public PeerConnectedEventHandler(IBlockSyncService blockSyncService,
+        public AnnouncementReceivedEventHandler(IBlockSyncService blockSyncService,
             IBlockSyncValidationService blockSyncValidationService,
             IBlockchainService blockchainService,
             IOptionsSnapshot<NetworkOptions> networkOptions)
@@ -30,7 +30,8 @@ namespace AElf.OS.Handlers
             _blockSyncValidationService = blockSyncValidationService;
             _blockchainService = blockchainService;
             _networkOptions = networkOptions.Value;
-            Logger = NullLogger<PeerConnectedEventHandler>.Instance;
+            
+            Logger = NullLogger<AnnouncementReceivedEventHandler>.Instance;
         }
 
         //TODO: need to directly test ProcessNewBlockAsync, or unit test cannot catch exceptions of ProcessNewBlockAsync
@@ -41,23 +42,23 @@ namespace AElf.OS.Handlers
             return Task.CompletedTask;
         }
 
-        private async Task ProcessNewBlockAsync(PeerNewBlockAnnouncement announcement, string senderPubKey)
+        private async Task ProcessNewBlockAsync(BlockAnnouncement blockAnnouncement, string senderPubKey)
         {
             Logger.LogDebug(
-                $"Start block sync job, target height: {announcement.BlockHeight}, target block hash: {announcement.BlockHash}, peer: {senderPubKey}");
+                $"Start block sync job, target height: {blockAnnouncement.BlockHeight}, target block hash: {blockAnnouncement.BlockHash}, peer: {senderPubKey}");
             
             var chain = await _blockchainService.GetChainAsync();
             
-            if (!await _blockSyncValidationService.ValidateBeforeHandleAnnounceAsync(chain, announcement.BlockHash,
-                announcement.BlockHeight))
+            if (!await _blockSyncValidationService.ValidateBeforeHandleAnnounceAsync(chain, blockAnnouncement.BlockHash,
+                blockAnnouncement.BlockHeight))
             {
                 return;
             }
 
             await _blockSyncService.SyncByAnnounceAsync(chain, new SyncAnnounceDto
             {
-                SyncBlockHash = announcement.BlockHash,
-                SyncBlockHeight = announcement.BlockHeight,
+                SyncBlockHash = blockAnnouncement.BlockHash,
+                SyncBlockHeight = blockAnnouncement.BlockHeight,
                 SuggestedPeerPubKey = senderPubKey,
                 BatchRequestBlockCount = _networkOptions.BlockIdRequestCount
             });

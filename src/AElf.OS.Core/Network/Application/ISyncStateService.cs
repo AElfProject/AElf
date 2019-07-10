@@ -114,7 +114,7 @@ namespace AElf.OS.Network.Application
                         Logger.LogError(e, "Error while updating the lib.");
                     }
                     
-                    Logger.LogDebug($"Peer {peer} last known LIB is {peer.LastKnowLibHeight}.");
+                    Logger.LogDebug($"Peer {peer} last known LIB is {peer.LastKnownLibHeight}.");
                     
                 }).ToList();
                 
@@ -143,8 +143,8 @@ namespace AElf.OS.Network.Application
             
             // determine the peers that are high enough to sync to
             var candidates = peers
-                .Where(p => p.LastKnowLibHeight >= minSyncTarget)
-                .OrderBy(p => p.LastKnowLibHeight)
+                .Where(p => p.LastKnownLibHeight >= minSyncTarget)
+                .OrderBy(p => p.LastKnownLibHeight)
                 .ToList();
 
             if (candidates.Count == 0)
@@ -157,7 +157,7 @@ namespace AElf.OS.Network.Application
             {
                 // If there's more than 2/3 of the nodes that we can 
                 // sync to, take the lowest of them as target.
-                var minLib = candidates.First().LastKnowLibHeight;
+                var minLib = candidates.First().LastKnownLibHeight;
                 
                 if (candidates.Count >= Math.Ceiling(2d/3 * peers.Count))
                 {

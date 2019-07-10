@@ -20,6 +20,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void TryToFindLastIrreversibleBlock()
         {
+            Context.LogDebug(() => "Start to find LIB.");
             if (!CalculateLastIrreversibleBlock(out var offset)) return;
             Context.LogDebug(() => $"LIB found, offset is {offset}");
             Context.Fire(new IrreversibleBlockFound
