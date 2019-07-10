@@ -14,6 +14,7 @@ namespace AElf.WebApp.Application.Chain
         Task<ChainStatusDto> GetChainStatusAsync();
     }
 
+    [ControllerName("BlockChain")]
     public class ChainStatusAppService : IChainStatusAppService
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -31,7 +32,6 @@ namespace AElf.WebApp.Application.Chain
         /// Get the current status of the block chain.
         /// </summary>
         /// <returns></returns>
-        [Route("api/blockChain/chainStatus")]
         public async Task<ChainStatusDto> GetChainStatusAsync()
         {
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();

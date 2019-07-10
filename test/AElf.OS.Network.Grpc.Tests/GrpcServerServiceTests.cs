@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -59,8 +60,8 @@ namespace AElf.OS.Network
                 return Task.CompletedTask;
             });
 
-            Hash hash = Hash.FromString("hash");
-            await _service.Announce(new PeerNewBlockAnnouncement
+            Hash hash = Hash.FromRawBytes(Guid.NewGuid().ToByteArray());
+            await _service.SendAnnouncement(new BlockAnnouncement
             {
                 BlockHeight = 10, BlockHash = hash
             }, BuildServerCallContext());
@@ -152,7 +153,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task RequestBlock_NonExistant_ReturnsEmpty()
         {
-            var reply = await _service.RequestBlock(new BlockRequest { Hash = Hash.FromString("hash2") }, BuildServerCallContext());
+            var reply = await _service.RequestBlock(new BlockRequest { Hash = Hash.FromRawBytes(Guid.NewGuid().ToByteArray()) }, BuildServerCallContext());
             
             Assert.NotNull(reply);
             Assert.Null(reply.Block);
@@ -184,7 +185,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task RequestBlocks_NonExistant_ReturnsEmpty()
         {
-            var reply = await _service.RequestBlocks(new BlocksRequest { PreviousBlockHash = Hash.FromString("hash"), Count = 5 }, BuildServerCallContext());
+            var reply = await _service.RequestBlocks(new BlocksRequest { PreviousBlockHash = Hash.FromRawBytes(Guid.NewGuid().ToByteArray()), Count = 5 }, BuildServerCallContext());
             
             Assert.NotNull(reply?.Blocks);
             Assert.Empty(reply.Blocks);
@@ -206,7 +207,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Disconnect_ShouldRemovePeer()
         {
-            await _service.Disconnect(new DisconnectReason(), BuildServerCallContext(new Metadata {{ GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubKey2}}));
+            await _service.Disconnect(new DisconnectReason(), BuildServerCallContext(new Metadata {{ GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubkey2}}));
             Assert.Empty(_peerPool.GetPeers(true));
         }
         
@@ -234,7 +235,7 @@ namespace AElf.OS.Network
             await _service.Connect(handshake, BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
             await _service.Connect(handshake, BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
 
-            var peers = _peerPool.GetPeers().Select(p => p.PubKey)
+            var peers = _peerPool.GetPeers(true).Select(p => p.Info.Pubkey)
                 .Where(key => key == peerKeyPair.PublicKey.ToHex())
                 .ToList();
             
@@ -411,7 +412,7 @@ namespace AElf.OS.Network
             
             var continuation = new UnaryServerMethod<string, string>((s, y) => Task.FromResult(s));
             var metadata = new Metadata
-                {{GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubKey2}};
+                {{GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubkey2}};
             var context = BuildServerCallContext(metadata);
             var headerCount = context.RequestHeaders.Count;
             var result = await authInterceptor.UnaryServerHandler("test", context, continuation);
