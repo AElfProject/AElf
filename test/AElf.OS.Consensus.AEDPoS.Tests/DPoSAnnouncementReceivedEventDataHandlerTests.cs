@@ -26,7 +26,7 @@ namespace AElf.OS.Consensus.DPos
         [Fact]
         public async Task HandleAnnounceReceiveEventAsync_IrreversibleBlockIndex_IsNull()
         {
-            var an = new PeerNewBlockAnnouncement { };
+            var an = new BlockAnnouncement { };
             var sendKey = string.Empty;
             var announcementData = new AnnouncementReceivedEventData(an, sendKey);
 
@@ -37,7 +37,7 @@ namespace AElf.OS.Consensus.DPos
         public async Task HandleAnnounceReceiveEventAsync_IrreversibleBlockIndex_SureAmountNotEnough()
         {
             var block = await GenerateNewBlockAndAnnouncementToPeers(1);
-            var an = new PeerNewBlockAnnouncement
+            var an = new BlockAnnouncement
             {
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
@@ -52,7 +52,7 @@ namespace AElf.OS.Consensus.DPos
         public async Task HandleAnnounceReceiveEventAsync_IrreversibleBlockIndex_SureAmountEnough()
         {
             var block = await GenerateNewBlockAndAnnouncementToPeers(3);
-            var an = new PeerNewBlockAnnouncement
+            var an = new BlockAnnouncement
             {
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
@@ -73,7 +73,7 @@ namespace AElf.OS.Consensus.DPos
             for(int i=0; i<number; i++)
             {
                 var grpcPeer = peers[i] as GrpcPeer;
-                grpcPeer.HandlerRemoteAnnounce(new PeerNewBlockAnnouncement
+                grpcPeer.ProcessReceivedAnnouncement(new BlockAnnouncement
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height
