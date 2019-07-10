@@ -1,11 +1,12 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.OS.Network;
 using AElf.Types;
 
 namespace AElf.OS.BlockSync.Application
 {
     public interface IBlockSyncValidationService
     {
-        Task<bool> ValidateBeforeHandleAnnounceAsync(Chain chain, Hash syncBlockHash, long syncBlockHeight);
+        Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement);
     }
 }

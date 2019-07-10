@@ -34,10 +34,22 @@ namespace AElf.OS.BlockSync.Application
             if (syncAnnounceDto.SyncBlockHash != null && syncAnnounceDto.SyncBlockHeight <=
                 chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset)
             {
+                if(!_blockSyncQueueService.ValidateQueueAvailability(OSConstants.BlockFetchQueueName))
+                {
+                    Logger.LogWarning("Block sync fetch queue is too busy.");
+                    return;
+                }
+                
                 EnqueueFetchBlockJob(syncAnnounceDto, BlockSyncConstants.FetchBlockRetryTimes);
             }
             else
             {
+                if(!_blockSyncQueueService.ValidateQueueAvailability(OSConstants.BlockDownloadQueueName))
+                {
+                    Logger.LogWarning("Block sync download queue is too busy.");
+                    return;
+                }
+                
                 EnqueueDownloadBlocksJob(syncAnnounceDto);
             }
         }
@@ -50,7 +62,7 @@ namespace AElf.OS.BlockSync.Application
                     $"Block sync: Fetch block, block height: {syncAnnounceDto.SyncBlockHeight}, block hash: {syncAnnounceDto.SyncBlockHash}.");
 
                 var fetchResult = false;
-                if (BlockAttachAndExecuteQueueIsAvailable())
+                if (ValidateQueueAvailability())
                 {
                     fetchResult = await _blockFetchService.FetchBlockAsync(syncAnnounceDto.SyncBlockHash,
                         syncAnnounceDto.SyncBlockHeight, syncAnnounceDto.SuggestedPeerPubKey);
@@ -70,7 +82,7 @@ namespace AElf.OS.BlockSync.Application
                 Logger.LogTrace(
                     $"Block sync: Download blocks, block height: {syncAnnounceDto.SyncBlockHeight}, block hash: {syncAnnounceDto.SyncBlockHash}.");
 
-                if (BlockAttachAndExecuteQueueIsAvailable())
+                if (ValidateQueueAvailability())
                 {
                     var chain = await _blockchainService.GetChainAsync();
 
@@ -105,15 +117,15 @@ namespace AElf.OS.BlockSync.Application
             }, OSConstants.BlockDownloadQueueName);
         }
 
-        private bool BlockAttachAndExecuteQueueIsAvailable()
+        private bool ValidateQueueAvailability()
         {
-            if(!_blockSyncQueueService.IsQueueAvailable(OSConstants.BlockSyncAttachQueueName))
+            if(!_blockSyncQueueService.ValidateQueueAvailability(OSConstants.BlockSyncAttachQueueName))
             {
                 Logger.LogWarning("Block sync attach queue is too busy.");
                 return false;
             }
 
-            if(!_blockSyncQueueService.IsQueueAvailable(KernelConstants.UpdateChainQueueName))
+            if(!_blockSyncQueueService.ValidateQueueAvailability(KernelConstants.UpdateChainQueueName))
             {
                 Logger.LogWarning("Block sync attach and execute queue is too busy.");
                 return false;

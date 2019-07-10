@@ -23,7 +23,7 @@ namespace AElf.OS.BlockSync.Application
             _taskQueueManager = taskQueueManager;
         }
 
-        public bool IsQueueAvailable(string queueName)
+        public bool ValidateQueueAvailability(string queueName)
         {
             bool isAvailable;
             var enqueueTime = _blockSyncStateProvider.GetEnqueueTime(queueName);
