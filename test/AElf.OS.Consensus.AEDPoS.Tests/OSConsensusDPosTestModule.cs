@@ -6,6 +6,7 @@ using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -25,17 +26,16 @@ namespace AElf.OS.Consensus.DPos
             var peerList = new List<IPeer>();
             for (int i = 0; i < 3; i++)
             {
-                var connectionInfo = new GrpcPeerInfo
+                var connectionInfo = new PeerInfo
                 {
-                    PublicKey = $"bp{i + 1}-pubkey", 
-                    PeerIpAddress = $"127.0.0.1:68{i + 1}0",
+                    Pubkey = $"bp{i + 1}-pubkey",
                     ProtocolVersion = KernelConstants.ProtocolVersion,
                     ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                     StartHeight = 1,
                     IsInbound = true
                 };
                 
-                peerList.Add(new GrpcPeer(null, null, connectionInfo));
+                peerList.Add(new GrpcPeer(null, null, $"127.0.0.1:68{i + 1}0", connectionInfo));
             }
             
             services.AddTransient(o =>
@@ -45,6 +45,7 @@ namespace AElf.OS.Consensus.DPos
                     .Returns(peerList[2]);
                 mockService.Setup(m=>m.GetPeers(It.IsAny<bool>()))
                     .Returns(peerList);
+                mockService.Setup(p => p.RecentBlockHeightAndHashMappings).Returns(new Dictionary<long, Hash>());
                 return mockService.Object;
             });
 
