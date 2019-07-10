@@ -33,7 +33,7 @@ namespace AElf.OS.BlockSync.Application
             var peerBlockHash = peerBlock.GetHash();
             var peerBlockHeight = peerBlock.Header.Height;
 
-            await _blockSyncService.SyncByAnnounceAsync(chain, new SyncAnnounceDto
+            await _blockSyncService.SyncByAnnouncementAsync(chain, new SyncAnnouncementDto
             {
                 SyncBlockHash = peerBlockHash,
                 SyncBlockHeight = peerBlockHeight,

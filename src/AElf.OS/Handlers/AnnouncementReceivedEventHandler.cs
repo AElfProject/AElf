@@ -54,7 +54,7 @@ namespace AElf.OS.Handlers
                 return;
             }
 
-            await _blockSyncService.SyncByAnnounceAsync(chain, new SyncAnnounceDto
+            await _blockSyncService.SyncByAnnouncementAsync(chain, new SyncAnnouncementDto
             {
                 SyncBlockHash = blockAnnouncement.BlockHash,
                 SyncBlockHeight = blockAnnouncement.BlockHeight,
