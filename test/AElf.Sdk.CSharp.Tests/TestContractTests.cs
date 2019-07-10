@@ -14,7 +14,7 @@ namespace AElf.Sdk.CSharp.Tests
 {
     public class TestContractTests : SdkCSharpTestBase
     {
-        private List<Address> AddressList { get; } = new[] {"a", "b", "c", "d"}.Select(AddressHelper.FromString).ToList();
+        private List<Address> AddressList { get; } = new[] {"a", "b", "c", "d"}.Select(AddressHelper.StringToAddress).ToList();
         private CustomContract.TestContract Contract = new CustomContract.TestContract();
         private IStateProvider StateProvider { get; }
         private IHostSmartContractBridgeContext BridgeContext { get; }
@@ -134,7 +134,7 @@ namespace AElf.Sdk.CSharp.Tests
         {
             var input = new CustomContract.BytesInput
             {
-                BytesValue = AddressHelper.FromString("address").ToByteString()
+                BytesValue = AddressHelper.StringToAddress("address").ToByteString()
             };
 
             var output = Contract.TestBytesState(input);
@@ -250,7 +250,7 @@ namespace AElf.Sdk.CSharp.Tests
         [Fact]
         public void SendVirtualInline_Test()
         {
-            BridgeContext.SendVirtualInline(Hash.Generate(), AddressHelper.FromString("address"), "TestMethod", new CustomContract.StringInput
+            BridgeContext.SendVirtualInline(Hash.Generate(), AddressHelper.StringToAddress("address"), "TestMethod", new CustomContract.StringInput
             {
                 StringValue = "test send virtual inline"
             });
@@ -259,7 +259,7 @@ namespace AElf.Sdk.CSharp.Tests
         [Fact]
         public void SendInline_Test()
         {
-            BridgeContext.SendInline(AddressHelper.FromString("address"), "TestMethod", new CustomContract.StringInput
+            BridgeContext.SendInline(AddressHelper.StringToAddress("address"), "TestMethod", new CustomContract.StringInput
             {
                 StringValue = "test send inline"
             });

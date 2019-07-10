@@ -66,7 +66,7 @@ namespace AElf.Contracts.MultiToken
                         Amount = transferAmountInSystemTxn,
                         Memo = "transfer test",
                         Symbol = DefaultSymbol,
-                        To = AddressHelper.FromString("to")
+                        To = AddressHelper.StringToAddress("to")
                     }.ToByteString(),
                     RefBlockNumber = preBlockHeight,
                     RefBlockPrefix = ByteString.CopyFrom(preBlockHash.Value.Take(4).ToArray())

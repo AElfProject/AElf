@@ -83,8 +83,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 result.Add(new Transaction
                 {
-                    From = AddressHelper.FromString("from"),
-                    To = AddressHelper.FromString("to"),
+                    From = AddressHelper.StringToAddress("from"),
+                    To = AddressHelper.StringToAddress("to"),
                     MethodName = Guid.NewGuid().ToString()
                 });
             }

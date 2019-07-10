@@ -18,7 +18,7 @@ namespace AElf
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public static Address FromString(string name)
+        public static Address StringToAddress(string name)
         {
             return Address.FromBytes(name.CalculateHash());
         }

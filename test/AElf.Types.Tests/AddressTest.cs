@@ -12,12 +12,12 @@ namespace AElf.Types.Tests
         public void Generate_Address()
         {
             //Generate default
-            var address1 = AddressHelper.FromString("add1");
-            var address2 = AddressHelper.FromString("add2");
+            var address1 = AddressHelper.StringToAddress("add1");
+            var address2 = AddressHelper.StringToAddress("add2");
             address1.ShouldNotBeSameAs(address2);
 
             //Generate from String
-            var address3 = AddressHelper.FromString("Test");
+            var address3 = AddressHelper.StringToAddress("Test");
             address3.ShouldNotBe(null);
 
             //Generate from byte
@@ -47,8 +47,8 @@ namespace AElf.Types.Tests
         [Fact]
         public void Compare_Address()
         {
-            var address1 = AddressHelper.FromString("address1");
-            var address2 = AddressHelper.FromString("address2");
+            var address1 = AddressHelper.StringToAddress("address1");
+            var address2 = AddressHelper.StringToAddress("address2");
             address1.CompareTo(address2).ShouldNotBe(0);
             Should.Throw<InvalidOperationException>(() => { address1.CompareTo(null);});
 
@@ -73,7 +73,7 @@ namespace AElf.Types.Tests
         [Fact]
         public void Chain_Address()
         {
-            var address = AddressHelper.FromString("address");
+            var address = AddressHelper.StringToAddress("address");
             var chainId = 2111;
             var chainAddress1 = new ChainAddress(address, chainId);
 
@@ -89,7 +89,7 @@ namespace AElf.Types.Tests
         [Fact]
         public void Verify_Address()
         {
-            var address = AddressHelper.FromString("Test");
+            var address = AddressHelper.StringToAddress("Test");
             var formattedAddress = address.GetFormatted();
             AddressHelper.VerifyFormattedAddress(formattedAddress).ShouldBeTrue();
 

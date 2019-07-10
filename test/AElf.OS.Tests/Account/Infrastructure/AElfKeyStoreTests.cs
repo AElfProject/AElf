@@ -80,7 +80,7 @@ namespace AElf.OS.Account.Infrastructure
         [Fact]
         public async Task Open_NotExist_Account()
         {
-            var address = AddressHelper.FromString("test account");
+            var address = AddressHelper.StringToAddress("test account");
             var addString = address.GetFormatted();
             var keyPair = _keyStore.GetAccountKeyPair(addString);
             keyPair.ShouldBe(null);

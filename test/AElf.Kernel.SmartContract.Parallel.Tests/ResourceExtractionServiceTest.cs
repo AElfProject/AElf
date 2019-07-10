@@ -78,8 +78,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         {
             return new Transaction()
             {
-                From = AddressHelper.FromString("Dummy"),
-                To = AddressHelper.FromString(InternalConstants.Acs2),
+                From = AddressHelper.StringToAddress("Dummy"),
+                To = AddressHelper.StringToAddress(InternalConstants.Acs2),
                 MethodName = nameof(SmartContractExecution.Parallel.Tests.TestContract.TestContract.GetResourceInfo),
                 Params = resourceInfo.ToByteString(),
                 Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
@@ -90,8 +90,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         {
             return new Transaction()
             {
-                From = AddressHelper.FromString("Dummy"),
-                To = AddressHelper.FromString(InternalConstants.NonAcs2),
+                From = AddressHelper.StringToAddress("Dummy"),
+                To = AddressHelper.StringToAddress(InternalConstants.NonAcs2),
                 MethodName = nameof(SmartContractExecution.Parallel.Tests.TestContract.TestContract.GetResourceInfo),
                 Params = resourceInfo.ToByteString(),
                 Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")

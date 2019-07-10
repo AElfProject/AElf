@@ -15,8 +15,8 @@ namespace AElf.Kernel.Types.Tests
         public void FromTo()
         {
             var t = new Transaction();
-            t.From = AddressHelper.FromString("from");
-            t.To = AddressHelper.FromString("to");
+            t.From = AddressHelper.StringToAddress("from");
+            t.To = AddressHelper.StringToAddress("to");
 
             byte[] b = t.ToByteArray();
             b.ShouldNotBe(null);

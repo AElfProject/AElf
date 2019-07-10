@@ -46,7 +46,7 @@ namespace AElf.Kernel.SmartContract
         [Fact]
         public void Send_Inline_Success()
         {
-            var to = AddressHelper.FromString("Genesis");
+            var to = AddressHelper.StringToAddress("Genesis");
             var methodName = "TestSendInline";
             var arg = "Arg";
             var argBytes = new StringValue {Value = arg}.ToByteString();
@@ -64,7 +64,7 @@ namespace AElf.Kernel.SmartContract
         public void Send_VirtualInline_Success()
         {
             var from = Hash.Generate();
-            var to = AddressHelper.FromString("Genesis");
+            var to = AddressHelper.StringToAddress("Genesis");
             var methodName = "TestVirtualInline";
             var arg = "Arg";
             var argBytes = new StringValue {Value = arg}.ToByteString();
@@ -110,7 +110,7 @@ namespace AElf.Kernel.SmartContract
             var tx = new Transaction
             {
                 From = Address.FromPublicKey(_keyPair.PublicKey),
-                To = AddressHelper.FromString("To"),
+                To = AddressHelper.StringToAddress("To"),
                 MethodName = "TestMethod",
                 Params = ByteString.CopyFrom(new byte[10]),
                 RefBlockNumber = 1,
@@ -171,7 +171,7 @@ namespace AElf.Kernel.SmartContract
                 CodeHash = Hash.Generate()
             };
 
-            _bridgeContext.DeployContract(AddressHelper.FromString("from"), registration, Hash.FromMessage(registration.CodeHash));
+            _bridgeContext.DeployContract(AddressHelper.StringToAddress("from"), registration, Hash.FromMessage(registration.CodeHash));
         }
 
         [Fact]
@@ -202,7 +202,7 @@ namespace AElf.Kernel.SmartContract
                 CodeHash = Hash.Empty
             };
 
-            _bridgeContext.UpdateContract(AddressHelper.FromString("from"), registration, null);
+            _bridgeContext.UpdateContract(AddressHelper.StringToAddress("from"), registration, null);
         }
         
         private IHostSmartContractBridgeContext CreateNewContext()
@@ -214,7 +214,7 @@ namespace AElf.Kernel.SmartContract
                 Transaction = new Transaction()
                 {
                     From = Address.FromPublicKey(_keyPair.PublicKey),
-                    To = AddressHelper.FromString("Genesis"),
+                    To = AddressHelper.StringToAddress("Genesis"),
                     MethodName = "Test",
                     Params = ByteString.CopyFrom(new byte[10]),
                     RefBlockNumber = 1,
@@ -238,8 +238,8 @@ namespace AElf.Kernel.SmartContract
         {
             var tx = new Transaction
             {
-                From = AddressHelper.FromString("From"),
-                To = AddressHelper.FromString("To"),
+                From = AddressHelper.StringToAddress("From"),
+                To = AddressHelper.StringToAddress("To"),
                 MethodName = Guid.NewGuid().ToString(),
                 Params = ByteString.CopyFrom(new byte[10]),
                 RefBlockNumber = 1,

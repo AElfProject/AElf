@@ -75,8 +75,8 @@ namespace AElf.Kernel.TransactionPool.Domain
                     TransactionId = transactionId,
                     Transaction = new Transaction()
                     {
-                        From = AddressHelper.FromString("from"),
-                        To = AddressHelper.FromString("to"),
+                        From = AddressHelper.StringToAddress("from"),
+                        To = AddressHelper.StringToAddress("to"),
                         MethodName = "TestMethod"
                     },
                     ExecutedBlockNumber = i,

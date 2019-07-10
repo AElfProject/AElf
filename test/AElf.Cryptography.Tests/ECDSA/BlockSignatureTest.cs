@@ -14,7 +14,7 @@ namespace AElf.Cryptography.Tests.ECDSA
             ECKeyPair keyPair = CryptoHelper.GenerateKeyPair();
             Transaction tx = new Transaction();
             tx.From = Address.FromPublicKey(keyPair.PublicKey);
-            tx.To = AddressHelper.FromString("towhere");
+            tx.To = AddressHelper.StringToAddress("towhere");
             tx.Params = ByteString.CopyFrom(new byte[0]);
             tx.MethodName = "TestMethod";
             tx.Params = ByteString.Empty;

@@ -14,7 +14,7 @@ namespace AElf.CSharp.Core
             Func<Address> func1 = null;
             Should.Throw<ArgumentException>(() => Preconditions.CheckNotNull(func1));
             
-            func1 = () => AddressHelper.FromString("from");
+            func1 = () => AddressHelper.StringToAddress("from");
             var reference = Preconditions.CheckNotNull(func1);
             reference.ShouldNotBeNull();
             var addressInfo = reference();
@@ -25,7 +25,7 @@ namespace AElf.CSharp.Core
             var reference1 = Preconditions.CheckNotNull(func2, "address");
             
             reference1.ShouldNotBeNull();
-            var result = reference1(AddressHelper.FromString("result"));
+            var result = reference1(AddressHelper.StringToAddress("result"));
             result.ShouldNotBeNullOrEmpty();
         }
     }
