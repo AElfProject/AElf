@@ -76,7 +76,7 @@ namespace AElf.Kernel.Blockchain.Application
             var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
             blockHeader.MerkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds);
             
-            var blockHash = blockHeader.GetHash();
+            var blockHash = blockHeader.GetHashWithoutCache();
             var blockBody = new BlockBody
             {
                 BlockHeader = blockHash
