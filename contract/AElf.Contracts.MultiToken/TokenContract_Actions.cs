@@ -539,12 +539,14 @@ namespace AElf.Contracts.MultiToken
                 var profits = State.Balances[input.ContractAddress][symbol];
                 State.Balances[input.ContractAddress][symbol] = 0;
                 var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
+                State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(donates);
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,
                     Amount = donates
                 });
-                State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol] = profits.Sub(donates);
+                State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol] =
+                    State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol].Add(profits.Sub(donates));
             }
 
             return new Empty();

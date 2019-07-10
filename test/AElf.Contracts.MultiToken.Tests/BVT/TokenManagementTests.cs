@@ -11,6 +11,7 @@ using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
@@ -68,6 +69,15 @@ namespace AElf.Contracts.MultiToken
         private Connector RamConnector = new Connector
         {
             Symbol = "ALICE",
+            VirtualBalance = 0,
+            Weight = "0.5",
+            IsPurchaseEnabled = true,
+            IsVirtualBalanceEnabled = false
+        };
+
+        private Connector BaseConnector = new Connector
+        {
+            Symbol = "ELF",
             VirtualBalance = 0,
             Weight = "0.5",
             IsPurchaseEnabled = true,
@@ -159,7 +169,15 @@ namespace AElf.Contracts.MultiToken
                 Decimals = AliceCoinTokenInfo.Decimals,
                 Issuer = AliceCoinTokenInfo.Issuer,
                 IsBurnable = AliceCoinTokenInfo.IsBurnable,
-                IsTransferDisabled = AliceCoinTokenInfo.IsTransferDisabled
+                IsTransferDisabled = AliceCoinTokenInfo.IsTransferDisabled,
+                LockWhiteList =
+                {
+                    BasicFunctionContractAddress,
+                    OtherBasicFunctionContractAddress,
+                    TokenConverterContractAddress,
+                    TreasuryContractAddress
+                }
+
             });
 
             // Check token information after creating.
@@ -170,6 +188,63 @@ namespace AElf.Contracts.MultiToken
                 });
                 tokenInfo.ShouldBe(AliceCoinTokenInfo);
             }
+
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = "ELF",
+                TokenName = "ELF",
+                TotalSupply = AliceCoinTokenInfo.TotalSupply,
+                Decimals = AliceCoinTokenInfo.Decimals,
+                Issuer = AliceCoinTokenInfo.Issuer,
+                IsBurnable = AliceCoinTokenInfo.IsBurnable,
+                IsTransferDisabled = AliceCoinTokenInfo.IsTransferDisabled,
+                LockWhiteList =
+                {
+                    BasicFunctionContractAddress,
+                    OtherBasicFunctionContractAddress,
+                    TokenConverterContractAddress,
+                    TreasuryContractAddress
+                }
+
+            });
+        }
+
+        private async Task TokenConverter_Converter()
+        {
+            await TreasuryContractStub.InitialTreasuryContract.SendAsync(new Empty());
+
+            await TreasuryContractStub.InitialMiningRewardProfitItem.SendAsync(new Empty());
+
+            await TokenConverterContractStub.Initialize.SendAsync(new InitializeInput
+            {
+                Connectors = {RamConnector, BaseConnector},
+                TokenContractAddress = TokenContractAddress,
+                BaseTokenSymbol = "ELF",
+                FeeRate = "0.2",
+                FeeReceiverAddress = User1Address
+
+            });
+            await TokenContractStub.Issue.SendAsync(new IssueInput
+            {
+                Symbol = "ELF",
+                Amount = 1000L,
+                Memo = "ddd",
+                To = TokenConverterContractAddress
+            });
+            await TokenContractStub.Issue.SendAsync(new IssueInput
+            {
+                Symbol = "ELF",
+                Amount = 1000L,
+                Memo = "ddd",
+                To = TokenConverterContractAddress
+            });
+            await TokenContractStub.Issue.SendAsync(new IssueInput
+            {
+                Symbol = AliceCoinTokenInfo.Symbol,
+                Amount = 1000L,
+                Memo = "ddd",
+                To = TokenConverterContractAddress
+            });
         }
 
         [Fact(DisplayName = "[MultiToken] Create different tokens.")]
@@ -240,6 +315,26 @@ namespace AElf.Contracts.MultiToken
                 })).Balance;
                 balance.ShouldBe(AliceCoinTotalAmount);
             }
+
+            //issue ELF amount of 1000_00L to DefaultAddress 
+            {
+                var result = await TokenContractStub.Issue.SendAsync(new IssueInput()
+                {
+                    Symbol = "ELF",
+                    Amount = AliceCoinTotalAmount,
+                    To = DefaultAddress,
+                    Memo = "first issue token."
+                });
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = DefaultAddress,
+                    Symbol = "ELF"
+                })).Balance;
+                balance.ShouldBe(AliceCoinTotalAmount);
+            }
+
             //issue AliceToken amount of 1000L to User1Address 
             {
                 var result = await TokenContractStub.Issue.SendAsync(new IssueInput()

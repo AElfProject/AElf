@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestContract.BasicFunction;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Shouldly;
 using Xunit;
@@ -82,6 +83,51 @@ namespace AElf.Contracts.MultiToken
             });
             allowanceOutput.Allowance.ShouldBe(2000L);
 
+            var approveBasisResult = (await TokenContractStub.Approve.SendAsync(new ApproveInput
+            {
+                Symbol = AliceCoinTokenInfo.Symbol,
+                Amount = 2000L,
+                Spender = BasicFunctionContractAddress
+            })).TransactionResult;
+            approveBasisResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+        }
+
+        [Fact(DisplayName = "[MultiToken] Approve token test")]
+        public async Task MultiTokenContract_Approve_NativeSymbol()
+        {
+            await MultiTokenContract_Issue();
+
+            var approveResult = (await TokenContractStub.Approve.SendAsync(new ApproveInput
+            {
+                Symbol = "ELF",
+                Amount = 2000L,
+                Spender = User1Address
+            })).TransactionResult;
+            approveResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var balanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = User1Address,
+                Symbol = "ELF"
+            });
+            balanceOutput.Balance.ShouldBe(0);
+
+            var allowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
+            {
+                Owner = DefaultAddress,
+                Spender = User1Address,
+                Symbol = "ELF"
+            });
+            allowanceOutput.Allowance.ShouldBe(2000L);
+
+            var approveBasisResult = (await TokenContractStub.Approve.SendAsync(new ApproveInput
+            {
+                Symbol = "ELF",
+                Amount = 2000L,
+                Spender = BasicFunctionContractAddress
+            })).TransactionResult;
+            approveBasisResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
         }
 
@@ -246,7 +292,8 @@ namespace AElf.Contracts.MultiToken
                 LockWhiteList =
                 {
                     BasicFunctionContractAddress,
-                    OtherBasicFunctionContractAddress
+                    OtherBasicFunctionContractAddress,
+                    TreasuryContractAddress
                 }
             });
             await TokenContractStub.Issue.SendAsync(new IssueInput
@@ -691,20 +738,20 @@ namespace AElf.Contracts.MultiToken
         [Fact(DisplayName = "[MultiToken] Token TransferToContract test")]
         public async Task MultiTokenContract_TransferToContract()
         {
-            await MultiTokenContract_Approve_ContractAddress();
+            await MultiTokenContract_Approve();
 
             var result = (await BasicFunctionContractStub.TransferTokenToContract.SendAsync(
                 new TransferTokenToContractInput
                 {
                     Amount = 1000L,
-                    Symbol = SymbolForTest,
+                    Symbol = AliceCoinTokenInfo.Symbol,
                     Memo = "TransferToContract test"
                 })).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var originAllowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
             {
-                Symbol = SymbolForTest,
+                Symbol = AliceCoinTokenInfo.Symbol,
                 Spender = BasicFunctionContractAddress,
                 Owner = DefaultAddress
             });
@@ -713,9 +760,53 @@ namespace AElf.Contracts.MultiToken
             var balanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = BasicFunctionContractAddress,
-                Symbol = SymbolForTest
+                Symbol = AliceCoinTokenInfo.Symbol
             });
             balanceOutput.Balance.ShouldBe(1000L);
+        }
+
+        [Fact]
+        public async Task MultiTokenContract_SetProfitReceivingInformation()
+        {
+            await MultiTokenContract_TransferToContract();
+            var setResult = (await TokenContractStub.SetProfitReceivingInformation.SendAsync(
+                new ProfitReceivingInformation
+                {
+                    ContractAddress = BasicFunctionContractAddress,
+                    DonationPartsPerHundred = 60,
+                    ProfitReceiverAddress = DefaultAddress
+                })).TransactionResult;
+            setResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var receiveInfo =
+                await TokenContractStub.GetProfitReceivingInformation.CallAsync(BasicFunctionContractAddress);
+            receiveInfo.ProfitReceiverAddress.ShouldBe(DefaultAddress);
+
+        }
+
+        [Fact]
+        public async Task MultiTokenContract_ReceiveProfits()
+        {
+            await MultiTokenContract_SetProfitReceivingInformation();
+            await TokenConverter_Converter();
+            var tokenOriginBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = DefaultAddress,
+                Symbol = AliceCoinTokenInfo.Symbol
+            })).Balance;
+
+            var result = (await TokenContractStub.ReceiveProfits.SendAsync(new ReceiveProfitsInput
+            {
+                ContractAddress = BasicFunctionContractAddress,
+                Symbols = {AliceCoinTokenInfo.Symbol}
+            })).TransactionResult;
+            result.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var tokenBalanceOutput = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = DefaultAddress,
+                Symbol = AliceCoinTokenInfo.Symbol
+            });
+            tokenBalanceOutput.Balance.ShouldBe(tokenOriginBalance.Add(400L));
         }
     }
 }
