@@ -62,8 +62,6 @@ namespace AElf.Contracts.Profit
 
             var profitDetails = State.ProfitDetailsMap[input.SchemeId][Context.Sender];
 
-            Assert(profitDetails != null, "Profit details not found.");
-
             if (profitDetails == null || profitItem == null)
             {
                 return new SInt64Value {Value = 0};

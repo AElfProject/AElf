@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
@@ -70,46 +71,9 @@ namespace AElf.Contracts.Election
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                 Symbol = "ELF"
             })).Value;
-            profitBalance.ShouldBe(25000000);
+            profitBalance.ShouldBeGreaterThan(24000000);
         }
-
-        private async Task<DistributedProfitsInfo> GetDistributedProfitsInfo(ProfitType type, long period)
-        {
-            return await ProfitContractStub.GetDistributedProfitsInfo.CallAsync(
-                new SchemePeriod
-                {
-                    SchemeId = ProfitItemsIds[type],
-                    Period = period
-                });
-        }
-
-        private async Task<long> GetProfitAmount(ProfitType type)
-        {
-            ProfitContractContainer.ProfitContractStub stub;
-            switch (type)
-            {
-                case ProfitType.CitizenWelfare:
-                    stub = GetProfitContractTester(VoterKeyPairs[0]);
-                    break;
-                default:
-                    stub = GetProfitContractTester(ValidationDataCenterKeyPairs[0]);
-                    break;
-            }
-
-            return (await stub.GetProfitAmount.CallAsync(new ClaimProfitsInput
-            {
-                SchemeId = ProfitItemsIds[type],
-                Symbol = EconomicContractsTestConstants.NativeTokenSymbol
-            })).Value;
-        }
-
-        private async Task<long> GetReleasedAmount()
-        {
-            var previousRound = await AEDPoSContractStub.GetPreviousRoundInformation.CallAsync(new Empty());
-            var minedBlocks = previousRound.GetMinedBlocks();
-            return EconomicContractsTestConstants.ElfTokenPerBlock * minedBlocks;
-        }
-
+        
         [Fact]
         public async Task UserVote_CheckAllProfits()
         {
@@ -186,14 +150,14 @@ namespace AElf.Contracts.Election
                     amount.ShouldBe(0);
                 }
 
-                // Votes Shares reward.
+                // Votes weights reward.
                 {
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.VotesWeightReward, currentPeriod);
                     releasedInformation.TotalShares.ShouldBe(-1);
                 }
 
-                // Amount of votes Shares reward.
+                // Amount of votes weights reward.
                 {
                     var amount = await GetProfitAmount(ProfitType.VotesWeightReward);
                     amount.ShouldBe(0);
@@ -206,7 +170,7 @@ namespace AElf.Contracts.Election
                     releasedInformation.TotalShares.ShouldBe(-1);
                 }
 
-                // Amount of votes Shares reward.
+                // Amount of re-election reward.
                 {
                     var amount = await GetProfitAmount(ProfitType.ReElectionReward);
                     amount.ShouldBe(0);
@@ -273,7 +237,7 @@ namespace AElf.Contracts.Election
                     amount.ShouldBe(rewardAmount * 2 / 5 / 9);
                 }
 
-                // Votes Shares reward.
+                // Votes weights reward.
                 {
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.VotesWeightReward, currentPeriod);
@@ -283,7 +247,7 @@ namespace AElf.Contracts.Election
                         .ShouldBe(rewardAmount / 10);
                 }
 
-                // Amount of votes Shares reward.
+                // Amount of votes weights reward.
                 {
                     var amount = await GetProfitAmount(ProfitType.VotesWeightReward);
                     amount.ShouldBe(rewardAmount / 10 * 2 / 14);
@@ -296,7 +260,7 @@ namespace AElf.Contracts.Election
                     releasedInformation.TotalShares.ShouldBe(-1);
                 }
 
-                // Amount of votes Shares reward.
+                // Amount of re-election reward.
                 {
                     var amount = await GetProfitAmount(ProfitType.ReElectionReward);
                     amount.ShouldBe(0);
@@ -305,7 +269,7 @@ namespace AElf.Contracts.Election
                 // Citizen welfare.
                 {
                     var releasedInformation =
-                        await GetDistributedProfitsInfo(ProfitType.CitizenWelfare, currentPeriod - 1);
+                        await GetDistributedProfitsInfo(ProfitType.CitizenWelfare, currentPeriod);
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
                         .ShouldBe(rewardAmount / 5);
 
@@ -321,19 +285,19 @@ namespace AElf.Contracts.Election
 
             //query and profit voter vote profit
             {
-                var beforeToken = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                var beforeBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
                     Owner = Address.FromPublicKey(VoterKeyPairs[0].PublicKey),
                     Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                 })).Balance;
 
                 var profitTester = GetProfitContractTester(VoterKeyPairs[0]);
-                var profitBalance = (await profitTester.GetProfitAmount.CallAsync(new ClaimProfitsInput
+                var profitAmount = (await profitTester.GetProfitAmount.CallAsync(new ClaimProfitsInput
                 {
                     SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                     Symbol = "ELF"
                 })).Value;
-                profitBalance.ShouldBeGreaterThan(0);
+                profitAmount.ShouldBeGreaterThan(0);
 
                 var profitResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                 {
@@ -342,12 +306,12 @@ namespace AElf.Contracts.Election
                 });
                 profitResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-                var afterToken = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                var afterBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
                     Owner = Address.FromPublicKey(VoterKeyPairs[0].PublicKey),
                     Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                 })).Balance;
-                afterToken.ShouldBe(beforeToken + profitBalance - txFee);
+                afterBalance.ShouldBe(beforeBalance + profitAmount - txFee);
             }
 
             for (var i = 0; i < EconomicContractsTestConstants.InitialCoreDataCenterCount; i++)
@@ -533,6 +497,43 @@ namespace AElf.Contracts.Election
                                         reElectionBalance + backupBalance - txFee * 4);
                 }
             }
+        }
+
+        private async Task<DistributedProfitsInfo> GetDistributedProfitsInfo(ProfitType type, long period)
+        {
+            return await ProfitContractStub.GetDistributedProfitsInfo.CallAsync(
+                new SchemePeriod
+                {
+                    SchemeId = ProfitItemsIds[type],
+                    Period = period
+                });
+        }
+
+        private async Task<long> GetProfitAmount(ProfitType type)
+        {
+            ProfitContractContainer.ProfitContractStub stub;
+            switch (type)
+            {
+                case ProfitType.CitizenWelfare:
+                    stub = GetProfitContractTester(VoterKeyPairs[0]);
+                    break;
+                default:
+                    stub = GetProfitContractTester(ValidationDataCenterKeyPairs[0]);
+                    break;
+            }
+
+            return (await stub.GetProfitAmount.CallAsync(new ClaimProfitsInput
+            {
+                SchemeId = ProfitItemsIds[type],
+                Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+            })).Value;
+        }
+
+        private async Task<long> GetReleasedAmount()
+        {
+            var previousRound = await AEDPoSContractStub.GetPreviousRoundInformation.CallAsync(new Empty());
+            var minedBlocks = previousRound.GetMinedBlocks();
+            return EconomicContractsTestConstants.ElfTokenPerBlock * minedBlocks;
         }
     }
 }

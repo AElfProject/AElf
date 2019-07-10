@@ -66,7 +66,8 @@ namespace AElf.Contracts.Profit
                 Creator = Context.Sender,
                 ProfitReceivingDuePeriodCount = input.ProfitReceivingDuePeriodCount,
                 CurrentPeriod = 1,
-                IsReleaseAllBalanceEverytimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault
+                IsReleaseAllBalanceEveryTimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault,
+                DelayDistributePeriodCount = input.DelayDistributePeriodCount
             };
             State.SchemeInfos[schemeId] = scheme;
 
@@ -91,7 +92,7 @@ namespace AElf.Contracts.Profit
             {
                 SchemeId = scheme.SchemeId,
                 Creator = scheme.Creator,
-                IsReleaseAllBalanceEverytimeByDefault = scheme.IsReleaseAllBalanceEverytimeByDefault,
+                IsReleaseAllBalanceEveryTimeByDefault = scheme.IsReleaseAllBalanceEveryTimeByDefault,
                 ProfitReceivingDuePeriodCount = scheme.ProfitReceivingDuePeriodCount,
                 VirtualAddress = scheme.VirtualAddress
             });
@@ -345,35 +346,48 @@ namespace AElf.Contracts.Profit
             Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
             if (input.Symbol == null) return new Empty(); // Just to avoid IDE warning.
 
-            var profitItem = State.SchemeInfos[input.SchemeId];
-            Assert(profitItem != null, "Profit item not found.");
-            if (profitItem == null) return new Empty(); // Just to avoid IDE warning.
+            var scheme = State.SchemeInfos[input.SchemeId];
+            Assert(scheme != null, "Profit item not found.");
+            if (scheme == null) return new Empty(); // Just to avoid IDE warning.
 
-            Assert(Context.Sender == profitItem.Creator, "Only creator can release profits.");
+            Assert(Context.Sender == scheme.Creator, "Only creator can release profits.");
 
-            var balance = AssertBalanceIsEnough(profitItem.VirtualAddress, input);
+            var balance = AssertBalanceIsEnough(scheme.VirtualAddress, input);
 
-            if (profitItem.IsReleaseAllBalanceEverytimeByDefault && input.Amount == 0)
+            if (scheme.IsReleaseAllBalanceEveryTimeByDefault && input.Amount == 0)
             {
                 // Release all from general ledger.
                 Context.LogDebug(() => $"Update releasing amount to {balance}");
                 input.Amount = balance;
             }
 
-            // Normally `input.TotalWeigh` should be 0, except the situation releasing of profits delayed for some reason.
-            var totalShares = input.TotalShares == 0 ? profitItem.TotalShares : input.TotalShares;
+            var totalShares = scheme.TotalShares;
+
+            if (scheme.DelayDistributePeriodCount > 0)
+            {
+                scheme.CachedDelayTotalShares.Add(input.Period.Add(scheme.DelayDistributePeriodCount), totalShares);
+                if (scheme.CachedDelayTotalShares.ContainsKey(input.Period))
+                {
+                    totalShares = scheme.CachedDelayTotalShares[input.Period];
+                    scheme.CachedDelayTotalShares.Remove(input.Period);
+                }
+                else
+                {
+                    totalShares = 0;
+                }
+            }
 
             if (input.Period < 0 || totalShares <= 0)
             {
-                return BurnProfits(input, profitItem, profitItem.VirtualAddress);
+                return BurnProfits(input, scheme, scheme.VirtualAddress);
             }
 
-            var releasingPeriod = profitItem.CurrentPeriod;
+            var releasingPeriod = scheme.CurrentPeriod;
             Assert(input.Period == releasingPeriod,
                 $"Invalid period. When release profit item {input.SchemeId.ToHex()} of period {input.Period}. Current period is {releasingPeriod}");
 
             var profitsReceivingVirtualAddress =
-                GetReleasedPeriodProfitsVirtualAddress(profitItem.VirtualAddress, releasingPeriod);
+                GetReleasedPeriodProfitsVirtualAddress(scheme.VirtualAddress, releasingPeriod);
 
             Context.LogDebug(() => $"Receiving virtual address: {profitsReceivingVirtualAddress}");
 
@@ -383,14 +397,14 @@ namespace AElf.Contracts.Profit
                 $"Released profit information of {input.SchemeId.ToHex()} in period {input.Period}, " +
                 $"total Shares {releasedProfitInformation.TotalShares}, total amount {releasedProfitInformation.ProfitsAmount} {input.Symbol}s");
 
-            PerformReleaseProfits(input, profitItem, totalShares, profitsReceivingVirtualAddress);
+            PerformReleaseProfits(input, scheme, totalShares, profitsReceivingVirtualAddress);
 
-            profitItem.CurrentPeriod = input.Period.Add(1);
-            profitItem.UndistributedProfits[input.Symbol] = profitItem.IsReleaseAllBalanceEverytimeByDefault
+            scheme.CurrentPeriod = input.Period.Add(1);
+            scheme.UndistributedProfits[input.Symbol] = scheme.IsReleaseAllBalanceEveryTimeByDefault
                 ? 0
-                : profitItem.UndistributedProfits[input.Symbol].Sub(input.Amount);
+                : scheme.UndistributedProfits[input.Symbol].Sub(input.Amount);
 
-            State.SchemeInfos[input.SchemeId] = profitItem;
+            State.SchemeInfos[input.SchemeId] = scheme;
 
             return new Empty();
         }
@@ -688,6 +702,10 @@ namespace AElf.Contracts.Profit
                 var releasedProfitsVirtualAddress =
                     GetReleasedPeriodProfitsVirtualAddress(profitVirtualAddress, period);
                 var releasedProfitsInformation = State.ReleasedProfitsMap[releasedProfitsVirtualAddress];
+                if (releasedProfitsInformation == null || releasedProfitsInformation.TotalShares == 0)
+                {
+                    continue;
+                }
                 Context.LogDebug(() => $"Released profit information: {releasedProfitsInformation}");
                 var amount = profitDetail.Shares.Mul(releasedProfitsInformation.ProfitsAmount[symbol])
                     .Div(releasedProfitsInformation.TotalShares);

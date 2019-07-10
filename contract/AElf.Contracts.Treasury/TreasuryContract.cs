@@ -56,7 +56,9 @@ namespace AElf.Contracts.Treasury
                 Context.LogDebug(() => profitItemNameList[index]);
                 State.ProfitContract.CreateScheme.Send(new CreateSchemeInput
                 {
-                    IsReleaseAllBalanceEveryTimeByDefault = true
+                    IsReleaseAllBalanceEveryTimeByDefault = true,
+                    // Distribution of Citizen Welfare will delay one period.
+                    DelayDistributePeriodCount = i == 3 ? 1 : 0
                 });
             }
 
@@ -279,18 +281,12 @@ namespace AElf.Contracts.Treasury
                 Symbol = Context.Variables.NativeSymbol
             });
 
-            // Citizen Welfare release should delay one term.
-            // Voter voted during term x, can profit after term (x + 1).
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.WelfareHash.Value,
-                Period = termNumber > 1 ? termNumber - 1 : -1,
-                TotalShares = State.CachedWelfareWeight.Value,
+                Period = termNumber,
                 Symbol = Context.Variables.NativeSymbol
             });
-
-            State.CachedWelfareWeight.Value =
-                State.ProfitContract.GetScheme.Call(State.WelfareHash.Value).TotalShares;
         }
 
         private void UpdateTreasurySubItemsWeights(long termNumber)
@@ -415,17 +411,18 @@ namespace AElf.Contracts.Treasury
                     SchemeId = welfareHash,
                     Period = welfareItem.CurrentPeriod.Sub(1)
                 });
-            var TotalShares = releasedInformation.TotalShares;
+            var totalShares = releasedInformation.TotalShares;
             var totalAmount = releasedInformation.ProfitsAmount;
             foreach (var lockTime in input.Value)
             {
-                var Shares = GetVotesWeight(sampleAmount, lockTime);
-                output.Value.Add(totalAmount[Context.Variables.NativeSymbol].Mul(Shares).Div(TotalShares));
+                var shares = GetVotesWeight(sampleAmount, lockTime);
+                output.Value.Add(totalAmount[Context.Variables.NativeSymbol].Mul(shares).Div(totalShares));
             }
 
             return output;
         }
 
+        //TODO: Remove, will implement in AEDPoS contract
         public override SInt64Value GetCurrentWelfareReward(Empty input)
         {
             var welfareVirtualAddress = Context.ConvertVirtualAddressToContractAddress(State.WelfareHash.Value);

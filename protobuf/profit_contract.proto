@@ -59,18 +59,21 @@ service ProfitContract {
 message CreateSchemeInput {
     sint64 profit_receiving_due_period_count = 1;
     bool is_release_all_balance_every_time_by_default = 2;
+    sint32 delay_distribute_period_count = 3;
 }
 
 message Scheme {
     aelf.Address virtual_address = 1;
     sint64 total_shares = 2;
-    map<string, sint64> undistributed_profits = 3;// token_symbol -> total_amount
+    map<string, sint64> undistributed_profits = 3;// token symbol -> amount
     sint64 current_period = 4;
     repeated SchemeBeneficiaryShare sub_schemes = 5;
     aelf.Address creator = 6;
     sint64 profit_receiving_due_period_count = 7;
-    bool is_release_all_balance_everytime_by_default = 8;
+    bool is_release_all_balance_every_time_by_default = 8;
     aelf.Hash scheme_id = 9;
+    sint32 delay_distribute_period_count = 10;
+    map<sint64, sint64> cached_delay_total_shares = 11;// period -> total shares, max elements count should be delay_distribute_period_count
 }
 
 message SchemeBeneficiaryShare {
@@ -114,8 +117,7 @@ message DistributeProfitsInput {
     aelf.Hash scheme_id = 1;
     sint64 period = 2;
     sint64 amount = 3;
-    sint64 total_shares = 4;
-    string symbol = 5;
+    string symbol = 4;
 }
 
 message ProfitDetails {
@@ -178,6 +180,6 @@ message SchemeCreated {
     aelf.Address virtual_address = 1;
     aelf.Address creator = 2;
     sint64 profit_receiving_due_period_count = 3;
-    bool is_release_all_balance_everytime_by_default = 4;
+    bool is_release_all_balance_every_time_by_default = 4;
     aelf.Hash scheme_id = 5;
 }

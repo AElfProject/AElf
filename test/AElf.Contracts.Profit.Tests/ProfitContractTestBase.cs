@@ -26,15 +26,15 @@ namespace AElf.Contracts.Profit
         protected Address TokenContractAddress { get; set; }
         protected Address ProfitContractAddress { get; set; }
         
-        internal List<ProfitContractContainer.ProfitContractStub> Creators => CreatorMinerKeyPair
+        internal List<ProfitContractContainer.ProfitContractStub> Creators => CreatorKeyPair
             .Select(p => GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, p)).ToList();
 
-        internal List<ProfitContractContainer.ProfitContractStub> Normal => NormalMinerKeyPair
+        internal List<ProfitContractContainer.ProfitContractStub> Normal => NormalKeyPair
             .Select(p => GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, p)).ToList();
         
-        protected List<ECKeyPair> CreatorMinerKeyPair => SampleECKeyPairs.KeyPairs.Skip(1).Take(4).ToList();
+        protected List<ECKeyPair> CreatorKeyPair => SampleECKeyPairs.KeyPairs.Skip(1).Take(4).ToList();
         
-        protected List<ECKeyPair> NormalMinerKeyPair => SampleECKeyPairs.KeyPairs.Skip(5).Take(5).ToList();
+        protected List<ECKeyPair> NormalKeyPair => SampleECKeyPairs.KeyPairs.Skip(5).Take(5).ToList();
 
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
 
@@ -105,7 +105,7 @@ namespace AElf.Contracts.Profit
                 Decimals = 2,
                 IsBurnable = true,
                 TokenName = "elf token",
-                TotalSupply = ProfitContractTestConsts.NativeTokenTotalSupply,
+                TotalSupply = ProfitContractTestConstants.NativeTokenTotalSupply,
                 Issuer = Starter,
                 LockWhiteList =
                 {
@@ -117,17 +117,26 @@ namespace AElf.Contracts.Profit
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = symbol,
-                Amount = (long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2),
+                Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.2),
                 To = Address.FromPublicKey(StarterKeyPair.PublicKey),
                 Memo = "Issue token to default user for vote.",
             });
 
-            CreatorMinerKeyPair.ForEach(creatorKeyPair => tokenContractCallList.Add(nameof(TokenContract.Issue),
+            CreatorKeyPair.ForEach(creatorKeyPair => tokenContractCallList.Add(nameof(TokenContract.Issue),
                 new IssueInput
                 {
                     Symbol = symbol,
-                    Amount = (long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2),
+                    Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.1),
                     To = Address.FromPublicKey(creatorKeyPair.PublicKey),
+                    Memo = "set voters few amount for voting."
+                }));
+            
+            NormalKeyPair.ForEach(normalKeyPair => tokenContractCallList.Add(nameof(TokenContract.Issue),
+                new IssueInput
+                {
+                    Symbol = symbol,
+                    Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.05),
+                    To = Address.FromPublicKey(normalKeyPair.PublicKey),
                     Memo = "set voters few amount for voting."
                 }));
 
