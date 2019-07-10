@@ -107,7 +107,10 @@ namespace AElf.Contracts.Profit.BVT
                     Period = period,
                     SchemeId = schemeId
                 });
-                distributedInformation.TotalShares.ShouldBe(-1);
+                distributedInformation.IsReleased.ShouldBeTrue();
+                distributedInformation.TotalShares.ShouldBe(0);
+                distributedInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol]
+                    .ShouldBe(-contributeAmountEachTime);
             }
 
             // Distribution of period 4 will use the total shares of period 1.
@@ -119,6 +122,7 @@ namespace AElf.Contracts.Profit.BVT
                     Period = 4,
                     SchemeId = schemeId
                 });
+                distributedInformation.IsReleased.ShouldBeTrue();
                 distributedInformation.TotalShares.ShouldBe(periodToTotalShares[1]);
                 distributedInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol]
                     .ShouldBe(contributeAmountEachTime);
@@ -137,7 +141,7 @@ namespace AElf.Contracts.Profit.BVT
                 distributedInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol]
                     .ShouldBe(contributeAmountEachTime);
             }
-            
+
             // Distribution of period 6 will use the total shares of period 3.
             {
                 await ContributeAndDistribute(creator, contributeAmountEachTime, 6);
@@ -151,7 +155,7 @@ namespace AElf.Contracts.Profit.BVT
                 distributedInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol]
                     .ShouldBe(contributeAmountEachTime);
             }
-            
+
             // Distribution of period 7 will use the total shares of period 4 (same with period 3).
             {
                 await ContributeAndDistribute(creator, contributeAmountEachTime, 7);

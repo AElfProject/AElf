@@ -73,13 +73,16 @@ namespace AElf.Contracts.Election
             })).Value;
             profitBalance.ShouldBeGreaterThan(24000000);
         }
-        
+
         [Fact]
-        public async Task UserVote_CheckAllProfits()
+        public async Task CheckTreasuryProfitsDistribution()
         {
             const long txFee = 1_00000000L;
             long rewardAmount;
             var oldBackupSubsidy = 0L;
+
+            var treasuryScheme =
+                await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
 
             // Prepare candidates and votes.
             {
@@ -121,6 +124,16 @@ namespace AElf.Contracts.Election
                 rewardAmount = await GetReleasedAmount();
                 const long currentPeriod = 1L;
 
+                // Check balance of Treasury general ledger.
+                {
+                    var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                    {
+                        Owner = treasuryScheme.VirtualAddress,
+                        Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                    });
+                    balance.Balance.ShouldBe(0);
+                }
+
                 // Backup subsidy.
                 {
                     var releasedInformation =
@@ -141,7 +154,10 @@ namespace AElf.Contracts.Election
                 {
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.BasicMinerReward, currentPeriod);
-                    releasedInformation.TotalShares.ShouldBe(-1);
+                    releasedInformation.IsReleased.ShouldBeTrue();
+                    releasedInformation.TotalShares.ShouldBe(0);
+                    releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
+                        .ShouldBe(-rewardAmount * 2 / 5);
                 }
 
                 // Amount of basic reward.
@@ -154,7 +170,10 @@ namespace AElf.Contracts.Election
                 {
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.VotesWeightReward, currentPeriod);
-                    releasedInformation.TotalShares.ShouldBe(-1);
+                    releasedInformation.IsReleased.ShouldBeTrue();
+                    releasedInformation.TotalShares.ShouldBe(0);
+                    releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
+                        .ShouldBe(-rewardAmount / 10);
                 }
 
                 // Amount of votes weights reward.
@@ -167,7 +186,10 @@ namespace AElf.Contracts.Election
                 {
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.ReElectionReward, currentPeriod);
-                    releasedInformation.TotalShares.ShouldBe(-1);
+                    releasedInformation.IsReleased.ShouldBeTrue();
+                    releasedInformation.TotalShares.ShouldBe(0);
+                    releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
+                        .ShouldBe(-rewardAmount / 10);
                 }
 
                 // Amount of re-election reward.
@@ -180,7 +202,10 @@ namespace AElf.Contracts.Election
                 {
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.CitizenWelfare, currentPeriod);
-                    releasedInformation.TotalShares.ShouldBe(-1);
+                    releasedInformation.IsReleased.ShouldBeTrue();
+                    releasedInformation.TotalShares.ShouldBe(0);
+                    releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
+                        .ShouldBe(-rewardAmount / 5);
                 }
 
                 // Amount of citizen welfare.
@@ -206,6 +231,16 @@ namespace AElf.Contracts.Election
             {
                 rewardAmount = await GetReleasedAmount();
                 const long currentPeriod = 2L;
+
+                // Check balance of Treasury general ledger.
+                {
+                    var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                    {
+                        Owner = treasuryScheme.VirtualAddress,
+                        Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                    });
+                    balance.Balance.ShouldBe(0);
+                }
 
                 // Backup subsidy.
                 {
@@ -257,7 +292,10 @@ namespace AElf.Contracts.Election
                 {
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.ReElectionReward, currentPeriod);
-                    releasedInformation.TotalShares.ShouldBe(-1);
+                    releasedInformation.IsReleased.ShouldBeTrue();
+                    releasedInformation.TotalShares.ShouldBe(0);
+                    releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
+                        .ShouldBe(-rewardAmount / 10);
                 }
 
                 // Amount of re-election reward.

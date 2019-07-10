@@ -9,7 +9,7 @@ namespace AElf.Contracts.Profit
     {
         public MappedState<Hash, Scheme> SchemeInfos { get; set; }
 
-        public MappedState<Address, DistributedProfitsInfo> ReleasedProfitsMap { get; set; }
+        public MappedState<Address, DistributedProfitsInfo> DistributedProfitsMap { get; set; }
 
         public MappedState<Hash, Address, ProfitDetails> ProfitDetailsMap { get; set; }
 

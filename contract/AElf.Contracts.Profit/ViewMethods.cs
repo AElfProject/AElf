@@ -39,7 +39,7 @@ namespace AElf.Contracts.Profit
         {
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
             var releasedProfitsVirtualAddress = GetReleasedPeriodProfitsVirtualAddress(virtualAddress, input.Period);
-            return State.ReleasedProfitsMap[releasedProfitsVirtualAddress] ?? new DistributedProfitsInfo
+            return State.DistributedProfitsMap[releasedProfitsVirtualAddress] ?? new DistributedProfitsInfo
             {
                 TotalShares = -1
             };
