@@ -12,13 +12,11 @@ namespace AElf.OS.Network
     {
         private readonly INetworkService _networkService;
         private readonly IPeerPool _peerPool;
-        private readonly OSTestHelper _osTestHelper;
 
         public NetworkServiceTests()
         {
             _networkService = GetRequiredService<INetworkService>();
             _peerPool = GetRequiredService<IPeerPool>();
-            _osTestHelper = GetRequiredService<OSTestHelper>();
         }
 
         #region GetBlocks
@@ -57,44 +55,12 @@ namespace AElf.OS.Network
 
         #endregion GetBlockByHash
 
-        #region Broadcasts
-
-        [Fact]
-        public async Task BroadcastAnnounceAsync_OnePeerThrows_ShouldNotBlockOthers()
-        {
-            int successfulBcasts =
-                await _networkService.BroadcastAnnounceAsync(_osTestHelper.GenerateBlock(Hash.Empty, 10).Header, false);
-            Assert.Equal(successfulBcasts, _peerPool.GetPeers().Count-1);
-        }
-        
-        [Fact]
-        public async Task BroadcastTransactionAsync_OnePeerThrows_ShouldNotBlockOthers()
-        {
-            int successfulBcasts =
-                await _networkService.BroadcastAnnounceAsync(_osTestHelper.GenerateBlock(Hash.Empty, 10).Header, false);
-            Assert.Equal(successfulBcasts, _peerPool.GetPeers().Count-1);
-        }
-        
-        [Fact]
-        public async Task BroadcastTransactionAsync_Success()
-        {
-            var successfulBcasts = await _networkService.BroadcastTransactionAsync(new Transaction
-            {
-                From = Address.Generate(),
-                To = Address.Generate(),
-                MethodName = "Test"
-            });
-            Assert.Equal(successfulBcasts, _peerPool.GetPeers().Count-1);
-        }
-
-        #endregion Broadcasts
-        
         #region GetPeers
 
         [Fact]
         public void GetPeers_ShouldIncludeFailing()
         {
-            Assert.Equal(_networkService.GetPeerIpList().Count, _peerPool.GetPeers(true).Count);
+            Assert.Equal(_networkService.GetPeers().Count, _peerPool.GetPeers(true).Count);
         }
         
         #endregion GetPeers
