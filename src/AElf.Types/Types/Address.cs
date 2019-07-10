@@ -22,7 +22,8 @@ namespace AElf.Types
         // Make private to avoid confusion
         private Address(byte[] bytes)
         {
-            CheckLength(bytes);
+            if (bytes == null || bytes.Length != TypeConsts.AddressHashLength)
+                throw new ArgumentOutOfRangeException($"Invalid bytes.");
 
             Value = ByteString.CopyFrom(bytes);
         }
@@ -31,6 +32,23 @@ namespace AElf.Types
         {
             var hash = bytes.CalculateHash().CalculateHash();
             return new Address(hash);
+        }
+
+        /// <summary>
+        /// Loads the content value from 32-byte long byte array.
+        /// </summary>
+        /// <param name="bytes"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        public static Address FromBytes(byte[] bytes)
+        {
+            if (bytes == null || bytes.Length != TypeConsts.AddressHashLength)
+                throw new ArgumentOutOfRangeException($"Invalid bytes.");
+
+            return new Address
+            {
+                Value = ByteString.CopyFrom(bytes)
+            };
         }
 
         #region Comparing
@@ -100,40 +118,18 @@ namespace AElf.Types
             if (_formattedAddress != null)
                 return _formattedAddress;
 
-            CheckLength(Value.ToByteArray());
+            if (Value.Length != TypeConsts.AddressHashLength)
+            {
+                throw new ArgumentOutOfRangeException(
+                    $"Serialized value does not represent a valid address. The input is {Value.Length} bytes long.");
+            }
 
             var pubKeyHash = Base58CheckEncoding.Encode(Value.ToByteArray());
 
             return _formattedAddress = pubKeyHash;
         }
 
-
-        /// <summary>
-        /// Loads the content value from 32-byte long byte array.
-        /// </summary>
-        /// <param name="bytes"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Address FromBytes(byte[] bytes)
-        {
-            CheckLength(bytes);
-
-            return new Address
-            {
-                Value = ByteString.CopyFrom(bytes)
-            };
-        }
-
         #endregion Load and dump
-
-        private static void CheckLength(byte[] bytes)
-        {
-            if (bytes.Length != TypeConsts.HashByteArrayLength)
-            {
-                throw new ArgumentOutOfRangeException($"Hash bytes has to be " +
-                                                      $"{TypeConsts.HashByteArrayLength} bytes long. The input is {bytes.Length} bytes long.");
-            }
-        }
     }
 
     public class ChainAddress

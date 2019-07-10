@@ -8,7 +8,7 @@ namespace AElf.Contracts.ParliamentAuth
 {
     public partial class ParliamentAuthContract
     {
-        private List<Address> GetRepresentatives()
+        private List<Address> GetCurrentMinerList()
         {
             ValidateConsensusContract();
             var miner = State.ConsensusContract.GetCurrentMinerList.Call(new Empty());
@@ -17,10 +17,18 @@ namespace AElf.Contracts.ParliamentAuth
             return representatives;
         }
 
-        private void CheckProposerAuthority(Address organizationAddress)
+        private void CheckProposerAuthority(Organization organization)
         {
-            // add some checks if needed. Any one can propose if no checking here.
-            // TODO: proposer authority to be checked
+            // It is a valid proposer if
+            // authority check is disable,
+            // or sender is in proposer white list,
+            // or sender is one of miners.
+            if (!organization.ProposerAuthorityRequired)
+                return; 
+            if (organization.ProposerWhiteList.Any(p => p == Context.Sender))
+                return;
+            var minerList = GetCurrentMinerList();
+            Assert(minerList.Any(m => m == Context.Sender), "Not authorized to propose.");
         }
         
         private bool IsReadyToRelease(ProposalInfo proposal, Organization organization,
@@ -48,7 +56,5 @@ namespace AElf.Contracts.ParliamentAuth
         {
             return Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
         }
-
-        private int _defaultOrganizationReleaseThreshold = 6666; // 2/3 for default parliament organization
     }
 }
