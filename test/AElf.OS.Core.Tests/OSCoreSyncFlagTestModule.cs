@@ -25,7 +25,7 @@ namespace AElf.OS
                 Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
                 peerPoolMock.Setup(p => p.GetPeers(It.IsAny<bool>()))
                     .Returns(peerList);
-                peerPoolMock.Setup(p => p.AddPeer(It.IsAny<IPeer>()))
+                peerPoolMock.Setup(p => p.TryAddPeer(It.IsAny<IPeer>()))
                     .Callback<IPeer>(peer => peerList.Add(peer));
                 
                 return peerPoolMock.Object;

@@ -62,8 +62,8 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Peers_WithNoLib_Stops_Sync()
         {
-            _peerPool.AddPeer(CreatePeer());
-            _peerPool.AddPeer(CreatePeer());
+            _peerPool.TryAddPeer(CreatePeer());
+            _peerPool.TryAddPeer(CreatePeer());
             
             await _syncStateService.StartSyncAsync();
             
@@ -77,7 +77,7 @@ namespace AElf.OS.Network
         public async Task Trigger_Sync_Depends_On_Peers_And_Local_LIB(SyncState expectedSyncState, int[] peers)
         {
             foreach (int peer in peers)
-                _peerPool.AddPeer(CreatePeer(peer));
+                _peerPool.TryAddPeer(CreatePeer(peer));
             
             await _syncStateService.StartSyncAsync();
             

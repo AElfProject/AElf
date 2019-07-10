@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography;
@@ -37,19 +36,21 @@ namespace AElf.OS.Network.Grpc
         private readonly IBlockchainService _blockchainService;
         private readonly IAccountService _accountService;
         private readonly IPeerDiscoveryService _peerDiscoveryService;
+        private readonly IHandshakeProvider _handshakeProvider;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
 
         public GrpcServerService(ISyncStateService syncStateService, IPeerPool peerPool, 
             IBlockchainService blockchainService, IAccountService accountService, 
-            IPeerDiscoveryService peerDiscoveryService)
+            IPeerDiscoveryService peerDiscoveryService, IHandshakeProvider handshakeProvider)
         {
             _syncStateService = syncStateService;
             _peerPool = peerPool;
             _blockchainService = blockchainService;
             _accountService = accountService;
             _peerDiscoveryService = peerDiscoveryService;
+            _handshakeProvider = handshakeProvider;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
@@ -60,7 +61,7 @@ namespace AElf.OS.Network.Grpc
         /// clients authentication information. When receiving this call, protocol dictates you send the client your auth
         /// information. The response says whether or not you can connect.
         /// </summary>
-        public override async Task<ConnectReply> Connect(Handshake handshake, ServerCallContext context)
+        public override async Task<ConnectReply> Connect(Handshake peerHandshake, ServerCallContext context)
         {
             Logger.LogTrace($"{context.Peer} has initiated a connection request.");
             
@@ -79,7 +80,7 @@ namespace AElf.OS.Network.Grpc
                 }
             }
 
-            var error = ValidateHandshake(handshake);
+            var error = ValidateHandshake(peerHandshake);
 
             if (error != AuthError.None)
             {
@@ -87,7 +88,7 @@ namespace AElf.OS.Network.Grpc
                 return new ConnectReply {Error = error};
             }
             
-            var pubKey = handshake.HandshakeData.Pubkey.ToHex();
+            var pubKey = peerHandshake.HandshakeData.Pubkey.ToHex();
             var oldPeer = _peerPool.FindPeerByPublicKey(pubKey);
 
             if (oldPeer != null)
@@ -97,19 +98,19 @@ namespace AElf.OS.Network.Grpc
             }
 
             // TODO: find a URI type to use
-            var peerAddress = peer.IpAddress + ":" + handshake.HandshakeData.ListeningPort;
-            var grpcPeer = DialPeer(peerAddress, handshake);
+            var peerAddress = peer.IpAddress + ":" + peerHandshake.HandshakeData.ListeningPort;
+            var grpcPeer = DialPeer(peerAddress, peerHandshake);
 
             // send our credentials
-            var hsk = await _peerPool.GetHandshakeAsync();
+            var handshake = await _handshakeProvider.GetHandshakeAsync();
             
             // If auth ok -> add it to our peers
-            if (_peerPool.AddPeer(grpcPeer))
+            if (_peerPool.TryAddPeer(grpcPeer))
                 Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
 
             // todo handle case where add is false (edge case)
 
-            return new ConnectReply { Handshake = hsk };
+            return new ConnectReply { Handshake = handshake };
         }
 
         private GrpcPeer DialPeer(string peerAddress, Handshake handshake)

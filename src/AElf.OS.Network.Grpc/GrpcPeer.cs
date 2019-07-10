@@ -53,6 +53,7 @@ namespace AElf.OS.Network.Grpc
         public string IpAddress { get; }
 
         public PeerInfo Info { get; }
+        public Handshake _lastSentHandshake;
         
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
@@ -63,7 +64,7 @@ namespace AElf.OS.Network.Grpc
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
 
-        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string ipAddress, PeerInfo peerInfo)
+        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, Handshake handshake, string ipAddress, PeerInfo peerInfo)
         {
             _channel = channel;
             _client = client;
@@ -81,6 +82,8 @@ namespace AElf.OS.Network.Grpc
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
+
+            _lastSentHandshake = handshake;
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -134,12 +137,15 @@ namespace AElf.OS.Network.Grpc
             return RequestAsync(_client, c => c.GetNodesAsync(new NodesRequest { MaxCount = count }, data), request);
         }
         
-        public async Task<FinalizeConnectReply> FinalizeConnectAsync(Handshake handshake)
+        public async Task<FinalizeConnectReply> FinalizeConnectAsync()
         {
+            if (_lastSentHandshake == null)
+                throw new InvalidOperationException("Null handshake.");
+            
             GrpcRequest request = new GrpcRequest { ErrorMessage = $"Error while finalizing request to {this}." };
             Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, FinalizeConnectTimeout.ToString()} };
 
-            var finalizeConnectReply = await RequestAsync(_client, c => c.FinalizeConnectAsync(handshake, data), request);
+            var finalizeConnectReply = await RequestAsync(_client, c => c.FinalizeConnectAsync(_lastSentHandshake, data), request);
             
             IsConnected = finalizeConnectReply.Success;
             

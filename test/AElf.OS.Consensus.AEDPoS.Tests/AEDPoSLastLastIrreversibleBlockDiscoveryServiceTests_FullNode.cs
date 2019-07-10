@@ -97,7 +97,7 @@ namespace AElf.OS.Consensus.DPos
                 peer.ProcessReceivedAnnouncement(new BlockAnnouncement
                     {BlockHash = block.GetHash(), BlockHeight = block.Height});
             }
-            _peerPool.AddPeer(peer);
+            _peerPool.TryAddPeer(peer);
         }
     }
 }

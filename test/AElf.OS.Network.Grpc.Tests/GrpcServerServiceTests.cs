@@ -217,7 +217,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Connect_MaxPeersReached()
         {
-            _peerPool.AddPeer(GrpcTestHelper.CreateNewPeer("127.0.0.1:3000", false));
+            _peerPool.TryAddPeer(GrpcTestHelper.CreateNewPeer("127.0.0.1:3000", false));
             
             ConnectReply connectReply = await _service.Connect(new Handshake(), BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
             

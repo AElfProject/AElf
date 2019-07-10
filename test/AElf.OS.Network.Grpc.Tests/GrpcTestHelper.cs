@@ -7,6 +7,16 @@ namespace AElf.OS.Network
 {
     public static class GrpcTestHelper
     {
+        public static GrpcPeer CreateBasicPeer(string ip, string pubkey)
+        {
+            return CreatePeerWithInfo(ip, new PeerInfo { Pubkey = pubkey });
+        }
+
+        public static GrpcPeer CreatePeerWithInfo(string ip, PeerInfo info)
+        {
+            return new GrpcPeer(null, null, null, ip, info);
+        }
+        
         public static GrpcPeer CreateNewPeer(string ipAddress = "127.0.0.1:2000", bool isValid = true)
         {
             var channel = new Channel(ipAddress, ChannelCredentials.Insecure);
@@ -31,7 +41,7 @@ namespace AElf.OS.Network
                 IsInbound = true
             };
 
-            return new GrpcPeer(channel, client, ipAddress, connectionInfo);
+            return new GrpcPeer(channel, client, null, ipAddress, connectionInfo);
         }
     }
 }

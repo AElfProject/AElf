@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -17,20 +15,22 @@ namespace AElf.OS.Network.Application
     {
         private readonly IPeerPool _peerPool;
         private readonly ITaskQueueManager _taskQueueManager;
+        private readonly IAElfNetworkServer _networkServer;
 
         public ILogger<NetworkService> Logger { get; set; }
 
-        public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager)
+        public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager, IAElfNetworkServer networkServer)
         {
             _peerPool = peerPool;
             _taskQueueManager = taskQueueManager;
+            _networkServer = networkServer;
 
             Logger = NullLogger<NetworkService>.Instance;
         }
 
         public async Task<bool> AddPeerAsync(string address)
         {
-            return await _peerPool.AddPeerAsync(address);
+            return await _networkServer.DialPeerAsync(address);
         }
 
         public async Task<bool> RemovePeerAsync(string address)
@@ -40,7 +40,7 @@ namespace AElf.OS.Network.Application
 
         public List<IPeer> GetPeers()
         {
-            return _peerPool.GetPeers(true).ToList(); 
+            return _peerPool.GetPeers(true).ToList();
         }
 
         public Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)

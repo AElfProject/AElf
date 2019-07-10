@@ -51,7 +51,7 @@ namespace AElf.WebApp.Application.Net.Tests
             
             var peerOne = new GrpcPeer(channelOne, new PeerService.PeerServiceClient(channelOne), ipAddressOne, connectionInfo);
             
-            _peerPool.AddPeer(peerOne);
+            _peerPool.TryAddPeer(peerOne);
             
             var ipAddressTwo = "192.168.1.2:1680";
             var channelTwo = new Channel(ipAddressTwo, ChannelCredentials.Insecure);
@@ -66,7 +66,7 @@ namespace AElf.WebApp.Application.Net.Tests
             };
             
             var peerTwo = new GrpcPeer(channelTwo, new PeerService.PeerServiceClient(channelTwo), ipAddressOne, connectionInfoPeerTwo);
-            _peerPool.AddPeer(peerTwo);
+            _peerPool.TryAddPeer(peerTwo);
             var peers = await GetResponseAsObjectAsync<List<PeerDto>>("api/net/peers");
             peers.Count.ShouldBe(2);
             peers.ShouldContain(peer => peer.IpAddress.IsIn(ipAddressOne, ipAddressTwo));
@@ -94,7 +94,7 @@ namespace AElf.WebApp.Application.Net.Tests
             };
             
             var peerOne = new GrpcPeer(channelOne, new PeerService.PeerServiceClient(channelOne), ipAddressOne, connectionInfoPeer);
-            _peerPool.AddPeer(peerOne);
+            _peerPool.TryAddPeer(peerOne);
             
             var ipAddressTwo = "192.168.1.2:1680";
             var channelTwo = new Channel(ipAddressTwo, ChannelCredentials.Insecure);
@@ -109,7 +109,7 @@ namespace AElf.WebApp.Application.Net.Tests
             };
             
             var peerTwo = new GrpcPeer(channelTwo, new PeerService.PeerServiceClient(channelTwo), ipAddressTwo, connectionInfoPeerTwo);
-            _peerPool.AddPeer(peerTwo);
+            _peerPool.TryAddPeer(peerTwo);
             
             var response = await DeleteResponseAsObjectAsync<bool>($"/api/net/peer?address={ipAddressOne}");
             response.ShouldBeTrue();
@@ -136,7 +136,7 @@ namespace AElf.WebApp.Application.Net.Tests
             };
             
             var peerOne = new GrpcPeer(channelOne, new PeerService.PeerServiceClient(channelOne), ipAddressOne, connectionInfoPeer);
-            _peerPool.AddPeer(peerOne);
+            _peerPool.TryAddPeer(peerOne);
             
             var ipAddressTwo = "192.168.1.2:1680";
             var channelTwo = new Channel(ipAddressTwo, ChannelCredentials.Insecure);
@@ -151,7 +151,7 @@ namespace AElf.WebApp.Application.Net.Tests
             };
             
             var peerTwo = new GrpcPeer(channelTwo, new PeerService.PeerServiceClient(channelTwo), ipAddressTwo, connectionInfoPeerTwo);
-            _peerPool.AddPeer(peerTwo);
+            _peerPool.TryAddPeer(peerTwo);
             
             var peers = await GetResponseAsObjectAsync<List<PeerDto>>("api/net/peers");
             

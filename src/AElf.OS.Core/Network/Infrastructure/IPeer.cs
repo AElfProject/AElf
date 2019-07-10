@@ -9,7 +9,7 @@ namespace AElf.OS.Network.Infrastructure
     {
         bool IsBest { get; set; }
         // TODO: remove from here, not useful for the layers above
-        bool IsConnected { get; set; } 
+        bool IsConnected { get; set; }
         bool IsReady { get; }
         
         long LastKnownLibHeight { get; }

@@ -12,83 +12,86 @@ namespace AElf.OS.Network
 {
     public class GrpcPeerPoolTests : GrpcNetworkTestBase
     {
-        private const string TestIp = "127.0.0.1:6800";
-        private readonly string _testPubKey;
-
-        private readonly PeerInfo _peerInfo;
-
-        private readonly GrpcPeerPool _pool;
+        private readonly GrpcPeerPool _peerPool;
 
         public GrpcPeerPoolTests()
         {
-            _pool = GetRequiredService<GrpcPeerPool>();
-
-            var keyPair = CryptoHelper.GenerateKeyPair();
-            _testPubKey = keyPair.PublicKey.ToHex();
+            _peerPool = GetRequiredService<GrpcPeerPool>();
+        }
+        
+        // todo move to handshake provider tests
+//        [Fact]
+//        public async Task GetHandshakeAsync()
+//        {
+//            var handshake = await _pool.GetHandshakeAsync();
+//            handshake.ShouldNotBeNull();
+//            handshake.HandshakeData.Version.ShouldBe(KernelConstants.ProtocolVersion);
+//        }
             
-            _peerInfo = new PeerInfo
+        [Fact]
+        public void AddedPeer_IsFindable_ByAddressAndPubkey()
+        {
+            var peer = CreatePeer();
+            _peerPool.TryAddPeer(peer);
+            
+            _peerPool.PeerCount.ShouldBe(1);
+            _peerPool.FindPeerByAddress(peer.IpAddress).ShouldNotBeNull();
+            _peerPool.FindPeerByPublicKey(peer.Info.Pubkey).ShouldNotBeNull();
+        }
+
+        [Fact]
+        public async Task RemovePeerByPublicKey_ShouldNotBeFindable()
+        {
+            var peer = CreatePeer();
+            
+            _peerPool.TryAddPeer(peer);
+            await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false);
+            
+            _peerPool.PeerCount.ShouldBe(0);
+            _peerPool.FindPeerByAddress(peer.IpAddress).ShouldBeNull();
+            _peerPool.FindPeerByPublicKey(peer.Info.Pubkey).ShouldBeNull();
+        }
+        
+        [Fact]
+        public async Task RemovePeerByAddress_ShouldNotBeFindable()
+        {
+            var peer = CreatePeer();
+            
+            _peerPool.TryAddPeer(peer);
+            await _peerPool.RemovePeerByAddressAsync(peer.IpAddress);
+            
+            _peerPool.PeerCount.ShouldBe(0);
+            _peerPool.FindPeerByAddress(peer.IpAddress).ShouldBeNull();
+            _peerPool.FindPeerByPublicKey(peer.Info.Pubkey).ShouldBeNull();
+        }
+
+        [Fact]
+        public async Task CannotAddPeerTwice()
+        {
+            var peer = CreatePeer();
+            _peerPool.TryAddPeer(peer);
+            _peerPool.TryAddPeer(peer).ShouldBeFalse();
+            
+            _peerPool.PeerCount.ShouldBe(1);
+            _peerPool.FindPeerByAddress(peer.IpAddress).ShouldNotBeNull();
+            _peerPool.FindPeerByPublicKey(peer.Info.Pubkey).ShouldNotBeNull();
+        }
+        
+        private static GrpcPeer CreatePeer(string ip = GrpcTestConstants.FakeIpEndpoint)
+        {
+            var keyPair = CryptoHelper.GenerateKeyPair();
+            var pubkey = keyPair.PublicKey.ToHex();
+            
+            var peerInfo = new PeerInfo
             {
-                Pubkey = _testPubKey,
+                Pubkey = pubkey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = 1,
                 IsInbound = true
             };
-        }
             
-        [Fact]
-        public void GetPeer_RemoteAddressOrPubKeyAlreadyPresent_ShouldReturnPeer()
-        {
-            _pool.AddPeer(new GrpcPeer(null, null, TestIp, _peerInfo));
-            
-            Assert.NotNull(_pool.FindPeerByAddress(TestIp));
-            Assert.NotNull(_pool.FindPeerByPublicKey(_testPubKey));
-        }
-
-        [Fact]
-        public async Task AddPeerAsync_PeerAlreadyConnected_ShouldReturnFalse()
-        {
-            _pool.AddPeer( new GrpcPeer(null, null, TestIp, _peerInfo));
-
-            var added = await _pool.AddPeerAsync(TestIp);
-            
-            Assert.False(added);
-        }
-        
-        [Fact]
-        public async Task AddPeerAsync_Connect_NotExistPeer_ShouldReturnFalse()
-        {
-            var testIp = "127.0.0.1:6810";
-            var added = await _pool.AddPeerAsync(testIp);
-            
-            Assert.False(added);
-        }
-
-        [Fact]
-        public void IsAuthenticatePeer_Success()
-        {
-            var result = _pool.FindPeerByAddress(GrpcTestConstants.FakePubkey);
-            result.ShouldBeNull();
-        }
-
-        [Fact]
-        public async Task GetHandshakeAsync()
-        {
-            var handshake = await _pool.GetHandshakeAsync();
-            handshake.ShouldNotBeNull();
-            handshake.HandshakeData.Version.ShouldBe(KernelConstants.ProtocolVersion);
-        }
-
-        [Fact]
-        public async Task RemovePeerByAddress()
-        {
-            var channel = new Channel(TestIp, ChannelCredentials.Insecure);
-            var client = new PeerService.PeerServiceClient(channel);
-            _pool.AddPeer(new GrpcPeer(channel, client, TestIp, _peerInfo));
-            _pool.FindPeerByAddress(TestIp).ShouldNotBeNull();
-
-            await _pool.RemovePeerByAddressAsync(TestIp);
-            _pool.FindPeerByAddress(TestIp).ShouldBeNull();
+            return GrpcTestHelper.CreatePeerWithInfo(ip, peerInfo);;
         }
     }
 }

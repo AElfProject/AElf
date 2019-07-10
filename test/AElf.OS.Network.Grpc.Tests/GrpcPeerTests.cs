@@ -37,7 +37,7 @@ namespace AElf.OS.Network
             _osTestHelper = GetRequiredService<OSTestHelper>();
             
             _grpcPeer = GrpcTestHelper.CreateNewPeer();
-            _pool.AddPeer(_grpcPeer);
+            _pool.TryAddPeer(_grpcPeer);
         }
 
         public override void Dispose()
@@ -60,7 +60,7 @@ namespace AElf.OS.Network
         public async Task RequestBlockAsync_Failed()
         {
             _grpcPeer = GrpcTestHelper.CreateNewPeer("127.0.0.1:3000", false);
-            _pool.AddPeer(_grpcPeer);
+            _pool.TryAddPeer(_grpcPeer);
             
             var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
             var block = await _grpcPeer.GetBlockByHashAsync(blockHeader.GetHash());
