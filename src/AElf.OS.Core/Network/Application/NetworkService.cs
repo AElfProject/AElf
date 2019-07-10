@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
@@ -46,9 +45,8 @@ namespace AElf.OS.Network.Application
         public Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
         {
             var blockHash = blockHeader.GetHash();
-            
-            if (_peerPool.RecentBlockHeightAndHashMappings.TryGetValue(blockHeader.Height, out var recentBlockHash) &&
-                recentBlockHash == blockHash)
+            if (_peerPool.RecentBlockHeightAndHashMappings.TryGetValue(blockHeader.Height, out var recentBlock) &&
+                recentBlock.BlockHash == blockHash)
             {
                 Logger.LogDebug($"BlockHeight: {blockHeader.Height}, BlockHash: {blockHash} has been broadcast.");
                 return Task.CompletedTask;
@@ -89,6 +87,89 @@ namespace AElf.OS.Network.Application
                 
             }, NetworkConstants.AnnouncementBroadcastQueueName);
             
+            return Task.CompletedTask;
+        }
+
+        public Task BroadcastPreLibAnnounceAsync(long blockHeight, Hash blockHash,int preLibCount)
+        {
+            if (!_peerPool.HasBlock(blockHeight, blockHash)) return Task.CompletedTask;
+
+            _peerPool.AddPreLibBlockHeightAndHash(blockHeight, blockHash, preLibCount);
+            
+            var announce = new PreLibAnnouncement
+            {
+                BlockHash = blockHash,
+                BlockHeight = blockHeight,
+                PreLibCount = preLibCount
+            };
+            
+            var beforeEnqueue = TimestampHelper.GetUtcNow();
+            _taskQueueManager.Enqueue(async () =>
+            {
+                var execTime = TimestampHelper.GetUtcNow();
+                if (execTime > beforeEnqueue +
+                    TimestampHelper.DurationFromMilliseconds(NetworkConstants.AnnouncementQueueJobTimeout))
+                {
+                    Logger.LogWarning($"Pre lib announcement too old: {execTime - beforeEnqueue}");
+                    return;
+                }
+                
+                foreach (var peer in _peerPool.GetPeers())
+                {
+                    try
+                    {
+                        await peer.SendPreLibAnnounceAsync(announce);
+                    }
+                    catch (NetworkException ex)
+                    {
+                        Logger.LogError(ex, $"Error while announcing pre lib to {peer}.");
+                        await HandleNetworkException(peer, ex);
+                    }
+                }
+                
+            }, NetworkConstants.PreLibAnnouncementBroadcastQueueName);
+
+            return Task.CompletedTask;
+        }
+
+        public Task BroadcastPreLibConfirmAnnounceAsync(long blockHeight, Hash blockHash, int preLibCount)
+        {
+            if (!_peerPool.HasBlock(blockHeight,blockHash)) return Task.CompletedTask;
+            
+            _peerPool.AddPreLibBlockHeightAndHash(blockHeight, blockHash, preLibCount);
+
+            var preLibConfirm = new PreLibConfirmAnnouncement
+            {
+                BlockHash = blockHash,
+                BlockHeight = blockHeight,
+                PreLibCount = preLibCount
+            };
+            
+            var beforeEnqueue = TimestampHelper.GetUtcNow();
+            _taskQueueManager.Enqueue(async () =>
+            {
+                var execTime = TimestampHelper.GetUtcNow();
+                if (execTime > beforeEnqueue +
+                    TimestampHelper.DurationFromMilliseconds(NetworkConstants.AnnouncementQueueJobTimeout))
+                {
+                    Logger.LogWarning($"Pre lib confirm too old: {execTime - beforeEnqueue}");
+                    return;
+                }
+
+                foreach (var peer in _peerPool.GetPeers())
+                {
+                    try
+                    {
+                        await peer.SendPreLibConfirmAnnounceAsync(preLibConfirm);
+                    }
+                    catch (NetworkException ex)
+                    {
+                        Logger.LogError(ex, $"Error while announcing pre lib confirm to {peer}.");
+                        await HandleNetworkException(peer, ex);
+                    }
+                }
+
+            }, NetworkConstants.PreLibConfirmAnnouncementBroadcastQueueName);
             return Task.CompletedTask;
         }
         

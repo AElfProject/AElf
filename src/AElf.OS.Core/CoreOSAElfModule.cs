@@ -27,6 +27,8 @@ namespace AElf.OS
             taskQueueManager.CreateQueue(NetworkConstants.PeerReconnectionQueueName);
             taskQueueManager.CreateQueue(NetworkConstants.AnnouncementBroadcastQueueName);
             taskQueueManager.CreateQueue(NetworkConstants.TransactionBroadcastQueueName);
+            taskQueueManager.CreateQueue(NetworkConstants.PreLibAnnouncementBroadcastQueueName);
+            taskQueueManager.CreateQueue(NetworkConstants.PreLibConfirmAnnouncementBroadcastQueueName);
         }
     }
 }

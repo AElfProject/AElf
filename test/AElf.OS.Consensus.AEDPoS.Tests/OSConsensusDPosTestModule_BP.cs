@@ -57,10 +57,16 @@ namespace AElf.OS.Consensus.DPos
         {
             var peerPool = context.ServiceProvider.GetRequiredService<IPeerPool>();
             var osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
-            var blocks = osTestHelper.BestBranchBlockList.GetRange(0, 6);
+            for (var i = 0; i < 20; i++)
+            {
+                osTestHelper.BestBranchBlockList.Add(osTestHelper.MinedOneBlock().Result);
+            }
+            var blocks = osTestHelper.BestBranchBlockList.GetRange(0, 26);
             foreach (var block in blocks)
             {
-                peerPool.AddRecentBlockHeightAndHash(block.Height,block.GetHash(),false);
+                var blockHash = block.GetHash();
+                peerPool.AddRecentBlockHeightAndHash(block.Height, blockHash, false);
+                peerPool.AddPreLibBlockHeightAndHash(block.Height, blockHash, 3);
             }
         }
     }

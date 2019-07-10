@@ -11,6 +11,7 @@ using AElf.OS.Network.Application;
 using AElf.OS.Network.Domain;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Types;
 using AElf.Types;
 using Google.Protobuf;
 using Grpc.Core;
@@ -34,9 +35,13 @@ namespace AElf.OS.Network.Grpc
         private readonly ConcurrentDictionary<string, GrpcPeer> _authenticatedPeers;
 
         public ILocalEventBus EventBus { get; set; }
-        public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
+        public IReadOnlyDictionary<long, AcceptedBlockInfo> RecentBlockHeightAndHashMappings { get; }
 
-        private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
+        private readonly ConcurrentDictionary<long, AcceptedBlockInfo> _recentBlockHeightAndHashMappings;
+        
+        public IReadOnlyDictionary<long, PreLibBlockInfo> PreLibBlockHeightAndHashMappings { get; }
+
+        private readonly ConcurrentDictionary<long, PreLibBlockInfo> _preLibBlockHeightAndHashMappings;
 
         public ILogger<GrpcPeerPool> Logger { get; set; }
 
@@ -49,8 +54,10 @@ namespace AElf.OS.Network.Grpc
             _nodeManager = nodeManager;
 
             _authenticatedPeers = new ConcurrentDictionary<string, GrpcPeer>();
-            _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
-            RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
+            _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, AcceptedBlockInfo>();
+            RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, AcceptedBlockInfo>(_recentBlockHeightAndHashMappings);
+            _preLibBlockHeightAndHashMappings = new ConcurrentDictionary<long, PreLibBlockInfo>();
+            PreLibBlockHeightAndHashMappings = new ReadOnlyDictionary<long, PreLibBlockInfo>(_preLibBlockHeightAndHashMappings);
 
             Logger = NullLogger<GrpcPeerPool>.Instance;
         }
@@ -302,11 +309,62 @@ namespace AElf.OS.Network.Grpc
         
         public void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash, bool hasFork)
         {
-            _recentBlockHeightAndHashMappings[blockHeight] = blockHash;
-            while (_recentBlockHeightAndHashMappings.Count > 10)
+            if (_recentBlockHeightAndHashMappings.TryGetValue(blockHeight, out var blockInfo))
+            {
+                if (hasFork || blockInfo.BlockHash != blockHash)
+                {
+                    blockInfo.HasFork = true;
+                }
+            }
+            else
+            {
+                blockInfo = new AcceptedBlockInfo
+                {
+                    BlockHash = blockHash,
+                    HasFork = false
+                };
+            }
+            _recentBlockHeightAndHashMappings[blockHeight] = blockInfo;
+            while (_recentBlockHeightAndHashMappings.Count > 20)
             {
                 _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
             }
+        }
+        
+        public void AddPreLibBlockHeightAndHash(long blockHeight,Hash blockHash,int preLibCount)
+        {
+            if (_preLibBlockHeightAndHashMappings.TryGetValue(blockHeight, out var preLibBlockInfo))
+            {
+                if (preLibBlockInfo.BlockHash != blockHash)
+                    return;
+                if(preLibCount > preLibBlockInfo.PreLibCount)
+                    preLibBlockInfo.PreLibCount = preLibCount;
+            }
+            else
+            {
+                preLibBlockInfo = new PreLibBlockInfo
+                {
+                    BlockHash = blockHash,
+                    PreLibCount = preLibCount
+                };
+            }
+            _preLibBlockHeightAndHashMappings[blockHeight] = preLibBlockInfo;
+            while (_preLibBlockHeightAndHashMappings.Count > 20)
+            {
+                _preLibBlockHeightAndHashMappings.TryRemove(_preLibBlockHeightAndHashMappings.Keys.Min(), out _);
+            }
+        }
+        
+        public bool HasBlock(long blockHeight, Hash blockHash)
+        {
+            return _recentBlockHeightAndHashMappings.TryGetValue(blockHeight, out var blockInfo) &&
+                   blockInfo.BlockHash == blockHash && !blockInfo.HasFork;
+        }
+
+        public bool HasPreLib(long blockHeight, Hash blockHash)
+        {
+            return _preLibBlockHeightAndHashMappings.TryGetValue(blockHeight, out var preLibBlockInfo) &&
+                   preLibBlockInfo.BlockHash == blockHash;
         }
     }
 }

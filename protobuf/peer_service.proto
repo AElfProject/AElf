@@ -12,10 +12,14 @@ service PeerService {
     rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
 
     rpc SendAnnouncement (BlockAnnouncement) returns (VoidReply) {}
+    rpc PreLibAnnounce (PreLibAnnouncement) returns (VoidReply) {}
+    rpc PreLibConfirmAnnounce(PreLibConfirmAnnouncement) returns (VoidReply) {}
     rpc SendTransaction (aelf.Transaction) returns (VoidReply) {}
     
     rpc TransactionBroadcastStream (stream aelf.Transaction) returns (VoidReply) {}
     rpc AnnouncementBroadcastStream (stream BlockAnnouncement) returns (VoidReply) {}
+    rpc PreLibAnnounceStream (stream PreLibAnnouncement) returns (VoidReply) {}
+    rpc PreLibConfirmAnnounceStream(stream PreLibConfirmAnnouncement) returns (VoidReply) {}
 
     rpc GetNodes (NodesRequest) returns (NodeList) {}
 

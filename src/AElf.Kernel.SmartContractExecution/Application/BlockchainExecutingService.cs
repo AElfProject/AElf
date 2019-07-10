@@ -113,7 +113,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     Logger.LogInformation($"Executed block {blockLink.BlockHash} at height {blockLink.Height}.");
                     await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
                     {
-                        BlockHeader = linkedBlock.Header
+                        BlockHeader = linkedBlock.Header,
+                        HasFork = blockLink.Height <= chain.BestChainHeight
                     });
                 }
             }

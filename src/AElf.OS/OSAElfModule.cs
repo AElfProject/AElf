@@ -27,6 +27,8 @@ namespace AElf.OS
             context.Services.AddAssemblyOf<OSAElfModule>();
 
             context.Services.AddSingleton<AnnouncementReceivedEventHandler>();
+            context.Services.AddSingleton<AnnouncementCountEventHandler>();
+            context.Services.AddSingleton<PreLibAnnouncementReceivedEventHandler>();
             context.Services.AddSingleton<PeerDiscoveryWorker>();
 
             Configure<AccountOptions>(configuration.GetSection("Account"));

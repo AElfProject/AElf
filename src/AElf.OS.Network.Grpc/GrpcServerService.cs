@@ -198,6 +198,18 @@ namespace AElf.OS.Network.Grpc
             return new VoidReply();
         }
 
+        public override async Task<VoidReply> PreLibAnnounceStream(IAsyncStreamReader<PreLibAnnouncement> requestStream, ServerCallContext context)
+        {
+            await requestStream.ForEachAsync(async preLibAnnounce => await ProcessPreLibAnnounce(preLibAnnounce, context));
+            return new VoidReply();
+        }
+
+        public override async Task<VoidReply> PreLibConfirmAnnounceStream(IAsyncStreamReader<PreLibConfirmAnnouncement> requestStream, ServerCallContext context)
+        {
+            await requestStream.ForEachAsync(async preLibConfirmAnnounce => await ProcessPreLibConfirmAnnounce(preLibConfirmAnnounce, context));
+            return new VoidReply();
+        }
+
         public Task ProcessAnnouncement(BlockAnnouncement announcement, ServerCallContext context)
         {
             if (announcement?.BlockHash == null)
@@ -250,6 +262,56 @@ namespace AElf.OS.Network.Grpc
         {
             await ProcessAnnouncement(an, context);
             return new VoidReply();
+        }
+        
+        public override async Task<VoidReply> PreLibAnnounce(PreLibAnnouncement request, ServerCallContext context)
+        {
+            await ProcessPreLibAnnounce(request, context);
+            return new VoidReply();
+        }
+        
+        public Task ProcessPreLibAnnounce(PreLibAnnouncement request, ServerCallContext context)
+        {
+            if (request?.BlockHash == null)
+            {
+                Logger.LogError($"Received null pre lib announcement or header from {context.GetPeerInfo()}.");
+                return Task.CompletedTask;
+            }
+            
+            Logger.LogDebug($"Received pre lib announce {request.BlockHash} from {context.GetPeerInfo()}.");
+
+            var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+            peerInPool?.ProcessReceivedPreLibAnnounce(request);
+
+            _ = EventBus.PublishAsync(new PreLibAnnouncementReceivedEventData(request, context.GetPublicKey()));
+            
+            return Task.CompletedTask;
+        }
+        
+        public override async Task<VoidReply> PreLibConfirmAnnounce(PreLibConfirmAnnouncement request, ServerCallContext context)
+        {
+            await ProcessPreLibConfirmAnnounce(request, context);
+            return new VoidReply();
+        }
+
+        public Task ProcessPreLibConfirmAnnounce(PreLibConfirmAnnouncement request, ServerCallContext context)
+        {
+            if (request?.BlockHash == null)
+            {
+                Logger.LogError($"Received null pre lib confirm or header from {context.GetPeerInfo()}.");
+                return Task.CompletedTask;
+            }
+            
+            Logger.LogDebug($"Received pre lib confirm {request.BlockHash} from {context.GetPeerInfo()}.");
+            
+            var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+            peerInPool?.ProcessReceivedPreLibAnnounce(new PreLibAnnouncement
+            {
+                BlockHash = request.BlockHash,
+                BlockHeight = request.BlockHeight,
+                PreLibCount = request.PreLibCount
+            });
+            return Task.CompletedTask;
         }
 
         /// <summary>

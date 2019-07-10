@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Types;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -29,7 +30,9 @@ namespace AElf.OS.Network.Grpc
         {
             Announce,
             GetBlocks,
-            GetBlock
+            GetBlock,
+            PreLibAnnounce,
+            PreLibConfirm
         };
         
         private readonly Channel _channel;
@@ -54,14 +57,18 @@ namespace AElf.OS.Network.Grpc
 
         public PeerInfo Info { get; }
 
-        public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
-        private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
+        public IReadOnlyDictionary<long, AcceptedBlockInfo> RecentBlockHeightAndHashMappings { get; }
+        private readonly ConcurrentDictionary<long, AcceptedBlockInfo> _recentBlockHeightAndHashMappings;
+        public IReadOnlyDictionary<long, PreLibBlockInfo> PreLibBlockHeightAndHashMappings { get; }
+        private readonly ConcurrentDictionary<long, PreLibBlockInfo> _preLibBlockHeightAndHashMappings;
         
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
         
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
+        private AsyncClientStreamingCall<PreLibAnnouncement, VoidReply> _preLibAnnounceStreamCall;
+        private AsyncClientStreamingCall<PreLibConfirmAnnouncement, VoidReply> _preLibConfirmAnnounceStreamCall; 
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string ipAddress, PeerInfo peerInfo)
         {
@@ -71,8 +78,11 @@ namespace AElf.OS.Network.Grpc
             IpAddress = ipAddress;
             Info = peerInfo;
 
-            _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
-            RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
+            _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, AcceptedBlockInfo>();
+            RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, AcceptedBlockInfo>(_recentBlockHeightAndHashMappings);
+            
+            _preLibBlockHeightAndHashMappings = new ConcurrentDictionary<long, PreLibBlockInfo>();
+            PreLibBlockHeightAndHashMappings = new ReadOnlyDictionary<long, PreLibBlockInfo>(_preLibBlockHeightAndHashMappings);
             
             _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
             RecentRequestsRoundtripTimes =
@@ -81,6 +91,8 @@ namespace AElf.OS.Network.Grpc
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
+            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.PreLibAnnounce), new ConcurrentQueue<RequestMetric>());
+            _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.PreLibConfirm), new ConcurrentQueue<RequestMetric>());
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -214,6 +226,48 @@ namespace AElf.OS.Network.Grpc
             }
         }
         
+        public async Task SendPreLibAnnounceAsync(PreLibAnnouncement preLibAnnouncement)
+        {
+            if (!IsConnected)
+                return;
+            
+            if (_preLibAnnounceStreamCall == null)
+                _preLibAnnounceStreamCall = _client.PreLibAnnounceStream();
+            
+            try
+            {
+                await _preLibAnnounceStreamCall.RequestStream.WriteAsync(preLibAnnouncement);
+            }
+            catch (RpcException e)
+            {
+                _preLibAnnounceStreamCall.Dispose();
+                _preLibAnnounceStreamCall = null;
+                
+                HandleFailure(e, $"Error during pre lib broadcast: {preLibAnnouncement.BlockHash}.");
+            }
+        }
+
+        public async Task SendPreLibConfirmAnnounceAsync(PreLibConfirmAnnouncement preLibConfirmAnnouncement)
+        { 
+            if (!IsConnected)
+                return;
+            
+            if (_preLibConfirmAnnounceStreamCall == null)
+                _preLibConfirmAnnounceStreamCall = _client.PreLibConfirmAnnounceStream();
+            
+            try
+            {
+                await _preLibConfirmAnnounceStreamCall.RequestStream.WriteAsync(preLibConfirmAnnouncement);
+            }
+            catch (RpcException e)
+            {
+                _preLibConfirmAnnounceStreamCall.Dispose();
+                _preLibConfirmAnnounceStreamCall = null;
+                
+                HandleFailure(e, $"Error during pre lib confirm broadcast: {preLibConfirmAnnouncement.BlockHash}.");
+            }
+        }
+        
         
         /// <summary>
         /// Send a transaction to the peer using the stream call.
@@ -341,19 +395,69 @@ namespace AElf.OS.Network.Grpc
         
         public void ProcessReceivedAnnouncement(BlockAnnouncement blockAnnouncement)
         {
-            if (blockAnnouncement.HasFork)
-            {
-                _recentBlockHeightAndHashMappings.Clear();
-                return;
-            }
-            
             CurrentBlockHeight = blockAnnouncement.BlockHeight;
             CurrentBlockHash = blockAnnouncement.BlockHash;
-            _recentBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;
-            while (_recentBlockHeightAndHashMappings.Count > 10)
+            if (_recentBlockHeightAndHashMappings.TryGetValue(CurrentBlockHeight, out var blockInfo))
+            {
+                if (blockAnnouncement.HasFork || blockInfo.BlockHash != CurrentBlockHash)
+                {
+                    blockInfo.HasFork = true;
+                }
+            }
+            else
+            {
+                blockInfo = new AcceptedBlockInfo
+                {
+                    BlockHash = CurrentBlockHash,
+                    HasFork = false
+                };
+            }
+            
+            _recentBlockHeightAndHashMappings[CurrentBlockHeight] = blockInfo;
+            while (_recentBlockHeightAndHashMappings.Count > 20)
             {
                 _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
             }
+        }
+
+        public void ProcessReceivedPreLibAnnounce(PreLibAnnouncement preLibAnnouncement)
+        {
+            var blockHeight = preLibAnnouncement.BlockHeight;
+            var blockHash = preLibAnnouncement.BlockHash;
+            var preLibCount = preLibAnnouncement.PreLibCount;
+            if (_preLibBlockHeightAndHashMappings.TryGetValue(blockHeight, out var preLibBlockInfo))
+            {
+                if (preLibBlockInfo.BlockHash != blockHash)
+                    return;
+                if(preLibCount > preLibBlockInfo.PreLibCount)
+                    preLibBlockInfo.PreLibCount = preLibCount;
+            }
+            else
+            {
+                preLibBlockInfo = new PreLibBlockInfo
+                {
+                    BlockHash = blockHash,
+                    PreLibCount = preLibCount
+                };
+            }
+
+            _preLibBlockHeightAndHashMappings[blockHeight] = preLibBlockInfo;
+            while (_preLibBlockHeightAndHashMappings.Count > 20)
+            {
+                _preLibBlockHeightAndHashMappings.TryRemove(_preLibBlockHeightAndHashMappings.Keys.Min(), out _);
+            }
+        }
+
+        public bool HasBlock(long blockHeight, Hash blockHash)
+        {
+            return _recentBlockHeightAndHashMappings.TryGetValue(blockHeight, out var blockInfo) &&
+                   blockInfo.BlockHash == blockHash && !blockInfo.HasFork;
+        }
+
+        public bool HasPreLib(long blockHeight, Hash blockHash)
+        {
+            return _preLibBlockHeightAndHashMappings.TryGetValue(blockHeight, out var preLibBlockInfo) &&
+                preLibBlockInfo.BlockHash == blockHash;
         }
         
         public async Task DisconnectAsync(bool gracefulDisconnect)

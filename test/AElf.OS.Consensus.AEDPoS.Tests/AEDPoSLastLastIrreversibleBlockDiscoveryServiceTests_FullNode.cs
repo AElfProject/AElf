@@ -34,20 +34,17 @@ namespace AElf.OS.Consensus.DPos
         public async Task Find_LIB_Return_Null()
         {
             var blockIndex =
-                await _aedpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync(
-                    OSConsensusDPosTestConstants.Bp1PublicKey);
+                await _aedpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync();
             blockIndex.ShouldBeNull();
             
             AddPeer(OSConsensusDPosTestConstants.FullNodePubKey,5);
             blockIndex =
-                await _aedpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync(
-                    OSConsensusDPosTestConstants.FullNodePubKey);
+                await _aedpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync();
             blockIndex.ShouldBeNull();
             
             AddPeer(OSConsensusDPosTestConstants.Bp1PublicKey,5);
             blockIndex =
-                await _aedpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync(
-                    OSConsensusDPosTestConstants.FullNodePubKey);
+                await _aedpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync();
             blockIndex.ShouldBeNull();
         }
 
@@ -55,14 +52,13 @@ namespace AElf.OS.Consensus.DPos
         public async Task Find_LIB_With_Three_BP_Peers_Return_Block_Index()
         {
             var blocks = _osTestHelper.BestBranchBlockList;
-            AddPeer(OSConsensusDPosTestConstants.Bp1PublicKey, 5);
-            AddPeer(OSConsensusDPosTestConstants.Bp2PublicKey, 6);
-            AddPeer(OSConsensusDPosTestConstants.Bp3PublicKey, 7);
+            AddPeer(OSConsensusDPosTestConstants.Bp1PublicKey, 25);
+            AddPeer(OSConsensusDPosTestConstants.Bp2PublicKey, 26);
+            AddPeer(OSConsensusDPosTestConstants.Bp3PublicKey, 27);
             
-            var blockIndex = await _aedpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync(
-                OSConsensusDPosTestConstants.Bp2PublicKey);
-            blockIndex.Height.ShouldBe(blocks[4].Height);
-            blockIndex.Hash.ShouldBe(blocks[4].GetHash());
+            var blockIndex = await _aedpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync();
+            blockIndex.Height.ShouldBe(blocks[20].Height);
+            blockIndex.Hash.ShouldBe(blocks[20].GetHash());
         }
         
         [Fact]
@@ -71,8 +67,7 @@ namespace AElf.OS.Consensus.DPos
             AddPeer(OSConsensusDPosTestConstants.Bp1PublicKey, 5);
             AddPeer(OSConsensusDPosTestConstants.Bp2PublicKey, 6);
             
-            var blockIndex = await _aedpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync(
-                OSConsensusDPosTestConstants.Bp2PublicKey);
+            var blockIndex = await _aedpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync();
             blockIndex.ShouldBeNull();
         }
 
@@ -94,8 +89,15 @@ namespace AElf.OS.Consensus.DPos
             var blocks = _osTestHelper.BestBranchBlockList.GetRange(0, blockHeight);
             foreach (var block in blocks)
             {
+                var blockHash = block.GetHash();
                 peer.ProcessReceivedAnnouncement(new BlockAnnouncement
-                    {BlockHash = block.GetHash(), BlockHeight = block.Height});
+                {
+                    BlockHash = blockHash,
+                    BlockHeight = block.Height,
+                    HasFork = false
+                });
+                peer.ProcessReceivedPreLibAnnounce(new PreLibAnnouncement
+                    {BlockHash = blockHash, BlockHeight = block.Height,PreLibCount = 3});
             }
             _peerPool.AddPeer(peer);
         }

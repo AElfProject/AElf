@@ -3,8 +3,10 @@ using AElf.Kernel.Blockchain.Events;
 using AElf.OS.BlockSync.Application;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Events;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Handlers
 {
@@ -15,6 +17,8 @@ namespace AElf.OS.Handlers
             private readonly INetworkService _networkService;
             private readonly ISyncStateService _syncStateService;
             private readonly ITaskQueueManager _taskQueueManager;
+            
+            public ILocalEventBus EventBus { get; set; }
 
             public BlockAcceptedEventHandler(INetworkService networkService, ISyncStateService syncStateService, 
                 ITaskQueueManager taskQueueManager)
@@ -22,6 +26,8 @@ namespace AElf.OS.Handlers
                 _taskQueueManager = taskQueueManager;
                 _networkService = networkService;
                 _syncStateService = syncStateService;
+            
+            EventBus = NullLocalEventBus.Instance;
             }
 
             public Task HandleEventAsync(BlockAcceptedEvent eventData)
@@ -30,6 +36,7 @@ namespace AElf.OS.Handlers
                 {
                     // if sync is finished we announce the block
                     _networkService.BroadcastAnnounceAsync(eventData.BlockHeader, eventData.HasFork);
+                    EventBus.PublishAsync(new PreLibConfirmAnnouncementReceivedEventData());
                 }
                 else if (_syncStateService.SyncState == SyncState.Syncing)
                 {

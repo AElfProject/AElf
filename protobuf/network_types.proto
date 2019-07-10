@@ -14,6 +14,18 @@ message BlockAnnouncement {
     bool has_fork = 3;
 }
 
+message PreLibAnnouncement {
+    aelf.Hash BlockHash = 1;
+    int64 BlockHeight = 2;
+    int32 PreLibCount = 3;
+}
+
+message PreLibConfirmAnnouncement {
+    aelf.Hash BlockHash = 1;
+    int64 BlockHeight = 2;
+    int32 PreLibCount = 3;
+}
+
 message BlockWithTransactions {
     aelf.BlockHeader header = 1;
     repeated aelf.Transaction transactions = 2;

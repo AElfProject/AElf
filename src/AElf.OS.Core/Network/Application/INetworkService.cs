@@ -15,5 +15,7 @@ namespace AElf.OS.Network.Application
         Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, string peerPubKey = null);
         Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork);
         Task BroadcastTransactionAsync(Transaction transaction);
+        Task BroadcastPreLibAnnounceAsync(long blockHeight, Hash blockHash, int preLibCount);
+        Task BroadcastPreLibConfirmAnnounceAsync(long blockHeight, Hash blockHash, int preLibCount);
     }
 }
