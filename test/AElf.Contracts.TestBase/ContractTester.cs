@@ -674,7 +674,7 @@ namespace AElf.Contracts.TestBase
                 list.AddGenesisSmartContract(FeeReceiverContractCode, ResourceFeeReceiverSmartContractAddressNameProvider
                     .Name);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
-                list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthContractAddressNameProvider.Name,
+                list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
             };
         }
@@ -705,7 +705,7 @@ namespace AElf.Contracts.TestBase
                 list.AddGenesisSmartContract(FeeReceiverContractCode, ResourceFeeReceiverSmartContractAddressNameProvider
                     .Name);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
-                list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthContractAddressNameProvider.Name,
+                list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
             };
         }

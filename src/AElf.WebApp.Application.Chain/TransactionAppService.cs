@@ -34,6 +34,7 @@ namespace AElf.WebApp.Application.Chain
         Task<string[]> SendTransactionsAsync(SendTransactionsInput input);
     }
 
+    [ControllerName("BlockChain")]
     public class TransactionAppService : ITransactionAppService
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
@@ -54,7 +55,6 @@ namespace AElf.WebApp.Application.Chain
         /// Call a read-only method on a contract.
         /// </summary>
         /// <returns></returns>
-        [Route("api/blockChain/executeTransaction")]
         public async Task<string> ExecuteTransactionAsync(ExecuteTransactionDto input)
         {
             try
@@ -77,7 +77,6 @@ namespace AElf.WebApp.Application.Chain
             }
         }
 
-        [Route("api/blockChain/executeRawTransaction")]
         public async Task<string> ExecuteRawTransactionAsync(ExecuteRawTransactionDto input)
         {
             try
@@ -106,7 +105,6 @@ namespace AElf.WebApp.Application.Chain
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        [Route("api/blockChain/rawTransaction")]
         public async Task<CreateRawTransactionOutput> CreateRawTransactionAsync(CreateRawTransactionInput input)
         {
             var transaction = new Transaction
@@ -144,7 +142,6 @@ namespace AElf.WebApp.Application.Chain
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        [Route("api/blockChain/sendRawTransaction")]
         public async Task<SendRawTransactionOutput> SendRawTransactionAsync(SendRawTransactionInput input)
         {
             var transaction = Transaction.Parser.ParseFrom(ByteArrayHelper.FromHexString(input.Transaction));
@@ -174,7 +171,6 @@ namespace AElf.WebApp.Application.Chain
         /// Broadcast a transaction
         /// </summary>
         /// <returns></returns>
-        [Route("api/blockChain/sendTransaction")]
         public async Task<SendTransactionOutput> SendTransactionAsync(SendTransactionInput input)
         {
             var txIds = await PublishTransactionsAsync(new[] { input.RawTransaction });
@@ -188,7 +184,6 @@ namespace AElf.WebApp.Application.Chain
         /// Broadcast multiple transactions
         /// </summary>
         /// <returns></returns>
-        [Route("api/blockChain/sendTransactions")]
         public async Task<string[]> SendTransactionsAsync(SendTransactionsInput input)
         {
             var txIds = await PublishTransactionsAsync(input.RawTransactions.Split(","));

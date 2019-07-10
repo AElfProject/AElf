@@ -34,6 +34,8 @@ service ProfitContract {
     }
     rpc RemoveSubScheme (RemoveSubSchemeInput) returns (google.protobuf.Empty) {
     }
+    rpc ResetSponsor (ResetSponsorInput) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc GetCreatedSchemeIds (GetCreatedSchemeIdsInput) returns (CreatedSchemeIds) {
@@ -60,6 +62,7 @@ message CreateSchemeInput {
     sint64 profit_receiving_due_period_count = 1;
     bool is_release_all_balance_every_time_by_default = 2;
     sint32 delay_distribute_period_count = 3;
+    aelf.Address sponsor = 4;
 }
 
 message Scheme {
@@ -74,6 +77,7 @@ message Scheme {
     aelf.Hash scheme_id = 9;
     sint32 delay_distribute_period_count = 10;
     map<sint64, sint64> cached_delay_total_shares = 11;// period -> total shares, max elements count should be delay_distribute_period_count
+    aelf.Address sponsor = 12;
 }
 
 message SchemeBeneficiaryShare {
@@ -174,6 +178,11 @@ message GetProfitDetailsInput {
     aelf.Address beneficiary = 2;
 }
 
+message ResetSponsorInput {
+    aelf.Hash scheme_id = 1;
+    aelf.Address new_sponsor = 2;
+}
+
 // Events
 message SchemeCreated {
     option (aelf.is_event) = true;
@@ -182,4 +191,5 @@ message SchemeCreated {
     sint64 profit_receiving_due_period_count = 3;
     bool is_release_all_balance_every_time_by_default = 4;
     aelf.Hash scheme_id = 5;
+    aelf.Address sponsor = 6;
 }

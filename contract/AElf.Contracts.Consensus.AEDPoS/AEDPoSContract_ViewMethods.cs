@@ -244,8 +244,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private int GetMinersCount(Round input)
         {
-            if (!TryToGetRoundInformation(1, out var firstRound)) return 0;
-            //TODO: the configuration about the minercountinterval should become a const when online;
+            if (!TryToGetRoundInformation(1, out _)) return 0;
+            // TODO: the configuration about the minercountinterval should become a const when online;
             return input.RealTimeMinersInformation.Count < AEDPoSContractConstants.MinMinersCount
                 ? AEDPoSContractConstants.MinMinersCount
                 : AEDPoSContractConstants.MinMinersCount.Add(
