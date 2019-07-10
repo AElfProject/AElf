@@ -94,21 +94,50 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var minerInRound = round.RealTimeMinersInformation[publicKey];
             minerInRound.ActualMiningTimes.Add(input.ActualMiningTime);
             minerInRound.ProducedBlocks = input.ProducedBlocks;
-            var producedTinyBlocks = round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks;
-            minerInRound.ProducedTinyBlocks = producedTinyBlocks.Add(1);
-
+            minerInRound.ProducedTinyBlocks = round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks.Add(1);
             minerInRound.Signature = input.Signature;
             minerInRound.OutValue = input.OutValue;
             minerInRound.SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
             minerInRound.FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
 
+            PerformSecretSharing(input, minerInRound, round, publicKey);
+
+            UpdatePreviousInValues(input, publicKey, round);
+
+            foreach (var tuneOrder in input.TuneOrderInformation)
+            {
+                round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound = tuneOrder.Value;
+            }
+
+            // For first round of each term, no one need to publish in value.
+            if (input.PreviousInValue != Hash.Empty)
+            {
+                minerInRound.PreviousInValue = input.PreviousInValue;
+            }
+            
+            if (!TryToUpdateRoundInformation(round))
+            {
+                Assert(false, "Failed to update round information.");
+            }
+
+            TryToFindLastIrreversibleBlock();
+            
+            return new Empty();
+        }
+
+        private static void PerformSecretSharing(UpdateValueInput input, MinerInRound minerInRound, Round round,
+            string publicKey)
+        {
             minerInRound.EncryptedInValues.Add(input.EncryptedInValues);
             foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)
             {
                 round.RealTimeMinersInformation[decryptedPreviousInValue.Key].DecryptedPreviousInValues
                     .Add(publicKey, decryptedPreviousInValue.Value);
             }
+        }
 
+        private void UpdatePreviousInValues(UpdateValueInput input, string publicKey, Round round)
+        {
             foreach (var previousInValue in input.MinersPreviousInValues)
             {
                 if (previousInValue.Key == publicKey)
@@ -129,23 +158,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue = previousInValue.Value;
             }
-
-            foreach (var tuneOrder in input.TuneOrderInformation)
-            {
-                round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound = tuneOrder.Value;
-            }
-
-            // For first round of each term, no one need to publish in value.
-            if (input.PreviousInValue != Hash.Empty)
-            {
-                minerInRound.PreviousInValue = input.PreviousInValue;
-            }
-
-            Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
-
-            TryToFindLastIrreversibleBlock();
-
-            return new Empty();
         }
 
         #endregion
@@ -155,10 +167,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Empty UpdateTinyBlockInformation(TinyBlockInput input)
         {
             Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
+            if (input.RoundId != round.RoundId)
+            {
+                Context.LogDebug(() => "Round Id not matched.");
+            }
             Assert(input.RoundId == round.RoundId, "Round Id not matched.");
 
             var publicKey = Context.RecoverPublicKey().ToHex();
-
+            
             round.RealTimeMinersInformation[publicKey].ActualMiningTimes.Add(input.ActualMiningTime);
             round.RealTimeMinersInformation[publicKey].ProducedBlocks = input.ProducedBlocks;
             var producedTinyBlocks = round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks;
@@ -184,13 +200,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var actualBlockchainStartTimestamp = input.GetStartTime();
                 SetBlockchainStartTimestamp(actualBlockchainStartTimestamp);
-                var minersCount = GetMinersCount(input);
-                if (minersCount != 0 && State.ElectionContract.Value != null)
+                if (State.IsMainChain.Value)
                 {
-                    State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
+                    var minersCount = GetMinersCount(input);
+                    if (minersCount != 0 && State.ElectionContract.Value != null)
                     {
-                        MinersCount = minersCount
-                    });
+                        State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
+                        {
+                            MinersCount = minersCount
+                        });
+                    }
                 }
             }
 

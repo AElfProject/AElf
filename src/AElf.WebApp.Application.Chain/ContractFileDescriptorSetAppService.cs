@@ -14,6 +14,7 @@ namespace AElf.WebApp.Application.Chain
         Task<byte[]> GetContractFileDescriptorSetAsync(string address);
     }
 
+    [ControllerName("BlockChain")]
     public class ContractFileDescriptorSetAppService : IContractFileDescriptorSetAppService
     {
         private static IBlockchainService _blockchainService;
@@ -31,7 +32,6 @@ namespace AElf.WebApp.Application.Chain
         /// </summary>
         /// <param name="address">contract address</param>
         /// <returns></returns>
-        [Route("api/blockChain/contractFileDescriptorSet")]
         public async Task<byte[]> GetContractFileDescriptorSetAsync(string address)
         {
             try
