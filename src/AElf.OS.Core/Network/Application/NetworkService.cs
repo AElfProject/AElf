@@ -293,13 +293,5 @@ namespace AElf.OS.Network.Application
                 
             taskPeer.IsBest = true;
         }
-
-        public Task<long> GetBestChainHeightAsync(string peerPubKey = null)
-        {
-            var peer = !peerPubKey.IsNullOrEmpty()
-                ? _peerPool.FindPeerByPublicKey(peerPubKey)
-                : _peerPool.GetPeers().OrderByDescending(p => p.CurrentBlockHeight).FirstOrDefault();
-            return Task.FromResult(peer?.CurrentBlockHeight ?? 0);
-        }
     }
 }
