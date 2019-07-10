@@ -23,13 +23,16 @@ namespace AElf.Types
         private Address(byte[] bytes)
         {
             if (bytes == null || bytes.Length != TypeConsts.AddressHashLength)
-                throw new ArgumentOutOfRangeException($"Invalid bytes.");
+                throw new ArgumentOutOfRangeException(nameof(bytes), "Invalid bytes.");
 
             Value = ByteString.CopyFrom(bytes);
         }
 
         public static Address FromPublicKey(byte[] bytes)
         {
+            if (bytes == null)
+                throw new ArgumentOutOfRangeException(nameof(bytes),"Invalid bytes.");
+
             var hash = bytes.CalculateHash().CalculateHash();
             return new Address(hash);
         }
@@ -43,7 +46,7 @@ namespace AElf.Types
         public static Address FromBytes(byte[] bytes)
         {
             if (bytes == null || bytes.Length != TypeConsts.AddressHashLength)
-                throw new ArgumentOutOfRangeException($"Invalid bytes.");
+                throw new ArgumentOutOfRangeException(nameof(bytes),"Invalid bytes.");
 
             return new Address
             {
@@ -51,7 +54,24 @@ namespace AElf.Types
             };
         }
 
-        #region Comparing
+        /// <summary>
+        /// Dumps the content value to byte array.
+        /// </summary>
+        /// <returns></returns>
+        public byte[] ToByteArray()
+        {
+            return Value.ToByteArray();
+        }
+
+        public int CompareTo(Address that)
+        {
+            if (that == null)
+            {
+                throw new InvalidOperationException("Cannot compare address when address is null.");
+            }
+
+            return CompareAddress(this, that);
+        }
 
         public static bool operator ==(Address address1, Address address2)
         {
@@ -88,29 +108,6 @@ namespace AElf.Types
             return -1;
         }
 
-        public int CompareTo(Address that)
-        {
-            if (that == null)
-            {
-                throw new InvalidOperationException("Cannot compare address when address is null");
-            }
-
-            return CompareAddress(this, that);
-        }
-
-        #endregion
-
-        #region Load and dump
-
-        /// <summary>
-        /// Dumps the content value to byte array.
-        /// </summary>
-        /// <returns></returns>
-        public byte[] ToByteArray()
-        {
-            return Value.ToByteArray();
-        }
-
         private string _formattedAddress;
 
         public string GetFormatted()
@@ -119,17 +116,11 @@ namespace AElf.Types
                 return _formattedAddress;
 
             if (Value.Length != TypeConsts.AddressHashLength)
-            {
-                throw new ArgumentOutOfRangeException(
-                    $"Serialized value does not represent a valid address. The input is {Value.Length} bytes long.");
-            }
+                throw new ArgumentOutOfRangeException("Invalid address");
 
             var pubKeyHash = Base58CheckEncoding.Encode(Value.ToByteArray());
-
             return _formattedAddress = pubKeyHash;
         }
-
-        #endregion Load and dump
     }
 
     public class ChainAddress
