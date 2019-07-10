@@ -53,7 +53,7 @@ namespace AElf.OS.Network.Grpc
         public string IpAddress { get; }
 
         public PeerInfo Info { get; }
-
+        
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
         

@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.OS.Network.Application;
 using AElf.OS.Network.Domain;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
@@ -23,6 +22,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.OS.Network.Grpc
 {
+    // TODO: Extract into a generic base class in OS.Core
     public class GrpcPeerPool : IPeerPool
     {
         private readonly NetworkOptions _networkOptions;
@@ -65,6 +65,7 @@ namespace AElf.OS.Network.Grpc
             return await DialAsync(address);
         }
         
+        // TODO: extract to a dialer
         private async Task<bool> DialAsync(string ipAddress)
         {
             Logger.LogTrace($"Attempting to reach {ipAddress}.");
@@ -153,6 +154,7 @@ namespace AElf.OS.Network.Grpc
             return connectReply;
         }
 
+        // TODO: extract to a factory
         private async Task<(Channel, PeerService.PeerServiceClient)> CreateClientAsync(string ipAddress)
         {
             Channel channel = new Channel(ipAddress, ChannelCredentials.Insecure, new List<ChannelOption>
@@ -238,6 +240,7 @@ namespace AElf.OS.Network.Grpc
             return await BuildHandshakeAsync();
         }
 
+        // TODO: to handshake provider in OS.Core
         private async Task<Handshake> BuildHandshakeAsync()
         {
             var nd = new HandshakeData
