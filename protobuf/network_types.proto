@@ -6,14 +6,38 @@ import "google/protobuf/timestamp.proto";
 import "aelf/core.proto";
 import "kernel.proto";
 
-message Node {
-    string endpoint = 1;
-    bytes pubkey = 2;
+// Messages related to block propagation/syncing
+
+message BlockAnnouncement {
+    aelf.Hash block_hash = 1;
+    int64 block_height = 2;
+    bool has_fork = 3;
 }
 
-message NodeList {
-    repeated Node nodes = 1;
+message BlockWithTransactions {
+    aelf.BlockHeader header = 1;
+    repeated aelf.Transaction transactions = 2;
 }
+
+message BlocksRequest {
+    aelf.Hash previous_block_hash = 1;
+    int32 count = 2;
+}
+
+message BlockList {
+    repeated BlockWithTransactions blocks = 1;
+}
+
+message BlockRequest {
+    aelf.Hash hash = 1;
+}
+
+message BlockReply {
+    string error = 1;
+    BlockWithTransactions block = 2;
+}
+
+// Messages related to connection and handshaking
 
 message Handshake {
     HandshakeData handshake_data = 1;
@@ -30,13 +54,47 @@ message HandshakeData {
     bytes pubkey = 4;
 }
 
-message PeerNewBlockAnnouncement {
-    aelf.Hash block_hash = 1;
-    int64 block_height = 2;
-    bool has_fork = 3;
+message FinalizeConnectReply {
+    bool success = 1;
 }
 
-message BlockWithTransactions {
-    aelf.BlockHeader header = 1;
-    repeated aelf.Transaction transactions = 2;
+message ConnectReply {
+    Handshake handshake = 1;
+    AuthError error = 2;
+}
+
+enum AuthError {
+    NONE = 0;
+    UNKNOWN = 1;
+    WRONG_SIGNATURE = 2;
+    INVALID_HANDSHAKE = 3;
+    INVALID_PEER = 4;
+    CHAIN_MISMATCH = 5;
+    PROTOCOL_MISMATCH = 6;
+    CONNECTION_REFUSED = 7;
+}
+
+message DisconnectReason {
+    Reason why = 1;
+    enum Reason {
+        SHUTDOWN = 0;
+    }
+}
+
+message UpdateHandshakeRequest {
+}
+
+// Messages related to peer discovery
+
+message Node {
+    string endpoint = 1;
+    bytes pubkey = 2;
+}
+
+message NodeList {
+    repeated Node nodes = 1;
+}
+
+message NodesRequest {
+    int32 max_count = 1;
 }

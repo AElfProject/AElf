@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography;
@@ -13,6 +14,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
+using Grpc.Core.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -102,7 +104,10 @@ namespace AElf.OS.Network.Grpc
             var hsk = await _peerPool.GetHandshakeAsync();
             
             // If auth ok -> add it to our peers
-            _peerPool.AddPeer(grpcPeer);
+            if (_peerPool.AddPeer(grpcPeer))
+                Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
+
+            // todo handle case where add is false (edge case)
 
             return new ConnectReply { Handshake = hsk };
         }
@@ -130,10 +135,9 @@ namespace AElf.OS.Network.Grpc
 
             var pubKey = handshake.HandshakeData.Pubkey.ToHex();
             
-            var connectionInfo = new GrpcPeerInfo
+            var connectionInfo = new PeerInfo
             {
-                PublicKey = pubKey,
-                PeerIpAddress = peerAddress,
+                Pubkey = pubKey,
                 ProtocolVersion = handshake.HandshakeData.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = handshake.BestChainBlockHeader.Height,
@@ -141,7 +145,7 @@ namespace AElf.OS.Network.Grpc
                 LibHeightAtHandshake = handshake.LibBlockHeight
             };
             
-            return new GrpcPeer(channel, client, connectionInfo);
+            return new GrpcPeer(channel, client, peerAddress, connectionInfo);
         }
 
         private AuthError ValidateHandshake(Handshake handshake)
@@ -176,42 +180,76 @@ namespace AElf.OS.Network.Grpc
             return AuthError.None;
         }
 
+        public override Task<FinalizeConnectReply> FinalizeConnect(Handshake request, ServerCallContext context)
+        {
+            var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+            
+            if (peer == null)
+                return Task.FromResult(new FinalizeConnectReply { Success = false });
+
+            peer.IsConnected = true;
+            
+            return Task.FromResult(new FinalizeConnectReply { Success = true });
+        }
+
+        public override async Task<VoidReply> AnnouncementBroadcastStream(IAsyncStreamReader<BlockAnnouncement> requestStream, ServerCallContext context)
+        {
+            await requestStream.ForEachAsync(async r => await ProcessAnnouncement(r, context));
+            return new VoidReply();
+        }
+
+        public Task ProcessAnnouncement(BlockAnnouncement announcement, ServerCallContext context)
+        {
+            if (announcement?.BlockHash == null)
+            {
+                Logger.LogError($"Received null announcement or header from {context.GetPeerInfo()}.");
+                return Task.CompletedTask;
+            }
+            
+            Logger.LogDebug($"Received announce {announcement.BlockHash} from {context.GetPeerInfo()}.");
+
+            var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+            peer?.ProcessReceivedAnnouncement(announcement);
+
+            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(announcement, context.GetPublicKey()));
+            
+            return Task.CompletedTask;
+        }
+        
+        public override async Task<VoidReply> TransactionBroadcastStream(IAsyncStreamReader<Transaction> requestStream, ServerCallContext context)
+        {
+            await requestStream.ForEachAsync(async tx => await ProcessTransaction(tx, context));
+            return new VoidReply();
+        }
+
         /// <summary>
         /// This method is called when another peer broadcasts a transaction.
         /// </summary>
         public override async Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
+        {
+            await ProcessTransaction(tx, context);
+            return new VoidReply();
+        }
+
+        private async Task ProcessTransaction(Transaction tx, ServerCallContext context)
         {
             var chain = await _blockchainService.GetChainAsync();
             
             // if this transaction's ref block is a lot higher than our chain 
             // then don't participate in p2p network
             if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultInitialSyncOffset)
-                return new VoidReply();
+                return;
             
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent { Transactions = new List<Transaction> {tx} });
-
-            return new VoidReply();
         }
 
         /// <summary>
         /// This method is called when a peer wants to broadcast an announcement.
         /// </summary>
-        public override Task<VoidReply> Announce(PeerNewBlockAnnouncement an, ServerCallContext context)
+        public override async Task<VoidReply> SendAnnouncement(BlockAnnouncement an, ServerCallContext context)
         {
-            if (an?.BlockHash == null)
-            {
-                Logger.LogError($"Received null announcement or header from {context.GetPeerInfo()}.");
-                return Task.FromResult(new VoidReply());
-            }
-            
-            Logger.LogDebug($"Received announce {an.BlockHash} from {context.GetPeerInfo()}.");
-
-            var peerInPool = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
-            peerInPool?.HandlerRemoteAnnounce(an);
-
-            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(an, context.GetPublicKey()));
-            
-            return Task.FromResult(new VoidReply());
+            await ProcessAnnouncement(an, context);
+            return new VoidReply();
         }
 
         /// <summary>
