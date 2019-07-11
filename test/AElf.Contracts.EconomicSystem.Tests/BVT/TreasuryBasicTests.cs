@@ -24,7 +24,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             // Treasury contract created Treasury Profit Item and set Profit Id to Profit Contract.
             var treasuryProfit = await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
-            treasuryProfit.Creator.ShouldBe(TreasuryContractAddress);
+            treasuryProfit.Manager.ShouldBe(TreasuryContractAddress);
             treasuryProfit.SubSchemes.Count.ShouldBe(3);
             treasuryProfit.IsReleaseAllBalanceEveryTimeByDefault.ShouldBe(true);
 

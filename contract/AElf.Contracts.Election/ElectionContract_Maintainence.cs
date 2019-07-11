@@ -98,6 +98,20 @@ namespace AElf.Contracts.Election
             {
                 UpdateCandidateInformation(publicKey, input.TermNumber, previousMiners);
             }
+            
+            State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
+            {
+                SchemeId = State.SubsidyHash.Value,
+                Period = input.TermNumber,
+                Symbol = Context.Variables.NativeSymbol
+            });
+            
+            State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
+            {
+                SchemeId = State.WelfareHash.Value,
+                Period = input.TermNumber,
+                Symbol = Context.Variables.NativeSymbol
+            });
 
             return new Empty();
         }

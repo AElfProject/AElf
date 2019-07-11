@@ -43,9 +43,6 @@ namespace AElf.Contracts.Treasury
             State.ProfitContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
 
-            var electionContractAddress =
-                Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
-
             // Create profit items: `Treasury`, `CitizenWelfare`, `BackupSubsidy`, `MinerReward`,
             // `MinerBasicReward`, `MinerVotesWeightReward`, `ReElectedMinerReward`
             var profitItemNameList = new List<string>
@@ -62,7 +59,7 @@ namespace AElf.Contracts.Treasury
                     IsReleaseAllBalanceEveryTimeByDefault = true,
                     // Distribution of Citizen Welfare will delay one period.
                     DelayDistributePeriodCount = i == 3 ? 1 : 0,
-                    Sponsor = i == 2 || i == 3 ? electionContractAddress : Context.Self
+                    //Manager = i == 2 || i == 3 ? electionContractAddress : Context.Self
                 });
             }
 
@@ -73,25 +70,38 @@ namespace AElf.Contracts.Treasury
 
         public override Empty InitialMiningRewardProfitItem(Empty input)
         {
-            var createdSchemeIds = State.ProfitContract.GetCreatedSchemeIds.Call(new GetCreatedSchemeIdsInput
+            var managingSchemeIds = State.ProfitContract.GetManagingSchemeIds.Call(new GetManagingSchemeIdsInput
             {
-                Creator = Context.Self
+                Manager = Context.Self
             }).SchemeIds;
 
-            Assert(createdSchemeIds.Count == 7, "Incorrect profit items count.");
+            Assert(managingSchemeIds.Count == 7, "Incorrect schemes count.");
 
-            State.TreasuryHash.Value = createdSchemeIds[0];
-            State.RewardHash.Value = createdSchemeIds[1];
-            State.SubsidyHash.Value = createdSchemeIds[2];
-            State.WelfareHash.Value = createdSchemeIds[3];
-            State.BasicRewardHash.Value = createdSchemeIds[4];
-            State.VotesWeightRewardHash.Value = createdSchemeIds[5];
-            State.ReElectionRewardHash.Value = createdSchemeIds[6];
+            State.TreasuryHash.Value = managingSchemeIds[0];
+            State.RewardHash.Value = managingSchemeIds[1];
+            State.SubsidyHash.Value = managingSchemeIds[2];
+            State.WelfareHash.Value = managingSchemeIds[3];
+            State.BasicRewardHash.Value = managingSchemeIds[4];
+            State.VotesWeightRewardHash.Value = managingSchemeIds[5];
+            State.ReElectionRewardHash.Value = managingSchemeIds[6];
+            
+            var electionContractAddress =
+                Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
+            State.ProfitContract.ResetManager.Send(new ResetManagerInput
+            {
+                SchemeId = managingSchemeIds[2],
+                NewManager = electionContractAddress
+            });
+            State.ProfitContract.ResetManager.Send(new ResetManagerInput
+            {
+                SchemeId = managingSchemeIds[3],
+                NewManager = electionContractAddress
+            });
 
             BuildTreasury();
 
             var treasuryVirtualAddress = Address.FromPublicKey(State.ProfitContract.Value.Value.Concat(
-                createdSchemeIds[0].Value.ToByteArray().CalculateHash()).ToArray());
+                managingSchemeIds[0].Value.ToByteArray().CalculateHash()).ToArray());
             State.TreasuryVirtualAddress.Value = treasuryVirtualAddress;
 
             return new Empty();
@@ -259,13 +269,6 @@ namespace AElf.Contracts.Treasury
 
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
-                SchemeId = State.SubsidyHash.Value,
-                Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
-            });
-
-            State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
-            {
                 SchemeId = State.BasicRewardHash.Value,
                 Period = termNumber,
                 Symbol = Context.Variables.NativeSymbol
@@ -284,20 +287,11 @@ namespace AElf.Contracts.Treasury
                 Period = termNumber,
                 Symbol = Context.Variables.NativeSymbol
             });
-
-            State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
-            {
-                SchemeId = State.WelfareHash.Value,
-                Period = termNumber,
-                Symbol = Context.Variables.NativeSymbol
-            });
         }
 
         private void UpdateTreasurySubItemsWeights(long termNumber)
         {
             var endPeriod = termNumber.Add(1);
-
-            var treasuryVirtualAddress = State.TreasuryVirtualAddress.Value;
 
             if (State.ElectionContract.Value == null)
             {

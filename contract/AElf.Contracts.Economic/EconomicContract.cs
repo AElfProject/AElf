@@ -189,18 +189,23 @@ namespace AElf.Contracts.Economic
         {
             State.ProfitContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
-            var schemeIdsCreatedByTreasuryContract = State.ProfitContract.GetCreatedSchemeIds.Call(
-                new GetCreatedSchemeIdsInput
+            var schemeIdsManagingByTreasuryContract = State.ProfitContract.GetManagingSchemeIds.Call(
+                new GetManagingSchemeIdsInput
                 {
-                    Creator = Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
+                    Manager = Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
+                }).SchemeIds;
+            var schemeIdsManagingByElectionContract = State.ProfitContract.GetManagingSchemeIds.Call(
+                new GetManagingSchemeIdsInput
+                {
+                    Manager = Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName)
                 }).SchemeIds;
             State.ElectionContract.SetTreasurySchemeIds.Send(new SetTreasurySchemeIdsInput
             {
-                TreasuryHash = schemeIdsCreatedByTreasuryContract[0],
-                SubsidyHash = schemeIdsCreatedByTreasuryContract[2],
-                WelfareHash = schemeIdsCreatedByTreasuryContract[3],
-                VotesRewardHash = schemeIdsCreatedByTreasuryContract[5],
-                ReElectionRewardHash = schemeIdsCreatedByTreasuryContract[6]
+                TreasuryHash = schemeIdsManagingByTreasuryContract[0],
+                VotesRewardHash = schemeIdsManagingByTreasuryContract[3],
+                ReElectionRewardHash = schemeIdsManagingByTreasuryContract[4],
+                SubsidyHash = schemeIdsManagingByElectionContract[0],
+                WelfareHash = schemeIdsManagingByElectionContract[1]
             });
         }
 

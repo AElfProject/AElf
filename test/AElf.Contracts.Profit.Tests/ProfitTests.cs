@@ -42,9 +42,9 @@ namespace AElf.Contracts.Profit
                 executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
-            var createdSchemeIds = await creator.GetCreatedSchemeIds.CallAsync(new GetCreatedSchemeIdsInput
+            var createdSchemeIds = await creator.GetManagingSchemeIds.CallAsync(new GetManagingSchemeIdsInput
             {
-                Creator = creatorAddress
+                Manager = creatorAddress
             });
 
             createdSchemeIds.SchemeIds.Count.ShouldBe(createTimes);
@@ -423,7 +423,7 @@ namespace AElf.Contracts.Profit
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Profit item not found.");
+            executionResult.TransactionResult.Error.ShouldContain("Scheme not found.");
         }
 
         /// <summary>
@@ -537,7 +537,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_SubWeight()
+        public async Task ProfitContract_RemoveBeneficiary()
         {
             const int shares = 100;
             const int amount = 100;
@@ -605,7 +605,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_SubWeight_ProfitItemNotFound()
+        public async Task ProfitContract_RemoveBeneficiary_SchemeNotFound()
         {
             var creator = Creators[0];
 
@@ -616,7 +616,7 @@ namespace AElf.Contracts.Profit
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Profit item not found.");
+            executionResult.TransactionResult.Error.ShouldContain("Scheme not found.");
         }
 
         [Fact]
@@ -643,7 +643,7 @@ namespace AElf.Contracts.Profit
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Insufficient profits amount.");
+            executionResult.TransactionResult.Error.ShouldContain("Insufficient undistributed profits amount.");
         }
 
         [Fact]
@@ -696,7 +696,7 @@ namespace AElf.Contracts.Profit
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Only creator can release profits.");
+            executionResult.TransactionResult.Error.ShouldContain("Only manager");
         }
 
         [Fact]
@@ -715,7 +715,7 @@ namespace AElf.Contracts.Profit
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Profit item not found.");
+            executionResult.TransactionResult.Error.ShouldContain("Scheme not found.");
         }
 
         [Fact]
@@ -1068,7 +1068,7 @@ namespace AElf.Contracts.Profit
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Profit item not found.");
+            executionResult.TransactionResult.Error.ShouldContain("Scheme not found.");
         }
 
         [Fact]
@@ -1202,9 +1202,9 @@ namespace AElf.Contracts.Profit
                 ProfitReceivingDuePeriodCount = profitReceivingDuePeriodCount
             });
 
-            var createdSchemeIds = (await creator.GetCreatedSchemeIds.CallAsync(new GetCreatedSchemeIdsInput
+            var createdSchemeIds = (await creator.GetManagingSchemeIds.CallAsync(new GetManagingSchemeIdsInput
             {
-                Creator = creatorAddress
+                Manager = creatorAddress
             })).SchemeIds;
 
             return createdSchemeIds[returnIndex];

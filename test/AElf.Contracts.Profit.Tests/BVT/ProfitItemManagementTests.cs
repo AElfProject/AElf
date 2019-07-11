@@ -30,9 +30,9 @@ namespace AElf.Contracts.Profit.BVT
                 ProfitReceivingDuePeriodCount = 100,
             });
 
-            var createdSchemeIds = (await creator.GetCreatedSchemeIds.CallAsync(new GetCreatedSchemeIdsInput
+            var createdSchemeIds = (await creator.GetManagingSchemeIds.CallAsync(new GetManagingSchemeIdsInput
             {
-                Creator = creatorAddress
+                Manager = creatorAddress
             })).SchemeIds;
 
             createdSchemeIds.Count.ShouldBe(1);
@@ -50,7 +50,7 @@ namespace AElf.Contracts.Profit.BVT
 
             var scheme = await ProfitContractStub.GetScheme.CallAsync(schemeId);
 
-            scheme.Creator.ShouldBe(Address.FromPublicKey(CreatorKeyPair[0].PublicKey));
+            scheme.Manager.ShouldBe(Address.FromPublicKey(CreatorKeyPair[0].PublicKey));
             scheme.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol]
                 .ShouldBe(contributeAmount);
 
@@ -83,9 +83,9 @@ namespace AElf.Contracts.Profit.BVT
                 DelayDistributePeriodCount = delayDistributePeriodCount
             });
 
-            var createdSchemeIds = (await creator.GetCreatedSchemeIds.CallAsync(new GetCreatedSchemeIdsInput
+            var createdSchemeIds = (await creator.GetManagingSchemeIds.CallAsync(new GetManagingSchemeIdsInput
             {
-                Creator = creatorAddress
+                Manager = creatorAddress
             })).SchemeIds;
 
             schemeId = createdSchemeIds.First();

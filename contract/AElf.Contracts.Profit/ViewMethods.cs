@@ -58,7 +58,7 @@ namespace AElf.Contracts.Profit
         public override SInt64Value GetProfitAmount(ClaimProfitsInput input)
         {
             var profitItem = State.SchemeInfos[input.SchemeId];
-            Assert(profitItem != null, "Profit item not found.");
+            Assert(profitItem != null, "Scheme not found.");
 
             var profitDetails = State.ProfitDetailsMap[input.SchemeId][Context.Sender];
 

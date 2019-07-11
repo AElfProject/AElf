@@ -294,21 +294,28 @@ namespace AElf.Contracts.Economic.TestBase
             }
             //get profit ids
             {
-                var profitIds = (await ProfitContractStub.GetCreatedSchemeIds.CallAsync(
-                    new GetCreatedSchemeIdsInput()
+                var profitIds = (await ProfitContractStub.GetManagingSchemeIds.CallAsync(
+                    new GetManagingSchemeIdsInput
                     {
-                        Creator = TreasuryContractAddress
+                        Manager = TreasuryContractAddress
                     })).SchemeIds;
                 ProfitItemsIds = new Dictionary<ProfitType, Hash>
                 {
                     {ProfitType.Treasury, profitIds[0]},
                     {ProfitType.MinerReward, profitIds[1]},
-                    {ProfitType.BackupSubsidy, profitIds[2]},
-                    {ProfitType.CitizenWelfare, profitIds[3]},
-                    {ProfitType.BasicMinerReward, profitIds[4]},
-                    {ProfitType.VotesWeightReward, profitIds[5]},
-                    {ProfitType.ReElectionReward, profitIds[6]},
+                    {ProfitType.BasicMinerReward, profitIds[2]},
+                    {ProfitType.VotesWeightReward, profitIds[3]},
+                    {ProfitType.ReElectionReward, profitIds[4]},
                 };
+            }
+            {
+                var profitIds = (await ProfitContractStub.GetManagingSchemeIds.CallAsync(
+                    new GetManagingSchemeIdsInput
+                    {
+                        Manager = ElectionContractAddress
+                    })).SchemeIds;
+                ProfitItemsIds.Add(ProfitType.BackupSubsidy, profitIds[0]);
+                ProfitItemsIds.Add(ProfitType.CitizenWelfare, profitIds[1]);
             }
         }
 

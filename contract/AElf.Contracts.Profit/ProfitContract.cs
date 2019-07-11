@@ -85,7 +85,7 @@ namespace AElf.Contracts.Profit
 
             State.ManagingSchemeIds[Context.Sender] = schemeIds;
 
-            Context.LogDebug(() => $"Created profit item {State.SchemeInfos[schemeId]}");
+            Context.LogDebug(() => $"Created scheme {State.SchemeInfos[schemeId]}");
 
             Context.Fire(new SchemeCreated
             {
@@ -105,11 +105,11 @@ namespace AElf.Contracts.Profit
         /// <returns></returns>
         public override Empty AddSubScheme(AddSubSchemeInput input)
         {
-            Assert(input.SchemeId != input.SubSchemeId, "Two profit items cannot be same.");
-            Assert(input.SubSchemeShares > 0, "Shares of sub profit item should greater than 0.");
+            Assert(input.SchemeId != input.SubSchemeId, "Two schemes cannot be same.");
+            Assert(input.SubSchemeShares > 0, "Shares of sub scheme should greater than 0.");
 
             var scheme = State.SchemeInfos[input.SchemeId];
-            Assert(scheme != null, "Profit item not found.");
+            Assert(scheme != null, "Scheme not found.");
 
             if (scheme == null)
             {
@@ -120,7 +120,7 @@ namespace AElf.Contracts.Profit
 
             var subSchemeId = input.SubSchemeId;
             var subScheme = State.SchemeInfos[subSchemeId];
-            Assert(subScheme != null, "Sub profit item not found.");
+            Assert(subScheme != null, "Sub scheme not found.");
 
             if (subScheme == null)
             {
@@ -153,17 +153,17 @@ namespace AElf.Contracts.Profit
 
         public override Empty RemoveSubScheme(RemoveSubSchemeInput input)
         {
-            Assert(input.SchemeId != input.SubSchemeId, "Two profit items cannot be same.");
+            Assert(input.SchemeId != input.SubSchemeId, "Two schemes cannot be same.");
 
             var scheme = State.SchemeInfos[input.SchemeId];
-            Assert(scheme != null, "Profit item not found.");
+            Assert(scheme != null, "Scheme not found.");
             if (scheme == null) return new Empty();
 
             Assert(Context.Sender == scheme.Manager, "Only manager can remove sub-scheme.");
 
             var subSchemeId = input.SubSchemeId;
             var subScheme = State.SchemeInfos[subSchemeId];
-            Assert(subScheme != null, "Sub profit item not found.");
+            Assert(subScheme != null, "Sub scheme not found.");
             if (subScheme == null) return new Empty();
 
             var subSchemeVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeId);
@@ -194,7 +194,7 @@ namespace AElf.Contracts.Profit
             var schemeId = input.SchemeId;
             var scheme = State.SchemeInfos[schemeId];
 
-            Assert(scheme != null, "Profit item not found.");
+            Assert(scheme != null, "Scheme not found.");
             if (scheme == null) return new Empty();
 
             Assert(Context.Sender == scheme.Manager, "Only manager can add beneficiary.");
@@ -239,7 +239,7 @@ namespace AElf.Contracts.Profit
             State.ProfitDetailsMap[schemeId][input.BeneficiaryShare.Beneficiary] = currentProfitDetails;
 
             Context.LogDebug(() =>
-                $"Added {input.BeneficiaryShare.Shares} weights to profit item {input.SchemeId.ToHex()}: {profitDetail}");
+                $"Added {input.BeneficiaryShare.Shares} weights to scheme {input.SchemeId.ToHex()}: {profitDetail}");
 
             return new Empty();
         }
@@ -251,7 +251,7 @@ namespace AElf.Contracts.Profit
 
             var scheme = State.SchemeInfos[input.SchemeId];
 
-            Assert(scheme != null, "Profit item not found.");
+            Assert(scheme != null, "Scheme not found.");
 
             var currentDetail = State.ProfitDetailsMap[input.SchemeId][input.Beneficiary];
 
@@ -268,6 +268,10 @@ namespace AElf.Contracts.Profit
             foreach (var expiryDetail in expiryDetails)
             {
                 expiryDetail.IsWeightRemoved = true;
+                if (expiryDetail.LastProfitPeriod >= scheme.CurrentPeriod)
+                {
+                    currentDetail.Details.Remove(expiryDetail);
+                }
             }
 
             State.ProfitDetailsMap[input.SchemeId][input.Beneficiary] = currentDetail;
@@ -330,10 +334,15 @@ namespace AElf.Contracts.Profit
             if (input.Symbol == null) return new Empty(); // Just to avoid IDE warning.
 
             var scheme = State.SchemeInfos[input.SchemeId];
-            Assert(scheme != null, "Profit item not found.");
+            Assert(scheme != null, "Scheme not found.");
             if (scheme == null) return new Empty(); // Just to avoid IDE warning.
 
             Assert(Context.Sender == scheme.Manager, "Only manager can distribute profits.");
+
+            Assert(
+                scheme.UndistributedProfits.ContainsKey(input.Symbol) &&
+                scheme.UndistributedProfits[input.Symbol] >= input.Amount,
+                "Insufficient undistributed profits amount.");
 
             if (scheme.IsReleaseAllBalanceEveryTimeByDefault && input.Amount == 0)
             {
@@ -372,7 +381,7 @@ namespace AElf.Contracts.Profit
 
             var releasingPeriod = scheme.CurrentPeriod;
             Assert(input.Period == releasingPeriod,
-                $"Invalid period. When release profit item {input.SchemeId.ToHex()} of period {input.Period}. Current period is {releasingPeriod}");
+                $"Invalid period. When release scheme {input.SchemeId.ToHex()} of period {input.Period}. Current period is {releasingPeriod}");
 
             var profitsReceivingVirtualAddress =
                 GetDistributedPeriodProfitsVirtualAddress(scheme.VirtualAddress, releasingPeriod);
@@ -392,7 +401,7 @@ namespace AElf.Contracts.Profit
                 $"total Shares {distributedProfitInformation.TotalShares}, total amount {distributedProfitInformation.ProfitsAmount} {input.Symbol}s");
 
             PerformDistributeProfits(input, scheme, totalShares, profitsReceivingVirtualAddress);
-
+            
             scheme.CurrentPeriod = input.Period.Add(1);
             scheme.UndistributedProfits[input.Symbol] = scheme.IsReleaseAllBalanceEveryTimeByDefault
                 ? 0
@@ -519,7 +528,7 @@ namespace AElf.Contracts.Profit
         private long DistributeProfitsForSubSchemes(DistributeProfitsInput input, Scheme scheme, long TotalShares,
             long remainAmount)
         {
-            Context.LogDebug(() => $"Sub profit items count: {scheme.SubSchemes.Count}");
+            Context.LogDebug(() => $"Sub schemes count: {scheme.SubSchemes.Count}");
             foreach (var subScheme in scheme.SubSchemes)
             {
                 Context.LogDebug(() => $"Releasing {subScheme.SchemeId}");
@@ -579,7 +588,7 @@ namespace AElf.Contracts.Profit
             if (input.Symbol == null) return new Empty(); // Just to avoid IDE warning.
 
             var scheme = State.SchemeInfos[input.SchemeId];
-            Assert(scheme != null, "Profit item not found.");
+            Assert(scheme != null, "Scheme not found.");
             if (scheme == null) return new Empty(); // Just to avoid IDE warning.
 
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
@@ -622,7 +631,7 @@ namespace AElf.Contracts.Profit
                 else
                 {
                     Assert(!distributedProfitsInformation.IsReleased,
-                        $"Profit item of period {input.Period} already released.");
+                        $"Scheme of period {input.Period} already released.");
                     distributedProfitsInformation.ProfitsAmount[input.Symbol] =
                         distributedProfitsInformation.ProfitsAmount[input.Symbol].Add(input.Amount);
                 }
@@ -645,7 +654,7 @@ namespace AElf.Contracts.Profit
         public override Empty ResetManager(ResetManagerInput input)
         {
             var scheme = State.SchemeInfos[input.SchemeId];
-            Assert(scheme != null, "Profit item not found.");
+            Assert(scheme != null, "Scheme not found.");
             if (scheme == null) return new Empty(); // Just to avoid IDE warning.
 
             Assert(Context.Sender == scheme.Manager, "Only scheme manager can reset manager.");
@@ -655,7 +664,7 @@ namespace AElf.Contracts.Profit
             var oldManagerSchemeIds = State.ManagingSchemeIds[scheme.Manager];
             oldManagerSchemeIds.SchemeIds.Remove(input.SchemeId);
             State.ManagingSchemeIds[scheme.Manager] = oldManagerSchemeIds;
-            var newManagerSchemeIds = State.ManagingSchemeIds[input.NewManager];
+            var newManagerSchemeIds = State.ManagingSchemeIds[input.NewManager] ?? new CreatedSchemeIds();
             newManagerSchemeIds.SchemeIds.Add(input.SchemeId);
             State.ManagingSchemeIds[input.NewManager] = newManagerSchemeIds;
 
@@ -674,7 +683,7 @@ namespace AElf.Contracts.Profit
             Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
             if (input.Symbol == null) return new Empty(); // Just to avoid IDE warning.
             var scheme = State.SchemeInfos[input.SchemeId];
-            Assert(scheme != null, "Profit item not found.");
+            Assert(scheme != null, "Scheme not found.");
             var profitDetails = State.ProfitDetailsMap[input.SchemeId][Context.Sender];
             Assert(profitDetails != null, "Profit details not found.");
             if (profitDetails == null || scheme == null) return new Empty(); // Just to avoid IDE warning.
