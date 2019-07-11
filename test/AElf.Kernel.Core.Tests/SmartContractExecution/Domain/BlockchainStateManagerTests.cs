@@ -23,7 +23,7 @@ namespace AElf.Kernel
             {
                 _tv.Add(new TestPair()
                 {
-                    BlockHash = Hash.FromRawBytes(Guid.NewGuid().ToByteArray()),
+                    BlockHash = Hash.FromRawBytes(new []{Convert.ToByte(i)}),
                     BlockHeight = i,
                     Key = $"key{i}",
                     Value = ByteString.CopyFromUtf8($"value{i}")
