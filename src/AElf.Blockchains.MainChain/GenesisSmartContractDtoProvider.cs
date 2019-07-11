@@ -37,8 +37,8 @@ namespace AElf.Blockchains.MainChain
             {
                 GetGenesisSmartContractDtosForVote(zeroContractAddress),
                 GetGenesisSmartContractDtosForProfit(zeroContractAddress),
-                GetGenesisSmartContractDtosForTreasury(),
                 GetGenesisSmartContractDtosForElection(zeroContractAddress),
+                GetGenesisSmartContractDtosForTreasury(),
                 GetGenesisSmartContractDtosForToken(zeroContractAddress),
                 GetGenesisSmartContractDtosForCrossChain(zeroContractAddress),
                 GetGenesisSmartContractDtosForParliament(),
