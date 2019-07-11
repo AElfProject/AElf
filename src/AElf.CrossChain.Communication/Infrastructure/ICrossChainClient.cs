@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Acs7;
 
-namespace AElf.CrossChain.Communication
+namespace AElf.CrossChain.Communication.Infrastructure
 {
     public interface ICrossChainClient
     {
