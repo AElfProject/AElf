@@ -23,6 +23,7 @@ namespace AElf.WebApp.Application.Chain
             int limit = 10);
     }
 
+    [ControllerName("BlockChain")]
     public class TransactionResultAppService : ITransactionResultAppService
     {
         private readonly ITransactionResultProxyService _transactionResultProxyService;
@@ -46,7 +47,6 @@ namespace AElf.WebApp.Application.Chain
         /// </summary>
         /// <param name="transactionId">transaction id</param>
         /// <returns></returns>
-        [Route("api/blockChain/transactionResult")]
         public async Task<TransactionResultDto> GetTransactionResultAsync(string transactionId)
         {
             Hash transactionHash;
@@ -98,7 +98,6 @@ namespace AElf.WebApp.Application.Chain
         /// <param name="limit">limit</param>
         /// <returns></returns>
         /// <exception cref="UserFriendlyException"></exception>
-        [Route("api/blockChain/transactionResults")]
         public async Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
             int limit = 10)
         {

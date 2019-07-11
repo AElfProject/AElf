@@ -23,7 +23,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
             var category = KernelConstants.CodeCoverageRunnerCategory;
             var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("Configuration")).Value;
             ConfigurationContractAddress = await DeploySystemSmartContract(category, code,
-                ConfigurationContractNameProvider.Name, DefaultSenderKeyPair);
+                ConfigurationSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
             ConfigurationStub =
                 GetTester<Configuration.ConfigurationContainer.ConfigurationStub>(ConfigurationContractAddress,
                     DefaultSenderKeyPair);

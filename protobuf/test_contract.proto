@@ -36,110 +36,110 @@ service TestContract {
 
 //Input
 message BoolInput {
-    bool BoolValue = 1;
+    bool bool_value = 1;
 }
 
 message Int32Input {
-    int32 Int32Value = 1;
+    int32 int32_value = 1;
 }
 
 message UInt32Input {
-    uint32 UInt32Value = 1;
+    uint32 u_int32_value = 1;
 }
 
 message Int64Input {
-    int64 Int64Value = 1;
+    int64 int64_value = 1;
 }
 
 message UInt64Input {
-    uint64 UInt64Value = 1;
+    uint64 u_int64_value = 1;
 }
 
 message StringInput {
-    string StringValue = 1;
+    string string_value = 1;
 }
 
 message BytesInput {
-    bytes BytesValue = 1;
+    bytes bytes_value = 1;
 }
 
 message ProtobufInput {
-    ProtobufMessage ProtobufValue = 1;
+    ProtobufMessage protobuf_value = 1;
 }
 
 message Complex1Input {
-    bool BoolValue = 1;
-    int32 Int32Value = 2;
+    bool bool_value = 1;
+    int32 int32_value = 2;
 }
 
 message Complex2Input {
-    BoolInput BoolData = 1;
-    Int32Input Int32Data = 2;
+    BoolInput bool_data = 1;
+    Int32Input int32_data = 2;
 }
 
 message Complex3Input {
     string from = 1;
-    string pairA = 2;
+    string pair_a = 2;
     string to = 3;
-    string pairB = 4;
-    TradeMessage TradeDetails = 5;
+    string pair_b = 4;
+    TradeMessage trade_details = 5;
 }
 
 message TradeMessage {
-    int64 fromAmount = 1;
-    int64 toAmount = 2;
-    google.protobuf.Timestamp Timestamp = 3;
+    int64 from_amount = 1;
+    int64 to_amount = 2;
+    google.protobuf.Timestamp timestamp = 3;
 }
 
 message ProtobufMessage {
-    string StringValue = 1;
-    bool BoolValue = 2;
-    int64 Int64Value = 3;
+    string string_value = 1;
+    bool bool_value = 2;
+    int64 int64_value = 3;
 }
 
 //Output
 message BoolOutput {
-    bool BoolValue = 1;
+    bool bool_value = 1;
 }
 
 message Int32Output {
-    int32 Int32Value = 1;
+    int32 int32_value = 1;
 }
 
 message UInt32Output {
-    uint32 UInt32Value = 1;
+    uint32 u_int32_value = 1;
 }
 
 message UInt64Output {
-    uint64 UInt64Value = 1;
+    uint64 u_int64_value = 1;
 }
 
 message Int64Output {
-    int64 Int64Value = 1;
+    int64 int64_value = 1;
 }
 
 message StringOutput {
-    string StringValue = 1;
+    string string_value = 1;
 }
 
 message BytesOutput {
-    bytes BytesValue = 1;
+    bytes bytes_value = 1;
 }
 
 message ProtobufOutput {
-    ProtobufMessage ProtobufValue = 1;
+    ProtobufMessage protobuf_value = 1;
 }
 
 message ProtobufListOutput {
-    repeated ProtobufMessage Collection = 1;
+    repeated ProtobufMessage collection = 1;
 }
 
 message Complex1Output {
-    bool BoolValue = 1;
-    int32 Int32Value = 2;
+    bool bool_value = 1;
+    int32 int32_value = 2;
 }
 
 message Complex2Output {
-    BoolOutput BoolData = 1;
-    Int32Output Int32Data = 2;
+    BoolOutput bool_data = 1;
+    Int32Output int32_data = 2;
 }

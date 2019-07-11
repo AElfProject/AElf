@@ -57,10 +57,10 @@ enum ResourceType {
 }
 
 message Converter {
-    sint64 resBalance = 1;
-    sint64 elfBalance = 2;
-    sint64 resWeight = 3; // Weight based on MAX of 1,000,000
-    sint64 elfWeight = 4; // Weight based on MAX of 1,000,000
+    sint64 res_balance = 1;
+    sint64 elf_balance = 2;
+    sint64 res_weight = 3; // Weight based on MAX of 1,000,000
+    sint64 elf_weight = 4; // Weight based on MAX of 1,000,000
     ResourceType type = 5;
 }
 
@@ -79,9 +79,9 @@ message UserResourceId {
 }
 
 message InitializeInput {
-    aelf.Address elfTokenAddress = 1;
-    aelf.Address feeAddress = 2;
-    aelf.Address resourceControllerAddress = 3;
+    aelf.Address elf_token_address = 1;
+    aelf.Address fee_address = 2;
+    aelf.Address resource_controller_address = 3;
 }
 
 message ResourceAmount {

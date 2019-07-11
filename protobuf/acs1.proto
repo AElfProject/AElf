@@ -17,7 +17,6 @@ service FeeChargedContract {
     rpc GetMethodFee (MethodName) returns (TokenAmount) {
         option (aelf.is_view) = true;
     }
-
 }
 
 message MethodName {
