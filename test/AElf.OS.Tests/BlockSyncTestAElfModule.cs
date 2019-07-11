@@ -84,7 +84,7 @@ namespace AElf.OS
             
             var bestBranchHeight = height;
 
-            for (var i = bestBranchHeight; i < bestBranchHeight + 10; i++)
+            for (var i = bestBranchHeight; i < bestBranchHeight + 20; i++)
             {
                 var block = osTestHelper.GenerateBlock(previousBlockHash, height);
 
