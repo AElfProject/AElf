@@ -46,7 +46,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 //                    $"Throwing exception is not supported in {nameof(LocalParallelTransactionExecutingService)}.");
 //            }
 
-            var (parallelizable, nonParallizable) = await _grouper.GroupAsync(transactions);
+            var (parallelizable, nonParallizable) = await _grouper.GroupAsync(blockHeader, transactions);
             var tasks = parallelizable.AsParallel().Select(
                 txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
                 {

@@ -32,13 +32,13 @@ namespace AElf.Kernel.SmartContract.Parallel
             Logger = NullLogger<TransactionGrouper>.Instance;
         }
 
-        public async Task<(List<List<Transaction>>, List<Transaction>)> GroupAsync(List<Transaction> transactions)
+        public async Task<(List<List<Transaction>>, List<Transaction>)> GroupAsync(BlockHeader blockHeader,List<Transaction> transactions)
         {
-            var chainContext = await GetChainContextAsync();
-            if (chainContext == null)
+            var chainContext = new ChainContext()
             {
-                return (new List<List<Transaction>>(), transactions);
-            }
+                BlockHash = blockHeader.PreviousBlockHash,
+                BlockHeight = blockHeader.Height - 1
+            };
             
             Logger.LogTrace($"Entered GroupAsync");
 
@@ -158,22 +158,6 @@ namespace AElf.Kernel.SmartContract.Parallel
             groups.AddRange(grouped.Values);
 
             return groups;
-        }
-
-        private async Task<ChainContext> GetChainContextAsync()
-        {
-            var chain = await _blockchainService.GetChainAsync();
-            if (chain == null)
-            {
-                return null;
-            }
-
-            var chainContext = new ChainContext()
-            {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight
-            };
-            return chainContext;
         }
     }
 }
