@@ -45,8 +45,10 @@ namespace AElf.OS.Network.Application
 
         public bool IsOldBlock(BlockHeader header)
         {
-            var limit = DateTime.Now - TimeSpan.FromMinutes(NetworkConstants.DefaultMaxBlockAgeToBroadcastInMinutes);
-            if (header.Time < Timestamp.FromDateTime(limit))
+            var limit = TimestampHelper.GetUtcNow() 
+                        - TimestampHelper.DurationFromMinutes(NetworkConstants.DefaultMaxBlockAgeToBroadcastInMinutes);
+            
+            if (header.Time < limit)
                 return true;
 
             return false;
