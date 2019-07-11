@@ -339,6 +339,12 @@ namespace AElf.Contracts.Profit
 
             Assert(Context.Sender == scheme.Manager, "Only manager can distribute profits.");
 
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
                 Owner = scheme.VirtualAddress,
@@ -411,6 +417,12 @@ namespace AElf.Contracts.Profit
             Context.LogDebug(() => "Entered BurnProfits.");
             scheme.CurrentPeriod = input.Period > 0 ? input.Period.Add(1) : scheme.CurrentPeriod;
 
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
                 Owner = profitsReceivingVirtualAddress,
@@ -471,6 +483,12 @@ namespace AElf.Contracts.Profit
         private DistributedProfitsInfo UpdateDistributedProfits(DistributeProfitsInput input,
             Address profitsReceivingVirtualAddress, long totalShares)
         {
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
                 Owner = profitsReceivingVirtualAddress,
