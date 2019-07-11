@@ -122,7 +122,7 @@ namespace AElf.Contracts.Vote
         
         private List<string> GenerateOptions(int count = 1)
         {
-            return Enumerable.Range(0, count).Select(_ => Address.FromBytes(Guid.NewGuid().ToByteArray().CalculateHash()).GetFormatted()).ToList();
+            return Enumerable.Range(0, count).Select(i => AddressHelper.StringToAddress(i.ToString()).GetFormatted()).ToList();
         }
     }
 }

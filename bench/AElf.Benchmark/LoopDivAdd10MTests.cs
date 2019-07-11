@@ -40,7 +40,7 @@ namespace AElf.Benchmark
         [IterationSetup]
         public async Task IterationSetup()
         {
-            _transaction = _osTestHelper.GenerateTransaction(Address.FromBytes(Guid.NewGuid().ToByteArray().CalculateHash()), _contractAddress,
+            _transaction = _osTestHelper.GenerateTransaction(AddressHelper.StringToAddress("_osTestHelper"), _contractAddress,
                 nameof(PerformanceTestContract.PerformanceTestContract.LoopDivAdd), new DivAddTestInput()
                 {
                     X = 100,
