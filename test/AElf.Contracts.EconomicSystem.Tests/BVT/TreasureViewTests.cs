@@ -16,7 +16,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 {
     public partial class EconomicSystemTest
     {
-        [Fact]
+        [Fact(Skip = "Need real citizens.")]
         public async Task GetWelfareRewardAmountSample_Test()
         {
             await NextTerm(BootMinerKeyPair);
@@ -26,7 +26,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
             {
                 Amount = 100_00000000,
-                Period = 1,
+                Period = 2,
                 Symbol = EconomicContractsTestConstants.NativeTokenSymbol,
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]
             });
@@ -46,7 +46,6 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             rewardMoney[0].ShouldBeGreaterThan(0);
             rewardMoney[1].ShouldBeGreaterThan(0);
             rewardMoney[2].ShouldBeGreaterThan(0);
-            
         }
 
         private async Task AttendElectionAndVotes()

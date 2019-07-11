@@ -422,14 +422,18 @@ namespace AElf.Contracts.Treasury
             const long sampleAmount = 10000;
             var welfareHash = State.WelfareHash.Value;
             var output = new GetWelfareRewardAmountSampleOutput();
-            var welfareItem = State.ProfitContract.GetScheme.Call(welfareHash);
+            var welfareScheme = State.ProfitContract.GetScheme.Call(welfareHash);
             var releasedInformation = State.ProfitContract.GetDistributedProfitsInfo.Call(
                 new SchemePeriod
                 {
                     SchemeId = welfareHash,
-                    Period = welfareItem.CurrentPeriod.Sub(1)
+                    Period = welfareScheme.CurrentPeriod.Sub(1)
                 });
             var totalShares = releasedInformation.TotalShares;
+            if (totalShares == 0)
+            {
+                return new GetWelfareRewardAmountSampleOutput();
+            }
             var totalAmount = releasedInformation.ProfitsAmount;
             foreach (var lockTime in input.Value)
             {

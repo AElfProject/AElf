@@ -181,7 +181,7 @@ namespace AElf.Contracts.Profit
 
         public override Empty AddBeneficiary(AddBeneficiaryInput input)
         {
-            Assert(input.SchemeId != null, "Invalid profit id.");
+            Assert(input.SchemeId != null, "Invalid scheme id.");
             Assert(input.BeneficiaryShare?.Beneficiary != null, "Invalid beneficiary address.");
             Assert(input.BeneficiaryShare?.Shares >= 0, "Invalid share.");
 
@@ -246,7 +246,7 @@ namespace AElf.Contracts.Profit
 
         public override Empty RemoveBeneficiary(RemoveBeneficiaryInput input)
         {
-            Assert(input.SchemeId != null, "Invalid profit id.");
+            Assert(input.SchemeId != null, "Invalid scheme id.");
             Assert(input.Beneficiary != null, "Invalid Beneficiary address.");
 
             var scheme = State.SchemeInfos[input.SchemeId];
@@ -339,11 +339,11 @@ namespace AElf.Contracts.Profit
 
             Assert(Context.Sender == scheme.Manager, "Only manager can distribute profits.");
 
-            Assert(
-                scheme.UndistributedProfits.ContainsKey(input.Symbol) &&
-                scheme.UndistributedProfits[input.Symbol] >= input.Amount,
-                "Insufficient undistributed profits amount.");
-
+            var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
+            {
+                Owner = scheme.VirtualAddress,
+                Symbol = input.Symbol
+            }).Balance;
             if (scheme.IsReleaseAllBalanceEveryTimeByDefault && input.Amount == 0)
             {
                 // Distribute all from general ledger.
@@ -353,11 +353,6 @@ namespace AElf.Contracts.Profit
                         Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
                 }
 
-                var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
-                {
-                    Owner = scheme.VirtualAddress,
-                    Symbol = input.Symbol
-                }).Balance;
                 Context.LogDebug(() =>
                     $"Update distributing amount to {balance} because IsReleaseAllBalanceEveryTimeByDefault == true.");
                 input.Amount = balance;
@@ -403,9 +398,7 @@ namespace AElf.Contracts.Profit
             PerformDistributeProfits(input, scheme, totalShares, profitsReceivingVirtualAddress);
             
             scheme.CurrentPeriod = input.Period.Add(1);
-            scheme.UndistributedProfits[input.Symbol] = scheme.IsReleaseAllBalanceEveryTimeByDefault
-                ? 0
-                : scheme.UndistributedProfits[input.Symbol].Sub(input.Amount);
+            scheme.UndistributedProfits[input.Symbol] = balance.Sub(input.Amount);
 
             State.SchemeInfos[input.SchemeId] = scheme;
 
