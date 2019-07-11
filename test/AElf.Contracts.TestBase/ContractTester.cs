@@ -661,6 +661,21 @@ namespace AElf.Contracts.TestBase
             balanceOfStarter = InitialBalanceOfStarter;
 
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
+            {
+                Symbol = "ELF",
+                TokenName = "Native token",
+                TotalSupply = totalSupply,
+                Decimals = 8,
+                Issuer = Address.FromPublicKey(KeyPair.PublicKey),
+                IsBurnable = true
+            });
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
+            {
+                Symbol = "ELF",
+                Amount = balanceOfStarter,
+                To = Address.FromPublicKey(KeyPair.PublicKey)
+            });
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new ParliamentAuth.InitializeInput

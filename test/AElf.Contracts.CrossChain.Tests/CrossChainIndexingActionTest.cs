@@ -689,8 +689,7 @@ namespace AElf.Contract.CrossChain.Tests
             int chainId1 = ChainHelper.ConvertBase58ToChainId("AELF");
             long lockedToken = 10;
             long parentChainHeightOfCreation = 10;
-            var sidechainId =
-                await InitAndCreateSideChainAsync(parentChainHeightOfCreation, parentChainId, lockedToken);
+            await InitAndCreateSideChainAsync(parentChainHeightOfCreation, parentChainId, lockedToken);
             var tokenInfoResult = await Tester.CallContractMethodAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.GetTokenInfo), new GetTokenInfoInput
                 {

@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -53,7 +52,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public string ToString(string publicKey)
         {
-            return ToString(publicKey, CultureInfo.CurrentCulture);
+            return ToString(publicKey, null);
         }
 
         public string ToString(string format, IFormatProvider formatProvider)

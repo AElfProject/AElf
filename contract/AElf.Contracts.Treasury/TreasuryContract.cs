@@ -87,16 +87,19 @@ namespace AElf.Contracts.Treasury
             
             var electionContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
-            State.ProfitContract.ResetManager.Send(new ResetManagerInput
+            if (electionContractAddress != null)
             {
-                SchemeId = managingSchemeIds[2],
-                NewManager = electionContractAddress
-            });
-            State.ProfitContract.ResetManager.Send(new ResetManagerInput
-            {
-                SchemeId = managingSchemeIds[3],
-                NewManager = electionContractAddress
-            });
+                State.ProfitContract.ResetManager.Send(new ResetManagerInput
+                {
+                    SchemeId = managingSchemeIds[2],
+                    NewManager = electionContractAddress
+                });
+                State.ProfitContract.ResetManager.Send(new ResetManagerInput
+                {
+                    SchemeId = managingSchemeIds[3],
+                    NewManager = electionContractAddress
+                });
+            }
 
             BuildTreasury();
 
