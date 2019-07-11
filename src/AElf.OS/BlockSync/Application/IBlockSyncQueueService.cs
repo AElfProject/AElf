@@ -5,7 +5,7 @@ namespace AElf.OS.BlockSync.Application
 {
     public interface IBlockSyncQueueService
     {
-        bool IsQueueAvailable(string queueName);
+        bool ValidateQueueAvailability(string queueName);
 
         void Enqueue(Func<Task> task, string queueName);
     }

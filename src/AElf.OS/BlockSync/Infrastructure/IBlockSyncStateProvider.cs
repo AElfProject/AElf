@@ -4,14 +4,8 @@ namespace AElf.OS.BlockSync.Infrastructure
 {
     public interface IBlockSyncStateProvider
     {
-        Timestamp BlockSyncFetchBlockEnqueueTime { get; set; }
-        
-        Timestamp BlockSyncDownloadBlockEnqueueTime { get; set; }
-        
-        Timestamp BlockSyncAttachAndExecuteBlockJobEnqueueTime { get; set; }
-        
-        Timestamp BlockSyncAttachBlockEnqueueTime { get; set; }
-        
+        Timestamp GetEnqueueTime(string queueName);
 
+        void SetEnqueueTime(string queueName, Timestamp enqueueTime);
     }
 }

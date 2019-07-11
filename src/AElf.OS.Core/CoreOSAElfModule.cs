@@ -26,6 +26,8 @@ namespace AElf.OS
             var taskQueueManager = context.ServiceProvider.GetService<ITaskQueueManager>();
             taskQueueManager.CreateQueue(NetworkConstants.PeerReconnectionQueueName);
             taskQueueManager.CreateQueue(NetworkConstants.BlockBroadcastQueueName);
+            taskQueueManager.CreateQueue(NetworkConstants.AnnouncementBroadcastQueueName);
+            taskQueueManager.CreateQueue(NetworkConstants.TransactionBroadcastQueueName);
         }
     }
 }

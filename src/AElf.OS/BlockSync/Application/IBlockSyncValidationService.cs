@@ -7,7 +7,7 @@ namespace AElf.OS.BlockSync.Application
 {
     public interface IBlockSyncValidationService
     {
-        Task<bool> ValidateBeforeHandleAnnounceAsync(Chain chain, Hash syncBlockHash, long syncBlockHeight);
+        Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement);
 
         Task<bool> ValidateBeforeHandleBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions);
     }

@@ -1,9 +1,8 @@
 namespace AElf.OS.Network.Grpc
 {
-    public class GrpcPeerInfo
+    public class PeerInfo
     {
-        public string PublicKey { get; set; }
-        public string PeerIpAddress { get; set; }
+        public string Pubkey { get; set; }
         public int ProtocolVersion { get; set; }
         public long ConnectionTime { get; set; }
         public long StartHeight { get; set; }

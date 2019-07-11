@@ -11,42 +11,28 @@ namespace AElf.OS.BlockSync.Application
     public class BlockSyncValidationService : IBlockSyncValidationService
     {
         private readonly IAnnouncementCacheProvider _announcementCacheProvider;
-        private readonly IBlockSyncQueueService _blockSyncQueueService;
 
         public ILogger<BlockSyncValidationService> Logger { get; set; }
 
-        public BlockSyncValidationService(IAnnouncementCacheProvider announcementCacheProvider,
-            IBlockSyncQueueService blockSyncQueueService)
+        public BlockSyncValidationService(IAnnouncementCacheProvider announcementCacheProvider)
         {
             Logger = NullLogger<BlockSyncValidationService>.Instance;
 
             _announcementCacheProvider = announcementCacheProvider;
-            _blockSyncQueueService = blockSyncQueueService;
         }
 
-        public async Task<bool> ValidateBeforeHandleAnnounceAsync(Chain chain, Hash syncBlockHash, long syncBlockHeight)
+        public async Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement)
         {
-            if(!_blockSyncQueueService.IsQueueAvailable(OSConstants.BlockFetchQueueName))
+            if (!_announcementCacheProvider.TryAddAnnouncementCache(blockAnnouncement.BlockHash,
+                blockAnnouncement.BlockHeight))
             {
-                Logger.LogWarning($"Block sync fetch queue is too busy.");
                 return false;
             }
-            
-            if(!_blockSyncQueueService.IsQueueAvailable(OSConstants.BlockDownloadQueueName))
+
+            if (blockAnnouncement.BlockHeight <= chain.LastIrreversibleBlockHeight)
             {
                 Logger.LogWarning(
-                    $"Block sync download queue is too busy.");
-                return false;
-            }
-
-            if (!_announcementCacheProvider.TryAddAnnouncementCache(syncBlockHash, syncBlockHeight))
-            {
-                return false;
-            }
-
-            if (syncBlockHeight <= chain.LastIrreversibleBlockHeight)
-            {
-                Logger.LogWarning($"Receive lower header {{ hash: {syncBlockHash}, height: {syncBlockHeight} }} ignore.");
+                    $"Receive lower header {{ hash: {blockAnnouncement.BlockHash}, height: {blockAnnouncement.BlockHeight} }} ignore.");
                 return false;
             }
 
@@ -55,12 +41,6 @@ namespace AElf.OS.BlockSync.Application
 
         public async Task<bool> ValidateBeforeHandleBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions)
         {
-            if(!_blockSyncQueueService.IsQueueAvailable(OSConstants.BlockFetchQueueName))
-            {
-                Logger.LogWarning("Block sync fetch queue is too busy.");
-                return false;
-            }
-            
             if (!_announcementCacheProvider.TryAddAnnouncementCache(blockWithTransactions.GetHash(), blockWithTransactions.Height))
             {
                 return false;

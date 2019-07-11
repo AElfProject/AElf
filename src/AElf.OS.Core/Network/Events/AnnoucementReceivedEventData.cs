@@ -2,10 +2,10 @@ namespace AElf.OS.Network.Events
 {
     public class AnnouncementReceivedEventData
     {
-        public PeerNewBlockAnnouncement Announce { get; }
+        public BlockAnnouncement Announce { get; }
         public string SenderPubKey { get; }
         
-        public AnnouncementReceivedEventData(PeerNewBlockAnnouncement an, string senderPubKey)
+        public AnnouncementReceivedEventData(BlockAnnouncement an, string senderPubKey)
         {
             SenderPubKey = senderPubKey;
             Announce = an;

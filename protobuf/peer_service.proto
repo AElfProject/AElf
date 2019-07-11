@@ -7,77 +7,30 @@ import "network_types.proto";
 import "aelf/core.proto";
 
 service PeerService {
+    
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}
     rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
-    
-    rpc Announce (PeerNewBlockAnnouncement) returns (VoidReply) {}
+
+    rpc SendAnnouncement (BlockAnnouncement) returns (VoidReply) {}
     rpc SendTransaction (aelf.Transaction) returns (VoidReply) {}
 
     rpc BlockBroadcastStream (stream BlockWithTransactions) returns (VoidReply) {}
     
+    rpc TransactionBroadcastStream (stream aelf.Transaction) returns (VoidReply) {}
+    rpc AnnouncementBroadcastStream (stream BlockAnnouncement) returns (VoidReply) {}
+
     rpc GetNodes (NodesRequest) returns (NodeList) {}
-    
-    rpc UpdateHandshake(UpdateHandshakeRequest) returns (Handshake) {}
+
     rpc Connect (Handshake) returns (ConnectReply) {}
-    
+    rpc FinalizeConnect (Handshake) returns (FinalizeConnectReply) {}
+    rpc UpdateHandshake(UpdateHandshakeRequest) returns (Handshake) {}
+
     rpc Disconnect (DisconnectReason) returns (VoidReply) {}
-}
-
-// **** Connection *****
-
-message ConnectReply {
-    Handshake handshake = 1;
-    AuthError error = 2;
-}
-
-enum AuthError {
-    NONE = 0;
-    UNKNOWN = 1;
-    WRONG_SIGNATURE = 2;
-    INVALID_HANDSHAKE = 3;
-    INVALID_PEER = 4;
-    CHAIN_MISMATCH = 5;
-    PROTOCOL_MISMATCH = 6;
-    CONNECTION_REFUSED = 7;
-}
-
-message UpdateHandshakeRequest {
-}
-
-// **** Blocks *****
-
-message BlocksRequest {
-    aelf.Hash previous_block_hash = 1;
-    int32 count = 2;
-}
-
-message BlockList {
-    repeated BlockWithTransactions blocks = 1;
-}
-
-message DisconnectReason {
-    Reason why = 1;
-    enum Reason {
-        SHUTDOWN = 0;
-    }
-}
-
-message BlockRequest {
-    aelf.Hash hash = 1;
-}
-
-message BlockReply {
-    string error = 1;
-    BlockWithTransactions block = 2;
 }
 
 // **** No reply *****
 
 message VoidReply {
-}
-
-message NodesRequest {
-    int32 max_count = 1;
 }
 
 
