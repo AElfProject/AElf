@@ -10,9 +10,9 @@ namespace AElf.Contracts.Profit
 {
     public partial class ProfitContract
     {
-        public override CreatedSchemeIds GetCreatedSchemeIds(GetCreatedSchemeIdsInput input)
+        public override CreatedSchemeIds GetManagingSchemeIds(GetManagingSchemeIdsInput input)
         {
-            return State.CreatedSchemeIds[input.Creator];
+            return State.ManagingSchemeIds[input.Manager];
         }
 
         public override Scheme GetScheme(Hash input)

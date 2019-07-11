@@ -50,7 +50,7 @@ namespace AElf.Contracts.Profit
 
             var schemeId = Context.TransactionId;
             // Why? Because one transaction may create many profit items via inline transactions.
-            var createdSchemeIds = State.CreatedSchemeIds[Context.Sender]?.SchemeIds;
+            var createdSchemeIds = State.ManagingSchemeIds[Context.Sender]?.SchemeIds;
             if (createdSchemeIds != null && createdSchemeIds.Contains(schemeId))
             {
                 // So we choose this way to avoid profit id conflicts in aforementioned situation.
@@ -62,8 +62,7 @@ namespace AElf.Contracts.Profit
                 SchemeId = schemeId,
                 // The address of general ledger for current profit item.
                 VirtualAddress = Context.ConvertVirtualAddressToContractAddress(schemeId),
-                Creator = Context.Sender,
-                Sponsor = input.Sponsor == null ? Context.Sender : input.Sponsor,
+                Manager = input.Manager == null ? Context.Sender : input.Manager,
                 ProfitReceivingDuePeriodCount = input.ProfitReceivingDuePeriodCount,
                 CurrentPeriod = 1,
                 IsReleaseAllBalanceEveryTimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault,
@@ -71,7 +70,7 @@ namespace AElf.Contracts.Profit
             };
             State.SchemeInfos[schemeId] = scheme;
 
-            var schemeIds = State.CreatedSchemeIds[Context.Sender];
+            var schemeIds = State.ManagingSchemeIds[scheme.Manager];
             if (schemeIds == null)
             {
                 schemeIds = new CreatedSchemeIds
@@ -84,15 +83,14 @@ namespace AElf.Contracts.Profit
                 schemeIds.SchemeIds.Add(schemeId);
             }
 
-            State.CreatedSchemeIds[Context.Sender] = schemeIds;
+            State.ManagingSchemeIds[Context.Sender] = schemeIds;
 
             Context.LogDebug(() => $"Created profit item {State.SchemeInfos[schemeId]}");
 
             Context.Fire(new SchemeCreated
             {
                 SchemeId = scheme.SchemeId,
-                Creator = scheme.Creator,
-                Sponsor = scheme.Sponsor,
+                Manager = scheme.Manager,
                 IsReleaseAllBalanceEveryTimeByDefault = scheme.IsReleaseAllBalanceEveryTimeByDefault,
                 ProfitReceivingDuePeriodCount = scheme.ProfitReceivingDuePeriodCount,
                 VirtualAddress = scheme.VirtualAddress
@@ -118,7 +116,7 @@ namespace AElf.Contracts.Profit
                 return new Empty();
             }
 
-            Assert(Context.Sender == scheme.Sponsor, "Only sponsor can add sub-scheme.");
+            Assert(Context.Sender == scheme.Manager, "Only manager can add sub-scheme.");
 
             var subSchemeId = input.SubSchemeId;
             var subScheme = State.SchemeInfos[subSchemeId];
@@ -161,7 +159,7 @@ namespace AElf.Contracts.Profit
             Assert(scheme != null, "Profit item not found.");
             if (scheme == null) return new Empty();
 
-            Assert(Context.Sender == scheme.Sponsor, "Only sponsor can remove sub-scheme.");
+            Assert(Context.Sender == scheme.Manager, "Only manager can remove sub-scheme.");
 
             var subSchemeId = input.SubSchemeId;
             var subScheme = State.SchemeInfos[subSchemeId];
@@ -199,7 +197,7 @@ namespace AElf.Contracts.Profit
             Assert(scheme != null, "Profit item not found.");
             if (scheme == null) return new Empty();
 
-            Assert(Context.Sender == scheme.Sponsor, "Only sponsor can add beneficiary.");
+            Assert(Context.Sender == scheme.Manager, "Only manager can add beneficiary.");
 
             Context.LogDebug(() =>
                 $"{input.SchemeId}.\n End Period: {input.EndPeriod}, Current Period: {scheme.CurrentPeriod}");
@@ -259,7 +257,7 @@ namespace AElf.Contracts.Profit
 
             if (scheme == null || currentDetail == null) return new Empty();
 
-            Assert(Context.Sender == scheme.Sponsor, "Only sponsor can remove beneficiary.");
+            Assert(Context.Sender == scheme.Manager, "Only manager can remove beneficiary.");
 
             var expiryDetails = currentDetail.Details
                 .Where(d => d.EndPeriod < scheme.CurrentPeriod && !d.IsWeightRemoved).ToList();
@@ -335,8 +333,7 @@ namespace AElf.Contracts.Profit
             Assert(scheme != null, "Profit item not found.");
             if (scheme == null) return new Empty(); // Just to avoid IDE warning.
 
-            Assert(Context.Sender == scheme.Sponsor || Context.Sender == scheme.Creator,
-                "Only sponsor or creator can distribute profits.");
+            Assert(Context.Sender == scheme.Manager, "Only manager can distribute profits.");
 
             if (scheme.IsReleaseAllBalanceEveryTimeByDefault && input.Amount == 0)
             {
@@ -645,16 +642,24 @@ namespace AElf.Contracts.Profit
             return new Empty();
         }
 
-        public override Empty ResetSponsor(ResetSponsorInput input)
+        public override Empty ResetManager(ResetManagerInput input)
         {
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Profit item not found.");
             if (scheme == null) return new Empty(); // Just to avoid IDE warning.
 
-            Assert(Context.Sender == scheme.Creator, "Only scheme creator can reset sponsor.");
-            Assert(input.NewSponsor.Value.Any(), "Invalid new sponsor.");
+            Assert(Context.Sender == scheme.Manager, "Only scheme manager can reset manager.");
+            Assert(input.NewManager.Value.Any(), "Invalid new sponsor.");
 
-            scheme.Sponsor = input.NewSponsor;
+            // Transfer managing scheme id.
+            var oldManagerSchemeIds = State.ManagingSchemeIds[scheme.Manager];
+            oldManagerSchemeIds.SchemeIds.Remove(input.SchemeId);
+            State.ManagingSchemeIds[scheme.Manager] = oldManagerSchemeIds;
+            var newManagerSchemeIds = State.ManagingSchemeIds[input.NewManager];
+            newManagerSchemeIds.SchemeIds.Add(input.SchemeId);
+            State.ManagingSchemeIds[input.NewManager] = newManagerSchemeIds;
+
+            scheme.Manager = input.NewManager;
             State.SchemeInfos[input.SchemeId] = scheme;
             return new Empty();
         }
