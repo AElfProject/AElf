@@ -8,6 +8,8 @@ namespace AElf.OS.Network
         public const int DefaultMaxRequestRetryCount = 1;
         public const int DefaultMaxRandomPeersPerRequest = 2;
         public const int DefaultMaxPeers = 25;
+
+        public const int DefaultMaxBlockAgeToBroadcastInMinutes = 10;
         
         public const int DefaultInitialSyncOffset = 512;
         
