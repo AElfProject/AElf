@@ -39,7 +39,7 @@ namespace AElf.OS.BlockSync.Application
             return true;
         }
 
-        public async Task<bool> ValidateBeforeHandleBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions)
+        public async Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions)
         {
             if (!_announcementCacheProvider.TryAddAnnouncementCache(blockWithTransactions.GetHash(), blockWithTransactions.Height))
             {

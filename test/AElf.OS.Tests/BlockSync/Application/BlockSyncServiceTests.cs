@@ -327,6 +327,25 @@ namespace AElf.OS.BlockSync.Application
         }
         
         [Fact]
+        public async Task SyncByBlock_FetchQueueIsBusy()
+        {
+            _blockSyncStateProvider.SetEnqueueTime(OSConstants.BlockFetchQueueName,TimestampHelper.GetUtcNow()
+                .AddMilliseconds(-(BlockSyncConstants.BlockSyncFetchBlockAgeLimit + 100)));
+            
+            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+
+            var chain = await _blockchainService.GetChainAsync();
+            var bestChainHash = chain.BestChainHash;
+            var bestChainHeight = chain.BestChainHeight;
+            
+            await _blockSyncService.SyncByBlockAsync(peerBlock);
+            
+            chain = await _blockchainService.GetChainAsync();
+            chain.BestChainHash.ShouldBe(bestChainHash);
+            chain.BestChainHeight.ShouldBe(bestChainHeight);
+        }
+        
+        [Fact]
         public async Task SyncByBlock_AttachQueueIsBusy()
         {
             _blockSyncStateProvider.SetEnqueueTime(OSConstants.BlockSyncAttachQueueName,TimestampHelper.GetUtcNow()

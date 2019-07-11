@@ -76,20 +76,20 @@ namespace AElf.OS.BlockSync.Application
         }
 
         [Fact]
-        public async Task ValidateBeforeHandleBlock_Success()
+        public async Task ValidateBlock_Success()
         {
             var chain = await _blockchainService.GetChainAsync();
 
             var block = _osTestHelper.GenerateBlockWithTransactions(chain.LastIrreversibleBlockHash,
                 chain.LastIrreversibleBlockHeight);
 
-            var validateResult = await _blockSyncValidationService.ValidateBeforeHandleBlockAsync(chain, block);
+            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block);
 
             validateResult.ShouldBeTrue();
         }
 
         [Fact]
-        public async Task ValidateBeforeHandleBlock_AlreadySynchronized()
+        public async Task ValidateBlock_AlreadySynchronized()
         {
             var chain = await _blockchainService.GetChainAsync();
 
@@ -98,20 +98,20 @@ namespace AElf.OS.BlockSync.Application
 
             _announcementCacheProvider.TryAddAnnouncementCache(block.GetHash(), block.Height);
 
-            var validateResult = await _blockSyncValidationService.ValidateBeforeHandleBlockAsync(chain, block);
+            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block);
 
             validateResult.ShouldBeFalse();
         }
         
         [Fact]
-        public async Task ValidateBeforeHandleBlock_LessThenLIBHeight()
+        public async Task ValidateBlock_LessThenLIBHeight()
         {
             var chain = await _blockchainService.GetChainAsync();
 
             var block = _osTestHelper.GenerateBlockWithTransactions(Hash.FromString("SyncBlockHash"),
                 chain.LastIrreversibleBlockHeight - 1);
 
-            var validateResult = await _blockSyncValidationService.ValidateBeforeHandleBlockAsync(chain, block);
+            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block);
 
             validateResult.ShouldBeFalse();
         }
