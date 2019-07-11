@@ -270,7 +270,7 @@ message BlockStateSet {
 }
 
 //message TransactionExecutingStateSet {
-    // TODO: check version field used or not
+    // Done: check version field used or not
 //    int64 Version = 1;
 //    map<string, bytes> Writes = 2;
 //    map<string, bool> Reads = 3;
