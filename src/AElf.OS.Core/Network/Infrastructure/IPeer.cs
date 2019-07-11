@@ -23,7 +23,7 @@ namespace AElf.OS.Network.Infrastructure
         // TODO: rename AddKnownBlock() ? if yes, make the implementation more meaningful
         void ProcessReceivedAnnouncement(BlockAnnouncement blockAnnouncement);
 
-        Task UpdateHandshakeAsync();
+        Task<Handshake> DoHandshakeAsync(Handshake handshake);
         Task SendAnnouncementAsync(BlockAnnouncement an);
         Task SendTransactionAsync(Transaction transaction);
         Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash);

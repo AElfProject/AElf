@@ -7,6 +7,8 @@ namespace AElf.OS.Network.Infrastructure
     public interface IPeerPool
     {
         int PeerCount { get; }
+
+        bool IsFull();
         
         Task<bool> RemovePeerByAddressAsync(string address);
         List<IPeer> GetPeers(bool includeFailing = false);

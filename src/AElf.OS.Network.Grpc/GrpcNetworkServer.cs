@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -131,7 +132,7 @@ namespace AElf.OS.Network.Grpc
                 return false;
             }
 
-            var finalizeReply = await peer.FinalizeConnectAsync();
+            var finalizeReply = await peer.DoHandshakeAsync();
             
             if (finalizeReply == null || !finalizeReply.Success)
             {

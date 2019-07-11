@@ -53,6 +53,7 @@ namespace AElf.OS.Network.Grpc
         public string IpAddress { get; }
 
         public PeerInfo Info { get; }
+        
         public Handshake _lastSentHandshake;
         public Handshake _lastReceivedHandshake;
         
@@ -65,7 +66,7 @@ namespace AElf.OS.Network.Grpc
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
 
-        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, Handshake handshake, string ipAddress, PeerInfo peerInfo)
+        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string ipAddress, PeerInfo peerInfo)
         {
             _channel = channel;
             _client = client;
@@ -83,8 +84,6 @@ namespace AElf.OS.Network.Grpc
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
-
-            _lastSentHandshake = handshake;
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -104,53 +103,38 @@ namespace AElf.OS.Network.Grpc
 
             return metrics;
         }
-        
-        public async Task UpdateHandshakeAsync()
-        {
-            GrpcRequest request = new GrpcRequest
-            {
-                ErrorMessage = "Error while updating handshake."
-            };
-            
-            Metadata data = new Metadata
-            {
-                {GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString()}
-            };
-            
-            var handshake = await RequestAsync(_client, c => c.UpdateHandshakeAsync(new UpdateHandshakeRequest(), data), request);
-             
-            if (handshake != null)
-                LastKnownLibHeight = handshake.LibBlockHeight;
-        }
 
         public Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest)
         {
-            GrpcRequest request = new GrpcRequest
-            {
-                ErrorMessage = $"Request nodes failed."
-            };
-            
-            Metadata data = new Metadata
-            {
-                {GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString()}
-            };
+            GrpcRequest request = new GrpcRequest { ErrorMessage = "Request nodes failed." };
+            Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString()} };
             
             return RequestAsync(_client, c => c.GetNodesAsync(new NodesRequest { MaxCount = count }, data), request);
         }
         
-        public async Task<FinalizeConnectReply> FinalizeConnectAsync()
+        public async Task<Handshake> DoHandshakeAsync(Handshake handshake)
         {
-            if (_lastSentHandshake == null)
-                throw new InvalidOperationException("Null handshake.");
+            GrpcRequest request = new GrpcRequest { ErrorMessage = "Error while updating handshake." };
             
-            GrpcRequest request = new GrpcRequest { ErrorMessage = $"Error while finalizing request to {this}." };
-            Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, FinalizeConnectTimeout.ToString()} };
+            Metadata data = new Metadata {
+                {GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString()}
+            };
+            
+            // todo consider resetting IsConnected on error ?
+            var handshakeReply = await RequestAsync(_client, 
+                c => c.DoHandshakeAsync(new HandshakeRequest { Handshake = handshake}, data), request);
 
-            var finalizeConnectReply = await RequestAsync(_client, c => c.FinalizeConnectAsync(_lastSentHandshake, data), request);
+            _lastSentHandshake = handshake;
+            _lastReceivedHandshake = handshakeReply?.Handshake;
             
-            IsConnected = finalizeConnectReply.Success;
-            
-            return finalizeConnectReply;
+            // Do some pre-checks about the received handshake
+            if (handshakeReply?.Handshake?.HandshakeData == null)
+            {
+                IsConnected = false;
+                return null;
+            }
+
+            return handshakeReply.Handshake;
         }
 
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
@@ -166,8 +150,7 @@ namespace AElf.OS.Network.Grpc
 
             Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, BlockRequestTimeout.ToString()} };
 
-            var blockReply 
-                = await RequestAsync(_client, c => c.RequestBlockAsync(blockRequest, data), request);
+            var blockReply = await RequestAsync(_client, c => c.RequestBlockAsync(blockRequest, data), request);
 
             return blockReply?.Block;
         }
@@ -249,6 +232,7 @@ namespace AElf.OS.Network.Grpc
 
         #endregion
         
+        // todo consider removing client from the lambda as it is not used. It can be capture by the func.
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
             Func<PeerService.PeerServiceClient, AsyncUnaryCall<TResp>> func, GrpcRequest requestParams)
         {

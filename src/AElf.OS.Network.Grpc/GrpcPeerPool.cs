@@ -45,6 +45,12 @@ namespace AElf.OS.Network.Grpc
 
             Logger = NullLogger<GrpcPeerPool>.Instance;
         }
+
+        // TODO peer pool IsFull test
+        public bool IsFull()
+        {
+            return PeerCount >= _networkOptions.MaxPeers;
+        }
         
         public List<IPeer> GetPeers(bool includeFailing = false)
         {

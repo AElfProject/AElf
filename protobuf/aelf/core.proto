@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package aelf;
 
-import "google/protobuf/timestamp.proto";
-
 option csharp_namespace = "AElf.Types";
 
 message Transaction {
