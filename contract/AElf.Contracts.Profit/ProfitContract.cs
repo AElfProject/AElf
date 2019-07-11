@@ -3,7 +3,6 @@ using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Profit
@@ -199,7 +198,7 @@ namespace AElf.Contracts.Profit
 
             Assert(scheme != null, "Profit item not found.");
             if (scheme == null) return new Empty();
-            
+
             Assert(Context.Sender == scheme.Sponsor, "Only sponsor can add beneficiary.");
 
             Context.LogDebug(() =>
@@ -255,7 +254,7 @@ namespace AElf.Contracts.Profit
             var scheme = State.SchemeInfos[input.SchemeId];
 
             Assert(scheme != null, "Profit item not found.");
-            
+
             var currentDetail = State.ProfitDetailsMap[input.SchemeId][input.Beneficiary];
 
             if (scheme == null || currentDetail == null) return new Empty();
@@ -336,7 +335,8 @@ namespace AElf.Contracts.Profit
             Assert(scheme != null, "Profit item not found.");
             if (scheme == null) return new Empty(); // Just to avoid IDE warning.
 
-            Assert(Context.Sender == scheme.Sponsor || Context.Sender == scheme.Creator, "Only sponsor or creator can distribute profits.");
+            Assert(Context.Sender == scheme.Sponsor || Context.Sender == scheme.Creator,
+                "Only sponsor or creator can distribute profits.");
 
             if (scheme.IsReleaseAllBalanceEveryTimeByDefault && input.Amount == 0)
             {
@@ -387,7 +387,8 @@ namespace AElf.Contracts.Profit
 
             Context.LogDebug(() => $"Receiving virtual address: {profitsReceivingVirtualAddress}");
 
-            var distributedProfitInformation = UpdateDistributedProfits(input, profitsReceivingVirtualAddress, totalShares);
+            var distributedProfitInformation =
+                UpdateDistributedProfits(input, profitsReceivingVirtualAddress, totalShares);
 
             Context.LogDebug(() =>
                 $"Distributed profit information of {input.SchemeId.ToHex()} in period {input.Period}, " +

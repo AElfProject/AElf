@@ -157,17 +157,7 @@ namespace AElf.Contracts.Election
                 }
             }
 
-            // Second term. 50 blocks.
-            {
-                for (var i = 0; i < EconomicContractsTestConstants.InitialCoreDataCenterCount; i++)
-                {
-                    await ProduceBlocks(ValidationDataCenterKeyPairs[i], 10);
-                }
-
-                await NextTerm(InitialCoreDataCenterKeyPairs[0]);
-                var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
-                round.TermNumber.ShouldBe(3);
-            }
+            await GenerateMiningReward(3);
 
             // Check released profits of second term.
             {
@@ -267,17 +257,7 @@ namespace AElf.Contracts.Election
                 }
             }
 
-            // Third term. 50 blocks.
-            {
-                for (var i = 0; i < EconomicContractsTestConstants.InitialCoreDataCenterCount; i++)
-                {
-                    await ProduceBlocks(ValidationDataCenterKeyPairs[i], 10);
-                }
-
-                await NextTerm(InitialCoreDataCenterKeyPairs[0]);
-                var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
-                round.TermNumber.ShouldBe(4);
-            }
+            await GenerateMiningReward(4);
 
             // Check released profits of third term.
             {
@@ -349,15 +329,15 @@ namespace AElf.Contracts.Election
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.ReElectionReward, currentPeriod);
                     releasedInformation.IsReleased.ShouldBeTrue();
-                    releasedInformation.TotalShares.ShouldBe(0);
+                    releasedInformation.TotalShares.ShouldBe(9);
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
-                        .ShouldBe(-rewardAmount / 10);
+                        .ShouldBe(rewardAmount / 10);
                 }
 
                 // Amount of re-election reward.
                 {
                     var amount = await GetProfitAmount(ProfitType.ReElectionReward);
-                    amount.ShouldBe(0);
+                    amount.ShouldBe(rewardAmount / 10 / 9);
                 }
 
                 // Citizen welfare.
@@ -409,17 +389,7 @@ namespace AElf.Contracts.Election
                 afterBalance.ShouldBe(beforeBalance + profitAmount - txFee);
             }
 
-            {
-                for (var i = 0; i < EconomicContractsTestConstants.InitialCoreDataCenterCount; i++)
-                {
-                    await ProduceBlocks(ValidationDataCenterKeyPairs[i], 10);
-                }
-
-                await NextTerm(InitialCoreDataCenterKeyPairs[0]);
-
-                var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
-                round.TermNumber.ShouldBe(5);
-            }
+            await GenerateMiningReward(5);
 
             //query and profit miner profit
             {
@@ -505,18 +475,8 @@ namespace AElf.Contracts.Election
                                         reElectionBalance + backupBalance - txFee * 4);
                 }
             }
-
-            {
-                for (var i = 0; i < EconomicContractsTestConstants.InitialCoreDataCenterCount; i++)
-                {
-                    await ProduceBlocks(ValidationDataCenterKeyPairs[i], 10);
-                }
-
-                await NextTerm(InitialCoreDataCenterKeyPairs[0]);
-
-                var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
-                round.TermNumber.ShouldBe(6);
-            }
+            
+            await GenerateMiningReward(6);
 
             //query and profit miner profit
             {
@@ -602,6 +562,19 @@ namespace AElf.Contracts.Election
                                         reElectionBalance + backupBalance - txFee * 4);
                 }
             }
+        }
+
+        private async Task GenerateMiningReward(long supposedNextTermNumber)
+        {
+            for (var i = 0; i < EconomicContractsTestConstants.InitialCoreDataCenterCount; i++)
+            {
+                await ProduceBlocks(ValidationDataCenterKeyPairs[i], 10);
+            }
+
+            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+
+            var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
+            round.TermNumber.ShouldBe(supposedNextTermNumber);
         }
 
         private async Task<DistributedProfitsInfo> GetDistributedProfitsInfo(ProfitType type, long period)
