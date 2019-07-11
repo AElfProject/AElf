@@ -146,7 +146,7 @@ namespace AElf.OS.Network.Grpc
                 LibHeightAtHandshake = handshake.LibBlockHeight
             };
             
-            return new GrpcPeer(channel, client, peerAddress, connectionInfo);
+            return new GrpcPeer(channel, client, handshake, peerAddress, connectionInfo);
         }
 
         private AuthError ValidateHandshake(Handshake handshake)
@@ -305,7 +305,7 @@ namespace AElf.OS.Network.Grpc
         {
             Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested handshake data.");
             
-            return await _peerPool.GetHandshakeAsync();
+            return await _handshakeProvider.GetHandshakeAsync();
         }
 
         public override async Task<NodeList> GetNodes(NodesRequest request, ServerCallContext context)

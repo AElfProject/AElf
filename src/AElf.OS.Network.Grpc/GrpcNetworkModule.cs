@@ -12,6 +12,7 @@ namespace AElf.OS.Network.Grpc
             context.Services.AddSingleton<IAElfNetworkServer, GrpcNetworkServer>();
             context.Services.AddSingleton<GrpcPeerPool>();
             context.Services.AddSingleton<IPeerPool, GrpcPeerPool>();
+            context.Services.AddSingleton<IPeerDialer, PeerDialer>();
 
             context.Services.AddSingleton<PeerService.PeerServiceBase, GrpcServerService>();
             

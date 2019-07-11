@@ -36,7 +36,7 @@ namespace AElf.WebApp.Application.Net
         /// <returns>true/false</returns>
         public async Task<bool> AddPeerAsync(AddPeerInput input)
         {
-            return await _networkService.AddPeerAsync(input.Address);
+            return await _networkService.DialPeerAsync(input.Address);
         }
         
         /// <summary>

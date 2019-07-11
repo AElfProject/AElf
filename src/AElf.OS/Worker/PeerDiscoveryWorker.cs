@@ -18,16 +18,19 @@ namespace AElf.OS.Worker
         
         private readonly IPeerDiscoveryService _peerDiscoveryService;
         private readonly IPeerPool _peerPool;
-        
+        private readonly INetworkService _networkService;
+
         public new ILogger<PeerDiscoveryWorker> Logger { get; set; }
 
-        public PeerDiscoveryWorker(AbpTimer timer, IPeerDiscoveryService peerDiscoveryService, IPeerPool peerPool) : base(timer)
+        public PeerDiscoveryWorker(AbpTimer timer, IPeerDiscoveryService peerDiscoveryService, IPeerPool peerPool,
+            INetworkService networkService) : base(timer)
         {
             _peerDiscoveryService = peerDiscoveryService;
             Timer.Period = NetworkConstants.DefaultDiscoveryPeriodInMilliSeconds;
 
             _peerPool = peerPool;
-            
+            _networkService = networkService;
+
             Logger = NullLogger<PeerDiscoveryWorker>.Instance;
         }
 
@@ -53,7 +56,7 @@ namespace AElf.OS.Worker
                         break;
                     }
 
-                    await _peerPool.AddPeerAsync(node.Endpoint);
+                    await _networkService.DialPeerAsync(node.Endpoint);
                 }
             }
             catch (Exception e)

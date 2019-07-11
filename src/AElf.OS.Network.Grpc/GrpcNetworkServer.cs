@@ -96,7 +96,7 @@ namespace AElf.OS.Network.Grpc
         }
         
         /// <summary>
-        /// Connects to a node with the given ip address and adds it to the pool.
+        /// Connects to a node with the given ip address and adds it to the peer pool.
         /// </summary>
         /// <param name="ipAddress">the ip address of the distant node</param>
         /// <returns>True if the connection was successful, false otherwise</returns>
@@ -147,7 +147,7 @@ namespace AElf.OS.Network.Grpc
             // await _nodeManager.AddNodeAsync(new Node { Pubkey = peerPubkey.ToByteString(), Endpoint = ipAddress});
             
             // TODO fire again
-            //FireConnectionEvent(connectReply, peerPubkey);
+            FireConnectionEvent(connectReply, peerPubkey);
 
             return true;
         }

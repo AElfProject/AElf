@@ -28,7 +28,7 @@ namespace AElf.OS.Network.Application
             Logger = NullLogger<NetworkService>.Instance;
         }
 
-        public async Task<bool> AddPeerAsync(string address)
+        public async Task<bool> DialPeerAsync(string address)
         {
             return await _networkServer.DialPeerAsync(address);
         }

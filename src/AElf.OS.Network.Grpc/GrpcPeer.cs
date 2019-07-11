@@ -54,6 +54,7 @@ namespace AElf.OS.Network.Grpc
 
         public PeerInfo Info { get; }
         public Handshake _lastSentHandshake;
+        public Handshake _lastReceivedHandshake;
         
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;

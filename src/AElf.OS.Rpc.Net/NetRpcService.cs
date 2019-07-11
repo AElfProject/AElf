@@ -18,7 +18,7 @@ namespace AElf.OS.Rpc.Net
         [JsonRpcMethod("AddPeer", "address")]
         public async Task<bool> AddPeer(string address)
         {
-            return await NetworkService.AddPeerAsync(address);
+            return await NetworkService.DialPeerAsync(address);
         }
 
         [JsonRpcMethod("RemovePeer", "address")]

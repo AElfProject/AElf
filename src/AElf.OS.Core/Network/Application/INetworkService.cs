@@ -8,7 +8,7 @@ namespace AElf.OS.Network.Application
 {
     public interface INetworkService
     {
-        Task<bool> AddPeerAsync(string address);
+        Task<bool> DialPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
         List<IPeer> GetPeers();
         Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash, string peer = null);
