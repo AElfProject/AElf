@@ -20,28 +20,17 @@ namespace AElf.CrossChain
             return await _blockchainService.GetIrreversibleBlockByHeightAsync(height);
         }
 
-        public async Task<long> GetLastIrreversibleBlockHeightAsync()
-        {
-            var libIdHeight = await GetLibHashAndHeightAsync();
-            return libIdHeight.BlockHeight;
-        }
-
-        public async Task<Hash> GetLastIrreversibleBlockHashAsync()
-        {
-            var libIdHeight = await GetLibHashAndHeightAsync();
-            return libIdHeight.BlockHash;
-        }
-
-        public async Task<LastIrreversibleBlockDto> GetLibHashAndHeightAsync()
+        public async Task<LastIrreversibleBlockDto> GetLastIrreversibleBlockHashAndHeightAsync()
         {
             return await _blockchainService.GetLibHashAndHeightAsync();
         }
         
-        public async Task<bool> ValidateIrreversibleBlockExistsAsync()
+        public async Task<bool> ValidateIrreversibleBlockExistingAsync()
         {
             if (_irreversibleBlockExists)
                 return true;
-            var lastIrreversibleBlockHeight = await GetLastIrreversibleBlockHeightAsync();
+            var libIdHeight = await GetLastIrreversibleBlockHashAndHeightAsync();
+            var lastIrreversibleBlockHeight = libIdHeight.BlockHeight;
             _irreversibleBlockExists = lastIrreversibleBlockHeight > Constants.GenesisBlockHeight;
             return _irreversibleBlockExists;
         }

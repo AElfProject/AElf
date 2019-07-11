@@ -7,9 +7,7 @@ namespace AElf.CrossChain
     public interface IIrreversibleBlockStateProvider
     {
         Task<Block> GetIrreversibleBlockByHeightAsync(long height);
-        Task<long> GetLastIrreversibleBlockHeightAsync();
-        Task<Hash> GetLastIrreversibleBlockHashAsync();
-        Task<LastIrreversibleBlockDto> GetLibHashAndHeightAsync();
-        Task<bool> ValidateIrreversibleBlockExistsAsync();
+        Task<LastIrreversibleBlockDto> GetLastIrreversibleBlockHashAndHeightAsync();
+        Task<bool> ValidateIrreversibleBlockExistingAsync();
     }
 }

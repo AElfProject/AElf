@@ -45,11 +45,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
         public async Task CloseClientsAsync()
         {
-            var crossChainClients = _crossChainClientProvider.GetAllCrossChainClients();
-            foreach (var client in crossChainClients)
-            {
-                await client.CloseAsync();
-            }
+            await _crossChainClientProvider.CloseClientsAsync();
         }
     }
 }

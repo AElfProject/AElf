@@ -29,10 +29,10 @@ namespace AElf.CrossChain
         public async Task HandleEventAsync(InitialSyncFinishedEvent eventData)
         {
             CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored = false;
-            var isReadyToCreateChainCache = await _irreversibleBlockStateProvider.ValidateIrreversibleBlockExistsAsync();
+            var isReadyToCreateChainCache = await _irreversibleBlockStateProvider.ValidateIrreversibleBlockExistingAsync();
             if (!isReadyToCreateChainCache)
                 return;
-            var libIdHeight = await _irreversibleBlockStateProvider.GetLibHashAndHeightAsync();
+            var libIdHeight = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
             _ = _crossChainCacheEntityService.RegisterNewChainsAsync(libIdHeight.BlockHash, libIdHeight.BlockHeight);
         }
 

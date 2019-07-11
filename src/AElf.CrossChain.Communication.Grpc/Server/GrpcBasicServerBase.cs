@@ -28,5 +28,4 @@ namespace AElf.CrossChain.Communication.Grpc
             });
         }
     }
-    
 }

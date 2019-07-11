@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Communication.Infrastructure;
@@ -31,24 +29,6 @@ namespace AElf.CrossChain.Communication.Grpc
 
         #region Create client
 
-        public ICrossChainClient CreateClientForChainInitializationData(int chainId)
-        {
-            var localChainId = chainId;
-
-            var uriStr = GetUriStr(_grpcCrossChainConfigOption.RemoteParentChainServerHost,
-                _grpcCrossChainConfigOption.RemoteParentChainServerPort);
-            var clientInitializationContext = new GrpcClientInitializationContext
-            {
-                DialTimeout = _grpcCrossChainConfigOption.ConnectionTimeout,
-                LocalChainId = localChainId,
-                LocalServerPort = _grpcCrossChainConfigOption.LocalServerPort,
-                UriStr = uriStr,
-                LocalServerHost = _grpcCrossChainConfigOption.LocalServerHost
-            };
-            var client = new ClientForParentChain(clientInitializationContext, _blockCacheEntityProducer);
-            return client;
-        }
-
         public ICrossChainClient CreateCrossClient(CrossChainClientDto crossChainClientDto)
         {
             var uriStr = GetUriStr(crossChainClientDto.RemoteServerHost, crossChainClientDto.RemoteServerPort);
@@ -58,12 +38,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
             return client;
         }
-
-        public List<ICrossChainClient> GetAllCrossChainClients()
-        {
-            return _grpcCrossChainClients.Values.ToList();
-        }
-
+        
         public void CreateAndCacheClient(CrossChainClientDto crossChainClientDto)
         {
             var chainId = crossChainClientDto.RemoteChainId;
@@ -134,6 +109,14 @@ namespace AElf.CrossChain.Communication.Grpc
         
         #endregion      
         
+        public async Task CloseClientsAsync()
+        {
+            foreach (var client in _grpcCrossChainClients.Values)
+            {
+                await client.CloseAsync();
+            }
+        }
+
         private string GetUriStr(string host, int port)
         {
             return new UriBuilder("http", host, port).Uri.Authority;

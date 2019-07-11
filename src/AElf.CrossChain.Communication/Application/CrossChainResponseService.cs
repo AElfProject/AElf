@@ -67,7 +67,7 @@ namespace AElf.CrossChain.Communication.Application
 
         public async Task<ChainInitializationData> ResponseChainInitializationDataFromParentChainAsync(int chainId)
         {
-            var libDto = await _irreversibleBlockStateProvider.GetLibHashAndHeightAsync();
+            var libDto = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
             var chainInitializationData =
                 await _crossChainDataProvider.GetChainInitializationDataAsync(chainId, libDto.BlockHash,
                     libDto.BlockHeight);
