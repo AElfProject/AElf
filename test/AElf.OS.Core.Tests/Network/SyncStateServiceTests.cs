@@ -87,7 +87,7 @@ namespace AElf.OS.Network
         private IPeer CreatePeer(long libHeight = 0)
         {
             Mock<IPeer> peerMock = new Mock<IPeer>();
-            peerMock.Setup(p => p.LastKnowLibHeight).Returns(libHeight);
+            peerMock.Setup(p => p.LastKnownLibHeight).Returns(libHeight);
             return peerMock.Object;
         }
     }

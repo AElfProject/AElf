@@ -33,6 +33,7 @@ namespace AElf.Blockchains.BasicBaseChain
     [DependsOn(
         typeof(KernelAElfModule),
         typeof(AEDPoSAElfModule),
+        typeof(TokenKernelAElfModule),
         typeof(OSAElfModule),
         typeof(AbpAspNetCoreModule),
         typeof(CSharpRuntimeAElfModule),
@@ -70,7 +71,7 @@ namespace AElf.Blockchains.BasicBaseChain
             s.TryAddSingleton<ISmartContractAddressNameProvider, ConsensusSmartContractAddressNameProvider>();
             s.TryAddSingleton<ISmartContractAddressNameProvider, CrossChainSmartContractAddressNameProvider>();
             s.TryAddSingleton<ISmartContractAddressNameProvider, ElectionSmartContractAddressNameProvider>();
-            s.TryAddSingleton<ISmartContractAddressNameProvider, ParliamentAuthContractAddressNameProvider>();
+            s.TryAddSingleton<ISmartContractAddressNameProvider, ParliamentAuthSmartContractAddressNameProvider>();
             s.TryAddSingleton<ISmartContractAddressNameProvider, ProfitSmartContractAddressNameProvider>();
             s.TryAddSingleton<ISmartContractAddressNameProvider, ResourceSmartContractAddressNameProvider>();
             s.TryAddSingleton<ISmartContractAddressNameProvider, ResourceFeeReceiverSmartContractAddressNameProvider>();
@@ -93,6 +94,8 @@ namespace AElf.Blockchains.BasicBaseChain
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = context.Services
                     .GetConfiguration().GetValue("TokenInitial:Symbol", "ELF");
             });
+            
+            Configure<ContractOptions>(configuration.GetSection("Contract"));
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -109,7 +112,9 @@ namespace AElf.Blockchains.BasicBaseChain
             var dtoProvider = context.ServiceProvider.GetRequiredService<IGenesisSmartContractDtoProvider>();
 
             dto.InitializationSmartContracts = dtoProvider.GetGenesisSmartContractDtos(zeroContractAddress).ToList();
-
+            var contractOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
+            dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
+            
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });

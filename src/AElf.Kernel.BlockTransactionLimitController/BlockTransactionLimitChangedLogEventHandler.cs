@@ -22,7 +22,7 @@ namespace AElf.Kernel.BlockTransactionLimitController
             {
                 if (_interestedEvent != null) return _interestedEvent;
                 var address =
-                    _smartContractAddressService.GetAddressByContractName(ConfigurationContractNameProvider.Name);
+                    _smartContractAddressService.GetAddressByContractName(ConfigurationSmartContractAddressNameProvider.Name);
 
                 _interestedEvent = new Configuration.BlockTransactionLimitChanged().ToLogEvent(address);
 

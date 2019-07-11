@@ -48,6 +48,9 @@ namespace AElf.OS.Node.Application
             if (dto.InitializationTransactions != null)
                 transactions.AddRange(dto.InitializationTransactions);
 
+            // Add transaction for initialization
+            transactions.Add(GetTransactionForGenesisOwnerInitialization(dto));
+            
             var blockchainNodeContextStartDto = new BlockchainNodeContextStartDto()
             {
                 ChainId = dto.ChainId,
@@ -101,6 +104,19 @@ namespace AElf.OS.Node.Application
                     Code = ByteString.CopyFrom(code),
                     TransactionMethodCallList = transactionMethodCallList
                 }.ToByteString()
+            };
+        }
+        
+        private Transaction GetTransactionForGenesisOwnerInitialization(OsBlockchainNodeContextStartDto dto)
+        {
+            var zeroAddress = _smartContractAddressService.GetZeroSmartContractAddress();
+            return new Transaction
+            {
+                From = zeroAddress,
+                To = zeroAddress,
+                MethodName = nameof(BasicContractZero.Initialize),
+                Params = new InitializeInput
+                    {ContractDeploymentAuthorityRequired = dto.ContractDeploymentAuthorityRequired}.ToByteString()
             };
         }
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
@@ -29,7 +30,7 @@ namespace AElf.OS.Rpc.Net
         [JsonRpcMethod("GetPeers")]
         public async Task<List<string>> GetPeers()
         {
-            return NetworkService.GetPeerIpList();
+            return NetworkService.GetPeers().Select(p => p.IpAddress).ToList();
         }
     }
 }
