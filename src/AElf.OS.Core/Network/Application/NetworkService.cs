@@ -43,7 +43,7 @@ namespace AElf.OS.Network.Application
             return _peerPool.GetPeers(true).ToList(); 
         }
 
-        public bool IsOldBlock(BlockHeader header)
+        private bool IsOldBlock(BlockHeader header)
         {
             var limit = TimestampHelper.GetUtcNow() 
                         - TimestampHelper.DurationFromMinutes(NetworkConstants.DefaultMaxBlockAgeToBroadcastInMinutes);
@@ -56,7 +56,7 @@ namespace AElf.OS.Network.Application
         
         public Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
         {
-            if (!UpdateKnownBlock(blockWithTransactions.Header))
+            if (!TryAddKnownBlock(blockWithTransactions.Header))
                 return Task.CompletedTask;
             
             if (IsOldBlock(blockWithTransactions.Header))
@@ -86,7 +86,7 @@ namespace AElf.OS.Network.Application
         {
             var blockHash = blockHeader.GetHash();
             
-            if (!UpdateKnownBlock(blockHeader))
+            if (!TryAddKnownBlock(blockHeader))
                 return Task.CompletedTask;
             
             if (IsOldBlock(blockHeader))
@@ -177,7 +177,7 @@ namespace AElf.OS.Network.Application
         /// <summary>
         /// returns false if the block was unknown, false if already known.
         /// </summary>
-        private bool UpdateKnownBlock(BlockHeader blockHeader)
+        private bool TryAddKnownBlock(BlockHeader blockHeader)
         {
             var blockHash = blockHeader.GetHash();
             if (_peerPool.RecentBlockHeightAndHashMappings.TryGetValue(blockHeader.Height, out var recentBlockHash) &&
