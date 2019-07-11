@@ -1,10 +1,7 @@
 using System;
 using System.Linq;
-using AElf.Contracts.MultiToken.Messages;
-using AElf.Kernel;
 using AElf.Types;
 using AElf.Sdk.CSharp;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Profit
 {
@@ -50,9 +47,9 @@ namespace AElf.Contracts.Profit
             return State.ProfitDetailsMap[input.SchemeId][input.Beneficiary];
         }
 
-        private Address GetDistributedPeriodProfitsVirtualAddress(Address SchemeId, long period)
+        private Address GetDistributedPeriodProfitsVirtualAddress(Address schemeVirtualAddress, long period)
         {
-            return Address.FromPublicKey(period.ToString().CalculateHash().Concat(SchemeId.Value).ToArray());
+            return Address.FromPublicKey(period.ToString().CalculateHash().Concat(schemeVirtualAddress.Value).ToArray());
         }
 
         public override SInt64Value GetProfitAmount(ClaimProfitsInput input)
@@ -76,7 +73,7 @@ namespace AElf.Contracts.Profit
             var amount = 0L;
 
             for (var i = 0;
-                i < Math.Min(ProfitContractConsts.ProfitReceivingLimitForEachTime, availableDetails.Count);
+                i < Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
                 i++)
             {
                 var profitDetail = availableDetails[i];

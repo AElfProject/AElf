@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Types;
-using System;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 

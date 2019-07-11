@@ -45,7 +45,7 @@ namespace AElf.Contracts.Profit
 
             if (input.ProfitReceivingDuePeriodCount == 0)
             {
-                input.ProfitReceivingDuePeriodCount = ProfitContractConsts.DefaultProfitReceivingDuePeriodCount;
+                input.ProfitReceivingDuePeriodCount = ProfitContractConstants.DefaultProfitReceivingDuePeriodCount;
             }
 
             var schemeId = Context.TransactionId;
@@ -184,6 +184,7 @@ namespace AElf.Contracts.Profit
             Assert(input.SchemeId != null, "Invalid scheme id.");
             Assert(input.BeneficiaryShare?.Beneficiary != null, "Invalid beneficiary address.");
             Assert(input.BeneficiaryShare?.Shares >= 0, "Invalid share.");
+            if (input.BeneficiaryShare == null) return new Empty();
 
             if (input.EndPeriod == 0)
             {
@@ -494,10 +495,10 @@ namespace AElf.Contracts.Profit
                 Owner = profitsReceivingVirtualAddress,
                 Symbol = input.Symbol
             }).Balance;
-            var distributedPoriftsInformation = State.DistributedProfitsMap[profitsReceivingVirtualAddress];
-            if (distributedPoriftsInformation == null)
+            var distributedProfitsInformation = State.DistributedProfitsMap[profitsReceivingVirtualAddress];
+            if (distributedProfitsInformation == null)
             {
-                distributedPoriftsInformation = new DistributedProfitsInfo
+                distributedProfitsInformation = new DistributedProfitsInfo
                 {
                     TotalShares = totalShares,
                     ProfitsAmount = {{input.Symbol, input.Amount.Add(balance)}},
@@ -507,21 +508,21 @@ namespace AElf.Contracts.Profit
             else
             {
                 // This means someone used `DistributeProfits` do donate to the specific account period of current profit item.
-                distributedPoriftsInformation.TotalShares = totalShares;
-                distributedPoriftsInformation.ProfitsAmount[input.Symbol] = balance.Add(input.Amount);
-                distributedPoriftsInformation.IsReleased = true;
+                distributedProfitsInformation.TotalShares = totalShares;
+                distributedProfitsInformation.ProfitsAmount[input.Symbol] = balance.Add(input.Amount);
+                distributedProfitsInformation.IsReleased = true;
             }
 
-            State.DistributedProfitsMap[profitsReceivingVirtualAddress] = distributedPoriftsInformation;
-            return distributedPoriftsInformation;
+            State.DistributedProfitsMap[profitsReceivingVirtualAddress] = distributedProfitsInformation;
+            return distributedProfitsInformation;
         }
 
-        private void PerformDistributeProfits(DistributeProfitsInput input, Scheme scheme, long TotalShares,
+        private void PerformDistributeProfits(DistributeProfitsInput input, Scheme scheme, long totalShares,
             Address profitsReceivingVirtualAddress)
         {
             var remainAmount = input.Amount;
 
-            remainAmount = DistributeProfitsForSubSchemes(input, scheme, TotalShares, remainAmount);
+            remainAmount = DistributeProfitsForSubSchemes(input, scheme, totalShares, remainAmount);
 
             // Transfer remain amount to individuals' receiving profits address.
             if (remainAmount != 0)
@@ -536,7 +537,7 @@ namespace AElf.Contracts.Profit
             }
         }
 
-        private long DistributeProfitsForSubSchemes(DistributeProfitsInput input, Scheme scheme, long TotalShares,
+        private long DistributeProfitsForSubSchemes(DistributeProfitsInput input, Scheme scheme, long totalShares,
             long remainAmount)
         {
             Context.LogDebug(() => $"Sub schemes count: {scheme.SubSchemes.Count}");
@@ -547,7 +548,7 @@ namespace AElf.Contracts.Profit
                 // General ledger of this sub profit item.
                 var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subScheme.SchemeId);
 
-                var amount = subScheme.Shares.Mul(input.Amount).Div(TotalShares);
+                var amount = subScheme.Shares.Mul(input.Amount).Div(totalShares);
                 if (amount != 0)
                 {
                     State.TokenContract.TransferFrom.Send(new TransferFromInput
@@ -714,7 +715,7 @@ namespace AElf.Contracts.Profit
             // Only can get profit from last profit period to actual last period (profit.CurrentPeriod - 1),
             // because current period not released yet.
             for (var i = 0;
-                i < Math.Min(ProfitContractConsts.ProfitReceivingLimitForEachTime, availableDetails.Count);
+                i < Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
                 i++)
             {
                 var profitDetail = availableDetails[i];

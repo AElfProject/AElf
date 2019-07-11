@@ -1192,7 +1192,7 @@ namespace AElf.Contracts.Profit
         }
 
         private async Task<Hash> CreateScheme(int returnIndex = 0,
-            long profitReceivingDuePeriodCount = ProfitContractConsts.DefaultProfitReceivingDuePeriodCount)
+            long profitReceivingDuePeriodCount = ProfitContractConstants.DefaultProfitReceivingDuePeriodCount)
         {
             var creator = Creators[0];
             var creatorAddress = Address.FromPublicKey(CreatorKeyPair[0].PublicKey);

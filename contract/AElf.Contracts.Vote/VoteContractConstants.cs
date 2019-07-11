@@ -1,6 +1,6 @@
 namespace AElf.Contracts.Vote
 {
-    public class VoteContractConsts
+    public class VoteContractConstants
     {
         public const int MaxActiveDays = 100;
 

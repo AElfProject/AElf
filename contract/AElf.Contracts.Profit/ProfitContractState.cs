@@ -1,5 +1,4 @@
 using Acs1;
-using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 

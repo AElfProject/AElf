@@ -1,14 +1,10 @@
-﻿using System;
-using Acs0;
+﻿using Acs0;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
-using AElf.Contracts.Treasury;
-using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Economic
 {
@@ -16,7 +12,6 @@ namespace AElf.Contracts.Economic
     {
         public SingletonState<bool> Initialized { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
-        internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }
         internal ElectionContractContainer.ElectionContractReferenceState ElectionContract { get; set; }
         internal ProfitContractContainer.ProfitContractReferenceState ProfitContract { get; set; }
         internal TokenConverterContractContainer.TokenConverterContractReferenceState TokenConverterContract { get; set; }
