@@ -10,11 +10,11 @@ namespace AElf.Types.Tests.Helper
         public void Convert_Byte_FromString()
         {
             var hexValue = Hash.Generate().ToHex();
-            var hashArray = ByteArrayHelper.FromHexString(hexValue);
+            var hashArray = ByteArrayHelper.HexStringToByteArray(hexValue);
             hashArray.Length.ShouldBe(32);
 
             var value = "0x00";
-            var valueArrary = ByteArrayHelper.FromHexString(value);
+            var valueArrary = ByteArrayHelper.HexStringToByteArray(value);
             valueArrary.Length.ShouldBe(1);
         }
 

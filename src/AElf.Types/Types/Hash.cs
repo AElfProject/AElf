@@ -242,7 +242,7 @@ namespace AElf.Types
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Hash LoadHex(string hex)
         {
-            var bytes = ByteArrayHelper.FromHexString(hex);
+            var bytes = ByteArrayHelper.HexStringToByteArray(hex);
             return LoadByteArray(bytes);
         }
 

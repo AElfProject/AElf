@@ -398,7 +398,7 @@ namespace AElf.Contracts.Election
 
             if (input.IsEvilNode)
             {
-                var publicKeyByte = ByteArrayHelper.FromHexString(input.PublicKey);
+                var publicKeyByte = ByteArrayHelper.HexStringToByteArray(input.PublicKey);
                 State.BlackList.Value.Value.Add(ByteString.CopyFrom(publicKeyByte));
                 State.ProfitContract.SubWeight.Send(new SubWeightInput
                 {

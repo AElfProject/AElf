@@ -61,13 +61,13 @@ namespace AElf.Types.Tests
         public void Parse_Address_FromString()
         {
             string addStr = "ddnF1dEsp51QbASCqQKPZ7vs2zXxUxyu5BuGRKFQAsT9JKrra";
-            var address = AddressHelper.Base58ToAddress(addStr);
+            var address = AddressHelper.Base58StringToAddress(addStr);
             address.ShouldNotBe(null);
             var addStr1 = address.GetFormatted();
             addStr1.ShouldBe(addStr);
 
             addStr = "345678icdfvbghnjmkdfvgbhtn";
-            Should.Throw<FormatException>(() => { address = AddressHelper.Base58ToAddress(addStr); });
+            Should.Throw<FormatException>(() => { address = AddressHelper.Base58StringToAddress(addStr); });
         }
         
         [Fact]

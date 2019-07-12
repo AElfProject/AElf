@@ -40,7 +40,7 @@ namespace AElf.Sdk.CSharp.Tests
 
             if (typeof(T) == typeof(byte[]))
             {
-                return (T) (object) ByteArrayHelper.FromHexString("302010");
+                return (T) (object) ByteArrayHelper.HexStringToByteArray("302010");
             }
 
             if (typeof(T) == typeof(string))

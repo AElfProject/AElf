@@ -174,7 +174,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var createTransactionResponse =
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
-            var transactionHash = Hash.FromRawBytes(ByteArrayHelper.FromHexString(createTransactionResponse.RawTransaction));
+            var transactionHash = Hash.FromRawBytes(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
 
             var signature = await _accountService.SignAsync(transactionHash.DumpByteArray());
             parameters = new Dictionary<string, string>
@@ -969,7 +969,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task CreateRawTransaction_Success()
         {
-            var toAddress = Base64.ToBase64String(AddressHelper.Base58ToAddress("21oXyCxvUd7YUUkgbZxkbmu4EWs65yos6iVC39rPwPknune6qZ")
+            var toAddress = Base64.ToBase64String(AddressHelper.Base58StringToAddress("21oXyCxvUd7YUUkgbZxkbmu4EWs65yos6iVC39rPwPknune6qZ")
                 .Value.ToByteArray());
             var contractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
@@ -1018,7 +1018,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
             var transactionHash =
-                Hash.FromRawBytes(ByteArrayHelper.FromHexString(createTransactionResponse.RawTransaction));
+                Hash.FromRawBytes(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
 
             var signature = await _accountService.SignAsync(transactionHash.DumpByteArray());
             parameters = new Dictionary<string, string>

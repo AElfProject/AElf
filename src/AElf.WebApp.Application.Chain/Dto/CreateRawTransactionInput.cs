@@ -48,7 +48,7 @@ namespace AElf.WebApp.Application.Chain.Dto
             var validationResults = new List<ValidationResult>();
             try
             {
-                AddressHelper.Base58ToAddress(From);
+                AddressHelper.Base58StringToAddress(From);
             }
             catch
             {
@@ -58,7 +58,7 @@ namespace AElf.WebApp.Application.Chain.Dto
 
             try
             {
-                AddressHelper.Base58ToAddress(To);
+                AddressHelper.Base58StringToAddress(To);
             }
             catch
             {

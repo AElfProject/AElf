@@ -5,7 +5,7 @@ namespace AElf
 {
     public static class ByteArrayHelper
     {
-        public static byte[] FromHexString(string hex)
+        public static byte[] HexStringToByteArray(string hex)
         {
             if (hex.Length >= 2 && hex[0] == '0' && (hex[1] == 'x' || hex[1] == 'X'))
                 hex = hex.Substring(2);
