@@ -51,8 +51,8 @@ namespace AElf.Kernel.SmartContract.Parallel
                 BlockHash = blockHeader.PreviousBlockHash,
                 BlockHeight = blockHeader.Height - 1
             };
-            var (parallelizable, nonParallizable) = await _grouper.GroupAsync(chainContext, transactions);
-            var tasks = parallelizable.AsParallel().Select(
+            var groupedTransactions = await _grouper.GroupAsync(chainContext, transactions);
+            var tasks = groupedTransactions.Parallelizables.AsParallel().Select(
                 txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
                 {
                     BlockHeader = blockHeader,
@@ -76,7 +76,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 new TransactionExecutingDto
                 {
                     BlockHeader = blockHeader,
-                    Transactions = nonParallizable,
+                    Transactions = groupedTransactions.NonParallelizables,
                     PartialBlockStateSet = updatedPartialBlockStateSet
                 },
                 cancellationToken, throwException);

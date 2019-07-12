@@ -61,7 +61,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 BlockHash = Hash.Generate()
             };
             var grouped = await Grouper.GroupAsync(chainContext, allTxns);
-            var groupedResources = grouped.Item1.Select(g => g.Select(t => txLookup[t.Params]).ToList()).ToList();
+            var groupedResources = grouped.Parallelizables.Select(g => g.Select(t => txLookup[t.Params]).ToList()).ToList();
             var expected = groups.Select(g => g.Select(x => x.Resource).ToList()).Select(StringRepresentation)
                 .OrderBy(x => x);
             var actual = groupedResources.Select(StringRepresentation).OrderBy(x => x);
