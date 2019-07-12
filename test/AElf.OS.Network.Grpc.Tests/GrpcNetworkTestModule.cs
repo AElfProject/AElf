@@ -43,7 +43,6 @@ namespace AElf.OS.Network
                 Pubkey = GrpcTestConstants.FakePubkey2,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                StartHeight = 1,
                 IsInbound = true
             };
             

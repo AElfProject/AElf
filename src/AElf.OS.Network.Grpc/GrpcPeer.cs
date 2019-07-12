@@ -47,6 +47,7 @@ namespace AElf.OS.Network.Grpc
 
         public bool IsBest { get; set; }
         public bool IsConnected { get; set; }
+        public bool IsShutdown { get; set; }
         public Hash CurrentBlockHash { get; private set; }
         public long CurrentBlockHeight { get; private set; }
 
@@ -54,8 +55,8 @@ namespace AElf.OS.Network.Grpc
 
         public PeerInfo Info { get; }
         
-        public Handshake _lastSentHandshake;
-        public Handshake _lastReceivedHandshake;
+        private Handshake _lastSentHandshake;
+        private Handshake _lastReceivedHandshake;
         
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
@@ -119,22 +120,25 @@ namespace AElf.OS.Network.Grpc
             Metadata data = new Metadata {
                 {GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString()}
             };
-            
-            // todo consider resetting IsConnected on error ?
+
             var handshakeReply = await RequestAsync(_client, 
                 c => c.DoHandshakeAsync(new HandshakeRequest { Handshake = handshake}, data), request);
 
             _lastSentHandshake = handshake;
             _lastReceivedHandshake = handshakeReply?.Handshake;
             
-            // Do some pre-checks about the received handshake
-            if (handshakeReply?.Handshake?.HandshakeData == null)
+            // Do some pre-checks that represent the minimum acceptable for the peers state.
+            if (_lastReceivedHandshake?.HandshakeData?.BestChainBlockHeader == null)
             {
-                IsConnected = false;
+                IsConnected = false; // TODO handshake exception ?
                 return null;
             }
 
-            return handshakeReply.Handshake;
+            LastKnownLibHeight = _lastReceivedHandshake.HandshakeData.LibBlockHeight;
+            CurrentBlockHash = _lastReceivedHandshake.HandshakeData?.BestChainBlockHeader.GetHash();
+            CurrentBlockHeight = _lastReceivedHandshake.HandshakeData.BestChainBlockHeader.Height;
+
+            return _lastReceivedHandshake;
         }
 
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
@@ -167,7 +171,7 @@ namespace AElf.OS.Network.Grpc
                 MetricInfo = $"Get blocks for {blockInfo}"
             };
 
-            Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, BlocksRequestTimeout.ToString()} };
+            Metadata data = new Metadata {{GrpcConstants.TimeoutMetadataKey, BlocksRequestTimeout.ToString()}};
 
             var list = await RequestAsync(_client, c => c.RequestBlocksAsync(blockRequest, data), request);
 
@@ -350,6 +354,7 @@ namespace AElf.OS.Network.Grpc
         public async Task DisconnectAsync(bool gracefulDisconnect)
         {
             IsConnected = false;
+            IsShutdown = true;
             
             // send disconnect message if the peer is still connected and the connection
             // is stable.

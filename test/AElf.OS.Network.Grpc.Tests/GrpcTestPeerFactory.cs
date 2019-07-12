@@ -2,11 +2,14 @@ using AElf.Kernel;
 using AElf.OS.Network.Grpc;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
+using Moq;
 
 namespace AElf.OS.Network
 {
-    public static class GrpcTestHelper
+    public static class GrpcTestPeerFactory
     {
+        private static Channel CreateMockChannel() => new Channel("127.0.0.1:9999", ChannelCredentials.Insecure);
+        
         public static GrpcPeer CreateBasicPeer(string ip, string pubkey)
         {
             return CreatePeerWithInfo(ip, new PeerInfo { Pubkey = pubkey });
@@ -14,7 +17,12 @@ namespace AElf.OS.Network
 
         public static GrpcPeer CreatePeerWithInfo(string ip, PeerInfo info)
         {
-            return new GrpcPeer(null, null, null, ip, info);
+            return new GrpcPeer(CreateMockChannel(), null, ip, info);
+        }
+
+        public static GrpcPeer CreatePeerWithClient(string ip, string pubkey, PeerService.PeerServiceClient client)
+        {
+            return new GrpcPeer(CreateMockChannel(), client, ip, new PeerInfo { Pubkey = pubkey });
         }
         
         public static GrpcPeer CreateNewPeer(string ipAddress = "127.0.0.1:2000", bool isValid = true)
@@ -37,11 +45,10 @@ namespace AElf.OS.Network
                 Pubkey = GrpcTestConstants.FakePubkey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                StartHeight = 1,
                 IsInbound = true
             };
 
-            return new GrpcPeer(channel, client, null, ipAddress, connectionInfo);
+            return new GrpcPeer(channel, client, ipAddress, connectionInfo);
         }
     }
 }

@@ -89,9 +89,10 @@ message HandshakeReply {
 enum HandshakeError {
     HANDSHAKE_OK = 0;
     UNKNOWN_HANDSHAKE_ERROR = 1;
-    WRONG_SIGNATURE = 2;
-    INVALID_HANDSHAKE = 3;
-    NOT_LISTED = 4;
+    INVALID_KEY = 2;
+    WRONG_SIGNATURE = 3;
+    INVALID_HANDSHAKE = 4;
+    NOT_LISTED = 5;
 }
 
 // Messages related to disconnection

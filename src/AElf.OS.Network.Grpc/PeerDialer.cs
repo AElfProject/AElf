@@ -33,6 +33,7 @@ namespace AElf.OS.Network.Grpc
 
             if (connectReply?.Info?.Pubkey == null || connectReply.Error != ConnectError.ConnectOk)
             {
+                // TODO can check more here
                 await ExceptionHelpers.CleanupAndThrowAsync($"Connect error: {connectReply?.Error}.", channel);
             }
 

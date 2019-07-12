@@ -14,11 +14,14 @@ namespace AElf.OS.Network
         private readonly ILocalEventBus _eventBus;
         private readonly IPeerPool _peerPool;
 
+        private readonly NetworkTestContextHelpers _netTestHelpers;
+
         public GrpcNetworkServerTests()
         {
             _networkServer = GetRequiredService<IAElfNetworkServer>();
             _eventBus = GetRequiredService<ILocalEventBus>();
             _peerPool = GetRequiredService<IPeerPool>();
+            _netTestHelpers = GetRequiredService<NetworkTestContextHelpers>();
         }
         
         [Fact]
@@ -36,33 +39,92 @@ namespace AElf.OS.Network
 
             eventData.ShouldNotBeNull();
         }
-        
-        [Fact]
-        public async Task AddPeerAsync_PeerAlreadyConnected_ShouldReturnFalse()
-        {
-            AddPeerToPool();
-            bool dialed = await _networkServer.DialPeerAsync(string.Empty);
-            Assert.False(dialed);
-        }
 
+        [Fact] 
+        public async Task DialPeerAsync_HostAlreadyInPool_ShouldReturnFalse()
+        {
+            var peer = AddPeerToPool();
+            var added = await _networkServer.DialPeerAsync(peer.IpAddress);
+            
+            added.ShouldBeFalse();
+        }
+        
+        [Fact] 
+        public async Task DialPeerAsync_DialException_ShouldReturnFalse()
+        {
+            var added = await _networkServer.DialPeerAsync(GrpcTestConstants.DialExceptionIpEndpoint);
+            
+            added.ShouldBeFalse();
+            _peerPool.PeerCount.ShouldBe(0);
+        }
+        
+        [Fact] 
+        public async Task DialPeerAsync_KeyAlreadyInPool_ShouldReturnFalse()
+        {
+            // two different hosts with the same pubkey.
+            AddPeerToPool();
+            var added = await _networkServer.DialPeerAsync(GrpcTestConstants.FakeIpEndpoint2);
+            
+            added.ShouldBeFalse();
+            _netTestHelpers.AllPeersWhereCleaned().ShouldBeTrue();
+        }
+        
+        [Fact] 
+        public async Task DialPeerAsync_GoodPeer_ShouldBeInPool()
+        {
+            // two different hosts with the same pubkey.
+            var added = await _networkServer.DialPeerAsync(GrpcTestConstants.GoodPeerEndpoint);
+            
+            added.ShouldBeTrue();
+            _peerPool.FindPeerByAddress(GrpcTestConstants.GoodPeerEndpoint).ShouldNotBeNull();
+        }
+        
+        [Fact] 
+        public async Task DialPeerAsync_GoodPeer_ShouldLaunchConnectionEvent()
+        {
+            AnnouncementReceivedEventData eventData = null;
+            _eventBus.Subscribe<AnnouncementReceivedEventData>(e =>
+            {
+                eventData = e;
+                return Task.CompletedTask;
+            });
+            
+            // two different hosts with the same pubkey.
+            var added = await _networkServer.DialPeerAsync(GrpcTestConstants.GoodPeerEndpoint);
+            
+            added.ShouldBeTrue();
+            _peerPool.FindPeerByAddress(GrpcTestConstants.GoodPeerEndpoint).ShouldNotBeNull();
+            
+            eventData.ShouldNotBeNull();
+        }
+        
+        [Fact] 
+        public async Task DialPeerAsync_HandshakeNetProblem_ShouldReturnFalse()
+        {
+            var added = await _networkServer.DialPeerAsync(GrpcTestConstants.HandshakeWithNetExceptionIp);
+            
+            added.ShouldBeFalse();
+            _peerPool.PeerCount.ShouldBe(0);
+        }
+        
+        [Fact] 
+        public async Task DialPeerAsync_HandshakeError_ShouldReturnFalse()
+        {
+            var added = await _networkServer.DialPeerAsync(GrpcTestConstants.BadHandshakeIp);
+            
+            added.ShouldBeFalse();
+            _peerPool.PeerCount.ShouldBe(0);
+        }
+        
         private GrpcPeer AddPeerToPool(string ip = GrpcTestConstants.FakeIpEndpoint, 
             string pubkey = GrpcTestConstants.FakePubkey)
         {
-            var peer = GrpcTestHelper.CreateBasicPeer(ip, pubkey);
+            var peer = GrpcTestPeerFactory.CreateBasicPeer(ip, pubkey);
             bool added = _peerPool.TryAddPeer(peer);
             
             Assert.True(added);
 
             return peer;
-        }
-        
-        [Fact]
-        public async Task AddPeerAsync_Connect_NotExistPeer_ShouldReturnFalse()
-        {
-            var testIp = "127.0.0.1:6810";
-            var added = await _peerPool.AddPeerAsync(testIp);
-            
-            Assert.False(added);
         }
     }
 }

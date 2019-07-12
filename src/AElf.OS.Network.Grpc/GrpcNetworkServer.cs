@@ -4,8 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AElf.Cryptography;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
+using AElf.Types;
+using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
@@ -18,14 +22,14 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
     {
-        private readonly IPeerPool _peerPool;
-        
         private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
 
         private readonly PeerService.PeerServiceBase _serverService;
         private readonly AuthInterceptor _authInterceptor;
         private readonly IPeerDialer _peerDialer;
+        private readonly IHandshakeProvider _handshakeProvider;
+        private readonly IPeerPool _peerPool;
 
         private Server _server;
 
@@ -33,11 +37,12 @@ namespace AElf.OS.Network.Grpc
         public ILogger<GrpcNetworkServer> Logger { get; set; }
 
         public GrpcNetworkServer(PeerService.PeerServiceBase serverService, IPeerPool peerPool, 
-            AuthInterceptor authInterceptor, IPeerDialer peerDialer)
+            AuthInterceptor authInterceptor, IPeerDialer peerDialer, IHandshakeProvider handshakeProvider)
         {
             _serverService = serverService;
             _authInterceptor = authInterceptor;
             _peerDialer = peerDialer;
+            _handshakeProvider = handshakeProvider;
             _peerPool = peerPool;
 
             Logger = NullLogger<GrpcNetworkServer>.Instance;
@@ -115,11 +120,12 @@ namespace AElf.OS.Network.Grpc
             
             try
             {
+                // create the connection to the distant node
                 peer = await _peerDialer.DialPeerAsync(ipAddress);
             }
             catch (PeerDialException ex)
             {
-                Logger.LogTrace($"Dial exception {ipAddress}: {ex.Message}.");
+                Logger.LogError(ex, $"Dial exception {ipAddress}:");
                 return false;
             }
             
@@ -127,39 +133,76 @@ namespace AElf.OS.Network.Grpc
 
             if (!_peerPool.TryAddPeer(peer))
             {
-                Logger.LogWarning($"Peer {peerPubkey} is already in the pool."); // todo: exception ?
+                Logger.LogWarning($"Peer {peerPubkey} is already in the pool.");
                 await peer.DisconnectAsync(false);
+                return false;
+            }
+            
+            Handshake peerHandshake;
+            
+            try
+            {
+                peerHandshake = await peer.DoHandshakeAsync(await _handshakeProvider.GetHandshakeAsync());
+            }
+            catch (NetworkException ex)
+            {
+                Logger.LogError(ex, $"Handshake failed to {ipAddress} - {peerPubkey}.");
+                await CleanPeerAsync(peer);
                 return false;
             }
 
-            var finalizeReply = await peer.DoHandshakeAsync();
-            
-            if (finalizeReply == null || !finalizeReply.Success)
+            HandshakeError handshakeError = ValidateHandshake(peerHandshake, peerPubkey);
+            if (handshakeError != HandshakeError.HandshakeOk)
             {
-                Logger.LogWarning($"Could not finalize connection to {ipAddress} - {peerPubkey}");
-                await _peerPool.RemovePeerAsync(peerPubkey, true); // remove and cleanup
-                await peer.DisconnectAsync(false);
+                Logger.LogWarning($"Invalid handshake [{handshakeError}] from {ipAddress} - {peerPubkey}");
+                await CleanPeerAsync(peer);
                 return false;
             }
             
-            Logger.LogTrace($"Connected to {peer} -- height {peer.Info.StartHeight}.");
+            Logger.LogTrace($"Connected to {peer} - LIB height {peer.LastKnownLibHeight}, " +
+                            $"best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}].");
             
             // TODO move to event handler in OS ?
             // await _nodeManager.AddNodeAsync(new Node { Pubkey = peerPubkey.ToByteString(), Endpoint = ipAddress});
             
-            // TODO fire again
-            FireConnectionEvent(connectReply, peerPubkey);
+            FireConnectionEvent(peer);
 
             return true;
         }
-        
-        private void FireConnectionEvent(ConnectReply connectReply, string pubKey)
+
+        private async Task CleanPeerAsync(GrpcPeer peer)
         {
-            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(new BlockAnnouncement
-            {
-                BlockHash = connectReply.Handshake.BestChainBlockHeader.GetHash(),
-                BlockHeight = connectReply.Handshake.BestChainBlockHeader.Height
-            }, pubKey));
+            await peer.DisconnectAsync(false);
+            await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false); // remove and cleanup
+        }
+
+        private HandshakeError ValidateHandshake(Handshake handshake, string connectionPubkey)
+        {
+            if (handshake?.HandshakeData == null)
+                return HandshakeError.InvalidHandshake;
+
+            if (handshake.HandshakeData.Pubkey.ToHex() != connectionPubkey)
+                return HandshakeError.InvalidKey;
+            
+            var validData = CryptoHelper.VerifySignature(handshake.Signature.ToByteArray(),
+                Hash.FromMessage(handshake.HandshakeData).ToByteArray(), handshake.HandshakeData.Pubkey.ToByteArray());
+            
+            if (!validData)
+                return HandshakeError.WrongSignature;
+
+            return HandshakeError.HandshakeOk;
+        }
+        
+        private void FireConnectionEvent(GrpcPeer peer)
+        {
+            var blockAnnouncement = new BlockAnnouncement {
+                BlockHash = peer.CurrentBlockHash,
+                BlockHeight = peer.CurrentBlockHeight
+            };
+            
+            var announcement = new AnnouncementReceivedEventData(blockAnnouncement, peer.Info.Pubkey);
+            
+            _ = EventBus.PublishAsync(announcement);
         }
 
         public async Task StopAsync(bool gracefulDisconnect = true)

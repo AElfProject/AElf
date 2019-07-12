@@ -87,11 +87,10 @@ namespace AElf.OS.Network
                 Pubkey = pubkey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                StartHeight = 1,
                 IsInbound = true
             };
             
-            return GrpcTestHelper.CreatePeerWithInfo(ip, peerInfo);;
+            return GrpcTestPeerFactory.CreatePeerWithInfo(ip, peerInfo);;
         }
     }
 }
