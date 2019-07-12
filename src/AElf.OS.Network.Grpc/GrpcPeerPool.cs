@@ -11,49 +11,43 @@ using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
 namespace AElf.OS.Network.Grpc
 {
-    // TODO: Extract into a generic base class in OS.Core
-    public class GrpcPeerPool : IPeerPool
+
+    public class PeerPool<T> : IPeerPool where T : IPeer
     {
-        public ILogger<GrpcPeerPool> Logger { get; set; }
+        public ILogger<PeerPool<T>> Logger { get; set; }
 
-        private readonly NetworkOptions _networkOptions;
+        private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
+        public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
 
-        private readonly IAccountService _accountService;
-        private readonly INodeManager _nodeManager;
-
-        public int PeerCount => _authenticatedPeers.Count;
-        private readonly ConcurrentDictionary<string, GrpcPeer> _authenticatedPeers;
+        public int PeerCount => AuthenticatedPeers.Count;
+        protected readonly ConcurrentDictionary<string, T> AuthenticatedPeers;
         
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
-        
-        public GrpcPeerPool(IOptionsSnapshot<NetworkOptions> networkOptions, IAccountService accountService, 
-            INodeManager nodeManager)
-        {
-            _networkOptions = networkOptions.Value;
-            _accountService = accountService;
-            _nodeManager = nodeManager;
 
-            _authenticatedPeers = new ConcurrentDictionary<string, GrpcPeer>();
+        public PeerPool()
+        {
+            AuthenticatedPeers = new ConcurrentDictionary<string, T>();
             
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
 
-            Logger = NullLogger<GrpcPeerPool>.Instance;
+            Logger = NullLogger<PeerPool<T>>.Instance;
         }
-
+        
         public bool IsFull()
         {
-            return PeerCount >= _networkOptions.MaxPeers;
+            return PeerCount >= NetworkOptions.MaxPeers;
         }
         
         public List<IPeer> GetPeers(bool includeFailing = false)
         {
-            var peers = _authenticatedPeers.Select(p => p.Value);
+            var peers = AuthenticatedPeers.Select(p => p.Value);
 
             if (!includeFailing)
                 peers = peers.Where(p => p.IsReady);
@@ -63,7 +57,7 @@ namespace AElf.OS.Network.Grpc
 
         public IPeer FindPeerByAddress(string peerAddress)
         {
-            return _authenticatedPeers
+            return AuthenticatedPeers
                 .Where(p => p.Value.IpAddress == peerAddress)
                 .Select(p => p.Value)
                 .FirstOrDefault();
@@ -74,7 +68,7 @@ namespace AElf.OS.Network.Grpc
             if (string.IsNullOrEmpty(publicKey))
                 return null;
             
-            _authenticatedPeers.TryGetValue(publicKey, out GrpcPeer p);
+            AuthenticatedPeers.TryGetValue(publicKey, out T p);
             
             return p;
         }
@@ -83,33 +77,10 @@ namespace AElf.OS.Network.Grpc
         {
             return GetPeers().FirstOrDefault(p => p.IsBest);
         }
-
         
-        // TODO interface is T and this is defined as abstract.
-        public bool TryAddPeer(IPeer peer)
-        {
-            if (!(peer is GrpcPeer p))
-                return false;
-            
-            string localPubKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex();
-
-            if (p.Info.Pubkey == localPubKey)
-                throw new InvalidOperationException($"Connection to self detected {p.Info.Pubkey} ({p.IpAddress})");
-
-            if (!_authenticatedPeers.TryAdd(p.Info.Pubkey, p))
-            {
-                Logger.LogWarning($"Could not add peer {p.Info.Pubkey} ({p.IpAddress})");
-                return false;
-            }
-            
-            AsyncHelper.RunSync(() => _nodeManager.AddNodeAsync(new Node { Pubkey = p.Info.Pubkey.ToByteString(), Endpoint = p.IpAddress}));
-            
-            return true;
-        }
-
         public async Task<bool> RemovePeerByAddressAsync(string address)
         {
-            var peer = _authenticatedPeers.FirstOrDefault(p => p.Value.IpAddress == address).Value;
+            var peer = AuthenticatedPeers.FirstOrDefault(p => p.Value.IpAddress == address).Value;
 
             if (peer != null) 
                 return await RemovePeerAsync(peer.Info.Pubkey, true) != null;
@@ -121,7 +92,7 @@ namespace AElf.OS.Network.Grpc
         
         public async Task<IPeer> RemovePeerAsync(string publicKey, bool sendDisconnect)
         {
-            if (_authenticatedPeers.TryRemove(publicKey, out GrpcPeer removed))
+            if (AuthenticatedPeers.TryRemove(publicKey, out T removed))
             {
                 await removed.DisconnectAsync(sendDisconnect); // TODO remove
                 Logger.LogDebug($"Removed peer {removed}");
@@ -136,7 +107,7 @@ namespace AElf.OS.Network.Grpc
 
         public async Task ClearAllPeersAsync(bool sendDisconnect)
         {
-            var peersToRemove = _authenticatedPeers.Keys.ToList();
+            var peersToRemove = AuthenticatedPeers.Keys.ToList();
             
             foreach (string peer in peersToRemove)
             {
@@ -151,6 +122,43 @@ namespace AElf.OS.Network.Grpc
             {
                 _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
             }
+        }
+    }
+    
+    // TODO: Extract into a generic base class in OS.Core
+    public class GrpcPeerPool : PeerPool<GrpcPeer>, ISingletonDependency
+    {
+        private readonly IAccountService _accountService;
+        private readonly INodeManager _nodeManager;
+
+        public GrpcPeerPool(IAccountService accountService, INodeManager nodeManager)
+        {
+            _accountService = accountService;
+            _nodeManager = nodeManager;
+        }
+        
+        public bool TryAddPeer(GrpcPeer p)
+        {
+            string localPubKey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex();
+
+            if (p.Info.Pubkey == localPubKey)
+                throw new InvalidOperationException($"Connection to self detected {p.Info.Pubkey} ({p.IpAddress})");
+
+            if (!AuthenticatedPeers.TryAdd(p.Info.Pubkey, p))
+            {
+                Logger.LogWarning($"Could not add peer {p.Info.Pubkey} ({p.IpAddress})");
+                return false;
+            }
+            
+            AsyncHelper.RunSync(() => _nodeManager.AddNodeAsync(new Node { Pubkey = p.Info.Pubkey.ToByteString(), Endpoint = p.IpAddress}));
+            
+            return true;
+        }
+
+        public GrpcPeer GetGrpcPeer(string pubkey)
+        {
+            AuthenticatedPeers.TryGetValue(pubkey, out GrpcPeer peer);
+            return peer;
         }
     }
 }

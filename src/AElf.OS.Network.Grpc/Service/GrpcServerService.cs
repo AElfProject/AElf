@@ -29,17 +29,19 @@ namespace AElf.OS.Network.Grpc
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
 
         private readonly ISyncStateService _syncStateService;
-        private readonly IPeerPool _peerPool;
+        
         private readonly IBlockchainService _blockchainService;
         private readonly IPeerDiscoveryService _peerDiscoveryService;
         private readonly IHandshakeProvider _handshakeProvider;
         private readonly IPeerClientFactory _peerClientFactory;
         private readonly IConnectionInfoProvider _connectionInfoProvider;
+        
+        private readonly GrpcPeerPool _peerPool;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
 
-        public GrpcServerService(ISyncStateService syncStateService, IPeerPool peerPool, 
+        public GrpcServerService(ISyncStateService syncStateService, GrpcPeerPool peerPool, 
             IBlockchainService blockchainService, IPeerDiscoveryService peerDiscoveryService, 
             IHandshakeProvider handshakeProvider, IPeerClientFactory peerClientFactory, 
             IConnectionInfoProvider connectionInfoProvider)
@@ -141,6 +143,9 @@ namespace AElf.OS.Network.Grpc
                 return new HandshakeReply { Error = error };
             }
             
+            var peer = _peerPool.GetGrpcPeer(context.GetPublicKey());
+            peer?.UpdateLastReceivedHandshake(request.Handshake);
+            
             return new HandshakeReply { Handshake = await _handshakeProvider.GetHandshakeAsync() };
         }
 
@@ -185,7 +190,7 @@ namespace AElf.OS.Network.Grpc
             Logger.LogDebug($"Received announce {announcement.BlockHash} from {context.GetPeerInfo()}.");
 
             var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
-            peer?.ProcessReceivedAnnouncement(announcement);
+            peer?.AddKnowBlock(announcement);
 
             _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(announcement, context.GetPublicKey()));
             

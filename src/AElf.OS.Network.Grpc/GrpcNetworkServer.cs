@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -29,14 +28,15 @@ namespace AElf.OS.Network.Grpc
         private readonly AuthInterceptor _authInterceptor;
         private readonly IPeerDialer _peerDialer;
         private readonly IHandshakeProvider _handshakeProvider;
-        private readonly IPeerPool _peerPool;
+        
+        private readonly GrpcPeerPool _peerPool;
 
         private Server _server;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcNetworkServer> Logger { get; set; }
 
-        public GrpcNetworkServer(PeerService.PeerServiceBase serverService, IPeerPool peerPool, 
+        public GrpcNetworkServer(PeerService.PeerServiceBase serverService, GrpcPeerPool peerPool, 
             AuthInterceptor authInterceptor, IPeerDialer peerDialer, IHandshakeProvider handshakeProvider)
         {
             _serverService = serverService;

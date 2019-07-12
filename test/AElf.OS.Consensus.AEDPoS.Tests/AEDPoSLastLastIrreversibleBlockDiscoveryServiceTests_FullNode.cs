@@ -94,7 +94,7 @@ namespace AElf.OS.Consensus.DPos
             var blocks = _osTestHelper.BestBranchBlockList.GetRange(0, blockHeight);
             foreach (var block in blocks)
             {
-                peer.ProcessReceivedAnnouncement(new BlockAnnouncement
+                peer.AddKnowBlock(new BlockAnnouncement
                     {BlockHash = block.GetHash(), BlockHeight = block.Height});
             }
             _peerPool.TryAddPeer(peer);

@@ -19,7 +19,7 @@ namespace AElf.OS.Network.Infrastructure
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         
         // TODO: rename AddKnownBlock() ? if yes, make the implementation more meaningful
-        void ProcessReceivedAnnouncement(BlockAnnouncement blockAnnouncement);
+        void AddKnowBlock(BlockAnnouncement blockAnnouncement);
 
         Task<Handshake> DoHandshakeAsync(Handshake handshake);
         Task SendAnnouncementAsync(BlockAnnouncement an);

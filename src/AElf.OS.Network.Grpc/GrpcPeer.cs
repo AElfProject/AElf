@@ -134,13 +134,18 @@ namespace AElf.OS.Network.Grpc
                 return null;
             }
 
-            LastKnownLibHeight = _lastReceivedHandshake.HandshakeData.LibBlockHeight;
-            CurrentBlockHash = _lastReceivedHandshake.HandshakeData?.BestChainBlockHeader.GetHash();
-            CurrentBlockHeight = _lastReceivedHandshake.HandshakeData.BestChainBlockHeader.Height;
+            UpdateLastReceivedHandshake(_lastReceivedHandshake);
 
             return _lastReceivedHandshake;
         }
 
+        public void UpdateLastReceivedHandshake(Handshake handshake)
+        {
+            LastKnownLibHeight = handshake.HandshakeData.LibBlockHeight;
+            CurrentBlockHash = handshake.HandshakeData.BestChainBlockHeader.GetHash();
+            CurrentBlockHeight = handshake.HandshakeData.BestChainBlockHeader.Height;
+        }
+        
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
         {
             var blockRequest = new BlockRequest {Hash = hash};
@@ -334,7 +339,7 @@ namespace AElf.OS.Network.Grpc
             return true;
         }
         
-        public void ProcessReceivedAnnouncement(BlockAnnouncement blockAnnouncement)
+        public void AddKnowBlock(BlockAnnouncement blockAnnouncement)
         {
             if (blockAnnouncement.HasFork)
             {
