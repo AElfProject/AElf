@@ -137,8 +137,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 if (!(ex.InnerException is ValidateNextTimeBlockValidationException) || successLinks.Count == 0)
                 {
-                    Logger.LogWarning($"Block validation failed: {ex.Message}.");
-                    Logger.LogWarning("Delete longest chain..");
                     await _chainManager.RemoveLongestBranchAsync(chain);
                     throw;
                 }
