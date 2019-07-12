@@ -10,7 +10,7 @@
     <ProjectReference Include="..\AElf.OS.Rpc.Core\AElf.OS.Rpc.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Anemonis.AspNetCore.JsonRpc" Version="1.14.1" />
+    <PackageReference Include="Anemonis.AspNetCore.JsonRpc" Version="1.17.0" />
     <PackageReference Include="Anemonis.JsonRpc.ServiceClient" Version="1.11.0" />
   </ItemGroup>
 </Project>
