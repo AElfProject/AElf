@@ -184,7 +184,7 @@ namespace AElf.OS.Network.Grpc
         {
             await requestStream.ForEachAsync(r =>
             {
-                _ = EventBus.PublishAsync(new BlockReceivedEvent(r));
+                _ = EventBus.PublishAsync(new BlockReceivedEvent(r,context.GetPublicKey()));
                 return Task.CompletedTask;
             });
             
