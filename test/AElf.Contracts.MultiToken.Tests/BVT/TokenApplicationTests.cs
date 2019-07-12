@@ -808,5 +808,34 @@ namespace AElf.Contracts.MultiToken
             });
             tokenBalanceOutput.Balance.ShouldBe(tokenOriginBalance.Add(400L));
         }
+
+        [Fact]
+        public async Task MultiTokenContract_SetResourceUnitPrice()
+        {
+            //success
+            {
+                var transactionResult = await TokenContractStub.SetResourceTokenUnitPrice.SendAsync(
+                    new SetResourceTokenUnitPriceInput
+                    {
+                        CpuUnitPrice = 100,
+                        NetUnitPrice = 100,
+                        StoUnitPrice = 100
+                    });
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+
+            //failed
+            {
+                var tokenTester = GetTester<TokenContractContainer.TokenContractStub>(TokenConverterContractAddress, User1KeyPair);
+                var transactionResult = await tokenTester.SetResourceTokenUnitPrice.SendAsync(new SetResourceTokenUnitPriceInput
+                {
+                    CpuUnitPrice = 100,
+                    NetUnitPrice = 100,
+                    StoUnitPrice = 100
+                });
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            }
+            
+        }
     }
 }
