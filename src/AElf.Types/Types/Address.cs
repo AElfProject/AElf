@@ -134,13 +134,13 @@ namespace AElf.Types
             ChainId = chainId;
         }
 
-        public static ChainAddress Parse(string str)
+        public static ChainAddress Parse(string chainAddressString, string symbol)
         {
-            var arr = str.Split('_');
+            var arr = chainAddressString.Split('_');
 
-            if (arr[0] != "ELF")
+            if (arr[0] != symbol)
             {
-                throw new ArgumentException("invalid chain address", nameof(str));
+                throw new ArgumentException("invalid chain address", nameof(chainAddressString));
             }
 
             var address = AddressHelper.Base58StringToAddress(arr[1]);

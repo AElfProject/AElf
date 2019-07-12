@@ -21,12 +21,12 @@ namespace AElf.Types.Tests
             address3.ShouldNotBe(null);
 
             //Generate from byte
-            var bytes = Enumerable.Repeat((byte)0xEF, 32).ToArray();
+            var bytes = Enumerable.Repeat((byte) 0xEF, 32).ToArray();
             var address4 = Address.FromBytes(bytes);
             address4.ShouldNotBe(null);
 
-            bytes = Enumerable.Repeat((byte)32, 20).ToArray();
-            Should.Throw<ArgumentOutOfRangeException>(() => {Address.FromBytes(bytes); });
+            bytes = Enumerable.Repeat((byte) 32, 20).ToArray();
+            Should.Throw<ArgumentOutOfRangeException>(() => { Address.FromBytes(bytes); });
 
             //Generate from public key
             var pk = CryptoHelper.GenerateKeyPair().PublicKey;
@@ -43,18 +43,18 @@ namespace AElf.Types.Tests
             var addressString = address.GetFormatted();
             addressString.ShouldNotBe(string.Empty);
         }
-        
+
         [Fact]
         public void Compare_Address()
         {
             var address1 = AddressHelper.StringToAddress("address1");
             var address2 = AddressHelper.StringToAddress("address2");
             address1.CompareTo(address2).ShouldNotBe(0);
-            Should.Throw<InvalidOperationException>(() => { address1.CompareTo(null);});
+            Should.Throw<InvalidOperationException>(() => { address1.CompareTo(null); });
 
             (address1 < null).ShouldBeFalse();
             (null < address2).ShouldBeTrue();
-            (address1 > address2).ShouldBe(address1.CompareTo(address2)>0);
+            (address1 > address2).ShouldBe(address1.CompareTo(address2) > 0);
         }
 
         [Fact]
@@ -69,7 +69,7 @@ namespace AElf.Types.Tests
             addStr = "345678icdfvbghnjmkdfvgbhtn";
             Should.Throw<FormatException>(() => { address = AddressHelper.Base58StringToAddress(addStr); });
         }
-        
+
         [Fact]
         public void Chain_Address()
         {
@@ -77,13 +77,13 @@ namespace AElf.Types.Tests
             var chainId = 2111;
             var chainAddress1 = new ChainAddress(address, chainId);
 
-            string str = chainAddress1.GetFormatted("ELF",chainAddress1.ChainId);
-            var chainAddress2 = ChainAddress.Parse(str);
+            string str = chainAddress1.GetFormatted("ELF", chainAddress1.ChainId);
+            var chainAddress2 = ChainAddress.Parse(str, "ELF");
             chainAddress1.Address.ShouldBe(chainAddress2.Address);
             chainAddress1.ChainId.ShouldBe(chainAddress2.ChainId);
 
             var strError = chainAddress1.ToString();
-            Should.Throw<ArgumentException>(() => { chainAddress2 = ChainAddress.Parse(strError); });
+            Should.Throw<ArgumentException>(() => { chainAddress2 = ChainAddress.Parse(strError, "ELF"); });
         }
 
         [Fact]
