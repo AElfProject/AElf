@@ -29,7 +29,7 @@ namespace AElf.OS.BlockSync.Application
                 return false;
             }
 
-            if (blockAnnouncement.BlockHeight <= chain.BestChainHeight)
+            if (blockAnnouncement.BlockHeight < chain.BestChainHeight)
             {
                 Logger.LogWarning(
                     $"Receive lower header {{ hash: {blockAnnouncement.BlockHash}, height: {blockAnnouncement.BlockHeight} }} ignore.");
@@ -46,7 +46,7 @@ namespace AElf.OS.BlockSync.Application
                 return false;
             }
 
-            if (blockWithTransactions.Height <= chain.BestChainHeight)
+            if (blockWithTransactions.Height < chain.BestChainHeight)
             {
                 Logger.LogWarning($"Receive lower block {blockWithTransactions} ignore.");
                 return false;
