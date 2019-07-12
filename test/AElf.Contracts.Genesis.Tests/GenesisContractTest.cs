@@ -53,6 +53,28 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
+        public async Task Query_ContractRegistrationByAddress()
+        {
+            //not exist
+            {
+                var address = Address.FromString("not exist contract");
+                var registrationInfo =
+                    await DefaultTester.GetSmartContractRegistrationByAddress.CallAsync(address);
+                registrationInfo.ShouldBe(new SmartContractRegistration());
+            }
+            
+            //exist contract
+            {
+                var registrationInfo =
+                    await DefaultTester.GetSmartContractRegistrationByAddress.CallAsync(ContractZeroAddress);
+            
+                registrationInfo.Category.ShouldBe(KernelConstants.CodeCoverageRunnerCategory);
+                registrationInfo.CodeHash.ShouldNotBeNull();
+                registrationInfo.Code.Length.ShouldBeGreaterThan(0);
+            }
+        }
+
+        [Fact]
         public async Task Update_SmartContract()
         {
             var contractAddress = await Deploy_SmartContracts();
@@ -88,7 +110,6 @@ namespace AElf.Contracts.Genesis
             resultUpdate.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             resultUpdate.TransactionResult.Error.Contains("Only author can propose contract update.").ShouldBeTrue();
         }
-        
 
         [Fact]
         public async Task Update_SmartContract_With_Same_Code()
