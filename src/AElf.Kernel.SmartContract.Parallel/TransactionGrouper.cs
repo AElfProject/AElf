@@ -32,14 +32,8 @@ namespace AElf.Kernel.SmartContract.Parallel
             Logger = NullLogger<TransactionGrouper>.Instance;
         }
 
-        public async Task<(List<List<Transaction>>, List<Transaction>)> GroupAsync(BlockHeader blockHeader,List<Transaction> transactions)
+        public async Task<(List<List<Transaction>>, List<Transaction>)> GroupAsync(IChainContext chainContext,List<Transaction> transactions)
         {
-            var chainContext = new ChainContext()
-            {
-                BlockHash = blockHeader.PreviousBlockHash,
-                BlockHeight = blockHeader.Height - 1
-            };
-            
             Logger.LogTrace($"Entered GroupAsync");
 
             var groups = new List<List<Transaction>>();
