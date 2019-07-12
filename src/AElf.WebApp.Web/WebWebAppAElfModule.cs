@@ -28,7 +28,7 @@ namespace AElf.WebApp.Web
     [DependsOn(
         typeof(ChainApplicationWebAppAElfModule),
         typeof(NetApplicationWebAppAElfModule),
-        typeof(WebAppAbpAspNetCoreMvcModule))]
+        typeof(AbpAspNetCoreMvcModule))]
     public class WebWebAppAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
