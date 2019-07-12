@@ -78,7 +78,7 @@ namespace AElf.OS.BlockSync.Application
             {
                 if(!_blockSyncQueueService.ValidateQueueAvailability(OSConstants.BlockDownloadQueueName))
                 {
-                    Logger.LogWarning("Block sync download queue is too busy. block: {syncBlockDto.BlockWithTransactions}");
+                    Logger.LogWarning($"Block sync download queue is too busy. block: {syncBlockDto.BlockWithTransactions}");
                     return;
                 }
 
