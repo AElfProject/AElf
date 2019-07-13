@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Acs3;
+using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography.ECDSA;
 using AElf.Sdk.CSharp;
@@ -330,6 +331,27 @@ namespace AElf.Contracts.ParliamentAuth
                 Owner = Tester
             }).Result.Balance;
             getBalance.ShouldBe(100);
+        }
+
+        [Fact]
+        public async Task Change_GenesisContractOwner()
+        {
+            var contractOwner = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
+            contractOwner.ShouldBe(new Address());
+            
+            var initializeParliament = await ParliamentAuthContractStub.Initialize.SendAsync(new InitializeInput
+            {
+                GenesisOwnerReleaseThreshold = 1,
+                ProposerAuthorityRequired = false
+            });
+            initializeParliament.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            contractOwner = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
+            contractOwner.ShouldNotBe(new Address());
+            
+            //no permission
+            var transactionResult = await BasicContractStub.ChangeGenesisOwner.SendAsync(Tester);
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.TransactionResult.Error.ShouldContain("Unauthorized behavior");
         }
 
         private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair, Address organizationAddress)

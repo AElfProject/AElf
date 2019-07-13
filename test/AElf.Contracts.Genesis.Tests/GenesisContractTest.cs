@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
@@ -94,6 +95,17 @@ namespace AElf.Contracts.Genesis
             var contractCode = Codes.Single(kv => kv.Key.Contains("Consensus")).Value;
             var contractHash = Hash.FromRawBytes(contractCode);
             resultHash.ShouldBe(contractHash);
+        }
+
+        [Fact]
+        public async Task Change_GenesisOwner()
+        {
+            //without permission
+            {
+                var changeResult = await DefaultTester.ChangeGenesisOwner.SendAsync(AnotherUser);
+                changeResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                changeResult.TransactionResult.Error.ShouldContain("Unauthorized to initialize");
+            }
         }
         
         [Fact]

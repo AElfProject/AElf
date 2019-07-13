@@ -824,7 +824,7 @@ namespace AElf.Contracts.MultiToken
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
-            //failed
+            //failed due to without permission
             {
                 var tokenTester = GetTester<TokenContractContainer.TokenContractStub>(TokenConverterContractAddress, User1KeyPair);
                 var transactionResult = await tokenTester.SetResourceTokenUnitPrice.SendAsync(new SetResourceTokenUnitPriceInput
@@ -835,7 +835,6 @@ namespace AElf.Contracts.MultiToken
                 });
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             }
-            
         }
     }
 }

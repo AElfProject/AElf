@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Acs2;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
@@ -95,6 +96,7 @@ namespace AElf.Contracts.MultiToken
                     TokenSmartContractAddressNameProvider.Name, DefaultKeyPair));
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
+                Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);
             }
 
             // ProfitContract
