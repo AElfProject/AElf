@@ -157,7 +157,7 @@ namespace AElf.OS.BlockSync.Application
 
                 if (ValidateQueueAvailability())
                 {
-                    _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions);
+                    await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions);
                 }
                 else if (retryTimes > 1)
                 {
