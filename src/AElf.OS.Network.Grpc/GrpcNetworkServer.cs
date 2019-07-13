@@ -19,6 +19,9 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc
 {
+    /// <summary>
+    /// Implements and manages the lifecycle of the network layer.
+    /// </summary>
     public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
     {
         private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
@@ -102,7 +105,7 @@ namespace AElf.OS.Network.Grpc
         }
         
         /// <summary>
-        /// Connects to a node with the given ip address and adds it to the peer pool.
+        /// Connects to a node with the given ip address and adds it to the node's peer pool.
         /// </summary>
         /// <param name="ipAddress">the ip address of the distant node</param>
         /// <returns>True if the connection was successful, false otherwise</returns>

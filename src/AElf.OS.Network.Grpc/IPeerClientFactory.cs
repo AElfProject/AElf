@@ -11,6 +11,9 @@ namespace AElf.OS.Network.Grpc
         (Channel, PeerService.PeerServiceClient) CreateClientAsync(string ipAddress);
     }
     
+    /// <summary>
+    /// Exposes functionality to create gRPC channel/client pairs.
+    /// </summary>
     public class PeerClientFactory : IPeerClientFactory
     {
         private readonly IAccountService _accountService;
@@ -20,6 +23,10 @@ namespace AElf.OS.Network.Grpc
             _accountService = accountService;
         }
         
+        /// <summary>
+        /// Creates a channel/client pair with the appropriate options and interceptors.
+        /// </summary>
+        /// <returns>A tuple of the channel and client</returns>
         public (Channel, PeerService.PeerServiceClient) CreateClientAsync(string ipAddress)
         {
             var channel = new Channel(ipAddress, ChannelCredentials.Insecure, new List<ChannelOption>

@@ -11,6 +11,9 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Network.Application
 {
+    /// <summary>
+    /// Exposes networking functionality to the application handlers.
+    /// </summary>
     public class NetworkService : INetworkService, ISingletonDependency
     {
         private readonly IPeerPool _peerPool;

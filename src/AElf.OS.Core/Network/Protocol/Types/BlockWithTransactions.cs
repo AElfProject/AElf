@@ -1,7 +1,5 @@
-using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Net;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;

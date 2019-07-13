@@ -11,6 +11,9 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Network.Infrastructure
 {
+    /// <summary>
+    /// Manages all active connections to peers.
+    /// </summary>
     public class PeerPool : IPeerPool, ISingletonDependency
     {
         public ILogger<PeerPool> Logger { get; set; }
@@ -46,7 +49,7 @@ namespace AElf.OS.Network.Infrastructure
             if (!includeFailing)
                 peers = peers.Where(p => p.IsReady);
 
-            return peers.Select(p => p as IPeer).ToList();
+            return peers.Select(p => p).ToList();
         }
 
         public IPeer FindPeerByAddress(string peerAddress)
@@ -102,16 +105,6 @@ namespace AElf.OS.Network.Infrastructure
         public bool TryAddPeer(IPeer peer)
         {
             return AuthenticatedPeers.TryAdd(peer.Info.Pubkey, peer);
-        }
-
-        public async Task ClearAllPeersAsync(bool sendDisconnect)
-        {
-            var peersToRemove = AuthenticatedPeers.Keys.ToList();
-            
-            foreach (string peer in peersToRemove)
-            {
-                await RemovePeerAsync(peer, sendDisconnect);
-            }
         }
         
         public void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash, bool hasFork)

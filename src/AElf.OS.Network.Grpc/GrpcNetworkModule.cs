@@ -7,14 +7,13 @@ namespace AElf.OS.Network.Grpc
 {
     public class GrpcNetworkModule : AElfModule
     {
+        /// <summary>
+        /// Registers the components implemented by the gRPC library.
+        /// </summary>
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<IAElfNetworkServer, GrpcNetworkServer>();
-            
-//            context.Services.AddSingleton<GrpcPeerPool, GrpcPeerPool>();
-//            context.Services.AddSingleton<IPeerPool>(p => p.GetService<GrpcPeerPool>());
-            
-            context.Services.AddSingleton<IPeerDialer, PeerDialer>();
+            context.Services.AddTransient<IPeerDialer, PeerDialer>();
 
             context.Services.AddSingleton<PeerService.PeerServiceBase, GrpcServerService>();
             

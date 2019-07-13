@@ -14,6 +14,9 @@ using Grpc.Core;
 
 namespace AElf.OS.Network.Grpc
 {
+    /// <summary>
+    /// Represents a connection to a peer.
+    /// </summary>
     public class GrpcPeer : IPeer
     {
         private const int MaxMetricsPerMethod = 100;
