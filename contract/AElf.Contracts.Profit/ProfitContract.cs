@@ -110,22 +110,11 @@ namespace AElf.Contracts.Profit
 
             var scheme = State.SchemeInfos[input.SchemeId];
             Assert(scheme != null, "Scheme not found.");
-
-            if (scheme == null)
-            {
-                return new Empty();
-            }
-
             Assert(Context.Sender == scheme.Manager, "Only manager can add sub-scheme.");
 
             var subSchemeId = input.SubSchemeId;
             var subScheme = State.SchemeInfos[subSchemeId];
             Assert(subScheme != null, "Sub scheme not found.");
-
-            if (subScheme == null)
-            {
-                return new Empty();
-            }
 
             var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeId);
             AddBeneficiary(new AddBeneficiaryInput
