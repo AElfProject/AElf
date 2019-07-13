@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Metrics;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -25,7 +26,6 @@ namespace AElf.OS.Network.Grpc
         private const int BlocksRequestTimeout = 500;
         private const int GetNodesTimeout = 500;
 
-        private const int FinalizeConnectTimeout = 500;
         private const int UpdateHandshakeTimeout = 400;
         
         private enum MetricNames

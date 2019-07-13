@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Metrics;
 using AElf.Types;
 
 namespace AElf.OS.Network.Infrastructure

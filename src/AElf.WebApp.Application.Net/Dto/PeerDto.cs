@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using AElf.OS.Network;
+using AElf.OS.Network.Metrics;
 
 namespace AElf.WebApp.Application.Net.Dto
 {

@@ -1,10 +1,11 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
 
-namespace AElf.OS.Network.Infrastructure
+namespace AElf.OS.Network.Protocol
 {
     public class HandshakeProvider : IHandshakeProvider
     {
