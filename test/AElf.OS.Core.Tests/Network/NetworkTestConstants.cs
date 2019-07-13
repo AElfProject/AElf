@@ -1,6 +1,6 @@
 namespace AElf.OS.Network
 {
-    public class GrpcTestConstants
+    public class NetworkTestConstants
     {
         public const string FakeIpEndpoint = "127.0.0.1:666";
         public const string FakeIpEndpoint2 = "127.0.0.1:1000";

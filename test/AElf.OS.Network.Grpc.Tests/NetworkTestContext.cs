@@ -29,7 +29,7 @@ namespace AElf.OS.Network
             return true;
         }
         
-        public Handshake CreateValidHandshake(ECKeyPair producer, long bestChainHeight, int chainId = GrpcTestConstants.DefaultChainId)
+        public Handshake CreateValidHandshake(ECKeyPair producer, long bestChainHeight, int chainId = NetworkTestConstants.DefaultChainId)
         {
             var data = new HandshakeData
             {

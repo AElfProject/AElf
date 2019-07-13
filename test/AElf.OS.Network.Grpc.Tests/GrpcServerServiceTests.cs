@@ -206,7 +206,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Disconnect_ShouldRemovePeer()
         {
-            await _service.Disconnect(new DisconnectReason(), BuildServerCallContext(new Metadata {{ GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubkey2}}));
+            await _service.Disconnect(new DisconnectReason(), BuildServerCallContext(new Metadata {{ GrpcConstants.PubkeyMetadataKey, NetworkTestConstants.FakePubkey2}}));
             Assert.Empty(_peerPool.GetPeers(true));
         }
         
@@ -324,7 +324,7 @@ namespace AElf.OS.Network
             
             var continuation = new UnaryServerMethod<string, string>((s, y) => Task.FromResult(s));
             var metadata = new Metadata
-                {{GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubkey2}};
+                {{GrpcConstants.PubkeyMetadataKey, NetworkTestConstants.FakePubkey2}};
             var context = BuildServerCallContext(metadata);
             var headerCount = context.RequestHeaders.Count;
             var result = await authInterceptor.UnaryServerHandler("test", context, continuation);

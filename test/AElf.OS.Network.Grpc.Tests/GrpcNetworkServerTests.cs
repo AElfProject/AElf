@@ -24,8 +24,8 @@ namespace AElf.OS.Network
             _netTestHelpers = GetRequiredService<NetworkTestContextHelpers>();
         }
         
-        private GrpcPeer AddPeerToPool(string ip = GrpcTestConstants.FakeIpEndpoint, 
-            string pubkey = GrpcTestConstants.FakePubkey)
+        private GrpcPeer AddPeerToPool(string ip = NetworkTestConstants.FakeIpEndpoint, 
+            string pubkey = NetworkTestConstants.FakePubkey)
         {
             var peer = GrpcTestPeerFactory.CreateBasicPeer(ip, pubkey);
             bool added = _peerPool.TryAddPeer(peer);
@@ -79,7 +79,7 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_DialException_ShouldReturnFalse()
         {
-            var added = await _networkServer.DialPeerAsync(GrpcTestConstants.DialExceptionIpEndpoint);
+            var added = await _networkServer.DialPeerAsync(NetworkTestConstants.DialExceptionIpEndpoint);
             
             added.ShouldBeFalse();
             _peerPool.PeerCount.ShouldBe(0);
@@ -90,7 +90,7 @@ namespace AElf.OS.Network
         {
             // two different hosts with the same pubkey.
             AddPeerToPool();
-            var added = await _networkServer.DialPeerAsync(GrpcTestConstants.FakeIpEndpoint2);
+            var added = await _networkServer.DialPeerAsync(NetworkTestConstants.FakeIpEndpoint2);
             
             added.ShouldBeFalse();
             _netTestHelpers.AllPeersWhereCleaned().ShouldBeTrue();
@@ -100,10 +100,10 @@ namespace AElf.OS.Network
         public async Task DialPeerAsync_GoodPeer_ShouldBeInPool()
         {
             // two different hosts with the same pubkey.
-            var added = await _networkServer.DialPeerAsync(GrpcTestConstants.GoodPeerEndpoint);
+            var added = await _networkServer.DialPeerAsync(NetworkTestConstants.GoodPeerEndpoint);
             
             added.ShouldBeTrue();
-            _peerPool.FindPeerByAddress(GrpcTestConstants.GoodPeerEndpoint).ShouldNotBeNull();
+            _peerPool.FindPeerByAddress(NetworkTestConstants.GoodPeerEndpoint).ShouldNotBeNull();
         }
         
         [Fact] 
@@ -117,10 +117,10 @@ namespace AElf.OS.Network
             });
             
             // two different hosts with the same pubkey.
-            var added = await _networkServer.DialPeerAsync(GrpcTestConstants.GoodPeerEndpoint);
+            var added = await _networkServer.DialPeerAsync(NetworkTestConstants.GoodPeerEndpoint);
             
             added.ShouldBeTrue();
-            _peerPool.FindPeerByAddress(GrpcTestConstants.GoodPeerEndpoint).ShouldNotBeNull();
+            _peerPool.FindPeerByAddress(NetworkTestConstants.GoodPeerEndpoint).ShouldNotBeNull();
             
             eventData.ShouldNotBeNull();
         }
@@ -128,7 +128,7 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_HandshakeNetProblem_ShouldReturnFalse()
         {
-            var added = await _networkServer.DialPeerAsync(GrpcTestConstants.HandshakeWithNetExceptionIp);
+            var added = await _networkServer.DialPeerAsync(NetworkTestConstants.HandshakeWithNetExceptionIp);
             
             added.ShouldBeFalse();
             _peerPool.PeerCount.ShouldBe(0);
@@ -137,7 +137,7 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_HandshakeError_ShouldReturnFalse()
         {
-            var added = await _networkServer.DialPeerAsync(GrpcTestConstants.BadHandshakeIp);
+            var added = await _networkServer.DialPeerAsync(NetworkTestConstants.BadHandshakeIp);
             
             added.ShouldBeFalse();
             _peerPool.PeerCount.ShouldBe(0);

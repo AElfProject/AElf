@@ -34,7 +34,7 @@ namespace AElf.OS.Network
             if(isValid)
                 client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
                 {
-                    metadata.Add(GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubkey);
+                    metadata.Add(GrpcConstants.PubkeyMetadataKey, NetworkTestConstants.FakePubkey);
                     return metadata;
                 }));
             else
@@ -42,7 +42,7 @@ namespace AElf.OS.Network
             
             var connectionInfo = new PeerInfo
             {
-                Pubkey = GrpcTestConstants.FakePubkey,
+                Pubkey = NetworkTestConstants.FakePubkey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 IsInbound = true
