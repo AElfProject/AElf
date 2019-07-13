@@ -1,7 +1,6 @@
 ﻿using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Consensus.DPos;
-using AElf.OS.Handlers;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Worker;
@@ -23,8 +22,6 @@ namespace AElf.OS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
-
-            context.Services.AddAssemblyOf<OSAElfModule>();
 
             context.Services.AddSingleton<PeerDiscoveryWorker>();
 
