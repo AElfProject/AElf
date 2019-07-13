@@ -24,6 +24,8 @@ namespace AElf.Contracts.MultiToken
         /// </summary>
         public MappedState<string, long> ChargedResources { get; set; }
 
+        public MappedState<Address, Address, string, long> ChargedResourceTokens { get; set; }
+
         /// <summary>
         /// Contract Address -> Advance Address -> Resource Token Symbol -> Amount.
         /// </summary>
@@ -41,7 +43,12 @@ namespace AElf.Contracts.MultiToken
         internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContract { get; set; }
 
         internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }
-        internal ParliamentAuthContractContainer.ParliamentAuthContractReferenceState ParliamentAuthContract { get; set; }
+
+        internal ParliamentAuthContractContainer.ParliamentAuthContractReferenceState ParliamentAuthContract
+        {
+            get;
+            set;
+        }
 
         internal ACS0Container.ACS0ReferenceState ZeroContract { get; set; }
 

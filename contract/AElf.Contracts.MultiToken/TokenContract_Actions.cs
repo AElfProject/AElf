@@ -287,7 +287,7 @@ namespace AElf.Contracts.MultiToken
 
             var symbolToAmount = new Dictionary<string, long>
             {
-                {"CPU", State.CpuUnitPrice.Value.Mul(input.ExecutingTime)},
+                {"CPU", State.CpuUnitPrice.Value.Mul(input.ReadsCount)},
                 {"NET", State.NetUnitPrice.Value.Mul(input.TransactionSize)},
                 {"STO", State.StoUnitPrice.Value.Mul(input.WritesCount)}
             };
@@ -296,13 +296,11 @@ namespace AElf.Contracts.MultiToken
                 var existingBalance = State.Balances[Context.Sender][pair.Key];
                 Assert(existingBalance >= pair.Value,
                     $"Insufficient resource. {pair.Key}: {existingBalance} / {pair.Value}");
-                State.Balances[Context.Sender][pair.Key] = existingBalance.Sub(pair.Value);
-                State.Balances[Context.Self][pair.Key] =
-                    State.Balances[Context.Self][pair.Key].Add(pair.Value);
-                State.ChargedResources[pair.Key] =
-                    State.ChargedResources[pair.Key].Add(pair.Value);
+                State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key] =
+                    State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key].Add(pair.Value);
             }
 
+            // TODO: How to parallel this method?
             TryToBuyMoreResourceTokenForSender();
 
             return new Empty();
@@ -374,6 +372,9 @@ namespace AElf.Contracts.MultiToken
                 existingBalance = State.Balances[fromAddress][symbolToAmount.Key];
                 symbol = symbolToAmount.Key;
                 amount = symbolToAmount.Value;
+
+                Assert(amount > 0, $"Invalid transaction fee amount of token {symbolToAmount.Key}.");
+
                 if (existingBalance >= amount)
                 {
                     break;
@@ -445,18 +446,29 @@ namespace AElf.Contracts.MultiToken
                 State.TreasuryContract.Value = treasuryContractAddress;
             }
 
-            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols)
+            var transactions = Context.GetPreviousBlockTransactions();
+            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"RAM"}))
             {
-                var amount = State.ChargedResources[symbol];
-                if (amount > 0)
+                var totalAmount = 0L;
+                foreach (var (caller, contractAddress) in transactions.Select(t => (t.From, t.To)))
                 {
+                    var amount = State.ChargedResourceTokens[caller][contractAddress][symbol];
+                    if (amount > 0)
+                    {
+                        State.Balances[contractAddress][symbol] = State.Balances[contractAddress][symbol].Sub(amount);
+                        totalAmount = totalAmount.Add(amount);
+                        State.ChargedResourceTokens[caller][contractAddress][symbol] = 0;
+                    }
+                }
+
+                if (totalAmount > 0)
+                {
+                    State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalAmount);
                     State.TreasuryContract.Donate.Send(new DonateInput
                     {
                         Symbol = symbol,
-                        Amount = amount
+                        Amount = totalAmount
                     });
-
-                    State.ChargedResources[symbol] = 0;
                 }
             }
 
