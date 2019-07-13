@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Acs2;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.BasicFunction;
@@ -39,6 +40,8 @@ namespace AElf.Contracts.MultiToken
         protected Address TokenConverterContractAddress { get; set; }
 
         internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub;
+
+        internal ACS2BaseContainer.ACS2BaseStub Acs2BaseStub;
         
         protected Address BasicFunctionContractAddress { get; set; }
         

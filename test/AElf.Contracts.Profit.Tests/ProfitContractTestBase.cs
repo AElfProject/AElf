@@ -6,6 +6,7 @@ using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -16,6 +17,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
+using InitializeInput = AElf.Contracts.ParliamentAuth.InitializeInput;
 
 namespace AElf.Contracts.Profit
 {
@@ -25,6 +27,8 @@ namespace AElf.Contracts.Profit
         protected Address Starter => Address.FromPublicKey(StarterKeyPair.PublicKey);
         protected Address TokenContractAddress { get; set; }
         protected Address ProfitContractAddress { get; set; }
+        
+        protected Address ParliamentAuthAddress{ get; set; }
         
         internal List<ProfitContractContainer.ProfitContractStub> Creators => CreatorKeyPair
             .Select(p => GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, p)).ToList();
@@ -41,6 +45,8 @@ namespace AElf.Contracts.Profit
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
 
         internal ProfitContractContainer.ProfitContractStub ProfitContractStub { get; set; }
+        
+        internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentContractStub { get; set; }
 
         protected void InitializeContracts()
         {
@@ -68,6 +74,18 @@ namespace AElf.Contracts.Profit
                         TransactionMethodCallList = GenerateTokenInitializationCallList()
                     })).Output;
             TokenContractStub = GetTokenContractTester(StarterKeyPair);
+            
+            //deploy parliament auth contract
+            ParliamentAuthAddress = AsyncHelper.RunSync(()=>GetContractZeroTester(StarterKeyPair)
+                .DeploySystemSmartContract.SendAsync(
+                    new SystemContractDeploymentInput
+                    {
+                        Category = KernelConstants.CodeCoverageRunnerCategory,
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ParliamentAuthContract).Assembly.Location)),
+                        Name = ParliamentAuthSmartContractAddressNameProvider.Name,
+                        TransactionMethodCallList = GenerateParliamentInitializationCallList()
+                    })).Output;
+            ParliamentContractStub = GetParliamentContractTester(StarterKeyPair);
         }
 
         protected async Task CreateTreasury()
@@ -88,6 +106,11 @@ namespace AElf.Contracts.Profit
         internal ProfitContractContainer.ProfitContractStub GetProfitContractTester(ECKeyPair keyPair)
         {
             return GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, keyPair);
+        }
+        
+        internal ParliamentAuthContractContainer.ParliamentAuthContractStub GetParliamentContractTester(ECKeyPair keyPair)
+        {
+            return GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(ParliamentAuthAddress, keyPair);
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()
@@ -141,6 +164,20 @@ namespace AElf.Contracts.Profit
                 }));
 
             return tokenContractCallList;
+        }
+
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+            GenerateParliamentInitializationCallList()
+        {
+            var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            parliamentContractCallList.Add(nameof(ParliamentContractStub.Initialize), new InitializeInput
+            {
+                GenesisOwnerReleaseThreshold = 1,
+                PrivilegedProposer = Starter,
+                ProposerAuthorityRequired = true
+            });
+
+            return parliamentContractCallList;
         }
     }
 }

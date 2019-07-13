@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Acs2;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Kernel;
 using AElf.Types;
@@ -29,6 +30,7 @@ namespace AElf.Contracts.MultiToken
                 TokenContractAddress = await DeployContractAsync(category, code, Hash.FromString("MultiToken"), DefaultKeyPair);
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
+                Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);
 
                 await TokenContractStub.Create.SendAsync(new CreateInput
                 {

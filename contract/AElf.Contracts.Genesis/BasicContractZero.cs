@@ -129,7 +129,7 @@ namespace AElf.Contracts.Genesis
         public override Address DeploySmartContract(ContractDeploymentInput input)
         {
             RequireAuthority();
-            
+
             var address = PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray());
             return address;
         }
@@ -137,14 +137,14 @@ namespace AElf.Contracts.Genesis
         public override Address UpdateSmartContract(ContractUpdateInput input)
         {
             RequireAuthority();
-            
+
             var contractAddress = input.Address;
             var code = input.Code.ToByteArray();
             var info = State.ContractInfos[contractAddress];
             Assert(info != null, "Contract does not exist.");
-            Assert(info.Author == Context.Self || info.Author == Context.Origin, 
+            Assert(info.Author == Context.Self || info.Author == Context.Origin,
                 "Only author can propose contract update.");
-            
+
             var oldCodeHash = info.CodeHash;
             var newCodeHash = Hash.FromRawBytes(code);
             Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");
@@ -236,13 +236,13 @@ namespace AElf.Contracts.Genesis
         {
             Assert(Context.Sender.Equals(address), "Unauthorized behavior.");
         }
-        
+
         private void InitializeGenesisOwner(Address genesisOwner)
         {
             Assert(State.GenesisOwner.Value == null, "Genesis owner already initialized");
             var address = GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
             Assert(Context.Sender.Equals(address), "Unauthorized to initialize genesis contract.");
-            Assert(genesisOwner != null, "Genesis Owner should not be null."); 
+            Assert(genesisOwner != null, "Genesis Owner should not be null.");
             State.GenesisOwner.Value = genesisOwner;
         }
     }

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Acs0;
 using Acs3;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
@@ -43,6 +44,7 @@ namespace AElf.Contracts.ParliamentAuth
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
 
+        internal ACS0Container.ACS0Stub BasicContractStub { get; set; }
         internal AEDPoSContractContainer.AEDPoSContractStub ConsensusContractStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthContractStub { get; set; }
@@ -55,6 +57,10 @@ namespace AElf.Contracts.ParliamentAuth
 
         protected void InitializeContracts()
         {
+            //get basic stub
+            BasicContractStub =
+                GetContractZeroTester(DefaultSenderKeyPair);
+            
             //deploy parliamentAuth contract
             ParliamentAuthContractAddress = AsyncHelper.RunSync(() =>
                 DeploySystemSmartContract(
