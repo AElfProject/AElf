@@ -167,7 +167,8 @@ message ChargeTransactionFeesInput {
 message ChargeResourceTokenInput {
     sint32 transaction_size = 1;
     sint32 writes_count = 2;
-    sint32 executing_time = 3;
+    sint32 reads_count = 3;
+    aelf.Address caller = 4;
 }
 
 message TokenSymbolList {

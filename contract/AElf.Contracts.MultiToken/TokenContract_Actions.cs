@@ -287,7 +287,7 @@ namespace AElf.Contracts.MultiToken
 
             var symbolToAmount = new Dictionary<string, long>
             {
-                {"CPU", State.CpuUnitPrice.Value.Mul(input.ExecutingTime)},
+                {"CPU", State.CpuUnitPrice.Value.Mul(input.ReadsCount)},
                 {"NET", State.NetUnitPrice.Value.Mul(input.TransactionSize)},
                 {"STO", State.StoUnitPrice.Value.Mul(input.WritesCount)}
             };
@@ -296,29 +296,26 @@ namespace AElf.Contracts.MultiToken
                 var existingBalance = State.Balances[Context.Sender][pair.Key];
                 Assert(existingBalance >= pair.Value,
                     $"Insufficient resource. {pair.Key}: {existingBalance} / {pair.Value}");
-                State.Balances[Context.Sender][pair.Key] = existingBalance.Sub(pair.Value);
-                State.Balances[Context.Self][pair.Key] =
-                    State.Balances[Context.Self][pair.Key].Add(pair.Value);
-                State.ChargedResources[pair.Key] =
-                    State.ChargedResources[pair.Key].Add(pair.Value);
+                State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key] =
+                    State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key].Add(pair.Value);
             }
-
-            TryToBuyMoreResourceTokenForSender();
 
             return new Empty();
         }
 
-        private void TryToBuyMoreResourceTokenForSender()
+        private bool TryToBuyMoreResourceTokenForSender(Address contractAddress)
         {
-            var preferences = Context.Call<ResourceTokenBuyingPreferences>(Context.Sender,
+            var preferences = Context.Call<ResourceTokenBuyingPreferences>(contractAddress,
                 nameof(State.ResourceConsumptionContract.GetResourceTokenBuyingPreferences), new Empty());
+            var isNeedToBuy = false;
 
             if (preferences.CpuThreshold > 0)
             {
-                var cpuBalance = State.Balances[Context.Sender]["CPU"];
+                var cpuBalance = State.Balances[contractAddress]["CPU"];
                 if (cpuBalance <= preferences.CpuThreshold)
                 {
-                    Context.SendInline(Context.Sender, nameof(State.ResourceConsumptionContract.BuyResourceToken),
+                    isNeedToBuy = true;
+                    Context.SendInline(contractAddress, nameof(State.ResourceConsumptionContract.BuyResourceToken),
                         new BuyResourceTokenInput
                         {
                             Symbol = "CPU",
@@ -330,10 +327,11 @@ namespace AElf.Contracts.MultiToken
 
             if (preferences.StoAmount > 0)
             {
-                var stoBalance = State.Balances[Context.Sender]["STO"];
+                var stoBalance = State.Balances[contractAddress]["STO"];
                 if (stoBalance <= preferences.StoThreshold)
                 {
-                    Context.SendInline(Context.Sender, nameof(State.ResourceConsumptionContract.BuyResourceToken),
+                    isNeedToBuy = true;
+                    Context.SendInline(contractAddress, nameof(State.ResourceConsumptionContract.BuyResourceToken),
                         new BuyResourceTokenInput
                         {
                             Symbol = "STO",
@@ -345,10 +343,11 @@ namespace AElf.Contracts.MultiToken
 
             if (preferences.NetThreshold > 0)
             {
-                var netBalance = State.Balances[Context.Sender]["NET"];
+                var netBalance = State.Balances[contractAddress]["NET"];
                 if (netBalance <= preferences.NetThreshold)
                 {
-                    Context.SendInline(Context.Sender, nameof(State.ResourceConsumptionContract.BuyResourceToken),
+                    isNeedToBuy = true;
+                    Context.SendInline(contractAddress, nameof(State.ResourceConsumptionContract.BuyResourceToken),
                         new BuyResourceTokenInput
                         {
                             Symbol = "NET",
@@ -357,6 +356,8 @@ namespace AElf.Contracts.MultiToken
                         });
                 }
             }
+
+            return isNeedToBuy;
         }
 
         private void ChargeFirstSufficientToken(MapField<string, long> symbolToAmountMap, out string symbol,
@@ -374,6 +375,9 @@ namespace AElf.Contracts.MultiToken
                 existingBalance = State.Balances[fromAddress][symbolToAmount.Key];
                 symbol = symbolToAmount.Key;
                 amount = symbolToAmount.Value;
+
+                Assert(amount > 0, $"Invalid transaction fee amount of token {symbolToAmount.Key}.");
+
                 if (existingBalance >= amount)
                 {
                     break;
@@ -445,18 +449,37 @@ namespace AElf.Contracts.MultiToken
                 State.TreasuryContract.Value = treasuryContractAddress;
             }
 
-            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols)
+            var transactions = Context.GetPreviousBlockTransactions();
+            var alreadyTriedToBuyResourceTokenContractAddresses = new List<Address>();
+            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"RAM"}))
             {
-                var amount = State.ChargedResources[symbol];
-                if (amount > 0)
+                var totalAmount = 0L;
+                foreach (var (caller, contractAddress) in transactions.Select(t => (t.From, t.To)))
                 {
+                    var amount = State.ChargedResourceTokens[caller][contractAddress][symbol];
+                    if (amount > 0)
+                    {
+                        // TODO: Reconsider. It matters if BuyResourceToken failed. Maybe developer need to buy resource tokens on his own method.
+//                        if (!alreadyTriedToBuyResourceTokenContractAddresses.Contains(contractAddress) &&
+//                            TryToBuyMoreResourceTokenForSender(contractAddress))
+//                        {
+//                            alreadyTriedToBuyResourceTokenContractAddresses.Add(contractAddress);
+//                        }
+
+                        State.Balances[contractAddress][symbol] = State.Balances[contractAddress][symbol].Sub(amount);
+                        totalAmount = totalAmount.Add(amount);
+                        State.ChargedResourceTokens[caller][contractAddress][symbol] = 0;
+                    }
+                }
+
+                if (totalAmount > 0)
+                {
+                    State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalAmount);
                     State.TreasuryContract.Donate.Send(new DonateInput
                     {
                         Symbol = symbol,
-                        Amount = amount
+                        Amount = totalAmount
                     });
-
-                    State.ChargedResources[symbol] = 0;
                 }
             }
 

@@ -44,12 +44,12 @@ namespace AElf.Contracts.MultiToken
 
                 case nameof(DonateResourceToken):
                 {
-                    return GetDonateResourceTokenResourceInfo();
+                    return GetDonateResourceTokenResourceInfo(txn);
                 }
 
                 case nameof(ClaimTransactionFees):
                 {
-                    return GetClaimTransactionFessResourceInfo();
+                    return GetClaimTransactionFessResourceInfo(txn);
                 }
 
                 // TODO: Support more methods
@@ -58,7 +58,7 @@ namespace AElf.Contracts.MultiToken
             }
         }
 
-        private ResourceInfo GetDonateResourceTokenResourceInfo()
+        private ResourceInfo GetDonateResourceTokenResourceInfo(Transaction txn)
         {
             var resourceInfo = new ResourceInfo
             {
@@ -76,7 +76,7 @@ namespace AElf.Contracts.MultiToken
             return resourceInfo;
         }
 
-        private ResourceInfo GetClaimTransactionFessResourceInfo()
+        private ResourceInfo GetClaimTransactionFessResourceInfo(Transaction txn)
         {
             var resourceInfo = new ResourceInfo
             {
