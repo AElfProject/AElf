@@ -1,11 +1,9 @@
-using System;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using AElf.TestBase;
-using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Shouldly;
 using Xunit;
@@ -77,7 +75,6 @@ namespace AElf.OS.Consensus.DPos
                 Pubkey = publicKey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = _connectionTime,
-                StartHeight = 1,
                 IsInbound = true
             };
             

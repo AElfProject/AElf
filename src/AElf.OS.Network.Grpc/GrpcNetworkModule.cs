@@ -10,10 +10,9 @@ namespace AElf.OS.Network.Grpc
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<IAElfNetworkServer, GrpcNetworkServer>();
-
             
-            context.Services.AddSingleton<GrpcPeerPool, GrpcPeerPool>();
-            context.Services.AddSingleton<IPeerPool>(p => p.GetService<GrpcPeerPool>());
+//            context.Services.AddSingleton<GrpcPeerPool, GrpcPeerPool>();
+//            context.Services.AddSingleton<IPeerPool>(p => p.GetService<GrpcPeerPool>());
             
             context.Services.AddSingleton<IPeerDialer, PeerDialer>();
 

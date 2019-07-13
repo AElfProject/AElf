@@ -85,7 +85,6 @@ namespace AElf.OS.Consensus.DPos
                 Pubkey = publicKey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = _connectionTime,
-                StartHeight = 1,
                 IsInbound = true
             };
             

@@ -22,8 +22,7 @@ namespace AElf.WebApp.Application
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.Replace(ServiceDescriptor.Singleton<IPeerPool,GrpcPeerPool>());
-            context.Services.Replace(ServiceDescriptor.Singleton<INetworkService,NetworkService>());
+            context.Services.Replace(ServiceDescriptor.Singleton<INetworkService, NetworkService>());
         }
     }
 }

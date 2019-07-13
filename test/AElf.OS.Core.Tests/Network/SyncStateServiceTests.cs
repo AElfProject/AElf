@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
+using AElf.Cryptography;
 using AElf.Kernel.Node.Events;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Moq;
 using Shouldly;
@@ -86,8 +88,13 @@ namespace AElf.OS.Network
 
         private IPeer CreatePeer(long libHeight = 0)
         {
-            Mock<IPeer> peerMock = new Mock<IPeer>();
+            var peerMock = new Mock<IPeer>();
+            
+            peerMock.Setup(p => p.Info)
+                .Returns(new PeerInfo {Pubkey = CryptoHelper.GenerateKeyPair().PublicKey.ToHex()});
+            
             peerMock.Setup(p => p.LastKnownLibHeight).Returns(libHeight);
+            
             return peerMock.Object;
         }
     }

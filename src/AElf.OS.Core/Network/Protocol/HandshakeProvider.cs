@@ -6,11 +6,6 @@ using Google.Protobuf;
 
 namespace AElf.OS.Network.Infrastructure
 {
-    public interface IHandshakeProvider
-    {
-        Task<Handshake> GetHandshakeAsync();
-    }
-
     public class HandshakeProvider : IHandshakeProvider
     {
         private readonly IAccountService _accountService;

@@ -1,17 +1,11 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
-using Grpc.Core;
-using Grpc.Core.Interceptors;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
 using Volo.Abp.Threading;
@@ -21,21 +15,23 @@ namespace AElf.OS.Network
 {
     public class GrpcPeerTests : GrpcNetworkTestBase
     {
+        private OSTestHelper _osTestHelper;
+        
         private IBlockchainService _blockchainService;
         private IAElfNetworkServer _networkServer;
-        private IPeerPool _pool;
-        private IPeer _grpcPeer;
         private ILocalEventBus _eventBus;
-        private OSTestHelper _osTestHelper;
+        
+        private IPeerPool _pool;
+        private GrpcPeer _grpcPeer;
 
         public GrpcPeerTests()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _networkServer = GetRequiredService<IAElfNetworkServer>();
-            _pool = GetRequiredService<IPeerPool>();
             _eventBus = GetRequiredService<ILocalEventBus>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
-            
+            _pool = GetRequiredService<IPeerPool>();
+
             _grpcPeer = GrpcTestPeerFactory.CreateNewPeer();
             _pool.TryAddPeer(_grpcPeer);
         }

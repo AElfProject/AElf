@@ -30,7 +30,7 @@ namespace AElf.OS.Consensus.DPos
         {
             var services = context.Services;
             services.AddTransient<IAccountService, AccountService>();
-            services.AddSingleton<IPeerPool, GrpcPeerPool>();
+            services.AddSingleton<IPeerPool, PeerPool>();
 
             services.AddTransient(o =>
             {

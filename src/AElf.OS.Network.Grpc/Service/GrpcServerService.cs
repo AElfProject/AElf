@@ -36,12 +36,12 @@ namespace AElf.OS.Network.Grpc
         private readonly IPeerClientFactory _peerClientFactory;
         private readonly IConnectionInfoProvider _connectionInfoProvider;
         
-        private readonly GrpcPeerPool _peerPool;
+        private readonly IPeerPool _peerPool;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
 
-        public GrpcServerService(ISyncStateService syncStateService, GrpcPeerPool peerPool, 
+        public GrpcServerService(ISyncStateService syncStateService, IPeerPool peerPool, 
             IBlockchainService blockchainService, IPeerDiscoveryService peerDiscoveryService, 
             IHandshakeProvider handshakeProvider, IPeerClientFactory peerClientFactory, 
             IConnectionInfoProvider connectionInfoProvider)
@@ -143,7 +143,7 @@ namespace AElf.OS.Network.Grpc
                 return new HandshakeReply { Error = error };
             }
             
-            var peer = _peerPool.GetGrpcPeer(context.GetPublicKey());
+            var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey()) as GrpcPeer;
             peer?.UpdateLastReceivedHandshake(request.Handshake);
             
             return new HandshakeReply { Handshake = await _handshakeProvider.GetHandshakeAsync() };

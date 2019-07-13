@@ -29,14 +29,14 @@ namespace AElf.OS.Network.Grpc
         private readonly IPeerDialer _peerDialer;
         private readonly IHandshakeProvider _handshakeProvider;
         
-        private readonly GrpcPeerPool _peerPool;
+        private readonly IPeerPool _peerPool;
 
         private Server _server;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcNetworkServer> Logger { get; set; }
 
-        public GrpcNetworkServer(PeerService.PeerServiceBase serverService, GrpcPeerPool peerPool, 
+        public GrpcNetworkServer(PeerService.PeerServiceBase serverService, IPeerPool peerPool, 
             AuthInterceptor authInterceptor, IPeerDialer peerDialer, IHandshakeProvider handshakeProvider)
         {
             _serverService = serverService;
@@ -216,7 +216,8 @@ namespace AElf.OS.Network.Grpc
                 // if server already shutdown, we continue and clear the channels.
             }
 
-            await _peerPool.ClearAllPeersAsync(gracefulDisconnect);
+            // todo cleanup
+            // await _peerPool.ClearAllPeersAsync(gracefulDisconnect);
         }
 
         public void Dispose()

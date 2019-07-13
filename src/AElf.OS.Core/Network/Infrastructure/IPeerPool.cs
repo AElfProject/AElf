@@ -16,16 +16,13 @@ namespace AElf.OS.Network.Infrastructure
         
         IPeer FindPeerByAddress(string peerIpAddress);
         IPeer FindPeerByPublicKey(string remotePubKey);
-        
-        //bool TryAddPeer(IPeer peer);
+
+        bool TryAddPeer(IPeer peer);
 
         Task<IPeer> RemovePeerAsync(string remotePubKey, bool sendDisconnect);
         
         // TODO: consider removing block caching from the pool.
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         void AddRecentBlockHeightAndHash(long blockHeight, Hash blockHash, bool hasFork);
-
-        // TODO move
-        Task ClearAllPeersAsync(bool sendDisconnect);
     }
 }
