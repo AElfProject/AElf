@@ -24,6 +24,19 @@ namespace AElf.OS.Network
             _netTestHelpers = GetRequiredService<NetworkTestContextHelpers>();
         }
         
+        private GrpcPeer AddPeerToPool(string ip = GrpcTestConstants.FakeIpEndpoint, 
+            string pubkey = GrpcTestConstants.FakePubkey)
+        {
+            var peer = GrpcTestPeerFactory.CreateBasicPeer(ip, pubkey);
+            bool added = _peerPool.TryAddPeer(peer);
+            
+            Assert.True(added);
+
+            return peer;
+        }
+
+        #region Lifecycle
+
         [Fact]
         public async Task Start_ShouldLaunch_NetInitEvent()
         {
@@ -39,6 +52,20 @@ namespace AElf.OS.Network
 
             eventData.ShouldNotBeNull();
         }
+        
+        [Fact]
+        public async Task Stop_ShouldLaunch_DisconnectAllPeers()
+        {
+            await _networkServer.StartAsync();
+            var peer = AddPeerToPool();
+            peer.IsShutdown.ShouldBeFalse();
+            await _networkServer.StopAsync();
+            peer.IsShutdown.ShouldBeTrue();
+        }
+        
+        #endregion
+
+        #region Dialing
 
         [Fact] 
         public async Task DialPeerAsync_HostAlreadyInPool_ShouldReturnFalse()
@@ -115,16 +142,7 @@ namespace AElf.OS.Network
             added.ShouldBeFalse();
             _peerPool.PeerCount.ShouldBe(0);
         }
-        
-        private GrpcPeer AddPeerToPool(string ip = GrpcTestConstants.FakeIpEndpoint, 
-            string pubkey = GrpcTestConstants.FakePubkey)
-        {
-            var peer = GrpcTestPeerFactory.CreateBasicPeer(ip, pubkey);
-            bool added = _peerPool.TryAddPeer(peer);
-            
-            Assert.True(added);
 
-            return peer;
-        }
+        #endregion
     }
 }

@@ -219,8 +219,12 @@ namespace AElf.OS.Network.Grpc
                 // if server already shutdown, we continue and clear the channels.
             }
 
-            // todo cleanup
-            // await _peerPool.ClearAllPeersAsync(gracefulDisconnect);
+            var peers = _peerPool.GetPeers(true);
+            foreach (var peer in peers)
+            {
+                // todo Task.WhenAll + timeout + disc msg
+                await peer.DisconnectAsync(false);
+            }
         }
 
         public void Dispose()
