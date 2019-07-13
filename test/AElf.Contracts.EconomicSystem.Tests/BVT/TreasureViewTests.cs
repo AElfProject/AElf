@@ -16,29 +16,33 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 {
     public partial class EconomicSystemTest
     {
-        [Fact(Skip = "Need real citizens.")]
+        [Fact]
         public async Task GetWelfareRewardAmountSample_Test()
         {
             await NextTerm(BootMinerKeyPair);
             await AttendElectionAndVotes();
             await ProduceBlocks(BootMinerKeyPair, 20);
 
-            await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
+            for (var i = 0; i < 3; i++)
             {
-                Amount = 100_00000000,
-                Period = 2,
-                Symbol = EconomicContractsTestConstants.NativeTokenSymbol,
-                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]
-            });
-            await NextTerm(BootMinerKeyPair);
-
+                var contributeProfitsResult = await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
+                {
+                    Amount = 8000_00000000,
+                    Period = i + 2,
+                    Symbol = EconomicContractsTestConstants.NativeTokenSymbol,
+                    SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]
+                });
+                contributeProfitsResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                await NextTerm(BootMinerKeyPair);
+            }
+            
             const int lockTime1 = 100 * 24 * 60 * 60;
             const int lockTime2 = 200 * 24 * 60 * 60;
             const int lockTime3 = 500 * 24 * 60 * 60;
             var rewardAmount = await TreasuryContractStub.GetWelfareRewardAmountSample.CallAsync(
                 new GetWelfareRewardAmountSampleInput
                 {
-                    Value = {lockTime1, lockTime2, lockTime3}
+                    Value = { lockTime1, lockTime2, lockTime3 }
                 });
             rewardAmount.Value.Count.ShouldBe(3);
             

@@ -183,11 +183,6 @@ namespace AElf.Contracts.Vote
         {
             var votingRecord = State.VotingRecords[input.VoteId];
             Assert(votingRecord != null, "Voting record not found.");
-            if (votingRecord == null)
-            {
-                return new Empty();
-            }
-
             var votingItem = State.VotingItems[votingRecord.VotingItemId];
 
             if (votingItem.IsLockToken)
