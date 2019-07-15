@@ -88,13 +88,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 Owner = TestContractAddress, Symbol = symbol
             });
             await DefaultTester.CpuConsumingMethod.SendAsync(new Empty());
+            // Mine a block to use plugin to really consume resource tokens.
+            await DefaultTester.GetResourceTokenBuyingPreferences.SendAsync(new Empty());
             var balanceAfter = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress, Symbol = symbol
             });
-
             var consumption = balanceBefore.Balance - balanceAfter.Balance;
-
             consumption.ShouldBeGreaterThan(0);
 
             balanceBefore = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -102,12 +102,14 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 Owner = TestContractAddress, Symbol = symbol
             });
             await DefaultTester.FewConsumingMethod.SendAsync(new Empty());
+            // Mine a block to use plugin to really consume resource tokens.
+            await DefaultTester.GetResourceTokenBuyingPreferences.SendAsync(new Empty());
             balanceAfter = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress, Symbol = symbol
             });
 
-            var lesserConsumption = balanceAfter.Balance - balanceBefore.Balance;
+            var lesserConsumption = balanceBefore.Balance - balanceAfter.Balance;
 
             consumption.ShouldBeGreaterThan(lesserConsumption);
         }
@@ -129,6 +131,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 Owner = TestContractAddress, Symbol = symbol
             });
             await DefaultTester.StoConsumingMethod.SendAsync(new Empty());
+            // Mine a block to use plugin to really consume resource tokens.
+            await DefaultTester.GetResourceTokenBuyingPreferences.SendAsync(new Empty());
             var balanceAfter = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress, Symbol = symbol
@@ -141,6 +145,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 Owner = TestContractAddress, Symbol = symbol
             });
             await DefaultTester.FewConsumingMethod.SendAsync(new Empty());
+            // Mine a block to use plugin to really consume resource tokens.
+            await DefaultTester.GetResourceTokenBuyingPreferences.SendAsync(new Empty());
             balanceAfter = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress, Symbol = symbol
@@ -171,6 +177,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             {
                 Blob = ByteString.CopyFrom("NetConsumingMethod vs FewConsumingMethod", Encoding.Default)
             });
+            // Mine a block to use plugin to really consume resource tokens.
+            await DefaultTester.GetResourceTokenBuyingPreferences.SendAsync(new Empty());
             var balanceAfter = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress, Symbol = symbol
@@ -185,6 +193,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 Owner = TestContractAddress, Symbol = symbol
             });
             await DefaultTester.FewConsumingMethod.SendAsync(new Empty());
+            // Mine a block to use plugin to really consume resource tokens.
+            await DefaultTester.GetResourceTokenBuyingPreferences.SendAsync(new Empty());
             balanceAfter = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress, Symbol = symbol

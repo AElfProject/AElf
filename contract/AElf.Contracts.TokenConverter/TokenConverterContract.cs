@@ -187,6 +187,11 @@ namespace AElf.Contracts.TokenConverter
 
             var fee = Convert.ToInt64(amountToReceive * GetFeeRate());
 
+            if (Context.Sender == Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName))
+            {
+                fee = 0;
+            }
+
             var amountToReceiveLessFee = amountToReceive.Sub(fee);
             Assert(input.ReceiveLimit == 0 || amountToReceiveLessFee >= input.ReceiveLimit, "Price not good.");
 
