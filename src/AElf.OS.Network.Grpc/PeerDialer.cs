@@ -43,6 +43,15 @@ namespace AElf.OS.Network.Grpc
 
             return new GrpcPeer(channel, client, ipAddress, connectReply.Info.ToPeerInfo(false));
         }
+
+        public async Task<GrpcPeer> DialBackPeer(string ipAddress, ConnectionInfo connectionInfo)
+        {
+            var (channel, client) = _peerClientFactory.CreateClientAsync(ipAddress);
+            
+            // TODO ping back (maybe do something on transient failure)
+            
+            return new GrpcPeer(channel, client, ipAddress, connectionInfo.ToPeerInfo(isInbound: true));
+        }
         
         /// <summary>
         /// Calls the server side connect RPC method, in order to establish a 2-way connection.
@@ -51,7 +60,7 @@ namespace AElf.OS.Network.Grpc
         private async Task<ConnectReply> CallConnectAsync(PeerService.PeerServiceClient client, Channel channel, 
             string ipAddress)
         {
-            ConnectReply connectReply = null;
+            ConnectReply connectReply;
             
             try
             {

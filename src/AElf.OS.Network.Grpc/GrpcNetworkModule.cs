@@ -13,10 +13,10 @@ namespace AElf.OS.Network.Grpc
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<IAElfNetworkServer, GrpcNetworkServer>();
-            context.Services.AddTransient<IPeerDialer, PeerDialer>();
 
-            context.Services.AddSingleton<PeerService.PeerServiceBase, GrpcServerService>();
-            
+            // Internal dependencies
+            context.Services.AddTransient<IPeerDialer, PeerDialer>();
+            context.Services.AddSingleton<GrpcServerService>();
             context.Services.AddSingleton<AuthInterceptor>();
             context.Services.AddSingleton<RetryInterceptor>();
         }

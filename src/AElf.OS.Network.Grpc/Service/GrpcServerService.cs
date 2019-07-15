@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography;
@@ -32,30 +33,35 @@ namespace AElf.OS.Network.Grpc
         
         private readonly IBlockchainService _blockchainService;
         private readonly IPeerDiscoveryService _peerDiscoveryService;
-        private readonly IHandshakeProvider _handshakeProvider;
-        private readonly IPeerClientFactory _peerClientFactory;
-        private readonly IConnectionInfoProvider _connectionInfoProvider;
         
         private readonly IPeerPool _peerPool;
+        
+        private Func<string, ConnectionInfo, Task<ConnectReply>> _connectionCallback;
+        private Func<string, Handshake, Task<HandshakeReply>> _handshakeCallback;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
 
         public GrpcServerService(ISyncStateService syncStateService, IPeerPool peerPool, 
-            IBlockchainService blockchainService, IPeerDiscoveryService peerDiscoveryService, 
-            IHandshakeProvider handshakeProvider, IPeerClientFactory peerClientFactory, 
-            IConnectionInfoProvider connectionInfoProvider)
+            IBlockchainService blockchainService, IPeerDiscoveryService peerDiscoveryService)
         {
             _syncStateService = syncStateService;
             _peerPool = peerPool;
             _blockchainService = blockchainService;
             _peerDiscoveryService = peerDiscoveryService;
-            _handshakeProvider = handshakeProvider;
-            _peerClientFactory = peerClientFactory;
-            _connectionInfoProvider = connectionInfoProvider;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
+        }
+        
+        internal void RegisterConnectionCallback(Func<string, ConnectionInfo, Task<ConnectReply>> connectionCallback)
+        {
+            _connectionCallback = connectionCallback;
+        }
+
+        internal void RegisterHandshakeCallback(Func<string, Handshake, Task<HandshakeReply>> handshakeCallback)
+        {
+            _handshakeCallback = handshakeCallback;
         }
 
         /// <summary>
@@ -65,124 +71,14 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override async Task<ConnectReply> Connect(ConnectRequest connectionRequest, ServerCallContext context)
         {
-            // TODO limit the amount of connections per host and number of peers "connecting"
             Logger.LogTrace($"{context.Peer} has initiated a connection.");
-            
-            var peer = GrpcUrl.Parse(context.Peer);
-            
-            if (peer == null)
-                return new ConnectReply { Error = ConnectError.InvalidPeer }; // TODO connect error
-            
-            if (ValidateConnectionInfo(connectionRequest.Info) != ConnectError.ConnectOk)
-                return new ConnectReply { Error = ConnectError.ConnectionRefused };
-            
-            string pubKey = connectionRequest.Info.Pubkey.ToHex();
-            
-            var oldPeer = _peerPool.FindPeerByPublicKey(pubKey);
-            if (oldPeer != null)
-            {
-                // TODO: Is this valid ? this is just discarding the previous connection
-                Logger.LogDebug($"Cleaning up {oldPeer} before connecting.");
-                await _peerPool.RemovePeerAsync(pubKey, false); //TODO report disconnect
-            }
-
-            // TODO: find a URI type to use
-            var peerAddress = peer.IpAddress + ":" + connectionRequest.Info.ListeningPort;
-            var grpcPeer = DialPeer(peerAddress, connectionRequest.Info);
-
-            // If auth ok -> add it to our peers
-            if (_peerPool.TryAddPeer(grpcPeer))
-                Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
-
-            // todo handle case where add is false (edge case)
-            
-            var connectInfo = await _connectionInfoProvider.GetConnectionInfoAsync();
-
-            return new ConnectReply { Info = connectInfo };
-        }
-        
-        private ConnectError ValidateConnectionInfo(ConnectionInfo connectionInfo)
-        {
-            // verify chain id
-            if (connectionInfo.ChainId != _blockchainService.GetChainId())
-                return ConnectError.ChainMismatch;
-
-            // verify protocol
-            if (connectionInfo.Version != KernelConstants.ProtocolVersion)
-                return ConnectError.ProtocolMismatch;
-            
-            if (NetworkOptions.MaxPeers != 0 && _peerPool.IsFull())
-            {
-                Logger.LogWarning($"Cannot add peer, there's currently {_peerPool.PeerCount} peers (max. {NetworkOptions.MaxPeers}).");
-                return ConnectError.ConnectionRefused;
-            }
-
-            return ConnectError.ConnectOk;
-        }
-        
-        private GrpcPeer DialPeer(string peerAddress, ConnectionInfo connectionInfo)
-        {
-            Logger.LogDebug($"Attempting to create channel to {peerAddress}");
-
-            var (channel, client) = _peerClientFactory.CreateClientAsync(peerAddress);
-            
-            // TODO ping back (maybe do something on transient failure)
-            
-            return new GrpcPeer(channel, client, peerAddress, connectionInfo.ToPeerInfo(true));
+            return await _connectionCallback(context.Peer, connectionRequest.Info);
         }
         
         public override async Task<HandshakeReply> DoHandshake(HandshakeRequest request, ServerCallContext context)
         {
-            Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested handshake data.");
-            
-            var error = ValidateHandshake(request.Handshake);
-
-            if (error != HandshakeError.HandshakeOk)
-            {
-                Logger.LogWarning($"Handshake not valid: {error}");
-                return new HandshakeReply { Error = error };
-            }
-            
-            var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey()) as GrpcPeer;
-
-            // should never happen because the interceptor takes care of this, but if the peer
-            // is remove between the interceptor's check and here: stop the process.
-            if (peer == null)
-            {
-                Logger.LogWarning($"Peer {context.GetPeerInfo()}: {error}");
-                return new HandshakeReply { Error = HandshakeError.WrongConnection };
-            }
-            
-            peer.UpdateLastReceivedHandshake(request.Handshake);
-            
-            Logger.LogTrace($"Connected to {peer} - LIB height {peer.LastKnownLibHeight}, " +
-                            $"best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}].");
-            
-            return new HandshakeReply { Handshake = await _handshakeProvider.GetHandshakeAsync() };
-        }
-
-        private HandshakeError ValidateHandshake(Handshake handshake)
-        {
-            if (handshake?.HandshakeData == null)
-                return HandshakeError.InvalidHandshake;
-
-            // verify signature
-            var validData = CryptoHelper.VerifySignature(handshake.Signature.ToByteArray(),
-                Hash.FromMessage(handshake.HandshakeData).ToByteArray(), handshake.HandshakeData.Pubkey.ToByteArray());
-            
-            if (!validData)
-                return HandshakeError.WrongSignature;
-            
-            // verify authentication
-            var pubKey = handshake.HandshakeData.Pubkey.ToHex();
-            if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.Authorized
-                && !NetworkOptions.AuthorizedKeys.Contains(pubKey))
-            {
-                Logger.LogDebug($"{pubKey} not in the authorized peers.");
-                return HandshakeError.NotListed;
-            }
-
-            return HandshakeError.HandshakeOk;
+            Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a handshake.");
+            return await _handshakeCallback(context.GetPublicKey(), request.Handshake);
         }
 
         public override async Task<VoidReply> AnnouncementBroadcastStream(IAsyncStreamReader<BlockAnnouncement> requestStream, ServerCallContext context)
@@ -295,7 +191,7 @@ namespace AElf.OS.Network.Grpc
 
         public override async Task<NodeList> GetNodes(NodesRequest request, ServerCallContext context)
         {
-            if (request == null) 
+            if (request == null)
                 return new NodeList();
             
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.MaxCount} nodes.");
