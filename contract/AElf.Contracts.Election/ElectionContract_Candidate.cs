@@ -32,7 +32,11 @@ namespace AElf.Contracts.Election
 
             AddCandidateAsOption(publicKey);
 
-            RegisterCandidateToSubsidyProfitScheme();
+            if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
+            {
+                State.ValidationDataCentersRankingList.Value.ValidationDataCenters.Add(publicKey, 0);
+                RegisterCandidateToSubsidyProfitScheme();
+            }
 
             return new Empty();
         }
@@ -69,11 +73,6 @@ namespace AElf.Contracts.Election
             }
 
             State.Candidates.Value.Value.Add(publicKeyByteString);
-
-            if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
-            {
-                State.ValidationDataCentersRankingList.Value.ValidationDataCenters.Add(publicKey, 0);
-            }
         }
 
         private void LockCandidateNativeToken()
