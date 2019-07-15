@@ -454,8 +454,10 @@ namespace AElf.Contracts.MultiToken
             foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"RAM"}))
             {
                 var totalAmount = 0L;
-                foreach (var (caller, contractAddress) in transactions.Select(t => (t.From, t.To)))
+                foreach (var transaction in transactions)
                 {
+                    var caller = transaction.From;
+                    var contractAddress = transaction.To;
                     var amount = State.ChargedResourceTokens[caller][contractAddress][symbol];
                     if (amount > 0)
                     {
