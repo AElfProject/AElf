@@ -136,7 +136,7 @@ namespace AElf.OS.Network.Grpc
                 IsConnected = false; // TODO handshake exception ?
                 return null;
             }
-
+            
             UpdateLastReceivedHandshake(_lastReceivedHandshake);
 
             return _lastReceivedHandshake;
@@ -144,6 +144,8 @@ namespace AElf.OS.Network.Grpc
 
         public void UpdateLastReceivedHandshake(Handshake handshake)
         {
+            IsConnected = true;
+
             LastKnownLibHeight = handshake.HandshakeData.LibBlockHeight;
             CurrentBlockHash = handshake.HandshakeData.BestChainBlockHeader.GetHash();
             CurrentBlockHeight = handshake.HandshakeData.BestChainBlockHeader.Height;

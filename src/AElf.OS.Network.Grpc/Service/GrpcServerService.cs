@@ -144,7 +144,19 @@ namespace AElf.OS.Network.Grpc
             }
             
             var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey()) as GrpcPeer;
-            peer?.UpdateLastReceivedHandshake(request.Handshake);
+
+            // should never happen because the interceptor takes care of this, but if the peer
+            // is remove between the interceptor's check and here: stop the process.
+            if (peer == null)
+            {
+                Logger.LogWarning($"Peer {context.GetPeerInfo()}: {error}");
+                return new HandshakeReply { Error = HandshakeError.WrongConnection };
+            }
+            
+            peer.UpdateLastReceivedHandshake(request.Handshake);
+            
+            Logger.LogTrace($"Connected to {peer} - LIB height {peer.LastKnownLibHeight}, " +
+                            $"best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}].");
             
             return new HandshakeReply { Handshake = await _handshakeProvider.GetHandshakeAsync() };
         }

@@ -93,6 +93,7 @@ enum HandshakeError {
     WRONG_SIGNATURE = 3;
     INVALID_HANDSHAKE = 4;
     NOT_LISTED = 5;
+    WRONG_CONNECTION = 6;
 }
 
 // Messages related to disconnection
