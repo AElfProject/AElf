@@ -249,7 +249,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             })).Balance;
 
             await action(new Empty());
-            
+            // Mine a block to use plugin to really consume resource tokens.
+            await DefaultTester.GetResourceTokenBuyingPreferences.SendAsync(new Empty());
+
             var afterCpu = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = TestContractAddress,
