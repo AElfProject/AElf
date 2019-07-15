@@ -105,8 +105,8 @@ namespace AElf.Contracts.Election
                 if (pubkeyToVotesAmount.Value < minimumVotes)
                 {
                     replaceWillHappen = true;
-                    minimumVotes = pubkeyToVotesAmount.Value;
                     minimumVotesCandidate = pubkeyToVotesAmount.Key;
+                    break;
                 }
             }
 
