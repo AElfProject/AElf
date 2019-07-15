@@ -1,3 +1,4 @@
+using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
@@ -40,7 +41,7 @@ namespace AElf.Contracts.Election
 
             UpdateElectorInformation(recoveredPublicKey, input.Amount);
 
-            UpdateCandidateInformation(input.CandidatePubkey, input.Amount);
+            var candidateVotesAmount = UpdateCandidateInformation(input.CandidatePubkey, input.Amount);
 
             State.TokenContract.Lock.Send(new LockInput
             {
@@ -79,7 +80,56 @@ namespace AElf.Contracts.Election
                 EndPeriod = GetEndPeriod(lockSeconds) + 1
             });
 
+            var rankingList = State.ValidationDataCentersRankingList.Value;
+            rankingList.ValidationDataCenters[input.CandidatePubkey] =
+                rankingList.ValidationDataCenters[input.CandidatePubkey].Add(input.Amount);
+            State.ValidationDataCentersRankingList.Value = rankingList;
+
+            if (State.Candidates.Value.Value.Count > GetValidationDataCenterCount() &&
+                !State.ValidationDataCentersRankingList.Value.ValidationDataCenters.ContainsKey(input.CandidatePubkey))
+            {
+                TryToBecomeAValidationDataCenter(input, candidateVotesAmount, rankingList);
+            }
+
             return new Empty();
+        }
+
+        private void TryToBecomeAValidationDataCenter(VoteMinerInput input, long candidateVotesAmount,
+            ValidationDataCenterRankingList rankingList)
+        {
+            var minimumVotes = candidateVotesAmount;
+            var minimumVotesCandidate = input.CandidatePubkey;
+            bool replaceWillHappen = false;
+            foreach (var pubkeyToVotesAmount in rankingList.ValidationDataCenters.Reverse())
+            {
+                if (pubkeyToVotesAmount.Value < minimumVotes)
+                {
+                    replaceWillHappen = true;
+                    minimumVotes = pubkeyToVotesAmount.Value;
+                    minimumVotesCandidate = pubkeyToVotesAmount.Key;
+                }
+            }
+
+            if (replaceWillHappen)
+            {
+                State.ValidationDataCentersRankingList.Value.ValidationDataCenters.Remove(minimumVotesCandidate);
+                State.ValidationDataCentersRankingList.Value.ValidationDataCenters.Add(input.CandidatePubkey,
+                    candidateVotesAmount);
+                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                {
+                    SchemeId = State.SubsidyHash.Value,
+                    Beneficiary = Address.FromPublicKey(ByteArrayHelper.FromHexString(minimumVotesCandidate))
+                });
+                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+                {
+                    SchemeId = State.SubsidyHash.Value,
+                    BeneficiaryShare = new BeneficiaryShare
+                    {
+                        Beneficiary = Address.FromPublicKey(ByteArrayHelper.FromHexString(input.CandidatePubkey)),
+                        Shares = 1
+                    }
+                });
+            }
         }
 
         /// <summary>
@@ -117,7 +167,7 @@ namespace AElf.Contracts.Election
         /// </summary>
         /// <param name="candidatePublicKey"></param>
         /// <param name="amount"></param>
-        private void UpdateCandidateInformation(string candidatePublicKey, long amount)
+        private long UpdateCandidateInformation(string candidatePublicKey, long amount)
         {
             var candidateVotes = State.CandidateVotes[candidatePublicKey];
             if (candidateVotes == null)
@@ -140,6 +190,8 @@ namespace AElf.Contracts.Election
             }
 
             State.CandidateVotes[candidatePublicKey] = candidateVotes;
+
+            return candidateVotes.ObtainedActiveVotedVotesAmount;
         }
 
         private long GetVotesWeight(long votesAmount, long lockTime)
@@ -216,6 +268,11 @@ namespace AElf.Contracts.Election
                 SchemeId = State.WelfareHash.Value,
                 Beneficiary = Context.Sender
             });
+
+            var rankingList = State.ValidationDataCentersRankingList.Value;
+            rankingList.ValidationDataCenters[votingRecord.Option] =
+                rankingList.ValidationDataCenters[votingRecord.Option].Sub(votingRecord.Amount);
+            State.ValidationDataCentersRankingList.Value = rankingList;
 
             return new Empty();
         }

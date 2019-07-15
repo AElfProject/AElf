@@ -238,3 +238,8 @@ message SetTreasurySchemeIdsInput {
     aelf.Hash votes_reward_hash = 4;
     aelf.Hash re_election_reward_hash = 5;
 }
+
+message ValidationDataCenterRankingList {
+    map<string, sint64> validation_data_centers = 1;
+    sint64 minimum_votes = 2;
+}

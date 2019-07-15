@@ -293,5 +293,10 @@ namespace AElf.Contracts.Election
                 Weight = GetVotesWeight(votingRecord.Amount, lockSeconds)
             };
         }
+
+        private int GetValidationDataCenterCount()
+        {
+            return GetMinersCount(new Empty()).Value.Mul(5);
+        }
     }
 }

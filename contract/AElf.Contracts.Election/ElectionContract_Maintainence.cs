@@ -43,6 +43,8 @@ namespace AElf.Contracts.Election
 
             State.CurrentTermNumber.Value = 1;
 
+            State.ValidationDataCentersRankingList.Value = new ValidationDataCenterRankingList();
+
             State.Initialized.Value = true;
             return new Empty();
         }
@@ -98,20 +100,20 @@ namespace AElf.Contracts.Election
             {
                 UpdateCandidateInformation(publicKey, input.TermNumber, previousMiners);
             }
-            
+
             if (State.ProfitContract.Value == null)
             {
                 State.ProfitContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
             }
-            
+
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.SubsidyHash.Value,
                 Period = input.TermNumber,
                 Symbol = Context.Variables.NativeSymbol
             });
-            
+
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.WelfareHash.Value,
