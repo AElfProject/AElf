@@ -367,10 +367,17 @@ namespace AElf.Contracts.Economic.TestBase
                 var issueResult = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
                 {
                     Amount = 1000_000_00000000L,
-                    To = Address.FromPublicKey(BootMinerKeyPair.PublicKey),
+                    To = BootMinerAddress,
                     Memo = "Used to transfer other testers"
                 });
                 CheckResult(issueResult.TransactionResult);
+
+                var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = BootMinerAddress,
+                    Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                });
+                balance.Balance.ShouldBe(1000_000_00000000L);
             }
 
             foreach (var coreDataCenterKeyPair in CoreDataCenterKeyPairs)
