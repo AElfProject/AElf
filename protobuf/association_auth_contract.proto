@@ -5,14 +5,18 @@ import "aelf/options.proto";
 import "acs3.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+
 option csharp_namespace = "AElf.Contracts.AssociationAuth";
 
 service AssociationAuthContract {
+    
     option (aelf.csharp_state) = "AElf.Contracts.AssociationAuth.AssociationAuthState";
     option (aelf.base) = "acs3.proto";
+    
     // Actions    
-    rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {        
+    rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
     }
+    
     //view
     rpc GetOrganization (aelf.Address) returns (Organization) {
         option (aelf.is_view) = true;
@@ -21,16 +25,16 @@ service AssociationAuthContract {
 
 message CreateOrganizationInput{
     repeated Reviewer reviewers = 1;
-    int32 releaseThreshold = 2;
-    int32 proposerThreshold = 3;
+    int32 release_threshold = 2;
+    int32 proposer_threshold = 3;
 }
 
 message Organization{
-    int32 releaseThreshold = 1;
+    int32 release_threshold = 1;
     repeated Reviewer reviewers = 2;
-    int32 proposerThreshold = 3;
-    aelf.Address organizationAddress = 4;
-    aelf.Hash organizationHash = 5;
+    int32 proposer_threshold = 3;
+    aelf.Address organization_address = 4;
+    aelf.Hash organization_hash = 5;
 }
 
 message Reviewer {
@@ -39,13 +43,13 @@ message Reviewer {
 }
 
 message ProposalInfo {
-    aelf.Hash proposalId = 1;
-    string contractMethodName = 2;
-    aelf.Address toAddress = 3;
+    aelf.Hash proposal_id = 1;
+    string contract_method_name = 2;
+    aelf.Address to_address = 3;
     bytes params = 4;
-    google.protobuf.Timestamp expiredTime = 5;
+    google.protobuf.Timestamp expired_time = 5;
     aelf.Address proposer = 6;
-    aelf.Address organizationAddress = 7;
-    int32 approvedWeight = 8;
-    repeated aelf.Address approvedReviewer = 9;
+    aelf.Address organization_address = 7;
+    int32 approved_weight = 8;
+    repeated aelf.Address approved_reviewer = 9;
 }

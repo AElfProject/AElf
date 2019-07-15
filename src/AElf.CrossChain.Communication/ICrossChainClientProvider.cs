@@ -8,9 +8,6 @@ namespace AElf.CrossChain.Communication
         ICrossChainClient CreateClientForChainInitializationData(int chainId);
         void CreateAndCacheClient(CrossChainClientDto crossChainClientDto);
         Task<ICrossChainClient> GetClientAsync(int chainId);
-        Task<T> RequestAsync<T>(ICrossChainClient client, Func<ICrossChainClient, Task<T>> requestFunc);
-        Task RequestAsync(ICrossChainClient client, Func<ICrossChainClient, Task> requestFunc);
-
         Task CloseClientsAsync();
     }
 

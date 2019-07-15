@@ -47,7 +47,7 @@ namespace AElf.Contracts.AssociationAuth
                     new ContractDeploymentInput()
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AssociationAuthContract).Assembly.Location)),  
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AssociationAuthContract).Assembly.Location))
                     })).Output;
             AssociationAuthContractStub = GetAssociationAuthContractTester(DefaultSenderKeyPair);
             
@@ -84,7 +84,7 @@ namespace AElf.Contracts.AssociationAuth
             const string symbol = "ELF";
             const long totalSupply = 100_000_000;
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContract.Create), new CreateInput
             {
                 Symbol = symbol,
                 Decimals = 2,

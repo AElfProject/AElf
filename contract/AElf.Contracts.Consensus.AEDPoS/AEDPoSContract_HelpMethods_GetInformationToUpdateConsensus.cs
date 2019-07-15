@@ -1,11 +1,61 @@
+using System.Linq;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSContract
     {
+        private BytesValue GetConsensusBlockExtraData(BytesValue input, bool withSecretSharingInformation = false)
+        {
+            var triggerInformation = new AElfConsensusTriggerInformation();
+            triggerInformation.MergeFrom(input.Value);
+
+            Assert(triggerInformation.Pubkey.Any(), "Invalid public key.");
+
+            if (!TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                Assert(false, "Failed to get current round information.");
+            }
+
+            var publicKeyBytes = triggerInformation.Pubkey;
+            var publicKey = publicKeyBytes.ToHex();
+
+            LogIfPreviousMinerHasNotProduceEnoughTinyBlocks(currentRound, publicKey);
+
+            var information = new AElfConsensusHeaderInformation();
+            switch (triggerInformation.Behaviour)
+            {
+                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
+                case AElfConsensusBehaviour.UpdateValue:
+                    information = GetInformationToUpdateConsensusToPublishOutValue(currentRound, publicKey,
+                        triggerInformation);
+                    break;
+                case AElfConsensusBehaviour.TinyBlock:
+                    information = GetInformationToUpdateConsensusForTinyBlock(currentRound, publicKey,
+                        triggerInformation);
+                    break;
+
+                case AElfConsensusBehaviour.NextRound:
+                    information = GetInformationToUpdateConsensusForNextRound(currentRound, publicKey,
+                        triggerInformation);
+                    break;
+
+                case AElfConsensusBehaviour.NextTerm:
+                    information = GetInformationToUpdateConsensusForNextTerm(publicKey, triggerInformation);
+                    break;
+            }
+
+            if (!withSecretSharingInformation)
+            {
+                information.Round.DeleteSecretSharingInformation();
+            }
+
+            return information.ToBytesValue();
+        }
+
         private AElfConsensusHeaderInformation GetInformationToUpdateConsensusToPublishOutValue(Round currentRound,
             string publicKey, AElfConsensusTriggerInformation triggerInformation)
         {
@@ -46,11 +96,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 outValue, signature);
 
             ShareInValueOfCurrentRound(updatedRound, previousRound, inValue, publicKey);
-            
+
             // To publish Out Value.
             return new AElfConsensusHeaderInformation
             {
-                SenderPublicKey = publicKey.ToByteString(),
+                SenderPubkey = publicKey.ToByteString(),
                 Round = updatedRound,
                 Behaviour = triggerInformation.Behaviour
             };
@@ -68,7 +118,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return new AElfConsensusHeaderInformation
             {
-                SenderPublicKey = publicKey.ToByteString(),
+                SenderPubkey = publicKey.ToByteString(),
                 Round = currentRound,
                 Behaviour = triggerInformation.Behaviour
             };
@@ -82,13 +132,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Assert(false, "Failed to generate next round information.");
             }
 
-            RevealSharedInValues(currentRound, publicKey);
-
-            if (!TryToUpdateRoundInformation(currentRound))
+            if (!nextRound.RealTimeMinersInformation.Keys.Contains(publicKey))
             {
-                Assert(false, "Failed to update current round information after revealing previous in values.");
+                return new AElfConsensusHeaderInformation
+                {
+                    SenderPubkey = publicKey.ToByteString(),
+                    Round = nextRound,
+                    Behaviour = triggerInformation.Behaviour
+                };
             }
 
+            RevealSharedInValues(currentRound, publicKey);
+            
             nextRound.RealTimeMinersInformation[publicKey].ProducedBlocks =
                 nextRound.RealTimeMinersInformation[publicKey].ProducedBlocks.Add(1);
             Context.LogDebug(() => $"Mined blocks: {nextRound.GetMinedBlocks()}");
@@ -100,7 +155,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return new AElfConsensusHeaderInformation
             {
-                SenderPublicKey = publicKey.ToByteString(),
+                SenderPubkey = publicKey.ToByteString(),
                 Round = nextRound,
                 Behaviour = triggerInformation.Behaviour
             };
@@ -114,7 +169,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(firstRoundOfNextTerm.RoundId != 0, "Failed to generate new round information.");
             return new AElfConsensusHeaderInformation
             {
-                SenderPublicKey = publicKey.ToByteString(),
+                SenderPubkey = publicKey.ToByteString(),
                 Round = firstRoundOfNextTerm,
                 Behaviour = triggerInformation.Behaviour
             };

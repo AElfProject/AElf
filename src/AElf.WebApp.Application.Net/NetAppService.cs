@@ -10,13 +10,13 @@ namespace AElf.WebApp.Application.Net
 {
     public interface INetAppService : IApplicationService
     {
-        Task<bool> AddPeer(AddPeerInput input);
+        Task<bool> AddPeerAsync(AddPeerInput input);
 
-        Task<bool> RemovePeer(string address);
+        Task<bool> RemovePeerAsync(string address);
 
         List<PeerDto> GetPeers();
 
-        Task<GetNetworkInfoOutput> GetNetworkInfo();
+        Task<GetNetworkInfoOutput> GetNetworkInfoAsync();
     }
     
     public class NetAppService : INetAppService
@@ -34,7 +34,7 @@ namespace AElf.WebApp.Application.Net
         /// Attempts to add a node to the connected network nodes
         /// </summary>
         /// <returns>true/false</returns>
-        public async Task<bool> AddPeer(AddPeerInput input)
+        public async Task<bool> AddPeerAsync(AddPeerInput input)
         {
             return await _networkService.AddPeerAsync(input.Address);
         }
@@ -44,7 +44,7 @@ namespace AElf.WebApp.Application.Net
         /// </summary>
         /// <param name="address">ip address</param>
         /// <returns></returns>
-        public async Task<bool> RemovePeer(string address)
+        public async Task<bool> RemovePeerAsync(string address)
         {
             return await _networkService.RemovePeerAsync(address);
         }
@@ -59,11 +59,11 @@ namespace AElf.WebApp.Application.Net
             
             var peerDtoList = peerList.Select(p => new PeerDto
             {
-                IpAddress = p.PeerIpAddress,
-                ProtocolVersion = p.ProtocolVersion,
-                ConnectionTime = p.ConnectionTime,
-                Inbound = p.Inbound,
-                StartHeight = p.StartHeight,
+                IpAddress = p.IpAddress,
+                ProtocolVersion = p.Info.ProtocolVersion,
+                ConnectionTime = p.Info.ConnectionTime,
+                Inbound = p.Info.IsInbound,
+                StartHeight = p.Info.StartHeight,
                 RequestMetrics = p.GetRequestMetrics().Values.SelectMany(kvp => kvp).ToList()
             }).ToList();
             
@@ -74,13 +74,13 @@ namespace AElf.WebApp.Application.Net
         /// Get information about the node’s connection to the network. 
         /// </summary>
         /// <returns></returns>
-        public Task<GetNetworkInfoOutput> GetNetworkInfo()
+        public Task<GetNetworkInfoOutput> GetNetworkInfoAsync()
         {
             var output = new GetNetworkInfoOutput
             {
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 Version = Version,
-                Connections = _networkService.GetPeerIpList().Count
+                Connections = _networkService.GetPeers().Count
             };
             return Task.FromResult(output);
         }

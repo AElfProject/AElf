@@ -26,6 +26,14 @@ namespace AElf.Kernel
                     return false;
                 }
             }
+            
+            foreach (var trace in txTrace.PostTraces)
+            {
+                if (!trace.IsSuccessful())
+                {
+                    return false;
+                }
+            }
 
             return true;
         }
@@ -38,7 +46,7 @@ namespace AElf.Kernel
                 if (inline.ExecutionStatus < txTrace.ExecutionStatus)
                 {
                     txTrace.ExecutionStatus = inline.ExecutionStatus;
-                    txTrace.StdErr = $"InlineError: {inline.StdErr}";
+                    txTrace.Error = $"InlineError: {inline.Error}";
                 }
             }
         }

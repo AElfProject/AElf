@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Xunit;
 
-namespace AElf.Contracts.Consensus.AEDPoS.GQL
+namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSTest
     {

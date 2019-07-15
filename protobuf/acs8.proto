@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package acs8;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option (aelf.identity) = "acs8";
+
+service ResourceConsumptionContract {
+    // Actions
+    rpc BuyResourceToken (BuyResourceTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetResourceTokenBuyingPreferences (ResourceTokenBuyingPreferences) returns (google.protobuf.Empty) {
+    }
+    
+    // Views
+    rpc GetResourceTokenBuyingPreferences (google.protobuf.Empty) returns (ResourceTokenBuyingPreferences) {
+    }
+}
+
+message BuyResourceTokenInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    sint64 pay_limit = 3; // No buy if paying more than this, 0 if no limit
+}
+
+message ResourceTokenBuyingPreferences {
+    sint64 cpu_threshold = 1;
+    sint64 sto_threshold = 2;
+    sint64 net_threshold = 3;
+    sint64 mem_threshold = 4;
+    sint64 cpu_amount = 5;
+    sint64 sto_amount = 6;
+    sint64 net_amount = 7;
+    sint64 men_amount = 8;
+    sint64 pay_limit = 9;
+}

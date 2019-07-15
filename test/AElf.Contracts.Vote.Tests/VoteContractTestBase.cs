@@ -29,7 +29,7 @@ namespace AElf.Contracts.Vote
 
         internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
 
-        protected const string TestTokenSymbol = "TELF";
+        protected const string TestTokenSymbol = "ELF";
 
         protected void InitializeContracts()
         {
@@ -77,17 +77,15 @@ namespace AElf.Contracts.Vote
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
         {
-            var voteMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),new Empty());
-            return voteMethodCallList;
+            return new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
         {
-            const long totalSupply = 1_000_000_000;
+            const long totalSupply = 1_000_000_000_0000_0000;
             
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContract.Create), new CreateInput
             {
                 Symbol = TestTokenSymbol,
                 Decimals = 2,
@@ -95,9 +93,9 @@ namespace AElf.Contracts.Vote
                 TokenName = "elf token for testing",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
-                LockWhiteSystemContractNameList =
+                LockWhiteList =
                 {
-                    VoteSmartContractAddressNameProvider.Name
+                     VoteContractAddress
                 }
             });
 
@@ -105,7 +103,7 @@ namespace AElf.Contracts.Vote
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = TestTokenSymbol,
-                Amount = totalSupply - 20 * 100_000L,
+                Amount = totalSupply - 20 * 100_000_0000_0000L,
                 To = DefaultSender,
                 Memo = "Issue token to default user for vote.",
             });
@@ -116,7 +114,7 @@ namespace AElf.Contracts.Vote
                 tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
                 {
                     Symbol = TestTokenSymbol,
-                    Amount = 100_000L,
+                    Amount = 100_000_0000_0000L,
                     To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
                     Memo = "set voters few amount for voting."
                 });

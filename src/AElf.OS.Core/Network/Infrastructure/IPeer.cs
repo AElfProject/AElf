@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.OS.Network.Grpc;
 using AElf.Types;
 
 namespace AElf.OS.Network.Infrastructure
@@ -7,28 +8,28 @@ namespace AElf.OS.Network.Infrastructure
     public interface IPeer
     {
         bool IsBest { get; set; }
-        Hash CurrentBlockHash { get; }
-        long CurrentBlockHeight { get; }
+        bool IsConnected { get; set; }
+        bool IsReady { get; }
         
-        string PeerIpAddress { get; }
-        string PubKey { get; }
-        int ProtocolVersion { get; }
-        long ConnectionTime { get; }
-        bool Inbound { get; }
-        long StartHeight { get; }
-        
+        long LastKnownLibHeight { get; }
+        string IpAddress { get; }
+
+        PeerInfo Info { get; }
+
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
 
+        Task UpdateHandshakeAsync();
+        Task SendAnnouncementAsync(BlockAnnouncement an);
+        Task SendTransactionAsync(Transaction transaction);
+        Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash);
+        Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);
+        Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest);
+
+        void ProcessReceivedAnnouncement(BlockAnnouncement blockAnnouncement);
+
+        Task<bool> TryRecoverAsync();
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();
 
-        void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement);
-
-        Task SendDisconnectAsync();
-        Task StopAsync();
-
-        Task AnnounceAsync(PeerNewBlockAnnouncement an);
-        Task SendTransactionAsync(Transaction tx);
-        Task<BlockWithTransactions> RequestBlockAsync(Hash hash);
-        Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);
+        Task DisconnectAsync(bool gracefulDisconnect);
     }
 }

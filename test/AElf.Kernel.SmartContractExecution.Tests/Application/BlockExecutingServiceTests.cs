@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
@@ -16,26 +15,19 @@ namespace AElf.Kernel.SmartContractExecution.Application
     public class BlockExecutingServiceTests : SmartContractExecutionExecutingTestBase
     {
         private readonly BlockExecutingService _blockExecutingService;
-        private readonly IBlockManager _blockManager;
-        private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly KernelTestHelper _kernelTestHelper;
 
         public BlockExecutingServiceTests()
         {
             _blockExecutingService = GetRequiredService<BlockExecutingService>();
-            _blockManager = GetRequiredService<IBlockManager>();
-            _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
 
         [Fact]
         public async Task Execute_Block_NonCancellable()
         {
-            var blockHeader = new BlockHeader
-            {
-                Height = 2,
-                PreviousBlockHash = Hash.Empty,
-                Time = TimestampHelper.GetUtcNow()
-            };
             var txs = BuildTransactions(5);
+            var blockHeader = _kernelTestHelper.GenerateBlock(1, Hash.Empty).Header;
 
             var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, txs);
             var allTxIds = txs.Select(x => x.GetHash()).ToList();
@@ -53,12 +45,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         [Fact]
         public async Task Execute_Block_Cancellable()
         {
-            var blockHeader = new BlockHeader
-            {
-                Height = 2,
-                PreviousBlockHash = Hash.Empty,
-                Time = TimestampHelper.GetUtcNow()
-            };
+            var blockHeader = _kernelTestHelper.GenerateBlock(1, Hash.Empty).Header;
             var nonCancellableTxs = BuildTransactions(5);
             var cancellableTxs = BuildTransactions(5);
             var cancelToken = new CancellationTokenSource();

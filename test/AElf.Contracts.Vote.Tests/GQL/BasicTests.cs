@@ -1,12 +1,9 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -14,7 +11,6 @@ namespace AElf.Contracts.Vote
 {
     public partial class VoteTests : VoteContractTestBase
     {
-
         [Fact]
         public async Task VoteContract_Register_Again()
         {
@@ -97,7 +93,7 @@ namespace AElf.Contracts.Vote
                 {
                     VotingItemId = votingItemId.VotingItemId,
                     Option = votingItemId.Options.First(),
-                    Amount = 2000_000_000L
+                    Amount = 2000_000_000_00000000L
                 };
                 var otherKeyPair = SampleECKeyPairs.KeyPairs[1];
                 var otherVoteStub = GetVoteContractTester(otherKeyPair);

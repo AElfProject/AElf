@@ -1,5 +1,7 @@
 using System.Linq;
 using AElf.Contracts.Election;
+using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -17,6 +19,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // Update current term number and current round number.
             Assert(TryToUpdateTermNumber(input.TermNumber), "Failed to update term number.");
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
+
+            var minersCount = GetMinersCount(input);
+            if (minersCount != 0 && State.ElectionContract.Value != null)
+            {
+                State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
+                {
+                    MinersCount = minersCount
+                });
+            }
 
             // Reset some fields of first two rounds of next term.
             foreach (var minerInRound in input.RealTimeMinersInformation.Values)
@@ -37,14 +48,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
                 {
-                    PublicKey = senderPublicKey,
+                    Pubkey = senderPublicKey,
                     RecentlyProducedBlocks = 1
                 });
             }
 
             // Update miners list.
             var miners = new MinerList();
-            miners.PublicKeys.AddRange(input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
+            miners.Pubkeys.AddRange(input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
             Assert(SetMinerListOfCurrentTerm(miners), "Failed to update miner list.");
 
             // Update term number lookup. (Using term number to get first round number of related term.)
@@ -60,16 +71,32 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
                 {
-                    PublicKey = minerInfo.Key,
+                    Pubkey = minerInfo.Key,
                     RecentlyProducedBlocks = minerInfo.Value.ProducedBlocks,
                     RecentlyMissedTimeSlots = minerInfo.Value.MissedTimeSlots
                 });
             }
 
-            State.ElectionContract.ReleaseTreasuryProfits.Send(new ReleaseTreasuryProfitsInput
+            if (State.TreasuryContract.Value == null)
+            {
+                State.TreasuryContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            }
+
+            var miningRewardAmount = previousRound.GetMinedBlocks().Mul(AEDPoSContractConstants.MiningRewardPerBlock);
+            DonateMiningReward(miningRewardAmount);
+
+            State.TreasuryContract.Release.Send(new ReleaseInput
+            {
+                TermNumber = termNumber
+            });
+
+            Context.LogDebug(() => $"Released treasury profit for term {termNumber}");
+
+            State.ElectionContract.TakeSnapshot.Send(new TakeElectionSnapshotInput
             {
                 MinedBlocks = previousRound.GetMinedBlocks(),
-                TermNumber = termNumber + 1,
+                TermNumber = termNumber,
                 RoundNumber = previousRound.RoundNumber
             });
 
@@ -121,6 +148,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             State.CurrentTermNumber.Value = termNumber;
             return true;
+        }
+
+        private void DonateMiningReward(long amount)
+        {
+            if (amount > 0)
+            {
+                State.TreasuryContract.Donate.Send(new DonateInput
+                {
+                    Symbol = Context.Variables.NativeSymbol,
+                    Amount = amount,
+                });
+            }
+
+            Context.LogDebug(() => $"Released {amount} mining rewards.");
         }
     }
 }

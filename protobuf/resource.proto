@@ -11,6 +11,6 @@ enum ResourceType
 }
 
 message ResourceTypeBalancePair{
-    ResourceType Type = 1;
-    uint64 Amount = 2;
+    ResourceType type = 1;
+    uint64 amount = 2;
 }

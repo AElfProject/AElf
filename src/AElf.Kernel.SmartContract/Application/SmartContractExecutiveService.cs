@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
@@ -197,7 +196,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
 
             throw new InvalidOperationException(
-                $"failed to find registration from zero contract {txCtxt.Trace.StdErr}");
+                $"failed to find registration from zero contract {txCtxt.Trace.Error}");
         }
 
         #endregion

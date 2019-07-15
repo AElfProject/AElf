@@ -53,7 +53,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _transactionOptions = transactionOptions.Value;
         }
 
-        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync()
+        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount=0)
         {
             var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash != _bestChainHash)
@@ -71,7 +71,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 PreviousBlockHash = _bestChainHash,
                 PreviousBlockHeight = _bestChainHeight
             };
-            output.Transactions.AddRange(_validated.Values.Select(x => x.Transaction));
+            output.Transactions.AddRange(_validated.Values
+                .Where((x, i) => transactionCount <= 0 || i < transactionCount).Select(x => x.Transaction));
 
             return output;
         }
@@ -180,10 +181,15 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             foreach (var txIds in collection.Where(kv => kv.Key <= blockHeight))
             {
-                foreach (var txId in txIds.Value.Keys)
-                {
-                    _allTransactions.TryRemove(txId, out _);
-                }
+                CleanTransactions(txIds.Value.Keys.ToList());
+            }
+        }
+
+        private void CleanTransactions(IEnumerable<Hash> transactionIds)
+        {
+            foreach (var transactionId in transactionIds)
+            {
+                _allTransactions.TryRemove(transactionId, out _);
             }
         }
 
@@ -193,12 +199,17 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData)
         {
+            var executableTransactions = new List<Transaction>();
             foreach (var transaction in eventData.Transactions)
             {
                 if (!transaction.VerifySignature())
                     continue;
 
-                var receipt = new TransactionReceipt(transaction);
+                var receipt = new TransactionReceipt
+                {
+                    TransactionId = transaction.GetHash(),
+                    Transaction = transaction
+                };
                 if (_allTransactions.ContainsKey(receipt.TransactionId))
                 {
                     //Logger.LogWarning($"Transaction already exists in TxStore");
@@ -231,6 +242,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 }
 
                 await _transactionManager.AddTransactionAsync(transaction);
+                executableTransactions.Add(transaction);
 
                 if (_bestChainHash == Hash.Empty)
                 {
@@ -253,10 +265,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
-            foreach (var txId in block.Body.Transactions)
-            {
-                _allTransactions.TryRemove(txId, out _);
-            }
+            CleanTransactions(block.Body.Transactions.ToList());
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
@@ -289,10 +298,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
         {
-            foreach (var txId in eventData.Transactions)
-            {
-                _allTransactions.TryRemove(txId, out _);
-            }
+            CleanTransactions(eventData.Transactions);
+
             await Task.CompletedTask;
         }
         #endregion

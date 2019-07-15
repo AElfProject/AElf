@@ -84,14 +84,9 @@ namespace AElf.OS
             
             var bestBranchHeight = height;
 
-            for (var i = bestBranchHeight; i < bestBranchHeight + 10; i++)
+            for (var i = bestBranchHeight; i < bestBranchHeight + 20; i++)
             {
-                var block = AsyncHelper.RunSync(() => genService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
-                {
-                    PreviousBlockHash = previousBlockHash,
-                    PreviousBlockHeight = height,
-                    BlockTime = TimestampHelper.GetUtcNow()
-                }));
+                var block = osTestHelper.GenerateBlock(previousBlockHash, height);
 
                 // no choice need to execute the block to finalize it.
                 var newBlock = AsyncHelper.RunSync(() => exec.ExecuteBlockAsync(block.Header, new List<Transaction>(), new List<Transaction>(), CancellationToken.None));

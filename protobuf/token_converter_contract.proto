@@ -8,7 +8,9 @@ import "google/protobuf/empty.proto";
 option csharp_namespace = "AElf.Contracts.TokenConverter";
 
 service TokenConverterContract {
+    
     option (aelf.csharp_state) = "AElf.Contracts.TokenConverter.TokenConverterContractState";
+    
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
@@ -20,10 +22,9 @@ service TokenConverterContract {
     }
     rpc SetFeeRate (google.protobuf.StringValue) returns (google.protobuf.Empty) {
     }
-    rpc SetFeeReceiverAddress (aelf.Address) returns (google.protobuf.Empty) {
-    }
     rpc SetManagerAddress (aelf.Address) returns (google.protobuf.Empty) {
     }
+
     // Views
     rpc GetTokenContractAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
@@ -76,6 +77,20 @@ message SellInput {
     string symbol = 1;
     sint64 amount = 2;
     sint64 receive_limit = 3; // No sell if receiving less than this, 0 if no limit
+}
+
+message GetExchangeRateInput {
+    string from_symbol = 1;
+    string to_symbol = 2;
+}
+
+message SellWithInlineActionInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    sint64 receive_limit = 3; // No sell if receiving less than this, 0 if no limit
+    aelf.Address contract_address = 4;
+    string method_name = 5;
+    bytes params = 6;
 }
 
 // Events

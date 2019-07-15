@@ -39,9 +39,9 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             await _stateStoreImplementation.SetAsync(key, value);
         }
 
-        public async Task PipelineSetAsync(Dictionary<string, T> pipelineSet)
+        public async Task SetAllAsync(Dictionary<string, T> pipelineSet)
         {
-            await _stateStoreImplementation.PipelineSetAsync(pipelineSet);
+            await _stateStoreImplementation.SetAllAsync(pipelineSet);
         }
 
         public async Task<T> GetAsync(string key)

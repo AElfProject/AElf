@@ -24,15 +24,15 @@ namespace AElf.CrossChain.Communication.Application
         {
             var chainIds = _crossChainCacheEntityService.GetCachedChainIds();
             Logger.LogTrace(
-                $"Try to request from chain {string.Join(",", chainIds.Select(ChainHelpers.ConvertChainIdToBase58))}");
+                $"Try to request from chain {string.Join(",", chainIds.Select(ChainHelper.ConvertChainIdToBase58))}");
             foreach (var chainId in chainIds)
             {
                 var client = await _crossChainClientProvider.GetClientAsync(chainId);
                 if (client == null)
                     continue;
                 var targetHeight = _crossChainCacheEntityService.GetTargetHeightForChainCacheEntity(chainId);
-                Logger.LogTrace($" Request chain {ChainHelpers.ConvertChainIdToBase58(chainId)} from {targetHeight}");
-                _ = _crossChainClientProvider.RequestAsync(client, c => c.RequestCrossChainDataAsync(targetHeight));
+                Logger.LogTrace($" Request chain {ChainHelper.ConvertChainIdToBase58(chainId)} from {targetHeight}");
+                _ = client.RequestCrossChainDataAsync(targetHeight);
             }
         }
 
@@ -40,8 +40,7 @@ namespace AElf.CrossChain.Communication.Application
         {
             var client = _crossChainClientProvider.CreateClientForChainInitializationData(chainId);
             var chainInitializationData =
-                await _crossChainClientProvider.RequestAsync(client,
-                    c => c.RequestChainInitializationDataAsync(chainId));
+                await client.RequestChainInitializationDataAsync(chainId);
             return chainInitializationData;
         }
     }

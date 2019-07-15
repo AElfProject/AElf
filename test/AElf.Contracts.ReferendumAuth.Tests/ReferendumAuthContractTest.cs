@@ -5,6 +5,7 @@ using Acs3;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -18,11 +19,6 @@ namespace AElf.Contracts.ReferendumAuth
 {
     public class ReferendumAuthContractTest : ReferendumAuthContractTestBase
     {
-        private CreateOrganizationInput _createOrganizationInput = new CreateOrganizationInput();
-        private CreateProposalInput _createProposalInput = new CreateProposalInput();
-        private CreateInput _createInput = new CreateInput();
-        private Address _organizationAddress;
-
         public ReferendumAuthContractTest()
         {
             InitializeContracts();
@@ -40,13 +36,18 @@ namespace AElf.Contracts.ReferendumAuth
         [Fact]
         public async Task Get_Organization()
         {
-            _organizationAddress = await Create_Organization();
-            var getOrganization = await ReferendumAuthContractStub.GetOrganization.CallAsync(_organizationAddress);
+            var createOrganizationInput =  new CreateOrganizationInput
+            {
+                ReleaseThreshold = 5000,
+                TokenSymbol = "ELF",
+            };
+            var organizationAddress = await CreateOrganizationAsync();
+            var getOrganization = await ReferendumAuthContractStub.GetOrganization.CallAsync(organizationAddress);
             
-            getOrganization.OrganizationAddress.ShouldBe(_organizationAddress);
+            getOrganization.OrganizationAddress.ShouldBe(organizationAddress);
             getOrganization.ReleaseThreshold.ShouldBe(5000);
             getOrganization.OrganizationHash.ShouldBe(Hash.FromTwoHashes(
-                Hash.FromMessage(ReferendumAuthContractAddress), Hash.FromMessage(_createOrganizationInput)));
+                Hash.FromMessage(ReferendumAuthContractAddress), Hash.FromMessage(createOrganizationInput)));
         }
         
         [Fact]
@@ -61,16 +62,25 @@ namespace AElf.Contracts.ReferendumAuth
         [Fact]
         public async Task Get_Proposal()
         {
-            _organizationAddress = await Create_Organization();
-            var proposalId = await Create_Proposal();
+            var organizationAddress = await CreateOrganizationAsync();
+            var createInput = new CreateInput()
+            {
+                Symbol = "NEW",
+                Decimals = 2,
+                TotalSupply = 10_0000,
+                TokenName = "new token",
+                Issuer = organizationAddress,
+                IsBurnable = true
+            };
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair,organizationAddress);
             var getProposal = await ReferendumAuthContractStub.GetProposal.SendAsync(proposalId);
             
             getProposal.Output.Proposer.ShouldBe(DefaultSender);
             getProposal.Output.ContractMethodName.ShouldBe(nameof(TokenContract.Create));
             getProposal.Output.ProposalId.ShouldBe(proposalId);
-            getProposal.Output.OrganizationAddress.ShouldBe(_organizationAddress);
+            getProposal.Output.OrganizationAddress.ShouldBe(organizationAddress);
             getProposal.Output.ToAddress.ShouldBe(TokenContractAddress);
-            getProposal.Output.Params.ShouldBe(_createInput.ToByteString());
+            getProposal.Output.Params.ShouldBe(createInput.ToByteString());
         }
         
         [Fact]
@@ -84,62 +94,62 @@ namespace AElf.Contracts.ReferendumAuth
         [Fact]
         public async Task Create_ProposalFailed()
         {
-            _organizationAddress = await Create_Organization();
+            var organizationAddress = await CreateOrganizationAsync();
             var blockTime = BlockTimeProvider.GetBlockTime();
-            _createProposalInput = new CreateProposalInput
+            var createProposalInput = new CreateProposalInput
             {
                 ToAddress = Address.FromString("Test"),
                 Params = ByteString.CopyFromUtf8("Test"),
                 ExpiredTime = blockTime.AddDays(1),
-                OrganizationAddress =_organizationAddress
+                OrganizationAddress =organizationAddress
             };
             {
                 //"Invalid proposal."
-                var transactionResult = await ReferendumAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
+                var transactionResult = await ReferendumAuthContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
             }
             {
-                _createProposalInput.ContractMethodName = "Test";
-                _createProposalInput.ToAddress = null;
+                createProposalInput.ContractMethodName = "Test";
+                createProposalInput.ToAddress = null;
                 
-                var transactionResult = await ReferendumAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
+                var transactionResult = await ReferendumAuthContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
             }
             {
-                _createProposalInput.ExpiredTime = null;
-                _createProposalInput.ToAddress = Address.FromString("Test");
+                createProposalInput.ExpiredTime = null;
+                createProposalInput.ToAddress = Address.FromString("Test");
                 
-                var transactionResult = await ReferendumAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
+                var transactionResult = await ReferendumAuthContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Invalid proposal.").ShouldBeTrue();
             }
             {
                 //"Expired proposal."
-                _createProposalInput.ExpiredTime = blockTime.AddMilliseconds(5);
+                createProposalInput.ExpiredTime = blockTime.AddMilliseconds(5);
                 Thread.Sleep(10);
                 
-                var transactionResult = await ReferendumAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
+                var transactionResult = await ReferendumAuthContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Expired proposal.").ShouldBeTrue();
             }
             {
                 //"No registered organization."
-                _createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1);
-                _createProposalInput.OrganizationAddress = Address.FromString("NoRegisteredOrganizationAddress");
+                createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1);
+                createProposalInput.OrganizationAddress = Address.FromString("NoRegisteredOrganizationAddress");
                 
-                var transactionResult = await ReferendumAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
+                var transactionResult = await ReferendumAuthContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("No registered organization.").ShouldBeTrue();
             }
             {
                 //"Proposal already exists."
-                _createProposalInput.OrganizationAddress = _organizationAddress;
-                var transactionResult1 = await ReferendumAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
+                createProposalInput.OrganizationAddress = organizationAddress;
+                var transactionResult1 = await ReferendumAuthContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 
-                var transactionResult2 = await ReferendumAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
+                var transactionResult2 = await ReferendumAuthContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult2.TransactionResult.Error.Contains("Proposal already exists.").ShouldBeTrue();
             }
@@ -159,8 +169,8 @@ namespace AElf.Contracts.ReferendumAuth
         [Fact]
         public async Task Approve_Proposal_MultiTimes()
         {
-            _organizationAddress = await Create_Organization();
-            var proposalId = await Create_Proposal();
+            var organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair,organizationAddress);
             ReferendumAuthContractStub = GetReferendumAuthContractTester(SampleECKeyPairs.KeyPairs[1]);
             var transactionResult1 = await ReferendumAuthContractStub.Approve.SendAsync(new ApproveInput
             {
@@ -184,8 +194,8 @@ namespace AElf.Contracts.ReferendumAuth
         [Fact]
         public async Task Approve_Proposal_ExpiredTime()
         {
-            _organizationAddress = await Create_Organization();
-            var proposalId = await Create_Proposal();
+            var organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair,organizationAddress);
             
             ReferendumAuthContractStub = GetReferendumAuthContractTester(SampleECKeyPairs.KeyPairs[1]);
             BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
@@ -200,8 +210,8 @@ namespace AElf.Contracts.ReferendumAuth
         [Fact]
         public async Task Approve_InvalidVote()
         {
-            _organizationAddress = await Create_Organization();
-            var proposalId = await Create_Proposal();
+            var organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair,organizationAddress);
             
             ReferendumAuthContractStub = GetReferendumAuthContractTester(SampleECKeyPairs.KeyPairs[1]);
             var transactionResult = await ReferendumAuthContractStub.Approve.SendAsync(new ApproveInput
@@ -213,65 +223,13 @@ namespace AElf.Contracts.ReferendumAuth
             transactionResult.TransactionResult.Error.Contains("Invalid vote.").ShouldBeTrue();
         }
         
-        [Fact]
-        public async Task Approve_And_ReleaseProposal_1()
-        {
-            _organizationAddress = await Create_Organization();
-            var proposalId = await Create_Proposal();
-            
-             ReferendumAuthContractStub = GetReferendumAuthContractTester(SampleECKeyPairs.KeyPairs[2]);  
-             var transactionResult = await ReferendumAuthContractStub.Approve.SendAsync(new ApproveInput
-             {
-                    ProposalId = proposalId,
-                    Quantity = _createOrganizationInput.ReleaseThreshold
-             });
-            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            transactionResult.Output.Value.ShouldBe(true);
-               
-//            After release,the proposal will be deleted
-//            var getProposal = await ReferendumAuthContractStub.GetProposal.SendAsync(proposalId.Result);
-//            getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-//            getProposal.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
-            
-            //Check the inline transaction
-            var newToken = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput{Symbol = "NEW"});
-            newToken.Issuer.ShouldBe(_organizationAddress);
-        }
-
-        [Fact]
-        public async Task Approve_And_ReleaseProposal_2()
-        {
-            _organizationAddress = await Create_Organization();
-            var proposalId = await Create_Proposal();
-
-            for (int i = 1; i < 6; i++)
-            {
-                ReferendumAuthContractStub = GetReferendumAuthContractTester(SampleECKeyPairs.KeyPairs[i]);  
-                var transactionResult = await ReferendumAuthContractStub.Approve.SendAsync(new ApproveInput
-                {
-                    ProposalId = proposalId,
-                    Quantity = _createOrganizationInput.ReleaseThreshold / 5
-                });
-                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                transactionResult.Output.Value.ShouldBe(true);
-            }
-           
-//            After release,the proposal will be deleted
-//            var getProposal = await ReferendumAuthContractStub.GetProposal.SendAsync(proposalId.Result);
-//            getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-//            getProposal.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
-            
-            //Check the inline transaction
-            var newToken = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput{Symbol = "NEW"});
-            newToken.Issuer.ShouldBe(_organizationAddress);
-        }
-        
+       
         // TODO: after release proposal can't reclaim token.
         [Fact]
         public async Task Reclaim_VoteTokenFailed()
         {
-            _organizationAddress = await Create_Organization();
-            var proposalId = await Create_Proposal();
+            var organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair,organizationAddress);
             
             ReferendumAuthContractStub = GetReferendumAuthContractTester(SampleECKeyPairs.KeyPairs[1]);  
             var transactionResult = await ReferendumAuthContractStub.Approve.SendAsync(new ApproveInput
@@ -290,8 +248,8 @@ namespace AElf.Contracts.ReferendumAuth
         [Fact]
         public async Task Reclaim_VoteTokenWithoutVote()
         {
-            _organizationAddress = await Create_Organization();
-            var proposalId = await Create_Proposal();
+            var organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair,organizationAddress);
             
             ReferendumAuthContractStub = GetReferendumAuthContractTester(SampleECKeyPairs.KeyPairs[1]);  
             var reclaimResult = await ReferendumAuthContractStub.ReclaimVoteToken.SendAsync(proposalId);
@@ -299,43 +257,113 @@ namespace AElf.Contracts.ReferendumAuth
             reclaimResult.TransactionResult.Error.Contains("Nothing to reclaim.").ShouldBeTrue();
         }
         
-        public async Task<Hash> Create_Proposal()
+        [Fact]
+        public async Task Release_NotEnoughWeight()
         {
-            _organizationAddress = await Create_Organization();
-            _createInput = new CreateInput()
+            var organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair,organizationAddress);
+            await ApproveAsync(SampleECKeyPairs.KeyPairs[3],proposalId,2000);
+            
+            ReferendumAuthContractStub = GetReferendumAuthContractTester(DefaultSenderKeyPair);
+            var result = await ReferendumAuthContractStub.Release.SendAsync(proposalId);
+            //Reviewer Shares < ReleaseThreshold, release failed
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.TransactionResult.Error.Contains("Not approved.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task Release_NotFound()
+        { 
+            var proposalId = Hash.FromString("test");
+            var result = await ReferendumAuthContractStub.Release.SendAsync(proposalId);
+            //Proposal not found
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.TransactionResult.Error.Contains("Proposal not found.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task Release_WrongSender()
+        {
+            var organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair,organizationAddress);
+            await ApproveAsync(SampleECKeyPairs.KeyPairs[3],proposalId,5000);
+
+            ReferendumAuthContractStub = GetReferendumAuthContractTester(SampleECKeyPairs.KeyPairs[3]);
+            var result = await ReferendumAuthContractStub.Release.SendAsync(proposalId);
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.TransactionResult.Error.Contains("Unable to release this proposal.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task Release_Proposal()
+        {
+            var organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair,organizationAddress);
+            await ApproveAsync(SampleECKeyPairs.KeyPairs[3],proposalId,5000);
+  
+            ReferendumAuthContractStub = GetReferendumAuthContractTester(DefaultSenderKeyPair);
+            var result = await ReferendumAuthContractStub.Release.SendAsync(proposalId);
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            //After release,the proposal will be deleted
+            //var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId.Result);
+            //getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            //getProposal.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
+            
+            // Check inline transaction result
+            var newToken = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput{Symbol = "NEW"});
+            newToken.Issuer.ShouldBe(organizationAddress);
+        }
+        
+        public async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair,Address organizationAddress)
+        {
+            var createInput = new CreateInput()
             {
                 Symbol = "NEW",
                 Decimals = 2,
                 TotalSupply = 10_0000,
                 TokenName = "new token",
-                Issuer = _organizationAddress,
+                Issuer = organizationAddress,
                 IsBurnable = true
             };
-            _createProposalInput = new CreateProposalInput
+            var createProposalInput = new CreateProposalInput
             {
                 ContractMethodName = nameof(TokenContract.Create),
                 ToAddress = TokenContractAddress,
-                Params = _createInput.ToByteString(),
+                Params = createInput.ToByteString(),
                 ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(2),
-                OrganizationAddress = _organizationAddress
+                OrganizationAddress = organizationAddress
             };
-            var proposal = await ReferendumAuthContractStub.CreateProposal.SendAsync(_createProposalInput);
+            ReferendumAuthContractStub = GetReferendumAuthContractTester(proposalKeyPair);
+            var proposal = await ReferendumAuthContractStub.CreateProposal.SendAsync(createProposalInput);
             proposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             return proposal.Output;
         }
         
-        public async Task<Address> Create_Organization()
+        public async Task<Address> CreateOrganizationAsync()
         {           
-            _createOrganizationInput =  new CreateOrganizationInput
+            var createOrganizationInput =  new CreateOrganizationInput
             {
                 ReleaseThreshold = 5000,
                 TokenSymbol = "ELF",
             };
             var transactionResult =
-                await ReferendumAuthContractStub.CreateOrganization.SendAsync(_createOrganizationInput);
+                await ReferendumAuthContractStub.CreateOrganization.SendAsync(createOrganizationInput);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             return transactionResult.Output;
+        }
+        
+        private async Task ApproveAsync(ECKeyPair reviewer, Hash proposalId, long quantity )
+        {
+            ReferendumAuthContractStub = GetReferendumAuthContractTester(reviewer);
+            var transactionResult = await ReferendumAuthContractStub.Approve.SendAsync(new ApproveInput
+            {
+                ProposalId = proposalId,
+                Quantity = quantity
+            });
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            transactionResult.Output.Value.ShouldBe(true);
         }
     }
 }

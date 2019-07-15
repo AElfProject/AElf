@@ -7,7 +7,6 @@ namespace AElf.CrossChain.Cache.Application
     public interface IBlockCacheEntityProducer
     {
         bool TryAddBlockCacheEntity(IBlockCacheEntity blockCacheEntity);
-        ILogger<BlockCacheEntityProducer> Logger { get; set; }
     }
     
     public class BlockCacheEntityProducer : IBlockCacheEntityProducer, ISingletonDependency
@@ -30,6 +29,8 @@ namespace AElf.CrossChain.Cache.Application
             if (chainCacheEntity == null)
                 return false;
             var res = chainCacheEntity.TryAdd(blockCacheEntity);
+            Logger.LogTrace(
+                $"Cached height {blockCacheEntity.Height} from chain {ChainHelper.ConvertChainIdToBase58(blockCacheEntity.ChainId)}");
             return res;
         }
     }

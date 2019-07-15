@@ -1,3 +1,4 @@
+using Acs1;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
@@ -24,5 +25,7 @@ namespace AElf.Contracts.Vote
         /// Voter's Address -> VotedItems
         /// </summary>
         public MappedState<Address, VotedItems> VotedItemsMap { get; set; }
+
+        public MappedState<string, TokenAmounts> TransactionFees { get; set; }
     }
 }

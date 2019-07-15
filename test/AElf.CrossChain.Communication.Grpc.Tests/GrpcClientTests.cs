@@ -1,6 +1,3 @@
-using System.Threading.Tasks;
-using AElf.CrossChain.Cache;
-using AElf.Cryptography.Certificate;
 using Grpc.Core;
 using Shouldly;
 using Xunit;
@@ -44,7 +41,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 FromChainId = 0,
                 Host = "127.0.0.1"
             });
-            result.Result.ShouldBeTrue();
+            result.Success.ShouldBeTrue();
             Dispose();
         }
         

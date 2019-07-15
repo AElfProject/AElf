@@ -7,7 +7,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Sdk.CSharp
 {
-    public class CSharpSmartContractContext
+    public class CSharpSmartContractContext : ISmartContractBridgeContext
     {
         private readonly ISmartContractBridgeContext _smartContractBridgeContextImplementation;
 
@@ -37,6 +37,7 @@ namespace AElf.Sdk.CSharp
         public Address Sender => _smartContractBridgeContextImplementation.Sender;
 
         public Address Self => _smartContractBridgeContextImplementation.Self;
+        public Address Origin => _smartContractBridgeContextImplementation.Origin;
 
         public long CurrentHeight => _smartContractBridgeContextImplementation.CurrentHeight;
 
@@ -59,11 +60,6 @@ namespace AElf.Sdk.CSharp
         public bool VerifySignature(Transaction tx)
         {
             return _smartContractBridgeContextImplementation.VerifySignature(tx);
-        }
-
-        public void SendDeferredTransaction(Transaction deferredTxn)
-        {
-            _smartContractBridgeContextImplementation.SendDeferredTransaction(deferredTxn);
         }
 
         public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
@@ -105,6 +101,11 @@ namespace AElf.Sdk.CSharp
         public Address GetContractAddressByName(Hash hash)
         {
             return _smartContractBridgeContextImplementation.GetContractAddressByName(hash);
+        }
+        
+        public IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping()
+        {
+            return _smartContractBridgeContextImplementation.GetSystemContractNameToAddressMapping();
         }
         
         public byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)

@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -22,7 +20,7 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task ElectionContract_NextTerm()
         {
-            await NextTerm(InitialMinersKeyPairs[0]);
+            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
             var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             round.TermNumber.ShouldBe(2);
         }
@@ -30,7 +28,7 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task ElectionContract_NormalBlock()
         {
-            await NormalBlock(InitialMinersKeyPairs[0]);
+            await NormalBlock(InitialCoreDataCenterKeyPairs[0]);
             var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             round.GetMinedBlocks().ShouldBe(1);
             round.GetMinedMiners().Count.ShouldBe(1);
@@ -39,7 +37,9 @@ namespace AElf.Contracts.Election
         private async Task<TransactionResult> AnnounceElectionAsync(ECKeyPair keyPair)
         {
             var electionStub = GetElectionContractTester(keyPair);
-            return (await electionStub.AnnounceElection.SendAsync(new Empty())).TransactionResult;
+            var announceResult = (await electionStub.AnnounceElection.SendAsync(new Empty())).TransactionResult;
+            
+            return announceResult;
         }
 
         private async Task<TransactionResult> QuitElectionAsync(ECKeyPair keyPair)
@@ -52,12 +52,14 @@ namespace AElf.Contracts.Election
             int lockTime, long amount)
         {
             var electionStub = GetElectionContractTester(voterKeyPair);
-            return (await electionStub.Vote.SendAsync(new VoteMinerInput
+            var voteResult = (await electionStub.Vote.SendAsync(new VoteMinerInput
             {
-                CandidatePublicKey = candidatePublicKey,
+                CandidatePubkey = candidatePublicKey,
                 Amount = amount,
                 EndTimestamp = TimestampHelper.GetUtcNow().AddSeconds(lockTime)
             })).TransactionResult;
+
+            return voteResult;
         }
         
         private async Task VoteToCandidate(List<ECKeyPair> votersKeyPairs, string candidatePublicKey,
@@ -82,23 +84,6 @@ namespace AElf.Contracts.Election
         {
             var electionStub = GetElectionContractTester(keyPair);
             return (await electionStub.Withdraw.SendAsync(voteId)).TransactionResult;
-        }
-
-        private async Task ProduceBlocks(ECKeyPair keyPair, int roundsCount, bool changeTerm = false)
-        {
-            for (var i = 0; i < roundsCount; i++)
-            {
-                await NormalBlock(keyPair);
-                if (i != roundsCount - 1) continue;
-                if (changeTerm)
-                {
-                    await NextTerm(keyPair);
-                }
-                else
-                {
-                    await NextRound(keyPair);
-                }
-            }
         }
     }
 }

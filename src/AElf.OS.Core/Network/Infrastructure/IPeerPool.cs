@@ -6,6 +6,8 @@ namespace AElf.OS.Network.Infrastructure
 {
     public interface IPeerPool
     {
+        int PeerCount { get; }
+        
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerByAddressAsync(string address);
         List<IPeer> GetPeers(bool includeFailing = false);
@@ -23,5 +25,7 @@ namespace AElf.OS.Network.Infrastructure
         Task<Handshake> GetHandshakeAsync();
 
         void AddRecentBlockHeightAndHash(long blockHeight, Hash blockHash, bool hasFork);
+
+        Task ClearAllPeersAsync(bool sendDisconnect);
     }
 }

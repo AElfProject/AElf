@@ -7,6 +7,7 @@ using AElf.Types;
 
 namespace AElf.Contracts.Election
 {
+    // ReSharper disable InconsistentNaming
     public partial class ElectionContractState
     {
         internal VoteContractContainer.VoteContractReferenceState VoteContract { get; set; }

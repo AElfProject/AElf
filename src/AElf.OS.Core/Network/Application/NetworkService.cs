@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -16,12 +16,14 @@ namespace AElf.OS.Network.Application
     public class NetworkService : INetworkService, ISingletonDependency
     {
         private readonly IPeerPool _peerPool;
+        private readonly ITaskQueueManager _taskQueueManager;
 
         public ILogger<NetworkService> Logger { get; set; }
 
-        public NetworkService(IPeerPool peerPool)
+        public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager)
         {
             _peerPool = peerPool;
+            _taskQueueManager = taskQueueManager;
 
             Logger = NullLogger<NetworkService>.Instance;
         }
@@ -36,84 +38,89 @@ namespace AElf.OS.Network.Application
             return await _peerPool.RemovePeerByAddressAsync(address);
         }
 
-        public List<string> GetPeerIpList()
-        {
-            return _peerPool.GetPeers(true).Select(p => p.PeerIpAddress).ToList();
-        }
-
         public List<IPeer> GetPeers()
         {
             return _peerPool.GetPeers(true).ToList(); 
         }
 
-        public async Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader,bool hasFork)
+        public Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
         {
-            int successfulBcasts = 0;
+            var blockHash = blockHeader.GetHash();
             
-            var announce = new PeerNewBlockAnnouncement
+            if (_peerPool.RecentBlockHeightAndHashMappings.TryGetValue(blockHeader.Height, out var recentBlockHash) &&
+                recentBlockHash == blockHash)
             {
-                BlockHash = blockHeader.GetHash(),
+                Logger.LogDebug($"BlockHeight: {blockHeader.Height}, BlockHash: {blockHash} has been broadcast.");
+                return Task.CompletedTask;
+            }
+            
+            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHash, hasFork);
+            
+            var announce = new BlockAnnouncement
+            {
+                BlockHash = blockHash,
                 BlockHeight = blockHeader.Height,
                 HasFork = hasFork
             };
             
-            var peers = _peerPool.GetPeers().ToList();
-
-            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHeader.GetHash(), hasFork);
-            
-            Logger.LogDebug("About to broadcast to peers.");
-            
-            var tasks = peers.Select(peer => DoAnnounce(peer, announce)).ToList();
-            await Task.WhenAll(tasks);
-
-            foreach (var finishedTask in tasks.Where(t => t.IsCompleted))
+            var beforeEnqueue = TimestampHelper.GetUtcNow();
+            _taskQueueManager.Enqueue(async () =>
             {
-                if (finishedTask.Result)
-                    successfulBcasts++;
-            }
+                var execTime = TimestampHelper.GetUtcNow();
+                if (execTime > beforeEnqueue +
+                    TimestampHelper.DurationFromMilliseconds(NetworkConstants.AnnouncementQueueJobTimeout))
+                {
+                    Logger.LogWarning($"Announcement too old: {execTime - beforeEnqueue}");
+                    return;
+                }
+                
+                foreach (var peer in _peerPool.GetPeers())
+                {
+                    try
+                    {
+                        await peer.SendAnnouncementAsync(announce);
+                    }
+                    catch (NetworkException ex)
+                    {
+                        Logger.LogError(ex, $"Error while announcing to {peer}.");
+                        await HandleNetworkException(peer, ex);
+                    }
+                }
+                
+            }, NetworkConstants.AnnouncementBroadcastQueueName);
             
-            Logger.LogDebug("Broadcast successful !");
-            
-            return successfulBcasts;
-        }
-
-        private async Task<bool> DoAnnounce(IPeer peer, PeerNewBlockAnnouncement announce)
-        {
-            try
-            {
-                Logger.LogDebug($"Before broadcast {announce.BlockHash} to {peer}.");
-                await peer.AnnounceAsync(announce);
-                Logger.LogDebug($"After broadcast {announce.BlockHash} to {peer}.");
-
-                return true;
-            }
-            catch (NetworkException e)
-            {
-                Logger.LogError(e, "Error while sending block.");
-            }
-
-            return false;
+            return Task.CompletedTask;
         }
         
-        public async Task<int> BroadcastTransactionAsync(Transaction tx)
+        public Task BroadcastTransactionAsync(Transaction transaction)
         {
-            int successfulBcasts = 0;
-            
-            foreach (var peer in _peerPool.GetPeers())
+            var beforeEnqueue = TimestampHelper.GetUtcNow();
+            _taskQueueManager.Enqueue(async () =>
             {
-                try
+                var execTime = TimestampHelper.GetUtcNow();
+                if (execTime > beforeEnqueue +
+                    TimestampHelper.DurationFromMilliseconds(NetworkConstants.TransactionQueueJobTimeout))
                 {
-                    await peer.SendTransactionAsync(tx);
-                    
-                    successfulBcasts++;
+                    Logger.LogWarning($"Transaction too old: {execTime - beforeEnqueue}");
+                    return;
                 }
-                catch (NetworkException e)
+                
+                foreach (var peer in _peerPool.GetPeers())
                 {
-                    Logger.LogError(e, "Error while sending transaction.");
+                    try
+                    {
+                        await peer.SendTransactionAsync(transaction);
+                    }
+                    catch (NetworkException ex)
+                    {
+                        Logger.LogError(ex, "Error while sending transaction.");
+                        await HandleNetworkException(peer, ex);
+                    }
                 }
-            }
-            
-            return successfulBcasts;
+                
+            }, NetworkConstants.TransactionBroadcastQueueName);
+
+            return Task.CompletedTask;
         }
 
         public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, 
@@ -148,14 +155,14 @@ namespace AElf.OS.Network.Application
             
             if (bestPeer == null)
                 Logger.LogWarning("No best peer.");
-            else if (bestPeer.PubKey != peerPubKey)
+            else if (bestPeer.Info.Pubkey != peerPubKey)
                 peers.Add(bestPeer);
             
             Random rnd = new Random();
             
             // Fill with random peers.
             List<IPeer> randomPeers = _peerPool.GetPeers()
-                .Where(p => p.PubKey != peerPubKey && (bestPeer == null || p.PubKey != bestPeer.PubKey))
+                .Where(p => p.Info.Pubkey != peerPubKey && (bestPeer == null || p.Info.Pubkey != bestPeer.Info.Pubkey))
                 .OrderBy(x => rnd.Next())
                 .Take(NetworkConstants.DefaultMaxRandomPeersPerRequest)
                 .ToList();
@@ -172,25 +179,53 @@ namespace AElf.OS.Network.Application
             Logger.LogDebug($"Getting block by hash, hash: {hash} from {peer}.");
             
             var peers = SelectPeers(peer);
-            return await RequestAsync(peers, p => p.RequestBlockAsync(hash), blockWithTransactions => blockWithTransactions != null, peer);
+            return await RequestAsync(peers, p => p.GetBlockByHashAsync(hash), blockWithTransactions => blockWithTransactions != null, peer);
         }
 
         private async Task<(IPeer, T)> DoRequest<T>(IPeer peer, Func<IPeer, Task<T>> func) where T : class
         {
             try
             {
-                Logger.LogDebug($"before request send to {peer.PeerIpAddress}.");
                 var res = await func(peer);
-                Logger.LogDebug($"request send to {peer.PeerIpAddress}.");
                 
                 return (peer, res);
             }
-            catch (NetworkException e)
+            catch (NetworkException ex)
             {
-                Logger.LogError(e, $"Error while requesting block from {peer.PeerIpAddress}.");
+                Logger.LogError(ex, $"Error while requesting block(s) from {peer.IpAddress}.");
+                await HandleNetworkException(peer, ex);
             }
             
             return (peer, null);
+        }
+
+        private async Task HandleNetworkException(IPeer peer, NetworkException exception)
+        {
+            if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
+            {
+                await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false);
+            }
+            else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
+            {
+                Logger.LogError($"Queuing peer for reconnection {peer.IpAddress}.");
+                QueueNetworkTask(async () => await RecoverPeerAsync(peer));
+            }
+        }
+        
+        private async Task RecoverPeerAsync(IPeer peer)
+        {
+            if (peer.IsReady) // peer recovered already
+                return;
+                
+            var success = await peer.TryRecoverAsync();
+
+            if (!success)
+                await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false);
+        }
+        
+        private void QueueNetworkTask(Func<Task> task)
+        {
+            _taskQueueManager.Enqueue(task, NetworkConstants.PeerReconnectionQueueName);
         }
 
         private async Task<T> RequestAsync<T>(List<IPeer> peers, Func<IPeer, Task<T>> func,
@@ -221,7 +256,7 @@ namespace AElf.OS.Network.Application
 
             if (finished == null)
             {
-                Logger.LogDebug($"No peer succeeded.");
+                Logger.LogDebug("No peer succeeded.");
                 return null;
             }
 
@@ -230,8 +265,8 @@ namespace AElf.OS.Network.Application
             
             UpdateBestPeer(taskPeer);
             
-            if (suggested != taskPeer.PubKey)
-                Logger.LogWarning($"Suggested {suggested}, used {taskPeer.PubKey}");
+            if (suggested != taskPeer.Info.Pubkey)
+                Logger.LogWarning($"Suggested {suggested}, used {taskPeer.Info.Pubkey}");
             
             Logger.LogDebug($"First replied {taskRes} : {taskPeer}.");
 
@@ -251,14 +286,6 @@ namespace AElf.OS.Network.Application
             }
                 
             taskPeer.IsBest = true;
-        }
-
-        public Task<long> GetBestChainHeightAsync(string peerPubKey = null)
-        {
-            var peer = !peerPubKey.IsNullOrEmpty()
-                ? _peerPool.FindPeerByPublicKey(peerPubKey)
-                : _peerPool.GetPeers().OrderByDescending(p => p.CurrentBlockHeight).FirstOrDefault();
-            return Task.FromResult(peer?.CurrentBlockHeight ?? 0);
         }
     }
 }

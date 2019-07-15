@@ -29,7 +29,7 @@ namespace AElf.Types.Tests
             Should.Throw<ArgumentOutOfRangeException>(() => {Address.FromBytes(bytes); });
 
             //Generate from public key
-            var pk = CryptoHelpers.GenerateKeyPair().PublicKey;
+            var pk = CryptoHelper.GenerateKeyPair().PublicKey;
             var address5 = Address.FromPublicKey(pk);
             address5.ShouldNotBe(null);
             address5.DumpByteArray().Length.ShouldBe(32);
@@ -38,7 +38,7 @@ namespace AElf.Types.Tests
         [Fact]
         public void Get_Address_Info()
         {
-            var pk = CryptoHelpers.GenerateKeyPair().PublicKey;
+            var pk = CryptoHelper.GenerateKeyPair().PublicKey;
             var address = Address.FromPublicKey(pk);
             var addressString = address.GetFormatted();
             addressString.ShouldNotBe(string.Empty);
@@ -91,17 +91,17 @@ namespace AElf.Types.Tests
         {
             var address = Address.FromString("Test");
             var formattedAddress = address.GetFormatted();
-            AddressHelpers.VerifyFormattedAddress(formattedAddress).ShouldBeTrue();
+            AddressHelper.VerifyFormattedAddress(formattedAddress).ShouldBeTrue();
 
-            AddressHelpers.VerifyFormattedAddress(formattedAddress + "ER").ShouldBeFalse();
-            AddressHelpers.VerifyFormattedAddress("AE" + formattedAddress).ShouldBeFalse();
+            AddressHelper.VerifyFormattedAddress(formattedAddress + "ER").ShouldBeFalse();
+            AddressHelper.VerifyFormattedAddress("AE" + formattedAddress).ShouldBeFalse();
 
             var formattedAddressCharArray = formattedAddress.ToCharArray();
             formattedAddressCharArray[4] = 'F';
-            AddressHelpers.VerifyFormattedAddress(new string(formattedAddressCharArray)).ShouldBeFalse();
+            AddressHelper.VerifyFormattedAddress(new string(formattedAddressCharArray)).ShouldBeFalse();
 
-            AddressHelpers.VerifyFormattedAddress("").ShouldBeFalse();
-            AddressHelpers.VerifyFormattedAddress("I0I0").ShouldBeFalse();
+            AddressHelper.VerifyFormattedAddress("").ShouldBeFalse();
+            AddressHelper.VerifyFormattedAddress("I0I0").ShouldBeFalse();
         }
     }
 }

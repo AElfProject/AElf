@@ -4,7 +4,7 @@ namespace AElf.Blockchains
     {
         public string Symbol { get; set; } = "ELF";
         public string Name { get; set; }
-        public int TotalSupply { get; set; }
+        public long TotalSupply { get; set; }
         public int Decimals { get; set; }
         public bool IsBurnable { get; set; }
         public double DividendPoolRatio { get; set; }

@@ -6,6 +6,7 @@ using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -16,32 +17,36 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
+using InitializeInput = AElf.Contracts.ParliamentAuth.InitializeInput;
 
 namespace AElf.Contracts.Profit
 {
     public class ProfitContractTestBase : ContractTestBase<ProfitContractTestAElfModule>
     {
-        protected Hash TreasuryHash { get; set; }
         protected ECKeyPair StarterKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address Starter => Address.FromPublicKey(StarterKeyPair.PublicKey);
         protected Address TokenContractAddress { get; set; }
         protected Address ProfitContractAddress { get; set; }
         
-        internal List<ProfitContractContainer.ProfitContractStub> Creators => CreatorMinerKeyPair
+        protected Address ParliamentAuthAddress{ get; set; }
+        
+        internal List<ProfitContractContainer.ProfitContractStub> Creators => CreatorKeyPair
             .Select(p => GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, p)).ToList();
 
-        internal List<ProfitContractContainer.ProfitContractStub> Normal => NormalMinerKeyPair
+        internal List<ProfitContractContainer.ProfitContractStub> Normal => NormalKeyPair
             .Select(p => GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, p)).ToList();
         
-        protected List<ECKeyPair> CreatorMinerKeyPair => SampleECKeyPairs.KeyPairs.Skip(1).Take(4).ToList();
+        protected List<ECKeyPair> CreatorKeyPair => SampleECKeyPairs.KeyPairs.Skip(1).Take(4).ToList();
         
-        protected List<ECKeyPair> NormalMinerKeyPair => SampleECKeyPairs.KeyPairs.Skip(5).Take(5).ToList();
+        protected List<ECKeyPair> NormalKeyPair => SampleECKeyPairs.KeyPairs.Skip(5).Take(5).ToList();
 
         internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
 
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
 
         internal ProfitContractContainer.ProfitContractStub ProfitContractStub { get; set; }
+        
+        internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentContractStub { get; set; }
 
         protected void InitializeContracts()
         {
@@ -69,24 +74,23 @@ namespace AElf.Contracts.Profit
                         TransactionMethodCallList = GenerateTokenInitializationCallList()
                     })).Output;
             TokenContractStub = GetTokenContractTester(StarterKeyPair);
+            
+            //deploy parliament auth contract
+            ParliamentAuthAddress = AsyncHelper.RunSync(()=>GetContractZeroTester(StarterKeyPair)
+                .DeploySystemSmartContract.SendAsync(
+                    new SystemContractDeploymentInput
+                    {
+                        Category = KernelConstants.CodeCoverageRunnerCategory,
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ParliamentAuthContract).Assembly.Location)),
+                        Name = ParliamentAuthSmartContractAddressNameProvider.Name,
+                        TransactionMethodCallList = GenerateParliamentInitializationCallList()
+                    })).Output;
+            ParliamentContractStub = GetParliamentContractTester(StarterKeyPair);
         }
 
         protected async Task CreateTreasury()
         {
-            await ProfitContractStub.CreateProfitItem.SendAsync(new CreateProfitItemInput
-            {
-                ExpiredPeriodNumber = 100,
-                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
-            });
-            TreasuryHash = ProfitContractStub.GetCreatedProfitItems.CallAsync(new GetCreatedProfitItemsInput
-            {
-                Creator = Address.FromPublicKey(StarterKeyPair.PublicKey)
-            }).Result.ProfitIds.First();
-            await ProfitContractStub.AddProfits.SendAsync(new AddProfitsInput
-            {
-                ProfitId = TreasuryHash,
-                Amount = (long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2),
-            });
+
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
@@ -103,29 +107,32 @@ namespace AElf.Contracts.Profit
         {
             return GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, keyPair);
         }
+        
+        internal ParliamentAuthContractContainer.ParliamentAuthContractStub GetParliamentContractTester(ECKeyPair keyPair)
+        {
+            return GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(ParliamentAuthAddress, keyPair);
+        }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateProfitInitializationCallList()
         {
-            var voteMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            voteMethodCallList.Add(nameof(ProfitContract.InitializeProfitContract),new Empty());
-            return voteMethodCallList;
+            return new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
         }
 
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
         {
             const string symbol = "ELF";
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContract.Create), new CreateInput
             {
                 Symbol = symbol,
                 Decimals = 2,
                 IsBurnable = true,
                 TokenName = "elf token",
-                TotalSupply = ProfitContractTestConsts.NativeTokenTotalSupply,
+                TotalSupply = ProfitContractTestConstants.NativeTokenTotalSupply,
                 Issuer = Starter,
-                LockWhiteSystemContractNameList =
+                LockWhiteList =
                 {
-                    ProfitSmartContractAddressNameProvider.Name
+                    ProfitContractAddress
                 }
             });
 
@@ -133,21 +140,44 @@ namespace AElf.Contracts.Profit
             tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
             {
                 Symbol = symbol,
-                Amount = (long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2),
+                Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.2),
                 To = Address.FromPublicKey(StarterKeyPair.PublicKey),
                 Memo = "Issue token to default user for vote.",
             });
 
-            CreatorMinerKeyPair.ForEach(creatorKeyPair => tokenContractCallList.Add(nameof(TokenContract.Issue),
+            CreatorKeyPair.ForEach(creatorKeyPair => tokenContractCallList.Add(nameof(TokenContract.Issue),
                 new IssueInput
                 {
                     Symbol = symbol,
-                    Amount = (long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2),
+                    Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.1),
                     To = Address.FromPublicKey(creatorKeyPair.PublicKey),
+                    Memo = "set voters few amount for voting."
+                }));
+            
+            NormalKeyPair.ForEach(normalKeyPair => tokenContractCallList.Add(nameof(TokenContract.Issue),
+                new IssueInput
+                {
+                    Symbol = symbol,
+                    Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.05),
+                    To = Address.FromPublicKey(normalKeyPair.PublicKey),
                     Memo = "set voters few amount for voting."
                 }));
 
             return tokenContractCallList;
+        }
+
+        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
+            GenerateParliamentInitializationCallList()
+        {
+            var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            parliamentContractCallList.Add(nameof(ParliamentContractStub.Initialize), new InitializeInput
+            {
+                GenesisOwnerReleaseThreshold = 1,
+                PrivilegedProposer = Starter,
+                ProposerAuthorityRequired = true
+            });
+
+            return parliamentContractCallList;
         }
     }
 }

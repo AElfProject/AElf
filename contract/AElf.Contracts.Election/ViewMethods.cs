@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Sdk.CSharp;
-using AElf.Contracts.Profit;
-using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
@@ -18,16 +16,42 @@ namespace AElf.Contracts.Election
             return State.MinerElectionVotingItemId.Value;
         }
 
-        public override PublicKeysList GetCandidates(Empty input)
+        public override PubkeyList GetCandidates(Empty input)
         {
-            return State.Candidates.Value;
+            return State.Candidates.Value ?? new PubkeyList();
         }
 
-        public override PublicKeysList GetVictories(Empty input)
+        public override PubkeyList GetVotedCandidates(Empty input)
         {
+            var votedCandidates = new PubkeyList();
+            if (State.Candidates.Value == null)
+            {
+                return votedCandidates;
+            }
+
+            foreach (var pubkey in State.Candidates.Value.Value)
+            {
+                var candidateVotes = State.CandidateVotes[pubkey.ToHex()];
+                if (candidateVotes != null && candidateVotes.ObtainedActiveVotedVotesAmount > 0)
+                {
+                    votedCandidates.Value.Add(pubkey);
+                }
+            }
+
+            return votedCandidates;
+        }
+
+        public override PubkeyList GetVictories(Empty input)
+        {
+            if (State.AEDPoSContract.Value == null)
+            {
+                State.AEDPoSContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            }
+
             var currentMiners = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
-            return new PublicKeysList {Value = {GetVictories(currentMiners)}};
+            return new PubkeyList {Value = {GetVictories(currentMiners)}};
         }
 
         private List<ByteString> GetVictories(List<string> currentMiners)
@@ -52,7 +76,7 @@ namespace AElf.Contracts.Election
             }
 
             victories = validCandidates.Select(k => State.CandidateVotes[k])
-                .OrderByDescending(v => v.ObtainedActiveVotedVotesAmount).Select(v => v.PublicKey)
+                .OrderByDescending(v => v.ObtainedActiveVotedVotesAmount).Select(v => v.Pubkey)
                 .Take(State.MinersCount.Value).ToList();
             Context.LogDebug(() => string.Join("\n", victories.Select(v => v.ToHex().Substring(0, 10)).ToList()));
             return victories;
@@ -92,7 +116,7 @@ namespace AElf.Contracts.Election
 
         public override CandidateInformation GetCandidateInformation(StringInput input)
         {
-            return State.CandidateInformationMap[input.Value] ?? new CandidateInformation {PublicKey = input.Value};
+            return State.CandidateInformationMap[input.Value] ?? new CandidateInformation {Pubkey = input.Value};
         }
 
         public override TermSnapshot GetTermSnapshot(GetTermSnapshotInput input)
@@ -104,17 +128,18 @@ namespace AElf.Contracts.Election
         {
             return State.ElectorVotes[input.Value] ?? new ElectorVote
             {
-                PublicKey = input.Value.ToByteString()
+                Pubkey = input.Value.ToByteString()
             };
         }
 
         public override ElectorVote GetElectorVoteWithRecords(StringInput input)
         {
             var votes = State.ElectorVotes[input.Value];
-            if (votes == null) return new ElectorVote
-            {
-                PublicKey = input.Value.ToByteString()
-            };
+            if (votes == null)
+                return new ElectorVote
+                {
+                    Pubkey = input.Value.ToByteString()
+                };
 
             var votedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
@@ -174,36 +199,9 @@ namespace AElf.Contracts.Election
             return new SInt64Value
             {
                 Value = State.AEDPoSContract.GetCurrentRoundInformation.Call(new Empty()).RealTimeMinersInformation
-                    .Values.Sum(minerInRound => minerInRound.ProducedBlocks).Mul(ElectionContractConstants.ElfTokenPerBlock)
+                    .Values.Sum(minerInRound => minerInRound.ProducedBlocks)
+                    .Mul(ElectionContractConstants.ElfTokenPerBlock)
             };
-        }
-
-        public override GetWelfareRewardAmountSampleOutput GetWelfareRewardAmountSample(GetWelfareRewardAmountSampleInput input)
-        {
-            const long amount = 10000;
-            var welfareHash = State.WelfareHash.Value;
-            var output = new GetWelfareRewardAmountSampleOutput();
-            var welfareItem = State.ProfitContract.GetProfitItem.Call(welfareHash);
-            var releasedInformation = State.ProfitContract.GetReleasedProfitsInformation.Call(
-                new GetReleasedProfitsInformationInput
-                {
-                    ProfitId = welfareHash,
-                    Period = welfareItem.CurrentPeriod.Sub(1)
-                });
-            var totalWeight = releasedInformation.TotalWeight;
-            var totalAmount = releasedInformation.ProfitsAmount;
-            foreach (var lockTime in input.Value)
-            {
-                var weight = GetVotesWeight(amount, lockTime);
-                output.Value.Add(totalAmount.Mul(weight).Div(totalWeight));
-            }
-
-            return output;
-        }
-
-        public override SInt64Value GetCurrentWelfareReward(StringInput input)
-        {
-            return State.ProfitContract.GetProfitAmount.Call(new ProfitInput {ProfitId = State.WelfareHash.Value});
         }
 
         public override GetPageableCandidateInformationOutput GetPageableCandidateInformation(PageInformation input)
@@ -227,7 +225,7 @@ namespace AElf.Contracts.Election
         {
             return State.CandidateVotes[input.Value] ?? new CandidateVote
             {
-                PublicKey = input.Value.ToByteString()
+                Pubkey = input.Value.ToByteString()
             };
         }
 
@@ -237,7 +235,7 @@ namespace AElf.Contracts.Election
             if (votes == null)
                 return new CandidateVote
                 {
-                    PublicKey = input.Value.ToByteString()
+                    Pubkey = input.Value.ToByteString()
                 };
 
             var obtainedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
@@ -291,7 +289,8 @@ namespace AElf.Contracts.Election
                 VoteTimestamp = votingRecord.VoteTimestamp,
                 WithdrawTimestamp = votingRecord.WithdrawTimestamp,
                 UnlockTimestamp = votingRecord.VoteTimestamp.AddSeconds(lockSeconds),
-                IsWithdrawn = votingRecord.IsWithdrawn
+                IsWithdrawn = votingRecord.IsWithdrawn,
+                Weight = GetVotesWeight(votingRecord.Amount, lockSeconds)
             };
         }
     }
