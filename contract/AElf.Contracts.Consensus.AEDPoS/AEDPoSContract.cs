@@ -163,10 +163,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Empty UpdateTinyBlockInformation(TinyBlockInput input)
         {
             Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
-            if (input.RoundId != round.RoundId)
-            {
-                Context.LogDebug(() => "Round Id not matched.");
-            }
             Assert(input.RoundId == round.RoundId, "Round Id not matched.");
 
             var publicKey = Context.RecoverPublicKey().ToHex();
