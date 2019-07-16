@@ -22,17 +22,14 @@ namespace AElf.Types
         // Make private to avoid confusion
         private Address(byte[] bytes)
         {
-            if (bytes == null || bytes.Length != TypeConsts.AddressHashLength)
-                throw new ArgumentOutOfRangeException(nameof(bytes), "Invalid bytes.");
+            if (bytes.Length != TypeConsts.AddressHashLength)
+                throw new ArgumentException("Invalid bytes.", nameof(bytes));
 
             Value = ByteString.CopyFrom(bytes);
         }
 
         public static Address FromPublicKey(byte[] bytes)
         {
-            if (bytes == null)
-                throw new ArgumentOutOfRangeException(nameof(bytes), "Invalid bytes.");
-
             var hash = bytes.CalculateHash().CalculateHash();
             return new Address(hash);
         }
@@ -42,11 +39,11 @@ namespace AElf.Types
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <exception cref="ArgumentException"></exception>
         public static Address FromBytes(byte[] bytes)
         {
-            if (bytes == null || bytes.Length != TypeConsts.AddressHashLength)
-                throw new ArgumentOutOfRangeException(nameof(bytes), "Invalid bytes.");
+            if (bytes.Length != TypeConsts.AddressHashLength)
+                throw new ArgumentException("Invalid bytes.", nameof(bytes));
 
             return new Address
             {
@@ -116,7 +113,7 @@ namespace AElf.Types
                 return _formattedAddress;
 
             if (Value.Length != TypeConsts.AddressHashLength)
-                throw new ArgumentOutOfRangeException(nameof(Value), "Invalid address");
+                throw new ArgumentException("Invalid address", nameof(Value));
 
             var pubKeyHash = Base58CheckEncoding.Encode(Value.ToByteArray());
             return _formattedAddress = pubKeyHash;
