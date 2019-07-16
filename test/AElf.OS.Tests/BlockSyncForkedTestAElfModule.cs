@@ -67,7 +67,7 @@ namespace AElf.OS
             
             var forkBranchHeight = height;
 
-            for (var i = forkBranchHeight; i < forkBranchHeight + 10; i++)
+            for (var i = forkBranchHeight; i < forkBranchHeight + 20; i++)
             {
                 var block = osTestHelper.GenerateBlock(previousBlockHash, height);
 

@@ -25,10 +25,10 @@ namespace AElf.OS.BlockSync.Application
             var downloadResult = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash, chain
                 .BestChainHeight, 5, null);
 
-            downloadResult.ShouldBe(10);
+            downloadResult.ShouldBe(20);
             
             chain = await _blockchainService.GetChainAsync();
-            chain.BestChainHeight.ShouldBe(21);
+            chain.BestChainHeight.ShouldBe(31);
         }
 
         [Fact]
