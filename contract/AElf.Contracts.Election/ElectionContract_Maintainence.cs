@@ -43,7 +43,7 @@ namespace AElf.Contracts.Election
 
             State.CurrentTermNumber.Value = 1;
 
-            State.ValidationDataCentersRankingList.Value = new ValidationDataCenterRankingList();
+            State.DataCentersRankingList.Value = new DataCenterRankingList();
 
             State.Initialized.Value = true;
             return new Empty();

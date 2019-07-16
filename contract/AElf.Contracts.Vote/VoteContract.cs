@@ -206,7 +206,8 @@ namespace AElf.Contracts.Vote
             State.VotedItemsMap[votingRecord.Voter] = votedItems;
 
             var votingResult = State.VotingResults[votingResultHash];
-            votingResult.Results[votingRecord.Option] -= votingRecord.Amount;
+            votingResult.Results[votingRecord.Option] =
+                votingResult.Results[votingRecord.Option].Sub(votingRecord.Amount);
             if (!votedItems.VotedItemVoteIds[votingRecord.VotingItemId.ToHex()].ActiveVotes.Any())
             {
                 votingResult.VotersCount = votingResult.VotersCount.Sub(1);

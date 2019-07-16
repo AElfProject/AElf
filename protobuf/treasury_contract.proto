@@ -30,9 +30,6 @@ service TreasuryContract {
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentWelfareReward (google.protobuf.Empty) returns (aelf.SInt64Value) {
-        option (aelf.is_view) = true;
-    }
 }
 
 message DonateInput {

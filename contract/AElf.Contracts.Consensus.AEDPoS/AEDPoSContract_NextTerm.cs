@@ -20,14 +20,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(TryToUpdateTermNumber(input.TermNumber), "Failed to update term number.");
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
 
-            var minersCount = GetMinersCount(input);
-            if (minersCount != 0 && State.ElectionContract.Value != null)
-            {
-                State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
-                {
-                    MinersCount = minersCount
-                });
-            }
+            UpdateMinersCountToElectionContract(input);
 
             // Reset some fields of first two rounds of next term.
             foreach (var minerInRound in input.RealTimeMinersInformation.Values)
@@ -36,27 +29,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 minerInRound.ProducedBlocks = 0;
             }
 
-            var senderPublicKey = Context.RecoverPublicKey().ToHex();
-
-            // Update produced block number of this node.
-            if (input.RealTimeMinersInformation.ContainsKey(senderPublicKey))
-            {
-                input.RealTimeMinersInformation[senderPublicKey].ProducedBlocks =
-                    input.RealTimeMinersInformation[senderPublicKey].ProducedBlocks + 1;
-            }
-            else
-            {
-                State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
-                {
-                    Pubkey = senderPublicKey,
-                    RecentlyProducedBlocks = 1
-                });
-            }
+            UpdateProducedBlocksNumberOfSender(input);
 
             // Update miners list.
             var miners = new MinerList();
             miners.Pubkeys.AddRange(input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
-            Assert(SetMinerListOfCurrentTerm(miners), "Failed to update miner list.");
+            if (!SetMinerListOfCurrentTerm(miners))
+            {
+                Assert(false, "Failed to update miner list.");
+            }
 
             // Update term number lookup. (Using term number to get first round number of related term.)
             State.FirstRoundNumberOfEachTerm[input.TermNumber] = input.RoundNumber;
@@ -64,27 +45,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // Update rounds information of next two rounds.
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
 
-            Assert(TryToGetPreviousRoundInformation(out var previousRound),
-                "Failed to get previous round information.");
-
-            foreach (var minerInfo in previousRound.RealTimeMinersInformation)
+            if (!TryToGetPreviousRoundInformation(out var previousRound))
             {
-                State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
-                {
-                    Pubkey = minerInfo.Key,
-                    RecentlyProducedBlocks = minerInfo.Value.ProducedBlocks,
-                    RecentlyMissedTimeSlots = minerInfo.Value.MissedTimeSlots
-                });
+                Assert(false, "Failed to get previous round information.");
             }
 
-            if (State.TreasuryContract.Value == null)
-            {
-                State.TreasuryContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-            }
+            UpdateCurrentMinerInformationToElectionContract(previousRound);
 
-            var miningRewardAmount = previousRound.GetMinedBlocks().Mul(AEDPoSContractConstants.MiningRewardPerBlock);
-            DonateMiningReward(miningRewardAmount);
+            DonateMiningReward(previousRound);
 
             State.TreasuryContract.Release.Send(new ReleaseInput
             {
@@ -101,9 +69,56 @@ namespace AElf.Contracts.Consensus.AEDPoS
             });
 
             Context.LogDebug(() => $"Changing term number to {input.TermNumber}");
+
             TryToFindLastIrreversibleBlock();
 
             return new Empty();
+        }
+
+        private void UpdateProducedBlocksNumberOfSender(Round input)
+        {
+            var senderPublicKey = Context.RecoverPublicKey().ToHex();
+
+            // Update produced block number of transaction sender.
+            if (input.RealTimeMinersInformation.ContainsKey(senderPublicKey))
+            {
+                input.RealTimeMinersInformation[senderPublicKey].ProducedBlocks =
+                    input.RealTimeMinersInformation[senderPublicKey].ProducedBlocks + 1;
+            }
+            else
+            {
+                // If the sender isn't in miner list of next term.
+                State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
+                {
+                    Pubkey = senderPublicKey,
+                    RecentlyProducedBlocks = 1
+                });
+            }
+        }
+
+        private void UpdateCurrentMinerInformationToElectionContract(Round previousRound)
+        {
+            foreach (var minerInfo in previousRound.RealTimeMinersInformation)
+            {
+                State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
+                {
+                    Pubkey = minerInfo.Key,
+                    RecentlyProducedBlocks = minerInfo.Value.ProducedBlocks,
+                    RecentlyMissedTimeSlots = minerInfo.Value.MissedTimeSlots
+                });
+            }
+        }
+
+        private void UpdateMinersCountToElectionContract(Round input)
+        {
+            var minersCount = GetMinersCount(input);
+            if (minersCount != 0 && State.ElectionContract.Value != null)
+            {
+                State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
+                {
+                    MinersCount = minersCount
+                });
+            }
         }
 
         private bool SetMinerListOfCurrentTerm(MinerList minerList, bool gonnaReplaceSomeone = false)
@@ -150,8 +165,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return true;
         }
 
-        private void DonateMiningReward(long amount)
+        private void DonateMiningReward(Round previousRound)
         {
+            if (State.TreasuryContract.Value == null)
+            {
+                State.TreasuryContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+            }
+            
+            var amount = previousRound.GetMinedBlocks().Mul(AEDPoSContractConstants.MiningRewardPerBlock);
+
             if (amount > 0)
             {
                 State.TreasuryContract.Donate.Send(new DonateInput

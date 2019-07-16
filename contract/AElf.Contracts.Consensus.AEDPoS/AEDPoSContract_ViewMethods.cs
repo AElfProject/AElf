@@ -252,5 +252,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
                     .Div(State.MinerIncreaseInterval.Value).Mul(2));
         }
+
+        public override SInt64Value GetCurrentWelfareReward(Empty input)
+        {
+            if (TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                return new SInt64Value
+                    {Value = currentRound.GetMinedBlocks().Mul(AEDPoSContractConstants.MiningRewardPerBlock)};
+            }
+
+            return new SInt64Value {Value = 0};
+        }
     }
 }

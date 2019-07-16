@@ -80,16 +80,16 @@ namespace AElf.Contracts.Election
                 EndPeriod = GetEndPeriod(lockSeconds) + 1
             });
 
-            var rankingList = State.ValidationDataCentersRankingList.Value;
-            if (State.ValidationDataCentersRankingList.Value.ValidationDataCenters.ContainsKey(input.CandidatePubkey))
+            var rankingList = State.DataCentersRankingList.Value;
+            if (State.DataCentersRankingList.Value.DataCenters.ContainsKey(input.CandidatePubkey))
             {
-                rankingList.ValidationDataCenters[input.CandidatePubkey] =
-                    rankingList.ValidationDataCenters[input.CandidatePubkey].Add(input.Amount);
-                State.ValidationDataCentersRankingList.Value = rankingList;
+                rankingList.DataCenters[input.CandidatePubkey] =
+                    rankingList.DataCenters[input.CandidatePubkey].Add(input.Amount);
+                State.DataCentersRankingList.Value = rankingList;
             }
 
             if (State.Candidates.Value.Value.Count > GetValidationDataCenterCount() &&
-                !State.ValidationDataCentersRankingList.Value.ValidationDataCenters.ContainsKey(input.CandidatePubkey))
+                !State.DataCentersRankingList.Value.DataCenters.ContainsKey(input.CandidatePubkey))
             {
                 TryToBecomeAValidationDataCenter(input, candidateVotesAmount, rankingList);
             }
@@ -98,12 +98,12 @@ namespace AElf.Contracts.Election
         }
 
         private void TryToBecomeAValidationDataCenter(VoteMinerInput input, long candidateVotesAmount,
-            ValidationDataCenterRankingList rankingList)
+            DataCenterRankingList rankingList)
         {
             var minimumVotes = candidateVotesAmount;
             var minimumVotesCandidate = input.CandidatePubkey;
             bool replaceWillHappen = false;
-            foreach (var pubkeyToVotesAmount in rankingList.ValidationDataCenters.Reverse())
+            foreach (var pubkeyToVotesAmount in rankingList.DataCenters.Reverse())
             {
                 if (pubkeyToVotesAmount.Value < minimumVotes)
                 {
@@ -115,8 +115,8 @@ namespace AElf.Contracts.Election
 
             if (replaceWillHappen)
             {
-                State.ValidationDataCentersRankingList.Value.ValidationDataCenters.Remove(minimumVotesCandidate);
-                State.ValidationDataCentersRankingList.Value.ValidationDataCenters.Add(input.CandidatePubkey,
+                State.DataCentersRankingList.Value.DataCenters.Remove(minimumVotesCandidate);
+                State.DataCentersRankingList.Value.DataCenters.Add(input.CandidatePubkey,
                     candidateVotesAmount);
                 State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
                 {
@@ -272,12 +272,12 @@ namespace AElf.Contracts.Election
                 Beneficiary = Context.Sender
             });
 
-            var rankingList = State.ValidationDataCentersRankingList.Value;
-            if (State.ValidationDataCentersRankingList.Value.ValidationDataCenters.ContainsKey(votingRecord.Option))
+            var rankingList = State.DataCentersRankingList.Value;
+            if (State.DataCentersRankingList.Value.DataCenters.ContainsKey(votingRecord.Option))
             {
-                rankingList.ValidationDataCenters[votingRecord.Option] =
-                    rankingList.ValidationDataCenters[votingRecord.Option].Sub(votingRecord.Amount);
-                State.ValidationDataCentersRankingList.Value = rankingList;
+                rankingList.DataCenters[votingRecord.Option] =
+                    rankingList.DataCenters[votingRecord.Option].Sub(votingRecord.Amount);
+                State.DataCentersRankingList.Value = rankingList;
             }
 
 

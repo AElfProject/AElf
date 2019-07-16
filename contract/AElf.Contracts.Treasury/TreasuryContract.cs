@@ -317,6 +317,14 @@ namespace AElf.Contracts.Treasury
             UpdateVotesWeightRewardWeights(endPeriod, victories, previousMinerAddress);
         }
         
+        /// <summary>
+        /// Remove current total shares of Basic Reward,
+        /// Add new shares for miners of next term.
+        /// 1 share for each miner.
+        /// </summary>
+        /// <param name="endPeriod"></param>
+        /// <param name="victories"></param>
+        /// <param name="previousMinerAddresses"></param>
         private void UpdateBasicMinerRewardWeights(long endPeriod, IEnumerable<string> victories,
             IEnumerable<Address> previousMinerAddresses)
         {
@@ -341,6 +349,14 @@ namespace AElf.Contracts.Treasury
             State.ProfitContract.AddBeneficiaries.Send(basicRewardProfitAddBeneficiaries);
         }
 
+        /// <summary>
+        /// Remove current total shares of Re-Election Reward,
+        /// Add shares to re-elected miners based on their continual appointment count.
+        /// </summary>
+        /// <param name="endPeriod"></param>
+        /// <param name="previousMiners"></param>
+        /// <param name="previousMinerAddresses"></param>
+        /// <param name="victories"></param>
         private void UpdateReElectionRewardWeights(long endPeriod, IEnumerable<string> previousMiners,
             IEnumerable<Address> previousMinerAddresses, List<string> victories)
         {
@@ -358,10 +374,14 @@ namespace AElf.Contracts.Treasury
             };
             foreach (var previousMiner in previousMiners)
             {
+                if (!victories.Contains(previousMiner))
+                {
+                    continue;
+                }
                 var continualAppointmentCount =
                     State.ElectionContract.GetCandidateInformation.Call(new StringInput {Value = previousMiner})
                         .ContinualAppointmentCount;
-                continualAppointmentCount = victories.Contains(previousMiner) ? continualAppointmentCount.Add(1) : 0;
+                continualAppointmentCount = continualAppointmentCount.Add(1);
                 var minerAddress = Address.FromPublicKey(ByteArrayHelper.FromHexString(previousMiner));
                 if (continualAppointmentCount > 0)
                 {
@@ -379,6 +399,13 @@ namespace AElf.Contracts.Treasury
             }
         }
 
+        /// <summary>
+        /// Remove current total shares of Votes Weight Reward,
+        /// Add shares to current miners based on votes they obtained.
+        /// </summary>
+        /// <param name="endPeriod"></param>
+        /// <param name="victories"></param>
+        /// <param name="previousMinerAddresses"></param>
         private void UpdateVotesWeightRewardWeights(long endPeriod, IEnumerable<string> victories,
             IEnumerable<Address> previousMinerAddresses)
         {
@@ -395,11 +422,15 @@ namespace AElf.Contracts.Treasury
                 EndPeriod = endPeriod
             };
 
+            var dataCenterRankingList = State.ElectionContract.GetDataCenterRankingList.Call(new Empty());
+            
             foreach (var victory in victories)
             {
-                var obtainedVotes =
-                    State.ElectionContract.GetCandidateVote.Call(new StringInput {Value = victory})
-                        .ObtainedActiveVotedVotesAmount;
+                var obtainedVotes = 0L;
+                if (dataCenterRankingList.DataCenters.ContainsKey(victory))
+                {
+                    obtainedVotes = dataCenterRankingList.DataCenters[victory];
+                }
                 var minerAddress = Address.FromPublicKey(ByteArrayHelper.FromHexString(victory));
                 if (obtainedVotes > 0)
                 {
@@ -445,20 +476,6 @@ namespace AElf.Contracts.Treasury
             }
 
             return output;
-        }
-
-        //TODO: Remove, will implement in AEDPoS contract
-        public override SInt64Value GetCurrentWelfareReward(Empty input)
-        {
-            var welfareVirtualAddress = Context.ConvertVirtualAddressToContractAddress(State.WelfareHash.Value);
-            return new SInt64Value
-            {
-                Value = State.TokenContract.GetBalance.Call(new GetBalanceInput
-                {
-                    Owner = welfareVirtualAddress,
-                    Symbol = Context.Variables.NativeSymbol
-                }).Balance
-            };
         }
 
         public override SInt64Value GetCurrentTreasuryBalance(Empty input)

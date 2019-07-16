@@ -24,7 +24,7 @@ namespace AElf.Contracts.Election
 
         public SingletonState<PubkeyList> Candidates { get; set; }
 
-        public SingletonState<ValidationDataCenterRankingList> ValidationDataCentersRankingList { get; set; }
+        public SingletonState<DataCenterRankingList> DataCentersRankingList { get; set; }
 
         public SingletonState<PubkeyList> InitialMiners { get; set; }
 

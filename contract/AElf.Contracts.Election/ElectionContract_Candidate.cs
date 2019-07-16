@@ -34,7 +34,7 @@ namespace AElf.Contracts.Election
 
             if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
             {
-                State.ValidationDataCentersRankingList.Value.ValidationDataCenters.Add(publicKey, 0);
+                State.DataCentersRankingList.Value.DataCenters.Add(publicKey, 0);
                 RegisterCandidateToSubsidyProfitScheme();
             }
 
@@ -193,7 +193,7 @@ namespace AElf.Contracts.Election
                 "Current miners cannot quit election.");
 
             State.Candidates.Value.Value.Remove(publicKeyByteString);
-            State.ValidationDataCentersRankingList.Value.ValidationDataCenters.Remove(recoveredPublicKey.ToHex());
+            State.DataCentersRankingList.Value.DataCenters.Remove(recoveredPublicKey.ToHex());
         }
 
         #endregion
