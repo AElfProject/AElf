@@ -101,7 +101,7 @@ namespace AElf.Contracts.Profit
         /// <summary>
         /// Add a child to a existed scheme.
         /// </summary>
-        /// <param name="input">RemoveSubSchemeInput</param>
+        /// <param name="input">AddSubSchemeInput</param>
         /// <returns></returns>
         public override Empty AddSubScheme(AddSubSchemeInput input)
         {
@@ -162,7 +162,9 @@ namespace AElf.Contracts.Profit
                 Beneficiary = subSchemeVirtualAddress
             });
 
-            scheme.SubSchemes.Remove(scheme.SubSchemes.Single(d => d.SchemeId == input.SubSchemeId));
+            var shares = scheme.SubSchemes.Single(d => d.SchemeId == input.SubSchemeId);
+            scheme.SubSchemes.Remove(shares);
+            scheme.TotalShares = scheme.TotalShares.Sub(shares.Shares);
             State.SchemeInfos[input.SchemeId] = scheme;
 
             return new Empty();
@@ -276,7 +278,7 @@ namespace AElf.Contracts.Profit
 //                State.ProfitDetailsMap[input.SchemeId][input.Beneficiary] = null;
 //            }
 
-            scheme.TotalShares -= shares;
+            scheme.TotalShares = scheme.TotalShares.Sub(shares);
             State.SchemeInfos[input.SchemeId] = scheme;
 
             return new Empty();
