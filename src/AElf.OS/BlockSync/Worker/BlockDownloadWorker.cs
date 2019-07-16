@@ -4,6 +4,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Application;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.BlockSync.Types;
+using AElf.Sdk.CSharp;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.DependencyInjection;
@@ -15,11 +16,13 @@ namespace AElf.OS.BlockSync.Worker
     {
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockDownloadService _blockDownloadService;
+        private readonly IBlockSyncStateProvider _blockSyncStateProvider;
         private readonly IBlockDownloadJobStore _blockDownloadJobStore;
 
         public BlockDownloadWorker(AbpTimer timer,
             IBlockchainService blockchainService,
             IBlockDownloadService blockDownloadService,
+            IBlockSyncStateProvider blockSyncStateProvider,
             IBlockDownloadJobStore blockDownloadJobStore)
             : base(timer)
         {
@@ -27,6 +30,7 @@ namespace AElf.OS.BlockSync.Worker
 
             _blockchainService = blockchainService;
             _blockDownloadService = blockDownloadService;
+            _blockSyncStateProvider = blockSyncStateProvider;
             _blockDownloadJobStore = blockDownloadJobStore;
         }
 
@@ -37,47 +41,90 @@ namespace AElf.OS.BlockSync.Worker
 
         private async Task DownloadBlocksAsync()
         {
-            var blockDownloadJob = await _blockDownloadJobStore.GetFirstWaitingJobAsync();
-
-            if (blockDownloadJob != null)
-                return;
-
             var chain = await _blockchainService.GetChainAsync();
+            var jobInfo = await GetFirstAvailableWaitingJobAsync(chain);
 
-            if (chain.BestChainHeight >= blockDownloadJob.TargetBlockHeight)
+            if (!ValidateBeforeDownload(jobInfo))
                 return;
-            
-            var syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.LongestChainHash,
-                chain.LongestChainHeight, blockDownloadJob.BatchRequestBlockCount, blockDownloadJob.SuggestedPeerPubkey);
 
-            if (syncBlockCount == 0)
+            DownloadBlocksResult downloadBlocksResult;
+            if (await _blockchainService.GetBlockHashByHeightAsync(chain, jobInfo.CurrentTargetBlockHeight,
+                    chain.BestChainHash) == jobInfo.CurrentTargetBlockHash)
             {
-                syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
-                    chain.BestChainHeight, blockDownloadJob.BatchRequestBlockCount, blockDownloadJob.SuggestedPeerPubkey);
+                downloadBlocksResult = await _blockDownloadService.DownloadBlocksAsync(jobInfo.CurrentTargetBlockHash,
+                    jobInfo.CurrentTargetBlockHeight, jobInfo.BatchRequestBlockCount, jobInfo.SuggestedPeerPubkey);
+            }
+            else
+            {
+                downloadBlocksResult = await _blockDownloadService.DownloadBlocksAsync(chain.LongestChainHash,
+                    chain.LongestChainHeight, jobInfo.BatchRequestBlockCount, jobInfo.SuggestedPeerPubkey);
+
+                if (downloadBlocksResult.DownloadBlockCount == 0)
+                {
+                    downloadBlocksResult = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
+                        chain.BestChainHeight, jobInfo.BatchRequestBlockCount, jobInfo.SuggestedPeerPubkey);
+                }
+
+                if (downloadBlocksResult.DownloadBlockCount == 0)
+                {
+                    Logger.LogDebug(
+                        $"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
+                    downloadBlocksResult = await _blockDownloadService.DownloadBlocksAsync(
+                        chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight,
+                        jobInfo.BatchRequestBlockCount, jobInfo.SuggestedPeerPubkey);
+                }
             }
 
-            if (syncBlockCount == 0)
+            if (downloadBlocksResult.DownloadBlockCount == 0 ||
+                downloadBlocksResult.LastDownloadBlockHeight >= jobInfo.TargetBlockHeight)
             {
-                Logger.LogDebug(
-                    $"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
-                await _blockDownloadService.DownloadBlocksAsync(
-                    chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight,
-                    blockDownloadJob.BatchRequestBlockCount, blockDownloadJob.SuggestedPeerPubkey);
+                await _blockDownloadJobStore.RemoveAsync(jobInfo.JobId);
+                _blockSyncStateProvider.DownloadJobTargetState.TryRemove(jobInfo.TargetBlockHash, out _);
+                return;
             }
 
+            _blockSyncStateProvider.DownloadJobTargetState[jobInfo.TargetBlockHash] = false;
+
+            jobInfo.Deadline = TimestampHelper.GetUtcNow().AddMilliseconds(
+                (downloadBlocksResult.DownloadBlockCount > 600 ? 600 : downloadBlocksResult.DownloadBlockCount) * 300);
+            jobInfo.CurrentTargetBlockHash = downloadBlocksResult.LastDownloadBlockHash;
+            jobInfo.CurrentTargetBlockHeight = downloadBlocksResult.LastDownloadBlockHeight;
+
+            await _blockDownloadJobStore.UpdateAsync(jobInfo);
+        }
+
+        private bool ValidateBeforeDownload(BlockDownloadJobInfo blockDownloadJobInfo)
+        {
+            if (blockDownloadJobInfo == null)
+                return false;
+
+            if (!_blockDownloadService.ValidateQueueAvailability())
+                return false;
+
+            if (_blockSyncStateProvider.DownloadJobTargetState.TryGetValue(blockDownloadJobInfo.TargetBlockHash,
+                    out var state) && state == false && TimestampHelper.GetUtcNow() < blockDownloadJobInfo.Deadline)
+                return false;
+
+            return true;
         }
 
         private async Task<BlockDownloadJobInfo> GetFirstAvailableWaitingJobAsync(Chain chain)
         {
-            var blockDownloadJob = await _blockDownloadJobStore.GetFirstWaitingJobAsync();
+            while (true)
+            {
+                var blockDownloadJob = await _blockDownloadJobStore.GetFirstWaitingJobAsync();
 
-            if (blockDownloadJob == null)
-                return null;
+                if (blockDownloadJob == null)
+                    return null;
 
-            if (blockDownloadJob.TargetBlockHeight > chain.BestChainHeight)
+                if (blockDownloadJob.TargetBlockHeight <= chain.BestChainHeight)
+                {
+                    await _blockDownloadJobStore.RemoveAsync(blockDownloadJob.JobId);
+                    continue;
+                }
+
                 return blockDownloadJob;
-
-            return await GetFirstAvailableWaitingJobAsync(chain);
+            }
         }
     }
 }

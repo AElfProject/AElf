@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Application;
+using AElf.OS.BlockSync.Domain;
 using AElf.OS.BlockSync.Dto;
 using AElf.OS.Network;
-using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -11,27 +10,24 @@ namespace AElf.OS.BlockSync.Application
 {
     public class BlockSyncService : IBlockSyncService
     {
-        private readonly IBlockchainService _blockchainService;
         private readonly IBlockFetchService _blockFetchService;
-        private readonly IBlockDownloadService _blockDownloadService;
         private readonly IBlockSyncAttachService _blockSyncAttachService;
         private readonly IBlockSyncQueueService _blockSyncQueueService;
+        private readonly IBlockDownloadJobManager _blockDownloadJobManager;
 
         public ILogger<BlockSyncService> Logger { get; set; }
 
-        public BlockSyncService(IBlockchainService blockchainService,
-            IBlockFetchService blockFetchService,
-            IBlockDownloadService blockDownloadService,
+        public BlockSyncService(IBlockFetchService blockFetchService,
             IBlockSyncAttachService blockSyncAttachService,
-            IBlockSyncQueueService blockSyncQueueService)
+            IBlockSyncQueueService blockSyncQueueService,
+            IBlockDownloadJobManager blockDownloadJobManager)
         {
             Logger = NullLogger<BlockSyncService>.Instance;
 
-            _blockchainService = blockchainService;
             _blockFetchService = blockFetchService;
-            _blockDownloadService = blockDownloadService;
             _blockSyncAttachService = blockSyncAttachService;
             _blockSyncQueueService = blockSyncQueueService;
+            _blockDownloadJobManager = blockDownloadJobManager;
         }
 
         public async Task SyncByAnnouncementAsync(Chain chain, SyncAnnouncementDto syncAnnouncementDto)
@@ -55,7 +51,8 @@ namespace AElf.OS.BlockSync.Application
                     return;
                 }
 
-                EnqueueDownloadBlocksJob(syncAnnouncementDto.SyncBlockHash, syncAnnouncementDto.SyncBlockHeight,
+                await _blockDownloadJobManager.EnqueueAsync(syncAnnouncementDto.SyncBlockHash, syncAnnouncementDto
+                .SyncBlockHeight,
                     syncAnnouncementDto.BatchRequestBlockCount, syncAnnouncementDto.SuggestedPeerPubkey);
             }
         }
@@ -82,7 +79,7 @@ namespace AElf.OS.BlockSync.Application
                     return;
                 }
 
-                EnqueueDownloadBlocksJob(syncBlockDto.BlockWithTransactions.GetHash(), syncBlockDto.BlockWithTransactions.Height,
+                await _blockDownloadJobManager.EnqueueAsync(syncBlockDto.BlockWithTransactions.GetHash(), syncBlockDto.BlockWithTransactions.Height,
                     syncBlockDto.BatchRequestBlockCount, syncBlockDto.SuggestedPeerPubkey);
             }
         }
@@ -106,47 +103,6 @@ namespace AElf.OS.BlockSync.Application
                     EnqueueFetchBlockJob(syncAnnouncementDto, retryTimes - 1);
                 }
             }, OSConstants.BlockFetchQueueName);
-        }
-
-        private void EnqueueDownloadBlocksJob(Hash syncBlockHash, long syncBlockHeight, int batchRequestBlockCount,
-            string suggestedPeerPubkey)
-        {
-            _blockSyncQueueService.Enqueue(async () =>
-            {
-                Logger.LogTrace(
-                    $"Block sync: Download blocks, block height: {syncBlockHeight}, block hash: {syncBlockHash}.");
-
-                if (ValidateQueueAvailability())
-                {
-                    var chain = await _blockchainService.GetChainAsync();
-
-                    if (syncBlockHeight <= chain.LastIrreversibleBlockHeight)
-                    {
-                        Logger.LogWarning(
-                            $"Receive lower header {{ hash: {syncBlockHash}, height: {syncBlockHeight} }}.");
-                        return;
-                    }
-
-                    var syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.LongestChainHash,
-                        chain.LongestChainHeight, batchRequestBlockCount, suggestedPeerPubkey);
-
-                    if (syncBlockCount == 0)
-                    {
-                        syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
-                            chain.BestChainHeight, batchRequestBlockCount, suggestedPeerPubkey);
-                    }
-
-                    if (syncBlockCount == 0 && syncBlockHeight >
-                        chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset)
-                    {
-                        Logger.LogDebug(
-                            $"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
-                        await _blockDownloadService.DownloadBlocksAsync(
-                            chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight,
-                            batchRequestBlockCount, suggestedPeerPubkey);
-                    }
-                }
-            }, OSConstants.BlockDownloadQueueName);
         }
 
         private void EnqueueSyncBlockJob(BlockWithTransactions blockWithTransactions, int retryTimes)

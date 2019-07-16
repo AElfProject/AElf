@@ -1,7 +1,10 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.OS.BlockSync.Infrastructure;
+using AElf.OS.BlockSync.Types;
 using AElf.OS.Network.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
@@ -15,13 +18,15 @@ namespace AElf.OS.BlockSync.Application
         private readonly INetworkService _networkService;
         private readonly IBlockSyncAttachService _blockSyncAttachService;
         private readonly IBlockSyncQueueService _blockSyncQueueService;
+        private readonly IBlockSyncStateProvider _blockSyncStateProvider;
 
         public ILogger<BlockDownloadService> Logger { get; set; }
 
         public BlockDownloadService(IBlockchainService blockchainService,
             INetworkService networkService,
             IBlockSyncAttachService blockSyncAttachService,
-            IBlockSyncQueueService blockSyncQueueService)
+            IBlockSyncQueueService blockSyncQueueService,
+            IBlockSyncStateProvider blockSyncStateProvider)
         {
             Logger = NullLogger<BlockDownloadService>.Instance;
 
@@ -29,9 +34,10 @@ namespace AElf.OS.BlockSync.Application
             _networkService = networkService;
             _blockSyncAttachService = blockSyncAttachService;
             _blockSyncQueueService = blockSyncQueueService;
+            _blockSyncStateProvider = blockSyncStateProvider;
         }
 
-        public async Task<int> DownloadBlocksAsync(Hash previousBlockHash, long previousBlockHeight,
+        public async Task<DownloadBlocksResult> DownloadBlocksAsync(Hash previousBlockHash, long previousBlockHeight,
             int batchRequestBlockCount, string suggestedPeerPubKey)
         {
             Logger.LogDebug(
@@ -77,7 +83,11 @@ namespace AElf.OS.BlockSync.Application
                     _blockSyncQueueService.Enqueue(
                         async () =>
                         {
-                            await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions);
+                            await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions,
+                                async (blockHash, blockHeight) =>
+                                {
+                                    _blockSyncStateProvider.DownloadJobTargetState.TryUpdate(blockHash, true, false);
+                                });
                         },
                         OSConstants.BlockSyncAttachQueueName);
 
@@ -89,7 +99,29 @@ namespace AElf.OS.BlockSync.Application
                 lastDownloadBlockHeight = lastBlock.Height;
             }
 
-            return downloadBlockCount;
+            return new DownloadBlocksResult
+            {
+                DownloadBlockCount = downloadBlockCount,
+                LastDownloadBlockHash = lastDownloadBlockHash,
+                LastDownloadBlockHeight = lastDownloadBlockHeight
+            };
+        }
+
+        public bool ValidateQueueAvailability()
+        {
+            if (!_blockSyncQueueService.ValidateQueueAvailability(OSConstants.BlockSyncAttachQueueName))
+            {
+                Logger.LogWarning("Block sync attach queue is too busy.");
+                return false;
+            }
+
+            if (!_blockSyncQueueService.ValidateQueueAvailability(KernelConstants.UpdateChainQueueName))
+            {
+                Logger.LogWarning("Block sync attach and execute queue is too busy.");
+                return false;
+            }
+
+            return true;
         }
     }
 }
