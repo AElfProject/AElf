@@ -25,7 +25,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Behaviour = AElfConsensusBehaviour.NextRound,
                     Pubkey = ByteString.CopyFrom(BootMinerKeyPair.PublicKey)
                 }.ToBytesValue())).ToConsensusHeaderInformation();
-
+            
             var transactionResult = await AEDPoSContractStub.NextRound.SendAsync(nextTermInformation.Round);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
