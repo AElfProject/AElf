@@ -350,7 +350,8 @@ namespace AElf.Contracts.Treasury
         }
 
         /// <summary>
-        /// 
+        /// Remove current total shares of Re-Election Reward,
+        /// Add shares to re-elected miners based on their continual appointment count.
         /// </summary>
         /// <param name="endPeriod"></param>
         /// <param name="previousMiners"></param>
@@ -398,6 +399,13 @@ namespace AElf.Contracts.Treasury
             }
         }
 
+        /// <summary>
+        /// Remove current total shares of Votes Weight Reward,
+        /// Add shares to current miners based on votes they obtained.
+        /// </summary>
+        /// <param name="endPeriod"></param>
+        /// <param name="victories"></param>
+        /// <param name="previousMinerAddresses"></param>
         private void UpdateVotesWeightRewardWeights(long endPeriod, IEnumerable<string> victories,
             IEnumerable<Address> previousMinerAddresses)
         {
@@ -418,7 +426,11 @@ namespace AElf.Contracts.Treasury
             
             foreach (var victory in victories)
             {
-                var obtainedVotes = dataCenterRankingList.DataCenters[victory];
+                var obtainedVotes = 0L;
+                if (dataCenterRankingList.DataCenters.ContainsKey(victory))
+                {
+                    obtainedVotes = dataCenterRankingList.DataCenters[victory];
+                }
                 var minerAddress = Address.FromPublicKey(ByteArrayHelper.FromHexString(victory));
                 if (obtainedVotes > 0)
                 {
