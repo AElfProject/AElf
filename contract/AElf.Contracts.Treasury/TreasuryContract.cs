@@ -478,20 +478,6 @@ namespace AElf.Contracts.Treasury
             return output;
         }
 
-        //TODO: Remove, will implement in AEDPoS contract
-        public override SInt64Value GetCurrentWelfareReward(Empty input)
-        {
-            var welfareVirtualAddress = Context.ConvertVirtualAddressToContractAddress(State.WelfareHash.Value);
-            return new SInt64Value
-            {
-                Value = State.TokenContract.GetBalance.Call(new GetBalanceInput
-                {
-                    Owner = welfareVirtualAddress,
-                    Symbol = Context.Variables.NativeSymbol
-                }).Balance
-            };
-        }
-
         public override SInt64Value GetCurrentTreasuryBalance(Empty input)
         {
             return new SInt64Value

@@ -87,9 +87,6 @@ service ElectionContract {
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentWelfareReward (StringInput) returns (aelf.SInt64Value) {
-        option (aelf.is_view) = true;
-    }
     rpc GetPageableCandidateInformation (PageInformation) returns (GetPageableCandidateInformationOutput) {
         option (aelf.is_view) = true;
     }
