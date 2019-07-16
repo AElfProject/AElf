@@ -19,14 +19,17 @@ namespace AElf.OS.Network.Application
         private readonly IPeerPool _peerPool;
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IAElfNetworkServer _networkServer;
+        private readonly IKnownBlockCacheProvider _knownBlockCacheProvider;
 
         public ILogger<NetworkService> Logger { get; set; }
 
-        public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager, IAElfNetworkServer networkServer)
+        public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager, IAElfNetworkServer networkServer, 
+            IKnownBlockCacheProvider knownBlockCacheProvider)
         {
             _peerPool = peerPool;
             _taskQueueManager = taskQueueManager;
             _networkServer = networkServer;
+            _knownBlockCacheProvider = knownBlockCacheProvider;
 
             Logger = NullLogger<NetworkService>.Instance;
         }
@@ -50,14 +53,14 @@ namespace AElf.OS.Network.Application
         {
             var blockHash = blockHeader.GetHash();
             
-            if (_peerPool.RecentBlockHeightAndHashMappings.TryGetValue(blockHeader.Height, out var recentBlockHash) &&
+            if (_knownBlockCacheProvider.TryGetBlockByHeight(blockHeader.Height, out var recentBlockHash) &&
                 recentBlockHash == blockHash)
             {
                 Logger.LogDebug($"BlockHeight: {blockHeader.Height}, BlockHash: {blockHash} has been broadcast.");
                 return Task.CompletedTask;
             }
             
-            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHash, hasFork);
+            _knownBlockCacheProvider.AddKnownBlock(blockHeader.Height, blockHash, hasFork);
             
             var announce = new BlockAnnouncement
             {

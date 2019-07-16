@@ -1,9 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -23,23 +21,16 @@ namespace AElf.OS.Network.Infrastructure
 
         public int PeerCount => AuthenticatedPeers.Count;
         protected readonly ConcurrentDictionary<string, IPeer> AuthenticatedPeers;
-        
-        public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
-        private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
 
         public PeerPool()
         {
             AuthenticatedPeers = new ConcurrentDictionary<string, IPeer>();
-            
-            _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
-            RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
-
             Logger = NullLogger<PeerPool>.Instance;
         }
         
         public bool IsFull()
         {
-            return PeerCount >= NetworkOptions.MaxPeers;
+            return NetworkOptions.MaxPeers == 0 || PeerCount >= NetworkOptions.MaxPeers;
         }
         
         public List<IPeer> GetPeers(bool includeFailing = false)
@@ -105,15 +96,6 @@ namespace AElf.OS.Network.Infrastructure
         public bool TryAddPeer(IPeer peer)
         {
             return AuthenticatedPeers.TryAdd(peer.Info.Pubkey, peer);
-        }
-        
-        public void AddRecentBlockHeightAndHash(long blockHeight,Hash blockHash, bool hasFork)
-        {
-            _recentBlockHeightAndHashMappings[blockHeight] = blockHash;
-            while (_recentBlockHeightAndHashMappings.Count > 10)
-            {
-                _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
-            }
         }
     }
 }

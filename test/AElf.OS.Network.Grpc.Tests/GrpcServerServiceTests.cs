@@ -27,15 +27,16 @@ namespace AElf.OS.Network
     public class GrpcServerServiceTests : GrpcNetworkTestBase
     {
         private readonly IAElfNetworkServer _networkServer;
-        private readonly PeerService.PeerServiceBase _service;
         private readonly IBlockchainService _blockchainService;
         private readonly IPeerPool _peerPool;
         private readonly ILocalEventBus _eventBus;
+        
+        private readonly GrpcServerService _service;
 
         public GrpcServerServiceTests()
         {
             _networkServer = GetRequiredService<IAElfNetworkServer>();
-            _service = GetRequiredService<PeerService.PeerServiceBase>();
+            _service = GetRequiredService<GrpcServerService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _peerPool = GetRequiredService<IPeerPool>();
             _eventBus = GetRequiredService<ILocalEventBus>();
@@ -214,8 +215,6 @@ namespace AElf.OS.Network
 
         #region Other tests
 
-
-        
 //        [Fact]
 //        public async Task Only_Authorized_Test()
 //        {
