@@ -81,9 +81,12 @@ namespace AElf.Contracts.Election
             });
 
             var rankingList = State.ValidationDataCentersRankingList.Value;
-            rankingList.ValidationDataCenters[input.CandidatePubkey] =
-                rankingList.ValidationDataCenters[input.CandidatePubkey].Add(input.Amount);
-            State.ValidationDataCentersRankingList.Value = rankingList;
+            if (State.ValidationDataCentersRankingList.Value.ValidationDataCenters.ContainsKey(input.CandidatePubkey))
+            {
+                rankingList.ValidationDataCenters[input.CandidatePubkey] =
+                    rankingList.ValidationDataCenters[input.CandidatePubkey].Add(input.Amount);
+                State.ValidationDataCentersRankingList.Value = rankingList;
+            }
 
             if (State.Candidates.Value.Value.Count > GetValidationDataCenterCount() &&
                 !State.ValidationDataCentersRankingList.Value.ValidationDataCenters.ContainsKey(input.CandidatePubkey))
@@ -270,9 +273,13 @@ namespace AElf.Contracts.Election
             });
 
             var rankingList = State.ValidationDataCentersRankingList.Value;
-            rankingList.ValidationDataCenters[votingRecord.Option] =
-                rankingList.ValidationDataCenters[votingRecord.Option].Sub(votingRecord.Amount);
-            State.ValidationDataCentersRankingList.Value = rankingList;
+            if (State.ValidationDataCentersRankingList.Value.ValidationDataCenters.ContainsKey(votingRecord.Option))
+            {
+                rankingList.ValidationDataCenters[votingRecord.Option] =
+                    rankingList.ValidationDataCenters[votingRecord.Option].Sub(votingRecord.Amount);
+                State.ValidationDataCentersRankingList.Value = rankingList;
+            }
+
 
             return new Empty();
         }
