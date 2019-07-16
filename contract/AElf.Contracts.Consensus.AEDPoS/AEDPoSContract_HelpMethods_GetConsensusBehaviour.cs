@@ -26,7 +26,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 if (!isTimeSlotPassed && behaviour == AElfConsensusBehaviour.Nothing)
                 {
-                    Context.LogDebug(() => "Directly go to next round.");
                     behaviour = AElfConsensusBehaviour.UpdateValue;
                 }
 
@@ -72,6 +71,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 minerInRound.Order != 1 && // so we'd better prevent miners' ain't first order (meanwhile isn't boot miner) from mining fork blocks
                 currentRound.FirstMiner().OutValue == null // by postpone their mining time
             )
+            {
+                return AElfConsensusBehaviour.NextRound;
+            }
+
+            if (IsFirstRoundOfCurrentTerm(out _) && minerInRound.Order != 1)
             {
                 return AElfConsensusBehaviour.NextRound;
             }

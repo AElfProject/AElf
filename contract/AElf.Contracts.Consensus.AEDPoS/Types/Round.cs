@@ -135,7 +135,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return Hash.FromTwoHashes(Hash.FromMessage(new Int64Value {Value = RoundId}), randomHash);
         }
 
-        private Timestamp GetExtraBlockMiningTime()
+        public Timestamp GetExtraBlockMiningTime()
         {
             return RealTimeMinersInformation.OrderBy(m => m.Value.Order).Last().Value
                 .ExpectedMiningTime
