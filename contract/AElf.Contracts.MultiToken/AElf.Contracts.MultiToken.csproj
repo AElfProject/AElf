@@ -10,8 +10,14 @@
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
         <ContractReference Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\reference\cross_chain_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\parliament_auth_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>

@@ -3,16 +3,35 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Kernel;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Approved = AElf.Contracts.MultiToken.Messages.Approved;
+using InitializeInput = AElf.Contracts.MultiToken.Messages.InitializeInput;
 
 namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract : TokenContractImplContainer.TokenContractImplBase
     {
+        public override Empty Initialize(InitializeInput input)
+        {
+            Assert(!State.Initialized.Value, "Already initialized.");
+            State.Initialized.Value = true;
+            var parliamentAuthContractAddress =
+                Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+            State.Owner.Value = Context.Call<Address>(parliamentAuthContractAddress,
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractReferenceState.GetOrganization),
+                new Empty());
+            State.IsMainChain.Value = input.IsMainChain;
+            foreach (var kv in input.CrossChainTransferWhiteList)
+            {
+                State.CrossChainTransferWhiteList[kv.ChainId] = kv.TokenContractAddress;
+            }
+            
+            return new Empty();
+        }
+
         /// <summary>
         /// Register the TokenInfo into TokenContract add set true in the TokenContractState.LockWhiteLists;
         /// </summary>
@@ -20,6 +39,7 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty Create(CreateInput input)
         {
+            Assert(State.IsMainChain.Value, "Token creation is not allowed.");
             var existing = State.TokenInfos[input.Symbol];
             Assert(existing == null || existing == new TokenInfo(), "Token already exists.");
             RegisterTokenInfo(new TokenInfo
@@ -45,6 +65,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty CreateNativeToken(CreateNativeTokenInput input)
         {
+            Assert(State.IsMainChain.Value, "Token creation is not allowed.");
             Assert(string.IsNullOrEmpty(State.NativeTokenSymbol.Value), "Native token already created.");
             State.NativeTokenSymbol.Value = input.Symbol;
             var whiteList = new List<Address>();
@@ -74,6 +95,7 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty Issue(IssueInput input)
         {
+            Assert(State.IsMainChain.Value, "Token issue is not allowed.");
             Assert(input.To != null, "To address not filled.");
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == Context.GetZeroSmartContractAddress(),
@@ -92,6 +114,7 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty IssueNativeToken(IssueNativeTokenInput input)
         {
+            Assert(State.IsMainChain.Value, "Token issue is not allowed.");
             Assert(input.ToSystemContractName != null, "To address not filled.");
             Assert(input.Symbol == State.NativeTokenSymbol.Value, "Invalid native token symbol.");
             var issueInput = new IssueInput
@@ -109,6 +132,11 @@ namespace AElf.Contracts.MultiToken
             AssertValidToken(input.Symbol, input.Amount);
             DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
             return new Empty();
+        }
+
+        public override Empty CrossChainCreateToken(CrossChainCreateTokenInput input)
+        {
+            return base.CrossChainCreateToken(input);
         }
 
         /// <summary>
