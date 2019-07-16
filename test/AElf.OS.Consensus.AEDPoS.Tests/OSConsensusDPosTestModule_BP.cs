@@ -55,12 +55,12 @@ namespace AElf.OS.Consensus.DPos
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            var peerPool = context.ServiceProvider.GetRequiredService<IPeerPool>();
+            var peerPool = context.ServiceProvider.GetRequiredService<IKnownBlockCacheProvider>();
             var osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
             var blocks = osTestHelper.BestBranchBlockList.GetRange(0, 6);
             foreach (var block in blocks)
             {
-                peerPool.AddRecentBlockHeightAndHash(block.Height,block.GetHash(),false);
+                peerPool.AddKnownBlock(block.Height,block.GetHash(),false);
             }
         }
     }
