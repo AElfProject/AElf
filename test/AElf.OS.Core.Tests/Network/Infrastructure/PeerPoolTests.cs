@@ -45,20 +45,7 @@ namespace AElf.OS.Network
             var peer = CreatePeer();
             
             _peerPool.TryAddPeer(peer);
-            await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false);
-            
-            _peerPool.PeerCount.ShouldBe(0);
-            _peerPool.FindPeerByAddress(peer.IpAddress).ShouldBeNull();
-            _peerPool.FindPeerByPublicKey(peer.Info.Pubkey).ShouldBeNull();
-        }
-        
-        [Fact]
-        public async Task RemovePeerByAddress_ShouldNotBeFindable()
-        {
-            var peer = CreatePeer();
-            
-            _peerPool.TryAddPeer(peer);
-            await _peerPool.RemovePeerByAddressAsync(peer.IpAddress);
+            _peerPool.RemovePeer(peer.Info.Pubkey);
             
             _peerPool.PeerCount.ShouldBe(0);
             _peerPool.FindPeerByAddress(peer.IpAddress).ShouldBeNull();

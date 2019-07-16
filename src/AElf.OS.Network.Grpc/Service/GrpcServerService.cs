@@ -206,9 +206,7 @@ namespace AElf.OS.Network.Grpc
         public override async Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
         {
             Logger.LogDebug($"Peer {context.GetPeerInfo()} has sent a disconnect request.");
-            
-            await _peerPool.RemovePeerAsync(context.GetPublicKey(), false);
-            
+            _peerPool.RemovePeer(context.GetPublicKey());
             return new VoidReply();
         }
     }

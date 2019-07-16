@@ -41,7 +41,15 @@ namespace AElf.OS.Network.Application
 
         public async Task<bool> RemovePeerAsync(string address)
         {
-            return await _peerPool.RemovePeerByAddressAsync(address);
+            var peer = _peerPool.FindPeerByAddress(address);
+            if (peer == null)
+            {
+                Logger.LogWarning($"Could not find peer at address {address}");
+                return false;
+            }
+
+            await _networkServer.DisconnectPeerAsync(peer);
+            return true;
         }
 
         public List<IPeer> GetPeers()
@@ -209,7 +217,7 @@ namespace AElf.OS.Network.Application
         {
             if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
             {
-                await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false);
+                await _networkServer.DisconnectPeerAsync(peer, false);
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
             {
@@ -226,7 +234,7 @@ namespace AElf.OS.Network.Application
             var success = await peer.TryRecoverAsync();
 
             if (!success)
-                await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false);
+                await _networkServer.DisconnectPeerAsync(peer, false);
         }
         
         private void QueueNetworkTask(Func<Task> task)

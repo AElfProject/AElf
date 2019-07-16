@@ -10,7 +10,6 @@ namespace AElf.OS.Network.Infrastructure
 
         bool IsFull();
         
-        Task<bool> RemovePeerByAddressAsync(string address);
         List<IPeer> GetPeers(bool includeFailing = false);
         IPeer GetBestPeer(); // todo move to service
         
@@ -18,7 +17,6 @@ namespace AElf.OS.Network.Infrastructure
         IPeer FindPeerByPublicKey(string remotePubKey);
 
         bool TryAddPeer(IPeer peer);
-
-        Task<IPeer> RemovePeerAsync(string remotePubKey, bool sendDisconnect);
+        IPeer RemovePeer(string publicKey);
     }
 }

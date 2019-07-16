@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -27,12 +26,12 @@ namespace AElf.OS.Network.Infrastructure
             AuthenticatedPeers = new ConcurrentDictionary<string, IPeer>();
             Logger = NullLogger<PeerPool>.Instance;
         }
-        
+
         public bool IsFull()
         {
             return NetworkOptions.MaxPeers == 0 || PeerCount >= NetworkOptions.MaxPeers;
         }
-        
+
         public List<IPeer> GetPeers(bool includeFailing = false)
         {
             var peers = AuthenticatedPeers.Select(p => p.Value);
@@ -65,31 +64,10 @@ namespace AElf.OS.Network.Infrastructure
         {
             return GetPeers().FirstOrDefault(p => p.IsBest);
         }
-        
-        public async Task<bool> RemovePeerByAddressAsync(string address)
-        {
-            var peer = AuthenticatedPeers.FirstOrDefault(p => p.Value.IpAddress == address).Value;
 
-            if (peer != null) 
-                return await RemovePeerAsync(peer.Info.Pubkey, true) != null;
-            
-            Logger.LogWarning($"Could not find peer {address}.");
-            
-            return false;
-        }
-        
-        public async Task<IPeer> RemovePeerAsync(string publicKey, bool sendDisconnect)
+        public IPeer RemovePeer(string publicKey)
         {
-            if (AuthenticatedPeers.TryRemove(publicKey, out IPeer removed))
-            {
-                await removed.DisconnectAsync(sendDisconnect); // TODO remove
-                Logger.LogDebug($"Removed peer {removed}");
-            }
-            else
-            {
-                Logger.LogDebug($"Could not find {publicKey}");
-            }
-
+            AuthenticatedPeers.TryRemove(publicKey, out IPeer removed);
             return removed;
         }
 

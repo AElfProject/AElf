@@ -87,9 +87,9 @@ namespace AElf.OS.Network.Grpc
             var oldPeer = _peerPool.FindPeerByPublicKey(pubKey);
             if (oldPeer != null)
             {
-                // REVIEW: Is this valid ? this is just discarding the previous connection
+                // TODO : cannot do this before signature check is done.
                 Logger.LogDebug($"Cleaning up {oldPeer} before connecting.");
-                await _peerPool.RemovePeerAsync(pubKey, false); //TODO report disconnect
+                await DisconnectPeerAsync(oldPeer);
             }
 
             // TODO: find a URI type to use
@@ -242,7 +242,7 @@ namespace AElf.OS.Network.Grpc
             catch (NetworkException ex)
             {
                 Logger.LogError(ex, $"Handshake failed to {ipAddress} - {peerPubkey}.");
-                await CleanPeerAsync(peer);
+                await DisconnectPeerAsync(peer);
                 return false;
             }
 
@@ -250,7 +250,7 @@ namespace AElf.OS.Network.Grpc
             if (handshakeError != HandshakeError.HandshakeOk)
             {
                 Logger.LogWarning($"Invalid handshake [{handshakeError}] from {ipAddress} - {peerPubkey}");
-                await CleanPeerAsync(peer);
+                await DisconnectPeerAsync(peer);
                 return false;
             }
             
@@ -265,12 +265,21 @@ namespace AElf.OS.Network.Grpc
             return true;
         }
 
-        private async Task CleanPeerAsync(GrpcPeer peer)
+        public async Task DisconnectPeerAsync(IPeer peer, bool sendDisconnect = false)
         {
-            await peer.DisconnectAsync(false);
-            await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false); // remove and cleanup
+            if (peer == null)
+                throw new ArgumentNullException(nameof(peer));
+            
+            // clean the pool
+            if (_peerPool.RemovePeer(peer.Info.Pubkey) == null)
+                Logger.LogWarning($"{peer} was not found in pool.");
+            
+            // clean the peer
+            await peer.DisconnectAsync(sendDisconnect);
+            
+            Logger.LogDebug($"Removed peer {peer}");
         }
-        
+
         private void FireConnectionEvent(GrpcPeer peer)
         {
             var blockAnnouncement = new BlockAnnouncement {
