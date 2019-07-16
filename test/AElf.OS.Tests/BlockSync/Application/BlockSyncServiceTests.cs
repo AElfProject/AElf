@@ -187,36 +187,6 @@ namespace AElf.OS.BlockSync.Application
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(31);
         }
-        
-        [Fact]
-        public async Task SyncByAnnounce_MoreThenFetchLimit_DownloadQueueIsBusy()
-        {
-            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
-            
-            var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
-            block.ShouldBeNull();
-            
-            var chain = await _blockchainService.GetChainAsync();
-            var bestChainHash = chain.BestChainHash;
-            var bestChainHeight = chain.BestChainHeight;
-            
-            _blockSyncStateProvider.SetEnqueueTime(OSConstants.BlockDownloadQueueName, TimestampHelper.GetUtcNow()
-                .AddMilliseconds(-(BlockSyncConstants.BlockSyncDownloadBlockAgeLimit + 100)));
-
-            await _blockSyncService.SyncByAnnouncementAsync(chain, new SyncAnnouncementDto
-            {
-                SyncBlockHash = peerBlock.GetHash(),
-                SyncBlockHeight = chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset +1,
-                BatchRequestBlockCount = 5
-            });
-
-            block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
-            block.ShouldBeNull();
-
-            chain = await _blockchainService.GetChainAsync();
-            chain.BestChainHash.ShouldBe(bestChainHash);
-            chain.BestChainHeight.ShouldBe(bestChainHeight);
-        }
 
         [Fact]
         public async Task SyncByAnnounce_Fetch_AttachAndExecuteQueueIsBusy()

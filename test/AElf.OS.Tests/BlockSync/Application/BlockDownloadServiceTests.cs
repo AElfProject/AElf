@@ -25,7 +25,7 @@ namespace AElf.OS.BlockSync.Application
             var downloadResult = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash, chain
                 .BestChainHeight, 5, null);
 
-            downloadResult.ShouldBe(20);
+            downloadResult.DownloadBlockCount.ShouldBe(20);
             
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(31);
@@ -38,7 +38,7 @@ namespace AElf.OS.BlockSync.Application
 
             var downloadResult = await _blockDownloadService.DownloadBlocksAsync(Hash.FromString("MoreThanLimit"), 62, 5, null);
 
-            downloadResult.ShouldBe(0);
+            downloadResult.DownloadBlockCount.ShouldBe(0);
             
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(11);
@@ -51,7 +51,7 @@ namespace AElf.OS.BlockSync.Application
 
             var downloadResult = await _blockDownloadService.DownloadBlocksAsync(Hash.FromString("NoBlockReturn"), 15, 5, null);
 
-            downloadResult.ShouldBe(0);
+            downloadResult.DownloadBlockCount.ShouldBe(0);
             
             chain = await _blockchainService.GetChainAsync();
             chain.BestChainHeight.ShouldBe(11);
