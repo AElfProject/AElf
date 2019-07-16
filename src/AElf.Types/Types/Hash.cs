@@ -26,8 +26,8 @@ namespace AElf.Types
         // Make private to avoid confusion
         private Hash(byte[] bytes)
         {
-            if (bytes == null || bytes.Length != TypeConsts.HashByteArrayLength)
-                throw new ArgumentOutOfRangeException($"Invalid bytes.");
+            if (bytes.Length != TypeConsts.HashByteArrayLength)
+                throw new ArgumentException("Invalid bytes.", nameof(bytes));
 
             Value = ByteString.CopyFrom(bytes);
         }
@@ -39,9 +39,6 @@ namespace AElf.Types
         /// <returns></returns>
         public static Hash FromRawBytes(byte[] bytes)
         {
-            if (bytes == null)
-                throw new ArgumentOutOfRangeException($"Invalid bytes.");
-
             return new Hash(bytes.ComputeHash());
         }
 
@@ -50,11 +47,11 @@ namespace AElf.Types
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        /// <exception cref="ArgumentException"></exception>
         public static Hash FromByteArray(byte[] bytes)
         {
-            if (bytes == null || bytes.Length != TypeConsts.HashByteArrayLength)
-                throw new ArgumentOutOfRangeException($"Invalid bytes.");
+            if (bytes.Length != TypeConsts.HashByteArrayLength)
+                throw new ArgumentException("Invalid bytes.", nameof(bytes));
 
             return new Hash
             {
@@ -125,7 +122,7 @@ namespace AElf.Types
         public string ToHex()
         {
             if (Value.Length != TypeConsts.HashByteArrayLength)
-                throw new ArgumentOutOfRangeException($"Invalid bytes.");
+                throw new ArgumentException("Invalid bytes.", nameof(Value));
 
             return Value.ToHex();
         }
@@ -134,23 +131,6 @@ namespace AElf.Types
         {
             return BitConverter.ToInt64(
                 BitConverter.IsLittleEndian ? Value.Reverse().ToArray() : Value.ToArray(), 0);
-        }
-
-        /// <summary>
-        /// Gets a new hash from two input hashes from bitwise xor operation.
-        /// </summary>
-        /// <param name="h1"></param>
-        /// <param name="h2"></param>
-        /// <returns></returns>
-        public static Hash Xor(Hash h1, Hash h2)
-        {
-            var newBytes = new byte[TypeConsts.HashByteArrayLength];
-            for (var i = 0; i < newBytes.Length; i++)
-            {
-                newBytes[i] = (byte) (h1.Value[i] ^ h2.Value[i]);
-            }
-
-            return FromRawBytes(newBytes);
         }
 
         public static bool operator ==(Hash h1, Hash h2)

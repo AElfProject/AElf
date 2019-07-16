@@ -9,5 +9,10 @@ namespace AElf
         {
             return Hash.FromRawBytes(BitConverter.GetBytes(intValue));
         }
+
+        public static Hash Xor(this Hash hash, Hash another)
+        {
+            return HashHelper.Xor(hash, another);
+        }
     }
 }

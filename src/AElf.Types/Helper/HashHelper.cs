@@ -10,7 +10,7 @@ namespace AElf
             var bytes = Convert.FromBase64String(base64);
             return Hash.FromByteArray(bytes);
         }
-        
+
         /// <summary>
         /// Loads the content value represented in hex string.
         /// </summary>
@@ -21,6 +21,23 @@ namespace AElf
         {
             var bytes = ByteArrayHelper.FromHexString(hex);
             return Hash.FromByteArray(bytes);
+        }
+
+        /// <summary>
+        /// Gets a new hash from two input hashes from bitwise xor operation.
+        /// </summary>
+        /// <param name="h1"></param>
+        /// <param name="h2"></param>
+        /// <returns></returns>
+        public static Hash Xor(Hash h1, Hash h2)
+        {
+            var newBytes = new byte[TypeConsts.HashByteArrayLength];
+            for (var i = 0; i < newBytes.Length; i++)
+            {
+                newBytes[i] = (byte) (h1.Value[i] ^ h2.Value[i]);
+            }
+
+            return Hash.FromRawBytes(newBytes);
         }
     }
 }
