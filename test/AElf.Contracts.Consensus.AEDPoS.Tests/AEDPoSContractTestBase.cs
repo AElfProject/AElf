@@ -112,12 +112,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return GetTester<EconomicContractContainer.EconomicContractStub>(EconomicContractAddress, keyPair);
         }
         
-        protected async Task InitializeCandidates(int take = AEDPoSContractTestConstants.CandidatesCount)
+        protected async Task InitializeCandidates(int take = EconomicContractsTestConstants.ValidateDataCenterCount)
         {
             foreach (var candidatesKeyPair in ValidationDataCenterKeyPairs.Take(take))
             {
-                var announceResult = await GetElectionContractTester(candidatesKeyPair).AnnounceElection.SendAsync(new Empty());
+                var electionTester = GetElectionContractTester(candidatesKeyPair);
+                var announceResult = await electionTester.AnnounceElection.SendAsync(new Empty());
                 announceResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                
+                //query candidates
+                var candidates = await electionTester.GetCandidates.CallAsync(new Empty());
+                candidates.Value.Select(o=>o.ToByteArray().ToHex()).Contains(candidatesKeyPair.PublicKey.ToHex()).ShouldBeTrue();
             }
         }
         

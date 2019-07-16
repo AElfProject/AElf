@@ -27,7 +27,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(new Empty());
 
             var maxCount = ValidationDataCenterKeyPairs.Count;
-            //await InitializeVoters();
             await InitializeCandidates(maxCount);
 
             var firstRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
@@ -42,13 +41,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }).ToDictionary(t => t.Pubkey.ToHex(), t => t);
 
             var voter = GetElectionContractTester(VoterKeyPairs[0]);
-
             foreach (var candidateKeyPair in ValidationDataCenterKeyPairs)
             {
                 var voteResult = await voter.Vote.SendAsync(new VoteMinerInput
                 {
                     CandidatePubkey = candidateKeyPair.PublicKey.ToHex(),
-                    Amount = 10 + new Random().Next(1, 20),
+                    Amount = 10 + new Random().Next(1, 10),
                     EndTimestamp = TimestampHelper.GetUtcNow().AddDays(100)
                 });
                 voteResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);

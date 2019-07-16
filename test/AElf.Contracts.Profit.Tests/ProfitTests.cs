@@ -11,6 +11,7 @@ namespace AElf.Contracts.Profit
     public partial class ProfitTests : ProfitContractTestBase
     {
         private const long ClaimTransactionFee = 1_00000000;
+
         public ProfitTests()
         {
             InitializeContracts();
@@ -154,9 +155,10 @@ namespace AElf.Contracts.Profit
             // Check profit item.
             {
                 var profitItem = await creator.GetScheme.CallAsync(schemeId);
-                profitItem.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol].ShouldBe(amountReleasedByCreator);
+                profitItem.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol]
+                    .ShouldBe(amountReleasedByCreator);
             }
-            
+
             // Add profits to release profits virtual address of this profit item.
             await goodGuy.ContributeProfits.SendAsync(new ContributeProfitsInput
             {
@@ -170,7 +172,8 @@ namespace AElf.Contracts.Profit
             {
                 var profitItem = await creator.GetScheme.CallAsync(schemeId);
                 // Total amount stay.
-                profitItem.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol].ShouldBe(amountReleasedByCreator);
+                profitItem.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol]
+                    .ShouldBe(amountReleasedByCreator);
 
                 var releasedProfitsInformation = await creator.GetDistributedProfitsInfo.CallAsync(
                     new SchemePeriod
@@ -178,7 +181,8 @@ namespace AElf.Contracts.Profit
                         SchemeId = schemeId,
                         Period = 1
                     });
-                releasedProfitsInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol].ShouldBe(amountReleasedByCreator);
+                releasedProfitsInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol]
+                    .ShouldBe(amountReleasedByCreator);
                 // total_Shares is 0 before releasing.
                 releasedProfitsInformation.TotalShares.ShouldBe(0);
                 releasedProfitsInformation.IsReleased.ShouldBe(false);
@@ -284,6 +288,22 @@ namespace AElf.Contracts.Profit
             profitDetails2.Details.First().EndPeriod.ShouldBe(long.MaxValue);
             profitDetails2.Details.First().LastProfitPeriod.ShouldBe(0);
             profitDetails2.Details.First().Shares.ShouldBe(shares2);
+
+            //remove sub scheme1
+            {
+                var removeSubSchemeResult = await creator.RemoveSubScheme.SendAsync(new RemoveSubSchemeInput
+                {
+                    SchemeId = schemeId,
+                    SubSchemeId = subSchemeId1,
+                    SubItemCreator = Address.FromPublicKey(CreatorKeyPair[0].PublicKey)
+                });
+                removeSubSchemeResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var profitItem = await creator.GetScheme.CallAsync(schemeId);
+                profitItem.TotalShares.ShouldBe(shares2);
+                profitItem.SubSchemes.Count.ShouldBe(1);
+                profitItem.SubSchemes.First().Shares.ShouldBe(shares2);
+            }
         }
 
         [Fact]
@@ -439,7 +459,7 @@ namespace AElf.Contracts.Profit
 
             var creator = Creators[0];
             var beneficiary = Creators[1];
-            
+
             var receiverAddress = Address.FromPublicKey(CreatorKeyPair[1].PublicKey);
 
             var schemeId = await CreateScheme(0, expiredPeriodNumber);
@@ -564,7 +584,7 @@ namespace AElf.Contracts.Profit
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 1
             });
-            
+
             // Check total_weight and profit_detail
             {
                 var profitItem = await creator.GetScheme.CallAsync(schemeId);
@@ -583,7 +603,7 @@ namespace AElf.Contracts.Profit
                 SchemeId = schemeId,
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
-            
+
             await creator.RemoveBeneficiary.SendAsync(new RemoveBeneficiaryInput
             {
                 Beneficiary = receiverAddress,
@@ -876,7 +896,7 @@ namespace AElf.Contracts.Profit
                 SchemeId = schemeId,
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
-            
+
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = beneficiaryAddress,
@@ -884,7 +904,7 @@ namespace AElf.Contracts.Profit
             })).Balance;
             balance.ShouldBe(amount + initialBalance - ClaimTransactionFee);
         }
-        
+
         [Fact]
         public async Task ProfitContract_Profit_TwoReceivers()
         {
@@ -897,7 +917,7 @@ namespace AElf.Contracts.Profit
             var beneficiary2 = Normal[1];
             var beneficiaryAddress1 = Address.FromPublicKey(NormalKeyPair[0].PublicKey);
             var beneficiaryAddress2 = Address.FromPublicKey(NormalKeyPair[1].PublicKey);
-            
+
             var initialBalance1 = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = beneficiaryAddress1,
@@ -918,7 +938,7 @@ namespace AElf.Contracts.Profit
                 BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiaryAddress1, Shares = weight1},
                 SchemeId = schemeId,
             });
-            
+
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
                 BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiaryAddress2, Shares = weight2},
@@ -946,9 +966,10 @@ namespace AElf.Contracts.Profit
                     Owner = beneficiaryAddress1,
                     Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(weight1.Mul(amount).Div(weight1 + weight2).Add(initialBalance1).Sub(ClaimTransactionFee));
+                balance.ShouldBe(weight1.Mul(amount).Div(weight1 + weight2).Add(initialBalance1)
+                    .Sub(ClaimTransactionFee));
             }
-            
+
             await beneficiary2.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
@@ -962,7 +983,8 @@ namespace AElf.Contracts.Profit
                     Owner = beneficiaryAddress2,
                     Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(weight2.Mul(amount).Div(weight1 + weight2).Add(initialBalance2).Sub(ClaimTransactionFee));
+                balance.ShouldBe(weight2.Mul(amount).Div(weight1 + weight2).Add(initialBalance2)
+                    .Sub(ClaimTransactionFee));
             }
         }
 
@@ -979,7 +1001,7 @@ namespace AElf.Contracts.Profit
             var beneficiary2 = Normal[1];
             var beneficiaryAddress1 = Address.FromPublicKey(NormalKeyPair[0].PublicKey);
             var beneficiaryAddress2 = Address.FromPublicKey(NormalKeyPair[1].PublicKey);
-            
+
             var initialBalance1 = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = beneficiaryAddress1,
@@ -1036,9 +1058,10 @@ namespace AElf.Contracts.Profit
                     Owner = beneficiaryAddress1,
                     Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(weight1.Mul(amount).Div(weight1.Add(weight2).Add(weight3)).Add(initialBalance1).Sub(ClaimTransactionFee));
+                balance.ShouldBe(weight1.Mul(amount).Div(weight1.Add(weight2).Add(weight3)).Add(initialBalance1)
+                    .Sub(ClaimTransactionFee));
             }
-            
+
             await beneficiary2.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
@@ -1052,7 +1075,8 @@ namespace AElf.Contracts.Profit
                     Owner = beneficiaryAddress2,
                     Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(weight2.Mul(amount).Div(weight1.Add(weight2).Add(weight3)).Add(initialBalance2).Sub(ClaimTransactionFee));
+                balance.ShouldBe(weight2.Mul(amount).Div(weight1.Add(weight2).Add(weight3)).Add(initialBalance2)
+                    .Sub(ClaimTransactionFee));
             }
         }
 
@@ -1080,7 +1104,7 @@ namespace AElf.Contracts.Profit
             var beneficiary = Normal[0];
 
             var schemeId = await CreateScheme();
-            
+
             await TransferToProfitItemVirtualAddress(schemeId);
 
             await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
@@ -1090,7 +1114,7 @@ namespace AElf.Contracts.Profit
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 1
             });
-            
+
             var executionResult = await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
                 SchemeId = schemeId,
@@ -1180,7 +1204,7 @@ namespace AElf.Contracts.Profit
                     Owner = beneficiaryAddress,
                     Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(amount * periodCount + amount + initialBalance- ClaimTransactionFee * 2);
+                balance.ShouldBe(amount * periodCount + amount + initialBalance - ClaimTransactionFee * 2);
 
                 var details = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
@@ -1188,7 +1212,7 @@ namespace AElf.Contracts.Profit
                     Beneficiary = beneficiaryAddress
                 });
                 details.Details[0].LastProfitPeriod.ShouldBe(periodCount + 2);
-            }          
+            }
         }
 
         private async Task<Hash> CreateScheme(int returnIndex = 0,
