@@ -3,7 +3,7 @@ using AElf.Kernel;
 
 namespace AElf.OS.Network.Grpc
 {
-    public static class ConnectionHelpers
+    public static class ConnectionInfoExtensions
     {
         public static PeerInfo ToPeerInfo(this ConnectionInfo connectionInfo, bool isInbound)
         {
