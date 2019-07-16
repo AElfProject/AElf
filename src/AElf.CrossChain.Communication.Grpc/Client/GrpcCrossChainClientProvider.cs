@@ -29,7 +29,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
         #region Create client
 
-        public ICrossChainClient CreateCrossClient(CrossChainClientDto crossChainClientDto)
+        public ICrossChainClient CreateCrossChainClient(CrossChainClientDto crossChainClientDto)
         {
             var uriStr = GetUriStr(crossChainClientDto.RemoteServerHost, crossChainClientDto.RemoteServerPort);
 

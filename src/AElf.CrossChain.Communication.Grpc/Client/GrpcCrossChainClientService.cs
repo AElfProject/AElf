@@ -28,7 +28,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 RemoteServerHost = _grpcCrossChainConfigOption.RemoteParentChainServerHost,
                 RemoteServerPort = _grpcCrossChainConfigOption.RemoteParentChainServerPort
             };
-            var client = _crossChainClientProvider.CreateCrossClient(crossChainClientDto);
+            var client = _crossChainClientProvider.CreateCrossChainClient(crossChainClientDto);
             return client;
         }
 

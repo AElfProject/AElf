@@ -41,13 +41,13 @@ namespace AElf.CrossChain.Communication.Grpc
             });
         }
 
-        public Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
+        public async Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
         {
             Logger.LogTrace(
                 $"Handle cross chain request received event from chain {ChainHelper.ConvertChainIdToBase58(crossChainClientDto.RemoteChainId)}.");
 
             crossChainClientDto.LocalChainId = _localChainId;
-            return _crossChainClientService.CreateClientAsync(crossChainClientDto);
+            _ = _crossChainClientService.CreateClientAsync(crossChainClientDto);
         }
 
         public async Task StopAsync()

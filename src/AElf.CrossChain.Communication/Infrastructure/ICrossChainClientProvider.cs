@@ -6,7 +6,7 @@ namespace AElf.CrossChain.Communication.Infrastructure
     {
         void CreateAndCacheClient(CrossChainClientDto crossChainClientDto);
         Task<ICrossChainClient> GetClientAsync(int chainId);
-        ICrossChainClient CreateCrossClient(CrossChainClientDto crossChainClientDto);
+        ICrossChainClient CreateCrossChainClient(CrossChainClientDto crossChainClientDto);
         Task CloseClientsAsync();
     }
 }
