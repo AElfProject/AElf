@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Linq;
 using AElf.Types;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Network.Infrastructure
 {
@@ -10,7 +11,7 @@ namespace AElf.OS.Network.Infrastructure
         bool TryGetBlockByHeight(long blockHeight, out Hash blockHash);
     }
 
-    public class KnownBlockCacheProvider : IKnownBlockCacheProvider
+    public class KnownBlockCacheProvider : IKnownBlockCacheProvider, ISingletonDependency
     {
         private readonly ConcurrentDictionary<long, Hash> _knowBlocks;
 
