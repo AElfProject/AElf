@@ -45,12 +45,6 @@ namespace AElf.OS.BlockSync.Application
             }
             else
             {
-                if(!_blockSyncQueueService.ValidateQueueAvailability(OSConstants.BlockDownloadQueueName))
-                {
-                    Logger.LogWarning("Block sync download queue is too busy.");
-                    return;
-                }
-
                 await _blockDownloadJobManager.EnqueueAsync(syncAnnouncementDto.SyncBlockHash, syncAnnouncementDto
                 .SyncBlockHeight,
                     syncAnnouncementDto.BatchRequestBlockCount, syncAnnouncementDto.SuggestedPeerPubkey);
@@ -73,12 +67,6 @@ namespace AElf.OS.BlockSync.Application
             }
             else
             {
-                if(!_blockSyncQueueService.ValidateQueueAvailability(OSConstants.BlockDownloadQueueName))
-                {
-                    Logger.LogWarning($"Block sync download queue is too busy. block: {syncBlockDto.BlockWithTransactions}");
-                    return;
-                }
-
                 await _blockDownloadJobManager.EnqueueAsync(syncBlockDto.BlockWithTransactions.GetHash(), syncBlockDto.BlockWithTransactions.Height,
                     syncBlockDto.BatchRequestBlockCount, syncBlockDto.SuggestedPeerPubkey);
             }

@@ -36,7 +36,6 @@ namespace AElf.OS
             var taskQueueManager = context.ServiceProvider.GetService<ITaskQueueManager>();
 
             taskQueueManager.CreateQueue(OSConstants.BlockSyncAttachQueueName);
-            taskQueueManager.CreateQueue(OSConstants.BlockDownloadQueueName);
             taskQueueManager.CreateQueue(OSConstants.BlockFetchQueueName, 4);
             taskQueueManager.CreateQueue(OSConstants.InitialSyncQueueName);
 
