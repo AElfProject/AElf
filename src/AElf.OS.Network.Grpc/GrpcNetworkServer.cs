@@ -31,7 +31,6 @@ namespace AElf.OS.Network.Grpc
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
 
         private readonly GrpcServerService _serverService;
-        private readonly AuthInterceptor _authInterceptor;
         
         private readonly IPeerDialer _peerDialer;
         private readonly IHandshakeProvider _handshakeProvider;
@@ -39,19 +38,19 @@ namespace AElf.OS.Network.Grpc
 
         private readonly IPeerPool _peerPool;
 
-        private Server _server;
+        private readonly Server _server;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcNetworkServer> Logger { get; set; }
 
-        public GrpcNetworkServer(GrpcServerService serverService, AuthInterceptor authInterceptor, IPeerPool peerPool, 
+        public GrpcNetworkServer(Server server, GrpcServerService serverService, IPeerPool peerPool, 
              IPeerDialer peerDialer, IHandshakeProvider handshakeProvider, IConnectionInfoProvider connectionInfoProvider)
         {
             _serverService = serverService;
-            _authInterceptor = authInterceptor;
             _peerDialer = peerDialer;
             _handshakeProvider = handshakeProvider;
             _connectionInfoProvider = connectionInfoProvider;
+            _server = server;
             _peerPool = peerPool;
 
             Logger = NullLogger<GrpcNetworkServer>.Instance;
@@ -71,26 +70,6 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         internal async Task StartListeningAsync()
         {
-            ServerServiceDefinition serviceDefinition = PeerService.BindService(_serverService);
-
-            // authentication interceptor
-            if (_authInterceptor != null)
-                serviceDefinition = serviceDefinition.Intercept(_authInterceptor);
-
-            // setup the server
-            _server = new Server(new List<ChannelOption>
-            {
-                new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
-                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
-            })
-            {
-                Services = {serviceDefinition},
-                Ports =
-                {
-                    new ServerPort(IPAddress.Any.ToString(), NetworkOptions.ListeningPort, ServerCredentials.Insecure)
-                }
-            };
-            
             _serverService.RegisterConnectionCallback(OnConnectionStarted);
             _serverService.RegisterHandshakeCallback(OnHandshakeStarted);
 
@@ -114,13 +93,12 @@ namespace AElf.OS.Network.Grpc
             var oldPeer = _peerPool.FindPeerByPublicKey(pubKey);
             if (oldPeer != null)
             {
-                // TODO: Is this valid ? this is just discarding the previous connection
+                // REVIEW: Is this valid ? this is just discarding the previous connection
                 Logger.LogDebug($"Cleaning up {oldPeer} before connecting.");
                 await _peerPool.RemovePeerAsync(pubKey, false); //TODO report disconnect
             }
 
             // TODO: find a URI type to use
-            
             var peerAddress = peer.IpAddress + ":" + peerConnectionInfo.ListeningPort;
             
             Logger.LogDebug($"Attempting to create channel to {peerAddress}");
