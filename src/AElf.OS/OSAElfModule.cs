@@ -37,7 +37,7 @@ namespace AElf.OS
 
             taskQueueManager.CreateQueue(OSConstants.BlockSyncAttachQueueName);
             taskQueueManager.CreateQueue(OSConstants.BlockDownloadQueueName);
-            taskQueueManager.CreateQueue(OSConstants.BlockFetchQueueName);
+            taskQueueManager.CreateQueue(OSConstants.BlockFetchQueueName, 4);
             taskQueueManager.CreateQueue(OSConstants.InitialSyncQueueName);
 
             var networkOptions = context.ServiceProvider.GetService<IOptionsSnapshot<NetworkOptions>>().Value;
