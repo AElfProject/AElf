@@ -217,7 +217,7 @@ namespace AElf.OS.Network.Application
         {
             if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
             {
-                await _networkServer.DisconnectPeerAsync(peer, false);
+                await _networkServer.DisconnectPeerAsync(peer);
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
             {
@@ -234,7 +234,7 @@ namespace AElf.OS.Network.Application
             var success = await peer.TryRecoverAsync();
 
             if (!success)
-                await _networkServer.DisconnectPeerAsync(peer, false);
+                await _networkServer.DisconnectPeerAsync(peer);
         }
         
         private void QueueNetworkTask(Func<Task> task)
