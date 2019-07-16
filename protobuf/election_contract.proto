@@ -96,6 +96,9 @@ service ElectionContract {
     rpc GetMinerElectionVotingItemId (google.protobuf.Empty) returns (aelf.Hash) {
         option (aelf.is_view) = true;
     }
+    rpc GetDataCenterRankingList (google.protobuf.Empty) returns (DataCenterRankingList) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitialElectionContractInput {
@@ -239,7 +242,7 @@ message SetTreasurySchemeIdsInput {
     aelf.Hash re_election_reward_hash = 5;
 }
 
-message ValidationDataCenterRankingList {
-    map<string, sint64> validation_data_centers = 1;
+message DataCenterRankingList {
+    map<string, sint64> data_centers = 1;
     sint64 minimum_votes = 2;
 }

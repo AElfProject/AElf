@@ -317,6 +317,14 @@ namespace AElf.Contracts.Treasury
             UpdateVotesWeightRewardWeights(endPeriod, victories, previousMinerAddress);
         }
         
+        /// <summary>
+        /// Remove current total shares of Basic Reward,
+        /// Add new shares for miners of next term.
+        /// 1 share for each miner.
+        /// </summary>
+        /// <param name="endPeriod"></param>
+        /// <param name="victories"></param>
+        /// <param name="previousMinerAddresses"></param>
         private void UpdateBasicMinerRewardWeights(long endPeriod, IEnumerable<string> victories,
             IEnumerable<Address> previousMinerAddresses)
         {
@@ -341,6 +349,13 @@ namespace AElf.Contracts.Treasury
             State.ProfitContract.AddBeneficiaries.Send(basicRewardProfitAddBeneficiaries);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="endPeriod"></param>
+        /// <param name="previousMiners"></param>
+        /// <param name="previousMinerAddresses"></param>
+        /// <param name="victories"></param>
         private void UpdateReElectionRewardWeights(long endPeriod, IEnumerable<string> previousMiners,
             IEnumerable<Address> previousMinerAddresses, List<string> victories)
         {
@@ -358,10 +373,14 @@ namespace AElf.Contracts.Treasury
             };
             foreach (var previousMiner in previousMiners)
             {
+                if (!victories.Contains(previousMiner))
+                {
+                    continue;
+                }
                 var continualAppointmentCount =
                     State.ElectionContract.GetCandidateInformation.Call(new StringInput {Value = previousMiner})
                         .ContinualAppointmentCount;
-                continualAppointmentCount = victories.Contains(previousMiner) ? continualAppointmentCount.Add(1) : 0;
+                continualAppointmentCount = continualAppointmentCount.Add(1);
                 var minerAddress = Address.FromPublicKey(ByteArrayHelper.FromHexString(previousMiner));
                 if (continualAppointmentCount > 0)
                 {
@@ -395,11 +414,11 @@ namespace AElf.Contracts.Treasury
                 EndPeriod = endPeriod
             };
 
+            var dataCenterRankingList = State.ElectionContract.GetDataCenterRankingList.Call(new Empty());
+            
             foreach (var victory in victories)
             {
-                var obtainedVotes =
-                    State.ElectionContract.GetCandidateVote.Call(new StringInput {Value = victory})
-                        .ObtainedActiveVotedVotesAmount;
+                var obtainedVotes = dataCenterRankingList.DataCenters[victory];
                 var minerAddress = Address.FromPublicKey(ByteArrayHelper.FromHexString(victory));
                 if (obtainedVotes > 0)
                 {

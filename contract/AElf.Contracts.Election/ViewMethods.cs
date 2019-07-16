@@ -275,6 +275,11 @@ namespace AElf.Contracts.Election
             return votes;
         }
 
+        public override DataCenterRankingList GetDataCenterRankingList(Empty input)
+        {
+            return State.DataCentersRankingList.Value;
+        }
+
         private ElectionVotingRecord TransferVotingRecordToElectionVotingRecord(VotingRecord votingRecord, Hash voteId)
         {
             var lockSeconds = State.LockTimeMap[voteId];

@@ -551,7 +551,7 @@ namespace AElf.Contracts.Profit
                     });
                 }
 
-                remainAmount -= amount;
+                remainAmount = remainAmount.Sub(amount);
 
                 UpdateSubSchemeInformation(input, subScheme, amount);
 
