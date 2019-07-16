@@ -58,7 +58,6 @@ namespace AElf.OS.Network.Grpc
 
         public PeerInfo Info { get; }
         
-        private Handshake _lastSentHandshake;
         private Handshake _lastReceivedHandshake;
         
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
@@ -127,7 +126,6 @@ namespace AElf.OS.Network.Grpc
             var handshakeReply = await RequestAsync(_client, 
                 c => c.DoHandshakeAsync(new HandshakeRequest { Handshake = handshake}, data), request);
 
-            _lastSentHandshake = handshake;
             _lastReceivedHandshake = handshakeReply?.Handshake;
             
             // Do some pre-checks that represent the minimum acceptable for the peers state.

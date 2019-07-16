@@ -16,7 +16,6 @@ namespace AElf.OS.Network.Infrastructure
 
         PeerInfo Info { get; }
 
-        // TODO: add method 
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         void AddKnowBlock(BlockAnnouncement blockAnnouncement);
 
@@ -29,7 +28,6 @@ namespace AElf.OS.Network.Infrastructure
         
         Task<bool> TryRecoverAsync();
         
-        // TODO: maybe externalize metrics
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();
 
         Task DisconnectAsync(bool gracefulDisconnect);
