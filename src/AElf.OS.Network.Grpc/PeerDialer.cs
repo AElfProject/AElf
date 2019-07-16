@@ -15,12 +15,10 @@ namespace AElf.OS.Network.Grpc
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
         
         private readonly IPeerClientFactory _peerClientFactory;
-        private readonly IConnectionInfoProvider _connectionInfoProvider;
 
-        public PeerDialer(IPeerClientFactory peerClientFactory, IConnectionInfoProvider connectionInfoProvider)
+        public PeerDialer(IPeerClientFactory peerClientFactory)
         {
             _peerClientFactory = peerClientFactory;
-            _connectionInfoProvider = connectionInfoProvider;
         }
 
         /// <summary>
@@ -28,12 +26,12 @@ namespace AElf.OS.Network.Grpc
         /// further communications.
         /// </summary>
         /// <returns>The created peer</returns>
-        public async Task<GrpcPeer> DialPeerAsync(string ipAddress)
+        public async Task<GrpcPeer> DialPeerAsync(string ipAddress, ConnectionInfo connectionInfo)
         {
             var (channel, client) = _peerClientFactory.CreateClientAsync(ipAddress);
             
             // TODO maybe implement retry logic (for now in interception)
-            ConnectReply connectReply = await CallConnectAsync(client, channel, ipAddress);
+            ConnectReply connectReply = await CallConnectAsync(client, channel, ipAddress, connectionInfo);
 
             if (connectReply?.Info?.Pubkey == null || connectReply.Error != ConnectError.ConnectOk)
             {
@@ -58,7 +56,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         /// <returns>The reply from the server.</returns>
         private async Task<ConnectReply> CallConnectAsync(PeerService.PeerServiceClient client, Channel channel, 
-            string ipAddress)
+            string ipAddress, ConnectionInfo connectionInfo)
         {
             ConnectReply connectReply;
             
@@ -67,7 +65,6 @@ namespace AElf.OS.Network.Grpc
                 var metadata = new Metadata {
                     {GrpcConstants.TimeoutMetadataKey, NetworkOptions.PeerDialTimeoutInMilliSeconds.ToString()}};
                 
-                var connectionInfo = await _connectionInfoProvider.GetConnectionInfoAsync();
                 connectReply = await client.ConnectAsync(new ConnectRequest { Info = connectionInfo }, metadata);
             }
             catch (AggregateException ex)

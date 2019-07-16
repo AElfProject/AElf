@@ -5,6 +5,7 @@ using System.Net;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
+using AElf.Kernel.Account.Application;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
@@ -30,27 +31,20 @@ namespace AElf.OS.Network.Grpc
         private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
 
-        private readonly GrpcServerService _serverService;
-        
+        private readonly IGrpcServerContext _serverContext;
         private readonly IPeerDialer _peerDialer;
         private readonly IHandshakeProvider _handshakeProvider;
-        private readonly IConnectionInfoProvider _connectionInfoProvider;
-
         private readonly IPeerPool _peerPool;
-
-        private readonly Server _server;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcNetworkServer> Logger { get; set; }
 
-        public GrpcNetworkServer(Server server, GrpcServerService serverService, IPeerPool peerPool, 
-             IPeerDialer peerDialer, IHandshakeProvider handshakeProvider, IConnectionInfoProvider connectionInfoProvider)
+        public GrpcNetworkServer(IGrpcServerContext serverContext, IPeerPool peerPool, 
+             IPeerDialer peerDialer, IHandshakeProvider handshakeProvider)
         {
-            _serverService = serverService;
+            _serverContext = serverContext;
             _peerDialer = peerDialer;
             _handshakeProvider = handshakeProvider;
-            _connectionInfoProvider = connectionInfoProvider;
-            _server = server;
             _peerPool = peerPool;
 
             Logger = NullLogger<GrpcNetworkServer>.Instance;
@@ -64,17 +58,17 @@ namespace AElf.OS.Network.Grpc
 
             await EventBus.PublishAsync(new NetworkInitializationFinishedEvent());
         }
-
+        
         /// <summary>
         /// Starts gRPC's server by binding the peer services, sets options and adds interceptors.
         /// </summary>
         internal async Task StartListeningAsync()
         {
-            _serverService.RegisterConnectionCallback(OnConnectionStarted);
-            _serverService.RegisterHandshakeCallback(OnHandshakeStarted);
+            _serverContext.RegisterConnectionCallback(OnConnectionStarted);
+            _serverContext.RegisterHandshakeCallback(OnHandshakeStarted);
 
             // start listening
-            await Task.Run(() => _server.Start());
+            await _serverContext.StartServerAsync();
         }
 
         private async Task<ConnectReply> OnConnectionStarted(string peerConnectionIp, ConnectionInfo peerConnectionInfo)
@@ -109,7 +103,7 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
 
             // todo handle case where add is false (edge case)
-            var connectInfo = await _connectionInfoProvider.GetConnectionInfoAsync();
+            var connectInfo = await _serverContext.GetConnectionInfoAsync();
             
             return new ConnectReply { Info = connectInfo};
         }
@@ -222,7 +216,7 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 // create the connection to the distant node
-                peer = await _peerDialer.DialPeerAsync(ipAddress);
+                peer = await _peerDialer.DialPeerAsync(ipAddress, await _serverContext.GetConnectionInfoAsync());
             }
             catch (PeerDialException ex)
             {
@@ -293,7 +287,7 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                await _server.KillAsync();
+                await _serverContext.StopServerAsync();
             }
             catch (InvalidOperationException)
             {
