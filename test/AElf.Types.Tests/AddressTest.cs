@@ -26,7 +26,7 @@ namespace AElf.Types.Tests
             address4.ShouldNotBe(null);
 
             bytes = Enumerable.Repeat((byte) 32, 20).ToArray();
-            Should.Throw<ArgumentOutOfRangeException>(() => { Address.FromBytes(bytes); });
+            Should.Throw<ArgumentException>(() => { Address.FromBytes(bytes); });
 
             //Generate from public key
             var pk = CryptoHelper.GenerateKeyPair().PublicKey;
