@@ -56,7 +56,7 @@ namespace AElf.OS.Network.Grpc
             await StartListeningAsync();
             await DialBootNodesAsync();
 
-            await EventBus.PublishAsync(new NetworkInitializationFinishedEvent());
+            await EventBus.PublishAsync(new NetworkInitializedEvent());
         }
         
         /// <summary>

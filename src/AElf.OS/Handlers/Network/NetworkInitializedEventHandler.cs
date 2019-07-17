@@ -6,16 +6,16 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
-    public class NetworkInitializationFinishedEventHandler : ILocalEventHandler<NetworkInitializationFinishedEvent>, ITransientDependency
+    public class NetworkInitializedEventHandler : ILocalEventHandler<NetworkInitializedEvent>, ITransientDependency
     {
         private readonly ISyncStateService _syncStateService;
 
-        public NetworkInitializationFinishedEventHandler(ISyncStateService syncStateService)
+        public NetworkInitializedEventHandler(ISyncStateService syncStateService)
         {
             _syncStateService = syncStateService;
         }
         
-        public async Task HandleEventAsync(NetworkInitializationFinishedEvent eventData)
+        public async Task HandleEventAsync(NetworkInitializedEvent eventData)
         {
             await _syncStateService.StartSyncAsync();
         }

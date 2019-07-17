@@ -40,8 +40,8 @@ namespace AElf.OS.Network
         [Fact(Skip = "problematic test")]
         public async Task Start_ShouldLaunch_NetInitEvent()
         {
-            NetworkInitializationFinishedEvent eventData = null;
-            _eventBus.Subscribe<NetworkInitializationFinishedEvent>(ed =>
+            NetworkInitializedEvent eventData = null;
+            _eventBus.Subscribe<NetworkInitializedEvent>(ed =>
             {
                 eventData = ed;
                 return Task.CompletedTask;
