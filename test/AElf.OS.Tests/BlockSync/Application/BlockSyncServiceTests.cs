@@ -8,6 +8,7 @@ using AElf.OS.Network.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Shouldly;
+using Virgil.Crypto;
 using Xunit;
 
 namespace AElf.OS.BlockSync.Application
@@ -18,6 +19,7 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
         private readonly IBlockSyncStateProvider _blockSyncStateProvider;
+        private readonly IBlockDownloadJobStore _blockDownloadJobStore;
         private readonly OSTestHelper _osTestHelper;
         
         public BlockSyncServiceTests()
@@ -26,6 +28,7 @@ namespace AElf.OS.BlockSync.Application
             _blockchainService = GetRequiredService<IBlockchainService>();
             _networkService = GetRequiredService<INetworkService>();
             _blockSyncStateProvider = GetRequiredService<IBlockSyncStateProvider>();
+            _blockDownloadJobStore = GetRequiredService<IBlockDownloadJobStore>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
         }
         
@@ -87,12 +90,10 @@ namespace AElf.OS.BlockSync.Application
                     SyncBlockHeight = peerBlockHeight,
                     BatchRequestBlockCount = 5
                 });
-                chain = await _blockchainService.GetChainAsync();
-                chain.BestChainHash.ShouldBe(peerBlocks.Last().GetHash());
-                chain.BestChainHeight.ShouldBe(31);
-
-                var block13 = await _blockchainService.GetBlockByHeightInBestChainBranchAsync(13);
-                block13.GetHash().ShouldNotBe(forkedBlockHash);
+                
+                var jobInfo = await _blockDownloadJobStore.GetFirstWaitingJobAsync();
+                jobInfo.TargetBlockHeight.ShouldBe(peerBlockHeight);
+                jobInfo.TargetBlockHash.ShouldBe(peerBlockHash);
             }
         }
 
@@ -184,8 +185,9 @@ namespace AElf.OS.BlockSync.Application
                 BatchRequestBlockCount = 5
             });
 
-            chain = await _blockchainService.GetChainAsync();
-            chain.BestChainHeight.ShouldBe(31);
+            var jobInfo = await _blockDownloadJobStore.GetFirstWaitingJobAsync();
+            jobInfo.TargetBlockHeight.ShouldBe(peerBlockHeight);
+            jobInfo.TargetBlockHash.ShouldBe(peerBlockHash);
         }
 
         [Fact]
