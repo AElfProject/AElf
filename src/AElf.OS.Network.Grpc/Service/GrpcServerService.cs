@@ -200,14 +200,19 @@ namespace AElf.OS.Network.Grpc
             return nodes;
         }
 
+        public override Task<PongReply> Ping(PingRequest request, ServerCallContext context)
+        {
+            return Task.FromResult(new PongReply());
+        }
+
         /// <summary>
         /// Clients should call this method to disconnect explicitly.
         /// </summary>
-        public override async Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
+        public override Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
         {
             Logger.LogDebug($"Peer {context.GetPeerInfo()} has sent a disconnect request.");
             _peerPool.RemovePeer(context.GetPublicKey());
-            return new VoidReply();
+            return Task.FromResult(new VoidReply());
         }
     }
 }

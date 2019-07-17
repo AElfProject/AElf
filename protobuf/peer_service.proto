@@ -8,7 +8,7 @@ import "aelf/core.proto";
 
 service PeerService {
     
-    rpc PingPong (Ping) returns (Pong) {}
+    rpc Ping (PingRequest) returns (PongReply) {}
     
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}
     rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
@@ -32,9 +32,9 @@ service PeerService {
 message VoidReply {
 }
 
-message Ping {
+message PingRequest {
 }
 
-message Pong {
+message PongReply {
 }
 
