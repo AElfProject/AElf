@@ -10,26 +10,26 @@ namespace AElf.OS.Network.Domain
 {
     public interface INodeManager
     {
-        Task<bool> AddNodeAsync(Node node);
+        Task<bool> AddNodeAsync(NodeInfo nodeInfo);
         Task<NodeList> AddNodesAsync(NodeList node);
         Task<NodeList> GetRandomNodesAsync(int maxCount);
     }
     
     public class NodeManager : INodeManager, ISingletonDependency
     {
-        private readonly ConcurrentDictionary<string, Node> _nodes;
+        private readonly ConcurrentDictionary<string, NodeInfo> _nodes;
         public ILogger<NodeManager> Logger { get; set;}
 
         public NodeManager()
         {
-            _nodes = new ConcurrentDictionary<string, Node>();
+            _nodes = new ConcurrentDictionary<string, NodeInfo>();
             
             Logger = NullLogger<NodeManager>.Instance;
         }
 
-        public Task<bool> AddNodeAsync(Node node)
+        public Task<bool> AddNodeAsync(NodeInfo nodeInfo)
         {
-            return Task.FromResult(_nodes.TryAdd(node.Pubkey.ToHex(), node));
+            return Task.FromResult(_nodes.TryAdd(nodeInfo.Pubkey.ToHex(), nodeInfo));
         }
         
         public async Task<NodeList> AddNodesAsync(NodeList nodes)

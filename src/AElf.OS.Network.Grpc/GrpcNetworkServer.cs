@@ -257,9 +257,6 @@ namespace AElf.OS.Network.Grpc
             Logger.LogTrace($"Connected to {peer} - LIB height {peer.LastKnownLibHeight}, " +
                             $"best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}].");
             
-            // TODO move to event handler in OS ?
-            // await _nodeManager.AddNodeAsync(new Node { Pubkey = peerPubkey.ToByteString(), Endpoint = ipAddress});
-            
             FireConnectionEvent(peer);
 
             return true;
@@ -282,14 +279,10 @@ namespace AElf.OS.Network.Grpc
 
         private void FireConnectionEvent(GrpcPeer peer)
         {
-            var blockAnnouncement = new BlockAnnouncement {
-                BlockHash = peer.CurrentBlockHash,
-                BlockHeight = peer.CurrentBlockHeight
-            };
-            
-            var announcement = new AnnouncementReceivedEventData(blockAnnouncement, peer.Info.Pubkey);
-            
-            _ = EventBus.PublishAsync(announcement);
+            var nodeInfo = new NodeInfo { Endpoint = peer.IpAddress, Pubkey = peer.Info.Pubkey.ToByteString() };
+            var bestChainHeader = peer.LastReceivedHandshake.HandshakeData.BestChainBlockHeader;
+
+            _ = EventBus.PublishAsync(new PeerConnectedEventData(nodeInfo, bestChainHeader));
         }
 
         public async Task StopAsync(bool gracefulDisconnect = true)

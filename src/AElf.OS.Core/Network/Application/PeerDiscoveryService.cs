@@ -75,6 +75,11 @@ namespace AElf.OS.Network.Application
             return discoveredNodes;
         }
 
+        public async Task AddNodeAsync(NodeInfo nodeInfo)
+        {
+            await _nodeManager.AddNodeAsync(nodeInfo);
+        }
+
         public Task<NodeList> GetNodesAsync(int maxCount)
         {
             return _nodeManager.GetRandomNodesAsync(maxCount);

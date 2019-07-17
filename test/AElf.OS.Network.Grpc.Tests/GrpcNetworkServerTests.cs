@@ -109,8 +109,8 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_GoodPeer_ShouldLaunchConnectionEvent()
         {
-            AnnouncementReceivedEventData eventData = null;
-            _eventBus.Subscribe<AnnouncementReceivedEventData>(e =>
+            PeerConnectedEventData eventData = null;
+            _eventBus.Subscribe<PeerConnectedEventData>(e =>
             {
                 eventData = e;
                 return Task.CompletedTask;

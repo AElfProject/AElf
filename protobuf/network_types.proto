@@ -107,13 +107,13 @@ message DisconnectReason {
 
 // Messages related to peer discovery
 
-message Node {
+message NodeInfo {
     string endpoint = 1;
     bytes pubkey = 2;
 }
 
 message NodeList {
-    repeated Node nodes = 1;
+    repeated NodeInfo nodes = 1;
 }
 
 message NodesRequest {

@@ -1,6 +1,6 @@
 namespace AElf.OS.Network
 {
-    public partial class Node
+    public partial class NodeInfo
     {
         public string ToDiagnosticString()
         {
