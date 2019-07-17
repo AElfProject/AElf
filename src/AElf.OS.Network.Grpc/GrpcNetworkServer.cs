@@ -77,19 +77,19 @@ namespace AElf.OS.Network.Grpc
             var peer = GrpcUrl.Parse(peerConnectionIp);
             
             if (peer == null)
-                return new ConnectReply { Error = ConnectError.InvalidPeer }; // TODO connect error
-            
-            if (ValidateConnectionInfo(peerConnectionInfo) != ConnectError.ConnectOk)
-                return new ConnectReply { Error = ConnectError.ConnectionRefused };
+                return new ConnectReply { Error = ConnectError.InvalidPeer };
+
+            var error = ValidateConnectionInfo(peerConnectionInfo);
+            if (error != ConnectError.ConnectOk)
+                return new ConnectReply { Error = error };
             
             string pubKey = peerConnectionInfo.Pubkey.ToHex();
             
-            var oldPeer = _peerPool.FindPeerByPublicKey(pubKey);
-            if (oldPeer != null)
+            var currentPeer = _peerPool.FindPeerByPublicKey(pubKey);
+            if (currentPeer != null)
             {
-                // TODO : cannot do this before signature check is done.
-                Logger.LogDebug($"Cleaning up {oldPeer} before connecting.");
-                await DisconnectPeerAsync(oldPeer);
+                Logger.LogWarning($"Cleaning up {currentPeer} already known.");
+                return new ConnectReply { Error = ConnectError.ConnectionRefused };
             }
 
             // TODO: find a URI type to use
@@ -99,12 +99,15 @@ namespace AElf.OS.Network.Grpc
             var grpcPeer = await _peerDialer.DialBackPeer(peerAddress, peerConnectionInfo);
 
             // If auth ok -> add it to our peers
-            if (_peerPool.TryAddPeer(grpcPeer))
-                Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
-
-            // todo handle case where add is false (edge case)
-            var connectInfo = await _serverContext.GetConnectionInfoAsync();
+            if (!_peerPool.TryAddPeer(grpcPeer))
+            {
+                Logger.LogWarning($"Stopping connection, peer already in the pool {grpcPeer.Info.Pubkey}.");
+                await grpcPeer.DisconnectAsync(false);
+            }
             
+            Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
+
+            var connectInfo = await _serverContext.GetConnectionInfoAsync();
             return new ConnectReply { Info = connectInfo};
         }
         
@@ -146,6 +149,7 @@ namespace AElf.OS.Network.Grpc
             if (connectionInfo.Version != KernelConstants.ProtocolVersion)
                 return ConnectError.ProtocolMismatch;
             
+            // verify if we still have room for more peers
             if (NetworkOptions.MaxPeers != 0 && _peerPool.IsFull())
             {
                 Logger.LogWarning($"Cannot add peer, there's currently {_peerPool.PeerCount} peers (max. {NetworkOptions.MaxPeers}).");
@@ -171,6 +175,7 @@ namespace AElf.OS.Network.Grpc
             
             // verify authentication
             var pubKey = handshake.HandshakeData.Pubkey.ToHex();
+            
             if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.Authorized 
                 && !NetworkOptions.AuthorizedKeys.Contains(pubKey))
             {
