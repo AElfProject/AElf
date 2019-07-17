@@ -302,7 +302,7 @@ namespace AElf.Contracts.MultiToken
 
             return new Empty();
         }
-
+        
         private void ChargeFirstSufficientToken(MapField<string, long> symbolToAmountMap, out string symbol,
             out long amount, out long existingBalance)
         {

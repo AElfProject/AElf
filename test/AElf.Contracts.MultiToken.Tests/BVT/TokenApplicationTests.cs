@@ -763,6 +763,16 @@ namespace AElf.Contracts.MultiToken
                 Symbol = AliceCoinTokenInfo.Symbol
             });
             balanceOutput.Balance.ShouldBe(1000L);
+            
+            //allowance not enough
+            var result1 = (await BasicFunctionContractStub.TransferTokenToContract.SendAsync(
+                new TransferTokenToContractInput
+                {
+                    Amount = 2000L,
+                    Symbol = AliceCoinTokenInfo.Symbol,
+                    Memo = "TransferToContract test"
+                })).TransactionResult;
+            result1.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         [Fact]
