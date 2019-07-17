@@ -14,8 +14,6 @@ namespace AElf.WebApp.Application.Net.Dto
         
         public bool Inbound { get; set; }
         
-        public long StartHeight { get; set; }
-        
         public List<RequestMetric> RequestMetrics { get; set; }
     }
 }

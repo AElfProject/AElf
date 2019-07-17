@@ -63,7 +63,6 @@ namespace AElf.WebApp.Application.Net
                 ProtocolVersion = p.Info.ProtocolVersion,
                 ConnectionTime = p.Info.ConnectionTime,
                 Inbound = p.Info.IsInbound,
-                StartHeight = 10, // TODO
                 RequestMetrics = p.GetRequestMetrics().Values.SelectMany(kvp => kvp).ToList()
             }).ToList();
             
