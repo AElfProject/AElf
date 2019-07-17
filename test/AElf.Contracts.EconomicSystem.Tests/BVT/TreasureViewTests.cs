@@ -52,6 +52,17 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             rewardMoney[2].ShouldBeGreaterThan(0);
         }
 
+        [Fact]
+        public async Task GetCurrentWelfareReward_Test()
+        {
+            await NextTerm(BootMinerKeyPair);
+            await AttendElectionAndVotes();
+            await ProduceBlocks(BootMinerKeyPair, 20);
+
+            var welfareReward = await AEDPoSContractStub.GetCurrentWelfareReward.CallAsync(new Empty());
+            welfareReward.Value.ShouldBeGreaterThan(0);
+        }
+
         private async Task AttendElectionAndVotes()
         {
             //announce election
