@@ -48,10 +48,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_BootMiner();
 
-            BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+            BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Div(1000)
-            }).ToDateTime());
+            });
 
             var triggerForCommand =
                 await TriggerInformationProvider
@@ -73,10 +73,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_BootMiner();
 
-            BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+            BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Div(1000)
-            }).ToDateTime());
+            });
 
             var triggerForCommand =
                 await TriggerInformationProvider
@@ -96,10 +96,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var transaction =
                 (await AEDPoSContract_GenerateConsensusTransactions_FirstRound_BootMiner()).Transactions.First();
 
-            BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+            BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Div(1000)
-            }).ToDateTime());
+            });
 
             var updateValueInput = new UpdateValueInput();
             updateValueInput.MergeFrom(transaction.Params);
@@ -120,10 +120,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var usingKeyPair = InitialCoreDataCenterKeyPairs[1];
             KeyPairProvider.SetKeyPair(usingKeyPair);
 
-            BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+            BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Div(1000)
-            }).ToDateTime());
+            });
 
             var triggerForCommand =
                 TriggerInformationProvider.GetTriggerInformationForConsensusCommand(new BytesValue());
@@ -153,10 +153,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_SecondMiner();
 
-            BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+            BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(2).Div(1000)
-            }).ToDateTime());
+            });
 
             var triggerForCommand =
                 await TriggerInformationProvider
@@ -180,10 +180,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_SecondMiner();
 
-            BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+            BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(2).Div(1000)
-            }).ToDateTime());
+            });
 
             var triggerForCommand =
                 await TriggerInformationProvider
@@ -206,10 +206,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var usingKeyPair = InitialCoreDataCenterKeyPairs[1];
             KeyPairProvider.SetKeyPair(usingKeyPair);
 
-            BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+            BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(2).Div(1000)
-            }).ToDateTime());
+            });
 
             var updateValueInput = new UpdateValueInput();
             updateValueInput.MergeFrom(transaction.Params);
@@ -230,10 +230,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var usingKeyPair = BootMinerKeyPair;
             KeyPairProvider.SetKeyPair(usingKeyPair);
 
-            BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+            BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(2).Div(1000)
-            }).ToDateTime());
+            });
 
             var triggerForCommand =
                 TriggerInformationProvider.GetTriggerInformationForConsensusCommand(new BytesValue());
@@ -261,11 +261,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_ExtraBlockMiner();
 
-            BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+            BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount)
                     .Div(1000)
-            }).ToDateTime());
+            });
 
             var triggerForCommand =
                 await TriggerInformationProvider
@@ -287,11 +287,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_ExtraBlockMiner();
 
-            BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+            BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount)
                     .Div(1000)
-            }).ToDateTime());
+            });
 
             var triggerForCommand =
                 await TriggerInformationProvider
@@ -311,11 +311,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var transaction =
                 (await AEDPoSContract_GenerateConsensusTransactions_FirstRound_ExtraBlockMiner()).Transactions.First();
 
-            BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+            BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount)
                     .Div(1000)
-            }).ToDateTime());
+            });
 
             var nextRound = new Round();
             nextRound.MergeFrom(transaction.Params);
@@ -364,11 +364,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var tinyBlockBehavior = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.TinyBlock}
                     .ToByteString();
                 consensusCommand.Hint = tinyBlockBehavior;
-                BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+                BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
                 {
                     Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount)
                         .Div(1000)
-                }).ToDateTime());
+                });
 
                 var triggerForCommand =
                     await TriggerInformationProvider
@@ -393,11 +393,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var nextTermBehavior = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.NextTerm}
                     .ToByteString();
                 consensusCommand.Hint = nextTermBehavior;
-                BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+                BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
                 {
                     Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount)
                         .Div(1000)
-                }).ToDateTime());
+                });
 
                 var triggerForCommand =
                     await TriggerInformationProvider

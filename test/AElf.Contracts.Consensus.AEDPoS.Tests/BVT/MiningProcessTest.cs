@@ -83,7 +83,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var changeTermTime = BlockchainStartTimestamp.ToDateTime()
                 .AddMinutes(AEDPoSContractTestConstants.TimeEachTerm + 1);
-            BlockTimeProvider.SetBlockTime(changeTermTime);
+            BlockTimeProvider.SetBlockTime(changeTermTime.ToTimestamp());
 
             var nextTermInformationBytes = await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
@@ -118,7 +118,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .ToHex()));
 
             var thirdRoundStartTime = changeTermTime.AddMinutes(AEDPoSContractTestConstants.TimeEachTerm + 2);
-            BlockTimeProvider.SetBlockTime(thirdRoundStartTime);
+            BlockTimeProvider.SetBlockTime(thirdRoundStartTime.ToTimestamp());
 
             var informationOfThirdRoundBytes = await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
@@ -147,7 +147,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // The other miner generate information of next round.
             var fourthRoundStartTime = changeTermTime.AddMinutes(AEDPoSContractTestConstants.TimeEachTerm + 3);
-            BlockTimeProvider.SetBlockTime(fourthRoundStartTime);
+            BlockTimeProvider.SetBlockTime(fourthRoundStartTime.ToTimestamp());
             var informationOfFourthRoundBytes = await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
@@ -216,7 +216,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var changeTermTime = BlockchainStartTimestamp.ToDateTime()
                 .AddMinutes(AEDPoSContractTestConstants.TimeEachTerm + 1);
-            BlockTimeProvider.SetBlockTime(changeTermTime);
+            BlockTimeProvider.SetBlockTime(changeTermTime.ToTimestamp());
 
             var nextTermInformation = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
@@ -245,7 +245,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .ToHex()));
 
             var thirdRoundStartTime = changeTermTime.AddMinutes(AEDPoSContractTestConstants.TimeEachTerm + 2);
-            BlockTimeProvider.SetBlockTime(thirdRoundStartTime);
+            BlockTimeProvider.SetBlockTime(thirdRoundStartTime.ToTimestamp());
             var thirdRound = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
@@ -275,10 +275,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var roundInfo = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
-            BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+            BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Div(1000)
-            }).ToDateTime());
+            });
             var input = new TinyBlockInput
             {
                 RoundId = roundInfo.RoundId,

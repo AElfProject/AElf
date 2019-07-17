@@ -71,7 +71,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var changeTermTime = BlockchainStartTimestamp.ToDateTime();
-            BlockTimeProvider.SetBlockTime(changeTermTime);
+            BlockTimeProvider.SetBlockTime(changeTermTime.ToTimestamp());
 
             var nextTermInformation = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
@@ -82,7 +82,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             await AEDPoSContractStub.NextRound.SendAsync(nextTermInformation.Round);
             changeTermTime = BlockchainStartTimestamp.ToDateTime().AddMinutes(termIntervalMin).AddSeconds(10);
-            BlockTimeProvider.SetBlockTime(changeTermTime);
+            BlockTimeProvider.SetBlockTime(changeTermTime.ToTimestamp());
 
             nextTermInformation = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
@@ -105,7 +105,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 changeTermTime = BlockchainStartTimestamp.ToDateTime()
                     .AddMinutes((termCount + 2).Mul(termIntervalMin)).AddSeconds(10);
-                BlockTimeProvider.SetBlockTime(changeTermTime);
+                BlockTimeProvider.SetBlockTime(changeTermTime.ToTimestamp());
                 var nextRoundInformation = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
                     new AElfConsensusTriggerInformation
                     {

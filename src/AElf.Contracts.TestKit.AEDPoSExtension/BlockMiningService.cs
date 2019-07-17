@@ -21,10 +21,9 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 {
     public class BlockMiningService : IBlockMiningService
     {
-        private readonly ITransactionListProvider _transactionListProvider;
+        private readonly ITestDataProvider _testDataProvider;
         private readonly IContractTesterFactory _contractTesterFactory;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IBlockTimeProvider _blockTimeProvider;
 
         private Round _currentRound;
 
@@ -35,17 +34,15 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 
         private bool _isSystemContractsDeployed;
 
-        public BlockMiningService(ITransactionListProvider transactionListProvider,
-            IContractTesterFactory contractTesterFactory, ISmartContractAddressService smartContractAddressService,
-            IBlockTimeProvider blockTimeProvider)
+        public BlockMiningService(IContractTesterFactory contractTesterFactory,
+            ISmartContractAddressService smartContractAddressService, ITestDataProvider testDataProvider)
         {
             RegisterAssemblyResolveEvent();
-            _transactionListProvider = transactionListProvider;
             _contractTesterFactory = contractTesterFactory;
             _smartContractAddressService = smartContractAddressService;
-            _blockTimeProvider = blockTimeProvider;
+            _testDataProvider = testDataProvider;
         }
-        
+
         private static void RegisterAssemblyResolveEvent()
         {
             var currentDomain = AppDomain.CurrentDomain;
@@ -98,10 +95,10 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 
             _isSystemContractsDeployed = true;
             var currentBlockTime = TimestampHelper.GetUtcNow().ToDateTime();
-            _blockTimeProvider.SetBlockTime(currentBlockTime);
+            _testDataProvider.SetBlockTime(currentBlockTime.ToTimestamp().AddMilliseconds(AEDPoSExtensionConstants.MiningInterval));
 
             InitialContractStubs();
-            InitialFirstRound(currentBlockTime);
+            InitialConsensus(currentBlockTime);
 
             return map;
         }
@@ -115,8 +112,14 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             }
         }
 
-        private void InitialFirstRound(DateTime currentBlockTime)
+        private void InitialConsensus(DateTime currentBlockTime)
         {
+            _contractStubs.First().InitialAElfConsensusContract.SendAsync(new InitialAElfConsensusContractInput
+            {
+                MinerIncreaseInterval = 3600,
+                TimeEachTerm = 120
+            });
+
             var initialMinerList = new MinerList
             {
                 Pubkeys = {MissionedECKeyPairs.InitialKeyPairs.Select(p => ByteString.CopyFrom(p.PublicKey))}
@@ -134,28 +137,29 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                 return;
             }
 
-            await _transactionListProvider.AddTransactionListAsync(transactions);
+            await _testDataProvider.AddTransactionListAsync(transactions);
 
-            var currentBlockTime = _blockTimeProvider.GetBlockTime();
+            var currentBlockTime = _testDataProvider.GetBlockTime();
 
-            var (contractStub, pubkey) = GetProperContractStub(currentBlockTime);
+            var (contractStub, pubkey) =
+                GetProperContractStub(currentBlockTime);
             var command = await contractStub.GetConsensusCommand.CallAsync(pubkey);
             var hint = AElfConsensusHint.Parser.ParseFrom(command.Hint);
             var triggerInformation = new AElfConsensusTriggerInformation
             {
                 Behaviour = hint.Behaviour,
                 // It doesn't matter for testing.
-                RandomHash = Hash.FromMessage(pubkey),
-                PreviousRandomHash = Hash.FromMessage(pubkey),
+                RandomHash = Hash.Generate(),
+                PreviousRandomHash = Hash.Empty,
                 Pubkey = pubkey.Value
             };
             var consensusTransaction = await contractStub.GenerateConsensusTransactions.CallAsync(new BytesValue
                 {Value = triggerInformation.ToByteString()});
             await MineAsync(contractStub, consensusTransaction.Transactions.First());
             _currentRound = await _contractStubs.First().GetCurrentRoundInformation.CallAsync(new Empty());
-            _blockTimeProvider.SetBlockTime(currentBlockTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval));
+            _testDataProvider.SetBlockTime(currentBlockTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval));
 
-            await _transactionListProvider.ResetAsync();
+            await _testDataProvider.ResetAsync();
         }
 
         private async Task MineAsync(AEDPoSContractImplContainer.AEDPoSContractImplStub contractStub,
@@ -183,10 +187,21 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                 if (minerInRound.ExpectedMiningTime == currentBlockTime)
                 {
                     var pubkey = ByteArrayHelper.FromHexString(minerInRound.Pubkey);
+                    var keyPair = SampleECKeyPairs.KeyPairs.First(p => p.PublicKey.BytesEqual(pubkey));
+                    _testDataProvider.SetKeyPair(keyPair);
                     return (_contractTesterFactory.Create<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
-                        _consensusContractAddress,
-                        SampleECKeyPairs.KeyPairs.First(p =>
-                            p.PublicKey == pubkey)), new BytesValue {Value = ByteString.CopyFrom(pubkey)});
+                        _consensusContractAddress, keyPair), new BytesValue {Value = ByteString.CopyFrom(pubkey)});
+                }
+
+                var minersCount = _currentRound.RealTimeMinersInformation.Count;
+                if (minerInRound.IsExtraBlockProducer &&
+                    _currentRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null) == minersCount)
+                {
+                    var pubkey = ByteArrayHelper.FromHexString(minerInRound.Pubkey);
+                    var keyPair = SampleECKeyPairs.KeyPairs.First(p => p.PublicKey.BytesEqual(pubkey));
+                    _testDataProvider.SetKeyPair(keyPair);
+                    return (_contractTesterFactory.Create<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
+                        _consensusContractAddress, keyPair), new BytesValue {Value = ByteString.CopyFrom(pubkey)});
                 }
             }
 

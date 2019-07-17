@@ -93,7 +93,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 KeyPairProvider.SetKeyPair(currentKeyPair);
 
-                BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime.ToDateTime());
+                BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime);
 
                 var tester = GetAEDPoSContractTester(currentKeyPair);
                 var headerInformation = new AElfConsensusHeaderInformation();
@@ -135,7 +135,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 KeyPairProvider.SetKeyPair(currentKeyPair);
 
-                BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime.ToDateTime());
+                BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime);
 
                 var tester = GetAEDPoSContractTester(currentKeyPair);
                 var headerInformation = new AElfConsensusHeaderInformation();

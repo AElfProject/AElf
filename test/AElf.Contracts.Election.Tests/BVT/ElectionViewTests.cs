@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Cryptography.ECDSA;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -69,7 +70,7 @@ namespace AElf.Contracts.Election
 
             //withdraw
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
-            BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime().AddSeconds(100 * 60 * 60 * 24 + 1));
+            BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(100 * 60 * 60 * 24 + 1));
             var voteId =
                 (await ElectionContractStub.GetElectorVote.CallAsync(new StringInput
                     {Value = voterKeyPair.PublicKey.ToHex()})).ActiveVotingRecordIds.First();

@@ -68,9 +68,12 @@ namespace AElf.Contracts.Genesis
             var transactionMethodCallList = input.TransactionMethodCallList;
             var address = PrivateDeploySystemSmartContract(name, category, code);
 
-            foreach (var methodCall in transactionMethodCallList.Value)
+            if (transactionMethodCallList != null)
             {
-                Context.SendInline(address, methodCall.MethodName, methodCall.Params);
+                foreach (var methodCall in transactionMethodCallList.Value)
+                {
+                    Context.SendInline(address, methodCall.MethodName, methodCall.Params);
+                }
             }
 
             return address;

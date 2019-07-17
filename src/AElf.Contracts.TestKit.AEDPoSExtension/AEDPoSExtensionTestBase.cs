@@ -8,5 +8,9 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
     {
         protected IBlockMiningService BlockMiningService =>
             Application.ServiceProvider.GetRequiredService<IBlockMiningService>();
+
+        protected MethodStubFactory MethodStubFactory =>
+            Application.ServiceProvider.GetRequiredService<MethodStubFactory>();
+
     }
 }

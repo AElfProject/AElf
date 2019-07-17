@@ -5,6 +5,7 @@ using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -266,7 +267,7 @@ namespace AElf.Contracts.Election
 
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
 
-            BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime().AddSeconds(lockTime + 1));
+            BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(lockTime + 1));
 
             // Withdraw
             {
