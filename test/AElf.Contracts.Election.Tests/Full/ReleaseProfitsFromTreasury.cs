@@ -80,7 +80,8 @@ namespace AElf.Contracts.Election
                 {
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.BackupSubsidy, currentPeriod);
-                    releasedInformation.TotalShares.ShouldBe(ValidationDataCenterKeyPairs.Count);
+                    releasedInformation.TotalShares.ShouldBe(
+                        EconomicContractsTestConstants.InitialCoreDataCenterCount * 5);
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
                         .ShouldBe(rewardAmount / 5);
                 }
@@ -88,7 +89,8 @@ namespace AElf.Contracts.Election
                 // Amount of backup subsidy.
                 {
                     var amount = await GetProfitAmount(ProfitType.BackupSubsidy);
-                    updatedBackupSubsidy += rewardAmount / 5 / ValidationDataCenterKeyPairs.Count;
+                    updatedBackupSubsidy +=
+                        rewardAmount / 5 / (EconomicContractsTestConstants.InitialCoreDataCenterCount * 5);
                     amount.ShouldBe(updatedBackupSubsidy);
                 }
 
@@ -178,7 +180,8 @@ namespace AElf.Contracts.Election
                 {
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.BackupSubsidy, currentPeriod);
-                    releasedInformation.TotalShares.ShouldBe(ValidationDataCenterKeyPairs.Count);
+                    releasedInformation.TotalShares.ShouldBe(
+                        EconomicContractsTestConstants.InitialCoreDataCenterCount * 5);
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
                         .ShouldBe(rewardAmount / 5);
                 }
@@ -186,7 +189,8 @@ namespace AElf.Contracts.Election
                 // Amount of backup subsidy.
                 {
                     var amount = await GetProfitAmount(ProfitType.BackupSubsidy);
-                    updatedBackupSubsidy += rewardAmount / 5 / ValidationDataCenterKeyPairs.Count;
+                    updatedBackupSubsidy +=
+                        rewardAmount / 5 / (EconomicContractsTestConstants.InitialCoreDataCenterCount * 5);
                     amount.ShouldBe(updatedBackupSubsidy);
                 }
 
@@ -278,7 +282,7 @@ namespace AElf.Contracts.Election
                 {
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.BackupSubsidy, currentPeriod);
-                    releasedInformation.TotalShares.ShouldBe(ValidationDataCenterKeyPairs.Count);
+                    releasedInformation.TotalShares.ShouldBe(EconomicContractsTestConstants.InitialCoreDataCenterCount * 5);
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
                         .ShouldBe(rewardAmount / 5);
                 }
@@ -287,7 +291,7 @@ namespace AElf.Contracts.Election
                 {
                     var amount = await GetProfitAmount(ProfitType.BackupSubsidy);
                     updatedBackupSubsidy +=
-                        rewardAmount / 5 / ValidationDataCenterKeyPairs.Count;
+                        rewardAmount / 5 / (EconomicContractsTestConstants.InitialCoreDataCenterCount * 5);
                     amount.ShouldBe(updatedBackupSubsidy);
                 }
 
@@ -475,7 +479,7 @@ namespace AElf.Contracts.Election
                                         reElectionBalance + backupBalance - txFee * 4);
                 }
             }
-            
+
             await GenerateMiningReward(6);
 
             //query and profit miner profit

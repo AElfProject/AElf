@@ -777,7 +777,6 @@ namespace AElf.Contracts.Profit
                     Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                     Period = 2
                 });
-
                 executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
         }
@@ -1232,6 +1231,68 @@ namespace AElf.Contracts.Profit
             })).SchemeIds;
 
             return createdSchemeIds[returnIndex];
+        }
+
+        [Fact]
+        public async Task ContributeProfits_MultipleTimes()
+        {
+            const long amount = 100;
+
+            var creator = Creators[0];
+
+            var schemeId = await CreateScheme();
+
+            await TransferToProfitItemVirtualAddress(schemeId, amount * 2);
+
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
+            {
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Address.Generate(), Shares = 100},
+                SchemeId = schemeId,
+            });
+
+            // First time.
+            {
+                var executionResult = await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
+                {
+                    SchemeId = schemeId,
+                    Amount = amount,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                    Period = 1
+                });
+
+                executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                
+                var transactionResult = await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
+                {
+                    SchemeId = schemeId,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                    Amount = 100,
+                    Period = 1
+                });
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.ShouldContain("already released");
+            }
+            
+            //Second time
+            {
+                var transactionResult = await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
+                {
+                    SchemeId = schemeId,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                    Amount = 100,
+                    Period = 2
+                });
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                
+                transactionResult = await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
+                {
+                    SchemeId = schemeId,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                    Amount = 100,
+                    Period = 2
+                });
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
         }
 
         private async Task TransferToProfitItemVirtualAddress(Hash schemeId, long amount = 100)

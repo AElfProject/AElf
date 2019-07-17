@@ -130,7 +130,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var consensusCommand = await AEDPoSContractStub.GetConsensusCommand.CallAsync(triggerForCommand);
 
-            consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBe(AEDPoSContractTestConstants.MiningInterval.Mul(2));
+            consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBe(AEDPoSContractTestConstants.MiningInterval
+                .Mul(2));
             consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractTestConstants
                 .SmallBlockMiningInterval);
             var hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue}
@@ -241,7 +242,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var consensusCommand = await AEDPoSContractStub.GetConsensusCommand.CallAsync(triggerForCommand);
 
             consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBe(
-                AEDPoSContractTestConstants.MiningInterval.Mul(EconomicContractsTestConstants.InitialCoreDataCenterCount));
+                AEDPoSContractTestConstants.MiningInterval.Mul(
+                    EconomicContractsTestConstants.InitialCoreDataCenterCount));
             consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractTestConstants
                 .SmallBlockMiningInterval);
             var hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.NextRound}
@@ -323,7 +325,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var currentRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             currentRound.RoundNumber.ShouldBe(2);
         }
-        
+
         [Fact]
         public async Task AEDPoSContract_ConsensusTransactionValidation()
         {
@@ -336,16 +338,76 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .GetTriggerInformationForBlockHeaderExtraDataAsync(consensusCommand.ToBytesValue());
             var extraDataBytes = await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(triggerForCommand);
 
-            var validateBeforeResult = await AEDPoSContractStub.ValidateConsensusBeforeExecution.CallAsync(extraDataBytes);
+            var validateBeforeResult =
+                await AEDPoSContractStub.ValidateConsensusBeforeExecution.CallAsync(extraDataBytes);
             validateBeforeResult.Success.ShouldBeTrue();
 
             var roundInfo = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             roundInfo.RoundNumber++;
             var transactionResult = await AEDPoSContractStub.NextRound.SendAsync(roundInfo);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-            var validateAfterResult = await AEDPoSContractStub.ValidateConsensusAfterExecution.CallAsync(roundInfo.ToBytesValue());
-            validateAfterResult.Success .ShouldBeFalse(); //update with extra data would be keep the same.
+
+            var validateAfterResult =
+                await AEDPoSContractStub.ValidateConsensusAfterExecution.CallAsync(roundInfo.ToBytesValue());
+            validateAfterResult.Success.ShouldBeFalse(); //update with extra data would be keep the same.
+        }
+
+        [Fact]
+        public async Task AEDPoSContract_GenerateConsensusTransaction_TinyBlock()
+        {
+            var usingKeyPair = BootMinerKeyPair;
+            KeyPairProvider.SetKeyPair(usingKeyPair);
+
+            //Tiny block
+            {
+                var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_ExtraBlockMiner();
+                var tinyBlockBehavior = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.TinyBlock}
+                    .ToByteString();
+                consensusCommand.Hint = tinyBlockBehavior;
+                BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+                {
+                    Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount)
+                        .Div(1000)
+                }).ToDateTime());
+
+                var triggerForCommand =
+                    await TriggerInformationProvider
+                        .GetTriggerInformationForConsensusTransactionsAsync(consensusCommand.ToBytesValue());
+
+                var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
+
+                transactionList.Transactions.Count.ShouldBe(1);
+                transactionList.Transactions[0].MethodName.ShouldBe(nameof(AEDPoSContractStub.UpdateTinyBlockInformation));
+            }
+        }
+        
+         [Fact]
+        public async Task AEDPoSContract_GenerateConsensusTransaction_NextTerm()
+        {
+            var usingKeyPair = BootMinerKeyPair;
+            KeyPairProvider.SetKeyPair(usingKeyPair);
+
+            //Next term
+            {
+                var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_ExtraBlockMiner();
+                var nextTermBehavior = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.NextTerm}
+                    .ToByteString();
+                consensusCommand.Hint = nextTermBehavior;
+                BlockTimeProvider.SetBlockTime((BlockchainStartTimestamp + new Duration
+                {
+                    Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount)
+                        .Div(1000)
+                }).ToDateTime());
+
+                var triggerForCommand =
+                    await TriggerInformationProvider
+                        .GetTriggerInformationForConsensusTransactionsAsync(consensusCommand.ToBytesValue());
+
+                var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
+
+                transactionList.Transactions.Count.ShouldBe(1);
+                transactionList.Transactions[0].MethodName.ShouldBe(nameof(AEDPoSContractStub.NextTerm));
+            }
         }
     }
 }
