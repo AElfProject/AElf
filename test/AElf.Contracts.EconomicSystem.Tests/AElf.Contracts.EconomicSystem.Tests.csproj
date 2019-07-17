@@ -137,9 +137,6 @@
             <Link>Protobuf/Proto/parliament_auth_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Types" />
-    </ItemGroup>
 
     <Import Project="..\..\test\AllContracts.props" />
 </Project>

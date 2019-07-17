@@ -73,7 +73,7 @@ namespace AElf.Contracts.TestKit
             return res.Output;
         }
 
-        public T GetTester<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractStubBase, new()
+        protected T GetTester<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractStubBase, new()
         {
             var factory = Application.ServiceProvider.GetRequiredService<IContractTesterFactory>();
             return factory.Create<T>(contractAddress, senderKey);

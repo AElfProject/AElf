@@ -2,15 +2,15 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Types;
 
-namespace AElf.Contracts.AEDPoSTestBase
+namespace AElf.Contracts.TestKet.AEDPoSExtension
 {
     public class TransactionListProvider : ITransactionListProvider
     {
         private readonly List<Transaction> _transactionList = new List<Transaction>();
 
-        public Task AddTransactionAsync(Transaction transaction)
+        public Task AddTransactionListAsync(List<Transaction> transactions)
         {
-            _transactionList.Add(transaction);
+            _transactionList.AddRange(transactions);
             return Task.CompletedTask;
         }
 

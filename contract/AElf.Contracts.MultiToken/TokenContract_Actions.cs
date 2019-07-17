@@ -393,7 +393,6 @@ namespace AElf.Contracts.MultiToken
             }
 
             var transactions = Context.GetPreviousBlockTransactions();
-            var alreadyTriedToBuyResourceTokenContractAddresses = new List<Address>();
             foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"RAM"}))
             {
                 var totalAmount = 0L;

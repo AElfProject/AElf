@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Acs4;
 using AElf.Contracts.Economic;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Election;
@@ -17,7 +16,6 @@ using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Volo.Abp.Threading;
-using IBlockTimeProvider = AElf.Contracts.TestKit.IBlockTimeProvider;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
@@ -47,9 +45,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             AsyncHelper.RunSync(InitializeToken);
             AsyncHelper.RunSync(InitializeAElfConsensus);
         }
-
-        protected IBlockTimeProvider BlockTimeProvider =>
-            Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
 
         protected IAElfAsymmetricCipherKeyPairProvider KeyPairProvider =>
             Application.ServiceProvider.GetRequiredService<IAElfAsymmetricCipherKeyPairProvider>();
