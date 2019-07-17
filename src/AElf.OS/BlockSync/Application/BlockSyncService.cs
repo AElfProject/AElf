@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Dto;
+using AElf.OS.BlockSync.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -13,13 +14,14 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockFetchService _blockFetchService;
         private readonly IBlockDownloadService _blockDownloadService;
         private readonly IBlockSyncQueueService _blockSyncQueueService;
+        private readonly IAnnouncementCacheProvider _announcementCacheProvider;
 
         public ILogger<BlockSyncService> Logger { get; set; }
 
         public BlockSyncService(IBlockchainService blockchainService,
             IBlockFetchService blockFetchService,
             IBlockDownloadService blockDownloadService,
-            IBlockSyncQueueService blockSyncQueueService)
+            IBlockSyncQueueService blockSyncQueueService, IAnnouncementCacheProvider announcementCacheProvider)
         {
             Logger = NullLogger<BlockSyncService>.Instance;
 
@@ -27,6 +29,7 @@ namespace AElf.OS.BlockSync.Application
             _blockFetchService = blockFetchService;
             _blockDownloadService = blockDownloadService;
             _blockSyncQueueService = blockSyncQueueService;
+            _announcementCacheProvider = announcementCacheProvider;
         }
 
         public async Task SyncByAnnouncementAsync(Chain chain, SyncAnnouncementDto syncAnnouncementDto)
@@ -68,9 +71,23 @@ namespace AElf.OS.BlockSync.Application
                         syncAnnouncementDto.SyncBlockHeight, syncAnnouncementDto.SuggestedPeerPubKey);
                 }
 
-                if (!fetchResult && retryTimes > 1)
+                if (fetchResult)
+                    return;
+                if (retryTimes > 1)
                 {
                     EnqueueFetchBlockJob(syncAnnouncementDto, retryTimes - 1);
+                }
+                else if (_announcementCacheProvider.TryGetAnnouncementNextSender(syncAnnouncementDto.SyncBlockHash, out var senderPubKey))
+                {
+                    Logger.LogTrace(
+                        $"Try get announcement next sender for block height {syncAnnouncementDto.SyncBlockHeight}, block hash: {syncAnnouncementDto.SyncBlockHash}.");
+                    EnqueueFetchBlockJob(new SyncAnnouncementDto
+                    {
+                        SyncBlockHash = syncAnnouncementDto.SyncBlockHash,
+                        SyncBlockHeight = syncAnnouncementDto.SyncBlockHeight,
+                        SuggestedPeerPubKey = senderPubKey,
+                        BatchRequestBlockCount = syncAnnouncementDto.BatchRequestBlockCount
+                    }, BlockSyncConstants.FetchBlockRetryTimes);
                 }
             }, OSConstants.BlockFetchQueueName);
         }

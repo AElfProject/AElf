@@ -20,10 +20,10 @@ namespace AElf.OS.BlockSync.Application
             _announcementCacheProvider = announcementCacheProvider;
         }
 
-        public async Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement)
+        public async Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement, string senderPubKey)
         {
             if (!_announcementCacheProvider.TryAddAnnouncementCache(blockAnnouncement.BlockHash,
-                blockAnnouncement.BlockHeight))
+                blockAnnouncement.BlockHeight, senderPubKey))
             {
                 return false;
             }
