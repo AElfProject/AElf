@@ -345,12 +345,6 @@ namespace AElf.Contracts.Profit
             if (scheme.IsReleaseAllBalanceEveryTimeByDefault && input.Amount == 0)
             {
                 // Distribute all from general ledger.
-                if (State.TokenContract.Value == null)
-                {
-                    State.TokenContract.Value =
-                        Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-                }
-
                 Context.LogDebug(() =>
                     $"Update distributing amount to {balance} because IsReleaseAllBalanceEveryTimeByDefault == true.");
                 input.Amount = balance;
