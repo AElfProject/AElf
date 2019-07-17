@@ -5,6 +5,7 @@ using AElf.Kernel.Account.Application;
 using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.Options;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -19,7 +20,7 @@ namespace AElf.OS.Network.Grpc
         Task<ConnectionInfo> GetConnectionInfoAsync();
     }
 
-    public class GrpcServerContext : IGrpcServerContext
+    public class GrpcServerContext : IGrpcServerContext, ISingletonDependency
     {
         private ChainOptions ChainOptions => ChainOptionsSnapshot.Value;
         public IOptionsSnapshot<ChainOptions> ChainOptionsSnapshot { get; set; }
