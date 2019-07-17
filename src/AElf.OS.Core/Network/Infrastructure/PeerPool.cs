@@ -18,12 +18,12 @@ namespace AElf.OS.Network.Infrastructure
         private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
 
-        public int PeerCount => AuthenticatedPeers.Count;
-        protected readonly ConcurrentDictionary<string, IPeer> AuthenticatedPeers;
+        public int PeerCount => Peers.Count;
+        protected readonly ConcurrentDictionary<string, IPeer> Peers;
 
         public PeerPool()
         {
-            AuthenticatedPeers = new ConcurrentDictionary<string, IPeer>();
+            Peers = new ConcurrentDictionary<string, IPeer>();
             Logger = NullLogger<PeerPool>.Instance;
         }
 
@@ -34,7 +34,7 @@ namespace AElf.OS.Network.Infrastructure
 
         public List<IPeer> GetPeers(bool includeFailing = false)
         {
-            var peers = AuthenticatedPeers.Select(p => p.Value);
+            var peers = Peers.Select(p => p.Value);
 
             if (!includeFailing)
                 peers = peers.Where(p => p.IsReady);
@@ -44,7 +44,7 @@ namespace AElf.OS.Network.Infrastructure
 
         public IPeer FindPeerByAddress(string peerAddress)
         {
-            return AuthenticatedPeers
+            return Peers
                 .Where(p => p.Value.IpAddress == peerAddress)
                 .Select(p => p.Value)
                 .FirstOrDefault();
@@ -55,7 +55,7 @@ namespace AElf.OS.Network.Infrastructure
             if (string.IsNullOrEmpty(publicKey))
                 return null;
             
-            AuthenticatedPeers.TryGetValue(publicKey, out IPeer p);
+            Peers.TryGetValue(publicKey, out IPeer p);
             
             return p;
         }
@@ -67,13 +67,13 @@ namespace AElf.OS.Network.Infrastructure
 
         public IPeer RemovePeer(string publicKey)
         {
-            AuthenticatedPeers.TryRemove(publicKey, out IPeer removed);
+            Peers.TryRemove(publicKey, out IPeer removed);
             return removed;
         }
 
         public bool TryAddPeer(IPeer peer)
         {
-            return AuthenticatedPeers.TryAdd(peer.Info.Pubkey, peer);
+            return Peers.TryAdd(peer.Info.Pubkey, peer);
         }
     }
 }
