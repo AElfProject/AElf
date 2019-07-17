@@ -38,7 +38,6 @@ namespace AElf.Contracts.Election
         {
             var electionStub = GetElectionContractTester(keyPair);
             var announceResult = (await electionStub.AnnounceElection.SendAsync(new Empty())).TransactionResult;
-            announceResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             return announceResult;
         }
