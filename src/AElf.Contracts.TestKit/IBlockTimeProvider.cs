@@ -21,7 +21,7 @@ namespace AElf.Contracts.TestKit
         public Timestamp GetBlockTime()
         {
 
-            return (_blockTime == null) ? TimestampHelper.GetUtcNow() : _blockTime;
+            return _blockTime == null ? TimestampHelper.GetUtcNow() : _blockTime;
         }
 
         public void SetBlockTime(DateTime blockTime)

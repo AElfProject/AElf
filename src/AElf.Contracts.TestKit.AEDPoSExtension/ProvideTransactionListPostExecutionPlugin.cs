@@ -5,13 +5,13 @@ using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 using Google.Protobuf.Reflection;
 
-namespace AElf.Contracts.AEDPoSTestBase
+namespace AElf.Contracts.TestKet.AEDPoSExtension
 {
-    public class PostExecutionPlugin : IPostExecutionPlugin
+    public class ProvideTransactionListPostExecutionPlugin : IPostExecutionPlugin
     {
         private readonly ITransactionListProvider _transactionListProvider;
 
-        public PostExecutionPlugin(ITransactionListProvider transactionListProvider)
+        public ProvideTransactionListPostExecutionPlugin(ITransactionListProvider transactionListProvider)
         {
             _transactionListProvider = transactionListProvider;
         }

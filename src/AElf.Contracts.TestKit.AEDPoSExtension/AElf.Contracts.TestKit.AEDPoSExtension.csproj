@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <RootNamespace>AElf.Contracts.TestKet.AEDPoSExtension</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+    </ItemGroup>
+
+    
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf\Proto\acs4.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
+            <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
+        </ContractStub>
+    </ItemGroup>
+
+</Project>

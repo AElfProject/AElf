@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Types;
 
-namespace AElf.Contracts.AEDPoSTestBase
+namespace AElf.Contracts.TestKet.AEDPoSExtension
 {
     public class TransactionListProvider : ITransactionListProvider
     {
