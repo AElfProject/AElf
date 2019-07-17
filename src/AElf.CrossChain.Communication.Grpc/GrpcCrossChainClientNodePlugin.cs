@@ -22,16 +22,16 @@ namespace AElf.CrossChain.Communication.Grpc
             _crossChainConfigOptions = crossChainConfigOption.Value;
         }
 
-        public Task StartAsync(int chainId)
+        public async Task StartAsync(int chainId)
         {
             _localChainId = chainId;
             
             if (string.IsNullOrEmpty(_grpcCrossChainConfigOption.RemoteParentChainServerHost)
                 || _grpcCrossChainConfigOption.RemoteParentChainServerPort == 0)
-                return Task.CompletedTask;
+                return;
             Logger.LogTrace("Starting client to parent chain..");
 
-            return _crossChainClientService.CreateClientAsync(new CrossChainClientDto
+            await _crossChainClientService.CreateClientAsync(new CrossChainClientDto
             {
                 RemoteChainId = _crossChainConfigOptions.ParentChainId,
                 RemoteServerHost = _grpcCrossChainConfigOption.RemoteParentChainServerHost,
