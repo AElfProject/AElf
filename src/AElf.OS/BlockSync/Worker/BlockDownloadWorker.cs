@@ -62,7 +62,7 @@ namespace AElf.OS.BlockSync.Worker
                     continue;
                 }
 
-                _blockSyncStateProvider.DownloadJobTargetState.TryRemove(jobInfo.CurrentTargetBlockHash, out _);
+                RemoveDownloadJobTargetState(jobInfo.CurrentTargetBlockHash);
                 
                 jobInfo.Deadline = TimestampHelper.GetUtcNow().AddMilliseconds(downloadResult.DownloadBlockCount * 300);
                 jobInfo.CurrentTargetBlockHash = downloadResult.LastDownloadBlockHash;
@@ -158,7 +158,13 @@ namespace AElf.OS.BlockSync.Worker
         private async Task RemoveJobAndTargetStateAsync(BlockDownloadJobInfo blockDownloadJobInfo)
         {
             await _blockDownloadJobStore.RemoveAsync(blockDownloadJobInfo.JobId);
-            _blockSyncStateProvider.DownloadJobTargetState.TryRemove(blockDownloadJobInfo.CurrentTargetBlockHash, out _);
+            RemoveDownloadJobTargetState(blockDownloadJobInfo.CurrentTargetBlockHash);
+        }
+
+        private void RemoveDownloadJobTargetState(Hash targetBlockHash)
+        {
+            if(targetBlockHash!=null)
+                _blockSyncStateProvider.DownloadJobTargetState.TryRemove(targetBlockHash, out _);
         }
     }
 }
