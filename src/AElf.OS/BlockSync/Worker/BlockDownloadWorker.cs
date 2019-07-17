@@ -26,7 +26,7 @@ namespace AElf.OS.BlockSync.Worker
             IBlockDownloadJobStore blockDownloadJobStore)
             : base(timer)
         {
-            Timer.Period = 1000;
+            Timer.Period = BlockSyncConstants.BlockDownloadTimerPeriod;
 
             _blockchainService = blockchainService;
             _blockDownloadService = blockDownloadService;
@@ -45,10 +45,13 @@ namespace AElf.OS.BlockSync.Worker
             var jobInfo = await GetFirstAvailableWaitingJobAsync(chain);
 
             if (!ValidateBeforeDownload(jobInfo))
+            {
                 return;
+            }
 
             DownloadBlocksResult downloadBlocksResult;
-            if (await _blockchainService.GetBlockHashByHeightAsync(chain, jobInfo.CurrentTargetBlockHeight,
+            if (jobInfo.CurrentTargetBlockHeight > 0 && await _blockchainService.GetBlockHashByHeightAsync(chain,
+                    jobInfo.CurrentTargetBlockHeight,
                     chain.BestChainHash) == jobInfo.CurrentTargetBlockHash)
             {
                 downloadBlocksResult = await _blockDownloadService.DownloadBlocksAsync(jobInfo.CurrentTargetBlockHash,
@@ -67,23 +70,20 @@ namespace AElf.OS.BlockSync.Worker
 
                 if (downloadBlocksResult.DownloadBlockCount == 0)
                 {
-                    Logger.LogDebug(
-                        $"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
+                    Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
                     downloadBlocksResult = await _blockDownloadService.DownloadBlocksAsync(
                         chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight,
                         jobInfo.BatchRequestBlockCount, jobInfo.SuggestedPeerPubkey);
                 }
             }
 
-            if (downloadBlocksResult.DownloadBlockCount == 0 ||
-                downloadBlocksResult.LastDownloadBlockHeight >= jobInfo.TargetBlockHeight)
+            if (downloadBlocksResult.DownloadBlockCount == 0)
             {
-                await _blockDownloadJobStore.RemoveAsync(jobInfo.JobId);
-                _blockSyncStateProvider.DownloadJobTargetState.TryRemove(jobInfo.TargetBlockHash, out _);
+                Logger.LogDebug(
+                    $"Download block job finished: LastDownloadBlockHeight: {downloadBlocksResult.LastDownloadBlockHeight}, TargetBlockHeight:{jobInfo.TargetBlockHeight}.");
+                await RemoveJobAndTargetStateAsync(jobInfo);
                 return;
             }
-
-            _blockSyncStateProvider.DownloadJobTargetState[jobInfo.TargetBlockHash] = false;
 
             jobInfo.Deadline = TimestampHelper.GetUtcNow().AddMilliseconds(
                 (downloadBlocksResult.DownloadBlockCount > 600 ? 600 : downloadBlocksResult.DownloadBlockCount) * 300);
@@ -91,6 +91,10 @@ namespace AElf.OS.BlockSync.Worker
             jobInfo.CurrentTargetBlockHeight = downloadBlocksResult.LastDownloadBlockHeight;
 
             await _blockDownloadJobStore.UpdateAsync(jobInfo);
+            _blockSyncStateProvider.DownloadJobTargetState[jobInfo.CurrentTargetBlockHash] = false;
+
+            Logger.LogDebug(
+                $"Current download block job finished: CurrentTargetBlockHeight: {jobInfo.CurrentTargetBlockHeight}.");
         }
 
         private bool ValidateBeforeDownload(BlockDownloadJobInfo blockDownloadJobInfo)
@@ -101,8 +105,10 @@ namespace AElf.OS.BlockSync.Worker
             if (!_blockDownloadService.ValidateQueueAvailability())
                 return false;
 
-            if (_blockSyncStateProvider.DownloadJobTargetState.TryGetValue(blockDownloadJobInfo.TargetBlockHash,
-                    out var state) && state == false && TimestampHelper.GetUtcNow() < blockDownloadJobInfo.Deadline)
+            if (blockDownloadJobInfo.CurrentTargetBlockHash != null
+                && _blockSyncStateProvider.DownloadJobTargetState.TryGetValue(
+                    blockDownloadJobInfo.CurrentTargetBlockHash, out var state)
+                && state == false && TimestampHelper.GetUtcNow() < blockDownloadJobInfo.Deadline)
                 return false;
 
             return true;
@@ -119,12 +125,18 @@ namespace AElf.OS.BlockSync.Worker
 
                 if (blockDownloadJob.TargetBlockHeight <= chain.BestChainHeight)
                 {
-                    await _blockDownloadJobStore.RemoveAsync(blockDownloadJob.JobId);
+                    await RemoveJobAndTargetStateAsync(blockDownloadJob);
                     continue;
                 }
 
                 return blockDownloadJob;
             }
+        }
+
+        private async Task RemoveJobAndTargetStateAsync(BlockDownloadJobInfo blockDownloadJobInfo)
+        {
+            await _blockDownloadJobStore.RemoveAsync(blockDownloadJobInfo.JobId);
+            _blockSyncStateProvider.DownloadJobTargetState.TryRemove(blockDownloadJobInfo.TargetBlockHash, out _);
         }
     }
 }
