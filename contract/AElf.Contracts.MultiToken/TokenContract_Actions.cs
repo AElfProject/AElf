@@ -302,64 +302,7 @@ namespace AElf.Contracts.MultiToken
 
             return new Empty();
         }
-
-        private bool TryToBuyMoreResourceTokenForSender(Address contractAddress)
-        {
-            var preferences = Context.Call<ResourceTokenBuyingPreferences>(contractAddress,
-                nameof(State.ResourceConsumptionContract.GetResourceTokenBuyingPreferences), new Empty());
-            var isNeedToBuy = false;
-
-            if (preferences.CpuThreshold > 0)
-            {
-                var cpuBalance = State.Balances[contractAddress]["CPU"];
-                if (cpuBalance <= preferences.CpuThreshold)
-                {
-                    isNeedToBuy = true;
-                    Context.SendInline(contractAddress, nameof(State.ResourceConsumptionContract.BuyResourceToken),
-                        new BuyResourceTokenInput
-                        {
-                            Symbol = "CPU",
-                            Amount = preferences.CpuAmount,
-                            PayLimit = preferences.PayLimit
-                        });
-                }
-            }
-
-            if (preferences.StoAmount > 0)
-            {
-                var stoBalance = State.Balances[contractAddress]["STO"];
-                if (stoBalance <= preferences.StoThreshold)
-                {
-                    isNeedToBuy = true;
-                    Context.SendInline(contractAddress, nameof(State.ResourceConsumptionContract.BuyResourceToken),
-                        new BuyResourceTokenInput
-                        {
-                            Symbol = "STO",
-                            Amount = preferences.StoAmount,
-                            PayLimit = preferences.PayLimit
-                        });
-                }
-            }
-
-            if (preferences.NetThreshold > 0)
-            {
-                var netBalance = State.Balances[contractAddress]["NET"];
-                if (netBalance <= preferences.NetThreshold)
-                {
-                    isNeedToBuy = true;
-                    Context.SendInline(contractAddress, nameof(State.ResourceConsumptionContract.BuyResourceToken),
-                        new BuyResourceTokenInput
-                        {
-                            Symbol = "NET",
-                            Amount = preferences.NetAmount,
-                            PayLimit = preferences.PayLimit
-                        });
-                }
-            }
-
-            return isNeedToBuy;
-        }
-
+        
         private void ChargeFirstSufficientToken(MapField<string, long> symbolToAmountMap, out string symbol,
             out long amount, out long existingBalance)
         {
@@ -461,13 +404,6 @@ namespace AElf.Contracts.MultiToken
                     var amount = State.ChargedResourceTokens[caller][contractAddress][symbol];
                     if (amount > 0)
                     {
-                        // TODO: Reconsider. It matters if BuyResourceToken failed. Maybe developer need to buy resource tokens on his own method.
-//                        if (!alreadyTriedToBuyResourceTokenContractAddresses.Contains(contractAddress) &&
-//                            TryToBuyMoreResourceTokenForSender(contractAddress))
-//                        {
-//                            alreadyTriedToBuyResourceTokenContractAddresses.Add(contractAddress);
-//                        }
-
                         State.Balances[contractAddress][symbol] = State.Balances[contractAddress][symbol].Sub(amount);
                         totalAmount = totalAmount.Add(amount);
                         State.ChargedResourceTokens[caller][contractAddress][symbol] = 0;
