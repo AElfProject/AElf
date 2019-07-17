@@ -10,10 +10,5 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
     {
         protected IBlockMiningService BlockMiningService =>
             Application.ServiceProvider.GetRequiredService<IBlockMiningService>();
-
-        internal AEDPoSContractImplContainer.AEDPoSContractImplStub ConsensusStub =>
-            GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
-                ContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name),
-                SampleECKeyPairs.KeyPairs[0]);
     }
 }

@@ -15,32 +15,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract
                     Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
             }
 
-            State.TokenConverterContract.Buy.Send(new BuyInput
+            if (input.Amount > 0)
             {
-                Symbol = input.Symbol,
-                Amount = input.Amount,
-                PayLimit = input.PayLimit
-            });
-
-            return new Empty();
-        }
-
-        public override Empty SetResourceTokenBuyingPreferences(ResourceTokenBuyingPreferences input)
-        {
-            if (State.Acs0Contract.Value == null)
-            {
-                State.Acs0Contract.Value = Context.GetZeroSmartContractAddress();
+                State.TokenConverterContract.Buy.Send(new BuyInput
+                {
+                    Symbol = input.Symbol,
+                    Amount = input.Amount,
+                    PayLimit = input.PayLimit
+                });
             }
 
-            Assert(State.Acs0Contract.GetContractAuthor.Call(Context.Self) == Context.Sender,
-                "Only owner can set resource token buying preferences.");
-            State.ResourceTokenBuyingPreferences.Value = input;
             return new Empty();
-        }
-
-        public override ResourceTokenBuyingPreferences GetResourceTokenBuyingPreferences(Empty input)
-        {
-            return State.ResourceTokenBuyingPreferences.Value;
         }
 
         /// <summary>

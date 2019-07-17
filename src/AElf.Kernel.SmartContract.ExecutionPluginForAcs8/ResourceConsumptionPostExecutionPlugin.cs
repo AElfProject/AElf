@@ -61,12 +61,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             }
 
             if (transactionContext.Transaction.To == context.Self &&
-                (transactionContext.Transaction.MethodName == nameof(ResourceConsumptionContractContainer
-                     .ResourceConsumptionContractStub.BuyResourceToken) ||
-                 transactionContext.Transaction.MethodName == nameof(ResourceConsumptionContractContainer
-                     .ResourceConsumptionContractStub.GetResourceTokenBuyingPreferences) ||
-                 transactionContext.Transaction.MethodName == nameof(ResourceConsumptionContractContainer
-                     .ResourceConsumptionContractStub.SetResourceTokenBuyingPreferences)))
+                transactionContext.Transaction.MethodName == nameof(ResourceConsumptionContractContainer
+                    .ResourceConsumptionContractStub.BuyResourceToken))
             {
                 return new List<Transaction>();
             }
