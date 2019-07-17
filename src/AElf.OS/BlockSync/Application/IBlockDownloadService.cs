@@ -9,6 +9,6 @@ namespace AElf.OS.BlockSync.Application
         Task<DownloadBlocksResult> DownloadBlocksAsync(Hash previousBlockHash, long previousBlockHeight, int batchRequestBlockCount,
             string suggestedPeerPubKey);
 
-        bool ValidateQueueAvailability();
+        bool ValidateQueueAvailabilityBeforeDownload();
     }
 }

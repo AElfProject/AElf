@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.BlockSync.Types;
 using AElf.OS.Network.Application;
@@ -14,7 +13,6 @@ namespace AElf.OS.BlockSync.Application
 {
     public class BlockDownloadService : IBlockDownloadService
     {
-        private readonly IBlockchainService _blockchainService;
         private readonly INetworkService _networkService;
         private readonly IBlockSyncAttachService _blockSyncAttachService;
         private readonly IBlockSyncQueueService _blockSyncQueueService;
@@ -22,15 +20,13 @@ namespace AElf.OS.BlockSync.Application
 
         public ILogger<BlockDownloadService> Logger { get; set; }
 
-        public BlockDownloadService(IBlockchainService blockchainService,
-            INetworkService networkService,
+        public BlockDownloadService(INetworkService networkService,
             IBlockSyncAttachService blockSyncAttachService,
             IBlockSyncQueueService blockSyncQueueService,
             IBlockSyncStateProvider blockSyncStateProvider)
         {
             Logger = NullLogger<BlockDownloadService>.Instance;
 
-            _blockchainService = blockchainService;
             _networkService = networkService;
             _blockSyncAttachService = blockSyncAttachService;
             _blockSyncQueueService = blockSyncQueueService;
@@ -40,32 +36,21 @@ namespace AElf.OS.BlockSync.Application
         public async Task<DownloadBlocksResult> DownloadBlocksAsync(Hash previousBlockHash, long previousBlockHeight,
             int batchRequestBlockCount, string suggestedPeerPubKey)
         {
-            Logger.LogDebug(
-                $"Trigger download blocks from peers, previous block height: {previousBlockHeight}, previous block hash: {previousBlockHash}");
-
             var downloadBlockCount = 0;
             var lastDownloadBlockHash = previousBlockHash;
             var lastDownloadBlockHeight = previousBlockHeight;
 
-            while (true)
+            while (downloadBlockCount <= BlockSyncConstants.MaxDownloadBlockCount)
             {
-                // Limit block sync job count, control memory usage
-                var chain = await _blockchainService.GetChainAsync();
-                if (chain.LongestChainHeight <= lastDownloadBlockHeight - BlockSyncConstants.BlockDownloadHeightOffset)
-                {
-                    Logger.LogWarning(
-                        $"Pause sync task and wait for synced block to be processed, best chain height: {chain.BestChainHeight}");
-                    break;
-                }
-
-                Logger.LogDebug($"Request blocks start with {lastDownloadBlockHash}");
+                Logger.LogDebug(
+                    $"Request blocks start with block hash: {lastDownloadBlockHash}, block height: {previousBlockHeight}");
 
                 var blocksWithTransactions = await _networkService.GetBlocksAsync(lastDownloadBlockHash,
                     batchRequestBlockCount, suggestedPeerPubKey);
 
                 if (blocksWithTransactions == null || !blocksWithTransactions.Any())
                 {
-                    Logger.LogWarning($"No blocks returned, current chain height: {chain.LongestChainHeight}.");
+                    Logger.LogWarning("No blocks returned.");
                     break;
                 }
 
@@ -77,8 +62,7 @@ namespace AElf.OS.BlockSync.Application
 
                 foreach (var blockWithTransactions in blocksWithTransactions)
                 {
-                    Logger.LogDebug(
-                        $"Processing block {blockWithTransactions},  longest chain hash: {chain.LongestChainHash}, best chain hash : {chain.BestChainHash}");
+                    Logger.LogDebug($"Processing block {blockWithTransactions}.");
 
                     _blockSyncQueueService.Enqueue(
                         async () =>
@@ -107,7 +91,7 @@ namespace AElf.OS.BlockSync.Application
             };
         }
 
-        public bool ValidateQueueAvailability()
+        public bool ValidateQueueAvailabilityBeforeDownload()
         {
             if (!_blockSyncQueueService.ValidateQueueAvailability(OSConstants.BlockSyncAttachQueueName))
             {

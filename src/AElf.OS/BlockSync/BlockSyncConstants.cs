@@ -12,7 +12,7 @@ namespace AElf.OS.BlockSync
         public const int BlockSyncModeHeightOffset = 12;
         public const int FetchBlockRetryTimes = 3;
         public const int SyncBlockRetryTimes = 3;
-        public const long BlockDownloadHeightOffset = 50;
-        public const int BlockDownloadTimerPeriod = 1000;
+        public const int BlockDownloadTimerPeriod = 4000;
+        public const int MaxDownloadBlockCount = 200;
     }
 }

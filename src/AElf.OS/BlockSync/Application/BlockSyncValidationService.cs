@@ -2,7 +2,6 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network;
-using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
