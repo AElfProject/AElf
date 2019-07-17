@@ -7,6 +7,7 @@ using AElf.Contracts.TestKit;
 using AElf.Kernel.Consensus;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
+using Volo.Abp.Threading;
 using Xunit;
 
 namespace AElf.Contract.Vote
@@ -15,15 +16,18 @@ namespace AElf.Contract.Vote
     {
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub ConsensusStub =>
             GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
-                ContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name),
+                ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
+
+        public Dictionary<Hash, Address> ContractAddresses;
 
         public VoteContractTestBase()
         {
-            BlockMiningService.DeploySystemContracts(new Dictionary<Hash, byte[]>
-            {
-                {VoteSmartContractAddressNameProvider.Name, Codes.Single(c => c.Key.Contains("Vote")).Value}
-            });
+            ContractAddresses = AsyncHelper.RunSync(() => BlockMiningService.DeploySystemContractsAsync(
+                new Dictionary<Hash, byte[]>
+                {
+                    {VoteSmartContractAddressNameProvider.Name, Codes.Single(c => c.Key.Contains("Vote")).Value}
+                }));
         }
 
         [Fact]

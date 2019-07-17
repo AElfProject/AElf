@@ -8,16 +8,7 @@
     <ItemGroup>
       <ProjectReference Include="..\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
     </ItemGroup>
-    
-    <ItemGroup>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-            <OutputItemType>Contract</OutputItemType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </ProjectReference>
-    </ItemGroup>
 
-    
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\acs0.proto</Link>
@@ -35,5 +26,7 @@
             <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
         </ContractStub>
     </ItemGroup>
+
+    <Import Project="..\..\test\AllContracts.props" />
 
 </Project>

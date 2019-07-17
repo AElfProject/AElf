@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Consensus.AEDPoS;
@@ -37,10 +39,26 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             IContractTesterFactory contractTesterFactory, ISmartContractAddressService smartContractAddressService,
             IBlockTimeProvider blockTimeProvider)
         {
+            RegisterAssemblyResolveEvent();
             _transactionListProvider = transactionListProvider;
             _contractTesterFactory = contractTesterFactory;
             _smartContractAddressService = smartContractAddressService;
             _blockTimeProvider = blockTimeProvider;
+        }
+        
+        private static void RegisterAssemblyResolveEvent()
+        {
+            var currentDomain = AppDomain.CurrentDomain;
+            currentDomain.AssemblyResolve += OnAssemblyResolve;
+        }
+
+        private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            var folderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var assemblyPath = Path.Combine(folderPath, new AssemblyName(args.Name).Name + ".dll");
+            if (!File.Exists(assemblyPath)) return null;
+            var assembly = Assembly.LoadFrom(assemblyPath);
+            return assembly;
         }
 
         /// <summary>
@@ -49,7 +67,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         /// </summary>
         /// <param name="nameToCode"></param>
         /// <returns></returns>
-        public async Task<Dictionary<Hash, Address>> DeploySystemContracts(Dictionary<Hash, byte[]> nameToCode)
+        public async Task<Dictionary<Hash, Address>> DeploySystemContractsAsync(Dictionary<Hash, byte[]> nameToCode)
         {
             var map = new Dictionary<Hash, Address>();
             var zeroContractStub =

@@ -1,6 +1,4 @@
-using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.TestKit;
-using AElf.Kernel.Consensus;
 using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable InconsistentNaming
