@@ -44,7 +44,7 @@
         
         <MakeDir Condition="@(ContractInternal) != '' Or @(CommonMessage) != '' Or @(ContractBase) != '' Or @(ContractCode) != '' Or @(ContractReference) != '' Or @(ContractStub) != '' Or @(ContractMessage) != ''" Directories="$(LocalProtobufDir)/Generated"/>
         <Exec Condition="@(ContractInternal) != ''" Command="$(GenerateContractInternalCommand) %(Identity)"/>
-        <Exec LogStandardErrorAsError="true" Condition="@(CommonMessage) != ''" Command="$(GenerateCommonMessageCommand) %(Identity)"/>
+        <Exec Condition="@(CommonMessage) != ''" Command="$(GenerateCommonMessageCommand) %(Identity)"/>
         <Exec Condition="@(ContractBase) != ''" Command="$(GenerateContractBaseCommand) %(Identity)"/>
         <Exec Condition="@(ContractCode) != ''" Command="$(GenerateContractCodeCommand) %(Identity)"/>
         <Exec Condition="@(ContractReference) != ''" Command="$(GenerateContractReferenceCommand)  %(Identity)"/>
