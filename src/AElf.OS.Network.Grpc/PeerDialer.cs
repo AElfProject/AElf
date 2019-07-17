@@ -30,7 +30,6 @@ namespace AElf.OS.Network.Grpc
         {
             var (channel, client) = _peerClientFactory.CreateClientAsync(ipAddress);
             
-            // TODO maybe implement retry logic (for now in interception)
             ConnectReply connectReply = await CallConnectAsync(client, channel, ipAddress, connectionInfo);
 
             if (connectReply?.Info?.Pubkey == null || connectReply.Error != ConnectError.ConnectOk)
@@ -53,7 +52,7 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 var metadata = new Metadata {
-                    {GrpcConstants.TimeoutMetadataKey, NetworkOptions.PeerDialTimeoutInMilliSeconds.ToString()}};
+                    {GrpcConstants.TimeoutMetadataKey, (NetworkOptions.PeerDialTimeoutInMilliSeconds*2).ToString()}};
                 
                 connectReply = await client.ConnectAsync(new ConnectRequest { Info = connectionInfo }, metadata);
             }
@@ -78,8 +77,7 @@ namespace AElf.OS.Network.Grpc
         /// Checks that the distant node is reachable by pinging it.
         /// </summary>
         /// <returns>The reply from the server.</returns>
-        private async Task PingNodeAsync(PeerService.PeerServiceClient client, Channel channel, 
-            string ipAddress)
+        private async Task PingNodeAsync(PeerService.PeerServiceClient client, Channel channel, string ipAddress)
         {
             try
             {
