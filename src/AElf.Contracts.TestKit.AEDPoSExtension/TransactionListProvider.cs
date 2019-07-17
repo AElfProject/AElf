@@ -8,9 +8,9 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
     {
         private readonly List<Transaction> _transactionList = new List<Transaction>();
 
-        public Task AddTransactionAsync(Transaction transaction)
+        public Task AddTransactionListAsync(List<Transaction> transactions)
         {
-            _transactionList.Add(transaction);
+            _transactionList.AddRange(transactions);
             return Task.CompletedTask;
         }
 

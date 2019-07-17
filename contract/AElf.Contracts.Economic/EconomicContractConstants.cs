@@ -23,10 +23,6 @@ namespace AElf.Contracts.Economic
         public const long CpuUnitPrice = 100;
         public const long StoUnitPrice = 100;
         public const long NetUnitPrice = 100;
-
-        // Consensus related.
-        public const string MiningTokenSymbol = "MINE";
-        public const long MiningTokenTotalSupply = long.MaxValue;
         
         // Election related.
         public const string ElectionTokenSymbol = "VOTE";

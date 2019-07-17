@@ -11,5 +11,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 
         public static readonly int CitizenKeyPairs =
             SampleECKeyPairs.KeyPairs.Count - InitialKeyPairCount - CoreDataCenterKeyPairCount * 6;
+
+        public const int MiningInterval = 4000;
     }
 }

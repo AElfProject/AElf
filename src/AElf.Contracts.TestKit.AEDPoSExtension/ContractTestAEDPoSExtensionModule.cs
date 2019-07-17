@@ -23,6 +23,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            context.Services.AddSingleton<IBlockMiningService, BlockMiningService>();
             context.Services.AddSingleton<ITransactionListProvider, TransactionListProvider>();
             context.Services.AddSingleton<IPostExecutionPlugin, ProvideTransactionListPostExecutionPlugin>();
         }

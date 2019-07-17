@@ -25,7 +25,6 @@ namespace AElf.Contracts.Economic
             CreateNativeToken(input);
             CreateTokenConverterToken();
             CreateResourceTokens();
-            CreateMiningToken();
             CreateElectionToken();
 
             Context.LogDebug(() => "Finished creating tokens.");
@@ -97,21 +96,6 @@ namespace AElf.Contracts.Economic
             }
         }
 
-        private void CreateMiningToken()
-        {
-            State.TokenContract.Create.Send(new CreateInput
-            {
-                Symbol = EconomicContractConstants.MiningTokenSymbol,
-                TokenName = "Mining Token",
-                TotalSupply = EconomicContractConstants.MiningTokenTotalSupply,
-                Decimals = 0,
-                Issuer = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName),
-                IsBurnable = true,
-                IsTransferDisabled = true,
-                LockWhiteList = {Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName)}
-            });
-        }
-
         private void CreateElectionToken()
         {
             State.TokenContract.Create.Send(new CreateInput
@@ -122,7 +106,6 @@ namespace AElf.Contracts.Economic
                 Decimals = 0,
                 Issuer = Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
                 IsBurnable = false,
-                IsTransferDisabled = true,
                 LockWhiteList =
                 {
                     Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
