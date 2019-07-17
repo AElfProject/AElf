@@ -18,6 +18,7 @@ namespace AElf.Sdk.CSharp.Tests
         private CustomContract.TestContract Contract = new CustomContract.TestContract();
         private IStateProvider StateProvider { get; }
         private IHostSmartContractBridgeContext BridgeContext { get; }
+        private ISmartContractBridgeContext SmartBridgeContext { get; }
 
         public TestContractTests()
         {
@@ -36,6 +37,8 @@ namespace AElf.Sdk.CSharp.Tests
             BridgeContext.TransactionContext = transactionContext;
             
             Contract.InternalInitialize(BridgeContext);
+            
+            SmartBridgeContext = BridgeContext;
         }
 
         [Fact]
@@ -246,11 +249,11 @@ namespace AElf.Sdk.CSharp.Tests
             tradeMessage.FromAmount.ShouldBe(100);
             tradeMessage.ToAmount.ShouldBe(758);
         }
-        
+
         [Fact]
         public void SendVirtualInline_Test()
         {
-            BridgeContext.SendVirtualInline(Hash.Generate(), Address.Generate(), "TestMethod", new CustomContract.StringInput
+            SmartBridgeContext.SendVirtualInline(Hash.Generate(), Address.Generate(), "TestMethod", new CustomContract.StringInput
             {
                 StringValue = "test send virtual inline"
             });
@@ -259,7 +262,7 @@ namespace AElf.Sdk.CSharp.Tests
         [Fact]
         public void SendInline_Test()
         {
-            BridgeContext.SendInline(Address.Generate(), "TestMethod", new CustomContract.StringInput
+            SmartBridgeContext.SendInline(Address.Generate(), "TestMethod", new CustomContract.StringInput
             {
                 StringValue = "test send inline"
             });
