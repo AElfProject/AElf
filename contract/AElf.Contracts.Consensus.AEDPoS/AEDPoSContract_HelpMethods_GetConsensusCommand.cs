@@ -226,15 +226,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             limitMillisecondsOfMiningBlock = miningInterval.Div(AEDPoSContractConstants.TotalTinySlots).Add(offset);
             limitMillisecondsOfMiningBlock = limitMillisecondsOfMiningBlock < 0 ? 0 : limitMillisecondsOfMiningBlock;
 
-            // TODO: Remove. Temporarily added to increase execution time
-            if (AEDPoSContractConstants.TotalTinySlots == 1)
-            {
-                limitMillisecondsOfMiningBlock = limitMillisecondsOfMiningBlock
-                    .Mul(AEDPoSContractConstants.LimitBlockExecutionTimeWeight)
-                    .Div(AEDPoSContractConstants.LimitBlockExecutionTimeTotalWeight);
-                return;
-            }
-
             var currentRoundStartTime = currentRound.GetStartTime();
             var producedTinyBlocksForPreviousRound =
                 minerInRound.ActualMiningTimes.Count(t => t < currentRoundStartTime);
