@@ -67,7 +67,7 @@ namespace AElf.Contract.Vote
 
             await BlockMiningService.MineBlockAsync(new List<Transaction>
             {
-                (await TokenStub.Create.SendAsync(new CreateInput
+                TokenStub.Create.GetTransaction(new CreateInput
                 {
                     Symbol = "ELF",
                     Decimals = 8,
@@ -75,7 +75,7 @@ namespace AElf.Contract.Vote
                     Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
                     IsBurnable = true,
                     TotalSupply = 1_000_000_000_00000000
-                })).Transaction,
+                })
             });
 
             {

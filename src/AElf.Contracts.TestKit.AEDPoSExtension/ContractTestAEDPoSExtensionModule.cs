@@ -1,4 +1,5 @@
 using AElf.Contracts.TestKit;
+using AElf.CSharp.Core;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.SmartContract;
@@ -33,7 +34,6 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             context.Services.AddSingleton<IAccountService, AccountService>();
             context.Services.AddSingleton<IPostExecutionPlugin, ProvideTransactionListPostExecutionPlugin>();
             context.Services.AddSingleton<ITestDataProvider, TestDataProvider>();
-            context.Services.AddSingleton<ITransactionExecutor, AEDPoSOnlyTransactionExecutor>();
 
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }

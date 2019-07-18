@@ -36,7 +36,7 @@ namespace AElf.Contracts.TestKit
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
             where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
         {
-            async Task<IExecutionResult<TOutput>> SendAsync(TInput input)
+            Transaction GetTransaction(TInput input)
             {
                 var refBlockInfo = _refBlockInfoProvider.GetRefBlockInfo();
                 var transaction = new Transaction
@@ -51,6 +51,12 @@ namespace AElf.Contracts.TestKit
                 var signature = CryptoHelper.SignWithPrivateKey(
                     KeyPair.PrivateKey, transaction.GetHash().Value.ToByteArray());
                 transaction.Signature = ByteString.CopyFrom(signature);
+                return transaction;
+            }
+
+            async Task<IExecutionResult<TOutput>> SendAsync(TInput input)
+            {
+                var transaction = GetTransaction(input);
                 await _transactionExecutor.ExecuteAsync(transaction);
                 var transactionResult =
                     await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
@@ -79,7 +85,7 @@ namespace AElf.Contracts.TestKit
                 return method.ResponseMarshaller.Deserializer(returnValue.ToByteArray());
             }
 
-            return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync);
+            return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync, GetTransaction);
         }
     }
 }
