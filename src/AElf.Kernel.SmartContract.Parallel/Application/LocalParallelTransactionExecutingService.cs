@@ -116,6 +116,10 @@ namespace AElf.Kernel.SmartContract.Parallel
                 if (!existingKeys.Overlaps(keys))
                 {
                     returnSets.AddRange(sets);
+                    foreach (var key in keys)
+                    {
+                        existingKeys.Add(key);
+                    }
                 }
                 else
                 {
