@@ -27,11 +27,15 @@ namespace AElf.OS.BlockSync.Infrastructure
                     _cache.TryRemove(cleanKey, out _);
             }
 
-            _cache.TryAdd(blockHash, new AnnouncementCache
+            _cache.AddOrUpdate(blockHash, new AnnouncementCache
             {
                 BlockHash = blockHash,
                 BlockHeight = blockHeight,
                 SenderPubKeys = new ConcurrentQueue<string>(new[] {senderPubKey})
+            }, (hash, cache) =>
+            {
+                cache.SenderPubKeys.Enqueue(senderPubKey);
+                return cache;
             });
 
             return true;
