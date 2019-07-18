@@ -40,7 +40,7 @@ namespace AElf.OS.BlockSync.Worker
             AsyncHelper.RunSync(ProcessDownloadJobAsync);
         }
 
-        private async Task ProcessDownloadJobAsync()
+        internal async Task ProcessDownloadJobAsync()
         {
             while (true)
             {
@@ -57,7 +57,7 @@ namespace AElf.OS.BlockSync.Worker
                 if (downloadResult.DownloadBlockCount == 0)
                 {
                     Logger.LogDebug(
-                        $"Download block job finished: LastDownloadBlockHeight: {downloadResult.LastDownloadBlockHeight}, TargetBlockHeight:{jobInfo.TargetBlockHeight}.");
+                        $"Download block job finished: CurrentTargetBlockHeight: {jobInfo.CurrentTargetBlockHeight}, TargetBlockHeight:{jobInfo.TargetBlockHeight}.");
                     await RemoveJobAndTargetStateAsync(jobInfo);
                     continue;
                 }

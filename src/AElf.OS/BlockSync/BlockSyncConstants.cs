@@ -11,6 +11,6 @@ namespace AElf.OS.BlockSync
         public const int FetchBlockRetryTimes = 3;
         public const int SyncBlockRetryTimes = 3;
         public const int BlockDownloadTimerPeriod = 4000;
-        public const int MaxDownloadBlockCount = 200;
+        public const int MaxDownloadBlockCount = 50;
     }
 }
