@@ -54,7 +54,7 @@ namespace AElf.Contracts.Genesis
                     out _,
                     out _balanceOfStarter)));
             BasicContractZeroAddress = Tester.GetZeroContractAddress();
-            ParliamentAddress = Tester.GetContractAddress(ParliamentAuthContractAddressNameProvider.Name);
+            ParliamentAddress = Tester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
         }
         

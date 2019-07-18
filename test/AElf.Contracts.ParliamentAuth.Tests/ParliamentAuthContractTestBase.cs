@@ -60,7 +60,7 @@ namespace AElf.Contracts.ParliamentAuth
                 DeploySystemSmartContract(
                     KernelConstants.CodeCoverageRunnerCategory,
                     ParliamentAuthCode,
-                    ParliamentAuthContractAddressNameProvider.Name,
+                    ParliamentAuthSmartContractAddressNameProvider.Name,
                     DefaultSenderKeyPair
                 ));
             ParliamentAuthContractStub = GetParliamentAuthContractTester(DefaultSenderKeyPair);
@@ -170,7 +170,7 @@ namespace AElf.Contracts.ParliamentAuth
                     out _,
                     out BalanceOfStarter, Tester.GetCallOwnerAddress(), out IsPrivilegePreserved)));
             BasicContractZeroAddress = Tester.GetZeroContractAddress();
-            ParliamentAddress = Tester.GetContractAddress(ParliamentAuthContractAddressNameProvider.Name);
+            ParliamentAddress = Tester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
         }
 

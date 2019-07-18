@@ -76,9 +76,9 @@ namespace AElf.WebApp.Web
         {
             Configure<AbpAspNetCoreMvcOptions>(options =>
             {
-                options.ConventionalControllers.Create(typeof(ChainApplicationWebAppAElfModule).Assembly);
+                options.ConventionalControllers.Create(typeof(ChainApplicationWebAppAElfModule).Assembly,setting => setting.UrlControllerNameNormalizer=context => "blockChain");
 
-                options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly);
+                options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly,setting => setting.UrlControllerNameNormalizer=context => "net");
             });
         }
 
