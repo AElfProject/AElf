@@ -4,41 +4,59 @@ using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Consensus;
+using AElf.Kernel.Miner;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace AElf.Contracts.Economic.TestBase
+namespace AElf.Contracts.TestKet.AEDPoSExtension
 {
-    public class EconomicTransactionExecutor : ITransactionExecutor
+    // ReSharper disable once InconsistentNaming
+    public class AEDPoSOnlyTransactionExecutor : ITransactionExecutor
     {
         private readonly IServiceProvider _serviceProvider;
 
-        public EconomicTransactionExecutor(IServiceProvider serviceProvider)
+        public AEDPoSOnlyTransactionExecutor(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
         }
 
+        /// <summary>
+        /// Only AEDPoS transactions can get executed.
+        /// </summary>
+        /// <param name="transaction"></param>
+        /// <returns></returns>
         public async Task ExecuteAsync(Transaction transaction)
         {
-            var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
-            var txHub = _serviceProvider.GetRequiredService<ITxHub>();
-            await txHub.HandleTransactionsReceivedAsync(new TransactionsReceivedEvent
+            var contractAddressService = _serviceProvider.GetRequiredService<ISmartContractAddressService>();
+            var zeroContractAddress = contractAddressService.GetZeroSmartContractAddress();
+            var consensusContractAddress =
+                contractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
+            if (zeroContractAddress != transaction.To && consensusContractAddress != transaction.To)
             {
-                Transactions = new List<Transaction> {transaction}
-            });
+                return;
+            }
+
             var blockchainService = _serviceProvider.GetRequiredService<IBlockchainService>();
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
-            var minerService = _serviceProvider.GetRequiredService<IMinerService>();
+            var miningService = _serviceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
+            var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
 
-            var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                blockTimeProvider.GetBlockTime(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
+            var block = await miningService.MineAsync(
+                new RequestMiningDto
+                {
+                    PreviousBlockHash = preBlock.GetHash(), PreviousBlockHeight = preBlock.Height,
+                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue)
+                },
+                new List<Transaction> {transaction},
+                blockTimeProvider.GetBlockTime());
 
+            await blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
         }

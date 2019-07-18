@@ -33,6 +33,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             context.Services.AddSingleton<IAccountService, AccountService>();
             context.Services.AddSingleton<IPostExecutionPlugin, ProvideTransactionListPostExecutionPlugin>();
             context.Services.AddSingleton<ITestDataProvider, TestDataProvider>();
+            context.Services.AddSingleton<ITransactionExecutor, AEDPoSOnlyTransactionExecutor>();
 
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }

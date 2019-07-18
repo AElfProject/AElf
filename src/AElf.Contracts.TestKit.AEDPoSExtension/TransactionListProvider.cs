@@ -16,7 +16,8 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 
         public Task<List<Transaction>> GetTransactionListAsync()
         {
-            return Task.FromResult(_transactionList);
+            var list = _transactionList;
+            return Task.FromResult(list);
         }
 
         public Task ResetAsync()

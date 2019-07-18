@@ -2,9 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -20,6 +22,11 @@ namespace AElf.Contract.Vote
             GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
                 ContractAddresses[ConsensusSmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
+        
+        internal TokenContractContainer.TokenContractStub TokenStub =>
+            GetTester<TokenContractContainer.TokenContractStub>(
+                ContractAddresses[TokenSmartContractAddressNameProvider.Name],
+                SampleECKeyPairs.KeyPairs[0]);
 
         public readonly Dictionary<Hash, Address> ContractAddresses;
 
@@ -28,7 +35,8 @@ namespace AElf.Contract.Vote
             ContractAddresses = AsyncHelper.RunSync(() => BlockMiningService.DeploySystemContractsAsync(
                 new Dictionary<Hash, byte[]>
                 {
-                    {VoteSmartContractAddressNameProvider.Name, Codes.Single(c => c.Key.Contains("Vote")).Value}
+                    {VoteSmartContractAddressNameProvider.Name, Codes.Single(c => c.Key.Contains("Vote")).Value},
+                    {TokenSmartContractAddressNameProvider.Name, Codes.Single(c => c.Key.Contains("MultiToken")).Value},
                 }));
         }
 
@@ -59,8 +67,21 @@ namespace AElf.Contract.Vote
 
             await BlockMiningService.MineBlockAsync(new List<Transaction>
             {
-                
+                (await TokenStub.Create.SendAsync(new CreateInput
+                {
+                    Symbol = "ELF",
+                    Decimals = 8,
+                    TokenName = "Test",
+                    Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
+                    IsBurnable = true,
+                    TotalSupply = 1_000_000_000_00000000
+                })).Transaction,
             });
+
+            {
+                var tokenInfo = await TokenStub.GetTokenInfo.CallAsync(new GetTokenInfoInput {Symbol = "ELF"});
+                tokenInfo.Symbol.ShouldBe("ELF");
+            }
 
             {
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());

@@ -39,7 +39,7 @@ namespace AElf.Contracts.TestKit
             async Task<IExecutionResult<TOutput>> SendAsync(TInput input)
             {
                 var refBlockInfo = _refBlockInfoProvider.GetRefBlockInfo();
-                var transaction = new Transaction()
+                var transaction = new Transaction
                 {
                     From = Sender,
                     To = ContractAddress,
@@ -54,7 +54,12 @@ namespace AElf.Contracts.TestKit
                 await _transactionExecutor.ExecuteAsync(transaction);
                 var transactionResult =
                     await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
-                return new ExecutionResult<TOutput>()
+                if (transactionResult == null)
+                {
+                    return new ExecutionResult<TOutput> {Transaction = transaction};
+                }
+
+                return new ExecutionResult<TOutput>
                 {
                     Transaction = transaction, TransactionResult = transactionResult,
                     Output = method.ResponseMarshaller.Deserializer(transactionResult.ReturnValue.ToByteArray())
@@ -63,7 +68,7 @@ namespace AElf.Contracts.TestKit
 
             async Task<TOutput> CallAsync(TInput input)
             {
-                var transaction = new Transaction()
+                var transaction = new Transaction
                 {
                     From = Sender,
                     To = ContractAddress,
