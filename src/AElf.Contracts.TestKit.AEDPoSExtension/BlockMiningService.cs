@@ -51,7 +51,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 
         private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
         {
-            var folderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            var folderPath = Path.GetDirectoryName(Assembly.GetCallingAssembly().Location);
             var assemblyPath = Path.Combine(folderPath, new AssemblyName(args.Name).Name + ".dll");
             if (!File.Exists(assemblyPath)) return null;
             var assembly = Assembly.LoadFrom(assemblyPath);

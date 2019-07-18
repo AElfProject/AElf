@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
-        <RootNamespace>AElf.Contract.Vote</RootNamespace>
+
         <IsPackable>false</IsPackable>
     </PropertyGroup>
 
@@ -18,24 +18,34 @@
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit.AEDPoSExtension\AElf.Contracts.TestKit.AEDPoSExtension.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
     </ItemGroup>
+    <Import Project="..\AllContracts.props" />
+
     <ItemGroup>
-        <ContractStub Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\vote_contract.proto">
-            <Link>Protobuf/Proto/vote_contract.proto</Link>
-        </ContractStub>
+        <ProjectReference Include="..\AElf.Contracts.TestContract.BasicFunction\AElf.Contracts.TestContract.BasicFunction.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+    </ItemGroup>
+
+    <ItemGroup>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf/Proto/token_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\acs4.proto">
+
+        <ContractMessage Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
+        </ContractMessage>
+        <ContractMessage Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
-        </ContractStub>
+        </ContractMessage>
         <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
             <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
         </ContractStub>
+
+        <ContractStub Include="..\..\protobuf\test_basic_function_contract.proto">
+            <Link>Protobuf\Proto\test_basic_function_contract.proto</Link>
+        </ContractStub>
     </ItemGroup>
+
 </Project>
