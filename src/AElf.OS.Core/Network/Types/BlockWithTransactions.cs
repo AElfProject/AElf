@@ -30,7 +30,7 @@ namespace AElf.OS.Network
         public BlockBody Body => new BlockBody
         {
             BlockHeader = GetHash(),
-            Transactions = {Transactions.Select(tx => tx.GetHash()).ToList()}
+            TransactionIds = {Transactions.Select(tx => tx.GetHash()).ToList()}
         };
 
         public long Height => Header?.Height ?? 0;

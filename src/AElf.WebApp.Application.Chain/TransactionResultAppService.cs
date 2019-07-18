@@ -129,10 +129,10 @@ namespace AElf.WebApp.Application.Chain
             }
 
             var output = new List<TransactionResultDto>();
-            if (offset <= block.Body.Transactions.Count - 1)
+            if (offset <= block.Body.TransactionIds.Count - 1)
             {
-                limit = Math.Min(limit, block.Body.Transactions.Count - offset);
-                var transactionIds = block.Body.Transactions.ToList().GetRange(offset, limit);
+                limit = Math.Min(limit, block.Body.TransactionIds.Count - offset);
+                var transactionIds = block.Body.TransactionIds.ToList().GetRange(offset, limit);
                 foreach (var hash in transactionIds)
                 {
                     var transactionResult = await GetTransactionResultAsync(hash);

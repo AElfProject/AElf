@@ -91,7 +91,7 @@ namespace AElf.Benchmark
                 BlockHeight = _chain.BestChainHeight
             });
             
-            foreach (var tx in _block.Body.Transactions)
+            foreach (var tx in _block.Body.TransactionIds)
             {
                 _transactionManager.RemoveTransaction(tx);
             }

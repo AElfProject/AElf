@@ -117,7 +117,7 @@ namespace AElf.WebApp.Application.Chain
 
             if (includeTransactions)
             {
-                var transactions = block.Body.Transactions;
+                var transactions = block.Body.TransactionIds;
                 var txs = new List<string>();
                 foreach (var transactionId in transactions)
                 {
@@ -171,7 +171,7 @@ namespace AElf.WebApp.Application.Chain
 
             if (includeTransactions)
             {
-                var transactions = blockInfo.Body.Transactions;
+                var transactions = blockInfo.Body.TransactionIds;
                 var txs = new List<string>();
                 foreach (var transactionId in transactions)
                 {

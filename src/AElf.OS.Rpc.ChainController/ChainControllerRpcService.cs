@@ -182,10 +182,10 @@ namespace AElf.OS.Rpc.ChainController
             }
 
             var response = new JArray();
-            if (offset <= block.Body.Transactions.Count - 1)
+            if (offset <= block.Body.TransactionIds.Count - 1)
             {
-                limit = Math.Min(limit, block.Body.Transactions.Count - offset);
-                var transactionIds = block.Body.Transactions.ToList().GetRange(offset, limit);
+                limit = Math.Min(limit, block.Body.TransactionIds.Count - offset);
+                var transactionIds = block.Body.TransactionIds.ToList().GetRange(offset, limit);
                 foreach (var hash in transactionIds)
                 {
                     var transactionResult = await this.GetTransactionResult(hash);
@@ -243,7 +243,7 @@ namespace AElf.OS.Rpc.ChainController
 
             if (includeTransactions)
             {
-                var transactions = blockInfo.Body.Transactions;
+                var transactions = blockInfo.Body.TransactionIds;
                 var txs = new List<string>();
                 foreach (var transactionId in transactions)
                 {

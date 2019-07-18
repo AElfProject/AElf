@@ -44,7 +44,7 @@ namespace AElf.Kernel
                 }
             };
             
-            block.Body.Transactions.AddRange(transactionIds);
+            block.Body.TransactionIds.AddRange(transactionIds);
 
             return block;
         }

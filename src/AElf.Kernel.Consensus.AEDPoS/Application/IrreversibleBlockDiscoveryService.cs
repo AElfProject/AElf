@@ -73,7 +73,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     continue;
                 }
 
-                foreach (var transactionId in block.Body.Transactions)
+                foreach (var transactionId in block.Body.TransactionIds)
                 {
                     var result = await _transactionResultQueryService.GetTransactionResultAsync(transactionId);
                     if (result == null)
