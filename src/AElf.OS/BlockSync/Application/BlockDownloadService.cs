@@ -83,6 +83,9 @@ namespace AElf.OS.BlockSync.Application
                 lastDownloadBlockHeight = lastBlock.Height;
             }
 
+            if (lastDownloadBlockHash != null)
+                _blockSyncStateProvider.DownloadJobTargetState[lastDownloadBlockHash] = false;
+
             return new DownloadBlocksResult
             {
                 DownloadBlockCount = downloadBlockCount,
@@ -106,6 +109,18 @@ namespace AElf.OS.BlockSync.Application
             }
 
             return true;
+        }
+
+        public void RemoveDownloadJobTargetState(Hash targetBlockHash)
+        {
+            if (targetBlockHash != null)
+                _blockSyncStateProvider.DownloadJobTargetState.TryRemove(targetBlockHash, out _);
+        }
+
+        public bool IsNotReachedDownloadTarget(Hash targetBlockHash)
+        {
+            return _blockSyncStateProvider.DownloadJobTargetState.TryGetValue(targetBlockHash, out var state)
+                   && state == false;
         }
     }
 }

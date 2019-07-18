@@ -10,5 +10,9 @@ namespace AElf.OS.BlockSync.Application
             string suggestedPeerPubKey);
 
         bool ValidateQueueAvailabilityBeforeDownload();
+
+        void RemoveDownloadJobTargetState(Hash targetBlockHash);
+
+        bool IsNotReachedDownloadTarget(Hash targetBlockHash);
     }
 }

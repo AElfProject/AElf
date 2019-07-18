@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -11,19 +12,19 @@ using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
+[assembly: InternalsVisibleTo("AElf.OS.Tests")]
+
 namespace AElf.OS.BlockSync.Worker
 {
     public class BlockDownloadWorker : PeriodicBackgroundWorkerBase, ISingletonDependency
     {
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockDownloadService _blockDownloadService;
-        private readonly IBlockSyncStateProvider _blockSyncStateProvider;
         private readonly IBlockDownloadJobStore _blockDownloadJobStore;
 
         public BlockDownloadWorker(AbpTimer timer,
             IBlockchainService blockchainService,
             IBlockDownloadService blockDownloadService,
-            IBlockSyncStateProvider blockSyncStateProvider,
             IBlockDownloadJobStore blockDownloadJobStore)
             : base(timer)
         {
@@ -31,7 +32,6 @@ namespace AElf.OS.BlockSync.Worker
 
             _blockchainService = blockchainService;
             _blockDownloadService = blockDownloadService;
-            _blockSyncStateProvider = blockSyncStateProvider;
             _blockDownloadJobStore = blockDownloadJobStore;
         }
 
@@ -61,15 +61,13 @@ namespace AElf.OS.BlockSync.Worker
                     await RemoveJobAndTargetStateAsync(jobInfo);
                     continue;
                 }
-
-                RemoveDownloadJobTargetState(jobInfo.CurrentTargetBlockHash);
+                
+                _blockDownloadService.RemoveDownloadJobTargetState(jobInfo.CurrentTargetBlockHash);
                 
                 jobInfo.Deadline = TimestampHelper.GetUtcNow().AddMilliseconds(downloadResult.DownloadBlockCount * 300);
                 jobInfo.CurrentTargetBlockHash = downloadResult.LastDownloadBlockHash;
                 jobInfo.CurrentTargetBlockHeight = downloadResult.LastDownloadBlockHeight;
                 await _blockDownloadJobStore.UpdateAsync(jobInfo);
-                
-                _blockSyncStateProvider.DownloadJobTargetState[jobInfo.CurrentTargetBlockHash] = false;
 
                 Logger.LogDebug(
                     $"Current download block job finished: CurrentTargetBlockHeight: {jobInfo.CurrentTargetBlockHeight}.");
@@ -105,9 +103,8 @@ namespace AElf.OS.BlockSync.Worker
                 return false;
 
             if (blockDownloadJobInfo.CurrentTargetBlockHash != null
-                && _blockSyncStateProvider.DownloadJobTargetState.TryGetValue(
-                    blockDownloadJobInfo.CurrentTargetBlockHash, out var state)
-                && state == false && TimestampHelper.GetUtcNow() < blockDownloadJobInfo.Deadline)
+                && _blockDownloadService.IsNotReachedDownloadTarget(blockDownloadJobInfo.CurrentTargetBlockHash)
+                && TimestampHelper.GetUtcNow() < blockDownloadJobInfo.Deadline)
                 return false;
 
             return true;
@@ -158,13 +155,7 @@ namespace AElf.OS.BlockSync.Worker
         private async Task RemoveJobAndTargetStateAsync(BlockDownloadJobInfo blockDownloadJobInfo)
         {
             await _blockDownloadJobStore.RemoveAsync(blockDownloadJobInfo.JobId);
-            RemoveDownloadJobTargetState(blockDownloadJobInfo.CurrentTargetBlockHash);
-        }
-
-        private void RemoveDownloadJobTargetState(Hash targetBlockHash)
-        {
-            if(targetBlockHash!=null)
-                _blockSyncStateProvider.DownloadJobTargetState.TryRemove(targetBlockHash, out _);
+            _blockDownloadService.RemoveDownloadJobTargetState(blockDownloadJobInfo.CurrentTargetBlockHash);
         }
     }
 }
