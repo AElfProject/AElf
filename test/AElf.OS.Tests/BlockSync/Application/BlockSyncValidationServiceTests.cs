@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Infrastructure;
@@ -32,7 +33,9 @@ namespace AElf.OS.BlockSync.Application
                 BlockHeight = chain.LastIrreversibleBlockHeight + 1
             };
 
-            var validateResult = await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement);
+            var validateResult =
+                await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement,
+                    GetEncodedPubKeyString());
 
             validateResult.ShouldBeTrue();
         }
@@ -48,10 +51,14 @@ namespace AElf.OS.BlockSync.Application
                 BlockHeight = chain.LastIrreversibleBlockHeight + 1
             };
 
-            var validateResult = await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement);
+            var validateResult =
+                await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement,
+                    GetEncodedPubKeyString());
             validateResult.ShouldBeTrue();
-            
-            validateResult = await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement);
+
+            validateResult =
+                await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement,
+                    GetEncodedPubKeyString());
             validateResult.ShouldBeFalse();
         }
 
@@ -66,9 +73,18 @@ namespace AElf.OS.BlockSync.Application
                 BlockHeight = chain.LastIrreversibleBlockHeight
             };
 
-            var validateResult = await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement);
+            var validateResult =
+                await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement,
+                    GetEncodedPubKeyString());
 
             validateResult.ShouldBeFalse();
+        }
+
+        private string GetEncodedPubKeyString()
+        {
+            var pk = CryptoHelper.GenerateKeyPair().PublicKey;
+            var address = Address.FromPublicKey(pk);
+            return address.GetFormatted();
         }
     }
 }

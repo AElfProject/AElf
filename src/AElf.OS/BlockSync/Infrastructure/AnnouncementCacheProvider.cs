@@ -31,7 +31,7 @@ namespace AElf.OS.BlockSync.Infrastructure
             {
                 BlockHash = blockHash,
                 BlockHeight = blockHeight,
-                SenderPubKeys = new ConcurrentQueue<string>()
+                SenderPubKeys = new ConcurrentQueue<string>(new[] {senderPubKey})
             });
 
             return true;
