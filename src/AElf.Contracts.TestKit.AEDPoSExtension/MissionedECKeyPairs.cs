@@ -9,22 +9,22 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
     [SuppressMessage("ReSharper", "InconsistentNaming")]
     public static class MissionedECKeyPairs
     {
-        public static IEnumerable<ECKeyPair> InitialKeyPairs =
+        public static readonly IEnumerable<ECKeyPair> InitialKeyPairs =
             SampleECKeyPairs.KeyPairs
                 .Take(AEDPoSExtensionConstants.InitialKeyPairCount);
 
-        public static IEnumerable<ECKeyPair> CoreDataCenterKeyPairs =
+        public static readonly IEnumerable<ECKeyPair> CoreDataCenterKeyPairs =
             SampleECKeyPairs.KeyPairs
                 .Skip(AEDPoSExtensionConstants.InitialKeyPairCount)
                 .Take(AEDPoSExtensionConstants.CoreDataCenterKeyPairCount);
 
-        public static IEnumerable<ECKeyPair> ValidationDataCenterKeyPairs =
+        public static readonly IEnumerable<ECKeyPair> ValidationDataCenterKeyPairs =
             SampleECKeyPairs.KeyPairs
                 .Skip(AEDPoSExtensionConstants.InitialKeyPairCount +
                       AEDPoSExtensionConstants.CoreDataCenterKeyPairCount)
                 .Take(AEDPoSExtensionConstants.ValidationDataCenterKeyPairCount);
         
-        public static IEnumerable<ECKeyPair> CitizenKeyPairs =
+        public static readonly IEnumerable<ECKeyPair> CitizenKeyPairs =
             SampleECKeyPairs.KeyPairs
                 .Skip(AEDPoSExtensionConstants.InitialKeyPairCount +
                       AEDPoSExtensionConstants.CoreDataCenterKeyPairCount + 

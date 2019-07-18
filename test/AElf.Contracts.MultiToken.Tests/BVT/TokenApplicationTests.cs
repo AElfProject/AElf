@@ -816,7 +816,7 @@ namespace AElf.Contracts.MultiToken
                 Owner = DefaultAddress,
                 Symbol = AliceCoinTokenInfo.Symbol
             });
-            tokenBalanceOutput.Balance.ShouldBe(tokenOriginBalance.Add(400L));
+            tokenBalanceOutput.Balance.ShouldBe(tokenOriginBalance.Add(1200L));
         }
 
         [Fact]
