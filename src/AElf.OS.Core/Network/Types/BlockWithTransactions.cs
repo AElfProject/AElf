@@ -25,7 +25,7 @@ namespace AElf.OS.Network
         }
 
         public IEnumerable<Transaction> FullTransactionList => Transactions;
-        public IEnumerable<Hash> TransactionHashList => Transactions.Select(tx => tx.GetHash());
+        public IEnumerable<Hash> TransactionIdList => Transactions.Select(tx => tx.GetHash());
 
         public BlockBody Body => new BlockBody
         {

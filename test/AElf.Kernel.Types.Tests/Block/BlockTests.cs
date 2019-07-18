@@ -97,7 +97,7 @@ namespace AElf.Kernel.Types.Tests
         private (List<Transaction>, List<Hash>) GenerateFakeTransactions(int count)
         {
             var transactions = new List<Transaction>();
-            var transactionHashes = new List<Hash>();
+            var transactionIds = new List<Hash>();
             for (int i = 0; i < count; i++)
             {
                var transaction = new Transaction()
@@ -110,10 +110,10 @@ namespace AElf.Kernel.Types.Tests
                var hash = transaction.GetHash();
 
                transactions.Add(transaction);
-               transactionHashes.Add(hash);
+               transactionIds.Add(hash);
             }
 
-            return (transactions, transactionHashes);
+            return (transactions, transactionIds);
         }
 
         private BlockHeader GenerateBlockHeader()

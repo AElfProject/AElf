@@ -114,17 +114,17 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("GetTransactionResult", "transactionId")]
         public async Task<JObject> GetTransactionResult(string transactionId)
         {
-            Hash transactionHash;
+            Hash transactionIdHash;
             try
             {
-                transactionHash = Hash.LoadHex(transactionId);
+                transactionIdHash = Hash.LoadHex(transactionId);
             }
             catch
             {
                 throw new JsonRpcServiceException(Error.InvalidTransactionId, Error.Message[Error.InvalidTransactionId]);
             }
 
-            var transactionResult = await this.GetTransactionResult(transactionHash);
+            var transactionResult = await this.GetTransactionResult(transactionIdHash);
             if (transactionResult.Status == TransactionResultStatus.NotExisted)
                 return new JObject
                 {
@@ -185,8 +185,8 @@ namespace AElf.OS.Rpc.ChainController
             if (offset <= block.Body.Transactions.Count - 1)
             {
                 limit = Math.Min(limit, block.Body.Transactions.Count - offset);
-                var transactionHashes = block.Body.Transactions.ToList().GetRange(offset, limit);
-                foreach (var hash in transactionHashes)
+                var transactionIds = block.Body.Transactions.ToList().GetRange(offset, limit);
+                foreach (var hash in transactionIds)
                 {
                     var transactionResult = await this.GetTransactionResult(hash);
                     var jObjectResult = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
@@ -245,9 +245,9 @@ namespace AElf.OS.Rpc.ChainController
             {
                 var transactions = blockInfo.Body.Transactions;
                 var txs = new List<string>();
-                foreach (var txHash in transactions)
+                foreach (var transactionId in transactions)
                 {
-                    txs.Add(txHash.ToHex());
+                    txs.Add(transactionId.ToHex());
                 }
 
                 response["Body"]["Transactions"] = JArray.FromObject(txs);
@@ -362,17 +362,17 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("GetTransactionMerklePath", "transactionId")]
         public async Task<JObject> GetTransactionMerklePath(string transactionId)
         {
-            Hash transactionHash;
+            Hash transactionId;
             try
             {
-                transactionHash = Hash.LoadHex(transactionId);
+                transactionId = Hash.LoadHex(transactionId);
             }
             catch
             {
                 throw new JsonRpcServiceException(Error.InvalidTransactionId, Error.Message[Error.InvalidTransactionId]);
             }
 
-            var transactionResult = await this.GetTransactionResult(transactionHash);
+            var transactionResult = await this.GetTransactionResult(transactionId);
             if (transactionResult == null)
             {
                 throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);

@@ -41,9 +41,9 @@ namespace AElf.Kernel.Miner.Application
                     continue;
                 }
 
-                foreach (var transactionHash in block.Body.Transactions)
+                foreach (var transactionId in block.Body.Transactions)
                 {
-                    var result = await _transactionResultQueryService.GetTransactionResultAsync(transactionHash);
+                    var result = await _transactionResultQueryService.GetTransactionResultAsync(transactionId);
                     if (result == null)
                     {
                         continue;

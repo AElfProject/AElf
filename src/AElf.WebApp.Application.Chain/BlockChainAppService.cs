@@ -119,9 +119,9 @@ namespace AElf.WebApp.Application.Chain
             {
                 var transactions = block.Body.Transactions;
                 var txs = new List<string>();
-                foreach (var txHash in transactions)
+                foreach (var transactionId in transactions)
                 {
-                    txs.Add(txHash.ToHex());
+                    txs.Add(transactionId.ToHex());
                 }
 
                 blockDto.Body.Transactions = txs;
@@ -173,9 +173,9 @@ namespace AElf.WebApp.Application.Chain
             {
                 var transactions = blockInfo.Body.Transactions;
                 var txs = new List<string>();
-                foreach (var txHash in transactions)
+                foreach (var transactionId in transactions)
                 {
-                    txs.Add(txHash.ToHex());
+                    txs.Add(transactionId.ToHex());
                 }
 
                 blockDto.Body.Transactions = txs;
