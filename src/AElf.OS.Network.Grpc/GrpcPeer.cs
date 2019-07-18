@@ -131,7 +131,7 @@ namespace AElf.OS.Network.Grpc
             // Do some pre-checks that represent the minimum acceptable for the peers state.
             if (LastReceivedHandshake?.HandshakeData?.BestChainBlockHeader == null)
             {
-                IsConnected = false; // TODO handshake exception ?
+                IsConnected = false;
                 return null;
             }
             
