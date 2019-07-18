@@ -9,6 +9,6 @@ namespace AElf.OS.BlockSync.Application
     {
         Task SyncByAnnouncementAsync(Chain chain, SyncAnnouncementDto syncAnnouncementDto);
 
-        Task SyncByBlockAsync(BlockWithTransactions blockWithTransactions);
+        Task SyncByBlockAsync(Chain chain, SyncBlockDto syncBlockDto);
     }
 }
