@@ -6,6 +6,6 @@ namespace AElf
 {
     public interface IBlockBase : IHashProvider
     {
-        IEnumerable<Hash> TransactionIdList { get; }
+        IEnumerable<Hash> TransactionIds { get; }
     }
 }

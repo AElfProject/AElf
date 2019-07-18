@@ -26,7 +26,7 @@ namespace AElf.Kernel
             Body = new BlockBody();
         }
 
-        public IEnumerable<Hash> TransactionIdList => Body.TransactionIds;
+        public IEnumerable<Hash> TransactionIds => Body.TransactionIds;
 
         public long Height => Header?.Height ?? 0;
 
