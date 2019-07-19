@@ -9,8 +9,6 @@ namespace AElf.CrossChain
     public interface ICrossChainIndexingDataService
     {
         Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight);
-        
-        Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId, Hash blockHash, long blockHeight);
 
         Task<bool> ValidateSideChainBlockDataAsync(List<SideChainBlockData> sideChainBlockDataList,
             Hash blockHash, long blockHeight);
@@ -23,6 +21,6 @@ namespace AElf.CrossChain
 
         CrossChainBlockData GetUsedCrossChainBlockDataForLastMiningAsync(Hash blockHash, long blockHeight);
 
-        void UpdateCrossChainDataWithLibIndex(BlockIndex blockIndex);
+        void UpdateCrossChainDataWithLib(Hash blockHash, long blockHeight);
     }
 }

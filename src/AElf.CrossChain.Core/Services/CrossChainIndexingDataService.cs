@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Cache.Application;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -236,18 +235,10 @@ namespace AElf.CrossChain
             return _indexedCrossChainBlockDataProvider.GetIndexedBlockData(blockHash);
         }
 
-        public async Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId, Hash blockHash, long blockHeight)
-        {
-            return await _readerFactory.Create(blockHash, blockHeight).GetChainInitializationData.CallAsync(new SInt32Value()
-            {
-                Value = chainId
-            });
-        }
-
-        public void UpdateCrossChainDataWithLibIndex(BlockIndex blockIndex)
+        public void UpdateCrossChainDataWithLib(Hash blockHash, long blockHeight)
         {
             // clear useless cache
-            _indexedCrossChainBlockDataProvider.ClearExpiredCrossChainBlockData(blockIndex.Height);
+            _indexedCrossChainBlockDataProvider.ClearExpiredCrossChainBlockData(blockHeight);
         }
     }
 }

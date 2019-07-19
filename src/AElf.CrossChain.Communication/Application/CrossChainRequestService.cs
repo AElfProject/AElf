@@ -22,17 +22,16 @@ namespace AElf.CrossChain.Communication.Application
 
         public async Task RequestCrossChainDataFromOtherChainsAsync()
         {
-            var chainIds = _crossChainService.GetRegisteredChainIdList();
+            var chainIdHeightDict = _crossChainService.GetNeededChainIdAndHeightPairs();
             Logger.LogTrace(
-                $"Try to request from chain {string.Join(",", chainIds.Select(ChainHelper.ConvertChainIdToBase58))}");
-            foreach (var chainId in chainIds)
+                $"Try to request from chain {string.Join(",", chainIdHeightDict.Keys.Select(ChainHelper.ConvertChainIdToBase58))}");
+            foreach (var chainIdHeightPair in chainIdHeightDict)
             {
-                var client = await _crossChainClientService.GetClientAsync(chainId);
+                var client = await _crossChainClientService.GetClientAsync(chainIdHeightPair.Key);
                 if (client == null)
                     continue;
-                var targetHeight = _crossChainService.GetNeededChainHeight(chainId);
-                Logger.LogTrace($" Request chain {ChainHelper.ConvertChainIdToBase58(chainId)} from {targetHeight}");
-                _ = client.RequestCrossChainDataAsync(targetHeight);
+                Logger.LogTrace($" Request chain {ChainHelper.ConvertChainIdToBase58(chainIdHeightPair.Key)} from {chainIdHeightPair.Value}");
+                _ = client.RequestCrossChainDataAsync(chainIdHeightPair.Value);
             }
         }
 

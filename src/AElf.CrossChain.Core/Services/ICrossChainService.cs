@@ -9,10 +9,10 @@ namespace AElf.CrossChain
     public interface ICrossChainService
     {
         Task FinishInitialSyncAsync();
-        List<int> GetRegisteredChainIdList();
-        long GetNeededChainHeight(int chainId);
 
-        Task UpdateCrossChainDataWithLibAsync(Hash blockHash, long blockHeight);
+        Dictionary<int, long> GetNeededChainIdAndHeightPairs();
+
+        Task RegisterNewChainsAsync(Hash blockHash, long blockHeight);
         
         Task<Block> GetNonIndexedBlockAsync(long height);
         

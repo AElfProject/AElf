@@ -7,12 +7,12 @@ using Xunit;
 
 namespace AElf.CrossChain
 {
-    public class CrossChainDataProviderTest : CrossChainTestBase
+    public class CrossChainIndexingDataServiceTest : CrossChainTestBase
     {
         private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
         private readonly CrossChainTestHelper _crossChainTestHelper;
 
-        public CrossChainDataProviderTest()
+        public CrossChainIndexingDataServiceTest()
         {
             _crossChainIndexingDataService = GetRequiredService<ICrossChainIndexingDataService>();
             _crossChainTestHelper = GetRequiredService<CrossChainTestHelper>();
