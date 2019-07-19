@@ -3,11 +3,13 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Application;
+using AElf.OS.BlockSync.Dto;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.BlockSync.Types;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
@@ -21,18 +23,21 @@ namespace AElf.OS.BlockSync.Worker
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockDownloadService _blockDownloadService;
         private readonly IBlockDownloadJobStore _blockDownloadJobStore;
+        private readonly BlockSyncOptions _blockSyncOptions;
 
         public BlockDownloadWorker(AbpTimer timer,
             IBlockchainService blockchainService,
             IBlockDownloadService blockDownloadService,
-            IBlockDownloadJobStore blockDownloadJobStore)
+            IBlockDownloadJobStore blockDownloadJobStore,
+            IOptionsSnapshot<BlockSyncOptions> blockSyncOptions)
             : base(timer)
         {
-            Timer.Period = BlockSyncConstants.BlockDownloadTimerPeriod;
-
             _blockchainService = blockchainService;
             _blockDownloadService = blockDownloadService;
             _blockDownloadJobStore = blockDownloadJobStore;
+            _blockSyncOptions = blockSyncOptions.Value;
+            
+            Timer.Period = _blockSyncOptions.BlockDownloadTimerPeriod;
         }
 
         protected override void DoWork()
@@ -118,28 +123,51 @@ namespace AElf.OS.BlockSync.Worker
                 if (jobInfo.CurrentTargetBlockHeight <= chain.BestChainHeight || await BlockIsInBestChain(chain,
                         jobInfo.CurrentTargetBlockHash, jobInfo.CurrentTargetBlockHeight))
                 {
-                    downloadResult = await _blockDownloadService.DownloadBlocksAsync(jobInfo.CurrentTargetBlockHash,
-                        jobInfo.CurrentTargetBlockHeight, jobInfo.BatchRequestBlockCount,
-                        jobInfo.SuggestedPeerPubkey);
+                    downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
+                    {
+                        PreviousBlockHash = jobInfo.CurrentTargetBlockHash,
+                        PreviousBlockHeight = jobInfo.CurrentTargetBlockHeight,
+                        BatchRequestBlockCount = jobInfo.BatchRequestBlockCount,
+                        SuggestedPeerPubkey = jobInfo.SuggestedPeerPubkey,
+                        MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount
+                    });
                 }
             }
             else
             {
-                downloadResult = await _blockDownloadService.DownloadBlocksAsync(chain.LongestChainHash,
-                    chain.LongestChainHeight, jobInfo.BatchRequestBlockCount, jobInfo.SuggestedPeerPubkey);
-
+                // Download blocks from longest chain
+                downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
+                {
+                    PreviousBlockHash = chain.LongestChainHash,
+                    PreviousBlockHeight = chain.LongestChainHeight,
+                    BatchRequestBlockCount = jobInfo.BatchRequestBlockCount,
+                    SuggestedPeerPubkey = jobInfo.SuggestedPeerPubkey,
+                    MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount
+                });
+                // Download blocks from best chain
                 if (downloadResult.DownloadBlockCount == 0)
                 {
-                    downloadResult = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
-                        chain.BestChainHeight, jobInfo.BatchRequestBlockCount, jobInfo.SuggestedPeerPubkey);
+                    downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
+                    {
+                        PreviousBlockHash = chain.BestChainHash,
+                        PreviousBlockHeight = chain.BestChainHeight,
+                        BatchRequestBlockCount = jobInfo.BatchRequestBlockCount,
+                        SuggestedPeerPubkey = jobInfo.SuggestedPeerPubkey,
+                        MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount
+                    });
                 }
-
+                // Download blocks from LIB
                 if (downloadResult.DownloadBlockCount == 0)
                 {
                     Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
-                    downloadResult = await _blockDownloadService.DownloadBlocksAsync(
-                        chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight,
-                        jobInfo.BatchRequestBlockCount, jobInfo.SuggestedPeerPubkey);
+                    downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
+                    {
+                        PreviousBlockHash = chain.LastIrreversibleBlockHash,
+                        PreviousBlockHeight = chain.LastIrreversibleBlockHeight,
+                        BatchRequestBlockCount = jobInfo.BatchRequestBlockCount,
+                        SuggestedPeerPubkey = jobInfo.SuggestedPeerPubkey,
+                        MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount
+                    });
                 }
             }
 

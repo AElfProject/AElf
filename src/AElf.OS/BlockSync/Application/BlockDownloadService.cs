@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.OS.BlockSync.Dto;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.BlockSync.Types;
 using AElf.OS.Network.Application;
@@ -33,20 +34,19 @@ namespace AElf.OS.BlockSync.Application
             _blockSyncStateProvider = blockSyncStateProvider;
         }
 
-        public async Task<DownloadBlocksResult> DownloadBlocksAsync(Hash previousBlockHash, long previousBlockHeight,
-            int batchRequestBlockCount, string suggestedPeerPubKey)
+        public async Task<DownloadBlocksResult> DownloadBlocksAsync(DownloadBlockDto downloadBlockDto)
         {
             var downloadBlockCount = 0;
-            var lastDownloadBlockHash = previousBlockHash;
-            var lastDownloadBlockHeight = previousBlockHeight;
+            var lastDownloadBlockHash = downloadBlockDto.PreviousBlockHash;
+            var lastDownloadBlockHeight = downloadBlockDto.PreviousBlockHeight;
 
-            while (downloadBlockCount <= BlockSyncConstants.MaxDownloadBlockCount)
+            while (downloadBlockCount <= downloadBlockDto.MaxBlockDownloadCount)
             {
                 Logger.LogDebug(
-                    $"Request blocks start with block hash: {lastDownloadBlockHash}, block height: {previousBlockHeight}");
+                    $"Request blocks start with block hash: {lastDownloadBlockHash}, block height: {lastDownloadBlockHeight}");
 
                 var blocksWithTransactions = await _networkService.GetBlocksAsync(lastDownloadBlockHash,
-                    batchRequestBlockCount, suggestedPeerPubKey);
+                    downloadBlockDto.BatchRequestBlockCount, downloadBlockDto.SuggestedPeerPubkey);
 
                 if (blocksWithTransactions == null || !blocksWithTransactions.Any())
                 {
