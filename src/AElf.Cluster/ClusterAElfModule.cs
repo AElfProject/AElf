@@ -5,7 +5,7 @@ namespace AElf.Cluster
 {
     [DependsOn(
     )]
-    public class ClusterAElfModule : AElfModule<ClusterAElfModule>
+    public class ClusterAElfModule : AElfModule
     {
         
     }
