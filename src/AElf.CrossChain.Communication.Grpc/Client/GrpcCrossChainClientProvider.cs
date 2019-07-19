@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using AElf.CrossChain.Cache.Application;
+using AElf.CrossChain.Communication.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
@@ -28,24 +29,16 @@ namespace AElf.CrossChain.Communication.Grpc
 
         #region Create client
 
-        public ICrossChainClient CreateClientForChainInitializationData(int chainId)
+        public ICrossChainClient CreateCrossChainClient(CrossChainClientDto crossChainClientDto)
         {
-            var localChainId = chainId;
+            var uriStr = GetUriStr(crossChainClientDto.RemoteServerHost, crossChainClientDto.RemoteServerPort);
 
-            var uriStr = GetUriStr(_grpcCrossChainConfigOption.RemoteParentChainServerHost,
-                _grpcCrossChainConfigOption.RemoteParentChainServerPort);
-            var clientInitializationContext = new GrpcClientInitializationContext
-            {
-                DialTimeout = _grpcCrossChainConfigOption.ConnectionTimeout,
-                LocalChainId = localChainId,
-                LocalServerPort = _grpcCrossChainConfigOption.LocalServerPort,
-                UriStr = uriStr,
-                LocalServerHost = _grpcCrossChainConfigOption.LocalServerHost
-            };
-            var client = new ClientForParentChain(clientInitializationContext, _blockCacheEntityProducer);
+            var client = CreateGrpcClient(uriStr, crossChainClientDto.LocalChainId, crossChainClientDto.RemoteChainId,
+                crossChainClientDto.IsClientToParentChain);
+
             return client;
         }
-
+        
         public void CreateAndCacheClient(CrossChainClientDto crossChainClientDto)
         {
             var chainId = crossChainClientDto.RemoteChainId;

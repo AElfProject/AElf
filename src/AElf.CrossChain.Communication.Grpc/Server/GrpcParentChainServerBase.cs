@@ -17,7 +17,7 @@ namespace AElf.CrossChain.Communication.Grpc
             _crossChainResponseService = crossChainResponseService;
         }
 
-        public override async Task RequestIndexingFromParentChainAsync(CrossChainRequest crossChainRequest, 
+        public override async Task RequestIndexingFromParentChain(CrossChainRequest crossChainRequest, 
             IServerStreamWriter<ParentChainBlockData> responseStream, ServerCallContext context)
         {
             Logger.LogTrace(
@@ -35,7 +35,7 @@ namespace AElf.CrossChain.Communication.Grpc
             }
         }
         
-        public override async Task<ChainInitializationData> RequestChainInitializationDataFromParentChainAsync(SideChainInitializationRequest request, ServerCallContext context)
+        public override async Task<ChainInitializationData> RequestChainInitializationDataFromParentChain(SideChainInitializationRequest request, ServerCallContext context)
         {
             Logger.LogTrace(
                 $"Received initialization data request from  chain {ChainHelper.ConvertChainIdToBase58(request.ChainId)}");
