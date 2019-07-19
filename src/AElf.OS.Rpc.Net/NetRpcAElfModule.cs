@@ -11,7 +11,6 @@ namespace AElf.OS.Rpc.Net
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<NetRpcAElfModule>();
             context.Services.AddSingleton<NetRpcService>();
         }
     }
