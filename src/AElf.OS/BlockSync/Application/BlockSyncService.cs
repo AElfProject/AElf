@@ -80,7 +80,7 @@ namespace AElf.OS.BlockSync.Application
                 else if (_announcementCacheProvider.TryGetAnnouncementNextSender(syncAnnouncementDto.SyncBlockHash, out var senderPubKey))
                 {
                     Logger.LogTrace(
-                        $"Try get announcement next sender for block height {syncAnnouncementDto.SyncBlockHeight}, block hash: {syncAnnouncementDto.SyncBlockHash}.");
+                        $"Try get announcement next sender for block height {syncAnnouncementDto.SyncBlockHeight}, block hash: {syncAnnouncementDto.SyncBlockHash}, sender pub key: {senderPubKey}.");
                     EnqueueFetchBlockJob(new SyncAnnouncementDto
                     {
                         SyncBlockHash = syncAnnouncementDto.SyncBlockHash,
