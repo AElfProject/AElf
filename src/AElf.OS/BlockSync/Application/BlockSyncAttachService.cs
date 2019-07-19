@@ -34,7 +34,7 @@ namespace AElf.OS.BlockSync.Application
         }
 
         public async Task AttachBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions,
-            Func<Hash, long, Task> attachFinishedCallback =null)
+            Func<Task> attachFinishedCallback =null)
         {
             var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
             if (!valid)
@@ -57,7 +57,7 @@ namespace AElf.OS.BlockSync.Application
                     {
                         if (attachFinishedCallback != null)
                         {
-                            await attachFinishedCallback(block.GetHash(), block.Height);
+                            await attachFinishedCallback();
                         }
                     }
                 },

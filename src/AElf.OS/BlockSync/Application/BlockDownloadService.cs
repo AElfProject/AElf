@@ -68,9 +68,9 @@ namespace AElf.OS.BlockSync.Application
                         async () =>
                         {
                             await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions,
-                                async (blockHash, blockHeight) =>
+                                async () =>
                                 {
-                                    _blockSyncStateProvider.DownloadJobTargetState.TryUpdate(blockHash, true, false);
+                                    _blockSyncStateProvider.DownloadJobTargetState.TryUpdate(blockWithTransactions.GetHash(),true, false);
                                 });
                         },
                         OSConstants.BlockSyncAttachQueueName);

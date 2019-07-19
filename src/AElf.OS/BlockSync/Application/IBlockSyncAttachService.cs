@@ -8,6 +8,6 @@ namespace AElf.OS.BlockSync.Application
     public interface IBlockSyncAttachService
     {
         Task AttachBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions,
-            Func<Hash, long, Task> attachFinishedCallback = null);
+            Func<Task> attachFinishedCallback = null);
     }
 }
