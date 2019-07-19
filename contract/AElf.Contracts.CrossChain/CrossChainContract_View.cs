@@ -104,6 +104,7 @@ namespace AElf.Contracts.CrossChain
             if (State.ParentChainId.Value == 0)
                 return dict;
             var parentChainHeight = GetParentChainHeight(new Empty()).Value;
+            Assert(parentChainHeight > Constants.GenesisBlockHeight, "Invalid parent chain height");
             dict.IdHeightDict.Add(State.ParentChainId.Value, parentChainHeight);
             return dict;
         }

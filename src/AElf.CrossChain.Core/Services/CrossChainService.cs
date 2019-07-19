@@ -78,7 +78,7 @@ namespace AElf.CrossChain
 
             foreach (var chainIdHeightPair in sideChainIdHeightPairs.IdHeightDict)
             {
-                _crossChainCacheEntityService.RegisterNewChain(chainIdHeightPair.Key, chainIdHeightPair.Value + 1);
+                _crossChainCacheEntityService.RegisterNewChain(chainIdHeightPair.Key, chainIdHeightPair.Value);
             }
         }
     }
