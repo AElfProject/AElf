@@ -1,4 +1,3 @@
-using System;
 using Acs3;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -21,7 +20,9 @@ namespace AElf.Contracts.ParliamentAuth
         {
             var proposal = State.Proposals[proposalId];
             Assert(proposal != null, "Not found proposal.");
-            
+            var organization = State.Organisations[proposal.OrganizationAddress];
+            var minerList = GetCurrentMinerList();
+            var readyToRelease = IsReadyToRelease(proposal, organization, minerList);
             var result = new ProposalOutput
             {
                 ProposalId = proposalId,
@@ -30,25 +31,36 @@ namespace AElf.Contracts.ParliamentAuth
                 OrganizationAddress = proposal.OrganizationAddress,
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
-                ToAddress = proposal.ToAddress
+                ToAddress = proposal.ToAddress,
+                ToBeReleased = readyToRelease
             };
 
             return result;
         }
 
-        public override Address GetDefaultOrganizationAddress(Empty input)
+        public override Address GetGenesisOwnerAddress(Empty input)
         {
             Assert(State.Initialized.Value, "Not initialized.");
-            return State.DefaultOrganizationAddress.Value;
+            return State.GenesisOwnerAddress.Value;
         }
 
         #endregion view
-        public override Empty Initialize(Empty input)
+        
+        public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.Initialized.Value = true;
-            State.DefaultOrganizationAddress.Value =
-                CreateOrganization(new CreateOrganizationInput {ReleaseThreshold = _defaultOrganizationReleaseThreshold});
+            var organizationInput = new CreateOrganizationInput
+            {
+                ReleaseThreshold = input.GenesisOwnerReleaseThreshold,
+                ProposerAuthorityRequired = input.ProposerAuthorityRequired,
+            };
+            if (input.PrivilegedProposer != null)
+                organizationInput.ProposerWhiteList.Add(input.PrivilegedProposer);
+            
+            State.GenesisOwnerAddress.Value = CreateOrganization(organizationInput);
+            State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
+            State.GenesisContract.ChangeGenesisOwner.Send(State.GenesisOwnerAddress.Value);
             return new Empty();
         }
         
@@ -57,24 +69,28 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(input.ReleaseThreshold > 0 && input.ReleaseThreshold <= 10000, "Invalid organization.");
             var organizationHash = GenerateOrganizationVirtualHash(input);
             Address organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
-            if(State.Organisations[organizationAddress] == null)
+            if (State.Organisations[organizationAddress] == null)
             {
-                var organization =new Organization
+                var organization = new Organization
                 {
                     ReleaseThreshold = input.ReleaseThreshold,
                     OrganizationAddress = organizationAddress,
-                    OrganizationHash = organizationHash
+                    OrganizationHash = organizationHash,
+                    ProposerAuthorityRequired = input.ProposerAuthorityRequired,
+                    ProposerWhiteList = {input.ProposerWhiteList}
                 };
+                
                 State.Organisations[organizationAddress] = organization;
             }
+            
             return organizationAddress;
         }
         
         public override Hash CreateProposal(CreateProposalInput proposal)
         {
-            CheckProposerAuthority(proposal.OrganizationAddress);
             var organization = State.Organisations[proposal.OrganizationAddress];
             Assert(organization != null, "No registered organization.");
+            CheckProposerAuthority(organization);
             Assert(
                 !string.IsNullOrWhiteSpace(proposal.ContractMethodName)
                 && proposal.ToAddress != null
@@ -107,21 +123,30 @@ namespace AElf.Contracts.ParliamentAuth
                 //State.Proposals[approvalInput.ProposalId] = null;
                 return new BoolValue{Value = false};
             }
+            
             // check approval not existed
             Assert(!proposalInfo.ApprovedRepresentatives.Contains(Context.Sender),
                 "Approval already existed.");
-            var representatives = GetRepresentatives();
-            Assert(IsValidRepresentative(representatives), "Not authorized approval.");
+            var minerList = GetCurrentMinerList();
+            Assert(IsValidRepresentative(minerList), "Not authorized approval.");
             proposalInfo.ApprovedRepresentatives.Add(Context.Sender);
             State.Proposals[approvalInput.ProposalId] = proposalInfo;
+
+            return new BoolValue {Value = true};
+        }
+
+        public override Empty Release(Hash proposalId)
+        {
+            var proposalInfo = State.Proposals[proposalId];
+            Assert(proposalInfo != null, "Proposal not found.");
+            Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
             var organization = State.Organisations[proposalInfo.OrganizationAddress];
-            if (IsReadyToRelease(proposalInfo, organization, representatives))
-            {
-                Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress, proposalInfo.ContractMethodName,
-                    proposalInfo.Params);
-                //State.Proposals[approvalInput.ProposalId] = null;
-            }
-            return new BoolValue{Value = true};
+            var minerList = GetCurrentMinerList();
+            Assert(IsReadyToRelease(proposalInfo, organization, minerList), "Not approved.");
+            Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
+                proposalInfo.ContractMethodName, proposalInfo.Params);
+            
+            return new Empty();
         }
     }
 }

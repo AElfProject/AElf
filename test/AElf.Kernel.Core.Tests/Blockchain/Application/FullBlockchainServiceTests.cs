@@ -27,19 +27,13 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Add_Block_Success()
         {
-            var block = new Block
-            {
-                Header = new BlockHeader(),
-                Body = new BlockBody()
-            };
-            
             var transactions = new List<Transaction>();
             for (var i = 0; i < 3; i++)
             {
                 var transaction = _kernelTestHelper.GenerateTransaction();
-                block.Body.AddTransaction(transaction);
                 transactions.Add(transaction);
             }
+            var block = _kernelTestHelper.GenerateBlock(0, Hash.Empty, transactions);
 
             var existBlock = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
             existBlock.ShouldBeNull();
@@ -311,15 +305,12 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Get_Block_ByHash_ReturnBlock()
         {
-            var block = new Block
-            {
-                Header = new BlockHeader(),
-                Body = new BlockBody()
-            };
+            var transactions = new List<Transaction>();
             for (var i = 0; i < 3; i++)
             {
-                block.Body.AddTransaction(_kernelTestHelper.GenerateTransaction());
+                transactions.Add(_kernelTestHelper.GenerateTransaction());
             }
+            var block = _kernelTestHelper.GenerateBlock(0, Hash.Empty, transactions);
 
             await _fullBlockchainService.AddBlockAsync(block);
             var result = await _fullBlockchainService.GetBlockByHashAsync(block.GetHash());
@@ -357,15 +348,7 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var chain = await _fullBlockchainService.GetChainAsync();
 
-            var newBlock = new Block
-            {
-                Header = new BlockHeader
-                {
-                    Height = chain.BestChainHeight + 1,
-                    PreviousBlockHash = Hash.FromString("New Branch")
-                },
-                Body = new BlockBody()
-            };
+            var newBlock = _kernelTestHelper.GenerateBlock(chain.BestChainHeight, Hash.FromString("New Branch"));
 
             await _fullBlockchainService.AddBlockAsync(newBlock);
             chain = await _fullBlockchainService.GetChainAsync();

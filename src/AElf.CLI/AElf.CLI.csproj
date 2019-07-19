@@ -30,7 +30,6 @@
         <PackageReference Include="ReadLine" Version="2.0.1" />
     </ItemGroup>
     <ItemGroup>
-        <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
         <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
         <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
     </ItemGroup>

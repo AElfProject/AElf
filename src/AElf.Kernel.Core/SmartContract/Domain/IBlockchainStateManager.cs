@@ -168,7 +168,7 @@ namespace AElf.Kernel.SmartContract.Domain
                     //OriginBlockHash = origin.BlockHash
                 }).ToDictionary(p => p.Key, p => p);
 
-                await _versionedStates.PipelineSetAsync(dic);
+                await _versionedStates.SetAllAsync(dic);
 
                 chainStateInfo.Status = ChainStateMergingStatus.Merged;
                 chainStateInfo.BlockHash = blockState.BlockHash;

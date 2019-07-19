@@ -45,7 +45,7 @@ namespace AElf.CrossChain
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, previousBlockHeight);
             
             var blockInfoCache = new List<IBlockCacheEntity>();
-            var cachingCount = 64;
+            var cachingCount = CrossChainConstants.MinimalBlockCacheEntityCount + 1;
             for (var i = 1; i <= cachingCount; i++)
             {
                 var sideChainBlockData = new SideChainBlockData

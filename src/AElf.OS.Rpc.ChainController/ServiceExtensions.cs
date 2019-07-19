@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -31,7 +30,7 @@ namespace AElf.OS.Rpc.ChainController
                 Transaction transaction;
                 try
                 {
-                    var hexString = ByteArrayHelpers.FromHexString(rawTransactions[i]);
+                    var hexString = ByteArrayHelper.FromHexString(rawTransactions[i]);
                     transaction = Transaction.Parser.ParseFrom(hexString);
                 }
                 catch

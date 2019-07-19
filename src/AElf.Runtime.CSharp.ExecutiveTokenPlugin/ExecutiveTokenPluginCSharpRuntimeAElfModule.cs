@@ -5,7 +5,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Runtime.CSharp.ExecutiveTokenPlugin
 {
     [DependsOn(typeof(SmartContractAElfModule))]
-    public class ExecutiveTokenPluginCSharpRuntimeAElfModule : AElfModule<ExecutiveTokenPluginCSharpRuntimeAElfModule>
+    public class ExecutiveTokenPluginCSharpRuntimeAElfModule : AElfModule
     {
     }
 }

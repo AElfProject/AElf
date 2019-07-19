@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <PackageId>AElf.CrossChain.Grpc</PackageId>
+        <PackageId>AElf.CrossChain.Communication.Grpc</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
@@ -17,8 +17,8 @@
     </ItemGroup>
     
     <ItemGroup>
-        <None Include="..\..\protobuf\header_info.proto">
-            <Link>./Protobuf/header_info.proto</Link>
+        <None Include="..\..\protobuf\crosschain_rpc.proto">
+            <Link>./Protobuf/crosschain_rpc.proto</Link>
         </None>
     </ItemGroup>
 
@@ -32,7 +32,7 @@
     </ItemGroup>
     <Target Name="Gen_rpc" BeforeTargets="BeforeBuild">
         <ItemGroup>
-            <Protobuf ProtoRoot="../../protobuf" Include="header_info.proto" OutputDir="./Protobuf/Generated" />
+            <Protobuf ProtoRoot="../../protobuf" Include="crosschain_rpc.proto" OutputDir="./Protobuf/Generated" />
         </ItemGroup>
     </Target>
 </Project>

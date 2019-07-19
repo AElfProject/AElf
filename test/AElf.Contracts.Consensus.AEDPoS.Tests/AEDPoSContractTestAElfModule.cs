@@ -1,5 +1,5 @@
 using AElf.Contracts.TestKit;
-using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +15,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             context.Services.AddSingleton<ITransactionExecutor, AEDPoSContractTransactionExecutor>();
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();
             context.Services.AddSingleton<IRandomHashCacheService, MockRandomHashCacheService>();
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
     }
 }

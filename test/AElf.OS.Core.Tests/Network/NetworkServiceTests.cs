@@ -55,30 +55,12 @@ namespace AElf.OS.Network
 
         #endregion GetBlockByHash
 
-        #region Broadcasts
-
-        [Fact]
-        public async Task BroadcastAnnounceAsync_OnePeerThrows_ShouldNotBlockOthers()
-        {
-            int successfulBcasts = await _networkService.BroadcastAnnounceAsync(new BlockHeader(),false);
-            Assert.Equal(successfulBcasts, _peerPool.GetPeers().Count-1);
-        }
-        
-        [Fact]
-        public async Task BroadcastTransactionAsync_OnePeerThrows_ShouldNotBlockOthers()
-        {
-            int successfulBcasts = await _networkService.BroadcastAnnounceAsync(new BlockHeader(),false);
-            Assert.Equal(successfulBcasts, _peerPool.GetPeers().Count-1);
-        }
-
-        #endregion Broadcasts
-        
         #region GetPeers
 
         [Fact]
         public void GetPeers_ShouldIncludeFailing()
         {
-            Assert.Equal(_networkService.GetPeerIpList().Count, _peerPool.GetPeers(true).Count);
+            Assert.Equal(_networkService.GetPeers().Count, _peerPool.GetPeers(true).Count);
         }
         
         #endregion GetPeers

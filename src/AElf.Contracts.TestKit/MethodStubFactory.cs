@@ -15,7 +15,7 @@ namespace AElf.Contracts.TestKit
 {
     public class MethodStubFactory : IMethodStubFactory, ITransientDependency
     {
-        public ECKeyPair KeyPair { get; set; } = CryptoHelpers.GenerateKeyPair();
+        public ECKeyPair KeyPair { get; set; } = CryptoHelper.GenerateKeyPair();
 
         public Address ContractAddress { get; set; }
 
@@ -48,7 +48,7 @@ namespace AElf.Contracts.TestKit
                     RefBlockNumber = refBlockInfo.Height,
                     RefBlockPrefix = refBlockInfo.Prefix
                 };
-                var signature = CryptoHelpers.SignWithPrivateKey(
+                var signature = CryptoHelper.SignWithPrivateKey(
                     KeyPair.PrivateKey, transaction.GetHash().Value.ToByteArray());
                 transaction.Signature = ByteString.CopyFrom(signature);
                 await _transactionExecutor.ExecuteAsync(transaction);

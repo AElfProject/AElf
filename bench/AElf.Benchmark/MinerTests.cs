@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
@@ -73,9 +72,9 @@ namespace AElf.Benchmark
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
             foreach (var transaction in _transactions)
             {
-                _transactionManager.RemoveTransaction(transaction.GetHash());
-                _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(), _block.GetHash());
-                _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(),
+                await _transactionManager.RemoveTransaction(transaction.GetHash());
+                await  _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(), _block.GetHash());
+                await _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(),
                     _block.Header.GetPreMiningHash());
             }
             
