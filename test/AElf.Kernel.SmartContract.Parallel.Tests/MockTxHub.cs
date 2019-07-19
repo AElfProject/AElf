@@ -53,7 +53,11 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
 
         public void AddTransaction(Transaction transaction)
         {
-            _data[transaction.GetHash()] = new TransactionReceipt(transaction);
+            _data[transaction.GetHash()] = new TransactionReceipt
+            {
+                TransactionId = transaction.GetHash(),
+                Transaction = transaction
+            };
         }
     }
 }
