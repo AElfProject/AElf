@@ -12,15 +12,15 @@ namespace AElf.CrossChain
 {
     public class CrossChainValidationProvider : IBlockValidationProvider
     {
-        private readonly ICrossChainDataProvider _crossChainDataProvider;
+        private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
         private readonly IBlockExtraDataService _blockExtraDataService;
         public IOptionsMonitor<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
         
-        public CrossChainValidationProvider(ICrossChainDataProvider crossChainDataProvider, IBlockExtraDataService blockExtraDataService)
+        public CrossChainValidationProvider(ICrossChainIndexingDataService crossChainIndexingDataService, IBlockExtraDataService blockExtraDataService)
         {
-            _crossChainDataProvider = crossChainDataProvider;
+            _crossChainIndexingDataService = crossChainIndexingDataService;
             _blockExtraDataService = blockExtraDataService;
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -42,7 +42,7 @@ namespace AElf.CrossChain
                 return true;
             
             var indexedCrossChainBlockData =
-                await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.Header.GetHash(), block.Header.Height);
+                await _crossChainIndexingDataService.GetIndexedCrossChainBlockDataAsync(block.Header.GetHash(), block.Header.Height);
 //            var indexedCrossChainBlockData =
 //                message == null ? null : CrossChainBlockData.Parser.ParseFrom(message.ToByteString());
             var extraData = ExtractCrossChainExtraData(block.Header);
@@ -98,13 +98,13 @@ namespace AElf.CrossChain
                 return true;
             
             var sideChainBlockDataValidationResult =
-                await _crossChainDataProvider.ValidateSideChainBlockDataAsync(
+                await _crossChainIndexingDataService.ValidateSideChainBlockDataAsync(
                     crossChainBlockData.SideChainBlockData.ToList(), blockHash, blockHeight);
             if (!sideChainBlockDataValidationResult)
                 return false;
             
             var parentChainBlockDataValidationResult =
-                await _crossChainDataProvider.ValidateParentChainBlockDataAsync(
+                await _crossChainIndexingDataService.ValidateParentChainBlockDataAsync(
                     crossChainBlockData.ParentChainBlockData.ToList(), blockHash, blockHeight);
             if (!parentChainBlockDataValidationResult)
                 return false;

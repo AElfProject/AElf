@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
-using AElf.CrossChain.Communication.Infrastructure;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
@@ -13,20 +12,20 @@ namespace AElf.CrossChain.Communication.Application
     public class CrossChainResponseService : ICrossChainResponseService, ITransientDependency
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
-        private readonly ICrossChainDataProvider _crossChainDataProvider;
-        private readonly IIrreversibleBlockStateProvider _irreversibleBlockStateProvider;
+        private readonly ICrossChainService _crossChainService;
+        private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
 
-        public CrossChainResponseService(ICrossChainDataProvider crossChainDataProvider, 
-            IBlockExtraDataService blockExtraDataService, IIrreversibleBlockStateProvider irreversibleBlockStateProvider)
+        public CrossChainResponseService(IBlockExtraDataService blockExtraDataService, 
+            ICrossChainService crossChainService, ICrossChainIndexingDataService crossChainIndexingDataService)
         {
-            _crossChainDataProvider = crossChainDataProvider;
             _blockExtraDataService = blockExtraDataService;
-            _irreversibleBlockStateProvider = irreversibleBlockStateProvider;
+            _crossChainService = crossChainService;
+            _crossChainIndexingDataService = crossChainIndexingDataService;
         }
 
         public async Task<SideChainBlockData> ResponseSideChainBlockDataAsync(long requestHeight)
         {
-            var block = await _irreversibleBlockStateProvider.GetIrreversibleBlockByHeightAsync(requestHeight);
+            var block = await _crossChainService.GetNonIndexedBlockAsync(requestHeight);
             if (block == null)
                 return null;
             
@@ -41,7 +40,7 @@ namespace AElf.CrossChain.Communication.Application
 
         public async Task<ParentChainBlockData> ResponseParentChainBlockDataAsync(long requestHeight, int remoteSideChainId)
         {
-            var block = await _irreversibleBlockStateProvider.GetIrreversibleBlockByHeightAsync(requestHeight);
+            var block = await _crossChainService.GetNonIndexedBlockAsync(requestHeight);
             if (block == null)
                 return null;
             var parentChainBlockData = new ParentChainBlockData
@@ -67,10 +66,7 @@ namespace AElf.CrossChain.Communication.Application
 
         public async Task<ChainInitializationData> ResponseChainInitializationDataFromParentChainAsync(int chainId)
         {
-            var libDto = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
-            var chainInitializationData =
-                await _crossChainDataProvider.GetChainInitializationDataAsync(chainId, libDto.BlockHash,
-                    libDto.BlockHeight);
+            var chainInitializationData = await _crossChainService.GetChainInitializationDataAsync(chainId);
             return chainInitializationData;
         }
 
@@ -92,7 +88,7 @@ namespace AElf.CrossChain.Communication.Application
         private async Task<List<SideChainBlockData>> GetIndexedSideChainBlockDataResultAsync(Block block)
         {
             var crossChainBlockData =
-                await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
+                await _crossChainIndexingDataService.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
             return crossChainBlockData.SideChainBlockData.ToList();
         }
         

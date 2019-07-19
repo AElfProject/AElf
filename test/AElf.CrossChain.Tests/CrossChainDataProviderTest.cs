@@ -9,12 +9,12 @@ namespace AElf.CrossChain
 {
     public class CrossChainDataProviderTest : CrossChainTestBase
     {
-        private readonly ICrossChainDataProvider _crossChainDataProvider;
+        private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
         private readonly CrossChainTestHelper _crossChainTestHelper;
 
         public CrossChainDataProviderTest()
         {
-            _crossChainDataProvider = GetRequiredService<ICrossChainDataProvider>();
+            _crossChainIndexingDataService = GetRequiredService<ICrossChainIndexingDataService>();
             _crossChainTestHelper = GetRequiredService<CrossChainTestHelper>();
         }
 
@@ -23,7 +23,7 @@ namespace AElf.CrossChain
         [Fact]
         public async Task GetSideChainBlock_WithoutCache()
         {
-            var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(Hash.Empty, 1);
+            var res = await _crossChainIndexingDataService.GetSideChainBlockDataAsync(Hash.Empty, 1);
             Assert.Empty(res);
         }
 
@@ -45,7 +45,7 @@ namespace AElf.CrossChain
             };
             AddFakeCacheData(fakeCache);
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 0);
-            var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(Hash.Empty, 1);
+            var res = await _crossChainIndexingDataService.GetSideChainBlockDataAsync(Hash.Empty, 1);
             Assert.Empty(res);
         }
 
@@ -67,7 +67,7 @@ namespace AElf.CrossChain
             var fakeCache = new Dictionary<int, List<IBlockCacheEntity>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 0);
-            var res = await _crossChainDataProvider.GetSideChainBlockDataAsync(Hash.Empty, 1);
+            var res = await _crossChainIndexingDataService.GetSideChainBlockDataAsync(Hash.Empty, 1);
             Assert.True(res.Count == 1);
             Assert.Equal(blockInfoCache[0].Height, res[0].Height);
         }

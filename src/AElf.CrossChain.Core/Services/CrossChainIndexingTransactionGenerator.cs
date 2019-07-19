@@ -10,16 +10,16 @@ namespace AElf.CrossChain
 {
     internal class CrossChainIndexingTransactionGenerator : ISystemTransactionGenerator
     {
-        private readonly ICrossChainDataProvider _crossChainDataProvider;
+        private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
 
         private readonly ISmartContractAddressService _smartContractAddressService;
 
         public ILogger<CrossChainIndexingTransactionGenerator> Logger { get; set; }
 
-        public CrossChainIndexingTransactionGenerator(ICrossChainDataProvider crossChainDataProvider,
+        public CrossChainIndexingTransactionGenerator(ICrossChainIndexingDataService crossChainIndexingDataService,
             ISmartContractAddressService smartContractAddressService)
         {
-            _crossChainDataProvider = crossChainDataProvider;
+            _crossChainIndexingDataService = crossChainIndexingDataService;
             _smartContractAddressService = smartContractAddressService;
         }
 
@@ -42,7 +42,7 @@ namespace AElf.CrossChain
             
             // should return the same data already filled in block header.
             var filledCrossChainBlockData =
-                _crossChainDataProvider.GetUsedCrossChainBlockDataForLastMiningAsync(previousBlockHash, refBlockNumber);
+                _crossChainIndexingDataService.GetUsedCrossChainBlockDataForLastMiningAsync(previousBlockHash, refBlockNumber);
             
             // filledCrossChainBlockData == null means no cross chain data filled in this block.
             if (filledCrossChainBlockData != null)

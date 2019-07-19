@@ -17,7 +17,7 @@ namespace AElf.CrossChain
     public sealed class CrossChainIndexingTransactionGeneratorTest : CrossChainWithChainTestBase
     {
         private readonly ISystemTransactionGenerator _crossChainIndexingTransactionGenerator;
-        private readonly ICrossChainDataProvider _crossChainDataProvider;
+        private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly KernelTestHelper _kernelTestHelper;
         private readonly CrossChainTestHelper _crossChainTestHelper;
@@ -25,7 +25,7 @@ namespace AElf.CrossChain
         public CrossChainIndexingTransactionGeneratorTest()
         {
             _crossChainIndexingTransactionGenerator = GetRequiredService<ISystemTransactionGenerator>();
-            _crossChainDataProvider = GetRequiredService<ICrossChainDataProvider>();
+            _crossChainIndexingDataService = GetRequiredService<ICrossChainIndexingDataService>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
             _crossChainTestHelper = GetRequiredService<CrossChainTestHelper>();
@@ -64,7 +64,7 @@ namespace AElf.CrossChain
             _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name,
                 smartContractAddress);
 
-            await _crossChainDataProvider.GetCrossChainBlockDataForNextMiningAsync(previousBlockHash, previousBlockHeight);
+            await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(previousBlockHash, previousBlockHeight);
             
             _crossChainIndexingTransactionGenerator.GenerateTransactions(Address.Zero,previousBlockHeight,previousBlockHash, ref transactions);
             

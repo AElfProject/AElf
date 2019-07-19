@@ -31,7 +31,7 @@ namespace AElf.CrossChain.Communication.Grpc
             });
             services.AddTransient(o =>
             {
-                var mockCrossChainDataProvider = new Mock<ICrossChainDataProvider>();
+                var mockCrossChainDataProvider = new Mock<ICrossChainIndexingDataService>();
                 mockCrossChainDataProvider
                     .Setup(c => c.GetChainInitializationDataAsync(It.IsAny<int>(), It.IsAny<Hash>(),
                         It.IsAny<long>())).Returns(async () => await Task.FromResult(new ChainInitializationData
