@@ -29,9 +29,7 @@ namespace AElf.OS
             var recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             
             var osTestHelper = context.Services.GetServiceLazy<OSTestHelper>();
-            
-            peerPoolMock.Setup(p => p.GetBestPeer()).Returns(p3.Object);
-                
+
             peerPoolMock.Setup(p => p.FindPeerByPublicKey(It.Is<string>(adr => adr == "p1")))
                 .Returns<string>(adr =>
                 {

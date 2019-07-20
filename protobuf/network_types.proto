@@ -73,7 +73,7 @@ message Handshake {
 
 message HandshakeData {
     bytes pubkey = 1;
-    aelf.BlockHeader best_chain_block_header = 2;
+    aelf.BlockHeader best_chain_head = 2;
     sint64 lib_block_height = 3;
 }
 

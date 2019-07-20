@@ -33,7 +33,7 @@ namespace AElf.OS.Network
         {
             var data = new HandshakeData
             {
-                BestChainBlockHeader = CreateFakeBlockHeader(chainId, bestChainHeight, producer),
+                BestChainHead = CreateFakeBlockHeader(chainId, bestChainHeight, producer),
                 LibBlockHeight = 1,
                 Pubkey = ByteString.CopyFrom(producer.PublicKey)
             };

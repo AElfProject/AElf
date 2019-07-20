@@ -285,7 +285,7 @@ namespace AElf.OS.Network.Grpc
         private void FireConnectionEvent(GrpcPeer peer)
         {
             var nodeInfo = new NodeInfo { Endpoint = peer.IpAddress, Pubkey = peer.Info.Pubkey.ToByteString() };
-            var bestChainHeader = peer.LastReceivedHandshake.HandshakeData.BestChainBlockHeader;
+            var bestChainHeader = peer.LastReceivedHandshake.HandshakeData.BestChainHead;
 
             _ = EventBus.PublishAsync(new PeerConnectedEventData(nodeInfo, bestChainHeader));
         }

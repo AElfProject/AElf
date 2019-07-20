@@ -129,7 +129,7 @@ namespace AElf.OS.Network.Grpc
             LastReceivedHandshake = handshakeReply?.Handshake;
             
             // Do some pre-checks that represent the minimum acceptable for the peers state.
-            if (LastReceivedHandshake?.HandshakeData?.BestChainBlockHeader == null)
+            if (LastReceivedHandshake?.HandshakeData?.BestChainHead == null)
             {
                 IsConnected = false;
                 return null;
@@ -145,8 +145,8 @@ namespace AElf.OS.Network.Grpc
             IsConnected = true;
 
             LastKnownLibHeight = handshake.HandshakeData.LibBlockHeight;
-            CurrentBlockHash = handshake.HandshakeData.BestChainBlockHeader.GetHash();
-            CurrentBlockHeight = handshake.HandshakeData.BestChainBlockHeader.Height;
+            CurrentBlockHash = handshake.HandshakeData.BestChainHead.GetHash();
+            CurrentBlockHeight = handshake.HandshakeData.BestChainHead.Height;
         }
         
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)

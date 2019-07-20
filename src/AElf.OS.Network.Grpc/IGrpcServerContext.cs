@@ -27,10 +27,10 @@ namespace AElf.OS.Network.Grpc
         private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
         
-        private IAccountService _accountService;
+        private readonly IAccountService _accountService;
         
-        private Server _server;
-        private GrpcServerService _serverService;
+        private readonly Server _server;
+        private readonly GrpcServerService _serverService;
 
         public GrpcServerContext(Server server, GrpcServerService serverService, IAccountService accountService)
         {

@@ -25,7 +25,7 @@ namespace AElf.OS.Network.Protocol
             var nd = new HandshakeData
             {
                 Pubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
-                BestChainBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync(),
+                BestChainHead = await _blockchainService.GetBestChainLastBlockHeaderAsync(),
                 LibBlockHeight = chain?.LastIrreversibleBlockHeight ?? 0
             };
 
