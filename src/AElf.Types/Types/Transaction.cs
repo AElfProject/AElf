@@ -5,14 +5,14 @@ namespace AElf.Types
 {
     public partial class Transaction
     {
-        private Hash _transactionHash;
+        private Hash _transactionId;
 
         public Hash GetHash()
         {
-            if (_transactionHash == null)
-                _transactionHash = Hash.FromRawBytes(GetSignatureData());
+            if (_transactionId == null)
+                _transactionId = Hash.FromRawBytes(GetSignatureData());
 
-            return _transactionHash;
+            return _transactionId;
         }
 
         public bool VerifyFields()

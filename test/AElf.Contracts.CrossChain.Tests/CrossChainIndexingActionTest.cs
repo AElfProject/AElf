@@ -509,12 +509,12 @@ namespace AElf.Contract.CrossChain.Tests
             long parentChainHeightOfCreation = 10;
             var sideChainId =
                 await InitAndCreateSideChainAsync(parentChainHeightOfCreation, parentChainId, lockedToken);
-            var txHash = Hash.FromString("sideChainBlockHash");
+            var transactionId = Hash.FromString("sideChainBlockHash");
             var binaryMerkleTree = new BinaryMerkleTree();
             var fakeHash1 = Hash.FromString("fake1");
             var fakeHash2 = Hash.FromString("fake2");
 
-            binaryMerkleTree.AddNodes(new[] {txHash, fakeHash1, fakeHash2});
+            binaryMerkleTree.AddNodes(new[] {transactionId, fakeHash1, fakeHash2});
             var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
             var merklePath = new MerklePath();
             merklePath.Path.AddRange(binaryMerkleTree.GenerateMerklePath(0));
@@ -544,7 +544,7 @@ namespace AElf.Contract.CrossChain.Tests
             Assert.Equal(merklePath.ToByteString(),
                 crossChainMerkleProofContext.MerklePathForParentChainRoot.ToByteString());
             var calculatedRoot = crossChainMerkleProofContext.MerklePathForParentChainRoot.Path
-                .ComputeBinaryMerkleTreeRootWithPathAndLeafNode(txHash);
+                .ComputeBinaryMerkleTreeRootWithPathAndLeafNode(transactionId);
             Assert.Equal(merkleTreeRoot, calculatedRoot);
         }
 
