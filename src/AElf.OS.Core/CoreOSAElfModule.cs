@@ -2,7 +2,6 @@ using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Network;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Modularity;
@@ -15,8 +14,6 @@ namespace AElf.OS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
-
-            context.Services.AddAssemblyOf<CoreOSAElfModule>();
 
             Configure<NetworkOptions>(configuration.GetSection("Network"));
         }

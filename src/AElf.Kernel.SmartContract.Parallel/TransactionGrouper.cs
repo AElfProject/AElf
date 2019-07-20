@@ -32,24 +32,17 @@ namespace AElf.Kernel.SmartContract.Parallel
             Logger = NullLogger<TransactionGrouper>.Instance;
         }
 
-        public async Task<(List<List<Transaction>>, List<Transaction>)> GroupAsync(List<Transaction> transactions)
+        public async Task<GroupedTransactions> GroupAsync(IChainContext chainContext,List<Transaction> transactions)
         {
-            var chainContext = await GetChainContextAsync();
-            if (chainContext == null)
-            {
-                return (new List<List<Transaction>>(), transactions);
-            }
-            
             Logger.LogTrace($"Entered GroupAsync");
 
-            var groups = new List<List<Transaction>>();
-            var parallelizables = new List<(Transaction, TransactionResourceInfo)>();
-            var nonParallelizables = new List<Transaction>();
+            var groupedTransactions = new GroupedTransactions();
+
             List<Transaction> toBeGrouped;
             if (transactions.Count > _options.MaxTransactions)
             {
-                nonParallelizables.AddRange(transactions.GetRange(_options.MaxTransactions, 
-                    transactions.Count - _options.MaxTransactions));
+                groupedTransactions.NonParallelizables.AddRange(
+                    transactions.GetRange(_options.MaxTransactions, transactions.Count - _options.MaxTransactions));
 
                 toBeGrouped = transactions.GetRange(0, _options.MaxTransactions);
             }
@@ -60,6 +53,8 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             using (var cts = new CancellationTokenSource(_options.GroupingTimeOut))
             {
+                var parallelizables = new List<(Transaction, TransactionResourceInfo)>();
+                
                 Logger.LogTrace($"Extracting resources for transactions.");
                 var txsWithResources = await _resourceExtractionService.GetResourcesAsync(chainContext, toBeGrouped, cts.Token);
                 Logger.LogTrace($"Completed resource extraction.");
@@ -69,36 +64,36 @@ namespace AElf.Kernel.SmartContract.Parallel
                     // If timed out at this point, return all transactions as non-parallelizable
                     if (cts.IsCancellationRequested)
                     {
-                        nonParallelizables.Add(twr.Item1);
+                        groupedTransactions.NonParallelizables.Add(twr.Item1);
                         continue;
                     }
                     
                     if (twr.Item2.NonParallelizable)
                     {
-                        nonParallelizables.Add(twr.Item1);
+                        groupedTransactions.NonParallelizables.Add(twr.Item1);
                         continue;
                     }
                     
                     if (twr.Item2.Resources.Count == 0)
                     {
                         // groups.Add(new List<Transaction>() {twr.Item1}); // Run in their dedicated group
-                        nonParallelizables.Add(twr.Item1);
+                        groupedTransactions.NonParallelizables.Add(twr.Item1);
                         continue;
                     }
                 
                     parallelizables.Add(twr);
                 }
+
+                groupedTransactions.Parallelizables.AddRange(GroupParallelizables(parallelizables));
                 
-                var groupedTxs = GroupParallelizables(parallelizables);
                 Logger.LogTrace($"Completed transaction grouping.");
-                
-                groups.AddRange(groupedTxs);
             }
             
-            Logger.LogTrace($"From {transactions.Count} transactions, grouped into {groups.Count}, " +
-                            $"left {nonParallelizables.Count} as non-parallelizable.");
+            Logger.LogTrace($"From {transactions.Count} transactions, grouped into " +
+                            $"{groupedTransactions.Parallelizables.Count} groups, left" +
+                            $"{groupedTransactions.NonParallelizables.Count} as non-parallelizable transactions.");
 
-            return (groups, nonParallelizables);
+            return groupedTransactions;
         }
 
         private List<List<Transaction>> GroupParallelizables(List<(Transaction, TransactionResourceInfo)> txsWithResources)
@@ -158,22 +153,6 @@ namespace AElf.Kernel.SmartContract.Parallel
             groups.AddRange(grouped.Values);
 
             return groups;
-        }
-
-        private async Task<ChainContext> GetChainContextAsync()
-        {
-            var chain = await _blockchainService.GetChainAsync();
-            if (chain == null)
-            {
-                return null;
-            }
-
-            var chainContext = new ChainContext()
-            {
-                BlockHash = chain.BestChainHash,
-                BlockHeight = chain.BestChainHeight
-            };
-            return chainContext;
         }
     }
 }
