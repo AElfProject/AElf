@@ -13,5 +13,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             SampleECKeyPairs.KeyPairs.Count - InitialKeyPairCount - CoreDataCenterKeyPairCount * 6;
 
         public const int MiningInterval = 4000;
+        public const int TimeEachTerm = 120;
+        public const int MinerIncreaseInterval = 240;
     }
 }

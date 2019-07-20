@@ -27,7 +27,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
 
             // We can use this method process testing.
             // Basically this will produce one block with no transaction.
-            await BlockMiningService.MineBlockAsync(new List<Transaction>());
+            await BlockMiningService.MineBlockAsync();
             
             // And this will produce one block with one transaction.
             // This transaction will call Create method of Token Contract.

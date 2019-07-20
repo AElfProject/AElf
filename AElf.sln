@@ -323,6 +323,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Vote.AEDPoSE
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.AEDPoSExtension.Demo.Tests", "test\AElf.Contracts.AEDPoSExtension.Demo.Tests\AElf.Contracts.AEDPoSExtension.Demo.Tests.csproj", "{4DD0A6AA-2F9A-49BA-88D3-2285F927CA4A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Economic.AEDPoSExtension.Tests", "test\AElf.Contracts.Economic.AEDPoSExtension.Tests\AElf.Contracts.Economic.AEDPoSExtension.Tests.csproj", "{A33DF532-A418-400F-B803-89AC4C669490}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -913,6 +915,10 @@ Global
 		{4DD0A6AA-2F9A-49BA-88D3-2285F927CA4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4DD0A6AA-2F9A-49BA-88D3-2285F927CA4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4DD0A6AA-2F9A-49BA-88D3-2285F927CA4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A33DF532-A418-400F-B803-89AC4C669490}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A33DF532-A418-400F-B803-89AC4C669490}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A33DF532-A418-400F-B803-89AC4C669490}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A33DF532-A418-400F-B803-89AC4C669490}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1076,5 +1082,6 @@ Global
 		{F0F4CD3F-A2E6-451C-B66E-D1C2C416AFD2} = {798BAA50-825B-4DD9-83E2-77A9EE6EBE09}
 		{B48EE4A8-8BA9-404E-9839-A2522002FD2E} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{4DD0A6AA-2F9A-49BA-88D3-2285F927CA4A} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{A33DF532-A418-400F-B803-89AC4C669490} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 	EndGlobalSection
 EndGlobal

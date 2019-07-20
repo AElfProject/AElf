@@ -116,8 +116,8 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         {
             _contractStubs.First().InitialAElfConsensusContract.SendAsync(new InitialAElfConsensusContractInput
             {
-                MinerIncreaseInterval = 3600,
-                TimeEachTerm = 120
+                MinerIncreaseInterval = AEDPoSExtensionConstants.MinerIncreaseInterval,
+                TimeEachTerm = AEDPoSExtensionConstants.TimeEachTerm
             });
 
             var initialMinerList = new MinerList
@@ -130,14 +130,17 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             _contractStubs.First().FirstRound.SendAsync(_currentRound);
         }
 
-        public async Task MineBlockAsync(List<Transaction> transactions)
+        public async Task MineBlockAsync(List<Transaction> transactions = null)
         {
             if (!_isSystemContractsDeployed)
             {
                 return;
             }
 
-            await _testDataProvider.AddTransactionListAsync(transactions);
+            if (transactions != null)
+            {
+                await _testDataProvider.AddTransactionListAsync(transactions);
+            }
 
             var currentBlockTime = _testDataProvider.GetBlockTime();
 

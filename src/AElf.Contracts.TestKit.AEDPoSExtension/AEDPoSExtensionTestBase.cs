@@ -16,14 +16,15 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
     {
         private readonly Dictionary<Hash, string> _systemContractKeyWords = new Dictionary<Hash, string>
         {
-            {ConsensusSmartContractAddressNameProvider.Name, "AEDPoS"},
-            {ElectionSmartContractAddressNameProvider.Name, "Election"},
-            {ParliamentAuthSmartContractAddressNameProvider.Name, "Parliament"},
-            {ProfitSmartContractAddressNameProvider.Name, "Profit"},
-            {TokenSmartContractAddressNameProvider.Name, "MultiToken"},
-            {TokenConverterSmartContractAddressNameProvider.Name, "Converter"},
-            {TreasurySmartContractAddressNameProvider.Name, "Treasury"},
             {VoteSmartContractAddressNameProvider.Name, "Vote"},
+            {ProfitSmartContractAddressNameProvider.Name, "Profit"},
+            {ElectionSmartContractAddressNameProvider.Name, "Election"},
+            {ParliamentAuthSmartContractAddressNameProvider.Name, "ParliamentAuth"},
+            {TokenSmartContractAddressNameProvider.Name, "MultiToken"},
+            {TokenConverterSmartContractAddressNameProvider.Name, "TokenConverter"},
+            {TreasurySmartContractAddressNameProvider.Name, "Treasury"},
+            {ConsensusSmartContractAddressNameProvider.Name, "AEDPoS"},
+            {EconomicSmartContractAddressNameProvider.Name, "Economic"},
         };
 
         protected IBlockMiningService BlockMiningService =>

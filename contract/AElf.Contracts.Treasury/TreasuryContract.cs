@@ -489,6 +489,11 @@ namespace AElf.Contracts.Treasury
             };
         }
 
+        public override Hash GetTreasurySchemeId(Empty input)
+        {
+            return State.TreasuryHash.Value ?? Hash.Empty;
+        }
+
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
             return lockTime.Div(86400).Div(270).Mul(votesAmount).Add(votesAmount.Mul(2).Div(3));

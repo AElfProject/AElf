@@ -1,5 +1,4 @@
 using AElf.Contracts.TestKit;
-using AElf.CSharp.Core;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.SmartContract;
