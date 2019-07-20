@@ -684,7 +684,6 @@ namespace AElf.Contracts.TestBase
             });
             return list =>
             {
-                //TODO: support initialize method, make the tester auto issue elf token
                 list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
                 list.AddGenesisSmartContract(FeeReceiverContractCode, ResourceFeeReceiverSmartContractAddressNameProvider
                     .Name);
