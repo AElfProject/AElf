@@ -13,10 +13,10 @@ namespace AElf.OS.Handlers
     {
         public INetworkService NetworkService { get; set; }
 
-        public async Task HandleEventAsync(TransactionAcceptedEvent eventData)
+        public Task HandleEventAsync(TransactionAcceptedEvent eventData)
         {
-            // No need to wait for the result
             _ = NetworkService.BroadcastTransactionAsync(eventData.Transaction);
+            return Task.CompletedTask;
         }
     }
 }
