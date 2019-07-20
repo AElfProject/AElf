@@ -56,7 +56,7 @@ namespace AElf.OS.Worker
                         break;
                     }
 
-                    await _networkService.DialPeerAsync(node.Endpoint);
+                    await _networkService.AddPeerAsync(node.Endpoint);
                 }
             }
             catch (Exception e)

@@ -34,9 +34,9 @@ namespace AElf.OS.Network.Application
             Logger = NullLogger<NetworkService>.Instance;
         }
 
-        public async Task<bool> DialPeerAsync(string address)
+        public async Task<bool> AddPeerAsync(string address)
         {
-            return await _networkServer.DialPeerAsync(address);
+            return await _networkServer.ConnectAsync(address);
         }
 
         public async Task<bool> RemovePeerAsync(string address)
@@ -48,7 +48,7 @@ namespace AElf.OS.Network.Application
                 return false;
             }
 
-            await _networkServer.DisconnectPeerAsync(peer);
+            await _networkServer.DisconnectAsync(peer);
             return true;
         }
 
@@ -165,7 +165,7 @@ namespace AElf.OS.Network.Application
                 peers.Add(suggestedPeer);
             
             // Get our best peer
-            IPeer bestPeer = _peerPool.GetBestPeer();
+            IPeer bestPeer = _peerPool.GetPeers().FirstOrDefault(p => p.IsBest);
             
             if (bestPeer == null)
                 Logger.LogWarning("No best peer.");
@@ -217,7 +217,7 @@ namespace AElf.OS.Network.Application
         {
             if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
             {
-                await _networkServer.DisconnectPeerAsync(peer);
+                await _networkServer.DisconnectAsync(peer);
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
             {
@@ -234,7 +234,7 @@ namespace AElf.OS.Network.Application
             var success = await peer.TryRecoverAsync();
 
             if (!success)
-                await _networkServer.DisconnectPeerAsync(peer);
+                await _networkServer.DisconnectAsync(peer);
         }
         
         private void QueueNetworkTask(Func<Task> task)

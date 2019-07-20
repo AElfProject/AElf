@@ -71,7 +71,7 @@ namespace AElf.OS.Network
         public async Task DialPeerAsync_HostAlreadyInPool_ShouldReturnFalse()
         {
             var peer = AddPeerToPool();
-            var added = await _networkServer.DialPeerAsync(peer.IpAddress);
+            var added = await _networkServer.ConnectAsync(peer.IpAddress);
             
             added.ShouldBeFalse();
         }
@@ -79,7 +79,7 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_DialException_ShouldReturnFalse()
         {
-            var added = await _networkServer.DialPeerAsync(NetworkTestConstants.DialExceptionIpEndpoint);
+            var added = await _networkServer.ConnectAsync(NetworkTestConstants.DialExceptionIpEndpoint);
             
             added.ShouldBeFalse();
             _peerPool.PeerCount.ShouldBe(0);
@@ -90,7 +90,7 @@ namespace AElf.OS.Network
         {
             // two different hosts with the same pubkey.
             AddPeerToPool();
-            var added = await _networkServer.DialPeerAsync(NetworkTestConstants.FakeIpEndpoint2);
+            var added = await _networkServer.ConnectAsync(NetworkTestConstants.FakeIpEndpoint2);
             
             added.ShouldBeFalse();
             _netTestHelpers.AllPeersWhereCleaned().ShouldBeTrue();
@@ -100,7 +100,7 @@ namespace AElf.OS.Network
         public async Task DialPeerAsync_GoodPeer_ShouldBeInPool()
         {
             // two different hosts with the same pubkey.
-            var added = await _networkServer.DialPeerAsync(NetworkTestConstants.GoodPeerEndpoint);
+            var added = await _networkServer.ConnectAsync(NetworkTestConstants.GoodPeerEndpoint);
             
             added.ShouldBeTrue();
             _peerPool.FindPeerByAddress(NetworkTestConstants.GoodPeerEndpoint).ShouldNotBeNull();
@@ -117,7 +117,7 @@ namespace AElf.OS.Network
             });
             
             // two different hosts with the same pubkey.
-            var added = await _networkServer.DialPeerAsync(NetworkTestConstants.GoodPeerEndpoint);
+            var added = await _networkServer.ConnectAsync(NetworkTestConstants.GoodPeerEndpoint);
             
             added.ShouldBeTrue();
             _peerPool.FindPeerByAddress(NetworkTestConstants.GoodPeerEndpoint).ShouldNotBeNull();
@@ -128,7 +128,7 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_HandshakeNetProblem_ShouldReturnFalse()
         {
-            var added = await _networkServer.DialPeerAsync(NetworkTestConstants.HandshakeWithNetExceptionIp);
+            var added = await _networkServer.ConnectAsync(NetworkTestConstants.HandshakeWithNetExceptionIp);
             
             added.ShouldBeFalse();
             _peerPool.PeerCount.ShouldBe(0);
@@ -137,7 +137,7 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_HandshakeError_ShouldReturnFalse()
         {
-            var added = await _networkServer.DialPeerAsync(NetworkTestConstants.BadHandshakeIp);
+            var added = await _networkServer.ConnectAsync(NetworkTestConstants.BadHandshakeIp);
             
             added.ShouldBeFalse();
             _peerPool.PeerCount.ShouldBe(0);

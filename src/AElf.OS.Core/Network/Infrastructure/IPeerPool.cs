@@ -11,8 +11,7 @@ namespace AElf.OS.Network.Infrastructure
         bool IsFull();
         
         List<IPeer> GetPeers(bool includeFailing = false);
-        IPeer GetBestPeer(); // todo move to service
-        
+
         IPeer FindPeerByAddress(string peerIpAddress);
         IPeer FindPeerByPublicKey(string remotePubKey);
 

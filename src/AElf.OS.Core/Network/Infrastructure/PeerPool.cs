@@ -60,11 +60,6 @@ namespace AElf.OS.Network.Infrastructure
             return p;
         }
 
-        public IPeer GetBestPeer()
-        {
-            return GetPeers().FirstOrDefault(p => p.IsBest);
-        }
-
         public IPeer RemovePeer(string publicKey)
         {
             Peers.TryRemove(publicKey, out IPeer removed);

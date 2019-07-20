@@ -197,7 +197,7 @@ namespace AElf.OS.Network.Grpc
                 return;
             }
 
-            var taskList = NetworkOptions.BootNodes.Select(DialPeerAsync).ToList();
+            var taskList = NetworkOptions.BootNodes.Select(ConnectAsync).ToList();
             await Task.WhenAll(taskList.ToArray<Task>());
         }
         
@@ -206,7 +206,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         /// <param name="ipAddress">the ip address of the distant node</param>
         /// <returns>True if the connection was successful, false otherwise</returns>
-        public async Task<bool> DialPeerAsync(string ipAddress)
+        public async Task<bool> ConnectAsync(string ipAddress)
         {
             Logger.LogTrace($"Attempting to reach {ipAddress}.");
 
@@ -247,7 +247,7 @@ namespace AElf.OS.Network.Grpc
             catch (NetworkException ex)
             {
                 Logger.LogError(ex, $"Handshake failed to {ipAddress} - {peerPubkey}.");
-                await DisconnectPeerAsync(peer);
+                await DisconnectAsync(peer);
                 return false;
             }
 
@@ -255,7 +255,7 @@ namespace AElf.OS.Network.Grpc
             if (handshakeError != HandshakeError.HandshakeOk)
             {
                 Logger.LogWarning($"Invalid handshake [{handshakeError}] from {ipAddress} - {peerPubkey}");
-                await DisconnectPeerAsync(peer);
+                await DisconnectAsync(peer);
                 return false;
             }
             
@@ -267,7 +267,7 @@ namespace AElf.OS.Network.Grpc
             return true;
         }
 
-        public async Task DisconnectPeerAsync(IPeer peer, bool sendDisconnect = false)
+        public async Task DisconnectAsync(IPeer peer, bool sendDisconnect = false)
         {
             if (peer == null)
                 throw new ArgumentNullException(nameof(peer));

@@ -32,7 +32,7 @@ namespace AElf.WebApp.Application
                 var pool = o.GetService<IPeerPool>();
                 var serverMock = new Mock<IAElfNetworkServer>();
                 
-                serverMock.Setup(p => p.DisconnectPeerAsync(It.IsAny<IPeer>(), It.IsAny<bool>()))
+                serverMock.Setup(p => p.DisconnectAsync(It.IsAny<IPeer>(), It.IsAny<bool>()))
                     .Returns(Task.CompletedTask)
                     .Callback<IPeer, bool>((peer, disc) => pool.RemovePeer(peer.Info.Pubkey));
                 
