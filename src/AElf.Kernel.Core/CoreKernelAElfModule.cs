@@ -2,7 +2,6 @@
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
 using AElf.Types;
@@ -16,16 +15,10 @@ namespace AElf.Kernel
     [DependsOn(typeof(DatabaseAElfModule), typeof(CoreAElfModule))]
     public class CoreKernelAElfModule : AElfModule
     {
-        public override void PreConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.AddConventionalRegistrar(new AElfKernelConventionalRegistrar());
-        }
-
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
 
-            services.AddAssemblyOf<CoreKernelAElfModule>();
             services.AddTransient<ITransactionResultQueryService, TransactionResultService>();
 
             services.AddTransient(typeof(IStoreKeyPrefixProvider<>), typeof(StoreKeyPrefixProvider<>));
@@ -50,8 +43,6 @@ namespace AElf.Kernel
 
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
-
-            services.AddTransient<IBlockValidationProvider, BlockValidationProvider>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
