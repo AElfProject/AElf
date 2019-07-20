@@ -15,10 +15,12 @@ namespace AElf.OS.Network.Grpc
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
         
         private readonly IPeerClientFactory _peerClientFactory;
+        private readonly IConnectionInfoProvider _connectionInfoProvider;
 
-        public PeerDialer(IPeerClientFactory peerClientFactory)
+        public PeerDialer(IPeerClientFactory peerClientFactory, IConnectionInfoProvider connectionInfoProvider)
         {
             _peerClientFactory = peerClientFactory;
+            _connectionInfoProvider = connectionInfoProvider;
         }
 
         /// <summary>
@@ -26,10 +28,11 @@ namespace AElf.OS.Network.Grpc
         /// further communications.
         /// </summary>
         /// <returns>The created peer</returns>
-        public async Task<GrpcPeer> DialPeerAsync(string ipAddress, ConnectionInfo connectionInfo)
+        public async Task<GrpcPeer> DialPeerAsync(string ipAddress)
         {
             var (channel, client) = _peerClientFactory.CreateClientAsync(ipAddress);
-            
+
+            var connectionInfo = await _connectionInfoProvider.GetConnectionInfoAsync();
             ConnectReply connectReply = await CallConnectAsync(client, channel, ipAddress, connectionInfo);
 
             if (connectReply?.Info?.Pubkey == null || connectReply.Error != ConnectError.ConnectOk)
@@ -37,7 +40,7 @@ namespace AElf.OS.Network.Grpc
                 throw await ExceptionHelpers.CleanupAndGetExceptionAsync($"Connect error: {connectReply?.Error}.", channel);
             }
 
-            return new GrpcPeer(channel, client, ipAddress, connectReply.Info.ToPeerInfo(false));
+            return new GrpcPeer(channel, client, ipAddress, connectReply.Info.ToPeerInfo(isInbound: false));
         }
 
         /// <summary>
@@ -64,13 +67,11 @@ namespace AElf.OS.Network.Grpc
             return connectReply;
         }
         
-        public async Task<GrpcPeer> DialBackPeer(string ipAddress, ConnectionInfo connectionInfo)
+        public async Task<GrpcPeer> DialBackPeer(string ipAddress, ConnectionInfo peerConnectionInfo)
         {
             var (channel, client) = _peerClientFactory.CreateClientAsync(ipAddress);
-
             await PingNodeAsync(client, channel, ipAddress);
-            
-            return new GrpcPeer(channel, client, ipAddress, connectionInfo.ToPeerInfo(isInbound: true));
+            return new GrpcPeer(channel, client, ipAddress, peerConnectionInfo.ToPeerInfo(isInbound: true));
         }
         
         /// <summary>

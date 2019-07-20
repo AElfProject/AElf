@@ -27,38 +27,23 @@ namespace AElf.OS.Network.Grpc
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
 
         private readonly ISyncStateService _syncStateService;
-        
         private readonly IBlockchainService _blockchainService;
         private readonly IPeerDiscoveryService _peerDiscoveryService;
-        
-        private readonly IPeerPool _peerPool;
-        
-        private Func<string, ConnectionInfo, Task<ConnectReply>> _connectionCallback;
-        private Func<string, Handshake, Task<HandshakeReply>> _handshakeCallback;
+        private readonly IConnectionService _connectionService;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
 
-        public GrpcServerService(ISyncStateService syncStateService, IPeerPool peerPool, 
+        public GrpcServerService(ISyncStateService syncStateService, IConnectionService connectionService,
             IBlockchainService blockchainService, IPeerDiscoveryService peerDiscoveryService)
         {
             _syncStateService = syncStateService;
-            _peerPool = peerPool;
+            _connectionService = connectionService;
             _blockchainService = blockchainService;
             _peerDiscoveryService = peerDiscoveryService;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
-        }
-        
-        internal void RegisterConnectionCallback(Func<string, ConnectionInfo, Task<ConnectReply>> connectionCallback)
-        {
-            _connectionCallback = connectionCallback;
-        }
-
-        internal void RegisterHandshakeCallback(Func<string, Handshake, Task<HandshakeReply>> handshakeCallback)
-        {
-            _handshakeCallback = handshakeCallback;
         }
 
         /// <summary>
@@ -69,13 +54,13 @@ namespace AElf.OS.Network.Grpc
         public override async Task<ConnectReply> Connect(ConnectRequest connectionRequest, ServerCallContext context)
         {
             Logger.LogTrace($"{context.Peer} has initiated a connection.");
-            return await _connectionCallback(context.Peer, connectionRequest.Info);
+            return await _connectionService.DialBackAsync(context.Peer, connectionRequest.Info);
         }
         
         public override async Task<HandshakeReply> DoHandshake(HandshakeRequest request, ServerCallContext context)
         {
             Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a handshake.");
-            return await _handshakeCallback(context.GetPublicKey(), request.Handshake);
+            return await _connectionService.CheckIncomingHandshakeAsync(context.GetPublicKey(), request.Handshake);
         }
 
         public override async Task<VoidReply> AnnouncementBroadcastStream(IAsyncStreamReader<BlockAnnouncement> requestStream, ServerCallContext context)
@@ -94,7 +79,7 @@ namespace AElf.OS.Network.Grpc
             
             Logger.LogDebug($"Received announce {announcement.BlockHash} from {context.GetPeerInfo()}.");
 
-            var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+            var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
             peer?.AddKnowBlock(announcement);
 
             _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(announcement, context.GetPublicKey()));
@@ -211,7 +196,7 @@ namespace AElf.OS.Network.Grpc
         public override Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
         {
             Logger.LogDebug($"Peer {context.GetPeerInfo()} has sent a disconnect request.");
-            _peerPool.RemovePeer(context.GetPublicKey());
+            _connectionService.RemovePeer(context.GetPublicKey());
             return Task.FromResult(new VoidReply());
         }
     }
