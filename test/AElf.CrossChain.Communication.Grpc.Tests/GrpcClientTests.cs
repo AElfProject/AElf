@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Grpc.Core;
 using Shouldly;
 using Xunit;
@@ -32,10 +33,10 @@ namespace AElf.CrossChain.Communication.Grpc
 //        }
 
         [Fact]
-        public void BasicCrossChainClient_TryHandShake()
+        public async Task BasicCrossChainClient_TryHandShake()
         {
             InitServerAndClient(5000);
-            var result = _basicClient.CrossChainHandShakeAsync(new HandShake
+            var result = await _basicClient.CrossChainHandShakeAsync(new HandShake
             {
                 ListeningPort = 2100,
                 FromChainId = 0,

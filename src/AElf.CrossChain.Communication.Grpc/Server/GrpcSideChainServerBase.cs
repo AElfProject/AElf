@@ -17,7 +17,7 @@ namespace AElf.CrossChain.Communication.Grpc
             _crossChainResponseService = crossChainResponseService;
         }
 
-        public override async Task RequestIndexingFromSideChainAsync(CrossChainRequest crossChainRequest, 
+        public override async Task RequestIndexingFromSideChain(CrossChainRequest crossChainRequest, 
             IServerStreamWriter<SideChainBlockData> responseStream, ServerCallContext context)
         {
             Logger.LogTrace("Side Chain Server received IndexedInfo message.");

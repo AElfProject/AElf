@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
@@ -22,8 +21,6 @@ namespace AElf.Kernel.Consensus.AEDPoS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<AEDPoSAElfModule>();
-
             context.Services.AddSingleton<IIrreversibleBlockDiscoveryService, IrreversibleBlockDiscoveryService>();
             context.Services.AddSingleton<IAEDPoSInformationProvider, AEDPoSInformationProvider>();
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();

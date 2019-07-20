@@ -6,7 +6,7 @@ namespace AElf.Kernel
     [DependsOn(
         typeof(KernelAElfModule)
     )]
-    public class BlockTransactionLimitControllerModule : AElfModule<BlockTransactionLimitControllerModule>
+    public class BlockTransactionLimitControllerModule : AElfModule
     {
     }
 }

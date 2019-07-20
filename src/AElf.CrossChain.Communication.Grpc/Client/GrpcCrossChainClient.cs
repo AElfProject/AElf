@@ -150,16 +150,15 @@ namespace AElf.CrossChain.Communication.Grpc
             }
         }
         
-        private Task HandshakeAsync()
+        private async Task HandshakeAsync()
         {
-            var reply = _basicGrpcClient.CrossChainHandShakeAsync(new HandShake
+            var reply = await _basicGrpcClient.CrossChainHandShakeAsync(new HandShake
             {
                 FromChainId = _localChainId,
                 ListeningPort = _localListeningPort,
                 Host = _host
             }, CreateOption());
             IsConnected = reply != null && reply.Success;
-            return Task.FromResult(IsConnected);
         }
 
         public abstract Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId);
@@ -183,7 +182,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
         protected override AsyncServerStreamingCall<SideChainBlockData> RequestIndexing(CrossChainRequest crossChainRequest)
         {
-            return GrpcClient.RequestIndexingFromSideChainAsync(crossChainRequest, CreateOption());
+            return GrpcClient.RequestIndexingFromSideChain(crossChainRequest, CreateOption());
         }
     }
     
@@ -198,17 +197,17 @@ namespace AElf.CrossChain.Communication.Grpc
 
         protected override AsyncServerStreamingCall<ParentChainBlockData> RequestIndexing(CrossChainRequest crossChainRequest)
         {
-            return GrpcClient.RequestIndexingFromParentChainAsync(crossChainRequest, CreateOption());
+            return GrpcClient.RequestIndexingFromParentChain(crossChainRequest, CreateOption());
         }
 
-        public override Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId)
+        public override async Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId)
         {
-            var sideChainInitializationResponse = GrpcClient.RequestChainInitializationDataFromParentChainAsync(
+            var sideChainInitializationResponse = await GrpcClient.RequestChainInitializationDataFromParentChainAsync(
                 new SideChainInitializationRequest
                 {
                     ChainId = chainId
                 }, CreateOption());
-            return Task.FromResult(sideChainInitializationResponse);
+            return sideChainInitializationResponse;
         }
     }
 }
