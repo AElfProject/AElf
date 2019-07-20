@@ -1,9 +1,7 @@
 ﻿using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Kernel.SmartContractExecution.Scheduling;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
@@ -16,7 +14,6 @@ namespace AElf.Kernel.SmartContractExecution
         {
             var services = context.Services;
 
-            services.AddAssemblyOf<SmartContractExecutionAElfModule>();
             services.AddTransient<IBlockchainExecutingService, FullBlockchainExecutingService>();
         }
 

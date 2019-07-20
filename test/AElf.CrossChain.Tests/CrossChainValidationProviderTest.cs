@@ -82,7 +82,7 @@ namespace AElf.CrossChain
             fakeIndexedCrossChainData.SideChainBlockData.Add(sideChainBlockData);
             _crossChainTestHelper.AddFakeIndexedCrossChainBlockData(2, fakeIndexedCrossChainData);
            
-            await Assert.ThrowsAsync<ValidateNextTimeBlockValidationException>(() =>
+            await Assert.ThrowsAsync<BlockValidationException>(() =>
                 _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block));
         }
         

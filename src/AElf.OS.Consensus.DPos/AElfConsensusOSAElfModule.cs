@@ -7,7 +7,7 @@ namespace AElf.OS.Consensus.DPos
 {
     [DependsOn(typeof(AEDPoSAElfModule)), DependsOn(typeof(CoreOSAElfModule))]
     // ReSharper disable once InconsistentNaming
-    public class AElfConsensusOSAElfModule : AElfModule<AElfConsensusOSAElfModule>
+    public class AElfConsensusOSAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
