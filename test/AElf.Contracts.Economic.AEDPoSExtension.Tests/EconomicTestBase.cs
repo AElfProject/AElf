@@ -20,7 +20,7 @@ using Volo.Abp.Threading;
 namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 {
     // ReSharper disable once InconsistentNaming
-    public class EconomicTestBase : AEDPoSExtensionTestBase
+    public partial class EconomicTestBase : AEDPoSExtensionTestBase
     {
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub ConsensusStub =>
             GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
@@ -101,7 +101,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     IsNativeTokenBurnable = true,
                     MiningRewardTotalAmount = 2_000_000_000_00000000,
                     NativeTokenDecimals = 8,
-                    NativeTokenSymbol = "ELF",
+                    NativeTokenSymbol = EconomicTestConstants.TokenSymbol,
                     NativeTokenTotalSupply = 10_000_000_000_00000000,
                     NativeTokenName = "Native Token"
                 })

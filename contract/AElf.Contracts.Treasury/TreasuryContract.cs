@@ -211,14 +211,14 @@ namespace AElf.Contracts.Treasury
 
         private void BuildTreasury()
         {
-            // Register `CitizenWelfare` to `Treasury`
+            // Register `MinerReward` to `Treasury`
             State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
             {
                 SchemeId = State.TreasuryHash.Value,
-                SubSchemeId = State.WelfareHash.Value,
-                SubSchemeShares = TreasuryContractConstants.CitizenWelfareWeight
+                SubSchemeId = State.RewardHash.Value,
+                SubSchemeShares = TreasuryContractConstants.MinerRewardWeight
             });
-
+            
             // Register `BackupSubsidy` to `Treasury`
             State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
             {
@@ -227,12 +227,12 @@ namespace AElf.Contracts.Treasury
                 SubSchemeShares = TreasuryContractConstants.BackupSubsidyWeight
             });
 
-            // Register `MinerReward` to `Treasury`
+            // Register `CitizenWelfare` to `Treasury`
             State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
             {
                 SchemeId = State.TreasuryHash.Value,
-                SubSchemeId = State.RewardHash.Value,
-                SubSchemeShares = TreasuryContractConstants.MinerRewardWeight
+                SubSchemeId = State.WelfareHash.Value,
+                SubSchemeShares = TreasuryContractConstants.CitizenWelfareWeight
             });
 
             // Register `MinerBasicReward` to `MinerReward`
