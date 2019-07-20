@@ -40,7 +40,7 @@ namespace AElf.OS.BlockSync.Application
             var lastDownloadBlockHash = downloadBlockDto.PreviousBlockHash;
             var lastDownloadBlockHeight = downloadBlockDto.PreviousBlockHeight;
 
-            while (downloadBlockCount <= downloadBlockDto.MaxBlockDownloadCount)
+            while (downloadBlockCount < downloadBlockDto.MaxBlockDownloadCount)
             {
                 Logger.LogDebug(
                     $"Request blocks start with block hash: {lastDownloadBlockHash}, block height: {lastDownloadBlockHeight}");
