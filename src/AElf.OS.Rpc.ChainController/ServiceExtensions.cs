@@ -175,17 +175,17 @@ namespace AElf.OS.Rpc.ChainController
         }
 
         internal static async Task<TransactionResult> GetTransactionResult(this ChainControllerRpcService s,
-            Hash txHash)
+            Hash transactionId)
         {
             // in storage
-            var res = await s.TransactionResultQueryService.GetTransactionResultAsync(txHash);
+            var res = await s.TransactionResultQueryService.GetTransactionResultAsync(transactionId);
             if (res != null)
             {
                 return res;
             }
 
             // in tx pool
-            var receipt = await s.TxHub.GetTransactionReceiptAsync(txHash);
+            var receipt = await s.TxHub.GetTransactionReceiptAsync(transactionId);
             if (receipt != null)
             {
                 return new TransactionResult
@@ -198,7 +198,7 @@ namespace AElf.OS.Rpc.ChainController
             // not existed
             return new TransactionResult
             {
-                TransactionId = txHash,
+                TransactionId = transactionId,
                 Status = TransactionResultStatus.NotExisted
             };
         }
