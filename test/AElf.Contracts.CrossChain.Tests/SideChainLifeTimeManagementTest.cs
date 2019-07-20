@@ -8,7 +8,9 @@ using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
+using Shouldly;
 using Xunit;
 
 namespace AElf.Contract.CrossChain.Tests
@@ -36,6 +38,44 @@ namespace AElf.Contract.CrossChain.Tests
                 nameof(CrossChainContractContainer.CrossChainContractStub.GetChainStatus),
                 new SInt32Value {Value = chainId})).Value;
             Assert.True(chainStatus == (int) SideChainStatus.Active);
+        }
+
+        [Fact]
+        public async Task Create_SideChainWithDiffSymbol()
+        {
+            await InitializeCrossChainContractAsync();
+            const long lockedAmount = 10;
+            await ApproveBalanceAsync(lockedAmount);
+            await CreateAndIssueTokenAsync(lockedAmount, "CPU", "NET");
+
+            var resourceTypeBalance = new RepeatedField<ResourceTypeBalancePair>
+            {
+                new ResourceTypeBalancePair {Type = ResourceType.Cpu, Amount = 4},
+                new ResourceTypeBalancePair {Type = ResourceType.Net, Amount = 9}
+            };
+
+            var proposalId = await CreateSideChainProposalAsync(
+                1,
+                lockedAmount,
+                ByteString.CopyFromUtf8("Test"),
+                resourceTypeBalance);
+            await ApproveWithMinersAsync(proposalId);
+
+            // release proposal
+            var transactionResult = await ReleaseProposalAsync(proposalId);
+            var chainId = CreationRequested.Parser.ParseFrom(transactionResult.Logs[0].NonIndexed).ChainId;
+            var creator = CreationRequested.Parser.ParseFrom(transactionResult.Logs[0].NonIndexed).Creator;
+            Assert.True(creator == Tester.GetCallOwnerAddress());
+
+            var chainStatus = SInt32Value.Parser.ParseFrom(await CallContractMethodAsync(CrossChainContractAddress,
+                nameof(CrossChainContractContainer.CrossChainContractStub.GetChainStatus),
+                new SInt32Value {Value = chainId})).Value;
+            Assert.True(chainStatus == (int) SideChainStatus.Active);
+
+            var lockedResource = SInt64Value.Parser.ParseFrom(await CallContractMethodAsync(CrossChainContractAddress,
+                nameof(CrossChainContractContainer.CrossChainContractStub.LockedResource),
+                new SInt32Value {Value = chainId})).Value;
+            lockedResource.ShouldBe(4);
         }
 
         [Fact]

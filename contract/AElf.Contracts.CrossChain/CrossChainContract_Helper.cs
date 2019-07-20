@@ -16,7 +16,7 @@ namespace AElf.Contracts.CrossChain
     public partial class CrossChainContract
     {
         private const string ConsensusExtraDataName = "Consensus";
-        
+
         /// <summary>
         /// Bind parent chain height together with self height.
         /// </summary>
@@ -41,7 +41,7 @@ namespace AElf.Contracts.CrossChain
         {
             return nodes.ComputeBinaryMerkleTreeRootWithLeafNodes();
         }
-        
+
         /// <summary>
         /// Record merkle path of self chain block, which is from parent chain. 
         /// </summary>
@@ -55,20 +55,34 @@ namespace AElf.Contracts.CrossChain
             State.TxRootMerklePathInParentChain[height] = path;
         }
 
-        private void LockTokenAndResource(SideChainCreationRequest sideChainInfo, int chainId)
+        private void LockTokenAndResource(SideChainCreationRequest sideChainCreationRequest, int chainId)
         {
             //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
             // update locked token balance
-            
+
             TransferFrom(new TransferFromInput
             {
                 From = Context.Origin,
                 To = Context.Self,
-                Amount = sideChainInfo.LockedTokenAmount,
+                Amount = sideChainCreationRequest.LockedTokenAmount,
                 Symbol = Context.Variables.NativeSymbol
             });
-            State.IndexingBalance[chainId] = sideChainInfo.LockedTokenAmount;
+            State.IndexingBalance[chainId] = sideChainCreationRequest.LockedTokenAmount;
             // Todo: enable resource
+
+            if (sideChainCreationRequest.ResourceTypeBalance.Count == 0) return;
+            foreach (var resource in sideChainCreationRequest.ResourceTypeBalance)
+            {
+                LockResource(new LockInput
+                {
+                    Address = Context.Origin,
+                    LockId = Context.TransactionId,
+                    Symbol = resource.Type.ToString().ToUpper(),
+                    Usage = "lock resource.",
+                    Amount = resource.Amount
+                });
+            }
+
             // lock 
             /*foreach (var resourceBalance in sideChainInfo.ResourceBalances)
             {
@@ -91,6 +105,20 @@ namespace AElf.Contracts.CrossChain
                 });
             State.IndexingBalance[chainId] = 0;
 
+            var resourceTypeBalances = sideChainInfo.SideChainCreationRequest.ResourceTypeBalance;
+            foreach (var resource in resourceTypeBalances)
+            {
+                UnLockResource(new UnlockInput
+                {
+                    Address = sideChainInfo.Proposer,
+                    Symbol = resource.Type.ToString().ToUpper(),
+                    Amount = resource.Amount,
+                    LockId = sideChainInfo.ProposalHash,
+                    Usage = "unlock resource."
+                });
+            }
+
+            sideChainInfo.SideChainCreationRequest.ResourceTypeBalance.Clear();
             // unlock resource 
             /*foreach (var resourceBalance in sideChainInfo.ResourceBalances)
             {
@@ -115,6 +143,18 @@ namespace AElf.Contracts.CrossChain
         {
             ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             State.TokenContract.TransferFrom.Send(input);
+        }
+
+        private void LockResource(LockInput input)
+        {
+            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            State.TokenContract.Lock.Send(input);
+        }
+
+        private void UnLockResource(UnlockInput input)
+        {
+            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            State.TokenContract.Unlock.Send(input);
         }
 
         private long GetBalance(GetBalanceInput input)
@@ -142,14 +182,14 @@ namespace AElf.Contracts.CrossChain
         {
             return State.ParentChainTransactionStatusMerkleTreeRoot[parentChainHeight];
         }
-        
+
         private Hash GetSideChainMerkleTreeRoot(long parentChainHeight)
         {
             var indexedSideChainData = State.IndexedSideChainBlockData[parentChainHeight];
             return ComputeRootWithMultiHash(
                 indexedSideChainData.SideChainBlockData.Select(d => d.TransactionMerkleTreeRoot));
         }
-        
+
         private Hash GetCousinChainMerkleTreeRoot(long parentChainHeight)
         {
             return State.TransactionMerkleTreeRootRecordedInParentChain[parentChainHeight];
@@ -170,15 +210,16 @@ namespace AElf.Contracts.CrossChain
 
         private Address GetOwnerAddress()
         {
-            if (State.Owner.Value != null) 
+            if (State.Owner.Value != null)
                 return State.Owner.Value;
-            ValidateContractState(State.ParliamentAuthContract, SmartContractConstants.ParliamentAuthContractSystemName);
+            ValidateContractState(State.ParliamentAuthContract,
+                SmartContractConstants.ParliamentAuthContractSystemName);
             Address organizationAddress = State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty());
             State.Owner.Value = organizationAddress;
 
             return State.Owner.Value;
         }
-        
+
         private void CheckOwnerAuthority()
         {
             var owner = GetOwnerAddress();

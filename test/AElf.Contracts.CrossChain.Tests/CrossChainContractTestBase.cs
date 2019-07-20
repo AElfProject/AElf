@@ -69,6 +69,55 @@ namespace AElf.Contract.CrossChain.Tests
                 });
         }
 
+        protected async Task CreateAndIssueTokenAsync(long amount, params string[] symbols)
+        {
+            var callOwner = Address.FromPublicKey(Tester.KeyPair.PublicKey);
+            foreach (var symbol in symbols)
+            {
+                var createResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                    nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
+                    {
+                        Symbol = symbol,
+                        TokenName = "resource",
+                        TotalSupply = 100,
+                        Decimals = 2,
+                        Issuer = callOwner,
+                        IsBurnable = true,
+                        LockWhiteList = {CrossChainContractAddress}
+                    });
+                createResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                    nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
+                    {
+                        Symbol = symbol,
+                        Amount = 100,
+                        Memo = "resource",
+                        To = callOwner
+                    });
+            }
+
+            foreach (var symbol in symbols)
+            {
+                var approveResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                    nameof(TokenContractContainer.TokenContractStub.Approve),
+                    new ApproveInput
+                    {
+                        Symbol = symbol,
+                        Spender = CrossChainContractAddress,
+                        Amount = amount
+                    });
+                approveResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                await Tester.CallContractMethodAsync(TokenContractAddress,
+                    nameof(TokenContractContainer.TokenContractStub.GetAllowance),
+                    new GetAllowanceInput
+                    {
+                        Symbol = symbol,
+                        Owner = callOwner,
+                        Spender = CrossChainContractAddress
+                    });
+            }
+        }
+
         protected async Task InitializeCrossChainContractAsync(long parentChainHeightOfCreation = 0,
             int parentChainId = 0)
         {
@@ -140,7 +189,8 @@ namespace AElf.Contract.CrossChain.Tests
             {
                 ContractCode = contractCode,
                 IndexingPrice = indexingPrice,
-                LockedTokenAmount = lockedTokenAmount
+                LockedTokenAmount = lockedTokenAmount,
+                ResourceTypeBalance = { resourceTypeBalancePairs}
             };
 //            if (resourceTypeBalancePairs != null)
 //                res.ResourceBalances.AddRange(resourceTypeBalancePairs.Select(x =>
@@ -151,7 +201,7 @@ namespace AElf.Contract.CrossChain.Tests
         internal async Task<Hash> CreateSideChainProposalAsync(long indexingPrice, long lockedTokenAmount,
             ByteString contractCode, IEnumerable<ResourceTypeBalancePair> resourceTypeBalancePairs = null)
         {
-            var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount, contractCode);
+            var createProposalInput = CreateSideChainCreationRequest(indexingPrice, lockedTokenAmount, contractCode,resourceTypeBalancePairs);
             var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
                     ParliamentAddress,
                     nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetGenesisOwnerAddress),

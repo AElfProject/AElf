@@ -118,7 +118,7 @@ enum ResourceType
 
 message ResourceTypeBalancePair {
     ResourceType type = 1;
-    uint64 amount = 2;
+    int64 amount = 2;
 }
 
 message SideChainInfo {
@@ -136,6 +136,7 @@ message SideChainCreationRequest {
     int64 locked_token_amount = 2;
     bytes contract_code = 3;
     bool is_privilege_preserved = 4;
+    repeated ResourceTypeBalancePair resource_type_balance = 5;
 }
 
 message RequestChainCreationOutput {

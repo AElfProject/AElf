@@ -150,6 +150,16 @@ namespace AElf.Contracts.CrossChain
             return info.Proposer;
         }
 
+        public override SInt64Value LockedResource(SInt32Value input)
+        {
+            var info = State.SideChainInfo[input.Value];
+            Assert(info != null, "Not existed side chain.");
+            Assert(info.SideChainStatus != (SideChainStatus) 2, "Disposed side chain.");
+            //return new SInt64Value {Value = info.SideChainCreationRequest.ResourceTypeBalance.Count};
+            var request = info.SideChainCreationRequest;
+            return new SInt64Value {Value = request.ResourceTypeBalance[0].Amount};
+        }
+
         public override ChainInitializationData GetChainInitializationData(SInt32Value chainId)
         {
             var sideChainInfo = State.SideChainInfo[chainId.Value];
