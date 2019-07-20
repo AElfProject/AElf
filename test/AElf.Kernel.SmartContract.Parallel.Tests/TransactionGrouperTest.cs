@@ -55,8 +55,13 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             var txLookup = groups.SelectMany(x => x).ToDictionary(x => x.Transaction.Params, x => x.Resource);
             var allTxns = groups.SelectMany(x => x).Select(x => x.Transaction).OrderBy(x => Guid.NewGuid()).ToList();
 
-            var grouped = await Grouper.GroupAsync(allTxns);
-            var groupedResources = grouped.Item1.Select(g => g.Select(t => txLookup[t.Params]).ToList()).ToList();
+            var chainContext = new ChainContext
+            {
+                BlockHeight = 10,
+                BlockHash = Hash.Generate()
+            };
+            var grouped = await Grouper.GroupAsync(chainContext, allTxns);
+            var groupedResources = grouped.Parallelizables.Select(g => g.Select(t => txLookup[t.Params]).ToList()).ToList();
             var expected = groups.Select(g => g.Select(x => x.Resource).ToList()).Select(StringRepresentation)
                 .OrderBy(x => x);
             var actual = groupedResources.Select(StringRepresentation).OrderBy(x => x);

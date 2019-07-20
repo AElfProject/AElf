@@ -33,16 +33,16 @@ message SideChainInitializationRequest{
 }
 
 service ParentChainRpc {
-    rpc RequestIndexingFromParentChainAsync (CrossChainRequest) returns (stream acs7.ParentChainBlockData) {}
-    rpc RequestChainInitializationDataFromParentChainAsync (SideChainInitializationRequest) returns (acs7.ChainInitializationData) {}
+    rpc RequestIndexingFromParentChain (CrossChainRequest) returns (stream acs7.ParentChainBlockData) {}
+    rpc RequestChainInitializationDataFromParentChain (SideChainInitializationRequest) returns (acs7.ChainInitializationData) {}
 }
 
 service SideChainRpc{
-    rpc RequestIndexingFromSideChainAsync (CrossChainRequest) returns (stream acs7.SideChainBlockData) {}
+    rpc RequestIndexingFromSideChain (CrossChainRequest) returns (stream acs7.SideChainBlockData) {}
 }
 
 service BasicCrossChainRpc{
-    rpc CrossChainHandShakeAsync (HandShake) returns (HandShakeReply) {}
+    rpc CrossChainHandShake (HandShake) returns (HandShakeReply) {}
 }
 
 

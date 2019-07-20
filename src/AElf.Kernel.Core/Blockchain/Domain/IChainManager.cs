@@ -423,7 +423,9 @@ namespace AElf.Kernel.Blockchain.Domain
 
             chain.LongestChainHash = chain.BestChainHash;
             chain.LongestChainHeight = chain.BestChainHeight;
-            
+            Logger.LogWarning(
+                $"Switch Longest chain to height: {chain.LongestChainHeight}, hash: {chain.LongestChainHash}.");
+
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
         }
     }

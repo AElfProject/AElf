@@ -6,6 +6,13 @@ namespace AElf.Kernel.SmartContract.Parallel
 {
     public interface ITransactionGrouper
     {
-        Task<(List<List<Transaction>>, List<Transaction>)> GroupAsync(List<Transaction> transactions);
+        Task<GroupedTransactions> GroupAsync(IChainContext chainContext,
+            List<Transaction> transactions);
+    }
+    
+    public class GroupedTransactions
+    {
+        public List<List<Transaction>> Parallelizables = new List<List<Transaction>>();
+        public List<Transaction> NonParallelizables = new List<Transaction>();
     }
 }
