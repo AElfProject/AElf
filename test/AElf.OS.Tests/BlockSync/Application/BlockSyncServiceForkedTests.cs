@@ -1,10 +1,8 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.OS.BlockSync.Infrastructure;
+using AElf.OS.BlockSync.Dto;
 using AElf.OS.Network.Application;
-using AElf.Types;
 using Shouldly;
 using Xunit;
 
@@ -14,14 +12,12 @@ namespace AElf.OS.BlockSync.Application
     {
         private readonly IBlockchainService _blockChainService;
         private readonly IBlockSyncService _blockSyncService;
-        private readonly IAnnouncementCacheProvider _announcementCacheProvider;
         private readonly INetworkService _networkService;
 
         public BlockSyncServiceForkedTests()
         {
             _blockChainService = GetRequiredService<IBlockchainService>();
             _blockSyncService = GetRequiredService<IBlockSyncService>();
-            _announcementCacheProvider = GetRequiredService<IAnnouncementCacheProvider>();
             _networkService = GetRequiredService<INetworkService>();
         }
 
@@ -31,23 +27,25 @@ namespace AElf.OS.BlockSync.Application
             var chain = await _blockChainService.GetChainAsync();
             var originalBestChainHash = chain.BestChainHash;
             var originalBestChainHeight = chain.BestChainHeight;
-            var peerBlocks = await _networkService.GetBlocksAsync(chain.LastIrreversibleBlockHash, 20);
+            var peerBlocks = await _networkService.GetBlocksAsync(chain.LastIrreversibleBlockHash, 30);
 
             var peerBlock = peerBlocks.Last();
             var peerBlockHash = peerBlock.GetHash();
             var peerBlockHeight = peerBlock.Header.Height;
-            
-            await _blockSyncService.SyncBlockAsync(peerBlockHash, peerBlockHeight, 5, null);
-            
+
+            await _blockSyncService.SyncByAnnouncementAsync(chain, new SyncAnnouncementDto
+            {
+                SyncBlockHash = peerBlockHash,
+                SyncBlockHeight = peerBlockHeight,
+                BatchRequestBlockCount = 5
+            });
+
             chain = await _blockChainService.GetChainAsync();
-            chain.BestChainHeight.ShouldBe(20);
+            chain.BestChainHeight.ShouldBe(30);
             chain.BestChainHash.ShouldBe(peerBlockHash);
 
             var block = await _blockChainService.GetBlockByHeightInBestChainBranchAsync(originalBestChainHeight);
             block.GetHash().ShouldNotBe(originalBestChainHash);
-            
-            _announcementCacheProvider.ContainsAnnouncement(peerBlockHash,peerBlockHeight).ShouldBeTrue();
         }
-        
     }
 }
