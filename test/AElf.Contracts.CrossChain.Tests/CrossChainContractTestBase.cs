@@ -190,9 +190,13 @@ namespace AElf.Contract.CrossChain.Tests
                 ContractCode = contractCode,
                 IndexingPrice = indexingPrice,
                 LockedTokenAmount = lockedTokenAmount,
-                ResourceTypeBalance = { resourceTypeBalancePairs}
             };
-//            if (resourceTypeBalancePairs != null)
+            if (resourceTypeBalancePairs != null)
+            {
+                res.ResourceTypeBalance.AddRange(resourceTypeBalancePairs.Select(x=>
+                    ResourceTypeBalancePair.Parser.ParseFrom(x.ToByteString())));
+            }
+//            if (resourceTypeBalancePairs != null)   
 //                res.ResourceBalances.AddRange(resourceTypeBalancePairs.Select(x =>
 //                    ResourceTypeBalancePair.Parser.ParseFrom(x.ToByteString())));
             return res;
