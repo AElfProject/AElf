@@ -46,7 +46,7 @@ namespace AElf.OS.Network
                 IsInbound = true
             };
             
-            pool.TryAddPeer(new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), NetworkTestConstants.FakeIpEndpoint, connectionInfo));
+            pool.TryAddPeer(new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), NetworkTestConstants.FakeIpEndpoint, connectionInfo));
         }
     }
 }

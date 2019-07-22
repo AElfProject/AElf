@@ -69,10 +69,10 @@ namespace AElf.OS.Network.Grpc
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
 
-        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string ipAddress, PeerInfo peerInfo)
+        public GrpcPeer(GrpcClient client, string ipAddress, PeerInfo peerInfo)
         {
-            _channel = channel;
-            _client = client;
+            _channel = client.Channel;
+            _client = client.Client;
 
             IpAddress = ipAddress;
             Info = peerInfo;

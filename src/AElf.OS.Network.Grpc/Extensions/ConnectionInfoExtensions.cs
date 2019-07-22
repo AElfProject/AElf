@@ -1,7 +1,6 @@
-using System;
 using AElf.Kernel;
 
-namespace AElf.OS.Network.Grpc
+namespace AElf.OS.Network.Grpc.Extensions
 {
     public static class ConnectionInfoExtensions
     {
