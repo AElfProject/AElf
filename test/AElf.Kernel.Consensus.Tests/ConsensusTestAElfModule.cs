@@ -59,7 +59,6 @@ namespace AElf.Kernel.Consensus
                     .Returns(Task.FromResult(new TransactionTrace
                     {
                         ExecutionStatus = ExecutionStatus.Executed,
-
                         ReturnValue = ByteString.CopyFrom(new ConsensusCommand
                         {
                             NextBlockMiningLeftMilliseconds = 4000,

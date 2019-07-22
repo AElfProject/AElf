@@ -66,8 +66,8 @@ namespace AElf.Contracts.TestBase
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value;
         public byte[] TokenContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("MultiToken")).Value;
-        public byte[] FeeReceiverContractCode =>
-            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("FeeReceiver")).Value;
+//        public byte[] FeeReceiverContractCode =>
+//            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("FeeReceiver")).Value;
 
         public byte[] CrossChainContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("CrossChain")).Value;
@@ -685,8 +685,8 @@ namespace AElf.Contracts.TestBase
             return list =>
             {
                 list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
-                list.AddGenesisSmartContract(FeeReceiverContractCode, ResourceFeeReceiverSmartContractAddressNameProvider
-                    .Name);
+//                list.AddGenesisSmartContract(FeeReceiverContractCode, ResourceFeeReceiverSmartContractAddressNameProvider
+//                    .Name);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
@@ -716,8 +716,8 @@ namespace AElf.Contracts.TestBase
             return list =>
             {
                 list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name);
-                list.AddGenesisSmartContract(FeeReceiverContractCode, ResourceFeeReceiverSmartContractAddressNameProvider
-                    .Name);
+//                list.AddGenesisSmartContract(FeeReceiverContractCode, ResourceFeeReceiverSmartContractAddressNameProvider
+//                    .Name);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);

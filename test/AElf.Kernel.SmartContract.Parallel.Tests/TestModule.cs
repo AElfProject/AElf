@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Modularity;
+using AElf.OS;
 using AElf.Runtime.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -88,5 +90,16 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         }
 
         #endregion
+    }
+
+    [DependsOn(
+        typeof(OSCoreWithChainTestAElfModule),
+        typeof(ParallelExecutionModule)
+    )]
+    public class ParallelExecutionTestModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+        }
     }
 }
