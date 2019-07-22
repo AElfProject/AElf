@@ -10,7 +10,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (TryToGetCurrentRoundInformation(out var currentRound) &&
                 TryToGetPreviousRoundInformation(out var previousRound))
             {
-                var minedMiners = currentRound.GetMinedMiners().Select(m => m.PublicKey).ToList();
+                var minedMiners = currentRound.GetMinedMiners().Select(m => m.Pubkey).ToList();
                 var impliedIrreversibleHeights = previousRound.GetSortedImpliedIrreversibleBlockHeights(minedMiners);
                 var minimumMinersCount = currentRound.GetMinimumMinersCount();
                 Context.LogDebug(() => $"impliedIrreversibleHeights count: {impliedIrreversibleHeights.Count}");

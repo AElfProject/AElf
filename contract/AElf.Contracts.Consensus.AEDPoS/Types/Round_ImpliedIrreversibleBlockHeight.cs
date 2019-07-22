@@ -8,7 +8,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         public List<long> GetSortedImpliedIrreversibleBlockHeights(List<string> specificPublicKeys)
         {
-            var heights = RealTimeMinersInformation.Values.Where(i => specificPublicKeys.Contains(i.PublicKey))
+            var heights = RealTimeMinersInformation.Values.Where(i => specificPublicKeys.Contains(i.Pubkey))
                 .Where(i => i.ImpliedIrreversibleBlockHeight > 0)
                 .Select(i => i.ImpliedIrreversibleBlockHeight).ToList();
             heights.Sort();
