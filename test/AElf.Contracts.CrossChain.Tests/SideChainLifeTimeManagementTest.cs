@@ -10,7 +10,6 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
-using Shouldly;
 using Xunit;
 
 namespace AElf.Contract.CrossChain.Tests
@@ -75,7 +74,7 @@ namespace AElf.Contract.CrossChain.Tests
             var lockedResource = SInt64Value.Parser.ParseFrom(await CallContractMethodAsync(CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub.LockedResource),
                 new SInt32Value {Value = chainId})).Value;
-            lockedResource.ShouldBe(4);
+            Assert.Equal(4,lockedResource);
         }
 
         [Fact]
@@ -176,6 +175,18 @@ namespace AElf.Contract.CrossChain.Tests
         }
 
         [Fact]
+        public async Task CheckLockedResource_NotExist()
+        {
+            var chainId = ChainHelper.GetChainId(5);
+            var txResult = await Tester.ExecuteContractWithMiningAsync(CrossChainContractAddress,
+                nameof(CrossChainContractContainer.CrossChainContractStub.LockedResource),
+                new SInt32Value() {Value = chainId});
+            var status = txResult.Status;
+            Assert.True(status == TransactionResultStatus.Failed);
+            Assert.Contains("Not existed side chain.", txResult.Error);
+        }
+
+        [Fact]
         public async Task CheckLockedBalance_NotAuthorized()
         {
             await InitializeCrossChainContractAsync();
@@ -220,6 +231,34 @@ namespace AElf.Contract.CrossChain.Tests
                 nameof(CrossChainContractContainer.CrossChainContractStub.GetChainStatus),
                 new SInt32Value {Value = chainId})).Value;
             Assert.True(chainStatus == (int) SideChainStatus.Terminated);
+        }
+
+        [Fact]
+        public async Task Disposal_SideChainWithResource()
+        {
+            long lockedTokenAmount = 10;
+            await InitializeCrossChainContractAsync();
+            await ApproveBalanceAsync(lockedTokenAmount);
+            await CreateAndIssueTokenAsync(15, "CPU", "NET");
+            
+            var resourceTypeBalance = new RepeatedField<ResourceTypeBalancePair>
+            {
+                new ResourceTypeBalancePair {Type = ResourceType.Cpu, Amount = 4},
+                new ResourceTypeBalancePair {Type = ResourceType.Net, Amount = 2}
+            };
+            var chainId = await InitAndCreateSideChainWithResourceTypeAsync(resourceTypeBalancePairs:resourceTypeBalance);
+            var proposalId = await DisposalSideChainProposalAsync(new SInt32Value
+            {
+                Value = chainId
+            });
+            await ApproveWithMinersAsync(proposalId);
+            var transactionResult = await ReleaseProposalAsync(proposalId);
+            var status = transactionResult.Status;
+            Assert.True(status == TransactionResultStatus.Mined);
+            var lockedResource = SInt32Value.Parser.ParseFrom(await CallContractMethodAsync(CrossChainContractAddress,
+                nameof(CrossChainContractContainer.CrossChainContractStub.LockedResource),
+                new SInt32Value {Value = chainId})).Value;
+            Assert.Equal(0,lockedResource);
         }
 
         [Fact]

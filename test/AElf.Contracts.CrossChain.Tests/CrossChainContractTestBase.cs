@@ -94,10 +94,6 @@ namespace AElf.Contract.CrossChain.Tests
                         Memo = "resource",
                         To = callOwner
                     });
-            }
-
-            foreach (var symbol in symbols)
-            {
                 var approveResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
                     nameof(TokenContractContainer.TokenContractStub.Approve),
                     new ApproveInput
@@ -143,7 +139,21 @@ namespace AElf.Contract.CrossChain.Tests
 
             return chainId;
         }
+        
+        internal async Task<int> InitAndCreateSideChainWithResourceTypeAsync(long parentChainHeightOfCreation = 0,
+            int parentChainId = 0, long lockedTokenAmount = 10,IEnumerable<ResourceTypeBalancePair> resourceTypeBalancePairs = null)
+        {
+            await InitializeCrossChainContractAsync(parentChainHeightOfCreation, parentChainId);
+            await ApproveBalanceAsync(lockedTokenAmount);
+            var proposalId = await CreateSideChainProposalAsync(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test"),resourceTypeBalancePairs);
+            await ApproveWithMinersAsync(proposalId);
 
+            var transactionResult = await ReleaseProposalAsync(proposalId);
+            var chainId = CreationRequested.Parser.ParseFrom(transactionResult.Logs[0].NonIndexed).ChainId;
+
+            return chainId;
+        }
+    
         protected async Task<Block> MineAsync(List<Transaction> txs)
         {
             return await Tester.MineAsync(txs);
@@ -193,12 +203,10 @@ namespace AElf.Contract.CrossChain.Tests
             };
             if (resourceTypeBalancePairs != null)
             {
-                res.ResourceTypeBalance.AddRange(resourceTypeBalancePairs.Select(x=>
+                res.ResourceTypeBalance.AddRange(resourceTypeBalancePairs.Select(x =>
                     ResourceTypeBalancePair.Parser.ParseFrom(x.ToByteString())));
             }
-//            if (resourceTypeBalancePairs != null)   
-//                res.ResourceBalances.AddRange(resourceTypeBalancePairs.Select(x =>
-//                    ResourceTypeBalancePair.Parser.ParseFrom(x.ToByteString())));
+
             return res;
         }
 

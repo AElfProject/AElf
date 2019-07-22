@@ -76,18 +76,12 @@ namespace AElf.Contracts.CrossChain
                 LockResource(new LockInput
                 {
                     Address = Context.Origin,
-                    LockId = Context.TransactionId,
+                    LockId = chainId.ToHash(),
                     Symbol = resource.Type.ToString().ToUpper(),
                     Usage = "lock resource.",
                     Amount = resource.Amount
                 });
             }
-
-            // lock 
-            /*foreach (var resourceBalance in sideChainInfo.ResourceBalances)
-            {
-                Api.LockResource(resourceBalance.Amount, resourceBalance.Type);
-            }*/
         }
 
         private void UnlockTokenAndResource(SideChainInfo sideChainInfo)
@@ -106,24 +100,20 @@ namespace AElf.Contracts.CrossChain
             State.IndexingBalance[chainId] = 0;
 
             var resourceTypeBalances = sideChainInfo.SideChainCreationRequest.ResourceTypeBalance;
-            foreach (var resource in resourceTypeBalances)
+            if(resourceTypeBalances.Count == 0) return;
+            foreach (var resourceType in resourceTypeBalances)
             {
                 UnLockResource(new UnlockInput
                 {
                     Address = sideChainInfo.Proposer,
-                    Symbol = resource.Type.ToString().ToUpper(),
-                    Amount = resource.Amount,
-                    LockId = sideChainInfo.ProposalHash,
+                    Symbol = resourceType.Type.ToString().ToUpper(),
+                    Amount = resourceType.Amount,
+                    LockId = chainId.ToHash(),
                     Usage = "unlock resource."
                 });
             }
 
             sideChainInfo.SideChainCreationRequest.ResourceTypeBalance.Clear();
-            // unlock resource 
-            /*foreach (var resourceBalance in sideChainInfo.ResourceBalances)
-            {
-                Api.UnlockResource(resourceBalance.Amount, resourceBalance.Type);
-            }*/
         }
 
         private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)
@@ -212,8 +202,7 @@ namespace AElf.Contracts.CrossChain
         {
             if (State.Owner.Value != null)
                 return State.Owner.Value;
-            ValidateContractState(State.ParliamentAuthContract,
-                SmartContractConstants.ParliamentAuthContractSystemName);
+            ValidateContractState(State.ParliamentAuthContract, SmartContractConstants.ParliamentAuthContractSystemName);
             Address organizationAddress = State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty());
             State.Owner.Value = organizationAddress;
 
@@ -225,7 +214,7 @@ namespace AElf.Contracts.CrossChain
             var owner = GetOwnerAddress();
             Assert(owner.Equals(Context.Sender), "Not authorized to do this.");
         }
-        
+
         private Hash Propose(int waitingPeriod, Address targetAddress, string invokingMethod, IMessage input)
         {
             var expiredTime = Context.CurrentBlockTime.AddSeconds(waitingPeriod);
