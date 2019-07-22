@@ -204,6 +204,16 @@ namespace AElf.Contracts.Election
             return new Empty();
         }
 
+        public override Empty UpdateMultipleCandidateInformation(UpdateMultipleCandidateInformationInput input)
+        {
+            foreach (var updateCandidateInformationInput in input.Value)
+            {
+                UpdateCandidateInformation(updateCandidateInformationInput);
+            }
+
+            return new Empty();
+        }
+
         public override Empty UpdateMinersCount(UpdateMinersCountInput input)
         {
             Context.LogDebug(() =>

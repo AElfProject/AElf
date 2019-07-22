@@ -96,18 +96,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        // TODO: Merge
         private void UpdateCurrentMinerInformationToElectionContract(Round previousRound)
         {
-            foreach (var minerInfo in previousRound.RealTimeMinersInformation)
+            State.ElectionContract.UpdateMultipleCandidateInformation.Send(new UpdateMultipleCandidateInformationInput
             {
-                State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
+                Value =
                 {
-                    Pubkey = minerInfo.Key,
-                    RecentlyProducedBlocks = minerInfo.Value.ProducedBlocks,
-                    RecentlyMissedTimeSlots = minerInfo.Value.MissedTimeSlots
-                });
-            }
+                    previousRound.RealTimeMinersInformation.Select(i => new UpdateCandidateInformationInput
+                    {
+                        Pubkey = i.Key,
+                        RecentlyProducedBlocks = i.Value.ProducedBlocks,
+                        RecentlyMissedTimeSlots = i.Value.MissedTimeSlots
+                    })
+                }
+            });
         }
 
         private void UpdateMinersCountToElectionContract(Round input)

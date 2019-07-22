@@ -30,6 +30,8 @@ service ElectionContract {
     }
     rpc UpdateCandidateInformation (UpdateCandidateInformationInput) returns (google.protobuf.Empty) {
     }
+    rpc UpdateMultipleCandidateInformation (UpdateMultipleCandidateInformationInput) returns (google.protobuf.Empty) {
+    }
     rpc UpdateMinersCount (UpdateMinersCountInput) returns (google.protobuf.Empty) {
     }
     rpc SetTreasurySchemeIds (SetTreasurySchemeIdsInput) returns (google.protobuf.Empty) {
@@ -115,6 +117,10 @@ message UpdateCandidateInformationInput {
     sint64 recently_produced_blocks = 2;
     sint64 recently_missed_time_slots = 3;
     bool is_evil_node = 4;
+}
+
+message UpdateMultipleCandidateInformationInput {
+    repeated UpdateCandidateInformationInput value = 1;
 }
 
 message TakeElectionSnapshotInput {
