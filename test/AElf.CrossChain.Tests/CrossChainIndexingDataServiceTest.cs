@@ -132,6 +132,37 @@ namespace AElf.CrossChain
         }
         
         [Fact]
+        public async Task ValidateSideChainBlock__NotExcepted()
+        {
+            int chainId = 123;
+            var blockInfoCache = new List<IBlockCacheEntity>
+            {
+                new SideChainBlockData
+                {
+                    ChainId = chainId, 
+                    Height = 1, 
+                    BlockHeaderHash = Hash.FromString("blockHash")
+                }
+            };
+            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 0);
+            var fakeCache = new Dictionary<int, List<IBlockCacheEntity>> {{chainId, blockInfoCache}};
+            AddFakeCacheData(fakeCache);
+            
+            var list = new List<SideChainBlockData>
+            {
+                new SideChainBlockData
+                {
+                    ChainId = chainId,
+                    Height = 1,
+                    BlockHeaderHash = Hash.FromString("Block")
+                }
+            };
+            var res = await _crossChainIndexingDataService.ValidateSideChainBlockDataAsync(list, Hash.Empty, 1);
+            Assert.False(res);
+            Assert.True(list.Count == 1);
+        }
+        
+        [Fact]
         public async Task TryTwice_ValidateSideChainBlock()
         {
             int chainId = 123;

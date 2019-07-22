@@ -78,93 +78,93 @@ namespace AElf.CrossChain
             Assert.Empty(bytes);
         }
         
-//        [Fact]
-//        public async Task FillExtraData()
-//        {
-//            var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
-//            var fakeMerkleTreeRoot2 = Hash.FromString("fakeMerkleTreeRoot2");
-//            var fakeMerkleTreeRoot3 = Hash.FromString("fakeMerkleTreeRoot3");
-//
-//            int chainId1 = ChainHelpers.ConvertBase58ToChainId("2112");
-//            int chainId2 = ChainHelpers.ConvertBase58ToChainId("2113");
-//            int chainId3 = ChainHelpers.ConvertBase58ToChainId("2114");
-//            var fakeSideChainBlockDataList = new List<SideChainBlockData>
-//            {
-//                new SideChainBlockData
-//                {
-//                    SideChainHeight = 1,
-//                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
-//                    SideChainId = chainId1
-//                },
-//                new SideChainBlockData
-//                {
-//                    SideChainHeight = 1,
-//                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot2,
-//                    SideChainId = chainId2
-//                },
-//                new SideChainBlockData
-//                {
-//                    SideChainHeight = 1,
-//                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot3,
-//                    SideChainId = chainId3
-//                }
-//            };
-//            
-//            var list1 = new List<IBlockInfo>();
-//            var list2 = new List<IBlockInfo>();
-//            var list3 = new List<IBlockInfo>();
-//            
-//            list1.Add(fakeSideChainBlockDataList[0]);
-//            list2.Add(fakeSideChainBlockDataList[1]);          
-//            list3.Add(fakeSideChainBlockDataList[2]);
-//
-//            for (int i = 2; i < CrossChainConstants.MinimalBlockInfoCacheThreshold + 2; i++)
-//            {
-//                list1.Add(new SideChainBlockData
-//                {
-//                    SideChainHeight = i,
-//                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
-//                    SideChainId = chainId1
-//                });
-//                list2.Add(new SideChainBlockData
-//                {
-//                    SideChainHeight = i,
-//                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot2,
-//                    SideChainId = chainId2
-//                });
-//                list3.Add(new SideChainBlockData
-//                {
-//                    SideChainHeight = i,
-//                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot3,
-//                    SideChainId = chainId3
-//                });
-//                
-//            }
-//
-//            AddFakeCacheData(new Dictionary<int, List<IBlockInfo>>
-//            {
-//                {chainId1, list1},
-//                {chainId2, list2},
-//                {chainId3, list3}
-//            });
-//            
-//            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId1, 0);
-//            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId2, 0);
-//            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId3, 0);
-//            _crossChainTestHelper.SetFakeLibHeight(1);
-//            var header = new BlockHeader
-//            {
-//                PreviousBlockHash = Hash.FromString("PreviousHash"),
-//                Height = 2
-//            };
-//
-//            var sideChainTxMerkleTreeRoot =
-//                await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
-//            var merkleTreeRoot = new BinaryMerkleTree()
-//                .AddNodes(fakeSideChainBlockDataList.Select(sideChainBlockData => sideChainBlockData.TransactionMerkleTreeRoot))
-//                .ComputeRootHash();
-//            var expected = new CrossChainExtraData {SideChainTransactionsRoot = merkleTreeRoot}.ToByteString();
-//            Assert.Equal(expected, sideChainTxMerkleTreeRoot);
-//        }
+        [Fact]
+        public async Task FillExtraData()
+        {
+            var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
+            var fakeMerkleTreeRoot2 = Hash.FromString("fakeMerkleTreeRoot2");
+            var fakeMerkleTreeRoot3 = Hash.FromString("fakeMerkleTreeRoot3");
+
+            int chainId1 = ChainHelper.ConvertBase58ToChainId("2112");
+            int chainId2 = ChainHelper.ConvertBase58ToChainId("2113");
+            int chainId3 = ChainHelper.ConvertBase58ToChainId("2114");
+            var fakeSideChainBlockDataList = new List<SideChainBlockData>
+            {
+                new SideChainBlockData
+                {
+                    Height = 1,
+                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
+                    ChainId = chainId1
+                },
+                new SideChainBlockData
+                {
+                    Height = 1,
+                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot2,
+                    ChainId = chainId2
+                },
+                new SideChainBlockData
+                {
+                    Height = 1,
+                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot3,
+                    ChainId = chainId3
+                }
+            };
+            
+            var list1 = new List<IBlockCacheEntity>();
+            var list2 = new List<IBlockCacheEntity>();
+            var list3 = new List<IBlockCacheEntity>();
+            
+            list1.Add(fakeSideChainBlockDataList[0]);
+            list2.Add(fakeSideChainBlockDataList[1]);          
+            list3.Add(fakeSideChainBlockDataList[2]);
+
+            for (int i = 2; i < CrossChainConstants.MinimalBlockCacheEntityCount + 2; i++)
+            {
+                list1.Add(new SideChainBlockData
+                {
+                    Height = i,
+                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
+                    ChainId = chainId1
+                });
+                list2.Add(new SideChainBlockData
+                {
+                    Height = i,
+                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot2,
+                    ChainId = chainId2
+                });
+                list3.Add(new SideChainBlockData
+                {
+                    Height = i,
+                    TransactionMerkleTreeRoot = fakeMerkleTreeRoot3,
+                    ChainId = chainId3
+                });
+                
+            }
+
+            AddFakeCacheData(new Dictionary<int, List<IBlockCacheEntity>>
+            {
+                {chainId1, list1},
+                {chainId2, list2},
+                {chainId3, list3}
+            });
+            
+            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId1, 0);
+            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId2, 0);
+            _crossChainTestHelper.AddFakeSideChainIdHeight(chainId3, 0);
+            _crossChainTestHelper.SetFakeLibHeight(1);
+            var header = new BlockHeader
+            {
+                PreviousBlockHash = Hash.FromString("PreviousHash"),
+                Height = 2
+            };
+
+            var sideChainTxMerkleTreeRoot =
+                await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
+            var merkleTreeRoot = new BinaryMerkleTree()
+                .AddNodes(fakeSideChainBlockDataList.Select(sideChainBlockData => sideChainBlockData.TransactionMerkleTreeRoot))
+                .ComputeRootHash();
+            var expected = new CrossChainExtraData {SideChainTransactionsRoot = merkleTreeRoot}.ToByteString();
+            Assert.Equal(expected, sideChainTxMerkleTreeRoot);
+        }
     }
 }

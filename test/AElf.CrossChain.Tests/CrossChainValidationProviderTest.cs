@@ -132,6 +132,45 @@ namespace AElf.CrossChain
             var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             Assert.True(res);
         }
+        
+        [Fact]
+        public async Task Validate_WithTrueOption()
+        {
+            var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
+            var fakeSideChainId = 123;
+            var fakeSideChainBlockData = CreateSideChainBlockData(fakeSideChainId, 1, fakeMerkleTreeRoot1);
+            
+            CreateFakeCacheAndStateData(fakeSideChainId, fakeSideChainBlockData, 2);
+            var sideChainTxMerkleTreeRoot = ComputeRootHash(new []{fakeSideChainBlockData});
+            var block = CreateFilledBlock(sideChainTxMerkleTreeRoot);
+            _configOptions.CrossChainDataValidationIgnored = true;
+            var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
+            Assert.True(res);
+        }
+        
+        [Fact]
+        public async Task ValidateBlockBeforeExecute()
+        {
+            var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
+            var fakeSideChainId = 123;
+            var fakeSideChainBlockData = CreateSideChainBlockData(fakeSideChainId, 1, fakeMerkleTreeRoot1);
+            var sideChainTxMerkleTreeRoot = ComputeRootHash(new []{fakeSideChainBlockData});
+            var block = CreateFilledBlock(sideChainTxMerkleTreeRoot);
+            var res = await _crossChainBlockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
+            Assert.True(res);
+        }
+        
+        [Fact]
+        public async Task ValidateBlockBeforeAttach()
+        {
+            var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
+            var fakeSideChainId = 123;
+            var fakeSideChainBlockData = CreateSideChainBlockData(fakeSideChainId, 1, fakeMerkleTreeRoot1);
+            var sideChainTxMerkleTreeRoot = ComputeRootHash(new []{fakeSideChainBlockData});
+            var block = CreateFilledBlock(sideChainTxMerkleTreeRoot);
+            var res = await _crossChainBlockValidationProvider.ValidateBeforeAttachAsync(block);
+            Assert.True(res);
+        }
 
         private IBlock CreateFilledBlock(Hash merkleTreeRoot)
         {

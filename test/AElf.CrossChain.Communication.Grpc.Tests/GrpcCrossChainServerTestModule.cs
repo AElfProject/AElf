@@ -55,16 +55,16 @@ namespace AElf.CrossChain.Communication.Grpc
 
             services.AddTransient(o =>
             {
-                var mockCrossChainDataProvider = new Mock<ICrossChainIndexingDataService>();
+                var mockCrossChainDataProvider = new Mock<ICrossChainService>();
                 mockCrossChainDataProvider
-                    .Setup(c => c.GetChainInitializationDataAsync(It.IsAny<int>(), It.IsAny<Hash>(),
-                        It.IsAny<long>())).Returns(async () => await Task.FromResult(new ChainInitializationData
-                    {
-                        CreationHeightOnParentChain = 1,
-                    }));
+                    .Setup(c => c.GetChainInitializationDataAsync(It.IsAny<int>())).Returns(async () =>
+                        await Task.FromResult(new ChainInitializationData
+                        {
+                            CreationHeightOnParentChain = 1,
+                        }));
                 return mockCrossChainDataProvider.Object;
             });
-            
+
             services.AddTransient(o =>
             {
                 var mockService = new Mock<ICrossChainCacheEntityService>();

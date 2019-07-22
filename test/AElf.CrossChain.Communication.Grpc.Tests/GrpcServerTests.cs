@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Acs7;
@@ -90,6 +89,19 @@ namespace AElf.CrossChain.Communication.Grpc
             indexingHandShakeReply.Success.ShouldBeTrue();
         }
         
+        [Fact]
+        public async Task RequestChainInitializationDataFromParentChain()
+        {
+            var requestData = new SideChainInitializationRequest
+            {
+                ChainId = 123
+            };
+            var context = BuildServerCallContext(); 
+            var sideChainInitializationResponse =
+                await ParentChainGrpcServerBase.RequestChainInitializationDataFromParentChain(requestData,context);
+            sideChainInitializationResponse.CreationHeightOnParentChain.ShouldBe(1);
+        }
+
         private ServerCallContext BuildServerCallContext(Metadata metadata = null)
         {
             var meta = metadata ?? new Metadata();
