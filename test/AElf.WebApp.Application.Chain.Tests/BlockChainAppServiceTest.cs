@@ -174,9 +174,9 @@ namespace AElf.WebApp.Application.Chain.Tests
             var createTransactionResponse =
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
-            var transactionHash = Hash.FromRawBytes(ByteArrayHelper.FromHexString(createTransactionResponse.RawTransaction));
+            var transactionId = Hash.FromRawBytes(ByteArrayHelper.FromHexString(createTransactionResponse.RawTransaction));
 
-            var signature = await _accountService.SignAsync(transactionHash.ToByteArray());
+            var signature = await _accountService.SignAsync(transactionId.ToByteArray());
             parameters = new Dictionary<string, string>
             {
                 {"RawTransaction", createTransactionResponse.RawTransaction},
@@ -240,7 +240,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         {
             // Generate a transaction
             var transaction = await _osTestHelper.GenerateTransferTransaction();
-            var transactionHash = transaction.GetHash();
+            var transactionId = transaction.GetHash();
 
             var parameters = new Dictionary<string, string>
             {
@@ -251,10 +251,10 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await PostResponseAsObjectAsync<SendTransactionOutput>("/api/blockChain/sendTransaction",
                     parameters);
 
-            sendTransactionResponse.TransactionId.ShouldBe(transactionHash.ToHex());
+            sendTransactionResponse.TransactionId.ShouldBe(transactionId.ToHex());
 
             var existTransaction = await _txHub.GetExecutableTransactionSetAsync();
-            existTransaction.Transactions[0].GetHash().ShouldBe(transactionHash);
+            existTransaction.Transactions[0].GetHash().ShouldBe(transactionId);
         }
 
         [Fact]
@@ -1017,10 +1017,10 @@ namespace AElf.WebApp.Application.Chain.Tests
             var createTransactionResponse =
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
-            var transactionHash =
+            var transactionId =
                 Hash.FromRawBytes(ByteArrayHelper.FromHexString(createTransactionResponse.RawTransaction));
 
-            var signature = await _accountService.SignAsync(transactionHash.ToByteArray());
+            var signature = await _accountService.SignAsync(transactionId.ToByteArray());
             parameters = new Dictionary<string, string>
             {
                 {"Transaction", createTransactionResponse.RawTransaction},
@@ -1030,7 +1030,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await PostResponseAsObjectAsync<SendRawTransactionOutput>("/api/blockChain/sendRawTransaction",
                     parameters);
 
-            sendTransactionResponse.TransactionId.ShouldBe(transactionHash.ToHex());
+            sendTransactionResponse.TransactionId.ShouldBe(transactionId.ToHex());
             sendTransactionResponse.Transaction.ShouldBeNull();
 
             var existTransaction = await _txHub.GetExecutableTransactionSetAsync();
@@ -1046,7 +1046,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await PostResponseAsObjectAsync<SendRawTransactionOutput>("/api/blockChain/sendRawTransaction",
                     parameters);
 
-            sendTransactionResponse.TransactionId.ShouldBe(transactionHash.ToHex());
+            sendTransactionResponse.TransactionId.ShouldBe(transactionId.ToHex());
             sendTransactionResponse.Transaction.ShouldNotBeNull();
             sendTransactionResponse.Transaction.To.ShouldBe(contractAddress.GetFormatted());
             sendTransactionResponse.Transaction.From.ShouldBe(accountAddress.GetFormatted());

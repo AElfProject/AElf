@@ -49,10 +49,10 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<TransactionResultDto> GetTransactionResultAsync(string transactionId)
         {
-            Hash transactionHash;
+            Hash transactionIdHash;
             try
             {
-                transactionHash = HashHelper.HexStringToHash(transactionId);
+                transactionIdHash = HashHelper.HexStringToHash(transactionId);
             }
             catch
             {
@@ -60,7 +60,7 @@ namespace AElf.WebApp.Application.Chain
                     Error.InvalidTransactionId.ToString());
             }
 
-            var transactionResult = await GetTransactionResultAsync(transactionHash);
+            var transactionResult = await GetTransactionResultAsync(transactionIdHash);
             var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
 
             var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
@@ -129,11 +129,11 @@ namespace AElf.WebApp.Application.Chain
             }
 
             var output = new List<TransactionResultDto>();
-            if (offset <= block.Body.Transactions.Count - 1)
+            if (offset <= block.Body.TransactionIds.Count - 1)
             {
-                limit = Math.Min(limit, block.Body.Transactions.Count - offset);
-                var transactionHashes = block.Body.Transactions.ToList().GetRange(offset, limit);
-                foreach (var hash in transactionHashes)
+                limit = Math.Min(limit, block.Body.TransactionIds.Count - offset);
+                var transactionIds = block.Body.TransactionIds.ToList().GetRange(offset, limit);
+                foreach (var hash in transactionIds)
                 {
                     var transactionResult = await GetTransactionResultAsync(hash);
                     var transactionResultDto =
@@ -162,10 +162,10 @@ namespace AElf.WebApp.Application.Chain
             return output;
         }
 
-        private async Task<TransactionResult> GetTransactionResultAsync(Hash txHash)
+        private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId)
         {
             // in tx pool
-            var receipt = await _transactionResultProxyService.TxHub.GetTransactionReceiptAsync(txHash);
+            var receipt = await _transactionResultProxyService.TxHub.GetTransactionReceiptAsync(transactionId);
             if (receipt != null)
             {
                 return new TransactionResult
@@ -176,7 +176,7 @@ namespace AElf.WebApp.Application.Chain
             }
             
             // in storage
-            var res = await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(txHash);
+            var res = await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(transactionId);
             if (res != null)
             {
                 return res;
@@ -185,7 +185,7 @@ namespace AElf.WebApp.Application.Chain
             // not existed
             return new TransactionResult
             {
-                TransactionId = txHash,
+                TransactionId = transactionId,
                 Status = TransactionResultStatus.NotExisted
             };
         }

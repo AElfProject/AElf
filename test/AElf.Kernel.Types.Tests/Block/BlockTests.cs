@@ -28,7 +28,7 @@ namespace AElf.Kernel.Types.Tests
             var blockBody = new BlockBody()
             {
                 BlockHeader = blockHeader.GetHash(),
-                Transactions = {transactionItems.Item2}
+                TransactionIds = {transactionItems.Item2}
             };
             blockBody.TransactionsCount.ShouldBe(3);
         }
@@ -82,9 +82,9 @@ namespace AElf.Kernel.Types.Tests
             block.Header.Time = TimestampHelper.GetUtcNow();
             block.Header.Height = height;
             var transactionItems = GenerateFakeTransactions(3);
-            block.Body.Transactions.AddRange(transactionItems.Item2);
+            block.Body.TransactionIds.AddRange(transactionItems.Item2);
             
-            block.Header.MerkleTreeRootOfTransactions = block.Body.Transactions.ComputeBinaryMerkleTreeRootWithLeafNodes();
+            block.Header.MerkleTreeRootOfTransactions = block.Body.TransactionIds.ComputeBinaryMerkleTreeRootWithLeafNodes();
             block.Header.MerkleTreeRootOfWorldState = Hash.Empty;
             block.Header.MerkleTreeRootOfTransactionStatus = Hash.Empty;
             block.Header.SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey");
@@ -97,7 +97,7 @@ namespace AElf.Kernel.Types.Tests
         private (List<Transaction>, List<Hash>) GenerateFakeTransactions(int count)
         {
             var transactions = new List<Transaction>();
-            var transactionHashes = new List<Hash>();
+            var transactionIds = new List<Hash>();
             for (int i = 0; i < count; i++)
             {
                var transaction = new Transaction()
@@ -110,10 +110,10 @@ namespace AElf.Kernel.Types.Tests
                var hash = transaction.GetHash();
 
                transactions.Add(transaction);
-               transactionHashes.Add(hash);
+               transactionIds.Add(hash);
             }
 
-            return (transactions, transactionHashes);
+            return (transactions, transactionIds);
         }
 
         private BlockHeader GenerateBlockHeader()

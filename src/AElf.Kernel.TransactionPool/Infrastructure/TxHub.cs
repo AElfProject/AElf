@@ -265,7 +265,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
-            CleanTransactions(block.Body.Transactions.ToList());
+            CleanTransactions(block.Body.TransactionIds.ToList());
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)

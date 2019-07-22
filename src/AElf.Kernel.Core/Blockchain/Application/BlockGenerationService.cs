@@ -81,7 +81,7 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 BlockHeader = blockHash
             };
-            blockBody.Transactions.AddRange(allExecutedTransactionIds);
+            blockBody.TransactionIds.AddRange(allExecutedTransactionIds);
             
             var block = new Block
             {

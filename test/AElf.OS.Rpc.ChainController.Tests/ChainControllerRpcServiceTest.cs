@@ -96,16 +96,16 @@ namespace AElf.OS.Rpc.ChainController.Tests
         {
             // Generate a transaction
             var transaction = await _osTestHelper.GenerateTransferTransaction();
-            var transactionHash = transaction.GetHash();
+            var transactionId = transaction.GetHash();
 
             var response = await JsonCallAsJObject("/chain", "BroadcastTransaction",
                 new {rawTransaction = transaction.ToByteArray().ToHex()});
             var responseTransactionId = response["result"]["TransactionId"].ToString();
 
-            responseTransactionId.ShouldBe(transactionHash.ToHex());
+            responseTransactionId.ShouldBe(transactionId.ToHex());
 
             var existTransaction = await _txHub.GetExecutableTransactionSetAsync();
-            existTransaction.Transactions[0].GetHash().ShouldBe(transactionHash);
+            existTransaction.Transactions[0].GetHash().ShouldBe(transactionId);
         }
 
         [Fact]

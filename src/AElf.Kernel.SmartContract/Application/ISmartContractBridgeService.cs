@@ -75,7 +75,7 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task<List<Transaction>> GetBlockTransactions(Hash blockHash)
         {
             var block = await _blockchainService.GetBlockByHashAsync(blockHash);
-            return await _blockchainService.GetTransactionsAsync(block.Body.Transactions);
+            return await _blockchainService.GetTransactionsAsync(block.Body.TransactionIds);
         }
 
         public int GetChainId()
