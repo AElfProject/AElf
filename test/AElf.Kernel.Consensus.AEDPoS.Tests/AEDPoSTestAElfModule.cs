@@ -54,7 +54,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                         },
                         Body = new BlockBody
                         {
-                            Transactions =
+                            TransactionIds =
                             {
                                 Hash.FromString("not exist"),
                                 Hash.FromString("failed case"),
