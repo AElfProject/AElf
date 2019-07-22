@@ -165,10 +165,10 @@ namespace AElf.Contracts.MultiToken
         public override Empty CrossChainReceiveToken(CrossChainReceiveTokenInput input)
         {
             var transferTransaction = Transaction.Parser.ParseFrom(input.TransferTransactionBytes);
-            var transferTransactionHash = transferTransaction.GetHash();
+            var transferTransactionId = transferTransaction.GetHash();
 
-            Context.LogDebug(() => $"transferTransactionHash == {transferTransactionHash}");
-            Assert(State.VerifiedCrossChainTransferTransaction[transferTransactionHash] == null,
+            Context.LogDebug(() => $"transferTransactionId == {transferTransactionId}");
+            Assert(State.VerifiedCrossChainTransferTransaction[transferTransactionId] == null,
                 "Token already claimed.");
 
             var crossChainTransferInput =
@@ -188,7 +188,7 @@ namespace AElf.Contracts.MultiToken
                     Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
             var verificationInput = new VerifyTransactionInput
             {
-                TransactionId = transferTransactionHash,
+                TransactionId = transferTransactionId,
                 ParentChainHeight = input.ParentChainHeight,
                 VerifiedChainId = input.FromChainId
             };
@@ -205,7 +205,7 @@ namespace AElf.Contracts.MultiToken
             if (existing == null)
                 RegisterTokenInfo(crossChainTransferInput.TokenInfo);
 
-            State.VerifiedCrossChainTransferTransaction[transferTransactionHash] = input;
+            State.VerifiedCrossChainTransferTransaction[transferTransactionId] = input;
             var balanceOfReceiver = State.Balances[receivingAddress][symbol];
             State.Balances[receivingAddress][symbol] = balanceOfReceiver.Add(amount);
             return new Empty();

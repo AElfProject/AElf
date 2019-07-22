@@ -11,7 +11,7 @@ namespace AElf.Blockchains.SideChain
     [DependsOn(
         typeof(BasicBaseChainAElfModule)
     )]
-    public class SideChainAElfModule : AElfModule<SideChainAElfModule>
+    public class SideChainAElfModule : AElfModule
     {
         public ILogger<SideChainAElfModule> Logger { get; set; }
 

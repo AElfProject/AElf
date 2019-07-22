@@ -4,6 +4,7 @@ using AElf.CrossChain.Cache;
 using AElf.CrossChain.Cache.Application;
 using AElf.TestBase;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace AElf.CrossChain
 {
@@ -16,6 +17,8 @@ namespace AElf.CrossChain
         {
             CrossChainCacheEntityProvider = GetRequiredService<ICrossChainCacheEntityProvider>();
             BlockCacheEntityProducer = GetRequiredService<IBlockCacheEntityProducer>();
+            GetRequiredService<IOptionsMonitor<CrossChainConfigOptions>>().CurrentValue
+                .CrossChainDataValidationIgnored = false;
         }
 
         protected void CreateFakeCache(Dictionary<int, BlockCacheEntityProvider> cachingData)

@@ -3,7 +3,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 
-namespace AElf.CrossChain.Communication
+namespace AElf.CrossChain
 {
     public static class LocalLibExtension
     {

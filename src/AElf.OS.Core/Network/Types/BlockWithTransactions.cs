@@ -25,12 +25,12 @@ namespace AElf.OS.Network
         }
 
         public IEnumerable<Transaction> FullTransactionList => Transactions;
-        public IEnumerable<Hash> TransactionHashList => Transactions.Select(tx => tx.GetHash());
+        public IEnumerable<Hash> TransactionIds => Transactions.Select(tx => tx.GetHash());
 
         public BlockBody Body => new BlockBody
         {
             BlockHeader = GetHash(),
-            Transactions = {Transactions.Select(tx => tx.GetHash()).ToList()}
+            TransactionIds = {Transactions.Select(tx => tx.GetHash()).ToList()}
         };
 
         public long Height => Header?.Height ?? 0;

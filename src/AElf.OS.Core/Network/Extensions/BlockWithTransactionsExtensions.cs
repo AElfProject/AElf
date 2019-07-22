@@ -13,7 +13,7 @@ namespace AElf.OS.Network.Extensions
                 Body = new BlockBody
                 {
                     BlockHeader = block.Header.GetHash(),
-                    Transactions = {block.Transactions.Select(tx => tx.GetHash()).ToList()}
+                    TransactionIds = {block.Transactions.Select(tx => tx.GetHash()).ToList()}
                 }
             };
         }

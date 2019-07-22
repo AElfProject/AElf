@@ -5,6 +5,6 @@ namespace AElf.Kernel
 {
     public interface IBlockBody : IHashProvider
     {
-        RepeatedField<Hash> Transactions { get; }
+        RepeatedField<Hash> TransactionIds { get; }
     }
 }
