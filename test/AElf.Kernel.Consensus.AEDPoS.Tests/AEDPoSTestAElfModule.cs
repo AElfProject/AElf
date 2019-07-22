@@ -9,6 +9,7 @@ using AElf.Modularity;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
@@ -113,6 +114,31 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
                 mockService.Setup(m => m.TriggerConsensusAsync(It.IsAny<ChainContext>())).Returns(Task.CompletedTask);
 
+                return mockService.Object;
+            });
+
+            context.Services.AddTransient<ITransactionReadOnlyExecutionService>(provider =>
+            {
+                var mockService = new Mock<ITransactionReadOnlyExecutionService>();
+                mockService.Setup(m =>
+                        m.ExecuteAsync(It.IsAny<ChainContext>(),
+                            It.Is<Transaction>(tx =>
+                                tx.MethodName == "GetCurrentMinerList"),
+                            It.IsAny<Timestamp>()))
+                    .Returns(Task.FromResult(new TransactionTrace
+                    {
+                        ExecutionStatus = ExecutionStatus.Executed,
+                        ReturnValue = ByteString.CopyFrom(new MinerList
+                        {
+                            Pubkeys =
+                            {
+                                ByteString.CopyFromUtf8("bp1"),
+                                ByteString.CopyFromUtf8("bp2"),
+                                ByteString.CopyFromUtf8("bp3")
+                            }
+                        }.ToByteArray())
+                    }));
+                
                 return mockService.Object;
             });
         }
