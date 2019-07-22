@@ -91,8 +91,8 @@ namespace AElf.OS.Network.Grpc
             _transactionQueue = new BufferBlock<Transaction>();
             _blockAnnouncementQueue = new BufferBlock<BlockAnnouncement>();
 
-            Task.Run(async () => await StartBroadcastingTransactions());
-            Task.Run(async () => await StartBroadcastingAnnouncements());
+            Task.Run(async () => await StartBroadcastingTransactionsAsync());
+            Task.Run(async () => await StartBroadcastingAnnouncementsAsync());
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -201,7 +201,7 @@ namespace AElf.OS.Network.Grpc
 
         #region Streaming
         
-        private async Task StartBroadcastingTransactions()
+        private async Task StartBroadcastingTransactionsAsync()
         {
             while (await _transactionQueue.OutputAvailableAsync())
             {
@@ -210,7 +210,7 @@ namespace AElf.OS.Network.Grpc
             }
         }
         
-        private async Task StartBroadcastingAnnouncements()
+        private async Task StartBroadcastingAnnouncementsAsync()
         {
             while (await _blockAnnouncementQueue.OutputAvailableAsync())
             {
