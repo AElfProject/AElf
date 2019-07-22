@@ -56,39 +56,18 @@ namespace AElf.OS.Network.Application
             
             _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHash, hasFork);
             
-            var announce = new BlockAnnouncement
+            var blockAnnouncement = new BlockAnnouncement
             {
                 BlockHash = blockHash,
                 BlockHeight = blockHeader.Height,
                 HasFork = hasFork
             };
-            
-            var beforeEnqueue = TimestampHelper.GetUtcNow();
-            _taskQueueManager.Enqueue(async () =>
+
+            foreach (var peer in _peerPool.GetPeers())
             {
-                var execTime = TimestampHelper.GetUtcNow();
-                if (execTime > beforeEnqueue +
-                    TimestampHelper.DurationFromMilliseconds(NetworkConstants.AnnouncementQueueJobTimeout))
-                {
-                    Logger.LogWarning($"Announcement too old: {execTime - beforeEnqueue}");
-                    return;
-                }
-                
-                foreach (var peer in _peerPool.GetPeers())
-                {
-                    try
-                    {
-                        await peer.SendAnnouncementAsync(announce);
-                    }
-                    catch (NetworkException ex)
-                    {
-                        Logger.LogError(ex, $"Error while announcing to {peer}.");
-                        await HandleNetworkException(peer, ex);
-                    }
-                }
-                
-            }, NetworkConstants.AnnouncementBroadcastQueueName);
-            
+                peer.EnqueueAnnouncement(blockAnnouncement);
+            }
+
             return Task.CompletedTask;
         }
         

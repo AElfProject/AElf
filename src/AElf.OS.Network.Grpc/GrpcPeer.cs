@@ -65,6 +65,7 @@ namespace AElf.OS.Network.Grpc
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
         
         private readonly BufferBlock<Transaction> _transactionQueue;
+        private readonly BufferBlock<BlockAnnouncement> _blockAnnouncementQueue;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string ipAddress, PeerInfo peerInfo)
         {
@@ -88,8 +89,10 @@ namespace AElf.OS.Network.Grpc
             LastKnownLibHeight = peerInfo.LibHeightAtHandshake;
             
             _transactionQueue = new BufferBlock<Transaction>();
+            _blockAnnouncementQueue = new BufferBlock<BlockAnnouncement>();
 
             Task.Run(async () => await StartBroadcastingTransactions());
+            Task.Run(async () => await StartBroadcastingAnnouncements());
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -203,7 +206,16 @@ namespace AElf.OS.Network.Grpc
             while (await _transactionQueue.OutputAvailableAsync())
             {
                 var transaction = await _transactionQueue.ReceiveAsync();
-                await _transactionStreamCall.RequestStream.WriteAsync(transaction);
+                await SendTransactionAsync(transaction);
+            }
+        }
+        
+        private async Task StartBroadcastingAnnouncements()
+        {
+            while (await _blockAnnouncementQueue.OutputAvailableAsync())
+            {
+                var announcement = await _blockAnnouncementQueue.ReceiveAsync();
+                await SendAnnouncementAsync(announcement);
             }
         }
 
@@ -235,6 +247,11 @@ namespace AElf.OS.Network.Grpc
         public void EnqueueTransaction(Transaction transaction)
         {
             _transactionQueue.Post(transaction);
+        }
+        
+        public void EnqueueAnnouncement(BlockAnnouncement announcement)
+        {
+            _blockAnnouncementQueue.Post(announcement);
         }
         
         /// <summary>

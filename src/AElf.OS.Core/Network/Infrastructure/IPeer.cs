@@ -19,8 +19,7 @@ namespace AElf.OS.Network.Infrastructure
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
 
         Task UpdateHandshakeAsync();
-        Task SendAnnouncementAsync(BlockAnnouncement an);
-        //Task SendTransactionAsync(Transaction transaction);
+        void EnqueueAnnouncement(BlockAnnouncement transaction);
         void EnqueueTransaction(Transaction transaction);
         Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash);
         Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);

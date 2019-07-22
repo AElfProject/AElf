@@ -85,10 +85,10 @@ namespace AElf.OS
                     
                     var exceptionOnBcast = new Mock<IPeer>();
                     exceptionOnBcast.Setup(p => p.Info).Returns(new PeerInfo { Pubkey = "exceptionOnBcast" });
-                    exceptionOnBcast.Setup(p => p.SendAnnouncementAsync(It.IsAny<BlockAnnouncement>()))
-                        .Throws(new NetworkException());
-                    exceptionOnBcast.Setup(p => p.SendTransactionAsync(It.IsAny<Transaction>()))
-                        .Throws(new NetworkException());
+//                    exceptionOnBcast.Setup(p => p.SendAnnouncementAsync(It.IsAny<BlockAnnouncement>()))
+//                        .Throws(new NetworkException());
+//                    exceptionOnBcast.Setup(p => p.SendTransactionAsync(It.IsAny<Transaction>()))
+//                        .Throws(new NetworkException());
                     
                     peers.Add(exceptionOnBcast.Object);
 
