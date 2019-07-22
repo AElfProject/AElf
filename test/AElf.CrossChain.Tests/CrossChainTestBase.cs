@@ -12,13 +12,14 @@ namespace AElf.CrossChain
     {
         protected ICrossChainCacheEntityProvider CrossChainCacheEntityProvider;
         protected IBlockCacheEntityProducer BlockCacheEntityProducer;
+        protected CrossChainConfigOptions _configOptions;
 
         public CrossChainTestBase()
         {
             CrossChainCacheEntityProvider = GetRequiredService<ICrossChainCacheEntityProvider>();
             BlockCacheEntityProducer = GetRequiredService<IBlockCacheEntityProducer>();
-            GetRequiredService<IOptionsMonitor<CrossChainConfigOptions>>().CurrentValue
-                .CrossChainDataValidationIgnored = false;
+            _configOptions = GetRequiredService<IOptionsMonitor<CrossChainConfigOptions>>().CurrentValue;
+            _configOptions.CrossChainDataValidationIgnored = false;
         }
 
         protected void CreateFakeCache(Dictionary<int, BlockCacheEntityProvider> cachingData)
