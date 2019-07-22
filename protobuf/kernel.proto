@@ -2,297 +2,186 @@ syntax = "proto3";
 
 package aelf;
 
-option csharp_namespace = "AElf.Kernel";
-
 import "google/protobuf/timestamp.proto";
 import "aelf/core.proto";
 
-//message Transaction {
-//    Address From = 1;
-//    Address To = 2;
-//    int64 RefBlockNumber = 3;
-//    bytes RefBlockPrefix = 4;
-//    string MethodName = 5;
-//    bytes Params = 6;
-//    bytes Signature = 10000;
-//}
+option csharp_namespace = "AElf.Kernel";
 
 enum TransactionStatus {
-    UnknownTransactionStatus = 0;
-    TransactionExecuting = 1;
-    TransactionExecuted = 2;
+    UNKNOWN_TRANSACTION_STATUS = 0;
+    TRANSACTION_EXECUTING = 1;
+    TRANSACTION_EXECUTED = 2;
 }
 
 enum RefBlockStatus {
-    UnknownRefBlockStatus = 0;
-    RefBlockValid = 1;
-    RefBlockInvalid = -1;
-    RefBlockExpired = -2;
-    FutureRefBlock = -3;
+    UNKNOWN_REF_BLOCK_STATUS = 0;
+    REF_BLOCK_VALID = 1;
+    REF_BLOCK_INVALID = -1;
+    REF_BLOCK_EXPIRED = -2;
+    FUTURE_REF_BLOCK = -3;
 }
 
 message TransactionReceipt {
-    Hash TransactionId = 1;
-    Transaction Transaction = 2;
-    RefBlockStatus RefBlockStatus = 3;
-    TransactionStatus TransactionStatus = 4;
-    bool IsSystemTxn = 5;
-    int64 ExecutedBlockNumber = 6;
+    Hash transaction_id = 1;
+    Transaction transaction = 2;
+    RefBlockStatus ref_block_status = 3;
+    TransactionStatus transaction_status = 4;
+    bool is_system_txn = 5;
+    int64 executed_block_number = 6;
 }
 
-//message StatePath {
-//    repeated string parts = 1;
-//}
-
-//message ScopedStatePath {
-//    Address address = 1;
-//    StatePath path = 2;
-//}
-
 message StateValue {
-    bytes CurrentValue = 1;
-    bytes OriginalValue = 2;
+    bytes current_value = 1;
+    bytes original_value = 2;
 }
 
 message StateChange {
-    StatePath StatePath = 1;
-    StateValue StateValue = 2;
+    StatePath state_path = 1;
+    StateValue state_value = 2;
 }
-
-//enum TransactionResultStatus {
-//    NotExisted = 0;
-//    Pending = 1;
-//    Failed = 2;
-//    Mined = 3;
-//    Unexecutable = 4;
-//}
-//
-//message TransactionResult {
-//    Hash TransactionId = 1;
-//    TransactionResultStatus Status = 2;
-//    repeated LogEvent Logs = 3;
-//    bytes Bloom = 4;
-//    bytes ReturnValue = 5;
-//    int64 BlockNumber = 6;
-//    Hash BlockHash = 7;
-//    int32 Index = 8;
-//    Hash StateHash = 9;
-//    // Merkle proof path for this transaction
-//    // TODO: Remove DeferredTxnId
-//    repeated Transaction DeferredTransactions = 10;
-//    Hash DeferredTxnId = 11;
-//    string Error = 12;
-//    string ReadableReturnValue = 13;
-//}
 
 // For failed transactions, its status follows the Min of
 // its own status and its inline transactions'
 enum ExecutionStatus {
-    Undefined = 0;
+    UNDEFINED = 0;
     // Successful =>
-    Executed = 1;
+    EXECUTED = 1;
 
     // Failed =>
     //   Infrastructure reasons
-    Canceled = -1;
-    SystemError = -2;
+    CANCELED = -1;
+    SYSTEM_ERROR = -2;
 
     //   Contract reasons
-    ContractError = -10;
-    ExceededMaxCallDepth = -11;
-    InsufficientTransactionFees = -12;
+    CONTRACT_ERROR = -10;
+    EXCEEDED_MAX_CALL_DEPTH = -11;
+    INSUFFICIENT_TRANSACTION_FEES = -12;
 
     // Pre-failed
-    Prefailed = -99;
+    PREFAILED = -99;
 }
 
 message TransactionTrace {
-    Hash TransactionId = 1;
-    bytes ReturnValue = 2;
-    string Error = 3;
-    repeated Transaction PreTransactions = 4;
-    repeated TransactionTrace PreTraces = 5;
-    repeated Transaction InlineTransactions = 6;
-    repeated TransactionTrace InlineTraces = 7;
-    repeated LogEvent Logs = 8;
-    int64 Elapsed = 9;
-    ExecutionStatus ExecutionStatus = 10;
-    TransactionExecutingStateSet StateSet = 11;
-    string ReadableReturnValue = 12;
+    Hash transaction_id = 1;
+    bytes return_value = 2;
+    string error = 3;
+    repeated Transaction pre_transactions = 4;
+    repeated TransactionTrace pre_traces = 5;
+    repeated Transaction inline_transactions = 6;
+    repeated TransactionTrace inline_traces = 7;
+    repeated LogEvent logs = 8;
+    int64 elapsed = 9;
+    ExecutionStatus execution_status = 10;
+    TransactionExecutingStateSet state_set = 11;
+    string readable_return_value = 12;
 }
 
 message ExecutionReturnSet {
-    Hash TransactionId = 1;
-    TransactionResultStatus Status = 2;
-    map<string, bytes> StateChanges = 3;
-    map<string, bool> StateAccesses=4;
-    bytes Bloom = 5;
-    bytes ReturnValue = 6;
+    Hash transaction_id = 1;
+    TransactionResultStatus status = 2;
+    map<string, bytes> state_changes = 3;
+    map<string, bool> StateAccesses = 4;
+    bytes bloom = 5;
+    bytes return_value = 6;
 }
 
-//message LogEvent {
-//    Address Address = 1;
-//    string Name = 2;
-//    repeated bytes Indexed = 3;
-//    bytes NonIndexed = 4;
-//}
-
 message BlockHeaderList {
-    repeated BlockHeader Headers = 1;
+    repeated BlockHeader headers = 1;
 }
 
 message BlockHeader {
-    int32 Version = 1;
-    int32 ChainId = 2;
-    Hash PreviousBlockHash = 3;
-    Hash MerkleTreeRootOfTransactions = 4;
-    Hash MerkleTreeRootOfWorldState = 5;
-    bytes Bloom = 6;
-    int64 Height = 7;
-    repeated bytes BlockExtraDatas = 8; //TODO: rename
-    google.protobuf.Timestamp Time = 9;
-    Hash MerkleTreeRootOfTransactionStatus = 10;
-    bytes SignerPubkey = 9999;
-    bytes Signature = 10000;
+    int32 version = 1;
+    int32 chain_id = 2;
+    Hash previous_block_hash = 3;
+    Hash merkle_tree_root_of_transactions = 4;
+    Hash merkle_tree_root_of_world_state = 5;
+    bytes bloom = 6;
+    int64 height = 7;
+    repeated bytes extra_data = 8;
+    google.protobuf.Timestamp time = 9;
+    Hash merkle_tree_root_of_transaction_status = 10;
+    bytes signer_pubkey = 9999;
+    bytes signature = 10000;
 }
 
 message BlockBody {
-    Hash BlockHeader = 1;
-    repeated Hash Transactions = 2;
+    Hash block_header = 1;
+    repeated Hash transaction_ids = 2;
 }
 
 message Block {
-    BlockHeader Header = 1;
-    BlockBody Body = 2;
+    BlockHeader header = 1;
+    BlockBody body = 2;
 }
-
-//message SmartContractRegistration {
-//    int32 Category = 1;
-//    bytes Code = 2;
-//    Hash CodeHash = 3;
-//}
 
 message BinaryMerkleTree {
-    repeated Hash Nodes = 1;
-    Hash Root = 2;
-    int32 LeafCount = 3;
-}
-
-//
-//message StringList {
-//    repeated string Values = 1;
-//    string Remark = 2;
-//}
-
-//message HashList {
-//    repeated Hash Values = 1;
-//}
-
-//message LongList {
-//    repeated int64 Values = 1;
-//    string Remark = 2;
-//}
-
-message BlockAbstract {
-    string MinerPublicKey = 1;
-    google.protobuf.Timestamp Time = 2;
-}
-
-enum BlockValidationResult {
-    // The chosen one!
-    Success = 0;
-
-    // Cache them.
-    NotMiner = 11;
-    InvalidTimeSlot = 12;
-    FailedToCheckConsensusInvalidation = 13;
-    DoingRollback = 14;
-
-    // Discard.
-    BlockIsNull = 101;
-    SameWithCurrentRound = 102;
-    IncorrectConsensusTransaction = 103;
-    ParseProblem = 104;
-    NoTransaction = 105;
-    IncorrectTxMerkleTreeRoot = 106;
-    IncorrectSideChainInfo = 107;
-    IncorrectPoWResult = 108;
-    NotImplementConsensus = 109;
+    repeated Hash nodes = 1;
+    Hash root = 2;
+    int32 leaf_count = 3;
 }
 
 message VersionedState {
-    string Key = 1;
-    bytes Value = 2;
-    int64 BlockHeight = 3;
-    Hash BlockHash = 4;
-    Hash OriginBlockHash = 5;
+    string key = 1;
+    bytes value = 2;
+    int64 block_height = 3;
+    Hash block_hash = 4;
+    Hash origin_block_hash = 5;
 }
 
 message BlockStateSet {
-    Hash BlockHash = 1;
-    Hash PreviousHash = 2;
-    int64 BlockHeight = 3;
-    map<string, bytes> Changes = 4;
+    Hash block_hash = 1;
+    Hash previous_hash = 2;
+    int64 block_height = 3;
+    map<string, bytes> changes = 4;
 }
-//
-//message TransactionExecutingStateSet {
-//    int64 Version = 1;
-//    map<string, bytes> Writes = 2;
-//    map<string, bool> Reads = 3;
-//}
 
 enum ChainStateMergingStatus {
-    Common = 0;
-    Merging = 1;
-    Merged = 2;
+    COMMON = 0;
+    MERGING = 1;
+    MERGED = 2;
 }
 
 message ChainStateInfo {
-    int32 ChainId = 1;
-    Hash BlockHash = 2;
-    int64 BlockHeight = 3;
-    Hash MergingBlockHash = 4;
-    ChainStateMergingStatus Status = 5;
+    int32 chain_id = 1;
+    Hash block_hash = 2;
+    int64 block_height = 3;
+    Hash merging_block_hash = 4;
+    ChainStateMergingStatus status = 5;
 }
-//
-//message ActionResult {
-//    bool Success = 1;
-//    string ErrorMessage = 2;
-//}
 
 enum ChainBlockLinkExecutionStatus {
-    ExecutionNone = 0;
-    ExecutionSuccess = 1;
-    ExecutionFailed = 2;
+    EXECUTION_NONE = 0;
+    EXECUTION_SUCCESS = 1;
+    EXECUTION_FAILED = 2;
 }
 
 message ChainBlockLink {
-    Hash BlockHash = 1;
-    int64 Height = 2;
-    Hash PreviousBlockHash = 3;
-    ChainBlockLinkExecutionStatus ExecutionStatus = 4;
-    bool IsIrreversibleBlock = 5;
-    bool IsLinked = 6;
-    bool IsLightBlock = 7; //no block body
+    Hash block_hash = 1;
+    int64 height = 2;
+    Hash previous_block_hash = 3;
+    ChainBlockLinkExecutionStatus execution_status = 4;
+    bool is_irreversible_block = 5;
+    bool is_linked = 6;
+    bool is_light_block = 7; //no block body
 }
 
 message Chain {
-    int32 Id = 1;
-    Hash GenesisBlockHash = 2;
-    Hash LongestChainHash = 3;
-    int64 LongestChainHeight = 4;
-    map<string, int64> Branches = 5;
-    map<string, string> NotLinkedBlocks = 6;
-    Hash LastIrreversibleBlockHash = 7;
-    int64 LastIrreversibleBlockHeight = 8;
-    Hash BestChainHash = 9;
-    int64 BestChainHeight = 10;
+    int32 id = 1;
+    Hash genesis_block_hash = 2;
+    Hash longest_chain_hash = 3;
+    int64 longest_chain_height = 4;
+    map<string, int64> branches = 5;
+    map<string, string> not_linked_blocks = 6;
+    Hash last_irreversible_block_hash = 7;
+    int64 last_irreversible_block_height = 8;
+    Hash best_chain_hash = 9;
+    int64 best_chain_height = 10;
 }
 
 message ChainBlockIndex {
-    Hash BlockHash = 1;
+    Hash block_hash = 1;
 }
 
 message TransactionBlockIndex {
-    Hash BlockHash = 1;
+    Hash block_hash = 1;
 }

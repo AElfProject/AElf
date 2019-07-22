@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -27,7 +26,7 @@ namespace AElf.OS.Consensus.DPos
         [Fact]
         public async Task HandleAnnounceReceiveEventAsync_IrreversibleBlockIndex_IsNull()
         {
-            var an = new PeerNewBlockAnnouncement { };
+            var an = new BlockAnnouncement { };
             var sendKey = string.Empty;
             var announcementData = new AnnouncementReceivedEventData(an, sendKey);
 
@@ -38,12 +37,12 @@ namespace AElf.OS.Consensus.DPos
         public async Task HandleAnnounceReceiveEventAsync_IrreversibleBlockIndex_SureAmountNotEnough()
         {
             var block = await GenerateNewBlockAndAnnouncementToPeers(1);
-            var an = new PeerNewBlockAnnouncement
+            var an = new BlockAnnouncement
             {
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
             };
-            var sendKey = CryptoHelpers.GenerateKeyPair().PublicKey.ToHex();
+            var sendKey = CryptoHelper.GenerateKeyPair().PublicKey.ToHex();
             var announcementData = new AnnouncementReceivedEventData(an, sendKey);
 
             await _dpoSAnnouncementReceivedEventDataHandler.HandleEventAsync(announcementData);
@@ -53,12 +52,12 @@ namespace AElf.OS.Consensus.DPos
         public async Task HandleAnnounceReceiveEventAsync_IrreversibleBlockIndex_SureAmountEnough()
         {
             var block = await GenerateNewBlockAndAnnouncementToPeers(3);
-            var an = new PeerNewBlockAnnouncement
+            var an = new BlockAnnouncement
             {
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
             };
-            var sendKey = CryptoHelpers.GenerateKeyPair().PublicKey.ToHex();
+            var sendKey = CryptoHelper.GenerateKeyPair().PublicKey.ToHex();
             var announcementData = new AnnouncementReceivedEventData(an, sendKey);
 
             await _dpoSAnnouncementReceivedEventDataHandler.HandleEventAsync(announcementData);
@@ -74,7 +73,7 @@ namespace AElf.OS.Consensus.DPos
             for(int i=0; i<number; i++)
             {
                 var grpcPeer = peers[i] as GrpcPeer;
-                grpcPeer.HandlerRemoteAnnounce(new PeerNewBlockAnnouncement
+                grpcPeer.ProcessReceivedAnnouncement(new BlockAnnouncement
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height

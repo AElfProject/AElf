@@ -15,8 +15,14 @@ service ACS0 {
     }
     rpc UpdateSmartContract (ContractUpdateInput) returns (aelf.Address) {
     }
-    rpc ChangeContractOwner (ChangeContractOwnerInput) returns (google.protobuf.Empty) {
+    rpc ChangeContractAuthor (ChangeContractAuthorInput) returns (google.protobuf.Empty) {
     }
+    rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
+    }
+    
+    rpc ChangeGenesisOwner (aelf.Address) returns (google.protobuf.Empty) {
+    }
+
     // Views
     rpc CurrentContractSerialNumber (google.protobuf.Empty) returns (google.protobuf.UInt64Value) {
         option (aelf.is_view) = true;
@@ -24,7 +30,7 @@ service ACS0 {
     rpc GetContractInfo (aelf.Address) returns (ContractInfo) {
         option (aelf.is_view) = true;
     }
-    rpc GetContractOwner (aelf.Address) returns (aelf.Address) {
+    rpc GetContractAuthor (aelf.Address) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
     rpc GetContractHash (aelf.Address) returns (aelf.Hash) {
@@ -42,10 +48,10 @@ service ACS0 {
 
 message ContractInfo
 {
-    uint64 SerialNumber=1;
-    aelf.Address Owner = 2;
-    int32 Category = 3;
-    aelf.Hash CodeHash = 4;
+    uint64 serial_number = 1;
+    aelf.Address author = 2;
+    int32 category = 3;
+    aelf.Hash code_hash = 4;
 }
 
 message ContractDeploymentInput {
@@ -55,16 +61,16 @@ message ContractDeploymentInput {
 
 message SystemContractDeploymentInput {
     message SystemTransactionMethodCall {
-        string MethodName = 1;
-        bytes Params = 2;
+        string method_name = 1;
+        bytes params = 2;
     }
     message SystemTransactionMethodCallList {
-        repeated SystemTransactionMethodCall Value = 1;
+        repeated SystemTransactionMethodCall value = 1;
     }
     sint32 category = 1;
     bytes code = 2;
     aelf.Hash name = 3;
-    SystemTransactionMethodCallList transactionMethodCallList = 4;
+    SystemTransactionMethodCallList transaction_method_call_list = 4;
 }
 
 message ContractUpdateInput {
@@ -72,9 +78,13 @@ message ContractUpdateInput {
     bytes code = 2;
 }
 
-message ChangeContractOwnerInput {
-    aelf.Address contractAddress = 1;
-    aelf.Address newOwner = 2;
+message ChangeContractAuthorInput {
+    aelf.Address contract_address = 1;
+    aelf.Address new_author = 2;
+}
+
+message InitializeInput{
+    bool contractDeploymentAuthorityRequired = 1;
 }
 
 // Events
@@ -82,7 +92,7 @@ message ContractDeployed
 {
     option (aelf.is_event) = true;
     aelf.Address creator = 1 [(aelf.is_indexed) = true];
-    aelf.Hash codeHash = 2 [(aelf.is_indexed) = true];
+    aelf.Hash code_hash = 2 [(aelf.is_indexed) = true];
     aelf.Address address = 3;
 }
 
@@ -90,14 +100,14 @@ message CodeUpdated
 {
     option (aelf.is_event) = true;
     aelf.Address address = 1 [(aelf.is_indexed) = true];
-    aelf.Hash oldCodeHash = 2;
-    aelf.Hash newCodeHash = 3;
+    aelf.Hash old_code_hash = 2;
+    aelf.Hash new_code_hash = 3;
 }
 
-message OwnerChanged
+message AuthorChanged
 {
     option (aelf.is_event) = true;
     aelf.Address address = 1 [(aelf.is_indexed) = true];
-    aelf.Address oldOwner = 2;
-    aelf.Address newOwner = 3;
+    aelf.Address old_author = 2;
+    aelf.Address new_author = 3;
 }

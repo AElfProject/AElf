@@ -110,9 +110,14 @@ namespace AElf.Sdk.CSharp.Tests
             //Block header test
             var header = new BlockHeader
             {
-                ChainId = ChainHelpers.ConvertBase58ToChainId("AELF"),
-                Height = new Random().Next(),
-                Bloom = ByteString.CopyFromUtf8("bloom")
+                ChainId = ChainHelper.ConvertBase58ToChainId("AELF"),
+                Height = Constants.GenesisBlockHeight,
+                Bloom = ByteString.CopyFromUtf8("bloom"),
+                PreviousBlockHash = Hash.FromString("PreviousBlockHash"),
+                MerkleTreeRootOfTransactions = Hash.FromString("MerkleTreeRootOfTransactions"),
+                MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
+                Time = TimestampHelper.GetUtcNow(),
+                MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus")
             };
             var headerArray = SerializationHelper.Serialize(header);
             var header1 = SerializationHelper.Deserialize<BlockHeader>(headerArray);
@@ -122,7 +127,7 @@ namespace AElf.Sdk.CSharp.Tests
             var body = new BlockBody
             {
                 BlockHeader = header.GetHash(),
-                Transactions = { transaction.GetHash() }
+                TransactionIds = { transaction.GetHash() }
             };
             var bodyArray = SerializationHelper.Serialize(body);
             var body1 = SerializationHelper.Deserialize<BlockBody>(bodyArray);

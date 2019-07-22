@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Types;
+using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
@@ -8,10 +9,12 @@ namespace AElf.Kernel.Blockchain.Application
     public class BlockValidationProviderTests : AElfKernelTestBase
     {
         private readonly BlockValidationProvider _blockValidationProvider;
+        private readonly KernelTestHelper _kernelTestHelper;
         
         public BlockValidationProviderTests()
         {
             _blockValidationProvider = GetRequiredService<BlockValidationProvider>();
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
 
         [Fact]
@@ -34,13 +37,12 @@ namespace AElf.Kernel.Blockchain.Application
             block.Body = new BlockBody();
             validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync( block);
             validateResult.ShouldBeFalse();
-            
-            block.Body.Transactions.Add(Hash.Empty);
+           
+            block.Body.TransactionIds.Add(Hash.Empty);
+            block.Header = _kernelTestHelper.GenerateBlock(9, Hash.FromString("PreviousBlockHash")).Header;
             validateResult = await _blockValidationProvider.ValidateBeforeAttachAsync( block);
             validateResult.ShouldBeFalse();
 
-            block.Header.Time = TimestampHelper.GetUtcNow();
-            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoot();
             validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync( block);
             validateResult.ShouldBeTrue();        
         }

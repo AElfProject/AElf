@@ -4,6 +4,8 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <AssemblyName>AElf.CrossChain.Communication</AssemblyName>
         <RootNamespace>AElf.CrossChain.Communication</RootNamespace>
+        <PackageId>AElf.CrossChain.Communication</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>

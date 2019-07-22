@@ -1,9 +1,12 @@
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
@@ -19,6 +22,13 @@ namespace AElf.OS.Network
                 o.ListeningPort = 2000;
                 o.MaxPeers = 2;
             });
+            
+            context.Services.AddSingleton<ISyncStateService>(o =>
+            {
+                var mockService = new Mock<ISyncStateService>();
+                mockService.Setup(s => s.SyncState).Returns(SyncState.Finished);
+                return mockService.Object;
+            });
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
@@ -26,19 +36,18 @@ namespace AElf.OS.Network
             base.OnApplicationInitialization(context);
             
             var pool = context.ServiceProvider.GetRequiredService<IPeerPool>();
-            var channel = new Channel(GrpcTestConstants.FakeListeningPort, ChannelCredentials.Insecure);
+            var channel = new Channel(GrpcTestConstants.FakeIpEndpoint, ChannelCredentials.Insecure);
             
-            var connectionInfo = new GrpcPeerInfo
+            var connectionInfo = new PeerInfo
             {
-                PublicKey = GrpcTestConstants.FakePubKey2,
-                PeerIpAddress = GrpcTestConstants.FakeListeningPort,
+                Pubkey = GrpcTestConstants.FakePubkey2,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = 1,
                 IsInbound = true
             };
             
-            pool.AddPeer(new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), connectionInfo));
+            pool.AddPeer(new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), GrpcTestConstants.FakeIpEndpoint, connectionInfo));
         }
     }
 }

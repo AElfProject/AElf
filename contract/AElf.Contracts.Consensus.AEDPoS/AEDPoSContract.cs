@@ -17,6 +17,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.TimeEachTerm.Value = input.IsSideChain || input.IsTermStayOne
                 ? int.MaxValue
                 : input.TimeEachTerm;
+            
+            State.MinerIncreaseInterval.Value = input.MinerIncreaseInterval;
 
             Context.LogDebug(() => $"Time each term: {State.TimeEachTerm.Value} seconds.");
 
@@ -57,7 +59,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.MiningInterval.Value = input.GetMiningInterval();
             State.MainChainCurrentMinerList.Value = new MinerList
             {
-                PublicKeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}
+                Pubkeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}
             };
 
             if (State.ElectionContract.Value != null)
@@ -65,12 +67,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 State.ElectionContract.ConfigElectionContract.Send(new ConfigElectionContractInput
                 {
                     MinerList = {input.RealTimeMinersInformation.Keys},
-                    TimeEachTerm = State.TimeEachTerm.Value
+                    TimeEachTerm = State.TimeEachTerm.Value,
+                    MinerIncreaseInterval = State.MinerIncreaseInterval.Value
                 });
             }
 
             var minerList = new MinerList
-                {PublicKeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}};
+                {Pubkeys = {input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}};
             SetMinerListOfCurrentTerm(minerList);
 
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
@@ -91,22 +94,58 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var minerInRound = round.RealTimeMinersInformation[publicKey];
             minerInRound.ActualMiningTimes.Add(input.ActualMiningTime);
             minerInRound.ProducedBlocks = input.ProducedBlocks;
-            var producedTinyBlocks = round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks;
-            minerInRound.ProducedTinyBlocks = producedTinyBlocks.Add(1);
-
+            minerInRound.ProducedTinyBlocks = round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks.Add(1);
             minerInRound.Signature = input.Signature;
             minerInRound.OutValue = input.OutValue;
             minerInRound.SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
             minerInRound.FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
             minerInRound.ImpliedIrreversibleBlockHeight = input.ImpliedIrreversibleBlockHeight;
 
+            PerformSecretSharing(input, minerInRound, round, publicKey);
+
+            UpdatePreviousInValues(input, publicKey, round);
+
+            foreach (var tuneOrder in input.TuneOrderInformation)
+            {
+                round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound = tuneOrder.Value;
+            }
+
+            // For first round of each term, no one need to publish in value.
+            if (input.PreviousInValue != Hash.Empty)
+            {
+                minerInRound.PreviousInValue = input.PreviousInValue;
+            }
+            
+            if (!TryToUpdateRoundInformation(round))
+            {
+                Assert(false, "Failed to update round information.");
+            }
+
+            var irreversibleBlockHeight = CalculateLastIrreversibleBlockHeight();
+            if (irreversibleBlockHeight != 0)
+            {
+                Context.Fire(new IrreversibleBlockFound
+                {
+                    IrreversibleBlockHeight = irreversibleBlockHeight
+                });
+            }
+            
+            return new Empty();
+        }
+
+        private static void PerformSecretSharing(UpdateValueInput input, MinerInRound minerInRound, Round round,
+            string publicKey)
+        {
             minerInRound.EncryptedInValues.Add(input.EncryptedInValues);
             foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)
             {
                 round.RealTimeMinersInformation[decryptedPreviousInValue.Key].DecryptedPreviousInValues
                     .Add(publicKey, decryptedPreviousInValue.Value);
             }
+        }
 
+        private void UpdatePreviousInValues(UpdateValueInput input, string publicKey, Round round)
+        {
             foreach (var previousInValue in input.MinersPreviousInValues)
             {
                 if (previousInValue.Key == publicKey)
@@ -127,30 +166,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue = previousInValue.Value;
             }
-
-            foreach (var tuneOrder in input.TuneOrderInformation)
-            {
-                round.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound = tuneOrder.Value;
-            }
-
-            // For first round of each term, no one need to publish in value.
-            if (input.PreviousInValue != Hash.Empty)
-            {
-                minerInRound.PreviousInValue = input.PreviousInValue;
-            }
-
-            Assert(TryToUpdateRoundInformation(round), "Failed to update round information.");
-
-            var irreversibleBlockHeight = CalculateLastIrreversibleBlockHeight();
-            if (irreversibleBlockHeight != 0)
-            {
-                Context.Fire(new IrreversibleBlockFound
-                {
-                    IrreversibleBlockHeight = irreversibleBlockHeight
-                });
-            }
-
-            return new Empty();
         }
 
         #endregion
@@ -160,10 +175,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Empty UpdateTinyBlockInformation(TinyBlockInput input)
         {
             Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
+            if (input.RoundId != round.RoundId)
+            {
+                Context.LogDebug(() => "Round Id not matched.");
+            }
             Assert(input.RoundId == round.RoundId, "Round Id not matched.");
 
             var publicKey = Context.RecoverPublicKey().ToHex();
-
+            
             round.RealTimeMinersInformation[publicKey].ActualMiningTimes.Add(input.ActualMiningTime);
             round.RealTimeMinersInformation[publicKey].ProducedBlocks = input.ProducedBlocks;
             var producedTinyBlocks = round.RealTimeMinersInformation[publicKey].ProducedTinyBlocks;
@@ -189,16 +208,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var actualBlockchainStartTimestamp = input.GetStartTime();
                 SetBlockchainStartTimestamp(actualBlockchainStartTimestamp);
-            }
-            else
-            {
-                var minersCount = GetMinersCount();
-                if (minersCount != 0 && State.ElectionContract.Value != null)
+                if (State.IsMainChain.Value)
                 {
-                    State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
+                    var minersCount = GetMinersCount(input);
+                    if (minersCount != 0 && State.ElectionContract.Value != null)
                     {
-                        MinersCount = minersCount
-                    });
+                        State.ElectionContract.UpdateMinersCount.Send(new UpdateMinersCountInput
+                        {
+                            MinersCount = minersCount
+                        });
+                    }
                 }
             }
 
@@ -217,9 +236,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             Assert(!State.IsMainChain.Value, "Only side chain can update consensus information.");
             // For now we just extract the miner list from main chain consensus information, then update miners list.
-            if (input == null || input.Bytes.IsEmpty)
+            if (input == null || input.Value.IsEmpty)
                 return new Empty();
-            var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Bytes);
+            var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Value);
 
             // check round number of shared consensus, not term number
             if (consensusInformation.Round.RoundNumber <= State.MainChainRoundNumber.Value)
@@ -229,7 +248,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.MainChainRoundNumber.Value = consensusInformation.Round.RoundNumber;
             State.MainChainCurrentMinerList.Value = new MinerList
             {
-                PublicKeys = {minersKeys.Select(k => k.ToByteString())}
+                Pubkeys = {minersKeys.Select(k => k.ToByteString())}
             };
             return new Empty();
         }

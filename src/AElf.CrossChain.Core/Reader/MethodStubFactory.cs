@@ -1,9 +1,6 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using AElf.Common;
-using AElf.Cryptography;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.Application;

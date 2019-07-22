@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Common.Application;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Cryptography;
@@ -86,7 +85,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var response = await JsonCallAsJObject("/chain", "GetChainInformation");
 
             var responseZeroContractAddress = response["result"]["GenesisContractAddress"].ToString();
-            var responseChainId = ChainHelpers.ConvertBase58ToChainId(response["result"]["ChainId"].ToString());
+            var responseChainId = ChainHelper.ConvertBase58ToChainId(response["result"]["ChainId"].ToString());
 
             responseZeroContractAddress.ShouldBe(basicContractZero.GetFormatted());
             responseChainId.ShouldBe(chainId);
@@ -97,16 +96,16 @@ namespace AElf.OS.Rpc.ChainController.Tests
         {
             // Generate a transaction
             var transaction = await _osTestHelper.GenerateTransferTransaction();
-            var transactionHash = transaction.GetHash();
+            var transactionId = transaction.GetHash();
 
             var response = await JsonCallAsJObject("/chain", "BroadcastTransaction",
                 new {rawTransaction = transaction.ToByteArray().ToHex()});
             var responseTransactionId = response["result"]["TransactionId"].ToString();
 
-            responseTransactionId.ShouldBe(transactionHash.ToHex());
+            responseTransactionId.ShouldBe(transactionId.ToHex());
 
             var existTransaction = await _txHub.GetExecutableTransactionSetAsync();
-            existTransaction.Transactions[0].GetHash().ShouldBe(transactionHash);
+            existTransaction.Transactions[0].GetHash().ShouldBe(transactionId);
         }
 
         [Fact]
@@ -299,10 +298,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         [Fact]
         public async Task Get_NotExisted_TransactionsResult()
         {
-            var block = new Block
-            {
-                Header = new BlockHeader(),
-            };
+            var block = _osTestHelper.GenerateBlock(Hash.Empty, 10);
             var blockHash = block.GetHash().ToHex();
             var response = await JsonCallAsJObject("/chain", "GetTransactionsResult",
                 new {blockHash, offset = 0, num = 10});
@@ -317,10 +313,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         [Fact]
         public async Task Get_TransactionsResult_With_InvalidParameter()
         {
-            var block = new Block
-            {
-                Header = new BlockHeader(),
-            };
+            var block = _osTestHelper.GenerateBlock(Hash.Empty, 10);
             var blockHash = block.GetHash().ToHex();
             
             var response1 = await JsonCallAsJObject("/chain", "GetTransactionsResult",
@@ -366,7 +359,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
                 .ShouldBe(block.Header.MerkleTreeRootOfWorldState.ToHex());
             ((long) responseResult["Header"]["Height"]).ShouldBe(block.Height);
             Convert.ToDateTime(responseResult["Header"]["Time"]).ShouldBe(block.Header.Time.ToDateTime());
-            responseResult["Header"]["ChainId"].ToString().ShouldBe(ChainHelpers.ConvertChainIdToBase58(chain.Id));
+            responseResult["Header"]["ChainId"].ToString().ShouldBe(ChainHelper.ConvertChainIdToBase58(chain.Id));
             responseResult["Header"]["Bloom"].ToString().ShouldBe(block.Header.Bloom.ToByteArray().ToHex());
             ((int) responseResult["Body"]["TransactionsCount"]).ShouldBe(3);
 
@@ -512,68 +505,6 @@ namespace AElf.OS.Rpc.ChainController.Tests
         }
         #endregion
 
-        #region Wallet cases
-
-        [Fact]
-        public async Task Wallet_ListAccounts()
-        {
-            var chain = await _blockchainService.GetChainAsync();
-            var walletStorePath = Path.Combine(ApplicationHelper.AppDataPath, "rpc-managed-wallet");
-            var store = new AElfKeyStore(walletStorePath);
-            var keyPair = await store.CreateAsync("123", chain.Id.ToString());
-            var addressString = Address.FromPublicKey(keyPair.PublicKey).GetFormatted();
-
-            var response = await JsonCallAsJObject("/wallet", "ListAccounts");
-            response.ShouldNotBeNull();
-            response["result"].ToList().Count.ShouldBeGreaterThanOrEqualTo(1);
-            response["result"].ToList().Contains(addressString).ShouldBeTrue();
-
-            Directory.Delete(walletStorePath, true);
-        }
-
-        [Fact]
-        public async Task Wallet_SignHash_Success()
-        {
-            var chain = await _blockchainService.GetChainAsync();
-            var walletStorePath = Path.Combine(ApplicationHelper.AppDataPath, "rpc-managed-wallet");
-            var store = new AElfKeyStore(walletStorePath);
-            var keyPair = await store.CreateAsync("123", chain.Id.ToString());
-            var addressString = Address.FromPublicKey(keyPair.PublicKey).GetFormatted();
-
-            var response = await JsonCallAsJObject("/wallet", "SignHash",
-                new {address = addressString, password = "123", hash = Hash.Generate().ToHex()});
-            response.ShouldNotBeNull();
-            response["result"].ToString().ShouldNotBeEmpty();
-
-            Directory.Delete(walletStorePath, true);
-        }
-
-        [Fact]
-        public async Task Wallet_SignHash_Failed()
-        {
-            var chain = await _blockchainService.GetChainAsync();
-            var walletStorePath = Path.Combine(ApplicationHelper.AppDataPath, "rpc-managed-wallet");
-            var store = new AElfKeyStore(walletStorePath);
-            var keyPair = await store.CreateAsync("123", chain.Id.ToString());
-            var addressString = Address.FromPublicKey(keyPair.PublicKey).GetFormatted();
-
-            var response = await JsonCallAsJObject("/wallet", "SignHash",
-                new {address = addressString, password = "wrong_password", hash = Hash.Generate().ToHex()});
-            response.ShouldNotBeNull();
-            response["error"]["code"].To<long>().ShouldBe(Wallet.Error.WrongPassword);
-            response["error"]["message"].ToString().ShouldBe(Wallet.Error.Message[Wallet.Error.WrongPassword]);
-
-            response = await JsonCallAsJObject("/wallet", "SignHash",
-                new {address = addressString + "test", password = "123", hash = Hash.Generate().ToHex()});
-            response.ShouldNotBeNull();
-            response["error"]["code"].To<long>().ShouldBe(Wallet.Error.AccountNotExist);
-            response["error"]["message"].ToString().ShouldBe(Wallet.Error.Message[Wallet.Error.AccountNotExist]);
-
-            Directory.Delete(walletStorePath, true);
-        }
-
-        #endregion
-
         #region Net cases
 
         [Fact]
@@ -598,7 +529,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         private List<Transaction> GenerateTwoInitializeTransaction()
         {
             var transactionList = new List<Transaction>();
-            var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
+            var newUserKeyPair = CryptoHelper.GenerateKeyPair();
 
             for (int i = 0; i < 2; i++)
             {
@@ -615,7 +546,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
                     });
 
                 var signature =
-                    CryptoHelpers.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
+                    CryptoHelper.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
                 transaction.Signature = ByteString.CopyFrom(signature);
 
                 transactionList.Add(transaction); 

@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Acs7;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
@@ -44,10 +43,10 @@ namespace AElf.CrossChain.Communication.Grpc
 
             IServerStreamWriter<ParentChainBlockData> responseStream = Mock.Of<IServerStreamWriter<ParentChainBlockData>>();
             var context = BuildServerCallContext();
-            await ParentChainGrpcServerBase.RequestIndexingFromParentChainAsync(requestData, responseStream, context);
+            await ParentChainGrpcServerBase.RequestIndexingFromParentChain(requestData, responseStream, context);
         }
         
-        [Fact(Skip = "https://github.com/AElfProject/AElf/issues/1643")]
+        [Fact]
         public async Task RequestIndexingParentChain_WithExtraData()
         {
             var requestData = new CrossChainRequest
@@ -58,7 +57,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
             IServerStreamWriter<ParentChainBlockData> responseStream = Mock.Of<IServerStreamWriter<ParentChainBlockData>>();
             var context = BuildServerCallContext();
-            await ParentChainGrpcServerBase.RequestIndexingFromParentChainAsync(requestData, responseStream, context);
+            await ParentChainGrpcServerBase.RequestIndexingFromParentChain(requestData, responseStream, context);
         }
 
         [Fact]
@@ -72,7 +71,7 @@ namespace AElf.CrossChain.Communication.Grpc
             
             IServerStreamWriter<SideChainBlockData> responseStream = Mock.Of<IServerStreamWriter<SideChainBlockData>>();
             var context = BuildServerCallContext();
-            await SideChainGrpcServerBase.RequestIndexingFromSideChainAsync(requestData, responseStream, context);
+            await SideChainGrpcServerBase.RequestIndexingFromSideChain(requestData, responseStream, context);
         }
 
         [Fact]
@@ -85,10 +84,10 @@ namespace AElf.CrossChain.Communication.Grpc
                 Host = "127.0.0.1"
             };
             var context = BuildServerCallContext();
-            var indexingHandShakeReply = await BasicCrossChainRpcBase.CrossChainHandShakeAsync(request, context);
+            var indexingHandShakeReply = await BasicCrossChainRpcBase.CrossChainHandShake(request, context);
             
             indexingHandShakeReply.ShouldNotBeNull();
-            indexingHandShakeReply.Result.ShouldBeTrue();
+            indexingHandShakeReply.Success.ShouldBeTrue();
         }
         
         private ServerCallContext BuildServerCallContext(Metadata metadata = null)

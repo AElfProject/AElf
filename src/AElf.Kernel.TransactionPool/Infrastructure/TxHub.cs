@@ -205,7 +205,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 if (!transaction.VerifySignature())
                     continue;
 
-                var receipt = new TransactionReceipt(transaction);
+                var receipt = new TransactionReceipt
+                {
+                    TransactionId = transaction.GetHash(),
+                    Transaction = transaction
+                };
                 if (_allTransactions.ContainsKey(receipt.TransactionId))
                 {
                     //Logger.LogWarning($"Transaction already exists in TxStore");
@@ -261,7 +265,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
-            CleanTransactions(block.Body.Transactions.ToList());
+            CleanTransactions(block.Body.TransactionIds.ToList());
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)

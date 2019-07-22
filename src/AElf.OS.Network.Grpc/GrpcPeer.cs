@@ -7,12 +7,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
-using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc
 {
@@ -20,10 +18,12 @@ namespace AElf.OS.Network.Grpc
     {
         private const int MaxMetricsPerMethod = 100;
         
-        private const int AnnouncementTimeout = 300;
         private const int BlockRequestTimeout = 300;
-        private const int TransactionBroadcastTimeout = 300;
         private const int BlocksRequestTimeout = 500;
+        private const int GetNodesTimeout = 500;
+
+        private const int FinalizeConnectTimeout = 500;
+        private const int UpdateHandshakeTimeout = 400;
         
         private enum MetricNames
         {
@@ -36,51 +36,53 @@ namespace AElf.OS.Network.Grpc
         private readonly PeerService.PeerServiceClient _client;
 
         /// <summary>
-        /// Property that describes a valid state. Valid here means that the peer is ready to be used for communication.
+        /// Property that describes a valid state. Valid here means that the peer is ready to be used for communications.
         /// </summary>
         public bool IsReady
         {
-            get { return _channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready; }
+            get { return (_channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready) && IsConnected; }
         }
+        
+        public long LastKnownLibHeight { get; private set; }
 
         public bool IsBest { get; set; }
+        public bool IsConnected { get; set; }
         public Hash CurrentBlockHash { get; private set; }
         public long CurrentBlockHeight { get; private set; }
-        
-        public string PeerIpAddress { get; }
-        public string PubKey { get; }
-        public int ProtocolVersion { get; }
-        public long ConnectionTime { get; }
-        public bool Inbound { get; }
-        public long StartHeight { get; }
+
+        public string IpAddress { get; }
+
+        public PeerInfo Info { get; }
 
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
         
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
+        
+        private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
+        private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
 
-        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, GrpcPeerInfo peerInfo)
+        public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string ipAddress, PeerInfo peerInfo)
         {
             _channel = channel;
             _client = client;
 
-            PeerIpAddress = peerInfo.PeerIpAddress;
-            PubKey = peerInfo.PublicKey;
-            ProtocolVersion = peerInfo.ProtocolVersion;
-            ConnectionTime = peerInfo.ConnectionTime;
-            Inbound = peerInfo.IsInbound;
-            StartHeight = peerInfo.StartHeight;
+            IpAddress = ipAddress;
+            Info = peerInfo;
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
             
             _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
-            RecentRequestsRoundtripTimes = new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
+            RecentRequestsRoundtripTimes =
+                new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
 
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
+
+            LastKnownLibHeight = peerInfo.LibHeightAtHandshake;
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -100,8 +102,53 @@ namespace AElf.OS.Network.Grpc
 
             return metrics;
         }
+        
+        public async Task UpdateHandshakeAsync()
+        {
+            GrpcRequest request = new GrpcRequest
+            {
+                ErrorMessage = "Error while updating handshake."
+            };
+            
+            Metadata data = new Metadata
+            {
+                {GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString()}
+            };
+            
+            var handshake = await RequestAsync(_client, c => c.UpdateHandshakeAsync(new UpdateHandshakeRequest(), data), request);
+             
+            if (handshake != null)
+                LastKnownLibHeight = handshake.LibBlockHeight;
+        }
 
-        public async Task<BlockWithTransactions> RequestBlockAsync(Hash hash)
+        public Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest)
+        {
+            GrpcRequest request = new GrpcRequest
+            {
+                ErrorMessage = $"Request nodes failed."
+            };
+            
+            Metadata data = new Metadata
+            {
+                {GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString()}
+            };
+            
+            return RequestAsync(_client, c => c.GetNodesAsync(new NodesRequest { MaxCount = count }, data), request);
+        }
+        
+        public async Task<FinalizeConnectReply> FinalizeConnectAsync(Handshake handshake)
+        {
+            GrpcRequest request = new GrpcRequest { ErrorMessage = $"Error while finalizing request to {this}." };
+            Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, FinalizeConnectTimeout.ToString()} };
+
+            var finalizeConnectReply = await RequestAsync(_client, c => c.FinalizeConnectAsync(handshake, data), request);
+            
+            IsConnected = finalizeConnectReply.Success;
+            
+            return finalizeConnectReply;
+        }
+
+        public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
         {
             var blockRequest = new BlockRequest {Hash = hash};
 
@@ -142,35 +189,61 @@ namespace AElf.OS.Network.Grpc
             return list.Blocks.ToList();
         }
 
-        public Task AnnounceAsync(PeerNewBlockAnnouncement header)
+        #region Streaming
+
+        /// <summary>
+        /// Send a announcement to the peer using the stream call.
+        /// Note: this method is not thread safe.
+        /// </summary>
+        public async Task SendAnnouncementAsync(BlockAnnouncement header)
         {
-            GrpcRequest request = new GrpcRequest
+            if (!IsConnected)
+                return;
+            
+            if (_announcementStreamCall == null)
+                _announcementStreamCall = _client.AnnouncementBroadcastStream();
+            
+            try
             {
-                ErrorMessage = $"Broadcast announce for {header.BlockHash} failed.",
-                MetricName = nameof(MetricNames.Announce),
-                MetricInfo = $"Block hash {header.BlockHash}"
-            };
+                await _announcementStreamCall.RequestStream.WriteAsync(header);
+            }
+            catch (RpcException e)
+            {
+                _announcementStreamCall.Dispose();
+                _announcementStreamCall = null;
+                
+                HandleFailure(e, $"Error during announcement broadcast: {header.BlockHash}.");
+            }
+        }
+        
+        
+        /// <summary>
+        /// Send a transaction to the peer using the stream call.
+        /// Note: this method is not thread safe.
+        /// </summary>
+        public async Task SendTransactionAsync(Transaction transaction)
+        {
+            if (!IsConnected)
+                return;
+                
+            if (_transactionStreamCall == null)
+                _transactionStreamCall = _client.TransactionBroadcastStream();
 
-            Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, AnnouncementTimeout.ToString()} };
-
-            return RequestAsync(_client, c => c.AnnounceAsync(header, data), request);
+            try
+            {
+                await _transactionStreamCall.RequestStream.WriteAsync(transaction);
+            }
+            catch (RpcException e)
+            {
+                _transactionStreamCall.Dispose();
+                _transactionStreamCall = null;
+                
+                HandleFailure(e, $"Error during transaction broadcast: {transaction.GetHash()}.");
+            }
         }
 
-        public Task SendTransactionAsync(Transaction tx)
-        {
-            GrpcRequest request = new GrpcRequest
-            {
-                ErrorMessage = $"Broadcast transaction for {tx.GetHash()} failed."
-            };
-            
-            Metadata data = new Metadata
-            {
-                {GrpcConstants.TimeoutMetadataKey, TransactionBroadcastTimeout.ToString()}
-            };
-            
-            return RequestAsync(_client, c => c.SendTransactionAsync(tx, data), request);
-        }
-
+        #endregion
+        
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
             Func<PeerService.PeerServiceClient, AsyncUnaryCall<TResp>> func, GrpcRequest requestParams)
         {
@@ -231,7 +304,7 @@ namespace AElf.OS.Network.Grpc
         /// This method handles the case where the peer is potentially down. If the Rpc call
         /// put the channel in TransientFailure or Connecting, we give the connection a certain time to recover.
         /// </summary>
-        private void HandleFailure(AggregateException exceptions, string errorMessage)
+        private void HandleFailure(Exception exception, string errorMessage)
         {
             // If channel has been shutdown (unrecoverable state) remove it.
             string message = $"Failed request to {this}: {errorMessage}";
@@ -247,16 +320,16 @@ namespace AElf.OS.Network.Grpc
                 message = $"Failed request to {this}: {errorMessage}";
                 type = NetworkExceptionType.PeerUnstable;
             }
-            else if (exceptions.InnerException is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Cancelled)
+            else if (exception.InnerException is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Cancelled)
             {
                 message = $"Failed request to {this}: {errorMessage}";
                 type = NetworkExceptionType.Unrecoverable;
             }
             
-            throw new NetworkException(message, exceptions, type);
+            throw new NetworkException(message, exception, type);
         }
 
-        public async Task<bool> TryWaitForStateChangedAsync()
+        public async Task<bool> TryRecoverAsync()
         {
             await _channel.TryWaitForStateChangedAsync(_channel.State,
                 DateTime.UtcNow.AddSeconds(NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds));
@@ -267,44 +340,57 @@ namespace AElf.OS.Network.Grpc
 
             return true;
         }
-
-        public async Task StopAsync()
+        
+        public void ProcessReceivedAnnouncement(BlockAnnouncement blockAnnouncement)
         {
-            try
-            {
-                await _channel.ShutdownAsync();
-            }
-            catch (InvalidOperationException)
-            {
-                // If channel already shutdown
-            }
-        }
-
-        public void HandlerRemoteAnnounce(PeerNewBlockAnnouncement peerNewBlockAnnouncement)
-        {
-            if (peerNewBlockAnnouncement.HasFork)
+            if (blockAnnouncement.HasFork)
             {
                 _recentBlockHeightAndHashMappings.Clear();
                 return;
             }
             
-            CurrentBlockHeight = peerNewBlockAnnouncement.BlockHeight;
-            CurrentBlockHash = peerNewBlockAnnouncement.BlockHash;
+            CurrentBlockHeight = blockAnnouncement.BlockHeight;
+            CurrentBlockHash = blockAnnouncement.BlockHash;
             _recentBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;
             while (_recentBlockHeightAndHashMappings.Count > 10)
             {
                 _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
             }
         }
-
-        public async Task SendDisconnectAsync()
+        
+        public async Task DisconnectAsync(bool gracefulDisconnect)
         {
-            await _client.DisconnectAsync(new DisconnectReason {Why = DisconnectReason.Types.Reason.Shutdown});
+            IsConnected = false;
+            
+            // send disconnect message if the peer is still connected and the connection
+            // is stable.
+            if (gracefulDisconnect && IsReady)
+            {
+                GrpcRequest request = new GrpcRequest { ErrorMessage = "Error while sending disconnect." };
+                
+                try
+                {
+                    await RequestAsync(_client, c => c.DisconnectAsync(new DisconnectReason {Why = DisconnectReason.Types.Reason.Shutdown}), request);
+                }
+                catch (NetworkException)
+                {
+                    // swallow the exception, we don't care because we're disconnecting.
+                }
+            }
+            
+            try
+            {
+                await _channel.ShutdownAsync();
+            }
+            catch (InvalidOperationException)
+            {
+                // if channel already shutdown
+            }
         }
 
         public override string ToString()
         {
-            return $"{{ listening-port: {PeerIpAddress}, key: {PubKey.Substring(0, 45)}... }}";
+            return $"{{ listening-port: {IpAddress}, key: {Info.Pubkey.Substring(0, 45)}... }}";
         }
     }
 }

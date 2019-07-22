@@ -7,14 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <!--<ProjectReference Include="..\AElf.Blockchains.Core\AElf.Blockchains.Core.csproj" />-->
-        <!--<ProjectReference Include="..\AElf.Contracts.CrossChain\AElf.Contracts.CrossChain.csproj" />-->
-        <!--<ProjectReference Include="..\AElf.Contracts.Dividend\AElf.Contracts.Dividend.csproj" />-->
         <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
         <ProjectReference Include="..\AElf.CrossChain.Communication.Grpc\AElf.CrossChain.Communication.Grpc.csproj" />
-        <!--<ProjectReference Include="..\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj" />-->
-        <!--<ProjectReference Include="..\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj" />-->
-        <!--<ProjectReference Include="..\AElf.Contracts.Resource\AElf.Contracts.Resource.csproj" />-->
         <ProjectReference Include="..\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract.Parallel\AElf.Kernel.SmartContract.Parallel.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />

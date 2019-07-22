@@ -73,19 +73,19 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     continue;
                 }
 
-                foreach (var transactionHash in block.Body.Transactions)
+                foreach (var transactionId in block.Body.TransactionIds)
                 {
-                    var result = await _transactionResultQueryService.GetTransactionResultAsync(transactionHash);
+                    var result = await _transactionResultQueryService.GetTransactionResultAsync(transactionId);
                     if (result == null)
                     {
-                        Logger.LogTrace($"Transaction result is null, transactionHash: {transactionHash}");
+                        Logger.LogTrace($"Transaction result is null, transactionId: {transactionId}");
                         continue;
                     }
 
                     if (result.Status == TransactionResultStatus.Failed)
                     {
                         Logger.LogTrace(
-                            $"Transaction failed, transactionHash: {transactionHash}, error: {result.Error}");
+                            $"Transaction failed, transactionId: {transactionId}, error: {result.Error}");
                         continue;
                     }
 

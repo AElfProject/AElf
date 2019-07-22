@@ -46,7 +46,7 @@ namespace AElf.CrossChain
 
                 Logger.LogTrace(
                     $"Target height {targetHeight} of side chain " +
-                    $"{ChainHelpers.ConvertChainIdToBase58(sideChainIndexingInformation.ChainId)}.");
+                    $"{ChainHelper.ConvertChainIdToBase58(sideChainIndexingInformation.ChainId)}.");
                 var sideChainBlockDataFromCache = new List<SideChainBlockData>();  
                 
                 var i = 0;
@@ -70,7 +70,7 @@ namespace AElf.CrossChain
                 {
                     Logger.LogTrace(
                         $"Got height [{sideChainBlockDataFromCache.First().Height} - {sideChainBlockDataFromCache.Last().Height} ]" +
-                        $" from side chain {ChainHelpers.ConvertChainIdToBase58(sideChainIndexingInformation.ChainId)}.");
+                        $" from side chain {ChainHelper.ConvertChainIdToBase58(sideChainIndexingInformation.ChainId)}.");
                     sideChainBlockDataList.AddRange(sideChainBlockDataFromCache);
                 }
             }
@@ -81,12 +81,6 @@ namespace AElf.CrossChain
         public async Task<bool> ValidateSideChainBlockDataAsync(List<SideChainBlockData> sideChainBlockDataList, 
             Hash currentBlockHash, long currentBlockHeight)
         {
-//            bool isExceedSizeLimit = sideChainBlockDataList.GroupBy(b => b.ChainId).Select(g => g.Count())
-//                .Any(count => count > CrossChainOption.Value.MaximalCountForIndexingSideChainBlock);
-//
-//            if (isExceedSizeLimit)
-//                return false;
-
             var sideChainValidatedHeightDict = new Dictionary<int, long>(); // chain id => validated height
             foreach (var sideChainBlockData in sideChainBlockDataList)
             {
@@ -110,9 +104,11 @@ namespace AElf.CrossChain
                 var cachedSideChainBlockData =
                     _blockCacheEntityConsumer.Take<SideChainBlockData>(sideChainBlockData.ChainId, targetHeight, false);
                 if (cachedSideChainBlockData == null)
-                    throw new ValidateNextTimeBlockValidationException("Cross chain data is not ready.");
+                    throw new ValidateNextTimeBlockValidationException(
+                        $"Side chain data not found, chainId: {ChainHelper.ConvertChainIdToBase58(sideChainBlockData.ChainId)}, side chain height: {targetHeight}.");
                 if (!cachedSideChainBlockData.Equals(sideChainBlockData))
                     return false;
+                
                 sideChainValidatedHeightDict[sideChainBlockData.ChainId] = sideChainBlockData.Height;
             }
 
@@ -157,7 +153,7 @@ namespace AElf.CrossChain
             if (parentChainBlockDataList.Count > 0)
                 Logger.LogTrace(
                     $"Got height [{parentChainBlockDataList.First().Height} - {parentChainBlockDataList.Last().Height} ]" +
-                    $" from parent chain {ChainHelpers.ConvertChainIdToBase58(parentChainId)}.");
+                    $" from parent chain {ChainHelper.ConvertChainIdToBase58(parentChainId)}.");
             return parentChainBlockDataList;
         }
 
@@ -174,30 +170,26 @@ namespace AElf.CrossChain
 
             var length = parentChainBlockDataList.Count;
 
-//            if (length > CrossChainOption.Value.MaximalCountForIndexingParentChainBlock)
-//                return false;
-
             var i = 0;
 
             var targetHeight = (await _readerFactory.Create(currentBlockHash, currentBlockHeight).GetParentChainHeight
                                    .CallAsync(new Empty())).Value + 1;
-            var res = true;
             while (i < length)
             {
-                var parentChainBlockData = _blockCacheEntityConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, false);
+                var parentChainBlockData =
+                    _blockCacheEntityConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, false);
                 if (parentChainBlockData == null)
-                {
-                    throw new ValidateNextTimeBlockValidationException("Cross chain data is not ready.");
-                }
-                    
+                    throw new ValidateNextTimeBlockValidationException(
+                        $"Parent chain data not found, chainId: {ChainHelper.ConvertChainIdToBase58(parentChainId)}, parent chain height: {targetHeight}.");
+                
                 if (!parentChainBlockDataList[i].Equals(parentChainBlockData))
-                    // cached parent chain block info is not compatible with provided.
                     return false;
+
                 targetHeight++;
                 i++;
             }
 
-            return res;
+            return true;
         }
 
         public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash currentBlockHash, long currentBlockHeight)
@@ -205,8 +197,7 @@ namespace AElf.CrossChain
             var crossChainBlockData = await _readerFactory.Create(currentBlockHash,
                     currentBlockHeight).GetIndexedCrossChainBlockDataByHeight
                 .CallAsync(new SInt64Value() {Value = currentBlockHeight});
-            if (crossChainBlockData == null) return null;
-            return CrossChainBlockData.Parser.ParseFrom(crossChainBlockData.ToByteString());
+            return crossChainBlockData;
         }
         
         /// <summary>

@@ -15,8 +15,6 @@ namespace AElf.OS.Rpc.ChainController
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddAssemblyOf<ChainControllerRpcModule>();
-
             context.Services.AddSingleton<ChainControllerRpcService>();
         }
     }

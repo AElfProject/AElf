@@ -11,11 +11,11 @@ namespace AElf.Contracts.TestKit
 
     public class Account : IAccount
     {
-        private ECKeyPair _keyPair = CryptoHelpers.GenerateKeyPair();
+        private ECKeyPair _keyPair = CryptoHelper.GenerateKeyPair();
 
         public byte[] Sign(byte[] data)
         {
-            return CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, data);
+            return CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, data);
         }
 
         public byte[] GetPublicKey()

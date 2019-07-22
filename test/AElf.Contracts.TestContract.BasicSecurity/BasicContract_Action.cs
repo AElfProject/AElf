@@ -126,7 +126,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                     };
             }
 
-          return new Empty();
+            return new Empty();
         }
 
         public override Empty TestMapped2State(Complex3Input input)
@@ -161,6 +161,13 @@ namespace AElf.Contracts.TestContract.BasicSecurity
                 Int64Value = betValue
             });
             
+            return new Empty();
+        }
+
+        public override Empty TestOriginAddress(Address address)
+        {
+            State.BasicFunctionContract.Value = Context.GetContractAddressByName(Hash.FromString("AElf.ContractNames.TestContract.BasicFunction"));
+            State.BasicFunctionContract.ValidateOrigin.Send(address);
             return new Empty();
         }
     }
