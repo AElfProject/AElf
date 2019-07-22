@@ -94,32 +94,9 @@ namespace AElf.OS.Network.Application
         
         public Task BroadcastTransactionAsync(Transaction transaction)
         {
-            var beforeEnqueue = TimestampHelper.GetUtcNow();
-            _taskQueueManager.Enqueue(async () =>
-            {
-                var execTime = TimestampHelper.GetUtcNow();
-                if (execTime > beforeEnqueue +
-                    TimestampHelper.DurationFromMilliseconds(NetworkConstants.TransactionQueueJobTimeout))
-                {
-                    Logger.LogWarning($"Transaction too old: {execTime - beforeEnqueue}");
-                    return;
-                }
-                
-                foreach (var peer in _peerPool.GetPeers())
-                {
-                    try
-                    {
-                        await peer.SendTransactionAsync(transaction);
-                    }
-                    catch (NetworkException ex)
-                    {
-                        Logger.LogError(ex, "Error while sending transaction.");
-                        await HandleNetworkException(peer, ex);
-                    }
-                }
-                
-            }, NetworkConstants.TransactionBroadcastQueueName);
-
+            foreach (var peer in _peerPool.GetPeers())
+                peer.EnqueueTransaction(transaction);
+            
             return Task.CompletedTask;
         }
 

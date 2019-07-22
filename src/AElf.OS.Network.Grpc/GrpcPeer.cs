@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
@@ -62,6 +63,8 @@ namespace AElf.OS.Network.Grpc
         
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
+        
+        private readonly BufferBlock<Transaction> _transactionQueue;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string ipAddress, PeerInfo peerInfo)
         {
@@ -83,6 +86,10 @@ namespace AElf.OS.Network.Grpc
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
 
             LastKnownLibHeight = peerInfo.LibHeightAtHandshake;
+            
+            _transactionQueue = new BufferBlock<Transaction>();
+
+            Task.Run(async () => await StartBroadcastingTransactions());
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -102,7 +109,7 @@ namespace AElf.OS.Network.Grpc
 
             return metrics;
         }
-        
+
         public async Task UpdateHandshakeAsync()
         {
             GrpcRequest request = new GrpcRequest
@@ -190,6 +197,15 @@ namespace AElf.OS.Network.Grpc
         }
 
         #region Streaming
+        
+        private async Task StartBroadcastingTransactions()
+        {
+            while (await _transactionQueue.OutputAvailableAsync())
+            {
+                var transaction = await _transactionQueue.ReceiveAsync();
+                await _transactionStreamCall.RequestStream.WriteAsync(transaction);
+            }
+        }
 
         /// <summary>
         /// Send a announcement to the peer using the stream call.
@@ -215,13 +231,17 @@ namespace AElf.OS.Network.Grpc
                 HandleFailure(e, $"Error during announcement broadcast: {header.BlockHash}.");
             }
         }
-        
+
+        public void EnqueueTransaction(Transaction transaction)
+        {
+            _transactionQueue.Post(transaction);
+        }
         
         /// <summary>
         /// Send a transaction to the peer using the stream call.
         /// Note: this method is not thread safe.
         /// </summary>
-        public async Task SendTransactionAsync(Transaction transaction)
+        private async Task SendTransactionAsync(Transaction transaction)
         {
             if (!IsConnected)
                 return;
