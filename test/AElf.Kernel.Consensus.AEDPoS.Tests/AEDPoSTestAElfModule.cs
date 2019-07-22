@@ -1,9 +1,9 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using AElf.Sdk.CSharp;
@@ -16,6 +16,8 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel.Consensus.DPoS.Tests
 {
     [DependsOn(
+        typeof(CoreAElfModule),
+        typeof(KernelAElfModule),
         typeof(AEDPoSAElfModule))]
     public class AEDPoSTestAElfModule : AElfModule
     {
@@ -99,6 +101,17 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 var mockService = new Mock<ISmartContractAddressService>();
                 mockService.Setup(o => o.GetAddressByContractName(It.IsAny<Hash>()))
                     .Returns(Address.FromString("test"));
+
+                return mockService.Object;
+            });
+
+            context.Services.AddTransient<IConsensusService>(provider =>
+            {
+                var mockService = new Mock<IConsensusService>();
+                mockService.Setup(m => m.GetInformationToUpdateConsensusAsync(It.IsAny<ChainContext>())).Returns(
+                    Task.FromResult(ByteString.CopyFromUtf8("test").ToByteArray()));
+
+                mockService.Setup(m => m.TriggerConsensusAsync(It.IsAny<ChainContext>())).Returns(Task.CompletedTask);
 
                 return mockService.Object;
             });
