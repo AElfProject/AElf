@@ -34,7 +34,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // Update miners list.
             var miners = new MinerList();
             miners.Pubkeys.AddRange(input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
-            if (!SetMinerListOfCurrentTerm(miners))
+            if (!SetMinerList(miners, input.TermNumber))
             {
                 Assert(false, "Failed to update miner list.");
             }
@@ -96,6 +96,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
+        // TODO: Merge
         private void UpdateCurrentMinerInformationToElectionContract(Round previousRound)
         {
             foreach (var minerInfo in previousRound.RealTimeMinersInformation)
@@ -121,10 +122,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        private bool SetMinerListOfCurrentTerm(MinerList minerList, bool gonnaReplaceSomeone = false)
+        private bool SetMinerList(MinerList minerList, long termNumber, bool gonnaReplaceSomeone = false)
         {
             // Miners for one specific term should only update once.
-            var termNumber = State.CurrentTermNumber.Value;
             var minerListFromState = State.MinerListMap[termNumber];
             if (gonnaReplaceSomeone || minerListFromState == null)
             {

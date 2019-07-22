@@ -18,5 +18,7 @@ namespace AElf.Contracts.Treasury
         public SingletonState<Hash> BasicRewardHash { get; set; }
         public SingletonState<Hash> VotesWeightRewardHash { get; set; }
         public SingletonState<Hash> ReElectionRewardHash { get; set; }
+
+        public SingletonState<MinerReElectionInformation> MinerReElectionInformation { get; set; }
     }
 }

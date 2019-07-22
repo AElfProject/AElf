@@ -56,6 +56,12 @@ service AEDPoSContract {
     rpc GetCurrentWelfareReward (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
+    rpc GetMinerList (GetMinerListInput) returns (MinerList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPreviousMinerList (google.protobuf.Empty) returns (MinerList) {
+        option (aelf.is_view) = true;
+    }
 }
 
 // Events
@@ -180,4 +186,8 @@ message VoteMinersCountInput {
 
 message ConsensusInformation {
     bytes value = 1;
+}
+
+message GetMinerListInput {
+    sint64 term_number = 1;
 }

@@ -43,6 +43,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Round GetPreviousRoundInformation(Empty input) =>
             TryToGetPreviousRoundInformation(out var previousRound) ? previousRound : new Round();
 
+        public override MinerList GetMinerList(GetMinerListInput input) =>
+            State.MinerListMap[input.TermNumber] ?? new MinerList();
+
+        public override MinerList GetPreviousMinerList(Empty input)
+        {
+            if (TryToGetTermNumber(out var termNumber) && termNumber > 1)
+            {
+                return State.MinerListMap[termNumber.Sub(1)] ?? new MinerList();
+            }
+
+            return new MinerList();
+        }
+
         private bool TryToGetMiningInterval(out int miningInterval)
         {
             miningInterval = State.MiningInterval.Value;

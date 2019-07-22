@@ -19,6 +19,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private ConsensusCommand GetConsensusCommand(AElfConsensusBehaviour behaviour, Round currentRound,
             string publicKey)
         {
+            var miningInterval = currentRound.GetMiningInterval();
+
             while (true)
             {
                 var isAlone = CheckLonelyMiner(publicKey);
@@ -61,6 +63,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         break;
                     case AElfConsensusBehaviour.NextTerm:
                         expectedMiningTime = currentRound.ArrangeAbnormalMiningTime(publicKey, currentBlockTime);
+                        if (currentRound.RealTimeMinersInformation.Single(m => m.Value.IsExtraBlockProducer).Key != publicKey)
+                        {
+                            expectedMiningTime.AddMilliseconds(miningInterval);
+                        }
                         nextBlockMiningLeftMilliseconds = (int) (expectedMiningTime - currentBlockTime).Milliseconds();
                         break;
                     case AElfConsensusBehaviour.Nothing:
@@ -75,7 +81,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var milliseconds = nextBlockMiningLeftMilliseconds;
                 Context.LogDebug(() => $"NextBlockMiningLeftMilliseconds: {milliseconds}");
 
-                var miningInterval = currentRound.GetMiningInterval();
                 // Produce tiny blocks as fast as one can.
                 if (behaviour == AElfConsensusBehaviour.TinyBlock)
                 {
@@ -90,7 +95,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     LimitMillisecondsOfMiningBlock = isAlone
                         ? currentRound.GetMiningInterval()
                         : behaviour == AElfConsensusBehaviour.NextTerm
-                            ? miningInterval.Div(2)
+                            ? miningInterval
                             : limitMillisecondsOfMiningBlock,
                     Hint = new AElfConsensusHint {Behaviour = behaviour}.ToByteString()
                 };

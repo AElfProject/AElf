@@ -64,7 +64,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             State.MainChainCurrentMinerList.Value = minerList;
 
-            SetMinerListOfCurrentTerm(minerList);
+            SetMinerList(minerList, 1);
 
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
 

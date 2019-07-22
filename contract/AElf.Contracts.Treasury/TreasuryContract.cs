@@ -83,7 +83,7 @@ namespace AElf.Contracts.Treasury
             State.BasicRewardHash.Value = managingSchemeIds[4];
             State.VotesWeightRewardHash.Value = managingSchemeIds[5];
             State.ReElectionRewardHash.Value = managingSchemeIds[6];
-            
+
             var electionContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
             if (electionContractAddress != null)
@@ -130,7 +130,7 @@ namespace AElf.Contracts.Treasury
             });
 
             ReleaseTreasurySubProfitItems(releasingPeriodNumber);
-            UpdateTreasurySubItemsWeights(input.TermNumber);
+            UpdateTreasurySubItemsShares(input.TermNumber);
 
             Context.LogDebug(() => "Leaving Release.");
             return new Empty();
@@ -218,7 +218,7 @@ namespace AElf.Contracts.Treasury
                 SubSchemeId = State.RewardHash.Value,
                 SubSchemeShares = TreasuryContractConstants.MinerRewardWeight
             });
-            
+
             // Register `BackupSubsidy` to `Treasury`
             State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
             {
@@ -291,7 +291,7 @@ namespace AElf.Contracts.Treasury
             });
         }
 
-        private void UpdateTreasurySubItemsWeights(long termNumber)
+        private void UpdateTreasurySubItemsShares(long termNumber)
         {
             var endPeriod = termNumber.Add(1);
 
@@ -304,18 +304,17 @@ namespace AElf.Contracts.Treasury
             var victories = State.ElectionContract.GetVictories.Call(new Empty()).Value.Select(bs => bs.ToHex())
                 .ToList();
 
-            var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
-                .RealTimeMinersInformation.Keys.ToList();
-            var previousMinerAddress =
-                previousMiners.Select(m => Address.FromPublicKey(ByteArrayHelper.FromHexString(m))).ToList();
+            var previousMiners = State.AEDPoSContract.GetPreviousMinerList.Call(new Empty()).Pubkeys.ToList();
+            var previousMinerAddress = previousMiners.Select(k => Address.FromPublicKey(k.ToByteArray())).ToList();
 
             UpdateBasicMinerRewardWeights(endPeriod, victories, previousMinerAddress);
 
-            UpdateReElectionRewardWeights(endPeriod, previousMiners, previousMinerAddress, victories);
+            UpdateReElectionRewardWeights(endPeriod, previousMiners.Select(m => m.ToHex()).ToList(),
+                previousMinerAddress, victories);
 
             UpdateVotesWeightRewardWeights(endPeriod, victories, previousMinerAddress);
         }
-        
+
         /// <summary>
         /// Remove current total shares of Basic Reward,
         /// Add new shares for miners of next term.
@@ -356,8 +355,8 @@ namespace AElf.Contracts.Treasury
         /// <param name="previousMiners"></param>
         /// <param name="previousMinerAddresses"></param>
         /// <param name="victories"></param>
-        private void UpdateReElectionRewardWeights(long endPeriod, IEnumerable<string> previousMiners,
-            IEnumerable<Address> previousMinerAddresses, List<string> victories)
+        private void UpdateReElectionRewardWeights(long endPeriod, ICollection<string> previousMiners,
+            IEnumerable<Address> previousMinerAddresses, ICollection<string> victories)
         {
             var reElectionRewardProfitSubBeneficiaries = new RemoveBeneficiariesInput
             {
@@ -366,29 +365,49 @@ namespace AElf.Contracts.Treasury
             };
             State.ProfitContract.RemoveBeneficiaries.Send(reElectionRewardProfitSubBeneficiaries);
 
+            var minerReElectionInformation = State.MinerReElectionInformation.Value ??
+                                             InitialMinerReElectionInformation(previousMiners);
+
+            AddBeneficiariesForReElectionScheme(endPeriod, victories, minerReElectionInformation);
+
+            var recordedMiners = minerReElectionInformation.Clone().ContinualAppointmentTimes.Keys;
+            foreach (var miner in recordedMiners)
+            {
+                if (!victories.Contains(miner))
+                {
+                    minerReElectionInformation.ContinualAppointmentTimes.Remove(miner);
+                }
+            }
+
+            State.MinerReElectionInformation.Value = minerReElectionInformation;
+        }
+
+        private void AddBeneficiariesForReElectionScheme(long endPeriod, IEnumerable<string> victories,
+            MinerReElectionInformation minerReElectionInformation)
+        {
             var reElectionProfitAddBeneficiaries = new AddBeneficiariesInput
             {
                 SchemeId = State.ReElectionRewardHash.Value,
                 EndPeriod = endPeriod
             };
-            foreach (var previousMiner in previousMiners)
+
+            foreach (var victory in victories)
             {
-                if (!victories.Contains(previousMiner))
+                if (minerReElectionInformation.ContinualAppointmentTimes.ContainsKey(victory))
                 {
-                    continue;
-                }
-                var continualAppointmentCount =
-                    State.ElectionContract.GetCandidateInformation.Call(new StringInput {Value = previousMiner})
-                        .ContinualAppointmentCount;
-                continualAppointmentCount = continualAppointmentCount.Add(1);
-                var minerAddress = Address.FromPublicKey(ByteArrayHelper.FromHexString(previousMiner));
-                if (continualAppointmentCount > 0)
-                {
+                    var minerAddress = Address.FromPublicKey(ByteArrayHelper.FromHexString(victory));
+                    var continualAppointmentCount =
+                        minerReElectionInformation.ContinualAppointmentTimes[victory].Add(1);
+                    minerReElectionInformation.ContinualAppointmentTimes[victory] = continualAppointmentCount;
                     reElectionProfitAddBeneficiaries.BeneficiaryShares.Add(new BeneficiaryShare
                     {
                         Beneficiary = minerAddress,
                         Shares = continualAppointmentCount
                     });
+                }
+                else
+                {
+                    minerReElectionInformation.ContinualAppointmentTimes.Add(victory, 0);
                 }
             }
 
@@ -396,6 +415,17 @@ namespace AElf.Contracts.Treasury
             {
                 State.ProfitContract.AddBeneficiaries.Send(reElectionProfitAddBeneficiaries);
             }
+        }
+
+        private MinerReElectionInformation InitialMinerReElectionInformation(ICollection<string> previousMiners)
+        {
+            var information = new MinerReElectionInformation();
+            foreach (var previousMiner in previousMiners)
+            {
+                information.ContinualAppointmentTimes.Add(previousMiner, 0);
+            }
+
+            return information;
         }
 
         /// <summary>
@@ -422,7 +452,7 @@ namespace AElf.Contracts.Treasury
             };
 
             var dataCenterRankingList = State.ElectionContract.GetDataCenterRankingList.Call(new Empty());
-            
+
             foreach (var victory in victories)
             {
                 var obtainedVotes = 0L;
@@ -430,6 +460,7 @@ namespace AElf.Contracts.Treasury
                 {
                     obtainedVotes = dataCenterRankingList.DataCenters[victory];
                 }
+
                 var minerAddress = Address.FromPublicKey(ByteArrayHelper.FromHexString(victory));
                 if (obtainedVotes > 0)
                 {
@@ -467,6 +498,7 @@ namespace AElf.Contracts.Treasury
             {
                 return new GetWelfareRewardAmountSampleOutput();
             }
+
             var totalAmount = releasedInformation.ProfitsAmount;
             foreach (var lockTime in input.Value)
             {
