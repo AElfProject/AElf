@@ -85,7 +85,7 @@ namespace AElf.Kernel.Blockchain.Application
             var results = new List<TransactionResult>();
             foreach (var transaction in transactions)
             {
-                block.Body.Transactions.Add(transaction.GetHash());
+                block.Body.TransactionIds.Add(transaction.GetHash());
                 results.Add(new TransactionResult()
                 {
                     TransactionId = transaction.GetHash(),
