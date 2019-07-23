@@ -95,7 +95,8 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 
             _isSystemContractsDeployed = true;
             var currentBlockTime = TimestampHelper.GetUtcNow().ToDateTime();
-            _testDataProvider.SetBlockTime(currentBlockTime.ToTimestamp().AddMilliseconds(AEDPoSExtensionConstants.MiningInterval));
+            _testDataProvider.SetBlockTime(currentBlockTime.ToTimestamp()
+                .AddMilliseconds(AEDPoSExtensionConstants.MiningInterval));
 
             InitialContractStubs();
             InitialConsensus(currentBlockTime);
@@ -160,7 +161,8 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                 {Value = triggerInformation.ToByteString()});
             await MineAsync(contractStub, consensusTransaction.Transactions.First());
             _currentRound = await _contractStubs.First().GetCurrentRoundInformation.CallAsync(new Empty());
-            _testDataProvider.SetBlockTime(currentBlockTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval));
+            _testDataProvider.SetBlockTime(
+                currentBlockTime.AddMilliseconds(AEDPoSExtensionConstants.ActualMiningInterval));
 
             await _testDataProvider.ResetAsync();
         }
@@ -170,6 +172,10 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         {
             switch (transaction.MethodName)
             {
+                case nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.UpdateTinyBlockInformation):
+                    await contractStub.UpdateTinyBlockInformation.SendAsync(
+                        TinyBlockInput.Parser.ParseFrom(transaction.Params));
+                    break;
                 case nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.UpdateValue):
                     await contractStub.UpdateValue.SendAsync(UpdateValueInput.Parser.ParseFrom(transaction.Params));
                     break;
@@ -185,9 +191,15 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         private (AEDPoSContractImplContainer.AEDPoSContractImplStub, BytesValue) GetProperContractStub(
             Timestamp currentBlockTime)
         {
-            foreach (var minerInRound in _currentRound.RealTimeMinersInformation.Values)
+            var possibleMinersInformation =
+                _currentRound.RealTimeMinersInformation.Values.Where(m =>
+                        m.ExpectedMiningTime.AddMilliseconds(-AEDPoSExtensionConstants.MiningInterval) <=
+                        currentBlockTime)
+                    .OrderBy(m => m.Order);
+            foreach (var minerInRound in possibleMinersInformation)
             {
-                if (minerInRound.ExpectedMiningTime == currentBlockTime)
+                if (minerInRound.ExpectedMiningTime <= currentBlockTime && currentBlockTime <=
+                    minerInRound.ExpectedMiningTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval))
                 {
                     var pubkey = ByteArrayHelper.FromHexString(minerInRound.Pubkey);
                     var keyPair = SampleECKeyPairs.KeyPairs.First(p => p.PublicKey.BytesEqual(pubkey));
