@@ -162,7 +162,10 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             await MineAsync(contractStub, consensusTransaction.Transactions.First());
             _currentRound = await _contractStubs.First().GetCurrentRoundInformation.CallAsync(new Empty());
             _testDataProvider.SetBlockTime(
-                currentBlockTime.AddMilliseconds(AEDPoSExtensionConstants.ActualMiningInterval));
+                consensusTransaction.Transactions.First().MethodName ==
+                nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.NextTerm)
+                    ? currentBlockTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval)
+                    : currentBlockTime.AddMilliseconds(AEDPoSExtensionConstants.ActualMiningInterval));
 
             await _testDataProvider.ResetAsync();
         }
@@ -191,36 +194,38 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         private (AEDPoSContractImplContainer.AEDPoSContractImplStub, BytesValue) GetProperContractStub(
             Timestamp currentBlockTime)
         {
-            var possibleMinersInformation =
-                _currentRound.RealTimeMinersInformation.Values.Where(m =>
-                        m.ExpectedMiningTime.AddMilliseconds(-AEDPoSExtensionConstants.MiningInterval) <=
-                        currentBlockTime)
-                    .OrderBy(m => m.Order);
-            foreach (var minerInRound in possibleMinersInformation)
+            foreach (var minerInRound in _currentRound.RealTimeMinersInformation.Values.ToList())
             {
-                if (minerInRound.ExpectedMiningTime <= currentBlockTime && currentBlockTime <=
+                if (minerInRound.ExpectedMiningTime <= currentBlockTime && currentBlockTime <
                     minerInRound.ExpectedMiningTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval))
                 {
-                    var pubkey = ByteArrayHelper.FromHexString(minerInRound.Pubkey);
-                    var keyPair = SampleECKeyPairs.KeyPairs.First(p => p.PublicKey.BytesEqual(pubkey));
-                    _testDataProvider.SetKeyPair(keyPair);
-                    return (_contractTesterFactory.Create<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
-                        _consensusContractAddress, keyPair), new BytesValue {Value = ByteString.CopyFrom(pubkey)});
+                    return ProperContractStub(minerInRound);
                 }
 
                 var minersCount = _currentRound.RealTimeMinersInformation.Count;
                 if (minerInRound.IsExtraBlockProducer &&
                     _currentRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null) == minersCount)
                 {
-                    var pubkey = ByteArrayHelper.FromHexString(minerInRound.Pubkey);
-                    var keyPair = SampleECKeyPairs.KeyPairs.First(p => p.PublicKey.BytesEqual(pubkey));
-                    _testDataProvider.SetKeyPair(keyPair);
-                    return (_contractTesterFactory.Create<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
-                        _consensusContractAddress, keyPair), new BytesValue {Value = ByteString.CopyFrom(pubkey)});
+                    return ProperContractStub(minerInRound);
+                }
+
+                if (_currentRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null) == 0 &&
+                    _currentRound.ExtraBlockProducerOfPreviousRound == minerInRound.Pubkey)
+                {
+                    return ProperContractStub(minerInRound);
                 }
             }
 
             throw new Exception("Proper contract stub not found.");
+        }
+
+        private (AEDPoSContractImplContainer.AEDPoSContractImplStub, BytesValue) ProperContractStub(MinerInRound minerInRound)
+        {
+            var pubkey = ByteArrayHelper.FromHexString(minerInRound.Pubkey);
+            var keyPair = SampleECKeyPairs.KeyPairs.First(p => p.PublicKey.BytesEqual(pubkey));
+            _testDataProvider.SetKeyPair(keyPair);
+            return (_contractTesterFactory.Create<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
+                _consensusContractAddress, keyPair), new BytesValue {Value = ByteString.CopyFrom(pubkey)});
         }
     }
 

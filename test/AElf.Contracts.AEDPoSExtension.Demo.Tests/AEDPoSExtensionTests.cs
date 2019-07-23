@@ -62,7 +62,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             // Now 2 miners produced block during first round, so there should be 2 miners' OutValue isn't null.
             {
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
-                //round.RealTimeMinersInformation.Values.Count(m => m.OutValue != null).ShouldBe(2);
+                round.RealTimeMinersInformation.Values.Count(m => m.OutValue != null).ShouldBe(2);
             }
 
             for (var i = 0; i < AEDPoSExtensionConstants.TinyBlocksNumber - 1; i++)
@@ -77,7 +77,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
                 round.RealTimeMinersInformation.Values.Count(m => m.OutValue != null).ShouldBe(3);
             }
-            
+
             for (var i = 0; i < AEDPoSExtensionConstants.TinyBlocksNumber - 1; i++)
             {
                 await BlockMiningService.MineBlockAsync();
@@ -97,7 +97,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             }
             
             // 6 more blocks will end second round.
-            for (var i = 0; i < 6; i++)
+            for (var i = 0; i < AEDPoSExtensionConstants.TinyBlocksNumber * 6; i++)
             {
                 await BlockMiningService.MineBlockAsync(new List<Transaction>());
             }

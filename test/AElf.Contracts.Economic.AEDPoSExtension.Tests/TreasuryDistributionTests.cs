@@ -30,8 +30,10 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         public async Task TreasuryDistributionTest_FirstTerm()
         {
             const int minimumBlocksToChangeTerm =
-                AEDPoSExtensionConstants.TimeEachTerm / (AEDPoSExtensionConstants.MiningInterval / 1000);
-            const int actualBlocks = minimumBlocksToChangeTerm + 10;
+                AEDPoSExtensionConstants.TimeEachTerm /
+                (AEDPoSExtensionConstants.MiningInterval / 1000) * AEDPoSExtensionConstants.TinyBlocksNumber;
+            const int actualBlocks = minimumBlocksToChangeTerm + (AEDPoSExtensionConstants.InitialKeyPairCount + 1) *
+                                     AEDPoSExtensionConstants.TinyBlocksNumber * 2;
             var minedBlocksInFirstRound = 0L;
             long distributedAmount;
             for (var i = 0; i < actualBlocks; i++)
