@@ -45,6 +45,7 @@ namespace AElf.OS.BlockSync.Application
             var block = blockWithTransactions.ToBlock();
             await _blockchainService.AddBlockAsync(block);
 
+            Logger.LogTrace($"Enqueue block attach for height {block.Height}.");
             _blockSyncQueueService.Enqueue(async () => { await _blockAttachService.AttachBlockAsync(block); },
                 KernelConstants.UpdateChainQueueName);
         }

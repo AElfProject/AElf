@@ -21,10 +21,10 @@ namespace AElf.OS.BlockSync.Application
             _announcementCacheProvider = announcementCacheProvider;
         }
 
-        public async Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement)
+        public async Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement, string senderPubKey)
         {
             if (!_announcementCacheProvider.TryAddAnnouncementCache(blockAnnouncement.BlockHash,
-                blockAnnouncement.BlockHeight))
+                blockAnnouncement.BlockHeight, senderPubKey))
             {
                 return false;
             }
@@ -39,9 +39,9 @@ namespace AElf.OS.BlockSync.Application
             return true;
         }
 
-        public async Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions)
+        public async Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions, string senderPubkey)
         {
-            if (!_announcementCacheProvider.TryAddAnnouncementCache(blockWithTransactions.GetHash(), blockWithTransactions.Height))
+            if (!_announcementCacheProvider.TryAddAnnouncementCache(blockWithTransactions.GetHash(), blockWithTransactions.Height, senderPubkey))
             {
                 return false;
             }
