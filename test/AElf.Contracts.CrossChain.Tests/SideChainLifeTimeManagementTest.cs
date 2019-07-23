@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Acs3;
 using Acs7;
 using AElf.Contracts.CrossChain;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -371,6 +372,15 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContractAsync();
             await ApproveBalanceAsync(lockedTokenAmount);
             var chainId = await InitAndCreateSideChainAsync();
+            
+            var balanceAfterCreate = GetBalanceOutput.Parser.ParseFrom(Tester.CallContractMethodAsync(TokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.GetBalance), new GetBalanceInput
+                {
+                    Owner = CrossChainContractAddress,
+                    Symbol = "ELF"
+                }).Result).Balance;
+            Assert.True(balanceAfterCreate == lockedTokenAmount);
+            
             var proposalId = await DisposalSideChainProposalAsync(new SInt32Value
             {
                 Value = chainId
@@ -384,6 +394,14 @@ namespace AElf.Contract.CrossChain.Tests
                 nameof(CrossChainContractContainer.CrossChainContractStub.GetChainStatus),
                 new SInt32Value {Value = chainId})).Value;
             Assert.True(chainStatus == (int) SideChainStatus.Terminated);
+
+            var balanceAfterDisposal = GetBalanceOutput.Parser.ParseFrom(Tester.CallContractMethodAsync(TokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.GetBalance), new GetBalanceInput
+                {
+                    Owner = CrossChainContractAddress,
+                    Symbol = "ELF"
+                }).Result).Balance;
+            Assert.True(balanceAfterDisposal == 0);
         }
 
         [Fact]
