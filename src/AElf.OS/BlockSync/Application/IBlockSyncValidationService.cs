@@ -8,5 +8,7 @@ namespace AElf.OS.BlockSync.Application
     public interface IBlockSyncValidationService
     {
         Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement, string senderPubKey);
+
+        Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions);
     }
 }

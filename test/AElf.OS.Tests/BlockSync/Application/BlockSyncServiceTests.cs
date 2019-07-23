@@ -307,5 +307,28 @@ namespace AElf.OS.BlockSync.Application
             chain.BestChainHash.ShouldBe(bestChainHash);
             chain.BestChainHeight.ShouldBe(bestChainHeight);
         }
+
+        [Fact]
+        public async Task SyncByBlock_Success()
+        {
+            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+
+            var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
+            block.ShouldBeNull();
+
+            var chain = await _blockchainService.GetChainAsync();
+            await _blockSyncService.SyncByBlockAsync(chain, new SyncBlockDto
+            {
+                BlockWithTransactions = peerBlock,
+                BatchRequestBlockCount = 5
+            });
+
+            block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
+            block.GetHash().ShouldBe(peerBlock.GetHash());
+
+            chain = await _blockchainService.GetChainAsync();
+            chain.BestChainHash.ShouldBe(peerBlock.GetHash());
+            chain.BestChainHeight.ShouldBe(peerBlock.Height);
+        }
     }
 }

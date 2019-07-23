@@ -44,7 +44,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             if (blockState != null)
                 return true;
 
-            var transactions = await _blockchainService.GetTransactionsAsync(block.TransactionHashList);
+            var transactions = await _blockchainService.GetTransactionsAsync(block.TransactionIds);
             var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
 
             return executedBlock.GetHashWithoutCache().Equals(blockHash);

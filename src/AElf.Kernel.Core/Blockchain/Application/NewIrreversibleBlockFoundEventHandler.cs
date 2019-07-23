@@ -34,13 +34,13 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     BlockHash = blockHash
                 };
-                if (block.Body.Transactions.Count == 0)
+                if (block.Body.TransactionIds.Count == 0)
                 {
                     // This will only happen during test environment
                     return;
                 }
 
-                var firstTransaction = block.Body.Transactions.First();
+                var firstTransaction = block.Body.TransactionIds.First();
                 var withBlockHash = await _transactionResultManager.GetTransactionResultAsync(
                     firstTransaction, blockHash);
                 var withPreMiningHash = await _transactionResultManager.GetTransactionResultAsync(
@@ -50,7 +50,7 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     // TransactionResult is not saved with real BlockHash
                     // Save results with real (post mining) Hash, so that it can be queried with TransactionBlockIndex
-                    foreach (var txId in block.Body.Transactions)
+                    foreach (var txId in block.Body.TransactionIds)
                     {
                         var result = await _transactionResultManager.GetTransactionResultAsync(txId, preMiningHash);
                         await _transactionResultManager.AddTransactionResultAsync(result, transactionBlockIndex.BlockHash);
@@ -61,14 +61,14 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     // TransactionResult is saved with PreMiningHash
                     // Remove results saved with PreMiningHash, as it will never be queried
-                    foreach (var txId in block.Body.Transactions)
+                    foreach (var txId in block.Body.TransactionIds)
                     {
                         await _transactionResultManager.RemoveTransactionResultAsync(txId, preMiningHash);
                     }
                 }
 
                 // Add TransactionBlockIndex
-                foreach (var txId in block.Body.Transactions)
+                foreach (var txId in block.Body.TransactionIds)
                 {
                     await _transactionBlockIndexManager.SetTransactionBlockIndexAsync(txId, transactionBlockIndex);
                 }

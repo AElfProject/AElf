@@ -19,7 +19,7 @@ namespace AElf.Kernel.Blockchain.Application
         
         Task<Chain> CreateChainAsync(Block block, IEnumerable<Transaction> transactions);
         Task AddTransactionsAsync(IEnumerable<Transaction> transactions);
-        Task<List<Transaction>> GetTransactionsAsync(IEnumerable<Hash> transactionHashes);
+        Task<List<Transaction>> GetTransactionsAsync(IEnumerable<Hash> transactionIds);
         Task AddBlockAsync(Block block);
         Task<bool> HasBlockAsync(Hash blockId);
         Task<Block> GetBlockByHashAsync(Hash blockId);
@@ -167,13 +167,13 @@ namespace AElf.Kernel.Blockchain.Application
             return await _chainManager.CreateAsync(block.GetHash());;
         }
 
-        public async Task<List<Transaction>> GetTransactionsAsync(IEnumerable<Hash> transactionHashes)
+        public async Task<List<Transaction>> GetTransactionsAsync(IEnumerable<Hash> transactionIds)
         {
             List<Transaction> transactions = new List<Transaction>();
             
-            foreach (var transactionHash in transactionHashes)
+            foreach (var transactionId in transactionIds)
             {
-                var transaction = await _transactionManager.GetTransaction(transactionHash);
+                var transaction = await _transactionManager.GetTransaction(transactionId);
                 transactions.Add(transaction);
             }
 

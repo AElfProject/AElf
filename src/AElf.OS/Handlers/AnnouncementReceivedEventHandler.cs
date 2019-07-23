@@ -42,10 +42,10 @@ namespace AElf.OS.Handlers
             return Task.CompletedTask;
         }
 
-        private async Task ProcessNewBlockAsync(BlockAnnouncement blockAnnouncement, string senderPubKey)
+        private async Task ProcessNewBlockAsync(BlockAnnouncement blockAnnouncement, string senderPubkey)
         {
             Logger.LogDebug(
-                $"Start block sync job, target height: {blockAnnouncement.BlockHeight}, target block hash: {blockAnnouncement.BlockHash}, peer: {senderPubKey}");
+                $"Start block sync job, target height: {blockAnnouncement.BlockHeight}, target block hash: {blockAnnouncement.BlockHash}, peer: {senderPubkey}");
             
             var chain = await _blockchainService.GetChainAsync();
             
@@ -58,7 +58,7 @@ namespace AElf.OS.Handlers
             {
                 SyncBlockHash = blockAnnouncement.BlockHash,
                 SyncBlockHeight = blockAnnouncement.BlockHeight,
-                SuggestedPeerPubKey = senderPubKey,
+                SuggestedPeerPubkey = senderPubkey,
                 BatchRequestBlockCount = _networkOptions.BlockIdRequestCount
             });
         }
