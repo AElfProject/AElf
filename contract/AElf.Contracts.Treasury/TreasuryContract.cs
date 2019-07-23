@@ -103,7 +103,7 @@ namespace AElf.Contracts.Treasury
             BuildTreasury();
 
             var treasuryVirtualAddress = Address.FromPublicKey(State.ProfitContract.Value.Value.Concat(
-                managingSchemeIds[0].Value.ToByteArray().CalculateHash()).ToArray());
+                managingSchemeIds[0].Value.ToByteArray().ComputeHash()).ToArray());
             State.TreasuryVirtualAddress.Value = treasuryVirtualAddress;
 
             return new Empty();

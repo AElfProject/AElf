@@ -38,9 +38,11 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 var mockBlockChainService = new Mock<IBlockchainService>();
                 mockBlockChainService.Setup(m => m.GetChainAsync()).Returns(() =>
                 {
-                    var chain = new Chain();
-                    chain.LastIrreversibleBlockHeight = 10;
-                    chain.LastIrreversibleBlockHash = Hash.Generate();
+                    var chain = new Chain
+                    {
+                        LastIrreversibleBlockHeight = 10,
+                        LastIrreversibleBlockHash = Hash.FromString("LastIrreversibleBlockHash")
+                    };
 
                     return Task.FromResult(chain);
                 });

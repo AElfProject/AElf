@@ -33,7 +33,7 @@ namespace AElf.Kernel.Consensus
                 mockService.Setup(m => m.GetChainAsync()).Returns(
                     Task.FromResult(new Chain
                     {
-                        BestChainHash = Hash.Generate(),
+                        BestChainHash = Hash.FromString("BestChainHash"),
                         BestChainHeight = 10L
                     }));
 

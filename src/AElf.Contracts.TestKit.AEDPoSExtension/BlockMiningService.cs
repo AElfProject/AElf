@@ -152,7 +152,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             {
                 Behaviour = hint.Behaviour,
                 // It doesn't matter for testing.
-                RandomHash = Hash.Generate(),
+                RandomHash = Hash.FromString("RandomHash"),
                 PreviousRandomHash = Hash.Empty,
                 Pubkey = pubkey.Value
             };

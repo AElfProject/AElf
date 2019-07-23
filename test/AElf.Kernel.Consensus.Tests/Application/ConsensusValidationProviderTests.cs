@@ -38,11 +38,11 @@ namespace AElf.Kernel.Consensus.Application
                     Height = 10,
                     SignerPubkey = ByteString.CopyFromUtf8("pubkey"),
                     Signature = ByteString.CopyFromUtf8("sig data"),
-                    PreviousBlockHash = Hash.Generate(),
+                    PreviousBlockHash = Hash.FromString("PreviousBlockHash"),
                     Time = TimestampHelper.GetUtcNow(),
-                    MerkleTreeRootOfTransactions = Hash.Generate(),
-                    MerkleTreeRootOfWorldState = Hash.Generate(),
-                    MerkleTreeRootOfTransactionStatus = Hash.Generate()
+                    MerkleTreeRootOfTransactions = Hash.FromString("MerkleTreeRootOfTransactions"),
+                    MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
+                    MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus")
                 }
             };
             result = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
@@ -79,11 +79,11 @@ namespace AElf.Kernel.Consensus.Application
                     Height = 10,
                     SignerPubkey = ByteString.CopyFromUtf8("pubkey"),
                     Signature = ByteString.CopyFromUtf8("sig data"),
-                    PreviousBlockHash = Hash.Generate(),
+                    PreviousBlockHash = Hash.FromString("PreviousBlockHash"),
                     Time = TimestampHelper.GetUtcNow(),
-                    MerkleTreeRootOfTransactions = Hash.Generate(),
-                    MerkleTreeRootOfWorldState = Hash.Generate(),
-                    MerkleTreeRootOfTransactionStatus = Hash.Generate()
+                    MerkleTreeRootOfTransactions = Hash.FromString("MerkleTreeRootOfTransactions"),
+                    MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
+                    MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus")
                 }
             };
             result = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
@@ -95,11 +95,11 @@ namespace AElf.Kernel.Consensus.Application
                 Height = 10,
                 SignerPubkey = ByteString.CopyFromUtf8("pubkey"),
                 Signature = ByteString.CopyFromUtf8("sig data"),
-                PreviousBlockHash = Hash.Generate(),
+                PreviousBlockHash = Hash.FromString("PreviousBlockHash"),
                 Time = TimestampHelper.GetUtcNow(),
-                MerkleTreeRootOfTransactions = Hash.Generate(),
-                MerkleTreeRootOfWorldState = Hash.Generate(),
-                MerkleTreeRootOfTransactionStatus = Hash.Generate(),
+                MerkleTreeRootOfTransactions = Hash.FromString("MerkleTreeRootOfTransactions"),
+                MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
+                MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus")
                 ExtraData =
                 {
                     ByteString.CopyFromUtf8("extra data")
@@ -131,11 +131,11 @@ namespace AElf.Kernel.Consensus.Application
                     Height = 10,
                     SignerPubkey = ByteString.CopyFromUtf8("pubkey"),
                     Signature = ByteString.CopyFromUtf8("sig data"),
-                    PreviousBlockHash = Hash.Generate(),
+                    PreviousBlockHash = Hash.FromString("PreviousBlockHash"),
                     Time = TimestampHelper.GetUtcNow(),
-                    MerkleTreeRootOfTransactions = Hash.Generate(),
-                    MerkleTreeRootOfWorldState = Hash.Generate(),
-                    MerkleTreeRootOfTransactionStatus = Hash.Generate()
+                    MerkleTreeRootOfTransactions = Hash.FromString("MerkleTreeRootOfTransactions"),
+                    MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
+                    MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus")
                 }
             };
             result = await _blockValidationProvider.ValidateBlockAfterExecuteAsync(block);
@@ -147,11 +147,11 @@ namespace AElf.Kernel.Consensus.Application
                 Height = 10,
                 SignerPubkey = ByteString.CopyFromUtf8("pubkey"),
                 Signature = ByteString.CopyFromUtf8("sig data"),
-                PreviousBlockHash = Hash.Generate(),
+                PreviousBlockHash = Hash.FromString("PreviousBlockHash"),
                 Time = TimestampHelper.GetUtcNow(),
-                MerkleTreeRootOfTransactions = Hash.Generate(),
-                MerkleTreeRootOfWorldState = Hash.Generate(),
-                MerkleTreeRootOfTransactionStatus = Hash.Generate(),
+                MerkleTreeRootOfTransactions = Hash.FromString("MerkleTreeRootOfTransactions"),
+                MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
+                MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus")
                 ExtraData =
                 {
                     ByteString.CopyFromUtf8("extra data")

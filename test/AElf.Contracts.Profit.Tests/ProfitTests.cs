@@ -438,7 +438,7 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                SchemeId = Hash.Generate(),
+                SchemeId = Hash.FromString("SchemeId"),
                 BeneficiaryShare = new BeneficiaryShare {Beneficiary = Address.Generate(), Shares = 100},
             });
 
@@ -631,7 +631,7 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await creator.RemoveBeneficiary.SendAsync(new RemoveBeneficiaryInput
             {
-                SchemeId = Hash.Generate(),
+                SchemeId = Hash.FromString("SchemeId"),
                 Beneficiary = Address.Generate()
             });
 
@@ -728,7 +728,7 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await user.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
-                SchemeId = Hash.Generate(),
+                SchemeId = Hash.FromString("SchemeId"),
                 Amount = amount,
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 1
@@ -1086,7 +1086,7 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
-                SchemeId = Hash.Generate(),
+                SchemeId = Hash.FromString("SchemeId"),
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 

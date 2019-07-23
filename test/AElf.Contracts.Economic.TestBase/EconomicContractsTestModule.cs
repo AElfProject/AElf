@@ -39,7 +39,7 @@ namespace AElf.Contracts.Economic.TestBase
 
         public Hash GetRandomHash(Hash bestChainBlockHash)
         {
-            return Hash.Generate();
+            return Hash.FromMessage(bestChainBlockHash);
         }
 
         public void SetGeneratedBlockPreviousBlockInformation(Hash blockHash, long blockHeight)
@@ -48,7 +48,7 @@ namespace AElf.Contracts.Economic.TestBase
 
         public Hash GetLatestGeneratedBlockRandomHash()
         {
-            return Hash.Generate();
+            return Hash.FromString("LatestGeneratedBlockRandomHash");
         }
     }
 }

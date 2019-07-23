@@ -17,11 +17,11 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
         [Fact]
         public void RandomHash_Test()
         {
-            var blockHash = Hash.Generate();
+            var blockHash = Hash.FromString("blockHash");
             var result = _randomHashCacheService.GetRandomHash(blockHash);
             result.ShouldBe(Hash.Empty);
 
-            var randomHash = Hash.Generate();
+            var randomHash = Hash.FromString("randomHash");
             _randomHashCacheService.SetRandomHash(blockHash, randomHash);
             
             var queryResult = _randomHashCacheService.GetRandomHash(blockHash);
@@ -31,7 +31,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
         [Fact]
         public void GetLatestGeneratedBlockRandomHash_Test()
         {
-            var blockHash = Hash.Generate(); 
+            var blockHash = Hash.FromString("blockHash");
             const long blockHeight = 5L;
             _randomHashCacheService.SetGeneratedBlockPreviousBlockInformation(blockHash, blockHeight);
             var queryResult = _randomHashCacheService.GetLatestGeneratedBlockRandomHash();
@@ -42,11 +42,11 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
         public void SetGeneratedBlockPreviousBlockInformation()
         {
             const long blockHeight = 5L;
-            var randomHash1 = Hash.Generate();
-            var previousHash = Hash.Generate();
+            var randomHash1 = Hash.FromString("randomHash1");
+            var previousHash = Hash.FromString("previousHash");
             
-            var blockHash = Hash.Generate();
-            var randomHash2 = Hash.Generate();
+            var blockHash = Hash.FromString("blockHash");
+            var randomHash2 = Hash.FromString("randomHash2");
             
             _randomHashCacheService.SetRandomHash(previousHash, randomHash1);
             _randomHashCacheService.SetGeneratedBlockPreviousBlockInformation(previousHash, blockHeight);

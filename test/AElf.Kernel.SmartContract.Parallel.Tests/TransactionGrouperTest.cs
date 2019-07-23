@@ -58,7 +58,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             var chainContext = new ChainContext
             {
                 BlockHeight = 10,
-                BlockHash = Hash.Generate()
+                BlockHash = Hash.FromString("blockHash")
             };
             var grouped = await Grouper.GroupAsync(chainContext, allTxns);
             var groupedResources = grouped.Parallelizables.Select(g => g.Select(t => txLookup[t.Params]).ToList()).ToList();

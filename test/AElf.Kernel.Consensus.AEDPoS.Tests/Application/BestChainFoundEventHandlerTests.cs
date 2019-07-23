@@ -21,12 +21,12 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
         {
             var eventData = new BestChainFoundEventData
             {
-                BlockHash = Hash.Generate(),
+                BlockHash = Hash.FromString("BlockHash"),
                 BlockHeight = 11L,
                 ExecutedBlocks = new List<Hash>
                 {
-                    Hash.Generate(),
-                    Hash.Generate()
+                    Hash.FromString("element1"),
+                    Hash.FromString("element2"),
                 }
             };
             

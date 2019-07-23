@@ -26,7 +26,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         [Fact]
         public void OffChainDecryptMessageTest()
         {
-            var message = Hash.Generate().DumpByteArray();
+            var message = Hash.FromString("message").ToByteArray();
             var secrets =
                 SecretSharingHelper.EncodeSecret(message, MinimumCount, EconomicContractsTestConstants.InitialCoreDataCenterCount);
             var encryptedValues = new Dictionary<string, byte[]>();
@@ -76,7 +76,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var currentRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
             var randomHashes = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount)
-                .Select(_ => Hash.Generate()).ToList();
+                .Select(_ => Hash.FromString("randomHashes")).ToList();
             var triggers = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount).Select(i =>
                 new AElfConsensusTriggerInformation
                 {
@@ -121,7 +121,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var firstRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
             var randomHashes = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount)
-                .Select(_ => Hash.Generate()).ToList();
+                .Select(_ => Hash.FromString("randomHashes")).ToList();
             var triggers = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount).Select(i =>
                 new AElfConsensusTriggerInformation
                 {

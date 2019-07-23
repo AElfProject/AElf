@@ -253,7 +253,7 @@ namespace AElf.Sdk.CSharp.Tests
         [Fact]
         public void SendVirtualInline_Test()
         {
-            SmartBridgeContext.SendVirtualInline(Hash.Generate(), Address.Generate(), "TestMethod", new CustomContract.StringInput
+            SmartBridgeContext.SendVirtualInline(Hash.FromString("SendVirtualInline_Test"), Address.Generate(), "TestMethod", new CustomContract.StringInput
             {
                 StringValue = "test send virtual inline"
             });

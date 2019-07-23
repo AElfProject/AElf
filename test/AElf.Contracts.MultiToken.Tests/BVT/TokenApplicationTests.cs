@@ -327,7 +327,7 @@ namespace AElf.Contracts.MultiToken
                 result.Balance.ShouldBe(Amount);
             }
 
-            var lockId = Hash.Generate();
+            var lockId = Hash.FromString("lockId");
 
             // Lock.
             var lockTokenResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput
@@ -415,7 +415,7 @@ namespace AElf.Contracts.MultiToken
                 result.Balance.ShouldBe(Amount);
             }
             // Try to lock.
-            var lockId = Hash.Generate();
+            var lockId = Hash.FromString("lockId");
             var defaultSenderStub =
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
             // Lock.
@@ -453,7 +453,7 @@ namespace AElf.Contracts.MultiToken
                 result.Balance.ShouldBe(Amount);
             }
 
-            var lockId = Hash.Generate();
+            var lockId = Hash.FromString("lockId");
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
             {
@@ -484,7 +484,7 @@ namespace AElf.Contracts.MultiToken
             })).TransactionResult;
             transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var lockId = Hash.Generate();
+            var lockId = Hash.FromString("lockId");
 
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
@@ -553,7 +553,7 @@ namespace AElf.Contracts.MultiToken
             })).TransactionResult;
             transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var lockId = Hash.Generate();
+            var lockId = Hash.FromString("lockId");
 
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
@@ -591,7 +591,7 @@ namespace AElf.Contracts.MultiToken
             })).TransactionResult;
             transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var lockId = Hash.Generate();
+            var lockId = Hash.FromString("lockId");
 
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
@@ -640,7 +640,7 @@ namespace AElf.Contracts.MultiToken
             })).TransactionResult;
             transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var lockId = Hash.Generate();
+            var lockId = Hash.FromString("lockId");
 
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
@@ -657,8 +657,8 @@ namespace AElf.Contracts.MultiToken
             {
                 Address = _address,
                 Amount = Amount,
-                Symbol = SymbolForTest,
-                LockId = Hash.Generate(),
+                Symbol = SymbolForTest, 
+                LockId = Hash.FromString("lockId")
                 Usage = "Testing."
             })).TransactionResult;
 
@@ -678,7 +678,7 @@ namespace AElf.Contracts.MultiToken
             })).TransactionResult;
             transferResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var lockId = Hash.Generate();
+            var lockId = Hash.FromString("lockId");
 
             // Lock.
             var lockResult = (await BasicFunctionContractStub.LockToken.SendAsync(new LockTokenInput()
