@@ -3,6 +3,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS;
@@ -16,7 +17,10 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         protected IBlockExecutingService BlockExecutingService { get; set; }
         protected IBlockchainService BlockchainService { get; set; }
         protected IMinerService MinerService { get; set; }
+        
+        protected ISmartContractAddressService SmartContractAddressService { get; set; }
         protected ITransactionResultManager TransactionResultManager { get; set; }
+        protected ITransactionReadOnlyExecutionService TransactionReadOnlyExecutionService { get; set; }
         protected INotModifiedCachedStateStore<BlockStateSet> BlockStateSets { get; set; }
         protected OSTestHelper OsTestHelper { get; set; }
 
@@ -31,7 +35,9 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             BlockchainService = GetRequiredService<IBlockchainService>();
             BlockExecutingService = GetRequiredService<IBlockExecutingService>();
             MinerService = GetRequiredService<IMinerService>();
+            SmartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             TransactionResultManager = GetRequiredService<ITransactionResultManager>();
+            TransactionReadOnlyExecutionService = GetRequiredService<ITransactionReadOnlyExecutionService>();
             BlockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
             OsTestHelper = GetRequiredService<OSTestHelper>();
             

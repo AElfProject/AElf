@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
@@ -204,6 +205,27 @@ namespace AElf.Kernel.SmartContract
 
             _bridgeContext.UpdateContract(Address.Zero, registration, null);
         }
+
+        [Fact]
+        public void Update_Contract_WithoutPermission()
+        {
+            _bridgeContext.TransactionContext.Transaction = new Transaction()
+            {
+                To = Address.Generate()
+            };
+
+            var registration = new SmartContractRegistration
+            {
+                Category = KernelConstants.DefaultRunnerCategory,
+                Code = ByteString.Empty,
+                CodeHash = Hash.Empty
+            };
+
+            Should.Throw<NoPermissionException>(() =>
+            {
+                _bridgeContext.UpdateContract(Address.Zero, registration, null);
+            });
+        }
         
         private IHostSmartContractBridgeContext CreateNewContext()
         {
@@ -229,7 +251,7 @@ namespace AElf.Kernel.SmartContract
             var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, transactionContext.Transaction
                 .GetHash().ToByteArray());
             transactionContext.Transaction.Signature = ByteString.CopyFrom(signature);
-            _bridgeContext.TransactionContext = transactionContext;
+            _bridgeContext.Initialize(transactionContext);
 
             return _bridgeContext;
         }
