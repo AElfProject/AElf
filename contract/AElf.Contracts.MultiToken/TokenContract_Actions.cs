@@ -21,13 +21,10 @@ namespace AElf.Contracts.MultiToken
             var parliamentAuthContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
             State.Owner.Value = Context.Call<Address>(parliamentAuthContractAddress,
-                nameof(ParliamentAuthContractContainer.ParliamentAuthContractReferenceState.GetOrganization),
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractReferenceState.GetGenesisOwnerAddress),
                 new Empty());
-            State.IsMainChain.Value = input.IsMainChain;
-            foreach (var kv in input.CrossChainTransferWhiteList)
-            {
-                State.CrossChainTransferWhiteList[kv.ChainId] = kv.TokenContractAddress;
-            }
+            State.IsMainChain.Value = input.MainChainTokenContractAddress == null;
+            State.MainChainTokenContractAddress.Value = input.MainChainTokenContractAddress;
             
             return new Empty();
         }
@@ -40,8 +37,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Create(CreateInput input)
         {
             Assert(State.IsMainChain.Value, "Token creation is not allowed.");
-            var existing = State.TokenInfos[input.Symbol];
-            Assert(existing == null || existing == new TokenInfo(), "Token already exists.");
+            
             RegisterTokenInfo(new TokenInfo
             {
                 Symbol = input.Symbol,
@@ -136,7 +132,51 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty CrossChainCreateToken(CrossChainCreateTokenInput input)
         {
-            return base.CrossChainCreateToken(input);
+            var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
+            var originalTransactionId = originalTransaction.GetHash();
+            ValidateCrossChainContractState();
+            AssertMainChainTokenContractAddress(originalTransaction.To);
+            Assert(
+                originalTransaction.MethodName == nameof(Create) ||
+                originalTransaction.MethodName == nameof(CreateNativeToken), "Invalid token creation transaction.");
+            var verificationInput = new VerifyTransactionInput
+            {
+                TransactionId = originalTransactionId,
+                ParentChainHeight = input.ParentChainHeight,
+                VerifiedChainId = input.FromChainId
+            };
+            verificationInput.Path.AddRange(input.MerklePath);
+            CrossChainVerify(verificationInput);
+
+            CreateInput creationInput;
+            if (originalTransaction.MethodName == nameof(Create))
+            {
+                creationInput = CreateInput.Parser.ParseFrom(originalTransaction.Params);
+            }
+            else
+            {
+                var createNativeTokenInput = CreateNativeTokenInput.Parser.ParseFrom(originalTransaction.Params);
+                creationInput = new CreateInput
+                {
+                    Symbol = createNativeTokenInput.Symbol,
+                    TokenName = createNativeTokenInput.TokenName,
+                    TotalSupply = createNativeTokenInput.TotalSupply,
+                    Issuer = createNativeTokenInput.Issuer,
+                    Decimals = createNativeTokenInput.Decimals,
+                    IsBurnable = true
+                };
+            }
+
+            RegisterTokenInfo(new TokenInfo
+            {
+                Symbol = creationInput.Symbol,
+                TokenName = creationInput.TokenName,
+                TotalSupply = creationInput.TotalSupply,
+                Decimals = creationInput.Decimals,
+                Issuer = creationInput.Issuer,
+                IsBurnable = creationInput.IsBurnable
+            });
+            return new Empty();
         }
 
         /// <summary>

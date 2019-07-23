@@ -66,8 +66,7 @@ service TokenContract {
 }
 
 message InitializeInput {
-    repeated CrossChainTransferRegistration cross_chain_transfer_white_list = 1;
-    bool is_main_chain = 2;
+    aelf.Address main_chain_token_contract_address = 1;
 }
 
 message TokenInfo {
