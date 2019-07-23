@@ -561,7 +561,7 @@ namespace AElf.Contract.CrossChain.Tests
             var fakeHash1 = Hash.FromString("fake1");
             var fakeHash2 = Hash.FromString("fake2");
 
-            var rawBytes = txId.DumpByteArray()
+            var rawBytes = txId.ToByteArray()
                 .Concat(EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString()))
                 .ToArray();
             var hash = Hash.FromRawBytes(rawBytes);
@@ -718,7 +718,7 @@ namespace AElf.Contract.CrossChain.Tests
             var fakeHash1 = Hash.FromString("fake1");
             var fakeHash2 = Hash.FromString("fake2");
 
-            var rawBytes = crossChainTransferTransaction.GetHash().DumpByteArray()
+            var rawBytes = crossChainTransferTransaction.GetHash().ToByteArray()
                 .Concat(EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString())).ToArray();
             var hash = Hash.FromRawBytes(rawBytes);
             binaryMerkleTree.AddNodes(new[] {hash, fakeHash1, fakeHash2});

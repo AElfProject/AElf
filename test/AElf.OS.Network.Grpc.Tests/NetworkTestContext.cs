@@ -49,7 +49,7 @@ namespace AElf.OS.Network
             {
                 ChainId = chainId,
                 Height = height,
-                PreviousBlockHash = Hash.Generate(),
+                PreviousBlockHash = Hash.FromRawBytes(new byte[]{1, 2, 3}),
                 Time = TimestampHelper.GetUtcNow(),
                 MerkleTreeRootOfTransactions = Hash.Empty,
                 MerkleTreeRootOfWorldState = Hash.Empty,

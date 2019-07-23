@@ -32,7 +32,7 @@ namespace AElf.OS.Network
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _pool = GetRequiredService<IPeerPool>();
 
-            _grpcPeer = GrpcTestPeerFactory.CreateNewPeer();
+            _grpcPeer = GrpcTestPeerHelpers.CreateNewPeer();
             _pool.TryAddPeer(_grpcPeer);
         }
 
@@ -44,7 +44,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task RequestBlockAsync_Success()
         {
-            var block = await _grpcPeer.GetBlockByHashAsync(Hash.Generate());
+            var block = await _grpcPeer.GetBlockByHashAsync(Hash.FromRawBytes(new byte[]{1,2,7}));
             block.ShouldBeNull();
 
             var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
@@ -52,12 +52,12 @@ namespace AElf.OS.Network
             block.ShouldNotBeNull();
         }
 
-        [Fact(Skip="Improve the logic of this test.")]
+        [Fact(Skip = "Improve the logic of this test.")]
         public async Task RequestBlockAsync_Failed()
         {
-            _grpcPeer = GrpcTestPeerFactory.CreateNewPeer("127.0.0.1:3000", false);
+            _grpcPeer = GrpcTestPeerHelpers.CreateNewPeer("127.0.0.1:3000", false);
             _pool.TryAddPeer(_grpcPeer);
-            
+
             var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
             var block = await _grpcPeer.GetBlockByHashAsync(blockHeader.GetHash());
             
@@ -72,7 +72,7 @@ namespace AElf.OS.Network
 
             var blocks = await _grpcPeer.GetBlocksAsync(genesisHash, 5);
             blocks.Count.ShouldBe(5);
-            blocks.Select(o => o.Height).ShouldBe(new long[]{2, 3, 4, 5, 6});
+            blocks.Select(o => o.Height).ShouldBe(new long[] {2, 3, 4, 5, 6});
         }
 
         // TODO
@@ -85,15 +85,15 @@ namespace AElf.OS.Network
                 received = a;
                 return Task.CompletedTask;
             });
-            
+
             var header = new BlockAnnouncement
             {
                 BlockHeight = 100,
-                BlockHash = Hash.Generate()
+                BlockHash = Hash.FromRawBytes(new byte[]{9,2})
             };
-            
+
             await _grpcPeer.SendAnnouncementAsync(header);
-            
+
             received.ShouldNotBeNull();
             received.Announce.BlockHeight.ShouldBe(100);
         }

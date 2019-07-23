@@ -6,7 +6,7 @@ using Moq;
 
 namespace AElf.OS.Network
 {
-    public static class GrpcTestPeerFactory
+    public static class GrpcTestPeerHelpers
     {
         private static Channel CreateMockChannel() => new Channel("127.0.0.1:9999", ChannelCredentials.Insecure);
         

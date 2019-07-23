@@ -62,6 +62,17 @@ namespace AElf.OS.Network.Grpc
             Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a handshake.");
             return await _connectionService.CheckIncomingHandshakeAsync(context.GetPublicKey(), request.Handshake);
         }
+        
+        public override async Task<VoidReply> BlockBroadcastStream(IAsyncStreamReader<BlockWithTransactions> requestStream, ServerCallContext context)
+        {
+            await requestStream.ForEachAsync(r =>
+            {
+                _ = EventBus.PublishAsync(new BlockReceivedEvent(r,context.GetPublicKey()));
+                return Task.CompletedTask;
+            });
+            
+            return new VoidReply();
+        }
 
         public override async Task<VoidReply> AnnouncementBroadcastStream(IAsyncStreamReader<BlockAnnouncement> requestStream, ServerCallContext context)
         {

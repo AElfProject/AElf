@@ -42,7 +42,7 @@ namespace AElf.OS.Network
                 mockDialer.Setup(d => d.DialPeerAsync(It.Is<string>(ip => ip == NetworkTestConstants.FakeIpEndpoint)))
                     .Returns<string>(s =>
                     {
-                        var peer = GrpcTestPeerFactory.CreateBasicPeer(NetworkTestConstants.FakeIpEndpoint, NetworkTestConstants.FakePubkey);
+                        var peer = GrpcTestPeerHelpers.CreateBasicPeer(NetworkTestConstants.FakeIpEndpoint, NetworkTestConstants.FakePubkey);
                         netTestHelper.AddDialedPeer(peer);
                         return Task.FromResult(peer);
                     });
@@ -50,7 +50,7 @@ namespace AElf.OS.Network
                 mockDialer.Setup(d => d.DialPeerAsync(It.Is<string>(ip => ip == NetworkTestConstants.FakeIpEndpoint2)))
                     .Returns<string>(s =>
                     {
-                        var peer = GrpcTestPeerFactory.CreateBasicPeer(NetworkTestConstants.FakeIpEndpoint2, NetworkTestConstants.FakePubkey);
+                        var peer = GrpcTestPeerHelpers.CreateBasicPeer(NetworkTestConstants.FakeIpEndpoint2, NetworkTestConstants.FakePubkey);
                         netTestHelper.AddDialedPeer(peer);
                         return Task.FromResult(peer);
                     });
@@ -65,7 +65,7 @@ namespace AElf.OS.Network
                         mockClient.Setup(m => m.DoHandshakeAsync(It.IsAny<HandshakeRequest>(), It.IsAny<Metadata>(), It.IsAny<DateTime?>(), CancellationToken.None))
                             .Throws(new AggregateException());
                         
-                        var peer = GrpcTestPeerFactory.CreatePeerWithClient(NetworkTestConstants.FakeIpEndpoint2, NetworkTestConstants.FakePubkey, 
+                        var peer = GrpcTestPeerHelpers.CreatePeerWithClient(NetworkTestConstants.FakeIpEndpoint2, NetworkTestConstants.FakePubkey, 
                             mockClient.Object);
                         
                         netTestHelper.AddDialedPeer(peer);
@@ -88,7 +88,7 @@ namespace AElf.OS.Network
                         mockClient.Setup(m => m.DoHandshakeAsync(It.IsAny<HandshakeRequest>(), It.IsAny<Metadata>(), It.IsAny<DateTime?>(), 
                             CancellationToken.None)).Returns(handshakeCall);
                         
-                        var peer = GrpcTestPeerFactory.CreatePeerWithClient(NetworkTestConstants.GoodPeerEndpoint,
+                        var peer = GrpcTestPeerHelpers.CreatePeerWithClient(NetworkTestConstants.GoodPeerEndpoint,
                             NetworkTestConstants.FakePubkey, mockClient.Object);
                             
                         netTestHelper.AddDialedPeer(peer);
@@ -112,7 +112,7 @@ namespace AElf.OS.Network
                             mockClient.Setup(m => m.DoHandshakeAsync(It.IsAny<HandshakeRequest>(), It.IsAny<Metadata>(), It.IsAny<DateTime?>(), 
                                     CancellationToken.None)).Returns(handshakeCall);
                         
-                            var peer = GrpcTestPeerFactory.CreatePeerWithClient(NetworkTestConstants.GoodPeerEndpoint,
+                            var peer = GrpcTestPeerHelpers.CreatePeerWithClient(NetworkTestConstants.GoodPeerEndpoint,
                                 keypair.PublicKey.ToHex(), mockClient.Object);
                             
                             netTestHelper.AddDialedPeer(peer);

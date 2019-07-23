@@ -27,7 +27,7 @@ namespace AElf.OS.Network
         private GrpcPeer AddPeerToPool(string ip = NetworkTestConstants.FakeIpEndpoint, 
             string pubkey = NetworkTestConstants.FakePubkey)
         {
-            var peer = GrpcTestPeerFactory.CreateBasicPeer(ip, pubkey);
+            var peer = GrpcTestPeerHelpers.CreateBasicPeer(ip, pubkey);
             bool added = _peerPool.TryAddPeer(peer);
             
             Assert.True(added);
