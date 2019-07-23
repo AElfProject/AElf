@@ -658,7 +658,7 @@ namespace AElf.Contracts.MultiToken
                 Address = _address,
                 Amount = Amount,
                 Symbol = SymbolForTest, 
-                LockId = Hash.FromString("lockId"),
+                LockId = Hash.FromString("lockId1"),
                 Usage = "Testing."
             })).TransactionResult;
 
