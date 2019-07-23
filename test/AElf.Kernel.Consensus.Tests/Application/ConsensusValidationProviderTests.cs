@@ -99,7 +99,7 @@ namespace AElf.Kernel.Consensus.Application
                 Time = TimestampHelper.GetUtcNow(),
                 MerkleTreeRootOfTransactions = Hash.FromString("MerkleTreeRootOfTransactions"),
                 MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
-                MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus")
+                MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus"),
                 ExtraData =
                 {
                     ByteString.CopyFromUtf8("extra data")
@@ -151,7 +151,7 @@ namespace AElf.Kernel.Consensus.Application
                 Time = TimestampHelper.GetUtcNow(),
                 MerkleTreeRootOfTransactions = Hash.FromString("MerkleTreeRootOfTransactions"),
                 MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
-                MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus")
+                MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus"),
                 ExtraData =
                 {
                     ByteString.CopyFromUtf8("extra data")

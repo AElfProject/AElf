@@ -216,7 +216,7 @@ namespace AElf.Contracts.Economic
             var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(State.ParliamentAuthContract.Value),
                 Hash.FromMessage(createOrganizationInput));
             return Address.FromPublicKey(State.ParliamentAuthContract.Value.Value.Concat(
-                organizationHash.Value.ToByteArray().CalculateHash()).ToArray());
+                organizationHash.Value.ToByteArray().ComputeHash()).ToArray());
         }
 
         private void InitializeTokenConverterContract()
