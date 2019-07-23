@@ -1,10 +1,11 @@
-using System;
 using AElf.Types;
 
 namespace AElf
 {
     public static class AddressHelper
     {
+        public static Address Zero { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
+
         public static bool VerifyFormattedAddress(string formattedAddress)
         {
             if (string.IsNullOrEmpty(formattedAddress))

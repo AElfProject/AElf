@@ -76,7 +76,7 @@ namespace AElf.Contracts.Vote
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
                 var voter = SampleECKeyPairs.KeyPairs[11];
-                var option = Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted();
+                var option = NewGuidAddress.GetFormatted();
                 var voteResult = await Vote(voter, registerItem.VotingItemId, option, 100);
                 voteResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 voteResult.Error.Contains($"Option {option} not found").ShouldBeTrue();
@@ -169,7 +169,7 @@ namespace AElf.Contracts.Vote
                 var otherUser = SampleECKeyPairs.KeyPairs[10];
                 var transactionResult = (await GetVoteContractTester(otherUser).AddOption.SendAsync(new AddOptionInput
                 {
-                    Option = Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted(),
+                    Option = NewGuidAddress.GetFormatted(),
                     VotingItemId = registerItem.VotingItemId
                 })).TransactionResult;
 
@@ -193,7 +193,7 @@ namespace AElf.Contracts.Vote
             //add success
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var address = Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted();
+                var address = NewGuidAddress.GetFormatted();
                 var transactionResult = (await VoteContractStub.AddOption.SendAsync(new AddOptionInput
                 {
                     Option = address,
@@ -231,7 +231,7 @@ namespace AElf.Contracts.Vote
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
                 var transactionResult = (await VoteContractStub.RemoveOption.SendAsync(new RemoveOptionInput
                 {
-                    Option = Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted(),
+                    Option = NewGuidAddress.GetFormatted(),
                     VotingItemId = registerItem.VotingItemId
                 })).TransactionResult;
 
@@ -269,8 +269,8 @@ namespace AElf.Contracts.Vote
                     VotingItemId = registerItem.VotingItemId,
                     Options =
                     {
-                        Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted(),
-                        Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted()
+                        NewGuidAddress.GetFormatted(),
+                        NewGuidAddress.GetFormatted()
                     }
                 })).TransactionResult;
 
@@ -286,7 +286,7 @@ namespace AElf.Contracts.Vote
                     VotingItemId = registerItem.VotingItemId,
                     Options =
                     {
-                        Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted(),
+                        NewGuidAddress.GetFormatted(),
                         registerItem.Options[1]
                     }
                 })).TransactionResult;
@@ -303,8 +303,8 @@ namespace AElf.Contracts.Vote
                     VotingItemId = registerItem.VotingItemId,
                     Options =
                     {
-                        Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted(),
-                        Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted()
+                        NewGuidAddress.GetFormatted(),
+                        NewGuidAddress.GetFormatted()
                     }
                 })).TransactionResult;
 
@@ -346,7 +346,7 @@ namespace AElf.Contracts.Vote
                     Options =
                     {
                         registerItem.Options[0],
-                        Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted()
+                        NewGuidAddress.GetFormatted()
                     }
                 })).TransactionResult;
 
