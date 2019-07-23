@@ -103,15 +103,15 @@ namespace AElf.OS.BlockSync.Application
                 {
                     EnqueueFetchBlockJob(syncAnnouncementDto, retryTimes - 1);
                 }
-                else if (_announcementCacheProvider.TryGetAnnouncementNextSender(syncAnnouncementDto.SyncBlockHash, out var senderPubKey))
+                else if (_announcementCacheProvider.TryGetAnnouncementNextSender(syncAnnouncementDto.SyncBlockHash, out var senderPubkey))
                 {
                     Logger.LogTrace(
-                        $"Try get announcement next sender for block height {syncAnnouncementDto.SyncBlockHeight}, block hash: {syncAnnouncementDto.SyncBlockHash}, sender pub key: {senderPubKey}.");
+                        $"Try get announcement next sender for block height {syncAnnouncementDto.SyncBlockHeight}, block hash: {syncAnnouncementDto.SyncBlockHash}, sender pub key: {senderPubkey}.");
                     EnqueueFetchBlockJob(new SyncAnnouncementDto
                     {
                         SyncBlockHash = syncAnnouncementDto.SyncBlockHash,
                         SyncBlockHeight = syncAnnouncementDto.SyncBlockHeight,
-                        SuggestedPeerPubKey = senderPubKey,
+                        SuggestedPeerPubkey = senderPubkey,
                         BatchRequestBlockCount = syncAnnouncementDto.BatchRequestBlockCount
                     }, BlockSyncConstants.FetchBlockRetryTimes);
                 }
