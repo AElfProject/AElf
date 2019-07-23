@@ -546,7 +546,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
                     });
 
                 var signature =
-                    CryptoHelper.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
+                    CryptoHelper.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().ToByteArray());
                 transaction.Signature = ByteString.CopyFrom(signature);
 
                 transactionList.Add(transaction); 

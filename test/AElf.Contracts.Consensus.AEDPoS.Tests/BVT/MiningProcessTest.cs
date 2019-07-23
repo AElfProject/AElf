@@ -24,7 +24,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             
             var firstRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
 
-            var randomHashes = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(_ => Hash.Generate()).ToList();
+            var randomHashes = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(_ => Hash.FromString("hash")).ToList();
             var triggers = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(i => new AElfConsensusTriggerInformation
             {
                 Pubkey = ByteString.CopyFrom(InitialMinersKeyPairs[i].PublicKey),
@@ -91,7 +91,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // First candidate cheat others with in value.
             var oneCandidate = GetAEDPoSContractStub(CandidatesKeyPairs[0]);
             var anotherCandidate = GetAEDPoSContractStub(CandidatesKeyPairs[1]);
-            var randomHash = Hash.Generate();
+            var randomHash = Hash.FromString("hash2");
             var input = new AElfConsensusTriggerInformation
             {
                 Behaviour = AElfConsensusBehaviour.UpdateValue,
@@ -127,7 +127,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     Behaviour = AElfConsensusBehaviour.UpdateValue,
                     PreviousRandomHash = Hash.FromMessage(randomHash), // Not same as before.
-                    RandomHash = Hash.Generate(), // Don't care this value in current test case.
+                    RandomHash = Hash.FromString("hash3"), // Don't care this value in current test case.
                     Pubkey = ByteString.CopyFrom(CandidatesKeyPairs[0].PublicKey)
                 }.ToBytesValue());
             var cheatInformation = new AElfConsensusHeaderInformation();
@@ -160,7 +160,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var firstRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
 
-            var randomHashes = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(_ => Hash.Generate()).ToList();
+            var randomHashes = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(_ => Hash.FromString("hash3")).ToList();
             var triggers = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(i => new AElfConsensusTriggerInformation
             {
                 Pubkey = ByteString.CopyFrom(InitialMinersKeyPairs[i].PublicKey),
@@ -212,7 +212,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // First candidate cheat others with in value.
             var oneCandidate = GetAEDPoSContractStub(CandidatesKeyPairs[0]);
             var anotherCandidate = GetAEDPoSContractStub(CandidatesKeyPairs[1]);
-            var randomHash = Hash.Generate();
+            var randomHash = Hash.FromString("hash5");
             var informationOfSecondRound = (await oneCandidate.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
@@ -240,7 +240,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     Behaviour = AElfConsensusBehaviour.UpdateValue,
                     PreviousRandomHash = Hash.FromMessage(randomHash), // Not same as before.
-                    RandomHash = Hash.Generate(), // Don't care this value in current test case.
+                    RandomHash = Hash.FromString("hash6"), // Don't care this value in current test case.
                     Pubkey = ByteString.CopyFrom(CandidatesKeyPairs[0].PublicKey)
                 }.ToBytesValue())).ToConsensusHeaderInformation();
             await oneCandidate.UpdateValue.SendAsync(
