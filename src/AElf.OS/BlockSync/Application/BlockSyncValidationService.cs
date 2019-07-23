@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -32,6 +33,22 @@ namespace AElf.OS.BlockSync.Application
             {
                 Logger.LogWarning(
                     $"Receive lower header {{ hash: {blockAnnouncement.BlockHash}, height: {blockAnnouncement.BlockHeight} }} ignore.");
+                return false;
+            }
+
+            return true;
+        }
+
+        public async Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions)
+        {
+            if (!_announcementCacheProvider.TryAddAnnouncementCache(blockWithTransactions.GetHash(), blockWithTransactions.Height))
+            {
+                return false;
+            }
+
+            if (blockWithTransactions.Height <= chain.LastIrreversibleBlockHeight)
+            {
+                Logger.LogWarning($"Receive lower block {blockWithTransactions} ignore.");
                 return false;
             }
 
