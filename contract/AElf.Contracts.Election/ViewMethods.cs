@@ -159,7 +159,7 @@ namespace AElf.Contracts.Election
         {
             var votes = GetElectorVoteWithRecords(input);
 
-            if (!votes.WithdrawnVotesRecords.Any())
+            if (!votes.WithdrawnVotingRecordIds.Any())
             {
                 return votes;
             }
@@ -256,7 +256,7 @@ namespace AElf.Contracts.Election
         {
             var votes = GetCandidateVoteWithRecords(input);
 
-            if (!votes.ObtainedWithdrawnVotesRecords.Any())
+            if (!votes.ObtainedActiveVotingRecordIds.Any())
             {
                 return votes;
             }
