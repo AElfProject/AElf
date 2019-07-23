@@ -30,10 +30,10 @@ namespace AElf.Cryptography.Tests
             var keyPair = CryptoHelper.GenerateKeyPair();
 
             var messageBytes1 = Encoding.UTF8.GetBytes("Hello world.");
-            var messageHash1 = SHA256.Create().ComputeHash(messageBytes1);
+            var messageHash1 = messageBytes1.ComputeHash();
 
             var messageBytes2 = Encoding.UTF8.GetBytes("Hello aelf.");
-            var messageHash2 = SHA256.Create().ComputeHash(messageBytes2);
+            var messageHash2 = messageBytes2.ComputeHash();
 
             var signature1 = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, messageHash1);
 
@@ -58,7 +58,7 @@ namespace AElf.Cryptography.Tests
 
             // Alice want to transmit plain text "aelf" to Bob.
 
-            var plainText = Encoding.UTF8.GetBytes(Hash.Generate().ToHex());
+            var plainText = Encoding.UTF8.GetBytes(Hash.FromString("hash").ToHex());
             var cipherText = CryptoHelper.EncryptMessage(alice.PrivateKey, bob.PublicKey, plainText);
 
             // Bob decrypt the message.

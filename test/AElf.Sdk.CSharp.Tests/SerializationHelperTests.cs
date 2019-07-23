@@ -82,7 +82,7 @@ namespace AElf.Sdk.CSharp.Tests
         public void Serialization_ByteArray_Test()
         {
             //Hash test
-            var hash = Hash.Generate();
+            var hash = Hash.FromString("hash");
             var hashArray = SerializationHelper.Serialize(hash);
             var hash1 = SerializationHelper.Deserialize<Hash>(hashArray);
             hash.ShouldBe(hash1);
