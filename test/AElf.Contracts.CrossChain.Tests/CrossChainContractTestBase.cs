@@ -199,7 +199,7 @@ namespace AElf.Contract.CrossChain.Tests
             {
                 ContractCode = contractCode,
                 IndexingPrice = indexingPrice,
-                LockedTokenAmount = lockedTokenAmount,
+                LockedTokenAmount = lockedTokenAmount
             };
             if (resourceTypeBalancePairs != null)
             {
