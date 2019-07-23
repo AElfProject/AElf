@@ -36,7 +36,6 @@ using Volo.Abp.Threading;
 using TokenContract = AElf.Contracts.MultiToken.Messages.TokenContractContainer.TokenContractStub;
 using ParliamentAuthContract = AElf.Contracts.ParliamentAuth.ParliamentAuthContractContainer.ParliamentAuthContractStub;
 using ResourceContract = AElf.Contracts.Resource.ResourceContractContainer.ResourceContractStub;
-using FeeReceiverContract = AElf.Contracts.Resource.FeeReceiver.FeeReceiverContractContainer.FeeReceiverContractStub;
 using CrossChainContract = AElf.Contracts.CrossChain.CrossChainContractContainer.CrossChainContractStub;
 
 namespace AElf.Contracts.TestBase
@@ -66,9 +65,6 @@ namespace AElf.Contracts.TestBase
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value;
         public byte[] TokenContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("MultiToken")).Value;
-//        public byte[] FeeReceiverContractCode =>
-//            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("FeeReceiver")).Value;
-
         public byte[] CrossChainContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("CrossChain")).Value;
         public byte[] ParliamentAuthContractCode =>
@@ -685,8 +681,6 @@ namespace AElf.Contracts.TestBase
             return list =>
             {
                 list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
-//                list.AddGenesisSmartContract(FeeReceiverContractCode, ResourceFeeReceiverSmartContractAddressNameProvider
-//                    .Name);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
@@ -716,8 +710,6 @@ namespace AElf.Contracts.TestBase
             return list =>
             {
                 list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name);
-//                list.AddGenesisSmartContract(FeeReceiverContractCode, ResourceFeeReceiverSmartContractAddressNameProvider
-//                    .Name);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
