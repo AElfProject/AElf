@@ -17,7 +17,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var minimumCount = minersCount.Mul(2).Div(3);
             minimumCount = minimumCount == 0 ? 1 : minimumCount;
 
-            var secretShares = SecretSharingHelper.EncodeSecret(inValue.DumpByteArray(), minimumCount, minersCount);
+            var secretShares = SecretSharingHelper.EncodeSecret(inValue.ToByteArray(), minimumCount, minersCount);
             foreach (var pair in currentRound.RealTimeMinersInformation.OrderBy(m => m.Value.Order)
                 .ToDictionary(m => m.Key, m => m.Value.Order))
             {

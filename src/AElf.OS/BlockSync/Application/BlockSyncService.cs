@@ -56,14 +56,7 @@ namespace AElf.OS.BlockSync.Application
             if (syncBlockDto.BlockWithTransactions.Height <=
                 chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset)
             {
-                if (!_blockSyncQueueService.ValidateQueueAvailability(OSConstants.BlockFetchQueueName))
-                {
-                    Logger.LogWarning(
-                        $"Block sync fetch queue is too busy. block: {syncBlockDto.BlockWithTransactions}");
-                    return;
-                }
-
-                EnqueueSyncBlockJob(syncBlockDto.BlockWithTransactions, BlockSyncConstants.SyncBlockRetryTimes);
+                EnqueueSyncBlockJob(syncBlockDto.BlockWithTransactions);
             }
             else
             {
@@ -93,21 +86,13 @@ namespace AElf.OS.BlockSync.Application
             }, OSConstants.BlockFetchQueueName);
         }
 
-        private void EnqueueSyncBlockJob(BlockWithTransactions blockWithTransactions, int retryTimes)
+        private void EnqueueSyncBlockJob(BlockWithTransactions blockWithTransactions)
         {
             _blockSyncQueueService.Enqueue(async () =>
             {
                 Logger.LogTrace($"Block sync: sync block, block: {blockWithTransactions}.");
-
-                if (ValidateQueueAvailability())
-                {
-                    await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions);
-                }
-                else if (retryTimes > 1)
-                {
-                    EnqueueSyncBlockJob(blockWithTransactions, retryTimes - 1);
-                }
-            }, OSConstants.BlockFetchQueueName);
+                await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions);
+            }, OSConstants.BlockSyncAttachQueueName);
         }
 
         private bool ValidateQueueAvailability()

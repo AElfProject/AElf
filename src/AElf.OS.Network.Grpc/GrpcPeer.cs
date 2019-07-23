@@ -194,7 +194,8 @@ namespace AElf.OS.Network.Grpc
         
         public async Task SendBlockAsync(BlockWithTransactions blockWithTransactions)
         {
-            // todo isConnected here
+            if (!IsConnected)
+                return;
             
             if (_blockStreamCall == null)
                 _blockStreamCall = _client.BlockBroadcastStream();
