@@ -179,6 +179,17 @@ namespace AElf.OS.Network.Grpc
 
             return AuthError.None;
         }
+        
+        public override async Task<VoidReply> BlockBroadcastStream(IAsyncStreamReader<BlockWithTransactions> requestStream, ServerCallContext context)
+        {
+            await requestStream.ForEachAsync(r =>
+            {
+                _ = EventBus.PublishAsync(new BlockReceivedEvent(r,context.GetPublicKey()));
+                return Task.CompletedTask;
+            });
+            
+            return new VoidReply();
+        }
 
         public override Task<FinalizeConnectReply> FinalizeConnect(Handshake request, ServerCallContext context)
         {
