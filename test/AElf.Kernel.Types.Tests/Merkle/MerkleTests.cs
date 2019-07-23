@@ -19,10 +19,10 @@ namespace AElf.Kernel.Types.Tests
 
         private Hash GetHashFromHexString(params string[] strings)
         {
-            var hash = Hash.LoadByteArray(ByteArrayHelper.HexStringToByteArray(strings[0]));
+            var hash = Hash.FromByteArray(ByteArrayHelper.HexStringToByteArray(strings[0]));
             foreach (var s in strings.Skip(1))
             {
-                hash = Hash.FromRawBytes(hash.DumpByteArray().Concat(ByteArrayHelper.HexStringToByteArray(s)).ToArray());
+                hash = Hash.FromRawBytes(hash.ToByteArray().Concat(ByteArrayHelper.HexStringToByteArray(s)).ToArray());
             }
 
             return hash;
@@ -56,7 +56,7 @@ namespace AElf.Kernel.Types.Tests
             //See if the hash of merkle tree is equal to the element’s hash.
             var root = tree.ComputeRootHash();
             var path = tree.GenerateMerklePath(0);
-            var hash = Hash.LoadByteArray(ByteArrayHelper.HexStringToByteArray(hex));
+            var hash = Hash.FromByteArray(ByteArrayHelper.HexStringToByteArray(hex));
             var calculatedRoot = path.ComputeBinaryMerkleTreeRootWithLeafNodes();
             Assert.Contains(hash, path);
             Assert.Equal(root, calculatedRoot);
@@ -297,7 +297,7 @@ namespace AElf.Kernel.Types.Tests
 
         private Hash CreateLeafFromHex(string hex)
         {
-            return Hash.LoadByteArray(ByteArrayHelper.HexStringToByteArray(hex));
+            return Hash.FromByteArray(ByteArrayHelper.HexStringToByteArray(hex));
         }
 
         private Hash ComputeMerklePath(Hash leaf, IList<Hash> path)

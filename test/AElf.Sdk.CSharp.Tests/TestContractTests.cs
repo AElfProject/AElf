@@ -250,7 +250,7 @@ namespace AElf.Sdk.CSharp.Tests
         [Fact]
         public void SendVirtualInline_Test()
         {
-            BridgeContext.SendVirtualInline(Hash.Generate(), AddressHelper.StringToAddress("address"), "TestMethod", new CustomContract.StringInput
+            BridgeContext.SendVirtualInline(Hash.FromString("hash"), AddressHelper.StringToAddress("address"), "TestMethod", new CustomContract.StringInput
             {
                 StringValue = "test send virtual inline"
             });

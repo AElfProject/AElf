@@ -20,7 +20,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             var generatedTxn = new Transaction
             {
-                From = Address.FromBytes(new byte[] { }.CalculateHash()),
+                From = Address.FromBytes(new byte[] { }.ComputeHash()),
                 To = input.To,
                 MethodName =
                     nameof(ACS2BaseContainer.ACS2BaseStub.GetResourceInfo),

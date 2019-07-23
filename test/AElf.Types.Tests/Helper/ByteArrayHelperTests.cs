@@ -9,7 +9,7 @@ namespace AElf.Types.Tests.Helper
         [Fact]
         public void Convert_Byte_FromString()
         {
-            var hexValue = Hash.Generate().ToHex();
+            var hexValue = Hash.FromString("hexvalue").ToHex();
             var hashArray = ByteArrayHelper.HexStringToByteArray(hexValue);
             hashArray.Length.ShouldBe(32);
 

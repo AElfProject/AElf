@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Types;
 using Shouldly;
@@ -52,7 +53,7 @@ namespace AElf.Kernel.TransactionPool.Domain
         [Fact]
         public async Task GetReceipt_Test()
         {
-            var randomHash = Hash.Generate();
+            var randomHash = Hash.FromRawBytes(new byte[]{1,2});
             var transactionReceipt0 = await _transactionReceiptManager.GetReceiptAsync(randomHash);
             transactionReceipt0.ShouldBe(null);
 
@@ -69,7 +70,7 @@ namespace AElf.Kernel.TransactionPool.Domain
             var transactionReceipts = new List<TransactionReceipt>();
             for (int i = 0; i < count; i++)
             {
-                var transactionId = Hash.Generate();
+                var transactionId = Hash.FromRawBytes(new []{Convert.ToByte(i)});
                 var transactionReceipt = new TransactionReceipt()
                 {
                     TransactionId = transactionId,

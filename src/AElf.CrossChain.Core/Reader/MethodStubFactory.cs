@@ -43,7 +43,7 @@ namespace AElf.CrossChain
                 var chainContext = _chainContext;
                 var transaction = new Transaction()
                 {
-                    From = Address.FromBytes(new byte[] { }.CalculateHash()),
+                    From = Address.FromBytes(new byte[] { }.ComputeHash()),
                     To = CrossChainContractMethodAddress,
                     MethodName = method.Name,
                     Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))

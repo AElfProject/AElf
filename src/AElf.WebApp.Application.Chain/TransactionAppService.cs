@@ -112,7 +112,7 @@ namespace AElf.WebApp.Application.Chain
                 From = AddressHelper.Base58StringToAddress(input.From),
                 To = AddressHelper.Base58StringToAddress(input.To),
                 RefBlockNumber = input.RefBlockNumber,
-                RefBlockPrefix = ByteString.CopyFrom(Hash.LoadHex(input.RefBlockHash).Value.Take(4).ToArray()),
+                RefBlockPrefix = ByteString.CopyFrom(HashHelper.HexStringToHash(input.RefBlockHash).Value.Take(4).ToArray()),
                 MethodName = input.MethodName
             };
             var methodDescriptor = await GetContractMethodDescriptorAsync(AddressHelper.Base58StringToAddress(input.To), input.MethodName);

@@ -47,7 +47,7 @@ namespace AElf.Contracts.Vote
         {
             //voting item not exist
             {
-                var transactionResult = await Vote(DefaultSenderKeyPair, Hash.Generate(), string.Empty, 100);
+                var transactionResult = await Vote(DefaultSenderKeyPair, Hash.FromString("hash"), string.Empty, 100);
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Voting item not found").ShouldBeTrue();
             }
@@ -76,7 +76,7 @@ namespace AElf.Contracts.Vote
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
                 var voter = SampleECKeyPairs.KeyPairs[11];
-                var option = Address.FromBytes(Guid.NewGuid().ToByteArray().CalculateHash()).GetFormatted();
+                var option = Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted();
                 var voteResult = await Vote(voter, registerItem.VotingItemId, option, 100);
                 voteResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 voteResult.Error.Contains($"Option {option} not found").ShouldBeTrue();
@@ -96,7 +96,7 @@ namespace AElf.Contracts.Vote
         {
             //without vote
             {
-                var withdrawResult = await Withdraw(SampleECKeyPairs.KeyPairs[1], Hash.Generate());
+                var withdrawResult = await Withdraw(SampleECKeyPairs.KeyPairs[1], Hash.FromString("hash1"));
                 withdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 withdrawResult.Error.Contains("Voting record not found").ShouldBeTrue();
             }
@@ -169,7 +169,7 @@ namespace AElf.Contracts.Vote
                 var otherUser = SampleECKeyPairs.KeyPairs[10];
                 var transactionResult = (await GetVoteContractTester(otherUser).AddOption.SendAsync(new AddOptionInput
                 {
-                    Option = Address.FromBytes(Guid.NewGuid().ToByteArray().CalculateHash()).GetFormatted(),
+                    Option = Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted(),
                     VotingItemId = registerItem.VotingItemId
                 })).TransactionResult;
 
@@ -193,7 +193,7 @@ namespace AElf.Contracts.Vote
             //add success
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var address = Address.FromBytes(Guid.NewGuid().ToByteArray().CalculateHash()).GetFormatted();
+                var address = Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted();
                 var transactionResult = (await VoteContractStub.AddOption.SendAsync(new AddOptionInput
                 {
                     Option = address,
@@ -231,7 +231,7 @@ namespace AElf.Contracts.Vote
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
                 var transactionResult = (await VoteContractStub.RemoveOption.SendAsync(new RemoveOptionInput
                 {
-                    Option = Address.FromBytes(Guid.NewGuid().ToByteArray().CalculateHash()).GetFormatted(),
+                    Option = Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted(),
                     VotingItemId = registerItem.VotingItemId
                 })).TransactionResult;
 
@@ -269,8 +269,8 @@ namespace AElf.Contracts.Vote
                     VotingItemId = registerItem.VotingItemId,
                     Options =
                     {
-                        Address.FromBytes(Guid.NewGuid().ToByteArray().CalculateHash()).GetFormatted(),
-                        Address.FromBytes(Guid.NewGuid().ToByteArray().CalculateHash()).GetFormatted()
+                        Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted(),
+                        Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted()
                     }
                 })).TransactionResult;
 
@@ -286,7 +286,7 @@ namespace AElf.Contracts.Vote
                     VotingItemId = registerItem.VotingItemId,
                     Options =
                     {
-                        Address.FromBytes(Guid.NewGuid().ToByteArray().CalculateHash()).GetFormatted(),
+                        Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted(),
                         registerItem.Options[1]
                     }
                 })).TransactionResult;
@@ -303,8 +303,8 @@ namespace AElf.Contracts.Vote
                     VotingItemId = registerItem.VotingItemId,
                     Options =
                     {
-                        Address.FromBytes(Guid.NewGuid().ToByteArray().CalculateHash()).GetFormatted(),
-                        Address.FromBytes(Guid.NewGuid().ToByteArray().CalculateHash()).GetFormatted()
+                        Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted(),
+                        Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted()
                     }
                 })).TransactionResult;
 
@@ -346,7 +346,7 @@ namespace AElf.Contracts.Vote
                     Options =
                     {
                         registerItem.Options[0],
-                        Address.FromBytes(Guid.NewGuid().ToByteArray().CalculateHash()).GetFormatted()
+                        Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash()).GetFormatted()
                     }
                 })).TransactionResult;
 

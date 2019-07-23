@@ -20,7 +20,7 @@ namespace AElf
         /// <returns></returns>
         public static Address StringToAddress(string name)
         {
-            return Address.FromBytes(name.CalculateHash());
+            return Address.FromBytes(name.ComputeHash());
         }
 
         public static Address Base58StringToAddress(string inputStr)

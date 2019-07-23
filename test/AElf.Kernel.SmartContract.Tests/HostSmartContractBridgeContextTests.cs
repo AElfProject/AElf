@@ -63,7 +63,7 @@ namespace AElf.Kernel.SmartContract
         [Fact]
         public void Send_VirtualInline_Success()
         {
-            var from = Hash.Generate();
+            var from = Hash.FromString("hash");
             var to = AddressHelper.StringToAddress("Genesis");
             var methodName = "TestVirtualInline";
             var arg = "Arg";
@@ -116,7 +116,7 @@ namespace AElf.Kernel.SmartContract
                 RefBlockNumber = 1,
                 RefBlockPrefix = ByteString.CopyFrom(new byte[4])
             };
-            var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, tx.GetHash().DumpByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, tx.GetHash().ToByteArray());
             tx.Signature = ByteString.CopyFrom(signature);
 
             var verifyResult = _bridgeContext.VerifySignature(tx);
@@ -128,7 +128,7 @@ namespace AElf.Kernel.SmartContract
         {
             var tx = GetNewTransaction();
 
-            var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, tx.GetHash().DumpByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, tx.GetHash().ToByteArray());
             tx.Signature = ByteString.CopyFrom(signature);
 
             var verifyResult = _bridgeContext.VerifySignature(tx);
@@ -168,7 +168,7 @@ namespace AElf.Kernel.SmartContract
             {
                 Category = KernelConstants.DefaultRunnerCategory,
                 Code = ByteString.Empty,
-                CodeHash = Hash.Generate()
+                CodeHash = Hash.FromString("hash")
             };
 
             _bridgeContext.DeployContract(AddressHelper.StringToAddress("from"), registration, Hash.FromMessage(registration.CodeHash));
@@ -227,7 +227,7 @@ namespace AElf.Kernel.SmartContract
                 StateCache = new NullStateCache()
             };
             var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, transactionContext.Transaction
-                .GetHash().DumpByteArray());
+                .GetHash().ToByteArray());
             transactionContext.Transaction.Signature = ByteString.CopyFrom(signature);
             _bridgeContext.TransactionContext = transactionContext;
 

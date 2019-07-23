@@ -30,7 +30,7 @@ namespace AElf.Types
 
         public static Address FromPublicKey(byte[] bytes)
         {
-            var hash = bytes.CalculateHash().CalculateHash();
+            var hash = bytes.ComputeHash().ComputeHash();
             return new Address(hash);
         }
 

@@ -59,7 +59,7 @@ namespace AElf.OS.Network
                 return Task.CompletedTask;
             });
 
-            Hash hash = Hash.Generate();
+            Hash hash = Hash.FromRawBytes(new byte[]{3,6,9});
             await _service.SendAnnouncement(new BlockAnnouncement
             {
                 BlockHeight = 10, BlockHash = hash
@@ -152,7 +152,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task RequestBlock_NonExistant_ReturnsEmpty()
         {
-            var reply = await _service.RequestBlock(new BlockRequest { Hash = Hash.Generate() }, BuildServerCallContext());
+            var reply = await _service.RequestBlock(new BlockRequest { Hash = Hash.FromRawBytes(new byte[]{11,22}) }, BuildServerCallContext());
             
             Assert.NotNull(reply);
             Assert.Null(reply.Block);
@@ -184,7 +184,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task RequestBlocks_NonExistant_ReturnsEmpty()
         {
-            var reply = await _service.RequestBlocks(new BlocksRequest { PreviousBlockHash = Hash.Generate(), Count = 5 }, BuildServerCallContext());
+            var reply = await _service.RequestBlocks(new BlocksRequest { PreviousBlockHash = Hash.FromRawBytes(new byte[]{12,21}), Count = 5 }, BuildServerCallContext());
             
             Assert.NotNull(reply?.Blocks);
             Assert.Empty(reply.Blocks);

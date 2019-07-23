@@ -25,7 +25,7 @@ namespace AElf.Cryptography.Tests.ECDSA
             Hash hash = tx.GetHash();
 
             // Sign the hash
-            var signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, hash.DumpByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, hash.ToByteArray());
             tx.Signature = ByteString.CopyFrom(signature);
             Assert.True(tx.VerifySignature());
         }

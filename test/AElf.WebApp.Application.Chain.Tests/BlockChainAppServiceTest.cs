@@ -80,7 +80,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             };
             transaction.Signature =
                 ByteString.CopyFrom(CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey,
-                    transaction.GetHash().DumpByteArray()));
+                    transaction.GetHash().ToByteArray()));
 
             var parameters = new Dictionary<string, string>
             {
@@ -176,7 +176,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                     parameters);
             var transactionId = Hash.FromRawBytes(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
 
-            var signature = await _accountService.SignAsync(transactionId.DumpByteArray());
+            var signature = await _accountService.SignAsync(transactionId.ToByteArray());
             parameters = new Dictionary<string, string>
             {
                 {"RawTransaction", createTransactionResponse.RawTransaction},
@@ -282,7 +282,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"Transfer\", \"params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
             var transaction = Transaction.Parser.ParseJson(json);
 
-            var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+            var signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
             parameters = new Dictionary<string, string>
             {
@@ -309,7 +309,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"InvalidMethod\", \"params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
             var transaction = Transaction.Parser.ParseJson(json);
 
-            var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+            var signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
             var parameters = new Dictionary<string, string>
             {
@@ -340,7 +340,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                        Base64.ToBase64String(transactionParams.ToByteArray()) + "\" }";
             var transaction = Transaction.Parser.ParseJson(json);
 
-            var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+            var signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
             var parameters = new Dictionary<string, string>
             {
@@ -418,7 +418,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"Transfer\", \"params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
             var transaction3 = Transaction.Parser.ParseJson(json);
 
-            var signature = await _accountService.SignAsync(transaction3.GetHash().DumpByteArray());
+            var signature = await _accountService.SignAsync(transaction3.GetHash().ToByteArray());
             transaction3.Signature = ByteString.CopyFrom(signature);
             var transactions = new List<Transaction> {transaction1, transaction2, transaction3};
             var rawTransactions = string.Join(',', transactions.Select(t => t.ToByteArray().ToHex()));
@@ -450,7 +450,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"InvalidMethod\", \"params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
             var transaction3 = Transaction.Parser.ParseJson(json);
 
-            var signature = await _accountService.SignAsync(transaction3.GetHash().DumpByteArray());
+            var signature = await _accountService.SignAsync(transaction3.GetHash().ToByteArray());
             transaction3.Signature = ByteString.CopyFrom(signature);
             var transactions = new List<Transaction> {transaction1, transaction2, transaction3};
             var rawTransactions = string.Join(',', transactions.Select(t => t.ToByteArray().ToHex()));
@@ -486,7 +486,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                        Base64.ToBase64String(transactionParams.ToByteArray()) + "\" }";
             var transaction3 = Transaction.Parser.ParseJson(json);
 
-            var signature = await _accountService.SignAsync(transaction3.GetHash().DumpByteArray());
+            var signature = await _accountService.SignAsync(transaction3.GetHash().ToByteArray());
             transaction3.Signature = ByteString.CopyFrom(signature);
             var transactions = new List<Transaction> {transaction1, transaction2, transaction3};
             var rawTransactions = string.Join(',', transactions.Select(t => t.ToByteArray().ToHex()));
@@ -1020,7 +1020,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var transactionId =
                 Hash.FromRawBytes(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
 
-            var signature = await _accountService.SignAsync(transactionId.DumpByteArray());
+            var signature = await _accountService.SignAsync(transactionId.ToByteArray());
             parameters = new Dictionary<string, string>
             {
                 {"Transaction", createTransactionResponse.RawTransaction},
@@ -1076,7 +1076,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"Transfer\", \"params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
             var transaction = Transaction.Parser.ParseJson(json);
 
-            var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+            var signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
             var parameters = new Dictionary<string, string>
             {
                 {"Transaction", transaction.ToByteArray().ToHex()},
@@ -1102,7 +1102,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"invalid_method\", \"params\": \"CiIKIDAK0LTy1ZAHaf1nAnq/gkSqTCs4Kh6czxWpbNEX4EwaEgNFTEYYFA==\"}";
             var transaction = Transaction.Parser.ParseJson(json);
 
-            var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+            var signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
             var parameters = new Dictionary<string, string>
             {
                 {"Transaction", transaction.ToByteArray().ToHex()},
@@ -1132,7 +1132,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                        Base64.ToBase64String(transactionParams.ToByteArray()) + "\" }";
             var transaction = Transaction.Parser.ParseJson(json);
 
-            var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+            var signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
             var parameters = new Dictionary<string, string>
             {
                 {"Transaction", transaction.ToByteArray().ToHex()},
@@ -1154,7 +1154,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                    Base64.ToBase64String(issueNativeTokenInput.ToByteArray()) + "\" }";
             transaction = Transaction.Parser.ParseJson(json);
 
-            signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+            signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
             parameters = new Dictionary<string, string>
             {
                 {"Transaction", transaction.ToByteArray().ToHex()},
@@ -1219,7 +1219,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                     });
 
                 var signature =
-                    CryptoHelper.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().DumpByteArray());
+                    CryptoHelper.SignWithPrivateKey(newUserKeyPair.PrivateKey, transaction.GetHash().ToByteArray());
                 transaction.Signature = ByteString.CopyFrom(signature);
 
                 transactionList.Add(transaction);
@@ -1237,7 +1237,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 method, input);
 
             var signature = CryptoHelper.SignWithPrivateKey(newUserKeyPair.PrivateKey,
-                transaction.GetHash().DumpByteArray());
+                transaction.GetHash().ToByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
 
             return Task.FromResult(transaction);

@@ -43,7 +43,7 @@ namespace AElf.Kernel.Consensus.Application
                 var chainContext = _chainContext;
                 var transaction = new Transaction()
                 {
-                    From = Address.FromBytes(new byte[] { }.CalculateHash()),
+                    From = Address.FromBytes(new byte[] { }.ComputeHash()),
                     To = ConsensusContractAddress,
                     MethodName = method.Name,
                     Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))

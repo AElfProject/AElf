@@ -11,12 +11,10 @@ namespace AElf
             return Base58CheckEncoding.EncodePlain(value);
         }
 
-
         public static string ToPlainBase58(this ByteString value)
         {
             return Base58CheckEncoding.EncodePlain(value);
         }
-
 
         public static string ToHex(this byte[] bytes, bool withPrefix = false)
         {
@@ -49,7 +47,7 @@ namespace AElf
         /// </summary>
         /// <param name="bytes"></param>
         /// <returns></returns>
-        public static byte[] CalculateHash(this byte[] bytes)
+        public static byte[] ComputeHash(this byte[] bytes)
         {
             return SHA256.Create().ComputeHash(bytes);
         }
@@ -67,14 +65,11 @@ namespace AElf
         /// <summary>
         /// Find subarray in the source array.
         /// </summary>
-        /// 
         /// <param name="array">Source array to search for needle.</param>
         /// <param name="needle">Needle we are searching for.</param>
         /// <param name="startIndex">Start index in source array.</param>
         /// <param name="sourceLength">Number of bytes in source array, where the needle is searched for.</param>
-        /// 
         /// <returns>Returns starting position of the needle if it was found or <b>-1</b> otherwise.</returns>
-        /// 
         public static int Find(this byte[] array, byte[] needle, int startIndex = 0)
         {
             int needleLen = needle.Length;
