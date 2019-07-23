@@ -43,18 +43,54 @@ namespace AElf.OS.Network.Application
             return _peerPool.GetPeers(true).ToList(); 
         }
 
+        private bool IsOldBlock(BlockHeader header)
+        {
+            var limit = TimestampHelper.GetUtcNow() 
+                        - TimestampHelper.DurationFromMinutes(NetworkConstants.DefaultMaxBlockAgeToBroadcastInMinutes);
+            
+            if (header.Time < limit)
+                return true;
+
+            return false;
+        }
+        
+        public Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
+        {
+            if (!TryAddKnownBlock(blockWithTransactions.Header))
+                return Task.CompletedTask;
+            
+            if (IsOldBlock(blockWithTransactions.Header))
+                return Task.CompletedTask;
+            
+            _taskQueueManager.Enqueue(async () =>
+            {
+                foreach (var peer in _peerPool.GetPeers())
+                {
+                    try
+                    {
+                        await peer.SendBlockAsync(blockWithTransactions);
+                    }
+                    catch (NetworkException ex)
+                    {
+                        Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
+                        await HandleNetworkException(peer, ex);
+                    }
+                }
+                
+            }, NetworkConstants.BlockBroadcastQueueName);
+            
+            return Task.CompletedTask;
+        }
+
         public Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
         {
             var blockHash = blockHeader.GetHash();
             
-            if (_peerPool.RecentBlockHeightAndHashMappings.TryGetValue(blockHeader.Height, out var recentBlockHash) &&
-                recentBlockHash == blockHash)
-            {
-                Logger.LogDebug($"BlockHeight: {blockHeader.Height}, BlockHash: {blockHash} has been broadcast.");
+            if (!TryAddKnownBlock(blockHeader))
                 return Task.CompletedTask;
-            }
             
-            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHash, hasFork);
+            if (IsOldBlock(blockHeader))
+                return Task.CompletedTask;
             
             var announce = new BlockAnnouncement
             {
@@ -136,6 +172,24 @@ namespace AElf.OS.Network.Application
                 Logger.LogWarning($"Block count miss match, asked for {count} but got {blocks.Count}");
 
             return blocks;
+        }
+
+        /// <summary>
+        /// returns false if the block was unknown, false if already known.
+        /// </summary>
+        private bool TryAddKnownBlock(BlockHeader blockHeader)
+        {
+            var blockHash = blockHeader.GetHash();
+            if (_peerPool.RecentBlockHeightAndHashMappings.TryGetValue(blockHeader.Height, out var recentBlockHash) &&
+                recentBlockHash == blockHash)
+            {
+                Logger.LogDebug($"BlockHeight: {blockHeader.Height}, BlockHash: {blockHash} has been broadcast.");
+                return false;
+            }
+            
+            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHash, false);
+
+            return true;
         }
         
         private List<IPeer> SelectPeers(string peerPubKey)
