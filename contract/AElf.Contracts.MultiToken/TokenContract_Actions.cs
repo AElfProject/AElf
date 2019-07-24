@@ -134,6 +134,11 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty CrossChainCreateToken(CrossChainCreateTokenInput input)
         {
+            var parentChainId = State.CrossChainContractReferenceState.GetParentChainId.Call(new Empty()).Value;
+            Assert(parentChainId != 0, "Unable to do CrossChainCreateToken.");
+            var tokenContractAddress = State.CrossChainTransferWhiteList[parentChainId];
+            Assert(tokenContractAddress != null, "Unable to do CrossChainCreateToken without parent chain info.");
+            
             var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
             var originalTransactionId = originalTransaction.GetHash();
             

@@ -2,11 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using Acs0;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.CrossChain;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
 using AElf.Kernel.Consensus.AEDPoS;
+using InitializeInput = AElf.Contracts.MultiToken.Messages.InitializeInput;
 
 namespace AElf.Blockchains.MainChain
 {
@@ -27,6 +27,7 @@ namespace AElf.Blockchains.MainChain
             Address issuer)
         {
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.Initialize), new InitializeInput());
             tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.CreateNativeToken), new CreateNativeTokenInput
             {
                 Symbol = _tokenInitialOptions.Symbol,
