@@ -41,7 +41,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public bool IsReady
         {
-            get { return (_channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready) && IsConnected && _lastKnownException == null; }
+            get { return (_channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready) && IsConnected; }
         }
         
         public long LastKnownLibHeight { get; private set; }
@@ -64,8 +64,6 @@ namespace AElf.OS.Network.Grpc
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
         private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
-
-        private Exception _lastKnownException;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string ipAddress, PeerInfo peerInfo)
         {
@@ -209,13 +207,10 @@ namespace AElf.OS.Network.Grpc
             }
             catch (RpcException e)
             {
-                Exception previousException = Interlocked.CompareExchange(ref _lastKnownException, e, null);
-
                 _blockStreamCall.Dispose();
                 _blockStreamCall = null;
                 
-                if (previousException == null)
-                    HandleFailure(e, $"Error during block broadcast: {blockWithTransactions.Header.GetHash()}.");
+                HandleFailure(e, $"Error during block broadcast: {blockWithTransactions.Header.GetHash()}.");
             }
         }
 
@@ -237,16 +232,13 @@ namespace AElf.OS.Network.Grpc
             }
             catch (RpcException e)
             {
-                Exception previousException = Interlocked.CompareExchange(ref _lastKnownException, e, null);
-
                 _announcementStreamCall.Dispose();
                 _announcementStreamCall = null;
                 
-                if (previousException == null)
-                    HandleFailure(e, $"Error during announcement broadcast: {header.BlockHash}.");
+                HandleFailure(e, $"Error during announcement broadcast: {header.BlockHash}.");
             }
         }
-
+        
         /// <summary>
         /// Send a transaction to the peer using the stream call.
         /// Note: this method is not thread safe.
@@ -265,18 +257,15 @@ namespace AElf.OS.Network.Grpc
             }
             catch (RpcException e)
             {
-                Exception previousException = Interlocked.CompareExchange(ref _lastKnownException, e, null);
-
                 _transactionStreamCall.Dispose();
                 _transactionStreamCall = null;
-
-                if (previousException == null)
-                    HandleFailure(e, $"Error during transaction broadcast: {transaction.GetHash()}.");
+                
+                HandleFailure(e, $"Error during transaction broadcast: {transaction.GetHash()}.");
             }
         }
 
         #endregion
-
+        
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
             Func<PeerService.PeerServiceClient, AsyncUnaryCall<TResp>> func, GrpcRequest requestParams)
         {
@@ -303,12 +292,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (AggregateException e)
             {
-                Exception previousException = Interlocked.CompareExchange(ref _lastKnownException, e, null);
-
-                if (previousException == null)
-                {
-                    HandleFailure(e.Flatten(), requestParams.ErrorMessage);
-                }
+                HandleFailure(e.Flatten(), requestParams.ErrorMessage);
             }
             finally
             {
@@ -363,7 +347,7 @@ namespace AElf.OS.Network.Grpc
                 message = $"Failed request to {this}: {errorMessage}";
                 type = NetworkExceptionType.Unrecoverable;
             }
-
+            
             throw new NetworkException(message, exception, type);
         }
 
