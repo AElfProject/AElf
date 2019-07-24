@@ -10,6 +10,12 @@ namespace AElf.OS.BlockSync.Infrastructure
 
         void SetEnqueueTime(string queueName, Timestamp enqueueTime);
 
-        ConcurrentDictionary<Hash, bool> DownloadJobTargetState { get; set; }
+        bool TryUpdateDownloadJobTargetState(Hash targetHash, bool value);
+
+        void SetDownloadJobTargetState(Hash targetHash, bool value);
+
+        bool TryGetDownloadJobTargetState(Hash targetHash, out bool value);
+
+        bool TryRemoveDownloadJobTargetState(Hash targetHash);
     }
 }

@@ -70,7 +70,7 @@ namespace AElf.OS.BlockSync.Application
                             await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions,
                                 async () =>
                                 {
-                                    _blockSyncStateProvider.DownloadJobTargetState.TryUpdate(blockWithTransactions.GetHash(),true, false);
+                                    _blockSyncStateProvider.TryUpdateDownloadJobTargetState(blockWithTransactions.GetHash(),true);
                                 });
                         },
                         OSConstants.BlockSyncAttachQueueName);
@@ -84,7 +84,7 @@ namespace AElf.OS.BlockSync.Application
             }
 
             if (lastDownloadBlockHash != null)
-                _blockSyncStateProvider.DownloadJobTargetState[lastDownloadBlockHash] = false;
+                _blockSyncStateProvider.SetDownloadJobTargetState(lastDownloadBlockHash, false);
 
             return new DownloadBlocksResult
             {
@@ -114,12 +114,12 @@ namespace AElf.OS.BlockSync.Application
         public void RemoveDownloadJobTargetState(Hash targetBlockHash)
         {
             if (targetBlockHash != null)
-                _blockSyncStateProvider.DownloadJobTargetState.TryRemove(targetBlockHash, out _);
+                _blockSyncStateProvider.TryRemoveDownloadJobTargetState(targetBlockHash);
         }
 
         public bool IsNotReachedDownloadTarget(Hash targetBlockHash)
         {
-            return _blockSyncStateProvider.DownloadJobTargetState.TryGetValue(targetBlockHash, out var state)
+            return _blockSyncStateProvider.TryGetDownloadJobTargetState(targetBlockHash, out var state)
                    && state == false;
         }
     }

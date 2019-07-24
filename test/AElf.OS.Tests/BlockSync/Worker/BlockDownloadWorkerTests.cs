@@ -48,13 +48,14 @@ namespace AElf.OS.BlockSync.Worker
 
             var jobInfo = await _blockDownloadJobStore.GetFirstWaitingJobAsync();
             jobInfo.JobId.ShouldBe(peerBlock.GetHash());
-            _blockSyncStateProvider.DownloadJobTargetState[chain.BestChainHash].ShouldBeFalse();
+             _blockSyncStateProvider.TryGetDownloadJobTargetState(chain.BestChainHash, out var state).ShouldBeTrue();
+             state.ShouldBeFalse();
 
             await _blockDownloadWorker.ProcessDownloadJobAsync();
 
             jobInfo = await _blockDownloadJobStore.GetFirstWaitingJobAsync();
             jobInfo.ShouldBeNull();
-            _blockSyncStateProvider.DownloadJobTargetState.Count.ShouldBe(0);
+            _blockSyncStateProvider.TryGetDownloadJobTargetState(chain.BestChainHash, out state).ShouldBeFalse();
         }
 
         [Fact]
@@ -97,7 +98,7 @@ namespace AElf.OS.BlockSync.Worker
             jobInfo.CurrentTargetBlockHash = jobInfo.TargetBlockHash;
             jobInfo.CurrentTargetBlockHeight = jobInfo.TargetBlockHeight;
             jobInfo.Deadline = TimestampHelper.GetUtcNow().AddSeconds(4);
-            _blockSyncStateProvider.DownloadJobTargetState[jobInfo.TargetBlockHash] = false;
+            _blockSyncStateProvider.SetDownloadJobTargetState(jobInfo.TargetBlockHash, false);
 
             await _blockDownloadWorker.ProcessDownloadJobAsync();
             chain = await _blockchainService.GetChainAsync();
