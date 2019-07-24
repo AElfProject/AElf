@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -114,6 +115,18 @@ namespace AElf.OS.BlockSync.Application
             var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block);
 
             validateResult.ShouldBeFalse();
+        }
+
+        [Fact]
+        public void TryAddAnnouncementCache_MultipleTimes()
+        {
+            for (var i = 0; i < 120; i++)
+            {
+                var blockHash = Hash.FromString(Guid.NewGuid().ToString());
+                var blockHeight = i;
+                var result = _announcementCacheProvider.TryAddAnnouncementCache(blockHash, blockHeight);
+                result.ShouldBeTrue();
+            }
         }
     }
 }
