@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
@@ -50,7 +51,7 @@ namespace AElf.Contracts.MultiToken
         private void RegisterTokenInfo(TokenInfo tokenInfo)
         {
             var existing = State.TokenInfos[tokenInfo.Symbol];
-            Assert(existing == null || existing == new TokenInfo(), "Token already exists.");
+            Assert(existing == null || existing.Equals(new TokenInfo()), "Token already exists.");
             Assert(!string.IsNullOrEmpty(tokenInfo.Symbol) & tokenInfo.Symbol.All(IsValidSymbolChar),
                 "Invalid symbol.");
             Assert(!string.IsNullOrEmpty(tokenInfo.TokenName), "Invalid token name.");
@@ -59,27 +60,28 @@ namespace AElf.Contracts.MultiToken
             State.TokenInfos[tokenInfo.Symbol] = tokenInfo;
         }
 
-        private void ValidateCrossChainContractState()
-        {
-            if (State.CrossChainContractReferenceState.Value == null)
-                State.CrossChainContractReferenceState.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
-        }
-
         private void AssertMainChainTokenContractAddress(Address address)
         {
             Assert(address == State.MainChainTokenContractAddress.Value,
                 "Incorrect main chain token contract address.");
         }
 
-        private void CrossChainVerify(VerifyTransactionInput verifyTransactionInput)
+        private void CrossChainVerify(Hash transactionId, long parentChainHeight, int chainId, IEnumerable<Hash> merklePath)
         {
             if (State.CrossChainContractReferenceState.Value == null)
                 State.CrossChainContractReferenceState.Value =
                     Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
+            
+            var verificationInput = new VerifyTransactionInput
+            {
+                TransactionId = transactionId,
+                ParentChainHeight = parentChainHeight,
+                VerifiedChainId = chainId
+            };
+            verificationInput.Path.AddRange(merklePath);
             var verificationResult =
-                State.CrossChainContractReferenceState.VerifyTransaction.Call(verifyTransactionInput);
-            Assert(verificationResult.Value, "Verification failed.");
+                State.CrossChainContractReferenceState.VerifyTransaction.Call(verificationInput);
+            Assert(verificationResult.Value, "Cross chain verification failed.");
         }
     }
 }

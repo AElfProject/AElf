@@ -41,6 +41,8 @@ service TokenContract {
     }
     rpc ClaimTransactionFees (ClaimTransactionFeesInput) returns (google.protobuf.Empty) {
     }
+    rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {
+    }
     rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
     }
     rpc CrossChainReceiveToken (CrossChainReceiveTokenInput) returns (google.protobuf.Empty) {
@@ -221,9 +223,12 @@ message CrossChainCreateTokenInput {
     repeated aelf.Hash merkle_path = 4;
 }
 
-message CrossChainTransferRegistration{
-    int32 chain_id = 1;
-    aelf.Address token_contract_address = 2;
+message RegisterCrossChainTokenContractAddressInput{
+    int32 from_chain_id = 1;
+    int64 parent_chain_height = 2;
+    bytes transaction_bytes = 3;
+    repeated aelf.Hash merkle_path = 4;
+    aelf.Address token_contract_address = 5;
 }
 
 // EventsCreateInput
