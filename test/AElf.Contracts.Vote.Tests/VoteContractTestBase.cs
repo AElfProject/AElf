@@ -12,7 +12,6 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
-using System;
 
 namespace AElf.Contracts.Vote
 {
@@ -31,8 +30,6 @@ namespace AElf.Contracts.Vote
         internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
 
         protected const string TestTokenSymbol = "TELF";
-
-        protected Address NewGuidAddress => Address.FromBytes(Guid.NewGuid().ToByteArray().ComputeHash());
 
         protected void InitializeContracts()
         {
