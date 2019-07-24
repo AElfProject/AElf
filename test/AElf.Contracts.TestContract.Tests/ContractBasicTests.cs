@@ -30,7 +30,7 @@ namespace AElf.Contract.TestContract
                     ContractName = "Test initialize again",
                     MinValue = 1000,
                     MaxValue = 10000,
-                    Manager = SampleAddress.AddressList[2]
+                    Manager = SampleAddress.AddressList[0]
                 })).TransactionResult;
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -121,7 +121,7 @@ namespace AElf.Contract.TestContract
                 new Acs0.ChangeContractAuthorInput()
                 {
                     ContractAddress = BasicFunctionContractAddress,
-                    NewAuthor = SampleAddress.AddressList[3]
+                    NewAuthor = SampleAddress.AddressList[1]
                 }
             )).TransactionResult;
 
@@ -132,7 +132,7 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task ChangeAuthor_With_Permission_Success()
         {
-            var otherUser = SampleAddress.AddressList[4];
+            var otherUser = SampleAddress.AddressList[2];
             var transactionResult = (await BasicContractZeroStub.ChangeContractAuthor.SendAsync(
                 new Acs0.ChangeContractAuthorInput()
                 {

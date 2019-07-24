@@ -137,7 +137,7 @@ namespace AElf.Contracts.ReferendumAuth
             {
                 //"No registered organization."
                 createProposalInput.ExpiredTime = BlockTimeProvider.GetBlockTime().AddDays(1);
-                createProposalInput.OrganizationAddress = SampleAddress.AddressList[6];
+                createProposalInput.OrganizationAddress = SampleAddress.AddressList[1];
                 
                 var transactionResult = await ReferendumAuthContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);

@@ -10,7 +10,7 @@ namespace AElf.Kernel.TransactionPool
             var transaction = new Transaction()
             {
                 From = SampleAddress.AddressList[0],
-                To = SampleAddress.AddressList[2],
+                To = SampleAddress.AddressList[1],
                 MethodName = "test",
                 Params = ByteString.CopyFromUtf8("test")
             };

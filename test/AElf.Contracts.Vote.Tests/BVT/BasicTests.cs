@@ -74,7 +74,7 @@ namespace AElf.Contracts.Vote
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
                 var voter = SampleECKeyPairs.KeyPairs[11];
-                var option = SampleAddress.AddressList[5].GetFormatted();
+                var option = SampleAddress.AddressList[3].GetFormatted();
                 var voteResult = await Vote(voter, registerItem.VotingItemId, option, 100);
                 voteResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 voteResult.Error.Contains($"Option {option} not found").ShouldBeTrue();
@@ -167,7 +167,7 @@ namespace AElf.Contracts.Vote
                 var otherUser = SampleECKeyPairs.KeyPairs[10];
                 var transactionResult = (await GetVoteContractTester(otherUser).AddOption.SendAsync(new AddOptionInput
                 {
-                    Option = SampleAddress.AddressList[1].GetFormatted(),
+                    Option = SampleAddress.AddressList[0].GetFormatted(),
                     VotingItemId = registerItem.VotingItemId
                 })).TransactionResult;
 
@@ -191,7 +191,7 @@ namespace AElf.Contracts.Vote
             //add success
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-                var address = SampleAddress.AddressList[5].GetFormatted();
+                var address = SampleAddress.AddressList[3].GetFormatted();
                 var transactionResult = (await VoteContractStub.AddOption.SendAsync(new AddOptionInput
                 {
                     Option = address,
@@ -266,8 +266,8 @@ namespace AElf.Contracts.Vote
                     VotingItemId = registerItem.VotingItemId,
                     Options =
                     {
-                        SampleAddress.AddressList[4].GetFormatted(),
-                        SampleAddress.AddressList[5].GetFormatted()
+                        SampleAddress.AddressList[0].GetFormatted(),
+                        SampleAddress.AddressList[1].GetFormatted()
                     }
                 })).TransactionResult;
 
@@ -283,7 +283,7 @@ namespace AElf.Contracts.Vote
                     VotingItemId = registerItem.VotingItemId,
                     Options =
                     {
-                        SampleAddress.AddressList[6].GetFormatted(),
+                        SampleAddress.AddressList[0].GetFormatted(),
                         registerItem.Options[1]
                     }
                 })).TransactionResult;
@@ -300,8 +300,8 @@ namespace AElf.Contracts.Vote
                     VotingItemId = registerItem.VotingItemId,
                     Options =
                     {
-                        SampleAddress.AddressList[7].GetFormatted(),
-                        SampleAddress.AddressList[8].GetFormatted()
+                        SampleAddress.AddressList[3].GetFormatted(),
+                        SampleAddress.AddressList[4].GetFormatted()
                     }
                 })).TransactionResult;
 
@@ -342,7 +342,7 @@ namespace AElf.Contracts.Vote
                     Options =
                     {
                         registerItem.Options[0],
-                        SampleAddress.AddressList[9].GetFormatted()
+                        SampleAddress.AddressList[0].GetFormatted()
                     }
                 })).TransactionResult;
 

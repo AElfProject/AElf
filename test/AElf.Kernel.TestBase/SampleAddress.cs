@@ -9,17 +9,24 @@ namespace AElf.Kernel
     {
         public static readonly IReadOnlyList<Address> AddressList;
 
-        private static readonly string[] NameArray =
+        private static readonly string[] Strings =
         {
-            "address0", "address1", "address2", "address3", "address4",
-            "address5", "address6", "address7", "address8", "address9"
+            "2EM5uV6bSJh6xJfZTUa1pZpYsYcCUAdPvZvFUJzMDJEx3rbioz",
+            "2ktxGpyiYCjFU5KwuXtbBckczX6uPmEtesJEsQPqMukcHZFY9a",
+            "2LdrKw6vi2uWSSGhiS1MBUPANFuhJzBPYDsQ65Jm7C2uEy5KKW",
+            "2ohojn441KmsVkaDS3wEL928gbpan352ZJ5ruMFxoa8iorUce",
+            "2vNDCj1WjNLAXm3VnEeGGRMw3Aab4amVSEaYmCyxQKjNhLhfL7",
+            "4v9cdSsn2PmZuFCxoSZhtY7Q2yUjdTNz6sQQdHNibdgaRg8Wx",
+            "9Njc5pXW9Rw499wqSJzrfQuJQFVCcWnLNjZispJM4LjKmRPyq",
+            "Lib8JSzdsFC7uCwvEwviadh3kp9LzaLMCauK4fSzrwc2qtHVi",
+            "LYKSAU799wDphRK7W5ZsMBF2vDG8ijeuESk1R7Xpi6hBpdnX4",
+            "ZJjdajAmP5HpWgvLkXa5mm6gcuGWwKjN3Kos89ZJogHYDgTsB"
         };
 
         static SampleAddress()
         {
             AddressList = new ReadOnlyCollection<Address>(
-                NameArray.Select(x =>
-                    Address.FromBytes(x.ComputeHash())).ToList());
+                Strings.Select(AddressHelper.Base58StringToAddress).ToList());
         }
     }
 }

@@ -35,7 +35,7 @@ namespace AElf.CrossChain
         public async Task GenerateTransactions_Test()
         {
             var transactions = new List<Transaction>();
-            _crossChainIndexingTransactionGenerator.GenerateTransactions(SampleAddress.AddressList[1],0,Hash.Empty, ref transactions);
+            _crossChainIndexingTransactionGenerator.GenerateTransactions(SampleAddress.AddressList[0],0,Hash.Empty, ref transactions);
             transactions.Count.ShouldBe(0);
 
             var chainId = _kernelTestHelper.BestBranchBlockList[0].Header.ChainId;
@@ -59,17 +59,17 @@ namespace AElf.CrossChain
             var fakeCache = new Dictionary<int, List<IBlockCacheEntity>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
 
-            var smartContractAddress = SampleAddress.AddressList[9];
+            var smartContractAddress = SampleAddress.AddressList[0];
 
             _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name,
                 smartContractAddress);
 
             await _crossChainDataProvider.GetCrossChainBlockDataForNextMiningAsync(previousBlockHash, previousBlockHeight);
             
-            _crossChainIndexingTransactionGenerator.GenerateTransactions(SampleAddress.AddressList[1],previousBlockHeight,previousBlockHash, ref transactions);
+            _crossChainIndexingTransactionGenerator.GenerateTransactions(SampleAddress.AddressList[0],previousBlockHeight,previousBlockHash, ref transactions);
             
             transactions.Count.ShouldBe(1);
-            transactions[0].From.ShouldBe(SampleAddress.AddressList[1]);
+            transactions[0].From.ShouldBe(SampleAddress.AddressList[0]);
             transactions[0].To.ShouldBe(smartContractAddress);
             transactions[0].RefBlockNumber.ShouldBe(previousBlockHeight);
             transactions[0].RefBlockPrefix.ShouldBe(ByteString.CopyFrom(previousBlockHash.Value.Take(4).ToArray()));

@@ -27,8 +27,8 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 Transaction = new Transaction()
                 {
-                    From = SampleAddress.AddressList[1],
-                    To = SampleAddress.AddressList[0]
+                    From = SampleAddress.AddressList[0],
+                    To = SampleAddress.AddressList[1]
                 }
             };
 
@@ -133,7 +133,7 @@ namespace AElf.Sdk.CSharp.Tests
         {
             var input = new CustomContract.BytesInput
             {
-                BytesValue = SampleAddress.AddressList[4].ToByteString()
+                BytesValue = SampleAddress.AddressList[0].ToByteString()
             };
 
             var output = Contract.TestBytesState(input);
@@ -249,7 +249,7 @@ namespace AElf.Sdk.CSharp.Tests
         [Fact]
         public void SendVirtualInline_Test()
         {
-            BridgeContext.SendVirtualInline(Hash.FromString("hash"), SampleAddress.AddressList[4], "TestMethod", new CustomContract.StringInput
+            BridgeContext.SendVirtualInline(Hash.FromString("hash"), SampleAddress.AddressList[0], "TestMethod", new CustomContract.StringInput
             {
                 StringValue = "test send virtual inline"
             });
@@ -258,7 +258,7 @@ namespace AElf.Sdk.CSharp.Tests
         [Fact]
         public void SendInline_Test()
         {
-            BridgeContext.SendInline(SampleAddress.AddressList[1], "TestMethod", new CustomContract.StringInput
+            BridgeContext.SendInline(SampleAddress.AddressList[0], "TestMethod", new CustomContract.StringInput
             {
                 StringValue = "test send inline"
             });

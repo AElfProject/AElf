@@ -1214,7 +1214,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                         TokenName = $"elf token {i}",
                         TotalSupply = 1000_0000,
                         Decimals = 2,
-                        Issuer = SampleAddress.AddressList[1],
+                        Issuer = SampleAddress.AddressList[0],
                         IsBurnable = true
                     });
 
