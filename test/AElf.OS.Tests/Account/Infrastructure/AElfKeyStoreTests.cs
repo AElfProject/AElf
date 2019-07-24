@@ -46,9 +46,9 @@ namespace AElf.OS.Account.Infrastructure
             errResult = await _keyStore.UnlockAccountAsync(addString, "123", false);
             errResult.ShouldBe(AElfKeyStore.Errors.AccountAlreadyUnlocked);
 
-            Directory.Delete(Path.Combine(_nodeEnvironmentService.GetAppDataPath(), "keys"), true);
-
             await Should.ThrowAsync<KeyStoreNotFoundException>(() => _keyStore.ReadKeyPairAsync(addString + "_fake", "123"));
+            Directory.Delete(Path.Combine(_nodeEnvironmentService.GetAppDataPath(), "keys"), true);
+            await Should.ThrowAsync<KeyStoreNotFoundException>(() => _keyStore.ReadKeyPairAsync(addString, "123"));
         }
 
         [Fact]

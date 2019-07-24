@@ -26,8 +26,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
 
             SystemTransactions = await OsTestHelper.GenerateTransferTransactions(1);
             CancellableTransactions = await OsTestHelper.GenerateTransactionsWithoutConflict(KeyPairs);
-            chain = await BlockchainService.GetChainAsync();
-            Block = OsTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
+            Block = OsTestHelper.GenerateBlock(Block.GetHash(), Block.Height,
                 SystemTransactions.Concat(CancellableTransactions));
 
             var block = await BlockExecutingService.ExecuteBlockAsync(Block.Header,
