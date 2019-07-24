@@ -202,7 +202,7 @@ namespace AElf.OS
                         nameof(TokenContractContainer.TokenContractStub.Transfer),
                         new TransferInput {To = Address.FromPublicKey(to.PublicKey), Amount = 1, Symbol = "ELF"});
 
-                    var signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
+                    var signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, transaction.GetHash().ToByteArray());
                     transaction.Signature = ByteString.CopyFrom(signature);
 
                     transactions.Add(transaction);
