@@ -9,7 +9,7 @@ namespace AElf.Contracts.TestKit
     {
         public static readonly IReadOnlyList<Address> AddressList;
 
-        private static readonly string[] Strings =
+        private static readonly string[] Base58Strings =
         {
             "2EM5uV6bSJh6xJfZTUa1pZpYsYcCUAdPvZvFUJzMDJEx3rbioz",
             "2ktxGpyiYCjFU5KwuXtbBckczX6uPmEtesJEsQPqMukcHZFY9a",
@@ -26,7 +26,7 @@ namespace AElf.Contracts.TestKit
         static SampleAddress()
         {
             AddressList = new ReadOnlyCollection<Address>(
-                Strings.Select(AddressHelper.Base58StringToAddress).ToList());
+                Base58Strings.Select(AddressHelper.Base58StringToAddress).ToList());
         }
     }
 }
