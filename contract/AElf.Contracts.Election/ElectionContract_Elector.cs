@@ -77,7 +77,7 @@ namespace AElf.Contracts.Election
                     Beneficiary = Context.Sender,
                     Shares = GetVotesWeight(input.Amount, lockSeconds)
                 },
-                EndPeriod = GetEndPeriod(lockSeconds) + 1
+                EndPeriod = GetEndPeriod(lockSeconds)
             });
 
             var rankingList = State.DataCentersRankingList.Value;
