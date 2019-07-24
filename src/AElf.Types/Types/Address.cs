@@ -134,14 +134,12 @@ namespace AElf.Types
         public static ChainAddress Parse(string chainAddressString, string symbol)
         {
             var arr = chainAddressString.Split('_');
-
             if (arr[0] != symbol)
             {
                 throw new ArgumentException("invalid chain address", nameof(chainAddressString));
             }
 
             var address = AddressHelper.Base58StringToAddress(arr[1]);
-
             var chainId = BitConverter.ToInt32(Base58CheckEncoding.Decode(arr[2]), 0);
 
             return new ChainAddress(address, chainId);
@@ -151,10 +149,10 @@ namespace AElf.Types
 
         public string GetFormatted(string addressPrefix, int chainId)
         {
-            if (_formatted != null)
-                return _formatted;
-            return _formatted = (addressPrefix + "_") + Address.GetFormatted() +
-                                ("_" + Base58CheckEncoding.Encode(chainId.DumpByteArray()));
+            if (_formatted != null) return _formatted;
+            var addressSuffix = Base58CheckEncoding.Encode(chainId.DumpByteArray());
+            _formatted = $"{addressPrefix}_{Address.GetFormatted()}_{addressSuffix}";
+            return _formatted;
         }
     }
 }
