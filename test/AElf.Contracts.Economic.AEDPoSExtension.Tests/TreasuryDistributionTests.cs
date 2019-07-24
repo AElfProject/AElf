@@ -32,11 +32,9 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             const int minimumBlocksToChangeTerm =
                 AEDPoSExtensionConstants.TimeEachTerm /
                 (AEDPoSExtensionConstants.MiningInterval / 1000) * AEDPoSExtensionConstants.TinyBlocksNumber;
-            const int actualBlocks = minimumBlocksToChangeTerm + (AEDPoSExtensionConstants.InitialKeyPairCount + 1) *
-                                     AEDPoSExtensionConstants.TinyBlocksNumber * 2;
             var minedBlocksInFirstRound = 0L;
             long distributedAmount;
-            for (var i = 0; i < actualBlocks; i++)
+            for (var i = 0; i < minimumBlocksToChangeTerm * 2; i++)
             {
                 await BlockMiningService.MineBlockAsync();
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
@@ -44,6 +42,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 {
                     var previousRound = await ConsensusStub.GetPreviousRoundInformation.CallAsync(new Empty());
                     minedBlocksInFirstRound = previousRound.RealTimeMinersInformation.Values.Sum(m => m.ProducedBlocks);
+                    break;
                 }
             }
 

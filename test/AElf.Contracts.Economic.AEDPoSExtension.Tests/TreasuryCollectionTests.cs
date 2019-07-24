@@ -1,13 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Contracts.Profit;
 using AElf.Contracts.TestKet.AEDPoSExtension;
-using AElf.Cryptography.ECDSA;
-using AElf.Kernel.Consensus;
-using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
 using Xunit;
 
 namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
@@ -25,6 +17,5 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             
             
         }
-        
     }
 }
