@@ -30,6 +30,7 @@ namespace AElf.OS.Network.Grpc
         private readonly IAccountService _accountService;
         private readonly IBlockchainService _blockchainService;
         private readonly INodeManager _nodeManager;
+        private readonly ITaskQueueManager _taskQueueManager;
 
         private readonly ConcurrentDictionary<string, GrpcPeer> _authenticatedPeers;
 
@@ -41,12 +42,13 @@ namespace AElf.OS.Network.Grpc
         public ILogger<GrpcPeerPool> Logger { get; set; }
 
         public GrpcPeerPool(IOptionsSnapshot<NetworkOptions> networkOptions, IAccountService accountService, 
-            IBlockchainService blockChainService, INodeManager nodeManager)
+            IBlockchainService blockChainService, INodeManager nodeManager, ITaskQueueManager taskQueueManager)
         {
             _networkOptions = networkOptions.Value;
             _accountService = accountService;
             _blockchainService = blockChainService;
             _nodeManager = nodeManager;
+            _taskQueueManager = taskQueueManager;
 
             _authenticatedPeers = new ConcurrentDictionary<string, GrpcPeer>();
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
@@ -99,6 +101,8 @@ namespace AElf.OS.Network.Grpc
                 await channel.ShutdownAsync();
                 return false;
             }
+
+            _taskQueueManager.CreateQueue(peer.Info.Pubkey);
 
             var finalizeReply = await peer.FinalizeConnectAsync(handshake);
             

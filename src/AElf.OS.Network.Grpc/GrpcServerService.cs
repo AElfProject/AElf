@@ -37,19 +37,21 @@ namespace AElf.OS.Network.Grpc
         private readonly IBlockchainService _blockchainService;
         private readonly IAccountService _accountService;
         private readonly IPeerDiscoveryService _peerDiscoveryService;
+        private readonly ITaskQueueManager _taskQueueManager;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
 
         public GrpcServerService(ISyncStateService syncStateService, IPeerPool peerPool, 
             IBlockchainService blockchainService, IAccountService accountService, 
-            IPeerDiscoveryService peerDiscoveryService)
+            IPeerDiscoveryService peerDiscoveryService, ITaskQueueManager taskQueueManager)
         {
             _syncStateService = syncStateService;
             _peerPool = peerPool;
             _blockchainService = blockchainService;
             _accountService = accountService;
             _peerDiscoveryService = peerDiscoveryService;
+            _taskQueueManager = taskQueueManager;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
@@ -106,6 +108,8 @@ namespace AElf.OS.Network.Grpc
             // If auth ok -> add it to our peers
             if (_peerPool.AddPeer(grpcPeer))
                 Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
+            
+            _taskQueueManager.CreateQueue(grpcPeer.Info.Pubkey);
 
             // todo handle case where add is false (edge case)
 

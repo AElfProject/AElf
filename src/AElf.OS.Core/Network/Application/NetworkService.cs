@@ -58,13 +58,13 @@ namespace AElf.OS.Network.Application
         {
             if (!TryAddKnownBlock(blockWithTransactions.Header))
                 return Task.CompletedTask;
-            
+
             if (IsOldBlock(blockWithTransactions.Header))
                 return Task.CompletedTask;
-            
-            _taskQueueManager.Enqueue(async () =>
+
+            foreach (var peer in _peerPool.GetPeers())
             {
-                foreach (var peer in _peerPool.GetPeers())
+                _taskQueueManager.Enqueue(async () =>
                 {
                     try
                     {
@@ -75,10 +75,10 @@ namespace AElf.OS.Network.Application
                         Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
                         await HandleNetworkException(peer, ex);
                     }
-                }
-                
-            }, NetworkConstants.BlockBroadcastQueueName);
-            
+                    
+                }, peer.Info.Pubkey);
+            }
+
             return Task.CompletedTask;
         }
 
@@ -99,18 +99,9 @@ namespace AElf.OS.Network.Application
                 HasFork = hasFork
             };
             
-            var beforeEnqueue = TimestampHelper.GetUtcNow();
-            _taskQueueManager.Enqueue(async () =>
+            foreach (var peer in _peerPool.GetPeers())
             {
-                var execTime = TimestampHelper.GetUtcNow();
-                if (execTime > beforeEnqueue +
-                    TimestampHelper.DurationFromMilliseconds(NetworkConstants.AnnouncementQueueJobTimeout))
-                {
-                    Logger.LogWarning($"Announcement too old: {execTime - beforeEnqueue}");
-                    return;
-                }
-                
-                foreach (var peer in _peerPool.GetPeers())
+                _taskQueueManager.Enqueue(async () =>
                 {
                     try
                     {
@@ -121,27 +112,18 @@ namespace AElf.OS.Network.Application
                         Logger.LogError(ex, $"Error while announcing to {peer}.");
                         await HandleNetworkException(peer, ex);
                     }
-                }
-                
-            }, NetworkConstants.AnnouncementBroadcastQueueName);
-            
+                    
+                }, peer.Info.Pubkey);
+            }
+
             return Task.CompletedTask;
         }
         
         public Task BroadcastTransactionAsync(Transaction transaction)
         {
-            var beforeEnqueue = TimestampHelper.GetUtcNow();
-            _taskQueueManager.Enqueue(async () =>
+            foreach (var peer in _peerPool.GetPeers())
             {
-                var execTime = TimestampHelper.GetUtcNow();
-                if (execTime > beforeEnqueue +
-                    TimestampHelper.DurationFromMilliseconds(NetworkConstants.TransactionQueueJobTimeout))
-                {
-                    Logger.LogWarning($"Transaction too old: {execTime - beforeEnqueue}");
-                    return;
-                }
-                
-                foreach (var peer in _peerPool.GetPeers())
+                _taskQueueManager.Enqueue(async () =>
                 {
                     try
                     {
@@ -152,10 +134,9 @@ namespace AElf.OS.Network.Application
                         Logger.LogError(ex, "Error while sending transaction.");
                         await HandleNetworkException(peer, ex);
                     }
-                }
-                
-            }, NetworkConstants.TransactionBroadcastQueueName);
-
+                }, peer.Info.Pubkey);
+            }
+            
             return Task.CompletedTask;
         }
 
