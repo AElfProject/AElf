@@ -284,6 +284,8 @@ namespace AElf.OS.Network.Grpc
             if (_authenticatedPeers.TryRemove(publicKey, out GrpcPeer removed))
             {
                 await removed.DisconnectAsync(sendDisconnect);
+                _taskQueueManager.RemoveQueue(publicKey);
+                
                 Logger.LogDebug($"Removed peer {removed}");
             }
             else

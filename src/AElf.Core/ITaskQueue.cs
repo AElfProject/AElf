@@ -62,7 +62,6 @@ namespace AElf
         public void Dispose()
         {
             _actionBlock.Complete();
-
             _actionBlock.Completion.Wait();
         }
 
@@ -77,7 +76,7 @@ namespace AElf
     public interface ITaskQueueManager : IDisposable
     {
         ITaskQueue GetQueue(string name = null);
-
+        void RemoveQueue(string name);
         ITaskQueue CreateQueue(string name, int maxDegreeOfParallelism = 1);
 
         List<TaskQueueInfo> GetQueueStatus();
@@ -124,6 +123,12 @@ namespace AElf
 
             _taskQueues.TryGetValue(name, out var queue);
             return queue;
+        }
+
+        public void RemoveQueue(string name)
+        {
+            _taskQueues.TryRemove(name, out var queue);
+            queue?.Dispose();
         }
 
         public ITaskQueue CreateQueue(string name, int maxDegreeOfParallelism)
