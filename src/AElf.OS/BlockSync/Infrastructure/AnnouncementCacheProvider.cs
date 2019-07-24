@@ -10,7 +10,16 @@ namespace AElf.OS.BlockSync.Infrastructure
 
         private ConcurrentQueue<Hash> _toBeCleanedKeys = new ConcurrentQueue<Hash>();
 
-        public bool TryAddAnnouncementCache(Hash blockHash, long blockHeight, string senderPubKey)
+        /// <summary>
+        /// Cache received announcement if it is new one. If not, update sender public key collection.
+        /// </summary>
+        /// <param name="blockHash"></param>
+        /// <param name="blockHeight"></param>
+        /// <param name="senderPubKey"></param>
+        /// <returns>
+        /// Return true if it is a new announcement, otherwise return false.
+        /// </returns>
+        public bool TryAddOrUpdateAnnouncementCache(Hash blockHash, long blockHeight, string senderPubKey)
         {
             //TODO: block height should be checked in case of malicious attacks.
             if (_cache.TryGetValue(blockHash, out var announcementCache))
@@ -50,7 +59,7 @@ namespace AElf.OS.BlockSync.Infrastructure
 
             senderPubKey = null;
             return false;
-        }
+        }  
     }
 
     class AnnouncementCache

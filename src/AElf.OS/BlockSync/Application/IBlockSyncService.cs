@@ -7,8 +7,6 @@ namespace AElf.OS.BlockSync.Application
 {
     public interface IBlockSyncService
     {
-        Task SyncByAnnouncementAsync(Chain chain, SyncAnnouncementDto syncAnnouncementDto);
-
         Task SyncByBlockAsync(Chain chain, SyncBlockDto syncBlockDto);
     }
 }

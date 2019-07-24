@@ -15,23 +15,16 @@ namespace AElf.OS.Handlers
     public class BlockReceivedEventHandler : ILocalEventHandler<BlockReceivedEvent>, ITransientDependency
     {
         private readonly IBlockSyncService _blockSyncService;
-        private readonly IBlockSyncValidationService _blockSyncValidationService;
         private readonly IBlockchainService _blockchainService;
         private readonly NetworkOptions _networkOptions;
 
-        public ILogger<BlockReceivedEventHandler> Logger { get; set; }
-
         public BlockReceivedEventHandler(IBlockSyncService blockSyncService,
-            IBlockSyncValidationService blockSyncValidationService,
             IBlockchainService blockchainService,
             IOptionsSnapshot<NetworkOptions> networkOptions)
         {
             _blockSyncService = blockSyncService;
-            _blockSyncValidationService = blockSyncValidationService;
             _blockchainService = blockchainService;
             _networkOptions = networkOptions.Value;
-            
-            Logger = NullLogger<BlockReceivedEventHandler>.Instance;
         }
 
         public Task HandleEventAsync(BlockReceivedEvent eventData)
@@ -42,16 +35,9 @@ namespace AElf.OS.Handlers
 
         private async Task ProcessNewBlockAsync(BlockWithTransactions blockWithTransactions, string senderPubkey)
         {
-            Logger.LogDebug($"Start full block sync job, block: {blockWithTransactions}, peer: {senderPubkey}.");
-
             var chain = await _blockchainService.GetChainAsync();
 
-            if (!await _blockSyncValidationService.ValidateBlockAsync(chain, blockWithTransactions, senderPubkey))
-            {
-                return;
-            }
-
-            await _blockSyncService.SyncByBlockAsync(chain,new SyncBlockDto
+            await _blockSyncService.SyncByBlockAsync(chain, new SyncBlockDto
             {
                 BlockWithTransactions = blockWithTransactions,
                 BatchRequestBlockCount = _networkOptions.BlockIdRequestCount,

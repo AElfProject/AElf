@@ -105,7 +105,7 @@ namespace AElf.OS.BlockSync.Application
             var block = _osTestHelper.GenerateBlockWithTransactions(chain.LastIrreversibleBlockHash,
                 chain.LastIrreversibleBlockHeight);
 
-            _announcementCacheProvider.TryAddAnnouncementCache(block.GetHash(), block.Height);
+            _announcementCacheProvider.TryAddOrUpdateAnnouncementCache(block.GetHash(), block.Height);
 
             var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block);
 
