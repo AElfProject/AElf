@@ -1,4 +1,6 @@
 using System.Threading.Tasks;
+using AElf.CrossChain.Communication.Application;
+using AElf.CrossChain.Communication.Infrastructure;
 using AElf.Kernel;
 using AElf.Kernel.Node.Infrastructure;
 using Microsoft.Extensions.Options;
@@ -22,16 +24,24 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         [Fact]
-        public async Task Server_Start_Test()
+        public async Task ServerStartTest()
         {
             var chainId = _chainOptions.ChainId;
             await _grpcCrossChainServerNodePlugin.StartAsync(chainId);
         }
         
         [Fact]
-        public async Task Client_Start_Test()
+        public async Task ClientStartTest()
         {
             var chainId = _chainOptions.ChainId;
+            await _grpcCrossChainClientNodePlugin.StartAsync(chainId);
+        }
+        
+        [Fact]
+        public async Task ClientStartTest_Null()
+        {
+            var chainId = _chainOptions.ChainId; 
+            _grpcCrossChainConfigOption.RemoteParentChainServerPort = 0;
             await _grpcCrossChainClientNodePlugin.StartAsync(chainId);
         }
 
@@ -48,6 +58,14 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         //TODO: Add test cases for GrpcCrossChainClientNodePlugin.ShutdownAsync after it is implemented [Case]
+        
+        [Fact]
+        public async Task StopClientTest()
+        {
+            var chainId = ChainHelper.GetChainId(1);
+            await _grpcCrossChainClientNodePlugin.StartAsync(chainId);
+            await _grpcCrossChainClientNodePlugin.StopAsync();
+        }
 
         public override void Dispose()
         {

@@ -15,6 +15,7 @@
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\..\src\AElf.CrossChain.Communication.Grpc\AElf.CrossChain.Communication.Grpc.csproj" />
+      <ProjectReference Include="..\AElf.CrossChain.Tests\AElf.CrossChain.Tests.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj" />
     </ItemGroup>
 </Project>

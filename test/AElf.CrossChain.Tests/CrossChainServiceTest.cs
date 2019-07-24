@@ -29,11 +29,27 @@ namespace AElf.CrossChain
         }
         
         [Fact]
+        public async Task FinishInitialSync_NotReady()
+        {
+            await _crossChainService.FinishInitialSyncAsync();
+            var info = _crossChainService.GetNeededChainIdAndHeightPairs();
+            Assert.Empty(info);
+        }
+        
+        [Fact]
+        public async Task GetNonIndexedBlock()
+        {
+            _crossChainTestHelper.SetFakeLibHeight(2);
+            var res = await _crossChainService.GetNonIndexedBlockAsync(1);
+            Assert.True(res.Height.Equals(1));
+        }
+        
+        [Fact]
         public async Task GetNonIndexedBlock_NoBlock()
         { 
             _crossChainTestHelper.SetFakeLibHeight(1);
-            var info = await _crossChainService.GetNonIndexedBlockAsync(2);
-            Assert.True(info == null);
+            var res = await _crossChainService.GetNonIndexedBlockAsync(2);
+            Assert.True(res == null);
         }
     }
 }

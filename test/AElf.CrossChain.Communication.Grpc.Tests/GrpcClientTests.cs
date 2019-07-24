@@ -1,4 +1,6 @@
 using System.Threading.Tasks;
+using AElf.CrossChain.Communication.Application;
+using AElf.CrossChain.Communication.Infrastructure;
 using Grpc.Core;
 using Shouldly;
 using Xunit;
@@ -12,10 +14,12 @@ namespace AElf.CrossChain.Communication.Grpc
         private BasicCrossChainRpc.BasicCrossChainRpcClient _basicClient;
         
         private IGrpcCrossChainServer _server;
+        private ICrossChainClientProvider _crossChainClientProvider;
         
         public GrpcClientTests()
         {
             _server = GetRequiredService<IGrpcCrossChainServer>();
+            _crossChainClientProvider = GetRequiredService<ICrossChainClientProvider>();
         }
 
         // TODO: These cases are meaningless and should be rewritten.
@@ -45,7 +49,7 @@ namespace AElf.CrossChain.Communication.Grpc
             result.Success.ShouldBeTrue();
             Dispose();
         }
-        
+
         private void InitServerAndClient(int port)
         {
             _server.StartAsync(Host, port).Wait();

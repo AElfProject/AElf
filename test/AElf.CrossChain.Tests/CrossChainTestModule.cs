@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -20,6 +21,13 @@ namespace AElf.CrossChain
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            var dictionary = new Dictionary<long, Hash>
+            {
+                {1, Hash.FromString("1")},
+                {2, Hash.FromString("2")},
+                {3, Hash.FromString("3")}
+            };
+            
             //context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
             context.Services.AddSingleton<CrossChainTestHelper>();
             context.Services.AddTransient(provider =>
@@ -50,6 +58,27 @@ namespace AElf.CrossChain
                     var crossChainTestHelper = context.Services.GetRequiredServiceLazy<CrossChainTestHelper>().Value;
                     chain.LastIrreversibleBlockHeight = crossChainTestHelper.FakeLibHeight;
                     return Task.FromResult(chain);
+                });
+                mockBlockChainService.Setup(m => m.GetChainAsync()).Returns(Task.FromResult(new Chain
+                {
+                    LastIrreversibleBlockHeight = CrossChainConstants.LibHeightOffsetForCrossChainIndex + 1
+                }));
+                mockBlockChainService.Setup(m => m.GetBlockHashByHeightAsync(It.IsAny<Chain>(), It.IsAny<long>(), It.IsAny<Hash>()))
+                    .Returns<Chain, long, Hash>((chain, height, hash) =>
+                    {
+                        if (height > 0 && height <= 3)
+                            return Task.FromResult(dictionary[height]);
+                        return Task.FromResult<Hash>(null);
+                    });
+                mockBlockChainService.Setup(m => m.GetBlockByHashAsync(It.IsAny<Hash>())).Returns<Hash>(hash =>
+                {
+                    foreach (var kv in dictionary)
+                    {
+                        if (kv.Value.Equals(hash))
+                            return Task.FromResult(new Block {Header = new BlockHeader {Height = kv.Key}});
+                    }
+                    
+                    return Task.FromResult<Block>(null);
                 });
                 return mockBlockChainService.Object;
             });
