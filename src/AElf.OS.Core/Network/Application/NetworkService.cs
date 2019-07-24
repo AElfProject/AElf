@@ -236,6 +236,7 @@ namespace AElf.OS.Network.Application
         {
             if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
             {
+                Logger.LogError($"Removing peer (unrecoverable) {peer.IpAddress}.");
                 await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false);
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
@@ -247,13 +248,19 @@ namespace AElf.OS.Network.Application
         
         private async Task RecoverPeerAsync(IPeer peer)
         {
-            if (peer.IsReady) // peer recovered already
+            if (peer.IsReady)
+            {
+                Logger.LogDebug($"Peer already recovered {peer}");
                 return;
-                
+            }
+
             var success = await peer.TryRecoverAsync();
 
             if (!success)
+            {
+                Logger.LogDebug($"Recover unsuccessful peer (unrecoverable) {peer.IpAddress}.");
                 await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false);
+            }
         }
         
         private void QueueNetworkTask(Func<Task> task)
