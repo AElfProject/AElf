@@ -202,7 +202,7 @@ namespace AElf.Contracts.Profit
 
             var profitDetail = new ProfitDetail
             {
-                StartPeriod = scheme.CurrentPeriod,
+                StartPeriod = scheme.CurrentPeriod.Add(scheme.DelayDistributePeriodCount),
                 EndPeriod = input.EndPeriod,
                 Shares = input.BeneficiaryShare.Shares,
             };
