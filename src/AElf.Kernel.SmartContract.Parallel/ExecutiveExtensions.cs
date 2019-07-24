@@ -14,13 +14,14 @@ namespace AElf.Kernel.SmartContract.Parallel
 {
     internal static class ExecutiveExtensions
     {
+        private static Address FromAddress => Address.FromBytes(new byte[] { }.ComputeHash());
         // TODO: maybe use ITransactionReadOnlyExecutionService
         public static async Task<TransactionResourceInfo> GetTransactionResourceInfoAsync(this IExecutive executive,
             IChainContext chainContext, Transaction input)
         {
             var generatedTxn = new Transaction
             {
-                From = AddressHelper.Zero,
+                From = FromAddress,
                 To = input.To,
                 MethodName =
                     nameof(ACS2BaseContainer.ACS2BaseStub.GetResourceInfo),

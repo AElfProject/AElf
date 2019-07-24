@@ -41,8 +41,8 @@ namespace AElf.Kernel
             {
                 var transactionList = new List<Transaction>
                 {
-                    new Transaction() {From = AddressHelper.StringToAddress("from"), To = AddressHelper.StringToAddress("to"), MethodName = "InValue"},
-                    new Transaction() {From = AddressHelper.StringToAddress("from1"), To = AddressHelper.StringToAddress("to2"), MethodName = "OutValue"},
+                    new Transaction() {From = SampleAddress.AddressList[0], To = SampleAddress.AddressList[2], MethodName = "InValue"},
+                    new Transaction() {From = SampleAddress.AddressList[1], To = SampleAddress.AddressList[3], MethodName = "OutValue"},
                 };
                 var consensusTransactionGenerator = new Mock<ISystemTransactionGenerator>();
                 consensusTransactionGenerator.Setup(m => m.GenerateTransactions(It.IsAny<Address>(), It.IsAny<long>(),

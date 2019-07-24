@@ -40,7 +40,7 @@ namespace AElf.Benchmark
         [IterationSetup]
         public async Task IterationSetup()
         {
-            _transaction = _osTestHelper.GenerateTransaction(AddressHelper.StringToAddress("_transaction"), _contractAddress,
+            _transaction = _osTestHelper.GenerateTransaction(SampleAddress.AddressList[4], _contractAddress,
                 nameof(PerformanceTestContract.PerformanceTestContract.LoopExpNop), new PerformanceTesteInput()
                 {
                     Exponent = 0,

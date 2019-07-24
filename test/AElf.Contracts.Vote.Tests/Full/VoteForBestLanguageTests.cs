@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
@@ -68,9 +67,9 @@ namespace AElf.Contracts.Vote
                 //add some more option
                 var options = new[]
                 {
-                    AddressHelper.StringToAddress("opt1").GetFormatted(),
-                    AddressHelper.StringToAddress("opt2").GetFormatted(),
-                    AddressHelper.StringToAddress("opt3").GetFormatted()
+                    SampleAddress.AddressList[3].GetFormatted(),
+                    SampleAddress.AddressList[4].GetFormatted(),
+                    SampleAddress.AddressList[5].GetFormatted()
                 };
                 var optionResult = (await VoteContractStub.AddOptions.SendAsync(new AddOptionsInput
                 {

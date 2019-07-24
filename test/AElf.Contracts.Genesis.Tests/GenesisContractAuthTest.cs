@@ -15,7 +15,7 @@ namespace AElf.Contracts.Genesis
         public async Task Initialize_AlreadyExist()
         {
             var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
-                nameof(ACS0Container.ACS0Stub.ChangeGenesisOwner), AElf.AddressHelper.StringToAddress("Genesis"));
+                nameof(ACS0Container.ACS0Stub.ChangeGenesisOwner), SampleAddress.AddressList[0]);
 
             txResult.Status.ShouldBe(TransactionResultStatus.Failed);
             txResult.Error.Contains("Unauthorized behavior.").ShouldBeTrue();

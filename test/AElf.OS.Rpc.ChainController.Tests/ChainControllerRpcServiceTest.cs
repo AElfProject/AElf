@@ -116,7 +116,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
             var transaction = new Transaction
             {
-                From = AddressHelper.StringToAddress("from"),
+                From = SampleAddress.AddressList[1],
                 To = basicContractZero,
                 MethodName = "GetContractInfo",
                 Params = basicContractZero.ToByteString()
@@ -457,12 +457,12 @@ namespace AElf.OS.Rpc.ChainController.Tests
         [Fact]
         public void Transaction_To_JObject()
         {
-            var transaction = _osTestHelper.GenerateTransaction(AddressHelper.StringToAddress("fromwhere"), AddressHelper.StringToAddress("towhere"),
+            var transaction = _osTestHelper.GenerateTransaction(SampleAddress.AddressList[0], SampleAddress.AddressList[2],
                 nameof(TokenContractContainer.TokenContractStub.Transfer), new TransferInput
                 {
                     Symbol = "ELF",
                     Amount = 1000L,
-                    To = AddressHelper.StringToAddress("to")
+                    To = SampleAddress.AddressList[3]
                 });
             var transactionObj = transaction.GetTransactionInfo();
             transactionObj.ShouldNotBeNull();
@@ -491,7 +491,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
         [Fact]
         public async Task Get_FileDescriptorSet_Failed()
         {
-            var addressInfo = AddressHelper.StringToAddress("info").GetFormatted();
+            var addressInfo = SampleAddress.AddressList[2].GetFormatted();
             var response = await JsonCallAsJObject("/chain", "GetFileDescriptorSet",
                 new {address = addressInfo});
             response["error"]["code"].To<long>().ShouldBe(Error.NotFound);
@@ -541,7 +541,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
                         TokenName= $"elf token {i}",
                         TotalSupply = 1000_0000,
                         Decimals = 2,
-                        Issuer = AddressHelper.StringToAddress("issuer"),
+                        Issuer = SampleAddress.AddressList[3],
                         IsBurnable = true
                     });
 

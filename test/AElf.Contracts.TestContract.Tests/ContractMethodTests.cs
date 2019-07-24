@@ -306,9 +306,9 @@ namespace AElf.Contract.TestContract
         [Fact]
         public async Task Basic_Mapped1Type_Test()
         {
-            var from = AddressHelper.StringToAddress("frm").GetFormatted();
+            var from = SampleAddress.AddressList[0].GetFormatted();
             var pairA = "ELF";
-            var to = AddressHelper.StringToAddress("toto").GetFormatted();
+            var to = SampleAddress.AddressList[1].GetFormatted();
             var pairB = "USDT";
                     
             await TestBasicSecurityContractStub.TestMapped2State.SendAsync(new Complex3Input

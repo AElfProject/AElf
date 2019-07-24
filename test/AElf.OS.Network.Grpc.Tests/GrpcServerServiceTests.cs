@@ -81,8 +81,8 @@ namespace AElf.OS.Network
             });
             
             Transaction tx = new Transaction();
-            tx.From = AddressHelper.StringToAddress("from");
-            tx.To = AddressHelper.StringToAddress("to");
+            tx.From = SampleAddress.AddressList[0];
+            tx.To = SampleAddress.AddressList[1];
             
             await _service.SendTransaction(tx, BuildServerCallContext());
             
@@ -102,8 +102,8 @@ namespace AElf.OS.Network
             });
             
             Transaction tx = new Transaction();
-            tx.From = AddressHelper.StringToAddress("from");
-            tx.To = AddressHelper.StringToAddress("to");
+            tx.From = SampleAddress.AddressList[2];
+            tx.To = SampleAddress.AddressList[3];
 
             var chain = await  _blockchainService.GetChainAsync();
             tx.RefBlockNumber = chain.BestChainHeight + NetworkConstants.DefaultInitialSyncOffset + 1;
@@ -124,8 +124,8 @@ namespace AElf.OS.Network
             });
             
             Transaction tx = new Transaction();
-            tx.From = AddressHelper.StringToAddress("from");
-            tx.To = AddressHelper.StringToAddress("to");
+            tx.From = SampleAddress.AddressList[4];
+            tx.To = SampleAddress.AddressList[5];
             
             await _service.SendTransaction(tx, BuildServerCallContext());
             

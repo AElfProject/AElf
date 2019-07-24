@@ -3,6 +3,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -211,7 +212,7 @@ namespace AElf.Contracts.Profit
             await creator.AddWeight.SendAsync(new AddWeightInput
             {
                 ProfitId = profitId,
-                Receiver = AddressHelper.StringToAddress("receiver"),
+                Receiver = SampleAddress.AddressList[0],
                 Weight = weight
             });
 
@@ -363,8 +364,8 @@ namespace AElf.Contracts.Profit
 
             const int weight1 = 100;
             const int weight2 = 200;
-            var receiver1 = AddressHelper.StringToAddress("receiver1");
-            var receiver2 = AddressHelper.StringToAddress("receiver2");
+            var receiver1 = SampleAddress.AddressList[1];
+            var receiver2 = SampleAddress.AddressList[2];
 
             await creator.AddWeight.SendAsync(new AddWeightInput
             {
@@ -424,7 +425,7 @@ namespace AElf.Contracts.Profit
             const long weight = 10;
 
             var creator = Creators[0];
-            var receiver = AddressHelper.StringToAddress("option");
+            var receiver = SampleAddress.AddressList[3];
 
             var profitId = await CreateProfitItem();
 
@@ -491,7 +492,7 @@ namespace AElf.Contracts.Profit
             var executionResult = await creator.AddWeight.SendAsync(new AddWeightInput
             {
                 ProfitId = Hash.FromString("hash"),
-                Receiver = AddressHelper.StringToAddress("option2"),
+                Receiver = SampleAddress.AddressList[4],
                 Weight = 100
             });
 
@@ -679,7 +680,7 @@ namespace AElf.Contracts.Profit
             var executionResult = await creator.SubWeight.SendAsync(new SubWeightInput
             {
                 ProfitId = Hash.FromString("hash2"),
-                Receiver = AddressHelper.StringToAddress("option3")
+                Receiver = SampleAddress.AddressList[5]
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -697,7 +698,7 @@ namespace AElf.Contracts.Profit
 
             await creator.AddWeight.SendAsync(new AddWeightInput
             {
-                Receiver = AddressHelper.StringToAddress("option4"),
+                Receiver = SampleAddress.AddressList[6],
                 ProfitId = profitId,
                 Weight = 100
             });
@@ -726,7 +727,7 @@ namespace AElf.Contracts.Profit
 
             await creator.AddWeight.SendAsync(new AddWeightInput
             {
-                Receiver = AddressHelper.StringToAddress("option5"),
+                Receiver = SampleAddress.AddressList[7],
                 ProfitId = profitId,
                 Weight = 100
             });
@@ -796,7 +797,7 @@ namespace AElf.Contracts.Profit
 
             await creator.AddWeight.SendAsync(new AddWeightInput
             {
-                Receiver = AddressHelper.StringToAddress("option6"),
+                Receiver = SampleAddress.AddressList[8],
                 ProfitId = profitId,
                 Weight = 100
             });
