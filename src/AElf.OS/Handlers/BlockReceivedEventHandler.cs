@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.OS.BlockSync;
 using AElf.OS.BlockSync.Application;
 using AElf.OS.BlockSync.Dto;
 using AElf.OS.Network;
@@ -17,19 +18,19 @@ namespace AElf.OS.Handlers
         private readonly IBlockSyncService _blockSyncService;
         private readonly IBlockSyncValidationService _blockSyncValidationService;
         private readonly IBlockchainService _blockchainService;
-        private readonly NetworkOptions _networkOptions;
+        private readonly BlockSyncOptions _blockSyncOptions;
 
         public ILogger<BlockReceivedEventHandler> Logger { get; set; }
 
         public BlockReceivedEventHandler(IBlockSyncService blockSyncService,
             IBlockSyncValidationService blockSyncValidationService,
             IBlockchainService blockchainService,
-            IOptionsSnapshot<NetworkOptions> networkOptions)
+            IOptionsSnapshot<BlockSyncOptions> blockSyncOptions)
         {
             _blockSyncService = blockSyncService;
             _blockSyncValidationService = blockSyncValidationService;
             _blockchainService = blockchainService;
-            _networkOptions = networkOptions.Value;
+            _blockSyncOptions = blockSyncOptions.Value;
             
             Logger = NullLogger<BlockReceivedEventHandler>.Instance;
         }
@@ -54,7 +55,7 @@ namespace AElf.OS.Handlers
             await _blockSyncService.SyncByBlockAsync(chain,new SyncBlockDto
             {
                 BlockWithTransactions = blockWithTransactions,
-                BatchRequestBlockCount = _networkOptions.BlockIdRequestCount,
+                BatchRequestBlockCount = _blockSyncOptions.MaxBatchRequestBlockCount,
                 SuggestedPeerPubkey = senderPubkey
             });
         }
