@@ -54,13 +54,13 @@ namespace AElf.OS.Network.Application
             return false;
         }
         
-        public Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
+        public async Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
         {
             if (!TryAddKnownBlock(blockWithTransactions.Header))
-                return Task.CompletedTask;
+                return;
             
             if (IsOldBlock(blockWithTransactions.Header))
-                return Task.CompletedTask;
+                return;
             
             _taskQueueManager.Enqueue(async () =>
             {
@@ -68,7 +68,7 @@ namespace AElf.OS.Network.Application
                 {
                     try
                     {
-                        await peer.SendBlockAsync(blockWithTransactions);
+                        peer.EnqueueBlock(blockWithTransactions);
                     }
                     catch (NetworkException ex)
                     {
@@ -78,19 +78,17 @@ namespace AElf.OS.Network.Application
                 }
                 
             }, NetworkConstants.BlockBroadcastQueueName);
-            
-            return Task.CompletedTask;
         }
 
-        public Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
+        public async Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
         {
             var blockHash = blockHeader.GetHash();
             
             if (!TryAddKnownBlock(blockHeader))
-                return Task.CompletedTask;
+                return;
             
             if (IsOldBlock(blockHeader))
-                return Task.CompletedTask;
+                return;
             
             var blockAnnouncement = new BlockAnnouncement
             {
@@ -101,18 +99,32 @@ namespace AElf.OS.Network.Application
 
             foreach (var peer in _peerPool.GetPeers())
             {
-                peer.EnqueueAnnouncement(blockAnnouncement);
+                try
+                {
+                    peer.EnqueueAnnouncement(blockAnnouncement);
+                }
+                catch (NetworkException ex)
+                {
+                    Logger.LogError(ex, $"Error while broadcasting announcement to {peer}.");
+                    await HandleNetworkException(peer, ex);
+                }
             }
-
-            return Task.CompletedTask;
         }
         
-        public Task BroadcastTransactionAsync(Transaction transaction)
+        public async Task BroadcastTransactionAsync(Transaction transaction)
         {
             foreach (var peer in _peerPool.GetPeers())
-                peer.EnqueueTransaction(transaction);
-            
-            return Task.CompletedTask;
+            {
+                try
+                {
+                    peer.EnqueueTransaction(transaction);
+                }
+                catch (NetworkException ex)
+                {
+                    Logger.LogError(ex, $"Error while broadcasting transaction to {peer}.");
+                    await HandleNetworkException(peer, ex);
+                }
+            }
         }
 
         public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, 

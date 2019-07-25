@@ -17,12 +17,12 @@ namespace AElf.OS.Network.Infrastructure
         PeerInfo Info { get; }
 
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
-
-        Task UpdateHandshakeAsync();
+        
         void EnqueueAnnouncement(BlockAnnouncement transaction);
         void EnqueueTransaction(Transaction transaction);
-        Task SendBlockAsync(BlockWithTransactions blockWithTransactions);
-        
+        void EnqueueBlock(BlockWithTransactions blockWithTransactions);
+
+        Task UpdateHandshakeAsync();
         Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash);
         Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);
         Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest);
