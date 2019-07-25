@@ -5,7 +5,7 @@ using Volo.Abp.Modularity;
 namespace AElf.BenchBase
 {
     [DependsOn(typeof(TestBaseAElfModule))]
-    public class BenchBaseAElfModule : AElfModule<BenchBaseAElfModule>
+    public class BenchBaseAElfModule : AElfModule
     {
         
     }

@@ -21,7 +21,7 @@ namespace AElf.Kernel
         typeof(SmartContractExecutionAElfModule),
         typeof(TransactionPoolAElfModule)
     )]
-    public class KernelAElfModule : AElfModule<KernelAElfModule>
+    public class KernelAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

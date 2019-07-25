@@ -60,7 +60,7 @@ namespace AElf.Blockchains.MainChain
                     Symbol = _tokenInitialOptions.Symbol,
                     Amount = (long) (_tokenInitialOptions.TotalSupply * (1 - _tokenInitialOptions.DividendPoolRatio)) /
                              _consensusOptions.InitialMiners.Count,
-                    To = Address.FromPublicKey(ByteArrayHelpers.FromHexString(tokenReceiver)),
+                    To = Address.FromPublicKey(ByteArrayHelper.FromHexString(tokenReceiver)),
                     Memo = "Set initial miner's balance."
                 });
             }

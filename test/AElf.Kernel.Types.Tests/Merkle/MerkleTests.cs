@@ -20,10 +20,10 @@ namespace AElf.Kernel.Types.Tests
 
         private Hash GetHashFromHexString(params string[] strings)
         {
-            var hash = Hash.LoadByteArray(ByteArrayHelpers.FromHexString(strings[0]));
+            var hash = Hash.FromByteArray(ByteArrayHelper.FromHexString(strings[0]));
             foreach (var s in strings.Skip(1))
             {
-                hash = Hash.FromRawBytes(hash.DumpByteArray().Concat(ByteArrayHelpers.FromHexString(s)).ToArray());
+                hash = Hash.FromRawBytes(hash.ToByteArray().Concat(ByteArrayHelper.FromHexString(s)).ToArray());
             }
 
             return hash;
@@ -307,7 +307,7 @@ namespace AElf.Kernel.Types.Tests
 
         private Hash CreateLeafFromHex(string hex)
         {
-            return Hash.LoadByteArray(ByteArrayHelpers.FromHexString(hex));
+            return Hash.FromByteArray(ByteArrayHelper.FromHexString(hex));
         }
 
         private Hash ComputeRootWithMerklePathAndLeaf(Hash leaf, MerklePath path)

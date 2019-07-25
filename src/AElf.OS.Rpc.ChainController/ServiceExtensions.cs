@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -31,7 +30,7 @@ namespace AElf.OS.Rpc.ChainController
                 Transaction transaction;
                 try
                 {
-                    var hexString = ByteArrayHelpers.FromHexString(rawTransactions[i]);
+                    var hexString = ByteArrayHelper.FromHexString(rawTransactions[i]);
                     transaction = Transaction.Parser.ParseFrom(hexString);
                 }
                 catch
@@ -176,17 +175,17 @@ namespace AElf.OS.Rpc.ChainController
         }
 
         internal static async Task<TransactionResult> GetTransactionResult(this ChainControllerRpcService s,
-            Hash txHash)
+            Hash transactionId)
         {
             // in storage
-            var res = await s.TransactionResultQueryService.GetTransactionResultAsync(txHash);
+            var res = await s.TransactionResultQueryService.GetTransactionResultAsync(transactionId);
             if (res != null)
             {
                 return res;
             }
 
             // in tx pool
-            var receipt = await s.TxHub.GetTransactionReceiptAsync(txHash);
+            var receipt = await s.TxHub.GetTransactionReceiptAsync(transactionId);
             if (receipt != null)
             {
                 return new TransactionResult
@@ -199,7 +198,7 @@ namespace AElf.OS.Rpc.ChainController
             // not existed
             return new TransactionResult
             {
-                TransactionId = txHash,
+                TransactionId = transactionId,
                 Status = TransactionResultStatus.NotExisted
             };
         }
@@ -248,8 +247,8 @@ namespace AElf.OS.Rpc.ChainController
 
             var trace = await s.TransactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, TimestampHelper.GetUtcNow());
 
-            if (!string.IsNullOrEmpty(trace.StdErr))
-                throw new Exception(trace.StdErr);
+            if (!string.IsNullOrEmpty(trace.Error))
+                throw new Exception(trace.Error);
 
             return trace.ReturnValue.ToByteArray();
         }

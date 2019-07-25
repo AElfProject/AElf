@@ -2,9 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
+using AElf.CrossChain.Communication.Infrastructure;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
@@ -14,19 +14,19 @@ namespace AElf.CrossChain.Communication.Application
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly ICrossChainDataProvider _crossChainDataProvider;
-        private readonly IBlockchainService _blockchainService;
+        private readonly IIrreversibleBlockStateProvider _irreversibleBlockStateProvider;
 
         public CrossChainResponseService(ICrossChainDataProvider crossChainDataProvider, 
-            IBlockExtraDataService blockExtraDataService, IBlockchainService blockchainService)
+            IBlockExtraDataService blockExtraDataService, IIrreversibleBlockStateProvider irreversibleBlockStateProvider)
         {
             _crossChainDataProvider = crossChainDataProvider;
             _blockExtraDataService = blockExtraDataService;
-            _blockchainService = blockchainService;
+            _irreversibleBlockStateProvider = irreversibleBlockStateProvider;
         }
 
         public async Task<SideChainBlockData> ResponseSideChainBlockDataAsync(long requestHeight)
         {
-            var block = await _blockchainService.GetIrreversibleBlockByHeightAsync(requestHeight);
+            var block = await _irreversibleBlockStateProvider.GetIrreversibleBlockByHeightAsync(requestHeight);
             if (block == null)
                 return null;
             
@@ -41,7 +41,7 @@ namespace AElf.CrossChain.Communication.Application
 
         public async Task<ParentChainBlockData> ResponseParentChainBlockDataAsync(long requestHeight, int remoteSideChainId)
         {
-            var block = await _blockchainService.GetIrreversibleBlockByHeightAsync(requestHeight);
+            var block = await _irreversibleBlockStateProvider.GetIrreversibleBlockByHeightAsync(requestHeight);
             if (block == null)
                 return null;
             var parentChainBlockData = new ParentChainBlockData
@@ -55,7 +55,7 @@ namespace AElf.CrossChain.Communication.Application
                 return parentChainBlockData;
             }
 
-            var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockDataResult(block);
+            var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockDataResultAsync(block);
             var enumerableMerklePath = GetEnumerableMerklePath(indexedSideChainBlockDataResult, remoteSideChainId);
             foreach (var kv in enumerableMerklePath)
             {
@@ -67,7 +67,7 @@ namespace AElf.CrossChain.Communication.Application
 
         public async Task<ChainInitializationData> ResponseChainInitializationDataFromParentChainAsync(int chainId)
         {
-            var libDto = await _blockchainService.GetLibHashAndHeightAsync();
+            var libDto = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
             var chainInitializationData =
                 await _crossChainDataProvider.GetChainInitializationDataAsync(chainId, libDto.BlockHash,
                     libDto.BlockHeight);
@@ -89,14 +89,11 @@ namespace AElf.CrossChain.Communication.Application
             return parentChainBlockData;
         }
         
-        private async Task<List<SideChainBlockData>> GetIndexedSideChainBlockDataResult(Block block)
+        private async Task<List<SideChainBlockData>> GetIndexedSideChainBlockDataResultAsync(Block block)
         {
             var crossChainBlockData =
                 await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
-            //Logger.LogTrace($"Indexed side chain block size {crossChainBlockData.SideChainBlockData.Count}");
-            //var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(message.ToByteString());
-            return crossChainBlockData.SideChainBlockData
-                .Select(m => SideChainBlockData.Parser.ParseFrom(m.ToByteString())).ToList();
+            return crossChainBlockData.SideChainBlockData.ToList();
         }
         
         private Dictionary<long, MerklePath> GetEnumerableMerklePath(IList<SideChainBlockData> indexedSideChainBlockDataResult, 

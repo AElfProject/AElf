@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using Google.Protobuf.WellKnownTypes;

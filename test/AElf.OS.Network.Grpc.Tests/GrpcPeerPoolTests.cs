@@ -15,7 +15,7 @@ namespace AElf.OS.Network
         private const string TestIp = "127.0.0.1:6800";
         private readonly string _testPubKey;
 
-        private readonly GrpcPeerInfo _peerInfo;
+        private readonly PeerInfo _peerInfo;
 
         private readonly GrpcPeerPool _pool;
 
@@ -23,13 +23,12 @@ namespace AElf.OS.Network
         {
             _pool = GetRequiredService<GrpcPeerPool>();
 
-            var keyPair = CryptoHelpers.GenerateKeyPair();
+            var keyPair = CryptoHelper.GenerateKeyPair();
             _testPubKey = keyPair.PublicKey.ToHex();
             
-            _peerInfo = new GrpcPeerInfo
+            _peerInfo = new PeerInfo
             {
-                PublicKey = _testPubKey,
-                PeerIpAddress = TestIp,
+                Pubkey = _testPubKey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 StartHeight = 1,
@@ -40,7 +39,7 @@ namespace AElf.OS.Network
         [Fact]
         public void GetPeer_RemoteAddressOrPubKeyAlreadyPresent_ShouldReturnPeer()
         {
-            _pool.AddPeer(new GrpcPeer(null, null, _peerInfo));
+            _pool.AddPeer(new GrpcPeer(null, null, TestIp, _peerInfo));
             
             Assert.NotNull(_pool.FindPeerByAddress(TestIp));
             Assert.NotNull(_pool.FindPeerByPublicKey(_testPubKey));
@@ -49,7 +48,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task AddPeerAsync_PeerAlreadyConnected_ShouldReturnFalse()
         {
-            _pool.AddPeer( new GrpcPeer(null, null, _peerInfo));
+            _pool.AddPeer( new GrpcPeer(null, null, TestIp, _peerInfo));
 
             var added = await _pool.AddPeerAsync(TestIp);
             
@@ -68,7 +67,7 @@ namespace AElf.OS.Network
         [Fact]
         public void IsAuthenticatePeer_Success()
         {
-            var result = _pool.FindPeerByAddress(GrpcTestConstants.FakePubKey);
+            var result = _pool.FindPeerByAddress(GrpcTestConstants.FakePubkey);
             result.ShouldBeNull();
         }
 
@@ -77,7 +76,7 @@ namespace AElf.OS.Network
         {
             var handshake = await _pool.GetHandshakeAsync();
             handshake.ShouldNotBeNull();
-            handshake.HskData.Version.ShouldBe(KernelConstants.ProtocolVersion);
+            handshake.HandshakeData.Version.ShouldBe(KernelConstants.ProtocolVersion);
         }
 
         [Fact]
@@ -85,7 +84,7 @@ namespace AElf.OS.Network
         {
             var channel = new Channel(TestIp, ChannelCredentials.Insecure);
             var client = new PeerService.PeerServiceClient(channel);
-            _pool.AddPeer(new GrpcPeer(channel, client, _peerInfo));
+            _pool.AddPeer(new GrpcPeer(channel, client, TestIp, _peerInfo));
             _pool.FindPeerByAddress(TestIp).ShouldNotBeNull();
 
             await _pool.RemovePeerByAddressAsync(TestIp);

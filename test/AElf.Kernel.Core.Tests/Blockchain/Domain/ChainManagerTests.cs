@@ -28,7 +28,7 @@ namespace AElf.Kernel.Blockchain.Domain
             var bytes = BitConverter.GetBytes(n);
             var arr = new byte[32];
             Array.Copy(bytes, arr, bytes.Length);
-            return Hash.LoadByteArray(arr);
+            return Hash.FromByteArray(arr);
         }
 
         public ChainManagerTests()
@@ -127,9 +127,9 @@ namespace AElf.Kernel.Blockchain.Domain
 
 
             {
-                await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[1]);
+                (await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[1])).ShouldBeTrue();
                 //test repeat set
-                await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[1]);
+                (await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[1])).ShouldBeTrue();
                 (await _chainManager.GetChainBlockIndexAsync(0.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[0]);
                 (await _chainManager.GetChainBlockIndexAsync(1.BlockHeight())).BlockHash.ShouldBe(
@@ -212,8 +212,8 @@ namespace AElf.Kernel.Blockchain.Domain
                 
                 chain.LastIrreversibleBlockHash.ShouldBe(_blocks[1]);
                 chain.LastIrreversibleBlockHeight.ShouldBe(1.BlockHeight());
-                
-                await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[4]);
+
+                (await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[4])).ShouldBeTrue();
                 (await _chainManager.GetChainBlockIndexAsync(0.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[0]);
                 (await _chainManager.GetChainBlockIndexAsync(1.BlockHeight())).BlockHash.ShouldBe(
@@ -360,7 +360,7 @@ namespace AElf.Kernel.Blockchain.Domain
             }
 
             {
-                await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[12]);
+                (await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[12])).ShouldBeTrue();
                 (await _chainManager.GetChainBlockIndexAsync(0.BlockHeight())).BlockHash.ShouldBe(
                     _blocks[0]);
                 (await _chainManager.GetChainBlockIndexAsync(1.BlockHeight())).BlockHash.ShouldBe(
@@ -378,6 +378,45 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.LastIrreversibleBlockHash.ShouldBe(_blocks[12]);
                 chain.LastIrreversibleBlockHeight.ShouldBe(8.BlockHeight());
             }
+            
+            //0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 10[6] -> *11[7] -> 12[8]         , 3 branches
+            //                                        11[7] -> 13[8] -> 14[9] 
+            //                    4 -> 6 -> 7[6]
+            //not linked: (9) -> 8[5]
+            {
+                var status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                {
+                    Height = 8.BlockHeight(),
+                    BlockHash = _blocks[13],
+                    PreviousBlockHash = _blocks[11]
+                });
+
+                status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
+                status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
+                status.ShouldNotHaveFlag(BlockAttachOperationStatus.LongestChainFound);
+                status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
+                
+                status = await _chainManager.AttachBlockToChainAsync(chain, new ChainBlockLink()
+                {
+                    Height = 9.BlockHeight(),
+                    BlockHash = _blocks[14],
+                    PreviousBlockHash = _blocks[13]
+                });
+
+                status.ShouldHaveFlag(BlockAttachOperationStatus.NewBlockLinked);
+                status.ShouldHaveFlag(BlockAttachOperationStatus.LongestChainFound);
+                status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlocksLinked);
+                status.ShouldNotHaveFlag(BlockAttachOperationStatus.NewBlockNotLinked);
+                
+                (await _chainManager.SetIrreversibleBlockAsync(chain, _blocks[14])).ShouldBeFalse();
+                chain.LastIrreversibleBlockHash.ShouldBe(_blocks[12]);
+                chain.LastIrreversibleBlockHeight.ShouldBe(8.BlockHeight());
+                
+                (await _chainManager.GetChainBlockLinkAsync(_blocks[13])).IsIrreversibleBlock.ShouldBeFalse();
+                (await _chainManager.GetChainBlockLinkAsync(_blocks[14])).IsIrreversibleBlock.ShouldBeFalse();
+            }
+            
+            
         }
 
         [Fact]

@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Common;
 using AElf.Kernel;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
@@ -71,24 +70,24 @@ namespace AElf.OS.Consensus.DPos
 
         private void AddPeer(string publicKey,int blockHeight)
         {
-            var channel = new Channel(OSConsensusDPosTestConstants.FakeListeningPort, ChannelCredentials.Insecure);
+            var channel = new Channel(OSConsensusDPosTestConstants.FakeIpEndpoint, ChannelCredentials.Insecure);
             
-            var connectionInfo = new GrpcPeerInfo
+            var connectionInfo = new PeerInfo
             {
-                PublicKey = publicKey,
-                PeerIpAddress = OSConsensusDPosTestConstants.FakeListeningPort,
+                Pubkey = publicKey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = _connectionTime,
                 StartHeight = 1,
                 IsInbound = true
             };
             
-            var peer = new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), connectionInfo);
+            var peer = new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), OSConsensusDPosTestConstants.FakeIpEndpoint, connectionInfo);
+            peer.IsConnected = true;
             
             var blocks = _osTestHelper.BestBranchBlockList.GetRange(0, blockHeight);
             foreach (var block in blocks)
             {
-                peer.HandlerRemoteAnnounce(new PeerNewBlockAnnouncement
+                peer.ProcessReceivedAnnouncement(new BlockAnnouncement
                     {BlockHash = block.GetHash(), BlockHeight = block.Height});
             }
             _peerPool.AddPeer(peer);

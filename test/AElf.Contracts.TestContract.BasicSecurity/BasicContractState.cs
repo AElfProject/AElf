@@ -6,7 +6,6 @@ namespace AElf.Contracts.TestContract.BasicSecurity
     public partial class BasicSecurityContractState : ContractState
     {
         public BoolState Initialized { get; set; }
-        
         public BoolState BoolInfo { get; set; }
         public Int32State Int32Info { get; set; }
         public UInt32State UInt32Info { get; set; }

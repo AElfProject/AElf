@@ -28,7 +28,7 @@ namespace AElf.WebApp.Web
     [DependsOn(
         typeof(ChainApplicationWebAppAElfModule),
         typeof(NetApplicationWebAppAElfModule),
-        typeof(AbpAspNetCoreMvcModule))]
+        typeof(WebAppAbpAspNetCoreMvcModule))]
     public class WebWebAppAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -76,9 +76,9 @@ namespace AElf.WebApp.Web
         {
             Configure<AbpAspNetCoreMvcOptions>(options =>
             {
-                options.ConventionalControllers.Create(typeof(ChainApplicationWebAppAElfModule).Assembly);
+                options.ConventionalControllers.Create(typeof(ChainApplicationWebAppAElfModule).Assembly,setting => setting.UrlControllerNameNormalizer=context => "blockChain");
 
-                options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly);
+                options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly,setting => setting.UrlControllerNameNormalizer=context => "net");
             });
         }
 

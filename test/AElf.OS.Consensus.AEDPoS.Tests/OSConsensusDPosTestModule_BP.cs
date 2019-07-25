@@ -23,8 +23,8 @@ namespace AElf.OS.Consensus.DPos
     // ReSharper disable once InconsistentNaming
     public class OSConsensusDPosTestModule_BP : AElfModule
     {
-        private readonly ECKeyPair _keyPair = CryptoHelpers.FromPrivateKey(
-            ByteArrayHelpers.FromHexString(OSConsensusDPosTestConstants.PrivateKeyHex));
+        private readonly ECKeyPair _keyPair = CryptoHelper.FromPrivateKey(
+            ByteArrayHelper.FromHexString(OSConsensusDPosTestConstants.PrivateKeyHex));
         
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

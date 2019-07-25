@@ -42,7 +42,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             {
                 return new AElfConsensusTriggerInformation
                 {
-                    PublicKey = PublicKey,
+                    Pubkey = PublicKey,
                     Behaviour = AElfConsensusBehaviour.UpdateValue
                 }.ToBytesValue();
             }
@@ -64,7 +64,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
                 return new AElfConsensusTriggerInformation
                 {
-                    PublicKey = PublicKey,
+                    Pubkey = PublicKey,
                     RandomHash = newRandomHash,
                     PreviousRandomHash = _randomHashCacheService.GetLatestGeneratedBlockRandomHash(),
                     Behaviour = behaviour
@@ -73,7 +73,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             return new AElfConsensusTriggerInformation
             {
-                PublicKey = PublicKey,
+                Pubkey = PublicKey,
                 Behaviour = behaviour
             }.ToBytesValue();
         }
@@ -84,7 +84,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             {
                 return new AElfConsensusTriggerInformation
                 {
-                    PublicKey = PublicKey,
+                    Pubkey = PublicKey,
                     Behaviour = AElfConsensusBehaviour.UpdateValue
                 }.ToBytesValue();
             }
@@ -98,7 +98,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             {
                 var trigger = new AElfConsensusTriggerInformation
                 {
-                    PublicKey = PublicKey,
+                    Pubkey = PublicKey,
                     RandomHash = _randomHashCacheService.GetRandomHash(bestChainLastBlockHeader.GetHash()),
                     PreviousRandomHash = _randomHashCacheService.GetLatestGeneratedBlockRandomHash(),
                     Behaviour = behaviour
@@ -109,7 +109,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             return new AElfConsensusTriggerInformation
             {
-                PublicKey = PublicKey,
+                Pubkey = PublicKey,
                 Behaviour = behaviour
             }.ToBytesValue();
         }
@@ -122,7 +122,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         {
             var data = Hash.FromRawBytes(consensusCommand.NextBlockMiningLeftMilliseconds
                 .DumpByteArray());
-            var bytes = AsyncHelper.RunSync(() => _accountService.SignAsync(data.DumpByteArray()));
+            var bytes = AsyncHelper.RunSync(() => _accountService.SignAsync(data.ToByteArray()));
             return Hash.FromRawBytes(bytes);
         }
     }

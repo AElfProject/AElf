@@ -9,7 +9,7 @@ namespace AElf.Kernel.Types.Tests
         [Fact]
         public void StateValue_Test()
         {
-            var hashArray = Hash.Generate().DumpByteArray();
+            var hashArray = Hash.FromString("hash").ToByteArray();
             var stateValue = StateValue.Create(hashArray);
             var isDirty = stateValue.IsDirty;
             isDirty.ShouldBeFalse();
@@ -17,7 +17,7 @@ namespace AElf.Kernel.Types.Tests
             var hashArray1 = stateValue.Get();
             hashArray.ShouldBe(hashArray1);
 
-            var hashArray2 = Hash.Generate().DumpByteArray();
+            var hashArray2 = Hash.FromString("hash1").ToByteArray();
             stateValue.Set(hashArray2);
 
             isDirty = stateValue.IsDirty;

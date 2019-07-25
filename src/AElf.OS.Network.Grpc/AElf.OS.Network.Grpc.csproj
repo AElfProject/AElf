@@ -13,7 +13,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
       <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
       <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
@@ -27,6 +26,7 @@
 
     <ItemGroup>
       <Folder Include="Protobuf" />
+      <Folder Include="Protobuf\Generated" />
     </ItemGroup>
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">

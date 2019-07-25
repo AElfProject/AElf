@@ -11,6 +11,7 @@ import "google/protobuf/wrappers.proto";
 option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
 
 service TokenContract {
+    
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
@@ -44,6 +45,7 @@ service TokenContract {
     }
     rpc SetFeePoolAddress (aelf.Hash) returns (google.protobuf.Empty) {
     }
+    
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;
@@ -66,7 +68,7 @@ message TokenInfo {
     sint64 totalSupply = 4;
     sint32 decimals = 5;
     aelf.Address issuer = 6;
-    bool isBurnable = 7;
+    bool is_burnable = 7;
 }
 
 message CreateInput {
@@ -75,8 +77,8 @@ message CreateInput {
     sint64 totalSupply = 3;
     sint32 decimals = 4;
     aelf.Address issuer = 5;
-    bool isBurnable = 6;
-    repeated aelf.Address lockWhiteList = 7;
+    bool is_burnable = 6;
+    repeated aelf.Address lock_white_list = 7;
 }
 
 message CreateNativeTokenInput {
@@ -85,8 +87,8 @@ message CreateNativeTokenInput {
     sint64 totalSupply = 3;
     sint32 decimals = 4;
     aelf.Address issuer = 5;
-    bool isBurnable = 6;
-    repeated aelf.Hash lockWhiteSystemContractNameList = 7;
+    bool is_burnable = 6;
+    repeated aelf.Hash lock_white_system_contract_name_list = 7;
 }
 
 message IssueInput {
@@ -100,7 +102,7 @@ message IssueNativeTokenInput {
     string symbol = 1;
     sint64 amount = 2;
     string memo = 3;
-    aelf.Hash toSystemContractName = 4;
+    aelf.Hash to_system_contract_name = 4;
 }
 
 message TransferInput {
@@ -111,21 +113,19 @@ message TransferInput {
 }
 
 message LockInput {
-    aelf.Address from = 1; // The one want to lock his token.
-    aelf.Address to = 2; // The address in white list.
-    aelf.Hash lockId = 3;
-    string symbol = 4;
-    string usage = 5;
-    int64 amount = 6;
+    aelf.Address address = 1; // The one want to lock his token.
+    aelf.Hash lock_id = 2;
+    string symbol = 3;
+    string usage = 4;
+    int64 amount = 5;
 }
 
 message UnlockInput {
-    aelf.Address from = 1; // The one want to lock his token.
-    aelf.Address to = 2; // The address in white list.
-    aelf.Hash lockId = 3;
-    string symbol = 4;
-    string usage = 5;
-    int64 amount = 6;
+    aelf.Address address = 1; // The one want to lock his token.
+    aelf.Hash lock_id = 2;
+    string symbol = 3;
+    string usage = 4;
+    int64 amount = 5;
 }
 
 message TransferFromInput {
@@ -193,17 +193,17 @@ message GetAllowanceOutput {
 
 message CrossChainTransferInput {
     aelf.Address to = 1;
-    TokenInfo tokenInfo = 2;
+    TokenInfo token_info = 2;
     sint64 amount = 3;
     string memo = 4;
-    int32 toChainId = 5;
+    int32 to_chain_id = 5;
 }
 
 message CrossChainReceiveTokenInput {
-    int32 fromChainId = 1;
-    int64 parentChainHeight = 2;
-    bytes transferTransactionBytes = 3;
-    aelf.MerklePath merklePath = 4;
+    int32 from_chain_id = 1;
+    int64 parent_chain_height = 2;
+    bytes transfer_transaction_bytes = 3;
+    aelf.MerklePath merkle_path = 4;
 }
 
 // EventsCreateInput

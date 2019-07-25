@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using AElf.Common;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
@@ -22,6 +21,7 @@ namespace AElf.Kernel.SmartContract
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IDefaultContractZeroCodeProvider _defaultContractZeroCodeProvider;
         private readonly ECKeyPair _keyPair;
+        private readonly KernelTestHelper _kernelTestHelper;
 
         private IHostSmartContractBridgeContext _bridgeContext;
 
@@ -30,7 +30,8 @@ namespace AElf.Kernel.SmartContract
             _blockchainService = GetRequiredService<IBlockchainService>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _defaultContractZeroCodeProvider = GetRequiredService<IDefaultContractZeroCodeProvider>();
-            _keyPair = CryptoHelpers.GenerateKeyPair();
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
+            _keyPair = CryptoHelper.GenerateKeyPair();
             _bridgeContext = CreateNewContext();
         }
 
@@ -62,7 +63,7 @@ namespace AElf.Kernel.SmartContract
         [Fact]
         public void Send_VirtualInline_Success()
         {
-            var from = Hash.Generate();
+            var from = Hash.FromString("hash");
             var to = Address.Genesis;
             var methodName = "TestVirtualInline";
             var arg = "Arg";
@@ -81,16 +82,8 @@ namespace AElf.Kernel.SmartContract
         public void Get_GetPreviousTransactions_Success()
         {
             var transaction = GetNewTransaction();
-            
-            var newBlock = new Block
-            {
-                Height = 2,
-                Header = new BlockHeader
-                {
-                    PreviousBlockHash = Hash.Empty
-                },
-                Body = new BlockBody { Transactions = { transaction.GetHash() }}
-            };
+
+            var newBlock = _kernelTestHelper.GenerateBlock(0, Hash.Empty, new List<Transaction> {transaction});
 
             _blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
             _blockchainService.AddBlockAsync(newBlock);
@@ -123,7 +116,7 @@ namespace AElf.Kernel.SmartContract
                 RefBlockNumber = 1,
                 RefBlockPrefix = ByteString.CopyFrom(new byte[4])
             };
-            var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, tx.GetHash().DumpByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, tx.GetHash().ToByteArray());
             tx.Signature = ByteString.CopyFrom(signature);
 
             var verifyResult = _bridgeContext.VerifySignature(tx);
@@ -135,22 +128,11 @@ namespace AElf.Kernel.SmartContract
         {
             var tx = GetNewTransaction();
 
-            var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, tx.GetHash().DumpByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, tx.GetHash().ToByteArray());
             tx.Signature = ByteString.CopyFrom(signature);
 
             var verifyResult = _bridgeContext.VerifySignature(tx);
             verifyResult.ShouldBe(false);
-        }
-
-        [Fact]
-        public void Send_DeferredTransaction_Success()
-        {
-            var deferredTransaction = GetNewTransaction();
-
-            _bridgeContext.SendDeferredTransaction(deferredTransaction);
-
-            var currentDeferredTransaction = _bridgeContext.TransactionContext.Trace.DeferredTransaction;
-            currentDeferredTransaction.ShouldBe(deferredTransaction.ToByteString());
         }
 
         [Fact]
@@ -186,7 +168,7 @@ namespace AElf.Kernel.SmartContract
             {
                 Category = KernelConstants.DefaultRunnerCategory,
                 Code = ByteString.Empty,
-                CodeHash = Hash.Generate()
+                CodeHash = Hash.FromString("hash")
             };
 
             _bridgeContext.DeployContract(Address.Zero, registration, Hash.FromMessage(registration.CodeHash));
@@ -244,8 +226,8 @@ namespace AElf.Kernel.SmartContract
                 Trace = new TransactionTrace(),
                 StateCache = new NullStateCache()
             };
-            var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, transactionContext.Transaction
-                .GetHash().DumpByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, transactionContext.Transaction
+                .GetHash().ToByteArray());
             transactionContext.Transaction.Signature = ByteString.CopyFrom(signature);
             _bridgeContext.TransactionContext = transactionContext;
 

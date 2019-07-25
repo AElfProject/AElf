@@ -17,11 +17,11 @@ namespace AElf.CrossChain.Communication.Grpc
             _crossChainResponseService = crossChainResponseService;
         }
 
-        public override async Task RequestIndexingFromParentChainAsync(CrossChainRequest crossChainRequest, 
+        public override async Task RequestIndexingFromParentChain(CrossChainRequest crossChainRequest, 
             IServerStreamWriter<ParentChainBlockData> responseStream, ServerCallContext context)
         {
             Logger.LogTrace(
-                $"Parent Chain Server received IndexedInfo message from chain {ChainHelpers.ConvertChainIdToBase58(crossChainRequest.FromChainId)}.");
+                $"Parent Chain Server received IndexedInfo message from chain {ChainHelper.ConvertChainIdToBase58(crossChainRequest.FromChainId)}.");
             var requestedHeight = crossChainRequest.NextHeight;
             var remoteChainId = crossChainRequest.FromChainId;
             while (requestedHeight - crossChainRequest.NextHeight <= CrossChainCommunicationConstants.MaximalIndexingCount)
@@ -35,10 +35,10 @@ namespace AElf.CrossChain.Communication.Grpc
             }
         }
         
-        public override async Task<ChainInitializationData> RequestChainInitializationDataFromParentChainAsync(SideChainInitializationRequest request, ServerCallContext context)
+        public override async Task<ChainInitializationData> RequestChainInitializationDataFromParentChain(SideChainInitializationRequest request, ServerCallContext context)
         {
             Logger.LogTrace(
-                $"Received initialization data request from  chain {ChainHelpers.ConvertChainIdToBase58(request.ChainId)}");
+                $"Received initialization data request from  chain {ChainHelper.ConvertChainIdToBase58(request.ChainId)}");
             var sideChainInitializationResponse =
                 await _crossChainResponseService.ResponseChainInitializationDataFromParentChainAsync(request.ChainId);
             return sideChainInitializationResponse;

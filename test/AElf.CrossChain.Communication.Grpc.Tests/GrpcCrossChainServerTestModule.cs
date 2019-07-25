@@ -28,19 +28,25 @@ namespace AElf.CrossChain.Communication.Grpc
                     }));
                 mockService.Setup(m =>
                         m.GetBlockHashByHeightAsync(It.IsAny<Chain>(), It.IsAny<long>(), It.IsAny<Hash>()))
-                    .Returns(Task.FromResult(Hash.Generate()));
+                    .Returns(Task.FromResult(Hash.FromString("hash")));
                 mockService.Setup(m => m.GetBlockByHashAsync(It.IsAny<Hash>()))
                     .Returns(Task.FromResult(new Block
                     {
-                        Height = 10,
                         Header = new BlockHeader
                         {
                             ChainId = 0,
-                            BlockExtraDatas =
+                            ExtraData =
                             {
                                 ByteString.CopyFrom(new CrossChainExtraData().ToByteArray()),
-                                ByteString.CopyFrom(Hash.Generate().ToByteArray())
-                            }
+                                ByteString.CopyFrom(Hash.FromString("hash1").ToByteArray())
+                            },
+                            Height = 10,
+                            PreviousBlockHash = Hash.FromString("hash2"),
+                            Time = TimestampHelper.GetUtcNow(),
+                            MerkleTreeRootOfWorldState = Hash.Empty,
+                            MerkleTreeRootOfTransactionStatus = Hash.Empty,
+                            MerkleTreeRootOfTransactions = Hash.Empty,
+                            SignerPubkey = ByteString.CopyFromUtf8("PubKey")
                         }
                     }));
 

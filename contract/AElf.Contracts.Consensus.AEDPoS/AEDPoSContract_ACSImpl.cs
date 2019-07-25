@@ -34,55 +34,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override BytesValue GetInformationToUpdateConsensus(BytesValue input)
         {
-            Context.LogDebug(() => "Entered GetInformationToUpdateConsensus");
-            var triggerInformation = new AElfConsensusTriggerInformation();
-            triggerInformation.MergeFrom(input.Value);
-
-            Assert(triggerInformation.PublicKey.Any(), "Invalid public key.");
-
-            if (!TryToGetCurrentRoundInformation(out var currentRound))
-            {
-                Assert(false, "Failed to get current round information.");
-            }
-
-            var publicKeyBytes = triggerInformation.PublicKey;
-            var publicKey = publicKeyBytes.ToHex();
-
-            LogIfPreviousMinerHasNotProduceEnoughTinyBlocks(currentRound, publicKey);
-
-            switch (triggerInformation.Behaviour)
-            {
-                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
-                case AElfConsensusBehaviour.UpdateValue:
-                    return GetInformationToUpdateConsensusToPublishOutValue(currentRound, publicKey,
-                        triggerInformation).ToBytesValue();
-                case AElfConsensusBehaviour.TinyBlock:
-                    return GetInformationToUpdateConsensusForTinyBlock(currentRound, publicKey,
-                        triggerInformation).ToBytesValue();
-                case AElfConsensusBehaviour.NextRound:
-                    return GetInformationToUpdateConsensusForNextRound(currentRound, publicKey,
-                        triggerInformation).ToBytesValue();
-                case AElfConsensusBehaviour.NextTerm:
-                    return GetInformationToUpdateConsensusForNextTerm(publicKey, triggerInformation)
-                        .ToBytesValue();
-                default:
-                    return new BytesValue();
-            }
+            return GetConsensusBlockExtraData(input);
         }
 
         public override TransactionList GenerateConsensusTransactions(BytesValue input)
         {
-            Context.LogDebug(() => "Entered GenerateConsensusTransactions");
-
             var triggerInformation = new AElfConsensusTriggerInformation();
             triggerInformation.MergeFrom(input.Value);
             // Some basic checks.
-            Assert(triggerInformation.PublicKey.Any(),
+            Assert(triggerInformation.Pubkey.Any(),
                 "Data to request consensus information should contain public key.");
 
-            var publicKey = triggerInformation.PublicKey;
+            var publicKey = triggerInformation.Pubkey;
             var consensusInformation = new AElfConsensusHeaderInformation();
-            consensusInformation.MergeFrom(GetInformationToUpdateConsensus(input).Value);
+            consensusInformation.MergeFrom(GetConsensusBlockExtraData(input, true).Value);
             var round = consensusInformation.Round;
             var behaviour = consensusInformation.Behaviour;
             switch (behaviour)

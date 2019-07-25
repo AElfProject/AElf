@@ -34,7 +34,7 @@ namespace AElf.Types
 
         public static Address FromPublicKey(byte[] bytes)
         {
-            var hash = bytes.CalculateHash().CalculateHash();
+            var hash = bytes.ComputeHash().ComputeHash();
             return new Address(hash);
         }
 
@@ -47,7 +47,7 @@ namespace AElf.Types
         /// <returns></returns>
         public static Address FromString(string name)
         {
-            return new Address(name.CalculateHash());
+            return new Address(name.ComputeHash());
         }
 
         //TODO: move to test project
@@ -57,14 +57,14 @@ namespace AElf.Types
         /// <returns></returns>
         public static Address Generate()
         {
-            return new Address(Guid.NewGuid().ToByteArray().CalculateHash());
+            return new Address(Guid.NewGuid().ToByteArray().ComputeHash());
         }
 
         #region Predefined
 
         public static readonly Address AElf = FromString("AElf");
 
-        public static readonly Address Zero = new Address(new byte[] { }.CalculateHash());
+        public static readonly Address Zero = new Address(new byte[] { }.ComputeHash());
 
         public static readonly Address Genesis = FromString("Genesis");
 
@@ -114,7 +114,7 @@ namespace AElf.Types
                 throw new InvalidOperationException("Cannot compare address when address is null");
             }
 
-            return ByteStringHelpers.Compare(x.Value, y.Value);
+            return ByteStringHelper.Compare(x.Value, y.Value);
         }
 
         public int CompareTo(Address that)

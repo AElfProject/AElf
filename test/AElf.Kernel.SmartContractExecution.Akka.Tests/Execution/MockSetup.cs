@@ -288,25 +288,25 @@ namespace AElf.Kernel.Tests.Concurrency.Execution
             return txnCtxt.Trace.RetVal.Data.DeserializeToUInt64();
         }
 
-        private Transaction GetSTTxn(Address contractAddress, Hash transactionHash)
+        private Transaction GetSTTxn(Address contractAddress, Hash transactionId)
         {
             return new Transaction
             {
                 From = Address.Zero,
                 To = contractAddress,
                 MethodName = "GetTransactionStartTime",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(transactionHash))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(transactionId))
             };
         }
 
-        private Transaction GetETTxn(Address contractAddress, Hash transactionHash)
+        private Transaction GetETTxn(Address contractAddress, Hash transactionId)
         {
             return new Transaction
             {
                 From = Address.Zero,
                 To = contractAddress,
                 MethodName = "GetTransactionEndTime",
-                Params = ByteString.CopyFrom(ParamsPacker.Pack(transactionHash))
+                Params = ByteString.CopyFrom(ParamsPacker.Pack(transactionId))
             };
         }
 

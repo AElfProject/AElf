@@ -7,6 +7,6 @@ namespace AElf.CrossChain.Communication.Application
     {
         Task RequestCrossChainDataFromOtherChainsAsync();
 
-        Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId);
+        Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId);
     }
 }

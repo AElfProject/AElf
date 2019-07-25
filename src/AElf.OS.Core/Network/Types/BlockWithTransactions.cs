@@ -25,18 +25,19 @@ namespace AElf.OS.Network
         }
 
         public IEnumerable<Transaction> FullTransactionList => Transactions;
-        public IEnumerable<Hash> TransactionHashList => Transactions.Select(tx => tx.GetHash());
-        public BlockBody Body => new BlockBody { Transactions = { Transactions.Select(tx => tx.GetHash()).ToList() }}; 
-        public long Height => Header?.Height ?? 0;        
-        
+        public IEnumerable<Hash> TransactionIds => Transactions.Select(tx => tx.GetHash());
+
+        public BlockBody Body => new BlockBody
+        {
+            BlockHeader = GetHash(),
+            TransactionIds = {Transactions.Select(tx => tx.GetHash()).ToList()}
+        };
+
+        public long Height => Header?.Height ?? 0;
+
         public Hash GetHash()
         {
             return Header.GetHash();
-        }
-        
-        public byte[] GetHashBytes()
-        {
-            return Header.GetHashBytes();
         }
     }
 }

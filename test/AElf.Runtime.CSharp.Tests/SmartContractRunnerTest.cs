@@ -32,15 +32,5 @@ namespace AElf.Runtime.CSharp.Tests
             var executive = await Runner.RunAsync(Reg);
             executive.ShouldNotBe(null);
         }
-
-        [Fact]
-        public void Contract_ExtraMetadata()
-        {
-            var contractType = typeof(TestContract.TestContract);
-            var contractMetadataTemplate = Runner.ExtractMetadata(contractType);
-            contractMetadataTemplate.FullName.ShouldBe("AElf.Runtime.CSharp.Tests.TestContract.TestContract");
-            contractMetadataTemplate.ProcessFunctionOrder.Count.ShouldBeGreaterThanOrEqualTo(12);
-            contractMetadataTemplate.ProcessFunctionOrder.Contains("${this}.TestBoolState").ShouldBeTrue();
-        }
     }
 }

@@ -8,7 +8,7 @@ namespace AElf
     {
         public static Hash ComputeParentNodeWith(this Hash left, Hash right)
         {
-            var res = left.DumpByteArray().Concat(right.DumpByteArray()).ToArray();
+            var res = left.ToByteArray().Concat(right.ToByteArray()).ToArray();
             return Hash.FromRawBytes(res);
         }
 

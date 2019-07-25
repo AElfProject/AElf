@@ -1,23 +1,21 @@
+using System.Collections.Concurrent;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.BlockSync.Infrastructure
 {
     public interface IBlockSyncStateProvider
     {
-        Timestamp BlockSyncJobEnqueueTime { get; set; }
-        
-        Timestamp BlockSyncAnnouncementEnqueueTime { get; set; }
-        
-        Timestamp BlockSyncAttachBlockEnqueueTime { get; set; }
-    }
+        Timestamp GetEnqueueTime(string queueName);
 
-    public class BlockSyncStateProvider : IBlockSyncStateProvider, ISingletonDependency
-    {
-        public Timestamp BlockSyncJobEnqueueTime { get; set; }
-        
-        public Timestamp BlockSyncAnnouncementEnqueueTime { get; set; }
-        
-        public Timestamp BlockSyncAttachBlockEnqueueTime { get; set; }
+        void SetEnqueueTime(string queueName, Timestamp enqueueTime);
+
+        bool TryUpdateDownloadJobTargetState(Hash targetHash, bool value);
+
+        void SetDownloadJobTargetState(Hash targetHash, bool value);
+
+        bool TryGetDownloadJobTargetState(Hash targetHash, out bool value);
+
+        bool TryRemoveDownloadJobTargetState(Hash targetHash);
     }
 }

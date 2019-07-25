@@ -17,7 +17,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var minimumCount = minersCount.Mul(2).Div(3);
             minimumCount = minimumCount == 0 ? 1 : minimumCount;
 
-            var secretShares = SecretSharingHelper.EncodeSecret(inValue.ToHex(), minimumCount, minersCount);
+            var secretShares = SecretSharingHelper.EncodeSecret(inValue.ToByteArray(), minimumCount, minersCount);
             foreach (var pair in currentRound.RealTimeMinersInformation.OrderBy(m => m.Value.Order)
                 .ToDictionary(m => m.Key, m => m.Value.Order))
             {
@@ -30,8 +30,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 // Share in value of current round:
 
                 // Encrypt every secret share with other miner's public key, then fill EncryptedInValues field.
-                var plainMessage = Encoding.UTF8.GetBytes(secretShares[orderOfAnotherMiner - 1]);
-                var receiverPublicKey = ByteArrayHelpers.FromHexString(publicKeyOfAnotherMiner);
+                var plainMessage = secretShares[orderOfAnotherMiner - 1];
+                var receiverPublicKey = ByteArrayHelper.FromHexString(publicKeyOfAnotherMiner);
                 var encryptedInValue = Context.EncryptMessage(receiverPublicKey, plainMessage);
                 currentRound.RealTimeMinersInformation[publicKey].EncryptedInValues
                     .Add(publicKeyOfAnotherMiner, ByteString.CopyFrom(encryptedInValue));
@@ -51,7 +51,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     previousRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].EncryptedInValues;
                 if (!encryptedShares.Any()) continue;
                 var interestingMessage = encryptedShares[publicKey];
-                var senderPublicKey = ByteArrayHelpers.FromHexString(publicKeyOfAnotherMiner);
+                var senderPublicKey = ByteArrayHelper.FromHexString(publicKeyOfAnotherMiner);
                 // Decrypt another miner's secret share then add a result to this miner's DecryptedInValues field.
                 var decryptedInValue = Context.DecryptMessage(senderPublicKey, interestingMessage.ToByteArray());
                 currentRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].DecryptedPreviousInValues
@@ -84,14 +84,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 var orders = anotherMinerInPreviousRound.DecryptedPreviousInValues.Select((t, i) =>
                         previousRound.RealTimeMinersInformation.Values
-                            .First(m => m.PublicKey ==
+                            .First(m => m.Pubkey ==
                                         anotherMinerInPreviousRound.DecryptedPreviousInValues.Keys.ToList()[i]).Order)
                     .ToList();
 
                 var sharedParts = anotherMinerInPreviousRound.DecryptedPreviousInValues.Values.ToList()
-                    .Select(s => Encoding.UTF8.GetString(s.ToByteArray())).ToList();
+                    .Select(s => s.ToByteArray()).ToList();
 
-                var revealedInValue = Hash.LoadHex(SecretSharingHelper.DecodeSecret(sharedParts, orders, minimumCount));
+                var revealedInValue =
+                    Hash.FromRawBytes(SecretSharingHelper.DecodeSecret(sharedParts, orders, minimumCount));
 
                 Context.LogDebug(() =>
                     $"Revealed in value of {publicKeyOfAnotherMiner} of round {previousRound.RoundNumber}: {revealedInValue}");

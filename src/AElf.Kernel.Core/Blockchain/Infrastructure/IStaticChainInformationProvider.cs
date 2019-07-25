@@ -37,12 +37,12 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
         {
             var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
-            return Address.FromBytes(hash.DumpByteArray());
+            return Address.FromBytes(hash.ToByteArray());
         }
 
         public static Address BuildContractAddress(int chainId, ulong serialNumber)
         {
-            return BuildContractAddress(chainId.ComputeHash(), serialNumber);
+            return BuildContractAddress(chainId.ToHash(), serialNumber);
         }
     }
 }

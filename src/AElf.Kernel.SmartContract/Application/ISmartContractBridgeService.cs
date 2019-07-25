@@ -25,6 +25,8 @@ namespace AElf.Kernel.SmartContract.Application
 
         Address GetAddressByContractName(Hash contractName);
 
+        IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping();
+
         Address GetZeroSmartContractAddress();
 
         Task<ByteString> GetStateAsync(Address contractAddress, string key, long blockHeight, Hash blockHash);
@@ -73,7 +75,7 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task<List<Transaction>> GetBlockTransactions(Hash blockHash)
         {
             var block = await _blockchainService.GetBlockByHashAsync(blockHash);
-            return await _blockchainService.GetTransactionsAsync(block.Body.Transactions);
+            return await _blockchainService.GetTransactionsAsync(block.Body.TransactionIds);
         }
 
         public int GetChainId()
@@ -84,6 +86,11 @@ namespace AElf.Kernel.SmartContract.Application
         public Address GetAddressByContractName(Hash contractName)
         {
             return _smartContractAddressService.GetAddressByContractName(contractName);
+        }
+        
+        public IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping()
+        {
+            return _smartContractAddressService.GetSystemContractNameToAddressMapping();
         }
 
         public Address GetZeroSmartContractAddress()

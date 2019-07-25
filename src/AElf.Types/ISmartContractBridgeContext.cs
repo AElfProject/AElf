@@ -11,7 +11,6 @@ namespace AElf
     {
         public ContextVariableDictionary(IDictionary<string, string> dictionary) : base(dictionary)
         {
-        
         }
 
         public string NativeSymbol => this[nameof(NativeSymbol)];
@@ -34,23 +33,19 @@ namespace AElf
         Address Sender { get; }
 
         Address Self { get; }
-        
+
+        Address Origin { get; }
+
         long CurrentHeight { get; }
 
         Timestamp CurrentBlockTime { get; }
         Hash PreviousBlockHash { get; }
 
         byte[] RecoverPublicKey();
-        
+
         List<Transaction> GetPreviousBlockTransactions();
 
         bool VerifySignature(Transaction tx);
-
-        /// <summary>
-        /// Generate txn not executed before next block. 
-        /// </summary>
-        /// <param name="deferredTxn"></param>
-        void SendDeferredTransaction(Transaction deferredTxn);
 
         void DeployContract(Address address, SmartContractRegistration registration, Hash name);
 
@@ -66,6 +61,8 @@ namespace AElf
         Address GetZeroSmartContractAddress();
 
         Address GetContractAddressByName(Hash hash);
+
+        IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping();
 
         IStateProvider StateProvider { get; }
 
