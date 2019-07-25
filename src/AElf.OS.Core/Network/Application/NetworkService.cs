@@ -66,6 +66,12 @@ namespace AElf.OS.Network.Application
                 {
                     try
                     {
+                        if (!peer.IsReady)
+                        {
+                            Logger.LogWarning($"Peer {peer} not ready, waiting to broadcast block {blockWithTransactions.Header.GetHash()}.");
+                            await Task.Delay(NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds);
+                        }
+                        
                         await peer.SendBlockAsync(blockWithTransactions);
                     }
                     catch (NetworkException ex)
@@ -103,6 +109,12 @@ namespace AElf.OS.Network.Application
                 {
                     try
                     {
+                        if (!peer.IsReady)
+                        {
+                            Logger.LogWarning($"Peer {peer} not ready, waiting to broadcast announcement {blockHash}.");
+                            await Task.Delay(NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds);
+                        }
+
                         await peer.SendAnnouncementAsync(announce);
                     }
                     catch (NetworkException ex)
@@ -110,7 +122,6 @@ namespace AElf.OS.Network.Application
                         Logger.LogError(ex, $"Error while announcing to {peer}.");
                         await HandleNetworkException(peer, ex);
                     }
-                    
                 }, peer.Info.Pubkey);
             }
 
@@ -125,6 +136,12 @@ namespace AElf.OS.Network.Application
                 {
                     try
                     {
+                        if (!peer.IsReady)
+                        {
+                            Logger.LogWarning($"Peer {peer} not ready, waiting to broadcast transaction {transaction.GetHash()}.");
+                            await Task.Delay(NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds);
+                        }
+
                         await peer.SendTransactionAsync(transaction);
                     }
                     catch (NetworkException ex)
