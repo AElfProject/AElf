@@ -29,6 +29,6 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                 .Skip(AEDPoSExtensionConstants.InitialKeyPairCount +
                       AEDPoSExtensionConstants.CoreDataCenterKeyPairCount + 
                       AEDPoSExtensionConstants.ValidationDataCenterKeyPairCount)
-                .Take(AEDPoSExtensionConstants.CitizenKeyPairs);
+                .Take(AEDPoSExtensionConstants.CitizenKeyPairsCount);
     }
 }

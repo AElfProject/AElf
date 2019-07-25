@@ -46,6 +46,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override MinerList GetMinerList(GetMinerListInput input) =>
             State.MinerListMap[input.TermNumber] ?? new MinerList();
 
+        public override SInt64Value GetMinedBlocksOfPreviousTerm(Empty input)
+        {
+            if (TryToGetTermNumber(out var termNumber))
+            {
+                var targetRound = State.FirstRoundNumberOfEachTerm[termNumber] - 1;
+                if (TryToGetRoundInformation(targetRound, out var round))
+                {
+                    return new SInt64Value {Value = round.GetMinedBlocks()};
+                }
+            }
+
+            return new SInt64Value();
+        }
+
         public override MinerList GetPreviousMinerList(Empty input)
         {
             if (TryToGetTermNumber(out var termNumber) && termNumber > 1)

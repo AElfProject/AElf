@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
@@ -29,6 +30,12 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 
         protected IBlockMiningService BlockMiningService =>
             Application.ServiceProvider.GetRequiredService<IBlockMiningService>();
+
+        protected ITestDataProvider TestDataProvider =>
+            Application.ServiceProvider.GetRequiredService<ITestDataProvider>();
+
+        protected IBlockchainService BlockchainService =>
+            Application.ServiceProvider.GetRequiredService<IBlockchainService>();
 
         public Dictionary<Hash, Address> ContractAddresses;
 
