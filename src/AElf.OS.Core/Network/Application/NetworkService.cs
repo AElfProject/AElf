@@ -62,22 +62,14 @@ namespace AElf.OS.Network.Application
             if (IsOldBlock(blockWithTransactions.Header))
                 return;
             
-            _taskQueueManager.Enqueue(async () =>
+            foreach (var peer in _peerPool.GetPeers())
             {
-                foreach (var peer in _peerPool.GetPeers())
+                peer.EnqueueBlock(blockWithTransactions, async ex =>
                 {
-                    try
-                    {
-                        peer.EnqueueBlock(blockWithTransactions);
-                    }
-                    catch (NetworkException ex)
-                    {
-                        Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
-                        await HandleNetworkException(peer, ex);
-                    }
-                }
-                
-            }, NetworkConstants.BlockBroadcastQueueName);
+                    Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
+                    await HandleNetworkException(peer, ex);
+                });
+            }
         }
 
         public async Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
@@ -99,32 +91,26 @@ namespace AElf.OS.Network.Application
 
             foreach (var peer in _peerPool.GetPeers())
             {
-                try
-                {
-                    peer.EnqueueAnnouncement(blockAnnouncement);
-                }
-                catch (NetworkException ex)
+                peer.EnqueueAnnouncement(blockAnnouncement, async ex =>
                 {
                     Logger.LogError(ex, $"Error while broadcasting announcement to {peer}.");
                     await HandleNetworkException(peer, ex);
-                }
+                } );
             }
         }
         
-        public async Task BroadcastTransactionAsync(Transaction transaction)
+        public Task BroadcastTransactionAsync(Transaction transaction)
         {
             foreach (var peer in _peerPool.GetPeers())
             {
-                try
-                {
-                    peer.EnqueueTransaction(transaction);
-                }
-                catch (NetworkException ex)
+                peer.EnqueueTransaction(transaction, async ex =>
                 {
                     Logger.LogError(ex, $"Error while broadcasting transaction to {peer}.");
                     await HandleNetworkException(peer, ex);
-                }
+                });
             }
+            
+            return Task.CompletedTask;
         }
 
         public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, 
@@ -225,12 +211,17 @@ namespace AElf.OS.Network.Application
         {
             if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
             {
+                Logger.LogError($"Removing unrecoverable {peer.IpAddress}.");
                 await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false);
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
             {
                 Logger.LogError($"Queuing peer for reconnection {peer.IpAddress}.");
                 QueueNetworkTask(async () => await RecoverPeerAsync(peer));
+            }
+            else
+            {
+                Logger.LogError($"Other problem {peer.IpAddress}. Exception {exception}");
             }
         }
         

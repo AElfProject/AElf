@@ -65,11 +65,7 @@ namespace AElf.OS.Network.Grpc
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
         private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
 
-        private readonly BufferBlock<Transaction> _transactionQueue;
-        private readonly BufferBlock<BlockAnnouncement> _blockAnnouncementQueue;
-        private readonly BufferBlock<BlockWithTransactions> _blockQueue;
-        
-        private NetworkException _lastException;
+        private readonly BufferBlock<StreamJob> _streamJobs;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string ipAddress, PeerInfo peerInfo)
         {
@@ -92,13 +88,8 @@ namespace AElf.OS.Network.Grpc
 
             LastKnownLibHeight = peerInfo.LibHeightAtHandshake;
             
-            _transactionQueue = new BufferBlock<Transaction>();
-            _blockAnnouncementQueue = new BufferBlock<BlockAnnouncement>();
-            _blockQueue = new BufferBlock<BlockWithTransactions>();
-
-            Task.Run(async () => await StartBroadcastingTransactionsAsync());
-            Task.Run(async () => await StartBroadcastingAnnouncementsAsync());
-            Task.Run(async () => await StartBroadcastingBlocksAsync());
+            _streamJobs = new BufferBlock<StreamJob>();
+            Task.Run(async () => await StartBroadcastingAsync());
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -207,62 +198,56 @@ namespace AElf.OS.Network.Grpc
 
         #region Streaming
 
-        private async Task StartBroadcastingTransactionsAsync()
+        public void EnqueueTransaction(Transaction transaction, Action<NetworkException> errorCallback)
         {
-            while (await _transactionQueue.OutputAvailableAsync())
+            _streamJobs.Post(new StreamJob { Transaction = transaction, ErrorCallback = errorCallback });
+        }
+
+        public void EnqueueAnnouncement(BlockAnnouncement announcement, Action<NetworkException> errorCallback)
+        {
+            _streamJobs.Post(new StreamJob {BlockAnnouncement = announcement, ErrorCallback = errorCallback});
+        }
+
+        public void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException> errorCallback)
+        {
+            _streamJobs.Post(new StreamJob {BlockWithTransactions = blockWithTransactions, ErrorCallback = errorCallback});
+        }
+        
+        private async Task StartBroadcastingAsync()
+        {
+            while (await _streamJobs.OutputAvailableAsync())
             {
-                var transaction = await _transactionQueue.ReceiveAsync();
-                await SendTransactionAsync(transaction);
+                if (!IsConnected)
+                    return;
+
+                var block = await _streamJobs.ReceiveAsync();
+                await SendStreamJobAsync(block);
             }
         }
 
-        private async Task StartBroadcastingAnnouncementsAsync()
-        {
-            while (await _blockAnnouncementQueue.OutputAvailableAsync())
-            {
-                var announcement = await _blockAnnouncementQueue.ReceiveAsync();
-                await SendAnnouncementAsync(announcement);
-            }
-        }
-
-        private async Task StartBroadcastingBlocksAsync()
-        {
-            while (await _blockQueue.OutputAvailableAsync())
-            {
-                var block = await _blockQueue.ReceiveAsync();
-                await SendBlockAsync(block);
-            }
-        }
-
-        public void EnqueueTransaction(Transaction transaction)
-        {
-            if (_lastException != null)
-                throw _lastException;
-            
-            _transactionQueue.Post(transaction);
-        }
-
-        public void EnqueueAnnouncement(BlockAnnouncement announcement)
-        {
-            if (_lastException != null)
-                throw _lastException;
-            
-            _blockAnnouncementQueue.Post(announcement);
-        }
-
-        public void EnqueueBlock(BlockWithTransactions blockWithTransactions)
-        {
-            if (_lastException != null)
-                throw _lastException;
-            
-            _blockQueue.Post(blockWithTransactions);
-        }
-
-        private async Task SendBlockAsync(BlockWithTransactions blockWithTransactions)
+        private async Task SendStreamJobAsync(StreamJob job)
         {
             if (!IsConnected)
                 return;
-            
+
+            try
+            {
+                if (job.Transaction != null)
+                    await SendTransactionAsync(job.Transaction);
+                else if (job.BlockAnnouncement != null)
+                    await SendAnnouncementAsync(job.BlockAnnouncement);
+                else if (job.BlockWithTransactions != null)
+                    await BroadcastBlockAsync(job.BlockWithTransactions);
+            }
+            catch (RpcException ex)
+            {
+                job.ErrorCallback(CreateNetworkException(ex, $"Error on broadcast to {this}: "));
+                await Task.Delay(NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds);
+            }
+        }
+
+        private async Task BroadcastBlockAsync(BlockWithTransactions blockWithTransactions)
+        {
             if (_blockStreamCall == null)
                 _blockStreamCall = _client.BlockBroadcastStream();
 
@@ -270,12 +255,12 @@ namespace AElf.OS.Network.Grpc
             {
                 await _blockStreamCall.RequestStream.WriteAsync(blockWithTransactions);
             }
-            catch (RpcException ex)
+            catch (RpcException)
             {
-                HandleStreamException(ref _announcementStreamCall, ex,
-                    $"Error during block broadcast: {blockWithTransactions.Header.GetHash()}.");
+                _blockStreamCall.Dispose();
+                _blockStreamCall = null;
 
-                await Task.Delay(NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds);
+                throw;
             }
         }
 
@@ -285,9 +270,6 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public async Task SendAnnouncementAsync(BlockAnnouncement header)
         {
-            if (!IsConnected)
-                return;
-            
             if (_announcementStreamCall == null)
                 _announcementStreamCall = _client.AnnouncementBroadcastStream();
             
@@ -295,12 +277,12 @@ namespace AElf.OS.Network.Grpc
             {
                 await _announcementStreamCall.RequestStream.WriteAsync(header);
             }
-            catch (RpcException ex)
+            catch (RpcException)
             {
-                HandleStreamException(ref _announcementStreamCall, ex,
-                    $"Error during announcement broadcast: {header.BlockHash}.");
-                
-                await Task.Delay(NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds);
+                _announcementStreamCall.Dispose();
+                _announcementStreamCall = null;
+
+                throw;
             }
         }
 
@@ -310,9 +292,6 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         private async Task SendTransactionAsync(Transaction transaction)
         {
-            if (!IsConnected)
-                return;
-                
             if (_transactionStreamCall == null)
                 _transactionStreamCall = _client.TransactionBroadcastStream();
 
@@ -320,22 +299,13 @@ namespace AElf.OS.Network.Grpc
             {
                 await _transactionStreamCall.RequestStream.WriteAsync(transaction);
             }
-            catch (RpcException ex)
+            catch (RpcException)
             {
-                HandleStreamException(ref _transactionStreamCall, ex,
-                    $"Error during transaction broadcast: {transaction.GetHash()}");
-                
-                await Task.Delay(NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds);
+                _transactionStreamCall.Dispose();
+                _transactionStreamCall = null;
+
+                throw;
             }
-        }
-
-        private void HandleStreamException<TRequest, TResponse>(ref AsyncClientStreamingCall<TRequest, TResponse> call, RpcException rpcException, string exMessage)
-        {
-            call.Dispose();
-            call = null;
-
-            if (_lastException != null)
-                _lastException = CreateNetworkException(rpcException, exMessage);
         }
 
         #endregion
@@ -400,10 +370,10 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         private NetworkException CreateNetworkException(Exception exception, string errorMessage)
         {
-            // If channel has been shutdown (unrecoverable state) remove it.
             string message = $"Failed request to {this}: {errorMessage}";
             NetworkExceptionType type = NetworkExceptionType.Rpc;
             
+            // If channel has been shutdown (unrecoverable state) remove it.
             if (_channel.State == ChannelState.Shutdown)
             {
                 message = $"Peer is shutdown - {this}: {errorMessage}";
@@ -430,9 +400,10 @@ namespace AElf.OS.Network.Grpc
 
             // Either we connected again or the state change wait timed out.
             if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
+            {
+                IsConnected = false;
                 return false;
-
-            _lastException = null;
+            }
 
             return true;
         }

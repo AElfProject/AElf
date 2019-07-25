@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
 using AElf.Types;
 
@@ -18,9 +20,9 @@ namespace AElf.OS.Network.Infrastructure
 
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         
-        void EnqueueAnnouncement(BlockAnnouncement transaction);
-        void EnqueueTransaction(Transaction transaction);
-        void EnqueueBlock(BlockWithTransactions blockWithTransactions);
+        void EnqueueAnnouncement(BlockAnnouncement transaction, Action<NetworkException> errorCallback);
+        void EnqueueTransaction(Transaction transaction, Action<NetworkException> errorCallback);
+        void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException> errorCallback);
 
         Task UpdateHandshakeAsync();
         Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash);
