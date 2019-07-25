@@ -96,6 +96,11 @@ namespace AElf.Kernel.SmartContract.Parallel
             }
         }
 
+        public void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds)
+        {
+            ClearResourceCache(transactionIds);
+        }
+
         #region Event Handler Methods
 
         public async Task HandleTransactionAcceptedEvent(TransactionAcceptedEvent eventData)

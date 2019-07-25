@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Parallel.Domain;
-using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,9 +17,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<IResourceExtractionService, MockResourceExtractionService>();
-            var txhub = new MockTxHub();
-            context.Services.AddSingleton(_ => txhub);
-            context.Services.AddSingleton<ITxHub>(_ => txhub);
+            var blockchainService = new MockBlockchainService();
+            context.Services.AddSingleton<IBlockchainService>(_ => blockchainService);
             context.Services
                 .AddSingleton<IConflictingTransactionIdentificationService, ConflictingTransactionIdentificationService
                 >();
@@ -33,7 +32,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         private IConflictingTransactionIdentificationService Service =>
             Application.ServiceProvider.GetRequiredService<IConflictingTransactionIdentificationService>();
 
-        private MockTxHub TxHub => Application.ServiceProvider.GetRequiredService<MockTxHub>();
+        private IBlockchainService BlockchainService =>
+            Application.ServiceProvider.GetRequiredService<IBlockchainService>();
 
         [Fact]
         public async Task IdentifyProblematicTransactionTest()
@@ -53,11 +53,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 GetFakePairs(Address.FromString("address5"), new[] {13, 14, 15})
             };
 
-            foreach (var transaction in includedInBlock.Concat(conflicting).Concat(okTxnInConflictingSet)
-                .Select(x => x.Item2))
-            {
-                TxHub.AddTransaction(transaction);
-            }
+            await BlockchainService.AddTransactionsAsync(includedInBlock.Concat(conflicting).Concat(okTxnInConflictingSet)
+                .Select(x => x.Item2));
 
             var wrong = await Service.IdentifyConflictingTransactionsAsync(new Mock<IChainContext>().Object,
                 includedInBlock.Select(x => x.Item1).ToList(),

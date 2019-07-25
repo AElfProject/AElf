@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Parallel.Domain;
 using Volo.Abp.DependencyInjection;
@@ -10,13 +11,15 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private readonly IConflictingTransactionIdentificationService _conflictingTransactionIdentificationService;
         private readonly ICodeRemarksService _codeRemarksService;
+        private readonly IResourceExtractionService _resourceExtractionService;
 
         public ConflictingTransactionsFoundInParallelGroupsEventHandler(
             IConflictingTransactionIdentificationService conflictingTransactionIdentificationService,
-            ICodeRemarksService codeRemarksService)
+            ICodeRemarksService codeRemarksService,IResourceExtractionService resourceExtractionService)
         {
             _conflictingTransactionIdentificationService = conflictingTransactionIdentificationService;
             _codeRemarksService = codeRemarksService;
+            _resourceExtractionService = resourceExtractionService;
         }
 
         public async Task HandleEventAsync(ConflictingTransactionsFoundInParallelGroupsEvent eventData)
@@ -28,9 +31,11 @@ namespace AElf.Kernel.SmartContract.Parallel
             };
             var wrong = await _conflictingTransactionIdentificationService.IdentifyConflictingTransactionsAsync(
                 chainContext, eventData.ExistingSets, eventData.ConflictingSets);
-            foreach (var transaction in wrong)
+            _resourceExtractionService.ClearConflictingTransactionsResourceCache(wrong.Select(t => t.GetHash()));
+            var wrongTransactionAddresses = wrong.Select(t => t.To).Distinct();
+            foreach (var address in wrongTransactionAddresses)
             {
-                await _codeRemarksService.MarkUnparallelizableAsync(chainContext, transaction.To);
+                await _codeRemarksService.MarkUnparallelizableAsync(chainContext, address);
             }
         }
     }

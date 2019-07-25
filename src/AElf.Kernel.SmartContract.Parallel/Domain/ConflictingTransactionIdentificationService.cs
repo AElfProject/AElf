@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,13 +12,13 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
     public class ConflictingTransactionIdentificationService : IConflictingTransactionIdentificationService
     {
         private readonly IResourceExtractionService _resourceExtractionService;
-        private readonly ITxHub _txHub;
+        private readonly IBlockchainService _blockchainService;
 
         public ConflictingTransactionIdentificationService(IResourceExtractionService resourceExtractionService,
-            ITxHub txHub)
+            IBlockchainService blockchainService)
         {
             _resourceExtractionService = resourceExtractionService;
-            _txHub = txHub;
+            _blockchainService = blockchainService;
         }
 
         public async Task<List<Transaction>> IdentifyConflictingTransactionsAsync(IChainContext chainContext,
@@ -41,12 +42,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
         private async Task<List<Transaction>> FindContractOfWrongResourcesAsync(IChainContext chainContext,
             List<ExecutionReturnSet> returnSets)
         {
-            var transactions = new List<Transaction>();
-            foreach (var id in returnSets.Select(rs => rs.TransactionId))
-            {
-                var receipt = await _txHub.GetTransactionReceiptAsync(id);
-                transactions.Add(receipt.Transaction);
-            }
+            var transactionIds = returnSets.Select(rs => rs.TransactionId);
+            var transactions = await _blockchainService.GetTransactionsAsync(transactionIds);
 
             var txnWithResources =
                 await _resourceExtractionService.GetResourcesAsync(chainContext, transactions, CancellationToken.None);

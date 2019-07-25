@@ -32,6 +32,7 @@ namespace AElf.Sdk.CSharp.State
                 if (!Cache.TryGetValue(key, out var valuePair))
                 {
                     valuePair = LoadKey(key);
+                    Cache[key] = valuePair;
                 }
 
                 return valuePair.Value;
