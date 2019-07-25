@@ -174,7 +174,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var createTransactionResponse =
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
-            var transactionId = Hash.FromRawBytes(ByteArrayHelper.FromHexString(createTransactionResponse.RawTransaction));
+            var transactionId = Hash.FromRawBytes(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
 
             var signature = await _accountService.SignAsync(transactionId.ToByteArray());
             parameters = new Dictionary<string, string>
@@ -846,7 +846,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task Get_ContractFileDescriptorSet_Failed()
         {
-            var addressInfo = Address.Generate().GetFormatted();
+            var addressInfo = SampleAddress.AddressList[0].GetFormatted();
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
                 $"/api/blockChain/contractFileDescriptorSet?address={addressInfo}",
                 expectedStatusCode: HttpStatusCode.Forbidden);
@@ -969,7 +969,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task CreateRawTransaction_Success()
         {
-            var toAddress = Base64.ToBase64String(Address.Parse("21oXyCxvUd7YUUkgbZxkbmu4EWs65yos6iVC39rPwPknune6qZ")
+            var toAddress = Base64.ToBase64String(AddressHelper.Base58StringToAddress("21oXyCxvUd7YUUkgbZxkbmu4EWs65yos6iVC39rPwPknune6qZ")
                 .Value.ToByteArray());
             var contractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
@@ -1018,7 +1018,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
             var transactionId =
-                Hash.FromRawBytes(ByteArrayHelper.FromHexString(createTransactionResponse.RawTransaction));
+                Hash.FromRawBytes(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
 
             var signature = await _accountService.SignAsync(transactionId.ToByteArray());
             parameters = new Dictionary<string, string>
@@ -1214,7 +1214,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                         TokenName = $"elf token {i}",
                         TotalSupply = 1000_0000,
                         Decimals = 2,
-                        Issuer = Address.Generate(),
+                        Issuer = SampleAddress.AddressList[0],
                         IsBurnable = true
                     });
 
