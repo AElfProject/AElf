@@ -62,6 +62,9 @@ service AEDPoSContract {
     rpc GetPreviousMinerList (google.protobuf.Empty) returns (MinerList) {
         option (aelf.is_view) = true;
     }
+    rpc GetMinedBlocksOfPreviousTerm (google.protobuf.Empty) returns (aelf.SInt64Value) {
+        option (aelf.is_view) = true;
+    }
 }
 
 // Events

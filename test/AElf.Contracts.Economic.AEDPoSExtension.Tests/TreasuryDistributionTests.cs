@@ -29,22 +29,36 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         [Fact]
         public async Task TreasuryDistributionTest_FirstTerm()
         {
-            const int minimumBlocksToChangeTerm =
-                AEDPoSExtensionConstants.TimeEachTerm /
-                (AEDPoSExtensionConstants.MiningInterval / 1000) * AEDPoSExtensionConstants.TinyBlocksNumber;
-            var minedBlocksInFirstRound = 0L;
             long distributedAmount;
-            for (var i = 0; i < minimumBlocksToChangeTerm * 2; i++)
+
+            // First 5 core data centers announce election.
+            var announceTransactions = new List<Transaction>();
+            foreach (var electionStub in ConvertKeyPairsToElectionStubs(
+                MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(5)))
             {
-                await BlockMiningService.MineBlockAsync();
-                var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
-                if (round.TermNumber == 2)
-                {
-                    var previousRound = await ConsensusStub.GetPreviousRoundInformation.CallAsync(new Empty());
-                    minedBlocksInFirstRound = previousRound.RealTimeMinersInformation.Values.Sum(m => m.ProducedBlocks);
-                    break;
-                }
+                announceTransactions.Add(electionStub.AnnounceElection.GetTransaction(new Empty()));
             }
+
+            await BlockMiningService.MineBlockAsync(announceTransactions);
+
+            // Check candidates.
+            var candidates = await ElectionStub.GetCandidates.CallAsync(new Empty());
+            candidates.Value.Count.ShouldBe(5);
+
+            // First 10 citizens do some votes.
+            var votesTransactions = new List<Transaction>();
+            foreach (var candidate in candidates.Value)
+            {
+                votesTransactions.AddRange(await GetVoteTransactionsAsync(5, 100, candidate.ToHex(), 10));
+            }
+
+            await BlockMiningService.MineBlockAsync(votesTransactions);
+            
+            // Check voted candidates
+            var votedCandidates = await ElectionStub.GetVotedCandidates.CallAsync(new Empty());
+            votedCandidates.Value.Count.ShouldBe(5);
+
+            var minedBlocksInFirstRound = await MineBlocksToNextTermAsync(1);
 
             // Check term number.
             {
@@ -78,7 +92,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     var distributedInformation =
                         await GetDistributedInformationAsync(_schemes[SchemeType.BackupSubsidy].SchemeId, 1);
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
-                    amount.ShouldBe(-distributedAmount / 5);
+                    amount.ShouldBe(distributedAmount / 5);
                 }
 
                 // Citizen Welfare: -20% (Burned)

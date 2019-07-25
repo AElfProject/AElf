@@ -1,11 +1,16 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
+using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -55,7 +60,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 await ProfitStub.GetScheme.CallAsync(minerRewardScheme.SubSchemes[2].SchemeId));
             return schemes;
         }
-        
+
         internal async Task ClaimProfits(IEnumerable<ECKeyPair> keyPairs, Hash schemeId)
         {
             var stubs = ConvertKeyPairsToProfitStubs(keyPairs);
@@ -103,6 +108,60 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             return keyPairs.Select(p =>
                 GetTester<ProfitContractContainer.ProfitContractStub>(
                     ContractAddresses[ProfitSmartContractAddressNameProvider.Name], p)).ToList();
+        }
+        
+        internal List<ElectionContractContainer.ElectionContractStub> ConvertKeyPairsToElectionStubs(
+            IEnumerable<ECKeyPair> keyPairs)
+        {
+            return keyPairs.Select(p =>
+                GetTester<ElectionContractContainer.ElectionContractStub>(
+                    ContractAddresses[ElectionSmartContractAddressNameProvider.Name], p)).ToList();
+        }
+
+        internal async Task<List<Transaction>> GetVoteTransactionsAsync(int timesOfMinimumLockDays,
+            long amount, string candidatePubkey, int votersCount = 0)
+        {
+            if (votersCount > AEDPoSExtensionConstants.CitizenKeyPairsCount)
+            {
+                throw new ArgumentOutOfRangeException(nameof(votersCount), "Didn't prepare this amount of citizens.");
+            }
+
+            votersCount = votersCount == 0 ? AEDPoSExtensionConstants.CitizenKeyPairsCount : votersCount;
+
+            var voteTransaction = new List<Transaction>();
+
+            var blockTime = TestDataProvider.GetBlockTime();
+
+            var electionStubs = ConvertKeyPairsToElectionStubs(MissionedECKeyPairs.CitizenKeyPairs.Take(votersCount));
+
+            foreach (var electionStub in electionStubs)
+            {
+                voteTransaction.Add(electionStub.Vote.GetTransaction(new VoteMinerInput
+                {
+                    CandidatePubkey = candidatePubkey,
+                    Amount = amount,
+                    EndTimestamp =
+                        blockTime.AddSeconds(timesOfMinimumLockDays * EconomicTestConstants.MinimumLockTime)
+                }));
+            }
+
+            return voteTransaction;
+        }
+
+        internal async Task<long> MineBlocksToNextTermAsync(long currentTermNumber = 0)
+        {
+            currentTermNumber = currentTermNumber == 0
+                ? (await ConsensusStub.GetCurrentTermNumber.CallAsync(new Empty())).Value
+                : currentTermNumber;
+            var targetTermNumber = currentTermNumber + 1;
+            var actualTermNumber = 0L;
+            while (actualTermNumber != targetTermNumber)
+            {
+                await BlockMiningService.MineBlockAsync();
+                actualTermNumber = (await ConsensusStub.GetCurrentTermNumber.CallAsync(new Empty())).Value;
+            }
+
+            return (await ConsensusStub.GetMinedBlocksOfPreviousTerm.CallAsync(new Empty())).Value;
         }
     }
 }

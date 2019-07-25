@@ -51,12 +51,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             GetTester<TreasuryContractContainer.TreasuryContractStub>(
                 ContractAddresses[TreasurySmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
-        
+
         internal ProfitContractContainer.ProfitContractStub ProfitStub =>
             GetTester<ProfitContractContainer.ProfitContractStub>(
                 ContractAddresses[ProfitSmartContractAddressNameProvider.Name],
                 SampleECKeyPairs.KeyPairs[0]);
-        
+
         public EconomicTestBase()
         {
             ContractAddresses = AsyncHelper.RunSync(() => DeploySystemSmartContracts(new List<Hash>
@@ -89,8 +89,8 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     MinerList = {MissionedECKeyPairs.InitialKeyPairs.Select(p => p.PublicKey.ToHex())},
                     MinerIncreaseInterval = AEDPoSExtensionConstants.MinerIncreaseInterval,
                     TimeEachTerm = AEDPoSExtensionConstants.TimeEachTerm,
-                    MinimumLockTime = 90,
-                    MaximumLockTime = 1080
+                    MinimumLockTime = EconomicTestConstants.MinimumLockTime,
+                    MaximumLockTime = EconomicTestConstants.MaximumLockTime
                 }),
                 ParliamentAuthStub.Initialize.GetTransaction(new InitializeInput
                 {
@@ -106,6 +106,23 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     NativeTokenName = "Native Token"
                 })
             });
+            await BlockMiningService.MineBlockAsync(GetIssueTransactions());
+        }
+
+        private List<Transaction> GetIssueTransactions()
+        {
+            var issueTransactions = new List<Transaction>();
+            foreach (var coreDataCenterKeyPair in MissionedECKeyPairs.CoreDataCenterKeyPairs
+                .Concat(MissionedECKeyPairs.ValidationDataCenterKeyPairs).Concat(MissionedECKeyPairs.CitizenKeyPairs))
+            {
+                issueTransactions.Add(EconomicStub.IssueNativeToken.GetTransaction(new IssueNativeTokenInput
+                {
+                    To = Address.FromPublicKey(coreDataCenterKeyPair.PublicKey),
+                    Amount = 8_000_000_000_00000000 / 100,
+                }));
+            }
+
+            return issueTransactions;
         }
     }
 }

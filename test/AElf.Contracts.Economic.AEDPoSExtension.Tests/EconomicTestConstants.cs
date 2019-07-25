@@ -4,5 +4,8 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
     {
         public const string TokenSymbol = "ELF";
         public const long RewardPerBlock = 1250_0000;
+
+        public const long MinimumLockTime = 90;
+        public const long MaximumLockTime = 1080;
     }
 }
