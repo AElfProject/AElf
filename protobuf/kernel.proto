@@ -106,7 +106,7 @@ message BlockHeader {
 
 message BlockBody {
     Hash block_header = 1;
-    repeated Hash transactions = 2;
+    repeated Hash transaction_ids = 2;
 }
 
 message Block {

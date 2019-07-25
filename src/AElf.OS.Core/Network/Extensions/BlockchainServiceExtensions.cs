@@ -15,7 +15,7 @@ namespace AElf.OS.Network.Extensions
             if (block == null)
                 return null;
             
-            var transactions = await blockchainService.GetTransactionsAsync(block.TransactionHashList);
+            var transactions = await blockchainService.GetTransactionsAsync(block.TransactionIds);
             
             return new BlockWithTransactions { Header = block.Header, Transactions = { transactions }};
         }
@@ -28,7 +28,7 @@ namespace AElf.OS.Network.Extensions
             var list = blocks
                 .Select(async block =>
                 {
-                    var transactions = await blockchainService.GetTransactionsAsync(block.TransactionHashList);
+                    var transactions = await blockchainService.GetTransactionsAsync(block.TransactionIds);
                     return new BlockWithTransactions { Header = block.Header, Transactions = { transactions } };
                 });
 

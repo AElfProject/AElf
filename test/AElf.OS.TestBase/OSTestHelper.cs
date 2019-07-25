@@ -158,7 +158,7 @@ namespace AElf.OS
                 nameof(TokenContractContainer.TokenContractStub.Transfer),
                 new TransferInput {To = Address.FromPublicKey(newUserKeyPair.PublicKey), Amount = 10, Symbol = "ELF"});
 
-            var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+            var signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
 
             return transaction;
@@ -178,7 +178,7 @@ namespace AElf.OS
                     nameof(TokenContractContainer.TokenContractStub.Transfer),
                     new TransferInput {To = Address.FromPublicKey(newUserKeyPair.PublicKey), Amount = tokenAmount, Symbol = "ELF"});
 
-                var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+                var signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
                 transaction.Signature = ByteString.CopyFrom(signature);
 
                 transactions.Add(transaction);
@@ -201,7 +201,7 @@ namespace AElf.OS
                         _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
                         nameof(TokenContractContainer.TokenContractStub.Transfer),
                         new TransferInput {To = Address.FromPublicKey(to.PublicKey), Amount = 1, Symbol = "ELF"});                   
-                    var signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, transaction.GetHash().DumpByteArray());
+                    var signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, transaction.GetHash().ToByteArray());
                     transaction.Signature = ByteString.CopyFrom(signature); 
 
                     transactions.Add(transaction);
@@ -222,7 +222,7 @@ namespace AElf.OS
                     _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
                     nameof(TokenContractContainer.TokenContractStub.Approve),
                     new ApproveInput {Spender = spender, Amount = count, Symbol = "ELF"});                
-                var signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, transaction.GetHash().DumpByteArray());
+                var signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, transaction.GetHash().ToByteArray());
                 transaction.Signature = ByteString.CopyFrom(signature); 
 
                 transactions.Add(transaction);
@@ -247,7 +247,7 @@ namespace AElf.OS
                         nameof(TokenContractContainer.TokenContractStub.TransferFrom),
                         new TransferFromInput
                             {From = from, To = Address.FromPublicKey(to.PublicKey), Amount = 1, Symbol = "ELF"});                  
-                    var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+                    var signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
                     transaction.Signature = ByteString.CopyFrom(signature); 
 
                     transactions.Add(transaction);
@@ -372,7 +372,7 @@ namespace AElf.OS
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(T).Assembly.Location))
                 });
 
-            var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+            var signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
 
             await BroadcastTransactions(new List<Transaction> {transaction});

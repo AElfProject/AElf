@@ -37,5 +37,21 @@ namespace AElf.OS.BlockSync.Application
 
             return true;
         }
+
+        public async Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions)
+        {
+            if (!_announcementCacheProvider.TryAddAnnouncementCache(blockWithTransactions.GetHash(), blockWithTransactions.Height))
+            {
+                return false;
+            }
+
+            if (blockWithTransactions.Height <= chain.LastIrreversibleBlockHeight)
+            {
+                Logger.LogWarning($"Receive lower block {blockWithTransactions} ignore.");
+                return false;
+            }
+
+            return true;
+        }
     }
 }
