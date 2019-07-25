@@ -72,14 +72,14 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 })).ToList());
         }
 
-        internal async Task CheckBalancesAsync(IEnumerable<ECKeyPair> keyPairs, long shouldBe,
+        internal async Task CheckBalancesAsync(IEnumerable<ECKeyPair> keyPairs, long shouldIncrease,
             Dictionary<ECKeyPair, long> balancesBefore = null)
         {
             balancesBefore = balancesBefore ?? new Dictionary<ECKeyPair, long>();
             foreach (var keyPair in keyPairs)
             {
                 var amount = await GetBalanceAsync(Address.FromPublicKey(keyPair.PublicKey));
-                amount.ShouldBe(shouldBe + balancesBefore[keyPair]);
+                amount.ShouldBe(shouldIncrease + balancesBefore[keyPair]);
             }
         }
 

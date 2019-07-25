@@ -26,7 +26,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         /// Distribute treasury after first term and check each profit scheme.
         /// </summary>
         /// <returns></returns>
-        [Fact]
+        [Fact(Skip = "This test case also run in TreasuryCollectionTest_SecondTerm.")]
         public async Task<long> TreasuryDistributionTest_FirstTerm()
         {
             const long period = 1;
@@ -124,7 +124,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "This test case also run in TreasuryCollectionTest_SecondTerm.")]
         public async Task<long> TreasuryDistributionTest_SecondTerm()
         {
             const long period = 2;

@@ -33,7 +33,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         {
             var distributedAmountOfFirstTerm = await TreasuryDistributionTest_FirstTerm();
             var distributedAmountOfSecondTerm = await TreasuryDistributionTest_SecondTerm();
-            
+
             // First 5 core data centers can profit from miner basic reward because they acted as miners during second term.
             var firstFiveCoreDataCenters = MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(5).ToList();
             var balancesBefore = firstFiveCoreDataCenters.ToDictionary(k => k, k =>
@@ -44,7 +44,8 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 })).Balance);
             await ClaimProfits(firstFiveCoreDataCenters, _schemes[SchemeType.BackupSubsidy].SchemeId);
             await CheckBalancesAsync(firstFiveCoreDataCenters,
-                distributedAmountOfSecondTerm / 5 / 9 - EconomicTestConstants.TransactionFeeOfClaimProfit, balancesBefore);
+                distributedAmountOfSecondTerm / 5 / 9 + distributedAmountOfFirstTerm / 5 / 5 -
+                EconomicTestConstants.TransactionFeeOfClaimProfit, balancesBefore);
         }
     }
 }
