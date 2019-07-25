@@ -21,6 +21,7 @@ namespace AElf.CrossChain
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IChainContext _chainContext;
 
+        private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
         public MethodStubFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             ISmartContractAddressService smartContractAddressService, IChainContext chainContext)
         {
@@ -43,7 +44,7 @@ namespace AElf.CrossChain
                 var chainContext = _chainContext;
                 var transaction = new Transaction()
                 {
-                    From = Address.Zero,
+                    From = FromAddress,
                     To = CrossChainContractMethodAddress,
                     MethodName = method.Name,
                     Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))

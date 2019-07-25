@@ -24,7 +24,7 @@ namespace AElf.OS.Consensus.DPos
     public class OSConsensusDPosTestModule_BP : AElfModule
     {
         private readonly ECKeyPair _keyPair = CryptoHelper.FromPrivateKey(
-            ByteArrayHelper.FromHexString(OSConsensusDPosTestConstants.PrivateKeyHex));
+            ByteArrayHelper.HexStringToByteArray(OSConsensusDPosTestConstants.PrivateKeyHex));
         
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
