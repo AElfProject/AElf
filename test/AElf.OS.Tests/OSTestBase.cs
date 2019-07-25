@@ -23,4 +23,9 @@ namespace AElf.OS
     {
         
     }
+
+    public class BlockSyncManyJobsTestBase : AElfIntegratedTest<BlockDownloadWorkerTestAElfModule>
+    {
+        
+    }
 }
