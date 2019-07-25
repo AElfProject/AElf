@@ -86,5 +86,22 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                     true);
             });
         }
+
+        [Fact]
+        public async Task GetFileDescriptorsAsync_Test()
+        {
+            var chain = await BlockchainService.GetChainAsync();
+            var context = new ChainContext
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight
+            };
+            var tokenAddress =
+                SmartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+            var fileDescriptor =
+                (await TransactionReadOnlyExecutionService.GetFileDescriptorsAsync(context, tokenAddress)).ToList();
+            fileDescriptor.Count.ShouldBeGreaterThan(0);
+            fileDescriptor.ShouldAllBe(o => o.Name.Contains("proto"));
+        }
     }
 }

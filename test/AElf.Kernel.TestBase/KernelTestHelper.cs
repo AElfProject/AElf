@@ -15,7 +15,7 @@ namespace AElf.Kernel
 {
     public class KernelTestHelper
     {
-        private ECKeyPair _keyPair = CryptoHelper.GenerateKeyPair();
+        public ECKeyPair KeyPair = CryptoHelper.GenerateKeyPair();
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultService _transactionResultService;
         private readonly IChainManager _chainManager;
@@ -105,7 +105,7 @@ namespace AElf.Kernel
         {
             var transaction = new Transaction
             {
-                From = Address.FromPublicKey(_keyPair.PublicKey),
+                From = Address.FromPublicKey(KeyPair.PublicKey),
                 To = Address.Zero,
                 MethodName = Guid.NewGuid().ToString(),
                 Params = ByteString.Empty,
@@ -115,7 +115,7 @@ namespace AElf.Kernel
                     : ByteString.CopyFrom(refBlockHash.ToByteArray().Take(4).ToArray())
             };
 
-            var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, transaction.GetHash().ToByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(KeyPair.PrivateKey, transaction.GetHash().ToByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
             return transaction;
         }
@@ -150,7 +150,7 @@ namespace AElf.Kernel
                     MerkleTreeRootOfTransactionStatus = Hash.Empty,
                     MerkleTreeRootOfTransactions = Hash.Empty,
                     ExtraData = { ByteString.Empty },
-                    SignerPubkey = ByteString.CopyFrom(_keyPair.PublicKey)
+                    SignerPubkey = ByteString.CopyFrom(KeyPair.PublicKey)
                 },
                 Body = new BlockBody()
             };

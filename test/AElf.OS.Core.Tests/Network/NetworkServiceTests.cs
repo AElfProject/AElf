@@ -4,6 +4,8 @@ using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
+using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Xunit;
 
 namespace AElf.OS.Network
@@ -20,14 +22,14 @@ namespace AElf.OS.Network
         }
 
         #region GetBlocks
-        
+
         [Fact]
         public async Task GetBlocks_FromAnyoneThatNoOneHas_ReturnsNull()
         {
             var blocks = await _networkService.GetBlocksAsync(Hash.FromString("unknown"), 5);
             Assert.Null(blocks);
         }
-        
+
         [Fact]
         public async Task GetBlocks_FaultyPeer_ShouldGetFromBestPeer()
         {
@@ -45,11 +47,11 @@ namespace AElf.OS.Network
             var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"), "a");
             Assert.Null(block);
         }
-        
+
         [Fact]
         public async Task GetBlockByHash_FromSpecifiedPeer_ReturnsBlocks()
         {
-            var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"),  "p1");
+            var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"), "p1");
             Assert.NotNull(block);
         }
 
@@ -62,8 +64,64 @@ namespace AElf.OS.Network
         {
             Assert.Equal(_networkService.GetPeers().Count, _peerPool.GetPeers(true).Count);
         }
-        
+
         #endregion GetPeers
-        
+
+        #region Broadcast
+
+        [Fact]
+        public async Task BroadcastAnnounce_Test()
+        {
+            var blockHeader = new BlockHeader
+            {
+                ChainId = 0,
+                Height = 10,
+                Time = TimestampHelper.GetUtcNow(),
+                PreviousBlockHash = Hash.FromString("previous"),
+                Signature = ByteString.CopyFromUtf8("sign"),
+                SignerPubkey = ByteString.CopyFromUtf8("pubkey"),
+                MerkleTreeRootOfTransactions = Hash.Empty,
+                MerkleTreeRootOfWorldState = Hash.Empty,
+                MerkleTreeRootOfTransactionStatus = Hash.Empty
+            };
+
+            //old block
+            blockHeader.Time = TimestampHelper.GetUtcNow() - TimestampHelper.DurationFromMinutes(20);
+            await _networkService.BroadcastAnnounceAsync(blockHeader, false);
+            
+            //normal case
+            blockHeader.Time = TimestampHelper.GetUtcNow();
+            await _networkService.BroadcastAnnounceAsync(blockHeader, false);
+
+            //broadcast again
+            await _networkService.BroadcastAnnounceAsync(blockHeader, false);
+        }
+
+        [Fact]
+        public async Task BroadcastBlockWithTransactionsAsync_Test()
+        {
+            var blockWithTransaction = new BlockWithTransactions
+            {
+                Header = new BlockHeader
+                {
+                    ChainId = 0,
+                    Height = 10,
+                    Time = TimestampHelper.GetUtcNow(),
+                    PreviousBlockHash = Hash.FromString("previous"),
+                    Signature = ByteString.CopyFromUtf8("sign"),
+                    SignerPubkey = ByteString.CopyFromUtf8("pubkey"),
+                    MerkleTreeRootOfTransactions = Hash.Empty,
+                    MerkleTreeRootOfWorldState = Hash.Empty,
+                    MerkleTreeRootOfTransactionStatus = Hash.Empty
+                },
+               Transactions =
+               {
+                   new Transaction(),
+                   new Transaction()
+               },
+            };
+            await _networkService.BroadcastBlockWithTransactionsAsync(blockWithTransaction);
+        }
+        #endregion
     }
 }
