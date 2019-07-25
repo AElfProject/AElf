@@ -1,7 +1,6 @@
-using System;
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.OS.Network
+namespace AElf.OS.Network.Metrics
 {
     public class RequestMetric
     {

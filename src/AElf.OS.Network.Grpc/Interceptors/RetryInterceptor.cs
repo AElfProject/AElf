@@ -3,8 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
-using Microsoft.Extensions.Logging;
-using Org.BouncyCastle.Tsp;
 
 namespace AElf.OS.Network.Grpc
 {
