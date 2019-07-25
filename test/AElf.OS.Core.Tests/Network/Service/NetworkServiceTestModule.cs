@@ -29,9 +29,7 @@ namespace AElf.OS
             var recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             
             var osTestHelper = context.Services.GetServiceLazy<OSTestHelper>();
-            
-            peerPoolMock.Setup(p => p.GetBestPeer()).Returns(p3.Object);
-                
+
             peerPoolMock.Setup(p => p.FindPeerByPublicKey(It.Is<string>(adr => adr == "p1")))
                 .Returns<string>(adr =>
                 {
@@ -101,13 +99,13 @@ namespace AElf.OS
                     return peers;
                 });
             
-            peerPoolMock.Setup(p => p.AddRecentBlockHeightAndHash(It.IsAny<long>(), It.IsAny<Hash>(), It.IsAny<bool>
-                ())).Callback<long, Hash, bool>((blockHeight, blockHash, hasFork) =>
-            {
-                recentBlockHeightAndHashMappings[blockHeight] = blockHash;
-            });
-
-            peerPoolMock.Setup(p => p.RecentBlockHeightAndHashMappings).Returns(recentBlockHeightAndHashMappings);
+//            peerPoolMock.Setup(p => p.AddRecentBlockHeightAndHash(It.IsAny<long>(), It.IsAny<Hash>(), It.IsAny<bool>
+//                ())).Callback<long, Hash, bool>((blockHeight, blockHash, hasFork) =>
+//            {
+//                recentBlockHeightAndHashMappings[blockHeight] = blockHash;
+//            });
+//
+//            peerPoolMock.Setup(p => p.RecentBlockHeightAndHashMappings).Returns(recentBlockHeightAndHashMappings);
             
             context.Services.AddSingleton<IPeerPool>(o => peerPoolMock.Object);
         }
