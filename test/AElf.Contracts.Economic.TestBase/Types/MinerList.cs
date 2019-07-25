@@ -44,11 +44,5 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return round;
         }
-
-        public Hash GetMinersHash()
-        {
-            var orderedMiners = Pubkeys.OrderBy(p => p);
-            return Hash.FromString(orderedMiners.Aggregate("", (current, publicKey) => current + publicKey));
-        }
     }
 }
