@@ -62,6 +62,7 @@ namespace AElf.OS.Network.Grpc
         
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
+        private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string ipAddress, PeerInfo peerInfo)
         {
@@ -81,6 +82,8 @@ namespace AElf.OS.Network.Grpc
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.Announce), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
+
+            LastKnownLibHeight = peerInfo.LibHeightAtHandshake;
         }
 
         public Dictionary<string, List<RequestMetric>> GetRequestMetrics()
@@ -188,6 +191,27 @@ namespace AElf.OS.Network.Grpc
         }
 
         #region Streaming
+        
+        public async Task SendBlockAsync(BlockWithTransactions blockWithTransactions)
+        {
+            if (!IsConnected)
+                return;
+            
+            if (_blockStreamCall == null)
+                _blockStreamCall = _client.BlockBroadcastStream();
+
+            try
+            {
+                await _blockStreamCall.RequestStream.WriteAsync(blockWithTransactions);
+            }
+            catch (RpcException e)
+            {
+                _blockStreamCall.Dispose();
+                _blockStreamCall = null;
+                
+                HandleFailure(e, $"Error during block broadcast: {blockWithTransactions.Header.GetHash()}.");
+            }
+        }
 
         /// <summary>
         /// Send a announcement to the peer using the stream call.

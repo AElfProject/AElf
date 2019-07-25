@@ -136,7 +136,7 @@ namespace AElf.Kernel.SmartContract
         public byte[] RecoverPublicKey()
         {
             return RecoverPublicKey(TransactionContext.Transaction.Signature.ToByteArray(),
-                TransactionContext.Transaction.GetHash().DumpByteArray());
+                TransactionContext.Transaction.GetHash().ToByteArray());
         }
 
         public T Call<T>(Address address, string methodName, ByteString args) where T : IMessage<T>, new()
@@ -197,7 +197,7 @@ namespace AElf.Kernel.SmartContract
         public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress)
         {
             return Address.FromPublicKey(Self.Value.Concat(
-                virtualAddress.Value.ToByteArray().CalculateHash()).ToArray());
+                virtualAddress.Value.ToByteArray().ComputeHash()).ToArray());
         }
 
         public Address GetZeroSmartContractAddress()

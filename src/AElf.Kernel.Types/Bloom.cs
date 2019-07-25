@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using Google.Protobuf;
 
 namespace AElf.Kernel
@@ -13,7 +12,7 @@ namespace AElf.Kernel
             var res = new byte[Length];
             foreach (var bytes in multipleBytes)
             {
-                for (int i = 0; i < Length; i++)
+                for (var i = 0; i < Length; i++)
                 {
                     res[i] |= bytes[i];
                 }
@@ -47,8 +46,7 @@ namespace AElf.Kernel
 
         public void AddValue(byte[] bytes)
         {
-            var hash = SHA256.Create().ComputeHash(bytes);
-            AddSha256Hash(hash);
+            AddSha256Hash(bytes.ComputeHash());
         }
 
         public void AddValue(IMessage message)
@@ -80,7 +78,7 @@ namespace AElf.Kernel
         {
             foreach (var bloom in blooms)
             {
-                for (int i = 0; i < Length; i++)
+                for (var i = 0; i < Length; i++)
                 {
                     _data[i] |= bloom.Data[i];
                 }
@@ -94,7 +92,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public bool IsIn(Bloom bloom)
         {
-            for (int i = 0; i < Length; i++)
+            for (var i = 0; i < Length; i++)
             {
                 var curByte = _data[i];
                 if ((curByte & bloom.Data[i]) != curByte)

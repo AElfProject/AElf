@@ -10,8 +10,8 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
         [Fact]
         public async Task RandomHashCacheService_NormalProcess()
         {
-            var randomHash1 = Hash.Generate();
-            var previousHashOfGeneratingBlock1 = Hash.Generate();
+            var randomHash1 = Hash.FromString("hash1");
+            var previousHashOfGeneratingBlock1 = Hash.FromString("hash2");
             var previousHeightOfGeneratingBlock1 = 100L;
 
             // Round 1:
@@ -40,8 +40,8 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 }
             }
 
-            var randomHash2 = Hash.Generate();
-            var previousHashOfGeneratingBlock2 = Hash.Generate();
+            var randomHash2 = Hash.FromString("hash3");
+            var previousHashOfGeneratingBlock2 = Hash.FromString("hash4");
             var previousHeightOfGeneratingBlock2 = 200L;
 
             // Round 2:
@@ -70,8 +70,8 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 }
             }
 
-            var randomHash3 = Hash.Generate();
-            var previousHashOfGeneratingBlock3 = Hash.Generate();
+            var randomHash3 = Hash.FromString("hash5");
+            var previousHashOfGeneratingBlock3 = Hash.FromString("hash6");
             var previousHeightOfGeneratingBlock3 = 300L;
 
             // Round 3:
@@ -100,8 +100,8 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 }
             }
             
-            var randomHash4 = Hash.Generate();
-            var previousHashOfGeneratingBlock4 = Hash.Generate();
+            var randomHash4 = Hash.FromString("hash7");
+            var previousHashOfGeneratingBlock4 = Hash.FromString("hash8");
             var previousHeightOfGeneratingBlock4 = 400L;
 
             // Round 3:

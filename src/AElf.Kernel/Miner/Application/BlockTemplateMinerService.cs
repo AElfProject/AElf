@@ -45,7 +45,7 @@ namespace AElf.Kernel.Miner.Application
 
             block.Header = blockHeader;
             block.Header.Signature =
-                ByteString.CopyFrom(await _accountService.SignAsync(block.GetHash().DumpByteArray()));
+                ByteString.CopyFrom(await _accountService.SignAsync(block.GetHash().ToByteArray()));
 
             block.Body.BlockHeader = blockHeader.GetHash();
 

@@ -13,20 +13,20 @@ namespace AElf.Kernel
         {
             if (blockBody.TransactionsCount == 0)
                 return Hash.Empty;
-            var merkleTreeRoot = blockBody.Transactions.ComputeBinaryMerkleTreeRootWithLeafNodes();
+            var merkleTreeRoot = blockBody.TransactionIds.ComputeBinaryMerkleTreeRootWithLeafNodes();
 
             return merkleTreeRoot;
         }
 
         public static bool AddTransaction(this BlockBody blockBody, Transaction tx)
         {
-            blockBody.Transactions.Add(tx.GetHash());
+            blockBody.TransactionIds.Add(tx.GetHash());
             return true;
         }
 
         public static bool AddTransactions(this BlockBody blockBody, IEnumerable<Hash> txs)
         {
-            blockBody.Transactions.Add(txs);
+            blockBody.TransactionIds.Add(txs);
             return true;
         }
     }
