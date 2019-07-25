@@ -79,7 +79,7 @@ namespace AElf.Parallel.Tests
             groupedTransactions.Parallelizables.Count.ShouldBe(_groupCount);
             groupedTransactions.NonParallelizables.Count.ShouldBe(0);
 
-            block.TransactionHashList.Count().ShouldBe(allTransaction.Count);
+            block.TransactionIds.Count().ShouldBe(allTransaction.Count);
         }
         
         [Fact]
@@ -118,7 +118,7 @@ namespace AElf.Parallel.Tests
             groupedTransactions.Parallelizables.Count.ShouldBe(_groupCount);
             groupedTransactions.NonParallelizables.Count.ShouldBe(0);
 
-            block.TransactionHashList.Count().ShouldBe(systemTransactions.Count + cancellableTransactions.Count);
+            block.TransactionIds.Count().ShouldBe(systemTransactions.Count + cancellableTransactions.Count);
         }
 
         [Fact]
@@ -140,7 +140,7 @@ namespace AElf.Parallel.Tests
             
             var block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight, TimestampHelper.GetUtcNow(),
                 TimestampHelper.DurationFromSeconds(4));
-            block.TransactionHashList.Count().ShouldBe(_groupCount);
+            block.TransactionIds.Count().ShouldBe(_groupCount);
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
 
@@ -158,11 +158,11 @@ namespace AElf.Parallel.Tests
             
             poolSize = await _txHub.GetTransactionPoolSizeAsync();
 
-            poolSize.ShouldBe(transactions.Count - block.TransactionHashList.Count());
+            poolSize.ShouldBe(transactions.Count - block.TransactionIds.Count());
 
             block = await _minerService.MineAsync(block.GetHash(), block.Height, TimestampHelper.GetUtcNow(),
                 TimestampHelper.DurationFromSeconds(4));
-            block.TransactionHashList.Count().ShouldBe(poolSize);
+            block.TransactionIds.Count().ShouldBe(poolSize);
         }
     }
 }
