@@ -7,5 +7,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 
         public const long MinimumLockTime = 90;
         public const long MaximumLockTime = 1080;
+
+        public const long TransactionFeeOfClaimProfit = 1_00000000;
     }
 }
