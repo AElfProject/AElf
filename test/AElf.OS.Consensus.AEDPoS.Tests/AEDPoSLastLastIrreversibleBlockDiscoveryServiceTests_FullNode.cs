@@ -85,19 +85,18 @@ namespace AElf.OS.Consensus.DPos
                 Pubkey = publicKey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = _connectionTime,
-                StartHeight = 1,
                 IsInbound = true
             };
             
-            var peer = new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), OSConsensusDPosTestConstants.FakeIpEndpoint, connectionInfo);
+            var peer = new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), OSConsensusDPosTestConstants.FakeIpEndpoint, connectionInfo);
             peer.IsConnected = true;
             var blocks = _osTestHelper.BestBranchBlockList.GetRange(0, blockHeight);
             foreach (var block in blocks)
             {
-                peer.ProcessReceivedAnnouncement(new BlockAnnouncement
+                peer.AddKnowBlock(new BlockAnnouncement
                     {BlockHash = block.GetHash(), BlockHeight = block.Height});
             }
-            _peerPool.AddPeer(peer);
+            _peerPool.TryAddPeer(peer);
         }
     }
 }

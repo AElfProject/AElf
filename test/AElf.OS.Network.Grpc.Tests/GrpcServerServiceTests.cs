@@ -27,15 +27,16 @@ namespace AElf.OS.Network
     public class GrpcServerServiceTests : GrpcNetworkTestBase
     {
         private readonly IAElfNetworkServer _networkServer;
-        private readonly PeerService.PeerServiceBase _service;
         private readonly IBlockchainService _blockchainService;
         private readonly IPeerPool _peerPool;
         private readonly ILocalEventBus _eventBus;
+        
+        private readonly GrpcServerService _service;
 
         public GrpcServerServiceTests()
         {
             _networkServer = GetRequiredService<IAElfNetworkServer>();
-            _service = GetRequiredService<PeerService.PeerServiceBase>();
+            _service = GetRequiredService<GrpcServerService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _peerPool = GetRequiredService<IPeerPool>();
             _eventBus = GetRequiredService<ILocalEventBus>();
@@ -81,8 +82,8 @@ namespace AElf.OS.Network
             });
             
             Transaction tx = new Transaction();
-            tx.From = Address.Generate();
-            tx.To = Address.Generate();
+            tx.From = SampleAddress.AddressList[0];
+            tx.To = SampleAddress.AddressList[1];
             
             await _service.SendTransaction(tx, BuildServerCallContext());
             
@@ -102,8 +103,8 @@ namespace AElf.OS.Network
             });
             
             Transaction tx = new Transaction();
-            tx.From = Address.Generate();
-            tx.To = Address.Generate();
+            tx.From = SampleAddress.AddressList[0];
+            tx.To = SampleAddress.AddressList[1];
 
             var chain = await  _blockchainService.GetChainAsync();
             tx.RefBlockNumber = chain.BestChainHeight + NetworkConstants.DefaultInitialSyncOffset + 1;
@@ -124,8 +125,8 @@ namespace AElf.OS.Network
             });
             
             Transaction tx = new Transaction();
-            tx.From = Address.Generate();
-            tx.To = Address.Generate();
+            tx.From = SampleAddress.AddressList[0];
+            tx.To = SampleAddress.AddressList[1];
             
             await _service.SendTransaction(tx, BuildServerCallContext());
             
@@ -206,7 +207,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Disconnect_ShouldRemovePeer()
         {
-            await _service.Disconnect(new DisconnectReason(), BuildServerCallContext(new Metadata {{ GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubkey2}}));
+            await _service.Disconnect(new DisconnectReason(), BuildServerCallContext(new Metadata {{ GrpcConstants.PubkeyMetadataKey, NetworkTestConstants.FakePubkey2}}));
             Assert.Empty(_peerPool.GetPeers(true));
         }
         
@@ -214,157 +215,68 @@ namespace AElf.OS.Network
 
         #region Other tests
 
-        [Fact]
-        public async Task Connect_MaxPeersReached()
-        {
-            _peerPool.AddPeer(GrpcTestHelper.CreateNewPeer("127.0.0.1:3000", false));
-            
-            ConnectReply connectReply = await _service.Connect(new Handshake(), BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
-            
-            connectReply.Error.ShouldBe(AuthError.ConnectionRefused);
-        }
-        
-        [Fact]
-        public async Task Connect_Cleanup_Test()
-        {
-            // Generate peer identity
-            var peerKeyPair = CryptoHelper.GenerateKeyPair();
-            var handshake = CreateHandshake(peerKeyPair);
-            
-            await _service.Connect(handshake, BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
-            await _service.Connect(handshake, BuildServerCallContext(null, "ipv4:127.0.0.1:2000"));
-
-            var peers = _peerPool.GetPeers(true).Select(p => p.Info.Pubkey)
-                .Where(key => key == peerKeyPair.PublicKey.ToHex())
-                .ToList();
-            
-            peers.Count.ShouldBe(1);
-            peers.First().ShouldBe(peerKeyPair.PublicKey.ToHex());
-        }
-        
-        private Handshake CreateHandshake(ECKeyPair keyPair)
-        {
-            var nd = new HandshakeData
-            {
-                ListeningPort = 1234,
-                Pubkey = ByteString.CopyFrom(keyPair.PublicKey),
-                Version = KernelConstants.ProtocolVersion,
-                ChainId = _blockchainService.GetChainId()
-            };
-
-            byte[] sig = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, Hash.FromMessage(nd).ToByteArray());
-
-            var hsk = new Handshake
-            {
-                HandshakeData = nd,
-                Signature = ByteString.CopyFrom(sig),
-                BestChainBlockHeader = new BlockHeader()
-            };
-
-            return hsk;
-        }
-
-        [Fact]
-        public async Task Connect_Invalid()
-        {
-            // invalid handshake
-            {
-                var handshake = new Handshake();
-                var metadata = new Metadata
-                    {{GrpcConstants.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
-                var context = BuildServerCallContext(metadata, "ipv4:127.0.0.1:1000");
-
-                var connectReply = await _service.Connect(handshake, context);
-                connectReply.Error.ShouldBe(AuthError.InvalidHandshake);
-            }
-            
-            // wrong sig
-            {
-                var handshake = await _peerPool.GetHandshakeAsync();
-                handshake.HandshakeData.Pubkey = ByteString.CopyFrom(CryptoHelper.GenerateKeyPair().PublicKey);
-                var metadata = new Metadata
-                    {{GrpcConstants.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
-                var context = TestServerCallContext.Create("mock", "127.0.0.1", TimestampHelper.GetUtcNow().AddHours(1).ToDateTime(), metadata, CancellationToken.None, 
-                    "ipv4:127.0.0.1:2000", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
-                
-                var connectReply = await _service.Connect(handshake, context);
-                connectReply.Error.ShouldBe(AuthError.WrongSignature);
-            }
-            
-            // invalid peer
-            {
-                var handshake = await _peerPool.GetHandshakeAsync();
-                var metadata = new Metadata
-                    {{GrpcConstants.PubkeyMetadataKey, "0454dcd0afc20d015e328666d8d25f3f28b13ccd9744eb6b153e4a69709aab399"}};
-                var context = BuildServerCallContext(metadata, "127.0.0.1:3000");
-
-                var connectReply = await _service.Connect(handshake, context);
-                connectReply.Error.ShouldBe(AuthError.InvalidPeer);
-            }
-        }
-        
-        [Fact]
-        public async Task Only_Authorized_Test()
-        {
-            // get the service to be able to switch the options
-            var serverService = _service as GrpcServerService;
-            
-            // authorized 
-            ECKeyPair authorizedPeer = CryptoHelper.GenerateKeyPair();
-            ECKeyPair nonAuthorizedPeer = CryptoHelper.GenerateKeyPair();
-            
-            // miners only options
-            var minersOnlyOptions = new NetworkOptions {
-                AuthorizedPeers = AuthorizedPeers.Authorized,
-                AuthorizedKeys = new List<string> { authorizedPeer.PublicKey.ToHex() }
-            };
-            
-            // change the options
-            serverService.NetworkOptionsSnapshot = CreateIOptionSnapshotMock(minersOnlyOptions);
-            
-            var context = BuildServerCallContext(null, "ipv4:127.0.0.1:2000");
-            
-            {
-                // handshake as non authorized
-                var handshake = CreateHandshake(nonAuthorizedPeer);
-                var connectReply = await _service.Connect(handshake, context);
-
-                connectReply.Error.ShouldBe(AuthError.ConnectionRefused);
-            }
-
-            {
-                // handshake as authorized
-                var handshake = CreateHandshake(authorizedPeer);
-                var connectReply = await _service.Connect(handshake, context); 
-                
-                connectReply.Error.ShouldBe(AuthError.None);
-            }
-
-            minersOnlyOptions.AuthorizedPeers = AuthorizedPeers.Any;
-
-            {
-                // handshake as non authorized
-                var handshake = CreateHandshake(nonAuthorizedPeer);
-                var connectReply = await _service.Connect(handshake, context);
-
-                connectReply.Error.ShouldBe(AuthError.None);
-            }
-            
-            {
-                // handshake as authorized
-                var handshake = CreateHandshake(authorizedPeer);
-                var connectReply = await _service.Connect(handshake, context); 
-                
-                connectReply.Error.ShouldBe(AuthError.None);
-            }
-        }
-        
-        public static IOptionsSnapshot<T> CreateIOptionSnapshotMock<T>(T value) where T : class, new()
-        {
-            var mock = new Mock<IOptionsSnapshot<T>>();
-            mock.Setup(m => m.Value).Returns(value);
-            return mock.Object;
-        }
+//        [Fact]
+//        public async Task Only_Authorized_Test()
+//        {
+//            // get the service to be able to switch the options
+//            var serverService = _service as GrpcServerService;
+//            
+//            // authorized 
+//            ECKeyPair authorizedPeer = CryptoHelper.GenerateKeyPair();
+//            ECKeyPair nonAuthorizedPeer = CryptoHelper.GenerateKeyPair();
+//            
+//            // miners only options
+//            var minersOnlyOptions = new NetworkOptions {
+//                AuthorizedPeers = AuthorizedPeers.Authorized,
+//                AuthorizedKeys = new List<string> { authorizedPeer.PublicKey.ToHex() }
+//            };
+//            
+//            // change the options
+//            serverService.NetworkOptionsSnapshot = CreateIOptionSnapshotMock(minersOnlyOptions);
+//            
+//            var context = BuildServerCallContext(null, "ipv4:127.0.0.1:2000");
+//            
+//            {
+//                // handshake as non authorized
+//                var handshake = CreateHandshake(nonAuthorizedPeer);
+//                var connectReply = await _service.Connect(handshake, context);
+//
+//                connectReply.Error.ShouldBe(AuthError.ConnectionRefused);
+//            }
+//
+//            {
+//                // handshake as authorized
+//                var handshake = CreateHandshake(authorizedPeer);
+//                var connectReply = await _service.Connect(handshake, context); 
+//                
+//                connectReply.Error.ShouldBe(AuthError.None);
+//            }
+//
+//            minersOnlyOptions.AuthorizedPeers = AuthorizedPeers.Any;
+//
+//            {
+//                // handshake as non authorized
+//                var handshake = CreateHandshake(nonAuthorizedPeer);
+//                var connectReply = await _service.Connect(handshake, context);
+//
+//                connectReply.Error.ShouldBe(AuthError.None);
+//            }
+//            
+//            {
+//                // handshake as authorized
+//                var handshake = CreateHandshake(authorizedPeer);
+//                var connectReply = await _service.Connect(handshake, context); 
+//                
+//                connectReply.Error.ShouldBe(AuthError.None);
+//            }
+//        }
+//
+//        public static IOptionsSnapshot<T> CreateIOptionSnapshotMock<T>(T value) where T : class, new()
+//        {
+//            var mock = new Mock<IOptionsSnapshot<T>>();
+//            mock.Setup(m => m.Value).Returns(value);
+//            return mock.Object;
+//        }
         
         [Fact]
         public async Task NetworkServer_StopTest()
@@ -411,7 +323,7 @@ namespace AElf.OS.Network
             
             var continuation = new UnaryServerMethod<string, string>((s, y) => Task.FromResult(s));
             var metadata = new Metadata
-                {{GrpcConstants.PubkeyMetadataKey, GrpcTestConstants.FakePubkey2}};
+                {{GrpcConstants.PubkeyMetadataKey, NetworkTestConstants.FakePubkey2}};
             var context = BuildServerCallContext(metadata);
             var headerCount = context.RequestHeaders.Count;
             var result = await authInterceptor.UnaryServerHandler("test", context, continuation);

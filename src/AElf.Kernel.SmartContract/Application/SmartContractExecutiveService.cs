@@ -24,6 +24,8 @@ namespace AElf.Kernel.SmartContract.Application
             _addressSmartContractRegistrationMappingCache =
                 new ConcurrentDictionary<Address, SmartContractRegistration>();
 
+        private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
+
         public SmartContractExecutiveService(
             ISmartContractRunnerContainer smartContractRunnerContainer, IStateProviderFactory stateProviderFactory,
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
@@ -166,7 +168,7 @@ namespace AElf.Kernel.SmartContract.Application
         {
             var transaction = new Transaction()
             {
-                From = Address.Zero,
+                From = FromAddress,
                 To = _defaultContractZeroCodeProvider.ContractZeroAddress,
                 MethodName = "GetSmartContractRegistrationByAddress",
                 Params = address.ToByteString()
