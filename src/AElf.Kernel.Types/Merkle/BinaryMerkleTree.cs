@@ -92,7 +92,7 @@ namespace AElf.Kernel
                 
                 path.MerklePathNodes.Add(new MerklePathNode
                 {
-                    Hash = Hash.LoadByteArray(neighbor.DumpByteArray()),
+                    Hash = Hash.FromByteArray(neighbor.ToByteArray()),
                     IsLeftChildNode = isLeftNeighbor
                 });
 //                path.Add(index % 2 == 0 ? Nodes[index + 1].Clone() : Nodes[index - 1].Clone());
