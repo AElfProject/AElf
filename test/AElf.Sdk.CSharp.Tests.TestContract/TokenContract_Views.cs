@@ -46,7 +46,7 @@ namespace AElf.Sdk.CSharp.Tests.TestContract
         public Hash GetVirtualAddressHash(int n)
         {
             return
-                Hash.FromRawBytes(Context.Sender.Value.Concat(n.DumpByteArray()).ToArray().CalculateHash());
+                Hash.FromRawBytes(Context.Sender.Value.Concat(n.DumpByteArray()).ToArray().ComputeHash());
         }
 
         [View]

@@ -66,6 +66,7 @@ namespace AElf.OS.Network.Grpc
         
         private readonly BufferBlock<Transaction> _transactionQueue;
         private readonly BufferBlock<BlockAnnouncement> _blockAnnouncementQueue;
+        private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
 
         public GrpcPeer(Channel channel, PeerService.PeerServiceClient client, string ipAddress, PeerInfo peerInfo)
         {
@@ -216,6 +217,27 @@ namespace AElf.OS.Network.Grpc
             {
                 var announcement = await _blockAnnouncementQueue.ReceiveAsync();
                 await SendAnnouncementAsync(announcement);
+            }
+        }
+        
+        public async Task SendBlockAsync(BlockWithTransactions blockWithTransactions)
+        {
+            if (!IsConnected)
+                return;
+            
+            if (_blockStreamCall == null)
+                _blockStreamCall = _client.BlockBroadcastStream();
+
+            try
+            {
+                await _blockStreamCall.RequestStream.WriteAsync(blockWithTransactions);
+            }
+            catch (RpcException e)
+            {
+                _blockStreamCall.Dispose();
+                _blockStreamCall = null;
+                
+                HandleFailure(e, $"Error during block broadcast: {blockWithTransactions.Header.GetHash()}.");
             }
         }
 

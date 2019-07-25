@@ -21,6 +21,8 @@ namespace AElf.OS.Network.Infrastructure
         Task UpdateHandshakeAsync();
         void EnqueueAnnouncement(BlockAnnouncement transaction);
         void EnqueueTransaction(Transaction transaction);
+        Task SendBlockAsync(BlockWithTransactions blockWithTransactions);
+        
         Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash);
         Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);
         Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest);

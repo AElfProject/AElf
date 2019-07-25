@@ -490,7 +490,7 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await creator.AddWeight.SendAsync(new AddWeightInput
             {
-                ProfitId = Hash.Generate(),
+                ProfitId = Hash.FromString("hash"),
                 Receiver = Address.Generate(),
                 Weight = 100
             });
@@ -678,7 +678,7 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await creator.SubWeight.SendAsync(new SubWeightInput
             {
-                ProfitId = Hash.Generate(),
+                ProfitId = Hash.FromString("hash2"),
                 Receiver = Address.Generate()
             });
 
@@ -774,7 +774,7 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await user.ReleaseProfit.SendAsync(new ReleaseProfitInput
             {
-                ProfitId = Hash.Generate(),
+                ProfitId = Hash.FromString("hash3"),
                 Amount = amount,
                 Period = 1
             });
@@ -1110,7 +1110,7 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await receiver.Profit.SendAsync(new ProfitInput
             {
-                ProfitId = Hash.Generate()
+                ProfitId = Hash.FromString("hash4")
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);

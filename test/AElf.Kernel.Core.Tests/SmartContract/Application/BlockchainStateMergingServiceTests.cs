@@ -22,7 +22,7 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task BlockState_NoNeed_To_Merge()
         {
             var lastIrreversibleBlockHeight = -2;
-            var lastIrreversibleBlockHash = Hash.Generate();
+            var lastIrreversibleBlockHash = Hash.FromString("hash");
 
             await _blockchainStateMergingService.MergeBlockStateAsync(lastIrreversibleBlockHeight,
                 lastIrreversibleBlockHash);
@@ -36,7 +36,7 @@ namespace AElf.Kernel.SmartContract.Application
         public async Task BlockState_Merge_GotException()
         {
             var lastIrreversibleBlockHeight = 1;
-            var lastIrreversibleBlockHash = Hash.Generate();
+            var lastIrreversibleBlockHash = Hash.FromString("hash");
 
             await Should.ThrowAsync<InvalidOperationException>(()=>_blockchainStateMergingService.MergeBlockStateAsync(lastIrreversibleBlockHeight,
                 lastIrreversibleBlockHash));
@@ -52,19 +52,19 @@ namespace AElf.Kernel.SmartContract.Application
             var blockStateSet1 = new BlockStateSet()
             {
                 BlockHeight = 1,
-                BlockHash = Hash.Generate(),
+                BlockHash = Hash.FromString("hash"),
                 PreviousHash = Hash.Empty
             };
             var blockStateSet2 = new BlockStateSet()
             {
                 BlockHeight = 2,
-                BlockHash = Hash.Generate(),
+                BlockHash = Hash.FromString("hash2"),
                 PreviousHash = blockStateSet1.BlockHash
             };
             var blockStateSet3 = new BlockStateSet()
             {
                 BlockHeight = 3,
-                BlockHash = Hash.Generate(),
+                BlockHash = Hash.FromString("hash3"),
                 PreviousHash = blockStateSet2.BlockHash
             };
 

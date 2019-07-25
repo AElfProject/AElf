@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.OS.BlockSync;
 using AElf.OS.BlockSync.Application;
 using AElf.OS.BlockSync.Dto;
 using AElf.OS.Network;
@@ -19,17 +20,17 @@ namespace AElf.OS.Handlers
         private readonly IBlockSyncService _blockSyncService;
         private readonly IBlockSyncValidationService _blockSyncValidationService;
         private readonly IBlockchainService _blockchainService;
-        private readonly NetworkOptions _networkOptions;
+        private readonly BlockSyncOptions _blockSyncOptions;
 
         public AnnouncementReceivedEventHandler(IBlockSyncService blockSyncService,
             IBlockSyncValidationService blockSyncValidationService,
             IBlockchainService blockchainService,
-            IOptionsSnapshot<NetworkOptions> networkOptions)
+            IOptionsSnapshot<BlockSyncOptions> blockSyncOptions)
         {
             _blockSyncService = blockSyncService;
             _blockSyncValidationService = blockSyncValidationService;
             _blockchainService = blockchainService;
-            _networkOptions = networkOptions.Value;
+            _blockSyncOptions = blockSyncOptions.Value;
             
             Logger = NullLogger<AnnouncementReceivedEventHandler>.Instance;
         }
@@ -42,10 +43,10 @@ namespace AElf.OS.Handlers
             return Task.CompletedTask;
         }
 
-        private async Task ProcessNewBlockAsync(BlockAnnouncement blockAnnouncement, string senderPubKey)
+        private async Task ProcessNewBlockAsync(BlockAnnouncement blockAnnouncement, string senderPubkey)
         {
             Logger.LogDebug(
-                $"Start block sync job, target height: {blockAnnouncement.BlockHeight}, target block hash: {blockAnnouncement.BlockHash}, peer: {senderPubKey}");
+                $"Start block sync job, target height: {blockAnnouncement.BlockHeight}, target block hash: {blockAnnouncement.BlockHash}, peer: {senderPubkey}");
             
             var chain = await _blockchainService.GetChainAsync();
             
@@ -58,8 +59,8 @@ namespace AElf.OS.Handlers
             {
                 SyncBlockHash = blockAnnouncement.BlockHash,
                 SyncBlockHeight = blockAnnouncement.BlockHeight,
-                SuggestedPeerPubKey = senderPubKey,
-                BatchRequestBlockCount = _networkOptions.BlockIdRequestCount
+                SuggestedPeerPubkey = senderPubkey,
+                BatchRequestBlockCount = _blockSyncOptions.MaxBatchRequestBlockCount
             });
         }
     }

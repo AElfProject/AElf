@@ -9,7 +9,7 @@ namespace AElf.Types.Tests.Helper
         [Fact]
         public void Convert_Byte_FromString()
         {
-            var hexValue = Hash.Generate().ToHex();
+            var hexValue = Hash.FromString("hexvalue").ToHex();
             var hashArray = ByteArrayHelper.FromHexString(hexValue);
             hashArray.Length.ShouldBe(32);
 
@@ -49,8 +49,8 @@ namespace AElf.Types.Tests.Helper
         [Fact]
         public void Bytes_Combine_And_SubArray()
         {
-            var byteArray1 = Hash.Generate().DumpByteArray();
-            var byteArray2 = Hash.Generate().DumpByteArray();
+            var byteArray1 = Hash.FromString("ba1").ToByteArray();
+            var byteArray2 = Hash.FromString("ba2").ToByteArray();
             var bytes = ByteArrayHelper.Combine(byteArray1, byteArray2);
             bytes.Length.ShouldBe(byteArray1.Length + byteArray2.Length);
 
