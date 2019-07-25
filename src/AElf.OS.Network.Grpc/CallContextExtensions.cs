@@ -1,7 +1,5 @@
-using System;
 using System.Linq;
 using Grpc.Core;
-using Grpc.Core.Interceptors;
 
 namespace AElf.OS.Network.Grpc
 {
