@@ -13,8 +13,6 @@ option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
 service TokenContract {
     
     // Actions
-    rpc Initialize(InitializeInput) returns (google.protobuf.Empty) {
-    }
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
     rpc CreateNativeToken (CreateNativeTokenInput) returns (google.protobuf.Empty) {
@@ -67,11 +65,6 @@ service TokenContract {
     }
 }
 
-message InitializeInput {
-    int32 main_chain_id = 1;
-    aelf.Address main_chain_token_contract_address = 2;
-}
-
 message TokenInfo {
     string symbol = 1;
     string tokenName = 2;
@@ -80,6 +73,7 @@ message TokenInfo {
     sint32 decimals = 5;
     aelf.Address issuer = 6;
     bool is_burnable = 7;
+    sint32 issue_chain_id = 8;
 }
 
 message CreateInput {
@@ -208,6 +202,7 @@ message CrossChainTransferInput {
     sint64 amount = 3;
     string memo = 4;
     int32 to_chain_id = 5;
+    int32 issue_chain_id = 6;
 }
 
 message CrossChainReceiveTokenInput {

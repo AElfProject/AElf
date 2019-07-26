@@ -3,9 +3,11 @@ using System.Linq;
 using Acs0;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -96,6 +98,26 @@ namespace AElf.Contracts.MultiToken
             var verificationResult =
                 State.CrossChainContractReferenceState.VerifyTransaction.Call(verificationInput);
             Assert(verificationResult.Value, "Cross chain verification failed.");
+        }
+        
+        private Address GetOwnerAddress()
+        {
+            var owner = State.Owner.Value;
+            if (owner != null)
+                return owner;
+            var parliamentAuthContractAddress =
+                Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+            owner = Context.Call<Address>(parliamentAuthContractAddress,
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractReferenceState.GetGenesisOwnerAddress),
+                new Empty());
+            State.Owner.Value = owner;
+            return owner;
+        }
+
+        private int GetIssueChainId(string symbol)
+        {
+            var tokenInfo = State.TokenInfos[symbol];
+            return tokenInfo.IssueChainId;
         }
     }
 }
