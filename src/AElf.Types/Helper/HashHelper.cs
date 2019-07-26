@@ -19,7 +19,7 @@ namespace AElf
         /// <exception cref="ArgumentOutOfRangeException"></exception>
         public static Hash HexStringToHash(string hex)
         {
-            var bytes = ByteArrayHelper.FromHexString(hex);
+            var bytes = ByteArrayHelper.HexStringToByteArray(hex);
             return Hash.FromByteArray(bytes);
         }
 

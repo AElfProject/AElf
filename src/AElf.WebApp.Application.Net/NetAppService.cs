@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -46,7 +47,15 @@ namespace AElf.WebApp.Application.Net
         /// <returns></returns>
         public async Task<bool> RemovePeerAsync(string address)
         {
-            return await _networkService.RemovePeerAsync(address);
+            try
+            {
+                return await _networkService.RemovePeerAsync(address);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
         }
         
         /// <summary>
@@ -63,7 +72,6 @@ namespace AElf.WebApp.Application.Net
                 ProtocolVersion = p.Info.ProtocolVersion,
                 ConnectionTime = p.Info.ConnectionTime,
                 Inbound = p.Info.IsInbound,
-                StartHeight = p.Info.StartHeight,
                 RequestMetrics = p.GetRequestMetrics().Values.SelectMany(kvp => kvp).ToList()
             }).ToList();
             

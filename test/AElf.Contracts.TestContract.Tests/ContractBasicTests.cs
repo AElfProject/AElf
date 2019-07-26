@@ -30,7 +30,7 @@ namespace AElf.Contract.TestContract
                     ContractName = "Test initialize again",
                     MinValue = 1000,
                     MaxValue = 10000,
-                    Manager = Address.Generate()
+                    Manager = SampleAddress.AddressList[0]
                 })).TransactionResult;
 
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -44,10 +44,10 @@ namespace AElf.Contract.TestContract
                 new Acs0.ContractUpdateInput
                 {
                     Address = BasicFunctionContractAddress,
-                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("BasicUpdate")).Value) 
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("BasicUpdate")).Value)
                 }
             )).TransactionResult;
-            
+
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var basic11ContractStub = GetTestBasicUpdateContractStub(DefaultSenderKeyPair);
@@ -55,7 +55,7 @@ namespace AElf.Contract.TestContract
             var transactionResult1 = (await basic11ContractStub.UpdateStopBet.SendAsync(
                 new Empty())).TransactionResult;
             transactionResult1.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             //call new view method
             var result = (await basic11ContractStub.QueryBetStatus.CallAsync(
                 new Empty())).BoolValue;
@@ -69,14 +69,14 @@ namespace AElf.Contract.TestContract
                 new Acs0.ContractUpdateInput
                 {
                     Address = BasicFunctionContractAddress,
-                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("BasicFunction")).Value) 
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("BasicFunction")).Value)
                 }
             )).TransactionResult;
-            
+
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Code is not changed").ShouldBeTrue();
-        } 
-        
+        }
+
         [Fact]
         public async Task UpdateContract_And_Call_Old_Method()
         {
@@ -84,10 +84,10 @@ namespace AElf.Contract.TestContract
                 new Acs0.ContractUpdateInput
                 {
                     Address = BasicFunctionContractAddress,
-                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("BasicUpdate")).Value) 
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("BasicUpdate")).Value)
                 }
             )).TransactionResult;
-            
+
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //execute new action method
@@ -97,7 +97,7 @@ namespace AElf.Contract.TestContract
                     Int64Value = 100
                 })).TransactionResult;
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             //check result
             var winData = (await TestBasicFunctionContractStub.QueryUserWinMoney.CallAsync(
                 DefaultSender)).Int64Value;
@@ -106,11 +106,12 @@ namespace AElf.Contract.TestContract
                 winData.ShouldBeGreaterThanOrEqualTo(100);
                 return;
             }
+
             var loseData = (await TestBasicFunctionContractStub.QueryUserLoseMoney.CallAsync(
                 DefaultSender)).Int64Value;
             (winData + loseData).ShouldBe(100);
         }
-        
+
         [Fact]
         public async Task ChangeAuthor_Without_Permission_Failed()
         {
@@ -120,18 +121,18 @@ namespace AElf.Contract.TestContract
                 new Acs0.ChangeContractAuthorInput()
                 {
                     ContractAddress = BasicFunctionContractAddress,
-                    NewAuthor = Address.Generate()
+                    NewAuthor = SampleAddress.AddressList[1]
                 }
             )).TransactionResult;
-            
+
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("no permission").ShouldBeTrue();
         }
-        
+
         [Fact]
         public async Task ChangeAuthor_With_Permission_Success()
         {
-            var otherUser = Address.Generate();
+            var otherUser = SampleAddress.AddressList[2];
             var transactionResult = (await BasicContractZeroStub.ChangeContractAuthor.SendAsync(
                 new Acs0.ChangeContractAuthorInput()
                 {
@@ -139,10 +140,11 @@ namespace AElf.Contract.TestContract
                     NewAuthor = otherUser
                 }
             )).TransactionResult;
-            
+
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var ownerAddress = (await BasicContractZeroStub.GetContractAuthor.CallAsync(BasicFunctionContractAddress)).GetFormatted();
+            var ownerAddress = (await BasicContractZeroStub.GetContractAuthor.CallAsync(BasicFunctionContractAddress))
+                .GetFormatted();
             ownerAddress.ShouldBe(otherUser.GetFormatted());
         }
     }
