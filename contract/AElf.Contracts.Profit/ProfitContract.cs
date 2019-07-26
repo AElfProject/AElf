@@ -678,20 +678,19 @@ namespace AElf.Contracts.Profit
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
-            var availableDetails = profitDetails.Details.Where(d =>
-                d.LastProfitPeriod < scheme.CurrentPeriod && d.EndPeriod >= d.LastProfitPeriod
-            ).ToList();
+            var availableDetails = profitDetails.Details.Where(d => d.EndPeriod > d.LastProfitPeriod).ToList();
+            var profitableDetails = availableDetails.Where(d => d.LastProfitPeriod < scheme.CurrentPeriod).ToList();
 
             Context.LogDebug(() =>
-                $"Available details: {availableDetails.Aggregate("\n", (profit1, profit2) => profit1.ToString() + "\n" + profit2.ToString())}");
+                $"Profitable details: {profitableDetails.Aggregate("\n", (profit1, profit2) => profit1.ToString() + "\n" + profit2.ToString())}");
 
             // Only can get profit from last profit period to actual last period (profit.CurrentPeriod - 1),
             // because current period not released yet.
             for (var i = 0;
-                i < Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
+                i < Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, profitableDetails.Count);
                 i++)
             {
-                var profitDetail = availableDetails[i];
+                var profitDetail = profitableDetails[i];
                 if (profitDetail.LastProfitPeriod == 0)
                 {
                     // This detail never performed profit before.
@@ -738,6 +737,7 @@ namespace AElf.Contracts.Profit
                         $"Sender's Shares: {detailToPrint.Shares}, total Shares: {distributedProfitsInformation.TotalShares}");
                     if (distributedProfitsInformation.IsReleased && amount > 0)
                     {
+                        // TODO: Optimize.
                         State.TokenContract.TransferFrom.Send(new TransferFromInput
                         {
                             From = distributedPeriodProfitsVirtualAddress,
