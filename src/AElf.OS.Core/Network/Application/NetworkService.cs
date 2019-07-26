@@ -95,7 +95,7 @@ namespace AElf.OS.Network.Application
                 {
                     Logger.LogError(ex, $"Error while broadcasting announcement to {peer}.");
                     await HandleNetworkException(peer, ex);
-                } );
+                });
             }
         }
         
@@ -219,12 +219,8 @@ namespace AElf.OS.Network.Application
                 Logger.LogError($"Queuing peer for reconnection {peer.IpAddress}.");
                 QueueNetworkTask(async () => await RecoverPeerAsync(peer));
             }
-            else
-            {
-                Logger.LogError($"Other problem {peer.IpAddress}. Exception {exception}");
-            }
         }
-        
+
         private async Task RecoverPeerAsync(IPeer peer)
         {
             if (peer.IsReady) // peer recovered already

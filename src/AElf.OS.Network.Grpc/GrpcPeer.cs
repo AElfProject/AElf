@@ -26,6 +26,8 @@ namespace AElf.OS.Network.Grpc
         private const int FinalizeConnectTimeout = 500;
         private const int UpdateHandshakeTimeout = 400;
         
+        private const int StreamRecoveryWaitTime = NetworkConstants.DefaultPeerRecoveryTimeoutInMilliSeconds + 1000;
+        
         private enum MetricNames
         {
             Announce,
@@ -89,6 +91,7 @@ namespace AElf.OS.Network.Grpc
             LastKnownLibHeight = peerInfo.LibHeightAtHandshake;
             
             _streamJobs = new BufferBlock<StreamJob>();
+            
             Task.Run(async () => await StartBroadcastingAsync());
         }
 
@@ -200,16 +203,25 @@ namespace AElf.OS.Network.Grpc
 
         public void EnqueueTransaction(Transaction transaction, Action<NetworkException> errorCallback)
         {
+            if (!IsReady)
+                return;
+                
             _streamJobs.Post(new StreamJob { Transaction = transaction, ErrorCallback = errorCallback });
         }
 
         public void EnqueueAnnouncement(BlockAnnouncement announcement, Action<NetworkException> errorCallback)
         {
+            if (!IsReady)
+                return;
+            
             _streamJobs.Post(new StreamJob {BlockAnnouncement = announcement, ErrorCallback = errorCallback});
         }
 
         public void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException> errorCallback)
         {
+            if (!IsReady)
+                return;
+            
             _streamJobs.Post(new StreamJob {BlockWithTransactions = blockWithTransactions, ErrorCallback = errorCallback});
         }
         
@@ -217,9 +229,6 @@ namespace AElf.OS.Network.Grpc
         {
             while (await _streamJobs.OutputAvailableAsync())
             {
-                if (!IsConnected)
-                    return;
-
                 var block = await _streamJobs.ReceiveAsync();
                 await SendStreamJobAsync(block);
             }
@@ -227,7 +236,7 @@ namespace AElf.OS.Network.Grpc
 
         private async Task SendStreamJobAsync(StreamJob job)
         {
-            if (!IsConnected)
+            if (!IsReady)
                 return;
 
             try
@@ -381,22 +390,34 @@ namespace AElf.OS.Network.Grpc
             }
             else if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)
             {
-                message = $"Failed request to {this}: {errorMessage}";
+                message = $"Peer is unstable {this}: {errorMessage}";
                 type = NetworkExceptionType.PeerUnstable;
             }
-            else if (exception.InnerException is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Cancelled)
+
+            if (exception.InnerException is RpcException rpcEx)
             {
-                message = $"Failed request to {this}: {errorMessage}";
-                type = NetworkExceptionType.Unrecoverable;
+                if (rpcEx.StatusCode == StatusCode.Cancelled)
+                {
+                    message = $"Failed request to {this}: {errorMessage}";
+                    type = NetworkExceptionType.Unrecoverable;
+                }
+                else if (rpcEx.StatusCode == StatusCode.Unavailable)
+                {
+                    message = $"Failed request to {this}: {errorMessage}";
+                    type = NetworkExceptionType.Unrecoverable;
+                }
             }
-            
+
             return new NetworkException(message, exception, type);
         }
 
         public async Task<bool> TryRecoverAsync()
         {
+            if (_channel.State == ChannelState.Shutdown)
+                return false;
+            
             await _channel.TryWaitForStateChangedAsync(_channel.State,
-                DateTime.UtcNow.AddSeconds(NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds));
+                DateTime.UtcNow.AddSeconds(NetworkConstants.DefaultPeerRecoveryTimeoutInMilliSeconds));
 
             // Either we connected again or the state change wait timed out.
             if (_channel.State == ChannelState.TransientFailure || _channel.State == ChannelState.Connecting)

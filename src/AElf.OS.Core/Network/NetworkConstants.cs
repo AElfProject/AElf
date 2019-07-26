@@ -3,6 +3,7 @@ namespace AElf.OS.Network
     public static class NetworkConstants
     {
         public const int DefaultPeerDialTimeoutInMilliSeconds = 3000;
+        public const int DefaultPeerRecoveryTimeoutInMilliSeconds = 3000;
         public const bool DefaultCompressBlocks = true;
         public const int DefaultMaxRequestRetryCount = 1;
         public const int DefaultMaxRandomPeersPerRequest = 2;
@@ -11,9 +12,6 @@ namespace AElf.OS.Network
         public const int DefaultMaxBlockAgeToBroadcastInMinutes = 10;
         
         public const int DefaultInitialSyncOffset = 512;
-        
-        public const int AnnouncementQueueJobTimeout = 1000;
-        public const int TransactionQueueJobTimeout = 1000;
         
         public const int DefaultDiscoveryMaxNodesToRequest = 10;
         public const int DefaultDiscoveryPeriodInMilliSeconds = 60_000;
