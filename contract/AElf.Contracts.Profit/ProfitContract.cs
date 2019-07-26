@@ -388,7 +388,7 @@ namespace AElf.Contracts.Profit
                 $"total Shares {distributedProfitInformation.TotalShares}, total amount {distributedProfitInformation.ProfitsAmount} {input.Symbol}s");
 
             PerformDistributeProfits(input, scheme, totalShares, profitsReceivingVirtualAddress);
-            
+
             scheme.CurrentPeriod = input.Period.Add(1);
             scheme.UndistributedProfits[input.Symbol] = balance.Sub(input.Amount);
 

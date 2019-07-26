@@ -110,14 +110,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 minerInRound.PreviousInValue = input.PreviousInValue;
             }
-            
+
             if (!TryToUpdateRoundInformation(round))
             {
                 Assert(false, "Failed to update round information.");
             }
 
             TryToFindLastIrreversibleBlock();
-            
+
             return new Empty();
         }
 

@@ -125,12 +125,17 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         }
 
         [Fact(Skip = "This test case also run in TreasuryCollectionTest_SecondTerm.")]
-        public async Task<long> TreasuryDistributionTest_SecondTerm()
+        public async Task<TreasuryDistributionInformation> TreasuryDistributionTest_SecondTerm()
         {
+            var information = new TreasuryDistributionInformation();
             const long period = 2;
             long distributedAmount;
 
-            await TreasuryDistributionTest_FirstTerm();
+            var termNumber = (await ConsensusStub.GetCurrentTermNumber.CallAsync(new Empty())).Value;
+            if (termNumber == 1)
+            {
+                await TreasuryDistributionTest_FirstTerm();
+            }
 
             // Remain 4 core data centers announce election.
             var announceTransactions = new List<Transaction>();
@@ -170,6 +175,8 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     Period = period
                 });
                 distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol].ShouldBe(distributedAmount);
+
+                information.TotalAmount = distributedAmount;
             }
 
             // Check amount distributed to each scheme.
@@ -180,6 +187,14 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                         await GetDistributedInformationAsync(_schemes[SchemeType.MinerBasicReward].SchemeId, period);
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
                     amount.ShouldBe(distributedAmount * 2 / 5);
+                    var totalShares = distributedInformation.TotalShares;
+                    totalShares.ShouldBe(9);
+
+                    information[SchemeType.MinerBasicReward] = new DistributionInformation
+                    {
+                        Amount = amount,
+                        TotalShares = totalShares
+                    };
                 }
 
                 // Backup Subsidy: 20%
@@ -188,6 +203,14 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                         await GetDistributedInformationAsync(_schemes[SchemeType.BackupSubsidy].SchemeId, period);
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
                     amount.ShouldBe(distributedAmount / 5);
+                    var totalShares = distributedInformation.TotalShares;
+                    totalShares.ShouldBe(9);
+
+                    information[SchemeType.BackupSubsidy] = new DistributionInformation
+                    {
+                        Amount = amount,
+                        TotalShares = totalShares
+                    };
                 }
 
                 // Citizen Welfare: 20%
@@ -196,6 +219,14 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                         await GetDistributedInformationAsync(_schemes[SchemeType.CitizenWelfare].SchemeId, period);
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
                     amount.ShouldBe(distributedAmount / 5);
+                    var totalShares = distributedInformation.TotalShares;
+                    totalShares.ShouldBePositive();
+
+                    information[SchemeType.CitizenWelfare] = new DistributionInformation
+                    {
+                        Amount = amount,
+                        TotalShares = totalShares
+                    };
                 }
 
                 // Votes Weight Reward: 10%
@@ -204,6 +235,14 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                         await GetDistributedInformationAsync(_schemes[SchemeType.VotesWeightReward].SchemeId, period);
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
                     amount.ShouldBe(distributedAmount / 10);
+                    var totalShares = distributedInformation.TotalShares;
+                    totalShares.ShouldBe(5000);
+
+                    information[SchemeType.VotesWeightReward] = new DistributionInformation
+                    {
+                        Amount = amount,
+                        TotalShares = totalShares
+                    };
                 }
 
                 // Re-Election Reward: 10%
@@ -212,9 +251,18 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                         await GetDistributedInformationAsync(_schemes[SchemeType.ReElectionReward].SchemeId, period);
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
                     amount.ShouldBe(distributedAmount / 10);
+                    var totalShares = distributedInformation.TotalShares;
+                    totalShares.ShouldBe(4);
+
+                    information[SchemeType.ReElectionReward] = new DistributionInformation
+                    {
+                        Amount = amount,
+                        TotalShares = totalShares
+                    };
                 }
-                return distributedAmount;
             }
+
+            return information;
         }
     }
 }

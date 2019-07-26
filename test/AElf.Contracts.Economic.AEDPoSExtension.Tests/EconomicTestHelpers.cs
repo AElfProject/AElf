@@ -83,7 +83,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             }
         }
 
-        internal enum SchemeType
+        public enum SchemeType
         {
             Treasury,
 

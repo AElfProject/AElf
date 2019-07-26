@@ -54,7 +54,7 @@ namespace AElf.Contracts.Election
             if (candidateInformation != null)
             {
                 Assert(!candidateInformation.IsCurrentCandidate,
-                    "This public key already announced election.");
+                    $"This public key already announced election. {publicKey}");
                 candidateInformation.AnnouncementTransactionId = Context.TransactionId;
                 candidateInformation.IsCurrentCandidate = true;
                 // In this way we can keep history of current candidate, like terms, missed time slots, etc.

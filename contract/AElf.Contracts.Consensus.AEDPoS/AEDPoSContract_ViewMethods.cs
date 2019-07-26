@@ -85,12 +85,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new StringValue();
         }
 
-        private bool TryToGetMiningInterval(out int miningInterval)
-        {
-            miningInterval = State.MiningInterval.Value;
-            return true;
-        }
-
         private Round GenerateFirstRoundOfNextTerm(string senderPublicKey, int miningInterval)
         {
             Round round;

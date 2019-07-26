@@ -69,13 +69,14 @@ namespace AElf.Contracts.Election
                 VoteId = Context.TransactionId
             });
 
+            var votesWeight = GetVotesWeight(input.Amount, lockSeconds);
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {
                 SchemeId = State.WelfareHash.Value,
                 BeneficiaryShare = new BeneficiaryShare
                 {
                     Beneficiary = Context.Sender,
-                    Shares = GetVotesWeight(input.Amount, lockSeconds)
+                    Shares = votesWeight
                 },
                 EndPeriod = GetEndPeriod(lockSeconds)
             });
@@ -197,6 +198,7 @@ namespace AElf.Contracts.Election
             return candidateVotes.ObtainedActiveVotedVotesAmount;
         }
 
+        // TODO: Tune the votes weight calculation.
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
             return lockTime.Mul(1_0000).Div(86400).Div(270).Mul(votesAmount).Add(votesAmount.Mul(2).Div(3));
