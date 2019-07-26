@@ -26,8 +26,6 @@ service AEDPoSContract {
     rpc UpdateTinyBlockInformation (TinyBlockInput) returns (google.protobuf.Empty) {
     }
     
-    rpc GetLIBOffset (google.protobuf.Empty) returns (aelf.SInt64Value) {
-    }
     rpc UpdateConsensusInformation (ConsensusInformation) returns (google.protobuf.Empty) {
     }
 
@@ -59,6 +57,7 @@ service AEDPoSContract {
 message IrreversibleBlockFound {
     option (aelf.is_event) = true;
     sint64 offset = 1;
+    sint64 irreversible_block_height = 2;
 }
 
 message InitialAElfConsensusContractInput {
@@ -81,6 +80,7 @@ message UpdateValueInput {
     map<string, bytes> decrypted_previous_in_values = 10;
     sint64 produced_blocks = 11;
     map<string, aelf.Hash> miners_previous_in_values = 12;
+    sint64 implied_irreversible_block_height = 13;
 }
 
 // The miners public key list for each term.
@@ -126,6 +126,7 @@ message MinerInRound {
     map<string, bytes> encrypted_in_values = 16;
     map<string, bytes> decrypted_previous_inValues = 17;
     sint32 produced_tiny_blocks = 18;
+    sint64 implied_irreversible_block_height = 19;
 }
 
 message AElfConsensusHeaderInformation {
