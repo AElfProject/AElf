@@ -26,7 +26,7 @@ namespace AElf.OS.Network.Grpc
         private const int FinalizeConnectTimeout = 500;
         private const int UpdateHandshakeTimeout = 400;
         
-        private const int StreamRecoveryWaitTime = NetworkConstants.DefaultPeerRecoveryTimeoutInMilliSeconds + 1000;
+        private const int StreamRecoveryWaitTimeinMilliseconds = NetworkConstants.DefaultPeerRecoveryTimeoutInMilliSeconds + 1000;
         
         private enum MetricNames
         {
@@ -251,7 +251,7 @@ namespace AElf.OS.Network.Grpc
             catch (RpcException ex)
             {
                 job.ErrorCallback(CreateNetworkException(ex, $"Error on broadcast to {this}: "));
-                await Task.Delay(NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds);
+                await Task.Delay(StreamRecoveryWaitTimeinMilliseconds);
             }
         }
 
@@ -394,6 +394,8 @@ namespace AElf.OS.Network.Grpc
                 type = NetworkExceptionType.PeerUnstable;
             }
 
+            // Exceptions that don't result in channel state change but that still 
+            // require being handled.
             if (exception.InnerException is RpcException rpcEx)
             {
                 if (rpcEx.StatusCode == StatusCode.Cancelled)
@@ -449,6 +451,12 @@ namespace AElf.OS.Network.Grpc
         public async Task DisconnectAsync(bool gracefulDisconnect)
         {
             IsConnected = false;
+            
+            // we complete but no need to await the jobs
+            _streamJobs.Complete();
+            _announcementStreamCall.Dispose();
+            _transactionStreamCall.Dispose();
+            _blockStreamCall.Dispose();
             
             // send disconnect message if the peer is still connected and the connection
             // is stable.
