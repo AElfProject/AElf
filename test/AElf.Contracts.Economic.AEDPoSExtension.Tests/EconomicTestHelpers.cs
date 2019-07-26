@@ -72,14 +72,23 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 })).ToList());
         }
 
+        /// <summary>
+        /// Tolerance: 10
+        /// </summary>
+        /// <param name="keyPairs"></param>
+        /// <param name="shouldIncrease"></param>
+        /// <param name="balancesBefore"></param>
+        /// <returns></returns>
         internal async Task CheckBalancesAsync(IEnumerable<ECKeyPair> keyPairs, long shouldIncrease,
             Dictionary<ECKeyPair, long> balancesBefore = null)
         {
+            const long tolerance = 10;
             balancesBefore = balancesBefore ?? new Dictionary<ECKeyPair, long>();
             foreach (var keyPair in keyPairs)
             {
                 var amount = await GetBalanceAsync(Address.FromPublicKey(keyPair.PublicKey));
-                amount.ShouldBe(shouldIncrease + balancesBefore[keyPair]);
+                amount.ShouldBeGreaterThan(shouldIncrease + balancesBefore[keyPair] - tolerance);
+                amount.ShouldBeLessThan(shouldIncrease + balancesBefore[keyPair] + tolerance);
             }
         }
 

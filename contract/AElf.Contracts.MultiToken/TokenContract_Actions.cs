@@ -365,11 +365,14 @@ namespace AElf.Contracts.MultiToken
 
                 State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalFee);
 
-                State.TreasuryContract.Donate.Send(new DonateInput
+                if (totalFee > 0)
                 {
-                    Symbol = symbol,
-                    Amount = totalFee
-                });
+                    State.TreasuryContract.Donate.Send(new DonateInput
+                    {
+                        Symbol = symbol,
+                        Amount = totalFee
+                    });
+                }
             }
 
             State.PreviousBlockTransactionFeeTokenSymbolList.Value = new TokenSymbolList();
