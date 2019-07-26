@@ -1,8 +1,5 @@
 using System.Threading.Tasks;
-using AElf.CrossChain.Communication.Application;
-using AElf.CrossChain.Communication.Infrastructure;
 using AElf.Kernel;
-using AElf.Kernel.Node.Infrastructure;
 using Microsoft.Extensions.Options;
 using Xunit;
 
@@ -29,18 +26,18 @@ namespace AElf.CrossChain.Communication.Grpc
             var chainId = _chainOptions.ChainId;
             await _grpcCrossChainServerNodePlugin.StartAsync(chainId);
         }
-        
+
         [Fact]
         public async Task ClientStartTest()
         {
             var chainId = _chainOptions.ChainId;
             await _grpcCrossChainClientNodePlugin.StartAsync(chainId);
         }
-        
+
         [Fact]
         public async Task ClientStartTest_Null()
         {
-            var chainId = _chainOptions.ChainId; 
+            var chainId = _chainOptions.ChainId;
             _grpcCrossChainConfigOption.RemoteParentChainServerPort = 0;
             await _grpcCrossChainClientNodePlugin.StartAsync(chainId);
         }
@@ -58,7 +55,7 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         //TODO: Add test cases for GrpcCrossChainClientNodePlugin.ShutdownAsync after it is implemented [Case]
-        
+
         [Fact]
         public async Task StopClientTest()
         {

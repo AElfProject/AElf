@@ -12,14 +12,12 @@ namespace AElf.CrossChain.Communication.Grpc
         private const string Host = "localhost";
         private const int ListenPort = 2200;
         private BasicCrossChainRpc.BasicCrossChainRpcClient _basicClient;
-        
+
         private IGrpcCrossChainServer _server;
-        private ICrossChainClientProvider _crossChainClientProvider;
-        
+
         public GrpcClientTests()
         {
             _server = GetRequiredService<IGrpcCrossChainServer>();
-            _crossChainClientProvider = GetRequiredService<ICrossChainClientProvider>();
         }
 
         // TODO: These cases are meaningless and should be rewritten.
@@ -53,7 +51,8 @@ namespace AElf.CrossChain.Communication.Grpc
         private void InitServerAndClient(int port)
         {
             _server.StartAsync(Host, port).Wait();
-            _basicClient = new BasicCrossChainRpc.BasicCrossChainRpcClient(new Channel(Host, port, ChannelCredentials.Insecure));
+            _basicClient =
+                new BasicCrossChainRpc.BasicCrossChainRpcClient(new Channel(Host, port, ChannelCredentials.Insecure));
         }
 
         public override void Dispose()

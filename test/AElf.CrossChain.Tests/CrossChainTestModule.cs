@@ -27,17 +27,19 @@ namespace AElf.CrossChain
                 {2, Hash.FromString("2")},
                 {3, Hash.FromString("3")}
             };
-            
+
             //context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
             context.Services.AddSingleton<CrossChainTestHelper>();
             context.Services.AddTransient(provider =>
             {
                 var mockTransactionReadOnlyExecutionService = new Mock<ITransactionReadOnlyExecutionService>();
                 mockTransactionReadOnlyExecutionService
-                    .Setup(m => m.ExecuteAsync(It.IsAny<IChainContext>(), It.IsAny<Transaction>(), It.IsAny<Timestamp>()))
+                    .Setup(m => m.ExecuteAsync(It.IsAny<IChainContext>(), It.IsAny<Transaction>(),
+                        It.IsAny<Timestamp>()))
                     .Returns<IChainContext, Transaction, Timestamp>((chainContext, transaction, dateTime) =>
                     {
-                        var crossChainTestHelper = context.Services.GetRequiredServiceLazy<CrossChainTestHelper>().Value;                   
+                        var crossChainTestHelper =
+                            context.Services.GetRequiredServiceLazy<CrossChainTestHelper>().Value;
                         return Task.FromResult(crossChainTestHelper.CreateFakeTransactionTrace(transaction));
                     });
                 return mockTransactionReadOnlyExecutionService.Object;
@@ -59,11 +61,8 @@ namespace AElf.CrossChain
                     chain.LastIrreversibleBlockHeight = crossChainTestHelper.FakeLibHeight;
                     return Task.FromResult(chain);
                 });
-                mockBlockChainService.Setup(m => m.GetChainAsync()).Returns(Task.FromResult(new Chain
-                {
-                    LastIrreversibleBlockHeight = CrossChainConstants.LibHeightOffsetForCrossChainIndex + 1
-                }));
-                mockBlockChainService.Setup(m => m.GetBlockHashByHeightAsync(It.IsAny<Chain>(), It.IsAny<long>(), It.IsAny<Hash>()))
+                mockBlockChainService.Setup(m =>
+                        m.GetBlockHashByHeightAsync(It.IsAny<Chain>(), It.IsAny<long>(), It.IsAny<Hash>()))
                     .Returns<Chain, long, Hash>((chain, height, hash) =>
                     {
                         if (height > 0 && height <= 3)
@@ -77,19 +76,19 @@ namespace AElf.CrossChain
                         if (kv.Value.Equals(hash))
                             return Task.FromResult(new Block {Header = new BlockHeader {Height = kv.Key}});
                     }
-                    
+
                     return Task.FromResult<Block>(null);
                 });
                 return mockBlockChainService.Object;
             });
         }
     }
-    
+
     [DependsOn(
         typeof(CrossChainAElfModule),
         typeof(KernelCoreWithChainTestAElfModule)
     )]
-    public class CrossChainWithChainTestModule: AElfModule
+    public class CrossChainWithChainTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
@@ -105,10 +104,12 @@ namespace AElf.CrossChain
             {
                 var mockTransactionReadOnlyExecutionService = new Mock<ITransactionReadOnlyExecutionService>();
                 mockTransactionReadOnlyExecutionService
-                    .Setup(m => m.ExecuteAsync(It.IsAny<IChainContext>(), It.IsAny<Transaction>(), It.IsAny<Timestamp>()))
+                    .Setup(m => m.ExecuteAsync(It.IsAny<IChainContext>(), It.IsAny<Transaction>(),
+                        It.IsAny<Timestamp>()))
                     .Returns<IChainContext, Transaction, Timestamp>((chainContext, transaction, dateTime) =>
                     {
-                        var crossChainTestHelper = context.Services.GetRequiredServiceLazy<CrossChainTestHelper>().Value;                   
+                        var crossChainTestHelper =
+                            context.Services.GetRequiredServiceLazy<CrossChainTestHelper>().Value;
                         return Task.FromResult(crossChainTestHelper.CreateFakeTransactionTrace(transaction));
                     });
                 return mockTransactionReadOnlyExecutionService.Object;

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
-using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -16,12 +15,13 @@ namespace AElf.CrossChain
     {
         private readonly IBlockExtraDataProvider _crossChainBlockExtraDataProvider;
         private readonly CrossChainTestHelper _crossChainTestHelper;
+
         public CrossChainBlockExtraDataProviderTest()
         {
             _crossChainBlockExtraDataProvider = GetRequiredService<IBlockExtraDataProvider>();
             _crossChainTestHelper = GetRequiredService<CrossChainTestHelper>();
         }
-       
+
         [Fact]
         public async Task FillExtraData_GenesisHeight()
         {
@@ -33,7 +33,7 @@ namespace AElf.CrossChain
             var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             Assert.Empty(bytes);
         }
-        
+
         [Fact]
         public async Task FillExtraData_WithoutCacheData()
         {
@@ -45,7 +45,7 @@ namespace AElf.CrossChain
             var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             Assert.Empty(bytes);
         }
-        
+
         [Fact]
         public async Task FillExtraData_WithoutSideChainCacheData()
         {
@@ -77,7 +77,7 @@ namespace AElf.CrossChain
             var bytes = await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             Assert.Empty(bytes);
         }
-        
+
         [Fact]
         public async Task FillExtraData()
         {
@@ -109,13 +109,13 @@ namespace AElf.CrossChain
                     ChainId = chainId3
                 }
             };
-            
+
             var list1 = new List<IBlockCacheEntity>();
             var list2 = new List<IBlockCacheEntity>();
             var list3 = new List<IBlockCacheEntity>();
-            
+
             list1.Add(fakeSideChainBlockDataList[0]);
-            list2.Add(fakeSideChainBlockDataList[1]);          
+            list2.Add(fakeSideChainBlockDataList[1]);
             list3.Add(fakeSideChainBlockDataList[2]);
 
             for (int i = 2; i < CrossChainConstants.MinimalBlockCacheEntityCount + 2; i++)
@@ -138,7 +138,6 @@ namespace AElf.CrossChain
                     TransactionMerkleTreeRoot = fakeMerkleTreeRoot3,
                     ChainId = chainId3
                 });
-                
             }
 
             AddFakeCacheData(new Dictionary<int, List<IBlockCacheEntity>>
@@ -147,7 +146,7 @@ namespace AElf.CrossChain
                 {chainId2, list2},
                 {chainId3, list3}
             });
-            
+
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId1, 0);
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId2, 0);
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId3, 0);
@@ -161,7 +160,8 @@ namespace AElf.CrossChain
             var sideChainTxMerkleTreeRoot =
                 await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
             var merkleTreeRoot = new BinaryMerkleTree()
-                .AddNodes(fakeSideChainBlockDataList.Select(sideChainBlockData => sideChainBlockData.TransactionMerkleTreeRoot))
+                .AddNodes(fakeSideChainBlockDataList.Select(sideChainBlockData =>
+                    sideChainBlockData.TransactionMerkleTreeRoot))
                 .ComputeRootHash();
             var expected = new CrossChainExtraData {SideChainTransactionsRoot = merkleTreeRoot}.ToByteString();
             Assert.Equal(expected, sideChainTxMerkleTreeRoot);
