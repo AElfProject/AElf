@@ -534,6 +534,15 @@ namespace AElf.Contracts.Election
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     profitBasicResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                    
+                    {
+                        var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                        {
+                            Owner = Address.FromPublicKey(miner.PublicKey),
+                            Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                        })).Balance;
+                        balance.ShouldBe(beforeToken + basicMinerRewardAmount - txFee);
+                    }
 
                     var voteResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
@@ -541,6 +550,15 @@ namespace AElf.Contracts.Election
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     voteResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                    
+                    {
+                        var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                        {
+                            Owner = Address.FromPublicKey(miner.PublicKey),
+                            Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                        })).Balance;
+                        balance.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount - txFee * 2);
+                    }
 
                     var reElectionResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
@@ -548,6 +566,16 @@ namespace AElf.Contracts.Election
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     reElectionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                    
+                    {
+                        var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                        {
+                            Owner = Address.FromPublicKey(miner.PublicKey),
+                            Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                        })).Balance;
+                        balance.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount +
+                                         reElectionBalance - txFee * 3);
+                    }
 
                     var backupResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
@@ -555,15 +583,16 @@ namespace AElf.Contracts.Election
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     backupResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-                    var afterToken = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                    
                     {
-                        Owner = Address.FromPublicKey(miner.PublicKey),
-                        Symbol = EconomicContractsTestConstants.NativeTokenSymbol
-                    })).Balance;
-
-                    afterToken.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount +
-                                        reElectionBalance + backupBalance - txFee * 4);
+                        var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                        {
+                            Owner = Address.FromPublicKey(miner.PublicKey),
+                            Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                        })).Balance;
+                        balance.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount +
+                                         reElectionBalance + backupBalance - txFee * 4);
+                    }
                 }
             }
         }
