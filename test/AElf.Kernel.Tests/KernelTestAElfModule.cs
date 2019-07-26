@@ -26,7 +26,6 @@ namespace AElf.Kernel
 {
     [DependsOn(
         typeof(KernelAElfModule),
-        typeof(KernelCoreTestAElfModule),
         typeof(SmartContractTestAElfModule),
         typeof(SmartContractExecutionTestAElfModule),
         typeof(TransactionPoolTestAElfModule),

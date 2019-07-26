@@ -15,9 +15,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel.Consensus
 {
     [DependsOn(
-        typeof(CoreAElfModule),
         typeof(OSCoreTestAElfModule),
-        typeof(KernelAElfModule),
         typeof(ConsensusAElfModule),
         typeof(CoreKernelAElfModule)
     )]
