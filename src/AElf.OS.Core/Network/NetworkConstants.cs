@@ -21,5 +21,9 @@ namespace AElf.OS.Network
         public const string AnnouncementBroadcastQueueName = "AnnouncementBroadcastQueue";
         public const string TransactionBroadcastQueueName = "TransactionBroadcastQueue";
         public const string BlockBroadcastQueueName = "BlockBroadcastQueue";
+        
+        public const int DefaultMaxBufferedTransactionCount = 100;
+        public const int DefaultMaxBufferedBlockCount = 20;
+        public const int DefaultMaxBufferedAnnouncementCount = 100;
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using AElf.Kernel;
@@ -30,6 +31,10 @@ namespace AElf.OS.Network.Grpc
         private const int UpdateHandshakeTimeout = 400;
         
         private const int StreamRecoveryWaitTimeinMilliseconds = NetworkConstants.DefaultPeerRecoveryTimeoutInMilliSeconds + 1000;
+        
+        private int BufferedTransactionCount;
+        private int BufferedBlockCount;
+        private int BufferedAnnouncementCount;
         
         private enum MetricNames
         {
@@ -204,24 +209,55 @@ namespace AElf.OS.Network.Grpc
         {
             if (!IsReady)
                 return;
+
+            if (BufferedTransactionCount > NetworkConstants.DefaultMaxBufferedTransactionCount)
+            {
+                errorCallback(new NetworkException($"Dropping transaction, buffer is full {BufferedTransactionCount} - {this}.",
+                    NetworkExceptionType.FullBuffer));
                 
+                return;
+            }
+
             _streamJobs.Post(new StreamJob { Transaction = transaction, ErrorCallback = errorCallback });
+            
+            Interlocked.Increment(ref BufferedTransactionCount);
         }
 
         public void EnqueueAnnouncement(BlockAnnouncement announcement, Action<NetworkException> errorCallback)
         {
             if (!IsReady)
                 return;
-            
+
+            if (BufferedAnnouncementCount > NetworkConstants.DefaultMaxBufferedAnnouncementCount)
+            {
+                errorCallback(new NetworkException(
+                    $"Dropping announcement, buffer is full {BufferedAnnouncementCount} - {this}.",
+                    NetworkExceptionType.FullBuffer));
+                
+                return;
+            }
+
             _streamJobs.Post(new StreamJob {BlockAnnouncement = announcement, ErrorCallback = errorCallback});
+            
+            Interlocked.Increment(ref BufferedAnnouncementCount);
         }
 
         public void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException> errorCallback)
         {
             if (!IsReady)
                 return;
-            
+
+            if (BufferedBlockCount > NetworkConstants.DefaultMaxBufferedBlockCount)
+            {
+                errorCallback(new NetworkException($"Dropping block, buffer is full {BufferedBlockCount} - {this}.", 
+                    NetworkExceptionType.FullBuffer));
+                
+                return;
+            }
+
             _streamJobs.Post(new StreamJob {BlockWithTransactions = blockWithTransactions, ErrorCallback = errorCallback});
+            
+            Interlocked.Increment(ref BufferedBlockCount);
         }
         
         private async Task StartBroadcastingAsync()
@@ -241,11 +277,20 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 if (job.Transaction != null)
+                {
                     await SendTransactionAsync(job.Transaction);
+                    Interlocked.Decrement(ref BufferedTransactionCount);
+                }
                 else if (job.BlockAnnouncement != null)
+                {
                     await SendAnnouncementAsync(job.BlockAnnouncement);
+                    Interlocked.Decrement(ref BufferedAnnouncementCount);
+                }
                 else if (job.BlockWithTransactions != null)
+                {
                     await BroadcastBlockAsync(job.BlockWithTransactions);
+                    Interlocked.Decrement(ref BufferedBlockCount);
+                }
             }
             catch (RpcException ex)
             {
