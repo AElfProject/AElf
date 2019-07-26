@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestContract.BasicFunction;
+using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Kernel.Consensus;
 using AElf.Types;
@@ -15,7 +16,7 @@ namespace AElf.Contracts.MultiToken
 {
     public class LockTest : MultiTokenContractTestBase
     {
-        private readonly Address _address = Address.Generate();
+        private readonly Address _address = SampleAddress.AddressList[0];
         private const string SymbolForTest = "ELFTEST";
         private const long Amount = 100;
         private Address BasicFunctionContractAddress { get; set; }

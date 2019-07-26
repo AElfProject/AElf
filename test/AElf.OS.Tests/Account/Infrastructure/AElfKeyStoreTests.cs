@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography.ECDSA.Exceptions;
+using AElf.Kernel;
 using AElf.OS.Node.Application;
 using AElf.Types;
 using Shouldly;
@@ -80,7 +81,7 @@ namespace AElf.OS.Account.Infrastructure
         [Fact]
         public async Task Open_NotExist_Account()
         {
-            var address = Address.FromString("test account");
+            var address = SampleAddress.AddressList[0];
             var addString = address.GetFormatted();
             var keyPair = _keyStore.GetAccountKeyPair(addString);
             keyPair.ShouldBe(null);

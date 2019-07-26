@@ -15,17 +15,14 @@ namespace AElf.OS.Network.Application
         private readonly IPeerPool _peerPool;
         private readonly INodeManager _nodeManager;
         private readonly IAccountService _accountService;
-        private readonly ITaskQueueManager _taskQueueManager;
 
         public ILogger<PeerDiscoveryService> Logger { get; set; }
         
-        public PeerDiscoveryService(IPeerPool peerPool, INodeManager nodeManager, IAccountService accountService,
-            ITaskQueueManager taskQueueManager)
+        public PeerDiscoveryService(IPeerPool peerPool, INodeManager nodeManager, IAccountService accountService)
         {
             _peerPool = peerPool;
             _nodeManager = nodeManager;
             _accountService = accountService;
-            _taskQueueManager = taskQueueManager;
 
             Logger = NullLogger<PeerDiscoveryService>.Instance;
         }
@@ -64,7 +61,6 @@ namespace AElf.OS.Network.Application
                 catch (NetworkException ex)
                 {
                     Logger.LogError(ex, $"Error during discover - {peer}.");
-                    await HandleNetworkException(peer, ex);
                 }
             }
 
@@ -78,35 +74,10 @@ namespace AElf.OS.Network.Application
             
             return discoveredNodes;
         }
-        
-        private async Task HandleNetworkException(IPeer peer, NetworkException exception)
-        {
-            if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
-            {
-                Logger.LogError($"Removing unrecoverable {peer.IpAddress}.");
-                await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false);
-            }
-            else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
-            {
-                Logger.LogError($"Queuing peer for reconnection {peer.IpAddress}.");
-                QueueNetworkTask(async () => await RecoverPeerAsync(peer));
-            }
-        }
-        
-        private void QueueNetworkTask(Func<Task> task)
-        {
-            _taskQueueManager.Enqueue(task, NetworkConstants.PeerReconnectionQueueName);
-        }
-        
-        private async Task RecoverPeerAsync(IPeer peer)
-        {
-            if (peer.IsReady) // peer recovered already
-                return;
-                
-            var success = await peer.TryRecoverAsync();
 
-            if (!success)
-                await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false);
+        public async Task AddNodeAsync(NodeInfo nodeInfo)
+        {
+            await _nodeManager.AddNodeAsync(nodeInfo);
         }
 
         public Task<NodeList> GetNodesAsync(int maxCount)

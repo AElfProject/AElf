@@ -254,7 +254,7 @@ namespace AElf.Contracts.Election
             var previousMinersAddresses = new List<Address>();
             foreach (var publicKey in previousMiners)
             {
-                var address = Address.FromPublicKey(ByteArrayHelper.FromHexString(publicKey));
+                var address = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(publicKey));
 
                 previousMinersAddresses.Add(address);
 

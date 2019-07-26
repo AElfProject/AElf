@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -122,7 +123,7 @@ namespace AElf.Contracts.Vote
         
         private List<string> GenerateOptions(int count = 1)
         {
-            return Enumerable.Range(0, count).Select(_ => Address.Generate().GetFormatted()).ToList();
+            return Enumerable.Range(0, count).Select(i => SampleAddress.AddressList[i].GetFormatted()).ToList();
         }
     }
 }

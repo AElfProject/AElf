@@ -78,12 +78,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private List<Transaction> BuildTransactions(int txCount)
         {
             var result = new List<Transaction>(txCount);
+            
             for (int i = 0; i < txCount; i++)
             {
                 result.Add(new Transaction
                 {
-                    From = Address.Zero,
-                    To = Address.Zero,
+                    From = SampleAddress.AddressList[0],
+                    To = SampleAddress.AddressList[1],
                     MethodName = Guid.NewGuid().ToString()
                 });
             }

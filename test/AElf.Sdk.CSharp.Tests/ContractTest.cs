@@ -14,7 +14,7 @@ namespace AElf.Sdk.CSharp.Tests
 {
     public sealed class ContractTest : SdkCSharpTestBase
     {
-        private List<Address> AddressList { get; } = new[] {"a", "b", "c", "d"}.Select(Address.FromString).ToList();
+        private List<Address> AddressList { get; } = SampleAddress.AddressList.ToList();
         private TokenContract Contract { get; } = new TokenContract();
         private IStateProvider StateProvider { get; }
         private IHostSmartContractBridgeContext BridgeContext { get; }
