@@ -40,17 +40,17 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         {
             var includedInBlock = new[]
             {
-                GetFakePairs(Address.FromString("address1"), new[] {1, 2, 3}), // independent
-                GetFakePairs(Address.FromString("address2"), new[] {4, 5, 6}),
-                GetFakePairs(Address.FromString("address3"), new[] {6, 7, 8})
+                GetFakePairs(SampleAddress.AddressList[0], new[] {1, 2, 3}), // independent
+                GetFakePairs(SampleAddress.AddressList[1], new[] {4, 5, 6}),
+                GetFakePairs(SampleAddress.AddressList[2], new[] {6, 7, 8})
             };
             var conflicting = new[]
             {
-                GetFakePairs(Address.FromString("address4"), new[] {10, 11, 12}, new[] {4, 10, 11, 12})
+                GetFakePairs(SampleAddress.AddressList[3], new[] {10, 11, 12}, new[] {4, 10, 11, 12})
             };
             var okTxnInConflictingSet = new[]
             {
-                GetFakePairs(Address.FromString("address5"), new[] {13, 14, 15})
+                GetFakePairs(SampleAddress.AddressList[4], new[] {13, 14, 15})
             };
 
             await BlockchainService.AddTransactionsAsync(includedInBlock.Concat(conflicting).Concat(okTxnInConflictingSet)
@@ -75,7 +75,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             };
             var txn = new Transaction
             {
-                From = Address.FromString("Dummy"),
+                From = SampleAddress.AddressList[7],
                 To = destination,
                 MethodName = "Dummy",
                 Params = tri.ToByteString(),
@@ -95,7 +95,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         {
             return new ScopedStatePath
             {
-                Address = Address.Zero,
+                Address = SampleAddress.AddressList[0],
                 Path = new StatePath
                 {
                     Parts = {value.ToString()}
