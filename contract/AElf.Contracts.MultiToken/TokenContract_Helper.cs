@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using Acs0;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -48,6 +50,24 @@ namespace AElf.Contracts.MultiToken
             Assert(symbolState != null && symbolState[Context.Sender], "Not in white list.");
         }
 
+        private Address ExtractTokenContractAddress(ByteString bytes)
+        {
+            var validateSystemContractAddressInput = ValidateSystemContractAddressInput.Parser.ParseFrom(bytes);
+            var validatedAddress = validateSystemContractAddressInput.Address;
+            var validatedContractHashName = validateSystemContractAddressInput.SystemContractHashName;
+
+            Assert(validatedContractHashName == SmartContractConstants.TokenContractSystemName,
+                "Address validation failed.");
+            return validatedAddress;
+        }
+
+        private void AssertCrossChainTransaction(Transaction originalTransaction, Address validAddress, params string[] validMethodNames)
+        {
+            var validateResult = validMethodNames.Contains(originalTransaction.MethodName) 
+                                 && originalTransaction.To == validAddress;
+            Assert(validateResult, "Invalid transaction.");
+        }
+
         private void RegisterTokenInfo(TokenInfo tokenInfo)
         {
             var existing = State.TokenInfos[tokenInfo.Symbol];
@@ -59,13 +79,7 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.Issuer != null, "Invalid issuer address.");
             State.TokenInfos[tokenInfo.Symbol] = tokenInfo;
         }
-
-        private void AssertMainChainTokenContractAddress(Address address)
-        {
-            Assert(address == State.MainChainTokenContractAddress.Value,
-                "Incorrect main chain token contract address.");
-        }
-
+        
         private void CrossChainVerify(Hash transactionId, long parentChainHeight, int chainId, IEnumerable<Hash> merklePath)
         {
             if (State.CrossChainContractReferenceState.Value == null)

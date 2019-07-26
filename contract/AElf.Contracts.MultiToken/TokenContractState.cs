@@ -22,7 +22,7 @@ namespace AElf.Contracts.MultiToken
         
         public SingletonState<bool> IsMainChain { get; set; }
         
-        public SingletonState<Address> MainChainTokenContractAddress { get; set; }
+        public SingletonState<int> MainChainId { get; set; }
         
         /// <summary>
         /// symbol -> address -> is in white list.

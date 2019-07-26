@@ -68,7 +68,8 @@ service TokenContract {
 }
 
 message InitializeInput {
-    aelf.Address main_chain_token_contract_address = 1;
+    int32 main_chain_id = 1;
+    aelf.Address main_chain_token_contract_address = 2;
 }
 
 message TokenInfo {

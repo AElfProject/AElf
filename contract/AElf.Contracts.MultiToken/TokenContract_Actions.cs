@@ -23,9 +23,14 @@ namespace AElf.Contracts.MultiToken
             State.Owner.Value = Context.Call<Address>(parliamentAuthContractAddress,
                 nameof(ParliamentAuthContractContainer.ParliamentAuthContractReferenceState.GetGenesisOwnerAddress),
                 new Empty());
-            State.IsMainChain.Value = input.MainChainTokenContractAddress == null;
-            State.MainChainTokenContractAddress.Value = input.MainChainTokenContractAddress;
             
+            State.IsMainChain.Value = input.MainChainTokenContractAddress == null;
+            if (State.IsMainChain.Value)
+            {
+                State.MainChainId.Value = input.MainChainId;
+                State.CrossChainTransferWhiteList[input.MainChainId] = input.MainChainTokenContractAddress; 
+            }
+                
             return new Empty();
         }
 
@@ -134,19 +139,16 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty CrossChainCreateToken(CrossChainCreateTokenInput input)
         {
-            var parentChainId = State.CrossChainContractReferenceState.GetParentChainId.Call(new Empty()).Value;
-            Assert(parentChainId != 0, "Unable to do CrossChainCreateToken.");
-            var tokenContractAddress = State.CrossChainTransferWhiteList[parentChainId];
-            Assert(tokenContractAddress != null, "Unable to do CrossChainCreateToken without parent chain info.");
+            Assert(!State.IsMainChain.Value, "CrossChainCreateToken failed.");
+            var tokenContractAddress = State.CrossChainTransferWhiteList[State.MainChainId.Value];
+            Assert(tokenContractAddress != null, "Token contract address of main chain not found.");
             
             var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
+
+            AssertCrossChainTransaction(originalTransaction, tokenContractAddress, nameof(Create),
+                nameof(CreateNativeToken));
+            
             var originalTransactionId = originalTransaction.GetHash();
-            
-            AssertMainChainTokenContractAddress(originalTransaction.To);
-            Assert(
-                originalTransaction.MethodName == nameof(Create) ||
-                originalTransaction.MethodName == nameof(CreateNativeToken), "Invalid token creation transaction.");
-            
             CrossChainVerify(originalTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
 
             CreateInput creationInput;
@@ -185,23 +187,15 @@ namespace AElf.Contracts.MultiToken
             Assert(Context.Sender == State.Owner.Value, "No permission.");
             
             var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
-            var originalTransactionParam =
-                ValidateSystemContractAddressInput.Parser.ParseFrom(originalTransaction.Params);
-
-            var validatedAddress = originalTransactionParam.Address;
-            var validatedContractHashName = originalTransactionParam.SystemContractHashName;
-            var validateResult =
-                originalTransaction.MethodName == nameof(ACS0Container.ACS0ReferenceState.ValidateSystemContractAddress)
-                && originalTransaction.To == Context.GetZeroSmartContractAddress(input.FromChainId)
-                && validatedAddress == input.TokenContractAddress
-                && validatedContractHashName == SmartContractConstants.TokenContractSystemName;
+            AssertCrossChainTransaction(originalTransaction, Context.GetZeroSmartContractAddress(input.FromChainId),
+                nameof(ACS0Container.ACS0ReferenceState.ValidateSystemContractAddress));
             
-            Assert(validateResult, "Address validation failed.");
+            var validAddress = ExtractTokenContractAddress(originalTransaction.Params);
             
             var originalTransactionId = originalTransaction.GetHash();
             CrossChainVerify(originalTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
 
-            State.CrossChainTransferWhiteList[input.FromChainId] = input.TokenContractAddress;
+            State.CrossChainTransferWhiteList[input.FromChainId] = validAddress;
             
             return new Empty();
         }
@@ -214,6 +208,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty CrossChainTransfer(CrossChainTransferInput input)
         {
             AssertValidToken(input.TokenInfo.Symbol, input.Amount);
+            Assert(State.CrossChainTransferWhiteList[input.ToChainId] != null, "Invalid transfer target chain.");
             var burnInput = new BurnInput
             {
                 Amount = input.Amount,
@@ -244,14 +239,12 @@ namespace AElf.Contracts.MultiToken
             var receivingAddress = crossChainTransferInput.To;
             var targetChainId = crossChainTransferInput.ToChainId;
             var transferSender = transferTransaction.From;
-            var tokenContractAddress = transferTransaction.To;
 
             var tokenInfo = AssertValidToken(symbol, amount);
             Assert(transferSender.Equals(Context.Sender) && targetChainId == Context.ChainId,
                 "Unable to claim cross chain token.");
             var registeredTokenContractAddress = State.CrossChainTransferWhiteList[input.FromChainId];
-            Assert(registeredTokenContractAddress == tokenContractAddress, "Token contract address not expected.");
-            
+            AssertCrossChainTransaction(transferTransaction, registeredTokenContractAddress, nameof(CrossChainTransfer));
             Context.LogDebug(() =>
                 $"symbol == {symbol}, amount == {amount}, receivingAddress == {receivingAddress}, targetChainId == {targetChainId}");
 
