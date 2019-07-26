@@ -70,6 +70,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new MinerList();
         }
 
+        public override StringValue GetNextMinerPubkey(Empty input)
+        {
+            if (TryToGetCurrentRoundInformation(out var round))
+            {
+                return new StringValue
+                {
+                    Value = round.RealTimeMinersInformation.Values
+                                .FirstOrDefault(m => m.ExpectedMiningTime > Context.CurrentBlockTime)?.Pubkey ??
+                            round.RealTimeMinersInformation.Values.First(m => m.IsExtraBlockProducer).Pubkey
+                };
+            }
+
+            return new StringValue();
+        }
+
         private bool TryToGetMiningInterval(out int miningInterval)
         {
             miningInterval = State.MiningInterval.Value;
