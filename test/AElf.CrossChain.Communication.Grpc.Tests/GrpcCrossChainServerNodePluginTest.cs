@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Node.Infrastructure;
 using Microsoft.Extensions.Options;
 using Xunit;
 

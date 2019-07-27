@@ -1,10 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using Acs7;
 using AElf.CrossChain.Cache;
 using AElf.CrossChain.Cache.Application;
-using AElf.CrossChain.Communication.Grpc;
 using AElf.TestBase;
-using Microsoft.Extensions.Options;
 
 namespace AElf.CrossChain.Communication
 {
@@ -14,6 +13,7 @@ namespace AElf.CrossChain.Communication
         protected readonly IBlockCacheEntityProducer BlockCacheEntityProducer;
         private readonly Dictionary<int, long> _sideChainIdHeights = new Dictionary<int, long>();
         private readonly Dictionary<int, long> _parentChainIdHeight = new Dictionary<int, long>();
+        private readonly Dictionary<long, CrossChainBlockData> _indexedCrossChainBlockData = new Dictionary<long, CrossChainBlockData>();
 
         public CrossChainCommunicationTestBase()
         {
@@ -33,9 +33,19 @@ namespace AElf.CrossChain.Communication
             }
         }
 
-        protected void AddFakeParentChainIdHeight(int parentChainId, long height)
+        public void AddFakeSideChainIdHeight(int sideChainId, long height)
+        {
+            _sideChainIdHeights.Add(sideChainId, height);
+        }
+
+        public void AddFakeParentChainIdHeight(int parentChainId, long height)
         {
             _parentChainIdHeight.Add(parentChainId, height);
+        }
+
+        internal void AddFakeIndexedCrossChainBlockData(long height, CrossChainBlockData crossChainBlockData)
+        {
+            _indexedCrossChainBlockData.Add(height, crossChainBlockData);
         }
     }
 }

@@ -9,11 +9,10 @@ using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain
 {
-    internal class CrossChainIndexingDataService : ICrossChainIndexingDataService, ISingletonDependency
+    internal class CrossChainIndexingDataService : ICrossChainIndexingDataService
     {
         private readonly IReaderFactory _readerFactory;
         

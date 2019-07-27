@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs7;
@@ -6,7 +7,6 @@ using AElf.CrossChain.Communication.Grpc;
 using AElf.CrossChain.Communication.Infrastructure;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Node.Infrastructure;
 using AElf.Kernel.SmartContract;
 using AElf.Modularity;
 using AElf.Types;
@@ -45,6 +45,7 @@ namespace AElf.CrossChain.Communication
 
             context.Services.AddTransient(provider =>
             {
+                var kernelTestHelper = context.Services.GetRequiredServiceLazy<KernelTestHelper>();
                 var mockBlockChainService = new Mock<IBlockchainService>();
                 mockBlockChainService.Setup(m => m.GetChainAsync()).Returns(() =>
                 {
@@ -64,32 +65,49 @@ namespace AElf.CrossChain.Communication
                     foreach (var kv in dictionary)
                     {
                         if (kv.Value.Equals(hash))
-                            return Task.FromResult(new Block
-                            {
-                                Header = new BlockHeader
-                                {
-                                    ChainId = 0,
-                                    ExtraData =
-                                    {
-                                        ByteString.CopyFrom(new CrossChainExtraData().ToByteArray()),
-                                        ByteString.CopyFrom(Hash.Generate().ToByteArray())
-                                    },
-                                    Height = kv.Key,
-                                    PreviousBlockHash = dictionary[kv.Key - 1],
-                                    Time = TimestampHelper.GetUtcNow(),
-                                    MerkleTreeRootOfWorldState = Hash.Empty,
-                                    MerkleTreeRootOfTransactionStatus = Hash.Empty,
-                                    MerkleTreeRootOfTransactions = Hash.Empty,
-                                    SignerPubkey = ByteString.CopyFromUtf8("PubKey")
-                                }
-                            });
+                        {
+                            var block = kernelTestHelper.Value.GenerateBlock(kv.Key - 1, dictionary[kv.Key - 1]);
+                            return Task.FromResult(block);
+                        }
                     }
-
                     return Task.FromResult<Block>(null);
                 });
                 return mockBlockChainService.Object;
             });
 
+            context.Services.AddTransient(provider =>
+            {
+                var mockBlockExtraDataService = new Mock<IBlockExtraDataService>();
+                mockBlockExtraDataService
+                    .Setup(m => m.GetExtraDataFromBlockHeader(It.IsAny<string>(), It.IsAny<BlockHeader>())).Returns(
+                        () =>
+                        {
+                            var crossExtraData = new CrossChainExtraData
+                            {
+                                SideChainBlockHeadersRoot = Hash.FromString("SideChainBlockHeadersRoot"),
+                                SideChainTransactionsRoot = Hash.FromString("SideChainTransactionsRoot")
+                            };
+                            return ByteString.CopyFrom(crossExtraData.ToByteArray());
+                        });
+                return mockBlockExtraDataService.Object;
+            });
+
+            context.Services.AddTransient(provider =>
+            {
+                var mockCrossChainIndexingDataService = new Mock<ICrossChainIndexingDataService>();
+                mockCrossChainIndexingDataService
+                    .Setup(m => m.GetIndexedCrossChainBlockDataAsync(It.IsAny<Hash>(), It.IsAny<long>()))
+                    .Returns(() =>
+                    {
+                        var crossChainBlockData = new CrossChainBlockData
+                        {
+                            SideChainBlockData = {new SideChainBlockData{ChainId = 123, Height = 1,TransactionMerkleTreeRoot = Hash.FromString("fakeTransactionMerkleTree")}}
+                        };
+                        return Task.FromResult(crossChainBlockData);
+                    });
+                return mockCrossChainIndexingDataService.Object;
+            });
+            
             context.Services.AddTransient(provider =>
             {
                 var mockCrossChainClientService = new Mock<ICrossChainClientService>();
@@ -123,10 +141,6 @@ namespace AElf.CrossChain.Communication
                 return mockCrossChainClientService.Object;
             });
 
-
-            context.Services.AddTransient<IChainInitializationDataPlugin, CrossChainPlugin>();
-            context.Services.AddTransient<INodePlugin, CrossChainPlugin>();
-            context.Services.AddSingleton<ICrossChainRequestService, CrossChainRequestService>();
             context.Services.AddSingleton<CrossChainPlugin>();
         }
     }

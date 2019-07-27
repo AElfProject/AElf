@@ -32,7 +32,7 @@ namespace AElf.CrossChain.Communication.Grpc
         }
         
         [Fact]
-        public async Task RequestIndexingParentChain_WithoutExtraData()
+        public async Task RequestIndexingParentChain_WithoutExtraData_Test()
         {
             var requestData = new CrossChainRequest
             {
@@ -46,7 +46,7 @@ namespace AElf.CrossChain.Communication.Grpc
         }
         
         [Fact]
-        public async Task RequestIndexingParentChain_WithExtraData()
+        public async Task RequestIndexingParentChain_WithExtraData_Test()
         {
             var requestData = new CrossChainRequest
             {
@@ -90,7 +90,7 @@ namespace AElf.CrossChain.Communication.Grpc
         }
         
         [Fact]
-        public async Task RequestChainInitializationDataFromParentChain()
+        public async Task RequestChainInitializationDataFromParentChain_Test()
         {
             var requestData = new SideChainInitializationRequest
             {

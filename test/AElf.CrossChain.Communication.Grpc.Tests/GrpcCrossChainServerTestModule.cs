@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Cache.Application;
+using AElf.CrossChain.Communication.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
@@ -20,6 +21,7 @@ namespace AElf.CrossChain.Communication.Grpc
             var services = context.Services;
             services.AddTransient(o =>
             {
+                var kernelTestHelper = context.Services.GetRequiredServiceLazy<KernelTestHelper>();
                 var mockService = new Mock<IBlockchainService>();
                 mockService.Setup(m => m.GetChainAsync())
                     .Returns(Task.FromResult(new Chain
@@ -30,26 +32,11 @@ namespace AElf.CrossChain.Communication.Grpc
                         m.GetBlockHashByHeightAsync(It.IsAny<Chain>(), It.IsAny<long>(), It.IsAny<Hash>()))
                     .Returns(Task.FromResult(Hash.Generate()));
                 mockService.Setup(m => m.GetBlockByHashAsync(It.IsAny<Hash>()))
-                    .Returns(Task.FromResult(new Block
+                    .Returns(() =>
                     {
-                        Header = new BlockHeader
-                        {
-                            ChainId = 0,
-                            ExtraData =
-                            {
-                                ByteString.CopyFrom(new CrossChainExtraData().ToByteArray()),
-                                ByteString.CopyFrom(Hash.Generate().ToByteArray())
-                            },
-                            Height = 10,
-                            PreviousBlockHash = Hash.Generate(),
-                            Time = TimestampHelper.GetUtcNow(),
-                            MerkleTreeRootOfWorldState = Hash.Empty,
-                            MerkleTreeRootOfTransactionStatus = Hash.Empty,
-                            MerkleTreeRootOfTransactions = Hash.Empty,
-                            SignerPubkey = ByteString.CopyFromUtf8("PubKey")
-                        }
-                    }));
-
+                        var previousBlockHash = Hash.FromString("previousBlockHash");
+                        return Task.FromResult(kernelTestHelper.Value.GenerateBlock(9, previousBlockHash));
+                    });
                 return mockService.Object;
             });
 
@@ -63,6 +50,45 @@ namespace AElf.CrossChain.Communication.Grpc
                             CreationHeightOnParentChain = 1,
                         }));
                 return mockCrossChainDataProvider.Object;
+            });
+
+            services.AddTransient(o =>
+            {
+                var mockCrossChainResponseService = new Mock<ICrossChainResponseService>();
+                mockCrossChainResponseService
+                    .Setup(c => c.ResponseParentChainBlockDataAsync(It.IsAny<long>(), It.IsAny<int>())).Returns(
+                        () =>
+                        {
+                            var parentChanBlockData = new ParentChainBlockData
+                            {
+                                ChainId = 123,
+                                Height = 10,
+                                TransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot")
+                            };
+                            return Task.FromResult(parentChanBlockData);
+                        });
+                mockCrossChainResponseService
+                    .Setup(c => c.ResponseSideChainBlockDataAsync(It.IsAny<long>())).Returns(
+                        () =>
+                        {
+                            var sideChanBlockData = new SideChainBlockData()
+                            {
+                                ChainId = 123,
+                                Height = 10,
+                            };
+                            return Task.FromResult(sideChanBlockData);
+                        });
+                mockCrossChainResponseService
+                    .Setup(c => c.ResponseChainInitializationDataFromParentChainAsync(It.IsAny<int>())).Returns(
+                        () =>
+                        {
+                            var chainInitializationData = new ChainInitializationData()
+                            {
+                                CreationHeightOnParentChain = 1
+                            };
+                            return Task.FromResult(chainInitializationData);
+                        });
+                return mockCrossChainResponseService.Object;
             });
 
             services.AddTransient(o =>

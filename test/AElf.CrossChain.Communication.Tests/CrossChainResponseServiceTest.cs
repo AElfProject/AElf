@@ -21,10 +21,19 @@ namespace AElf.CrossChain.Communication
         }
 
         [Fact]
+        public async Task ResponseParentChainBlockData_WithoutBlock()
+        {
+            var chainId = 123;
+            var height = 5;
+            var res = await _chainResponseService.ResponseParentChainBlockDataAsync(height, chainId);
+            Assert.Null(res);
+        }
+        
+        [Fact]
         public async Task ResponseParentChainBlockData()
         {
             var chainId = 123;
-            var height = 2;
+            var height = 3;
             var res = await _chainResponseService.ResponseParentChainBlockDataAsync(height, chainId);
             Assert.NotNull(res);
         }
