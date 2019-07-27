@@ -86,13 +86,13 @@ namespace AElf.OS.Network.Application
             return true;
         }
         
-        public async Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
+        public Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
         {
             if (!TryAddKnownBlock(blockWithTransactions.Header))
-                return;
+                return Task.CompletedTask;
             
             if (IsOldBlock(blockWithTransactions.Header))
-                return;
+                return Task.CompletedTask;
             
             foreach (var peer in _peerPool.GetPeers())
             {
@@ -102,17 +102,19 @@ namespace AElf.OS.Network.Application
                     await HandleNetworkException(peer, ex);
                 });
             }
+            
+            return Task.CompletedTask;
         }
 
-        public async Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
+        public Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
         {
             var blockHash = blockHeader.GetHash();
             
             if (!TryAddKnownBlock(blockHeader))
-                return;
+                return Task.CompletedTask;
             
             if (IsOldBlock(blockHeader))
-                return;
+                return Task.CompletedTask;
             
             var blockAnnouncement = new BlockAnnouncement
             {
@@ -129,6 +131,8 @@ namespace AElf.OS.Network.Application
                     await HandleNetworkException(peer, ex);
                 });
             }
+            
+            return Task.CompletedTask;
         }
         
         public Task BroadcastTransactionAsync(Transaction transaction)
