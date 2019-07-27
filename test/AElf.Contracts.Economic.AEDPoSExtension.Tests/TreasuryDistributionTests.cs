@@ -46,7 +46,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             // First 10 citizens do some votes.
             var votesTransactions = new List<Transaction>();
             candidates.Value.ToList().ForEach(async c =>
-                votesTransactions.AddRange(await GetVoteTransactionsAsync(5, 100, c.ToHex(), 10)));
+                votesTransactions.AddRange(GetVoteTransactions(5, 100, c.ToHex(), 10)));
             await BlockMiningService.MineBlockAsync(votesTransactions);
 
             // Check voted candidates
@@ -151,7 +151,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             // First 10 citizens do some votes.
             var votesTransactions = new List<Transaction>();
             candidates.Value.ToList().ForEach(async c =>
-                votesTransactions.AddRange(await GetVoteTransactionsAsync(5, 100, c.ToHex(), 10)));
+                votesTransactions.AddRange(GetVoteTransactions(5, 100, c.ToHex(), 10)));
             await BlockMiningService.MineBlockAsync(votesTransactions);
 
             // Check voted candidates
@@ -292,7 +292,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             // First 10 citizens do some votes.
             var votesTransactions = new List<Transaction>();
             candidates.Value.ToList().ForEach(async c =>
-                votesTransactions.AddRange(await GetVoteTransactionsAsync(5, 100, c.ToHex(), 20)));
+                votesTransactions.AddRange(GetVoteTransactions(5, 100, c.ToHex(), 20)));
             await BlockMiningService.MineBlockAsync(votesTransactions);
 
             // Check voted candidates
