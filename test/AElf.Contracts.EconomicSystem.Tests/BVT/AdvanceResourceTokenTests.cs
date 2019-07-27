@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TestKit;
 using AElf.Types;
 using Shouldly;
 using Xunit;
@@ -14,7 +15,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact]
         public async Task<Address> TokenContract_AdvanceResourceToken()
         {
-            var contractAddress = Address.Generate();
+            var contractAddress = SampleAddress.AddressList[0];
             var developerAddress = BootMinerAddress;
 
             var balanceBeforeAdvancing = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput

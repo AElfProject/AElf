@@ -63,11 +63,11 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
             };
-            var transaction = OsTestHelper.GenerateTransaction(Address.Generate(),
+            var transaction = OsTestHelper.GenerateTransaction(SampleAddress.AddressList[0],
                 SmartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
                 "GetBalance", new GetBalanceInput
                 {
-                    Owner = Address.Generate(),
+                    Owner = SampleAddress.AddressList[0],
                     Symbol = "ELF"
                 });
 

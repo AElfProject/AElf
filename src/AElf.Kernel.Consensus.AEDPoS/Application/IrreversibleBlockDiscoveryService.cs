@@ -102,12 +102,13 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                         var message = new IrreversibleBlockFound();
                         message.MergeFrom(log);
 
-                        var offset = message.Offset;
+                        //var offset = message.Offset;
+                        //var libHeight = block.Height - offset;
 
-                        var libHeight = block.Height - offset;
+                        var libHeight = message.IrreversibleBlockHeight;
 
                         if (chain.LastIrreversibleBlockHeight >= libHeight)
-                            return null;
+                            return new BlockIndex(Hash.Empty, libHeight);
 
                         var libBlock = await _blockchainService.GetBlockHashByHeightAsync(chain, libHeight, blockId);
 

@@ -106,7 +106,7 @@ namespace AElf.Kernel
             var transaction = new Transaction
             {
                 From = Address.FromPublicKey(KeyPair.PublicKey),
-                To = Address.Zero,
+                To = SampleAddress.AddressList[0],
                 MethodName = Guid.NewGuid().ToString(),
                 Params = ByteString.Empty,
                 RefBlockNumber = refBlockNumber,

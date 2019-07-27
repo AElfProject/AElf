@@ -47,7 +47,7 @@ namespace AElf.Kernel.SmartContract
         [Fact]
         public void Send_Inline_Success()
         {
-            var to = Address.Genesis;
+            var to = SampleAddress.AddressList[0];
             var methodName = "TestSendInline";
             var arg = "Arg";
             var argBytes = new StringValue {Value = arg}.ToByteString();
@@ -65,7 +65,7 @@ namespace AElf.Kernel.SmartContract
         public void Send_VirtualInline_Success()
         {
             var from = Hash.FromString("hash");
-            var to = Address.Genesis;
+            var to = SampleAddress.AddressList[0];
             var methodName = "TestVirtualInline";
             var arg = "Arg";
             var argBytes = new StringValue {Value = arg}.ToByteString();
@@ -111,7 +111,7 @@ namespace AElf.Kernel.SmartContract
             var tx = new Transaction
             {
                 From = Address.FromPublicKey(_keyPair.PublicKey),
-                To = Address.FromString("To"),
+                To = SampleAddress.AddressList[0],
                 MethodName = "TestMethod",
                 Params = ByteString.CopyFrom(new byte[10]),
                 RefBlockNumber = 1,
@@ -172,7 +172,7 @@ namespace AElf.Kernel.SmartContract
                 CodeHash = Hash.FromString("hash")
             };
 
-            _bridgeContext.DeployContract(Address.Zero, registration, Hash.FromMessage(registration.CodeHash));
+            _bridgeContext.DeployContract(SampleAddress.AddressList[0], registration, Hash.FromMessage(registration.CodeHash));
         }
 
         [Fact]
@@ -203,7 +203,7 @@ namespace AElf.Kernel.SmartContract
                 CodeHash = Hash.Empty
             };
 
-            _bridgeContext.UpdateContract(Address.Zero, registration, null);
+            _bridgeContext.UpdateContract(SampleAddress.AddressList[0], registration, null);
         }
 
         [Fact]
@@ -211,7 +211,7 @@ namespace AElf.Kernel.SmartContract
         {
             _bridgeContext.TransactionContext.Transaction = new Transaction()
             {
-                To = Address.Generate()
+                To = SampleAddress.AddressList[0]
             };
 
             var registration = new SmartContractRegistration
@@ -223,7 +223,7 @@ namespace AElf.Kernel.SmartContract
 
             Should.Throw<NoPermissionException>(() =>
             {
-                _bridgeContext.UpdateContract(Address.Zero, registration, null);
+                _bridgeContext.UpdateContract(SampleAddress.AddressList[0], registration, null);
             });
         }
         
@@ -236,7 +236,7 @@ namespace AElf.Kernel.SmartContract
                 Transaction = new Transaction()
                 {
                     From = Address.FromPublicKey(_keyPair.PublicKey),
-                    To = Address.Genesis,
+                    To = SampleAddress.AddressList[0],
                     MethodName = "Test",
                     Params = ByteString.CopyFrom(new byte[10]),
                     RefBlockNumber = 1,
@@ -260,8 +260,8 @@ namespace AElf.Kernel.SmartContract
         {
             var tx = new Transaction
             {
-                From = Address.FromString("From"),
-                To = Address.FromString("To"),
+                From = SampleAddress.AddressList[0],
+                To = SampleAddress.AddressList[1],
                 MethodName = Guid.NewGuid().ToString(),
                 Params = ByteString.CopyFrom(new byte[10]),
                 RefBlockNumber = 1,

@@ -122,14 +122,14 @@ namespace AElf.Contracts.Election
                 State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
                 {
                     SchemeId = State.SubsidyHash.Value,
-                    Beneficiary = Address.FromPublicKey(ByteArrayHelper.FromHexString(minimumVotesCandidate))
+                    Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(minimumVotesCandidate))
                 });
                 State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
                 {
                     SchemeId = State.SubsidyHash.Value,
                     BeneficiaryShare = new BeneficiaryShare
                     {
-                        Beneficiary = Address.FromPublicKey(ByteArrayHelper.FromHexString(input.CandidatePubkey)),
+                        Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.CandidatePubkey)),
                         Shares = 1
                     }
                 });

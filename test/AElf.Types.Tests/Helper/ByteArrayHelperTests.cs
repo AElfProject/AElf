@@ -10,14 +10,14 @@ namespace AElf.Types.Tests.Helper
         public void Convert_Byte_FromString()
         {
             var hexValue = Hash.FromString("hexvalue").ToHex();
-            var hashArray = ByteArrayHelper.FromHexString(hexValue);
+            var hashArray = ByteArrayHelper.HexStringToByteArray(hexValue);
             hashArray.Length.ShouldBe(32);
 
             var value = "0x00";
-            var valueArrary = ByteArrayHelper.FromHexString(value);
+            var valueArrary = ByteArrayHelper.HexStringToByteArray(value);
             valueArrary.Length.ShouldBe(1);
         }
-        
+
 
         static Random _rnd = new Random();
 
@@ -44,23 +44,6 @@ namespace AElf.Types.Tests.Helper
 
             var result2 = ByteArrayHelper.BytesEqual(byteArray1, byteArray3);
             result2.ShouldBe(false);
-        }
-
-        [Fact]
-        public void Bytes_Combine_And_SubArray()
-        {
-            var byteArray1 = Hash.FromString("ba1").ToByteArray();
-            var byteArray2 = Hash.FromString("ba2").ToByteArray();
-            var bytes = ByteArrayHelper.Combine(byteArray1, byteArray2);
-            bytes.Length.ShouldBe(byteArray1.Length + byteArray2.Length);
-
-            var bytes1 = ByteArrayHelper.ConcatArrays(byteArray1, byteArray2, bytes);
-            bytes1.Length.ShouldBe(byteArray1.Length + byteArray2.Length + bytes.Length);
-
-            var subArray1 = ByteArrayHelper.SubArray(bytes, 0, byteArray1.Length);
-            var subArray2 = ByteArrayHelper.SubArray(bytes, byteArray1.Length, byteArray2.Length);
-            subArray1.ShouldBe(byteArray1);
-            subArray2.ShouldBe(byteArray2);
         }
 
         [Fact]

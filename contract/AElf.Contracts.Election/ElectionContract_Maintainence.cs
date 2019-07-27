@@ -181,7 +181,7 @@ namespace AElf.Contracts.Election
 
             if (input.IsEvilNode)
             {
-                var publicKeyByte = ByteArrayHelper.FromHexString(input.Pubkey);
+                var publicKeyByte = ByteArrayHelper.HexStringToByteArray(input.Pubkey);
                 State.BlackList.Value.Value.Add(ByteString.CopyFrom(publicKeyByte));
                 State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
                 {

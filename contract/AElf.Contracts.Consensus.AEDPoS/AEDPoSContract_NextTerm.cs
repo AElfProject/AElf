@@ -70,8 +70,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Context.LogDebug(() => $"Changing term number to {input.TermNumber}");
 
-            TryToFindLastIrreversibleBlock();
-
             return new Empty();
         }
 

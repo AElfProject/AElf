@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TestKit;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Shouldly;
@@ -141,7 +142,7 @@ namespace AElf.Contracts.Profit
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput()
             {
                 SchemeId = schemeId,
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Address.Generate(), Shares = shares}
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = shares}
             });
 
             // Add profits to virtual address of this profit item.
@@ -315,8 +316,8 @@ namespace AElf.Contracts.Profit
 
             const int shares1 = 100;
             const int shares2 = 200;
-            var receiver1 = Address.Generate();
-            var receiver2 = Address.Generate();
+            var receiver1 = SampleAddress.AddressList[0];
+            var receiver2 = SampleAddress.AddressList[1];
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
@@ -374,7 +375,7 @@ namespace AElf.Contracts.Profit
             const long shares = 10;
 
             var creator = Creators[0];
-            var beneficiary = Address.Generate();
+            var beneficiary = SampleAddress.AddressList[0];
 
             var schemeId = await CreateScheme();
 
@@ -439,7 +440,7 @@ namespace AElf.Contracts.Profit
             var executionResult = await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
                 SchemeId = Hash.FromString("SchemeId"),
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Address.Generate(), Shares = 100},
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -632,7 +633,7 @@ namespace AElf.Contracts.Profit
             var executionResult = await creator.RemoveBeneficiary.SendAsync(new RemoveBeneficiaryInput
             {
                 SchemeId = Hash.FromString("SchemeId"),
-                Beneficiary = Address.Generate()
+                Beneficiary = SampleAddress.AddressList[0]
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -650,7 +651,7 @@ namespace AElf.Contracts.Profit
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Address.Generate(), Shares = 100},
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
                 SchemeId = schemeId,
             });
 
@@ -679,7 +680,7 @@ namespace AElf.Contracts.Profit
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Address.Generate(), Shares = 100},
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
                 SchemeId = schemeId,
             });
 
@@ -751,7 +752,7 @@ namespace AElf.Contracts.Profit
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Address.Generate(), Shares = 100},
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
                 SchemeId = schemeId,
             });
 
@@ -1246,7 +1247,7 @@ namespace AElf.Contracts.Profit
 
             await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                BeneficiaryShare = new BeneficiaryShare {Beneficiary = Address.Generate(), Shares = 100},
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
                 SchemeId = schemeId,
             });
 

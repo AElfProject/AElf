@@ -30,7 +30,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 // Encrypt every secret share with other miner's public key, then fill EncryptedInValues field.
                 var plainMessage = secretShares[orderOfAnotherMiner - 1];
-                var receiverPublicKey = ByteArrayHelper.FromHexString(publicKeyOfAnotherMiner);
+                var receiverPublicKey = ByteArrayHelper.HexStringToByteArray(publicKeyOfAnotherMiner);
                 var encryptedInValue = Context.EncryptMessage(receiverPublicKey, plainMessage);
                 currentRound.RealTimeMinersInformation[publicKey].EncryptedInValues
                     .Add(publicKeyOfAnotherMiner, ByteString.CopyFrom(encryptedInValue));
@@ -50,7 +50,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     previousRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].EncryptedInValues;
                 if (!encryptedShares.Any()) continue;
                 var interestingMessage = encryptedShares[publicKey];
-                var senderPublicKey = ByteArrayHelper.FromHexString(publicKeyOfAnotherMiner);
+                var senderPublicKey = ByteArrayHelper.HexStringToByteArray(publicKeyOfAnotherMiner);
                 // Decrypt another miner's secret share then add a result to this miner's DecryptedInValues field.
                 var decryptedInValue = Context.DecryptMessage(senderPublicKey, interestingMessage.ToByteArray());
                 currentRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].DecryptedPreviousInValues

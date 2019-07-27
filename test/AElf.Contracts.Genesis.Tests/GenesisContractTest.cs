@@ -58,7 +58,7 @@ namespace AElf.Contracts.Genesis
         {
             //not exist
             {
-                var address = Address.FromString("not exist contract");
+                var address = SampleAddress.AddressList[0];
                 var registrationInfo =
                     await DefaultTester.GetSmartContractRegistrationByAddress.CallAsync(address);
                 registrationInfo.ShouldBe(new SmartContractRegistration());

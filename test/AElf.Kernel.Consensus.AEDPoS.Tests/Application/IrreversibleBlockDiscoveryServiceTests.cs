@@ -23,10 +23,10 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
         {
             var chain = await _chainService.GetChainAsync();
             var blockId = chain.LastIrreversibleBlockHash;
-            var iblockIndex =
+            var blockIndex =
                 await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(chain, new[] {blockId});
-            iblockIndex.Hash.ShouldBe(new Hash());
-            iblockIndex.Height.ShouldBe(15);
+            blockIndex.Hash.ShouldBe(Hash.Empty);
+            blockIndex.Height.ShouldBe(15);
         }
     }
 }

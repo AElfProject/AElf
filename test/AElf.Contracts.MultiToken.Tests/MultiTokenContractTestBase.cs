@@ -54,7 +54,7 @@ namespace AElf.Contracts.MultiToken
         protected Hash BasicFunctionContractName => Hash.FromString("AElf.TestContractNames.BasicFunction");
         protected Hash OtherBasicFunctionContractName => Hash.FromString("AElf.TestContractNames.OtherBasicFunction");
         
-        protected readonly Address _address = Address.Generate();
+        protected readonly Address Address = SampleAddress.AddressList[0];
         
         protected const string SymbolForTest = "ELFTEST";
         

@@ -32,7 +32,7 @@ namespace AElf.Kernel.SmartContract.Sdk
 
         private void GenerateStateProvider()
         {
-            _innerProvider.ContractAddress = Address.Generate();
+            _innerProvider.ContractAddress = SampleAddress.AddressList[0];
             
             _scopedProvider = new CachedStateProvider(_innerProvider);
             var cacheProvider = _scopedProvider as CachedStateProvider;

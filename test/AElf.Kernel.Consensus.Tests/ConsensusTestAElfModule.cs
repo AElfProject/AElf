@@ -44,7 +44,7 @@ namespace AElf.Kernel.Consensus
             {
                 var mockService = new Mock<ISmartContractAddressService>();
                 mockService.Setup(m => m.GetAddressByContractName(It.IsAny<Hash>()))
-                    .Returns(Address.Generate);
+                    .Returns(SampleAddress.AddressList[0]);
 
                 return mockService.Object;
             });
@@ -125,8 +125,8 @@ namespace AElf.Kernel.Consensus
                             {
                                 new Transaction
                                 {
-                                    From = Address.Generate(),
-                                    To = Address.Generate(),
+                                    From = SampleAddress.AddressList[0],
+                                    To = SampleAddress.AddressList[1],
                                     MethodName = "NextTerm",
                                     Params = ByteString.Empty
                                 }
