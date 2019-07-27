@@ -43,13 +43,6 @@ namespace AElf.Kernel
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddTransient(builder =>
-            {
-                var acc = new Mock<IAccountService>();
-
-                return acc.Object;
-            });
-
             var transactionList = new List<Transaction>
             {
                 new Transaction

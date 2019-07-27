@@ -36,7 +36,6 @@ namespace AElf.Kernel
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddTransient<BlockValidationProvider>();
             
             //For system transaction generator testing
             services.AddTransient(provider =>
