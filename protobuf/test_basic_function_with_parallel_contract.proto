@@ -1,0 +1,93 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "acs2.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.BasicFunctionWithParallel";
+
+service BasicFunctionWithParallelContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.BasicFunctionWithParallel.BasicFunctionWithParallelContractState";
+    option (aelf.base) = "acs2.proto";
+    //Actions
+    rpc InitialBasicFunctionWithParallelContract(InitialBasicFunctionWithParallelContractInput) returns (google.protobuf.Empty){
+    }
+    rpc UpdateBetLimit(BetLimitInput) returns (google.protobuf.Empty){
+    }
+    rpc UserPlayBet(BetInput) returns (google.protobuf.Empty) {
+    }
+    rpc LockToken(LockTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc UnlockToken(UnlockTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc ValidateOrigin(aelf.Address) returns (google.protobuf.Empty) {
+    }
+
+    //View
+    rpc QueryWinMoney(google.protobuf.Empty) returns (MoneyOutput) {
+    }
+    rpc QueryRewardMoney(google.protobuf.Empty) returns (MoneyOutput) {
+    }
+    rpc QueryUserWinMoney(aelf.Address) returns (MoneyOutput) {
+    }
+    rpc QueryUserLoseMoney(aelf.Address) returns (MoneyOutput) {
+    }
+    rpc QueryTwoUserWinMoney(QueryTwoUserWinMoneyInput) returns (TwoUserMoneyOut) {
+    }
+}
+
+//Input
+message InitialBasicFunctionWithParallelContractInput {
+    string contract_name = 1;
+    int64 min_value = 2;
+    int64 max_value = 3;
+    int64 mortgage_value = 4;
+    aelf.Address manager = 5;
+}
+
+message BetLimitInput {
+    int64 min_value = 2;
+    int64 max_value = 3;
+}
+
+message BetInput {
+    int64 int64_value = 1;
+}
+
+message LockTokenInput{
+    aelf.Address address = 1; // The one want to lock his token.
+    aelf.Hash lock_id = 2;
+    string symbol = 3;
+    string usage = 4;
+    int64 amount = 5;
+}
+
+message UnlockTokenInput {
+    aelf.Address address = 1; // The one want to lock his token.
+    aelf.Hash lock_id = 2;
+    string symbol = 3;
+    string usage = 4;
+    int64 amount = 5;
+}
+
+message QueryTwoUserWinMoneyInput{
+    aelf.Address first = 1;
+    aelf.Address second = 2;
+}
+//Output
+
+message MoneyOutput {
+    int64 int64_value = 1;
+}
+
+message BetStatus {
+    bool bool_value = 1;
+}
+
+message TwoUserMoneyOut{
+    int64 first_int64_value = 1;
+    int64 second_int64_value = 2;
+}
+

@@ -23,6 +23,13 @@ namespace AElf.Contracts.MultiToken
             return tokenInfo;
         }
         
+        private void AssertValidSymbolAndAmount(string symbol, long amount)
+        {
+            Assert(!string.IsNullOrEmpty(symbol) & symbol.All(IsValidSymbolChar),
+                "Invalid symbol.");
+            Assert(amount > 0, "Invalid amount.");
+        }
+
         private void DoTransfer(Address from, Address to, string symbol, long amount, string memo)
         {
             Assert(from != to, "Can't do transfer to sender itself.");

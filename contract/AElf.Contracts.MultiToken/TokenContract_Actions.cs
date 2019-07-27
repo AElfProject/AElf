@@ -74,8 +74,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Transfer(TransferInput input)
         {
-            var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
-            Assert(!tokenInfo.IsTransferDisabled, "Token can't transfer.");
+            AssertValidSymbolAndAmount(input.Symbol, input.Amount);
             DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
             return new Empty();
         }
@@ -182,8 +181,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty TransferFrom(TransferFromInput input)
         {
-            var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
-            Assert(tokenInfo.Issuer == input.To || !tokenInfo.IsTransferDisabled, "Token can't transfer.");
+            AssertValidSymbolAndAmount(input.Symbol, input.Amount);
 
             // First check allowance.
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];

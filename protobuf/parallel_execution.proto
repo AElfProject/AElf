@@ -5,7 +5,12 @@ import "aelf/core.proto";
 option csharp_namespace = "AElf.Kernel.SmartContract";
 
 message TransactionResourceInfo {
-    repeated int32 resources = 1;
+    repeated aelf.ScopedStatePath paths = 1;
     bool non_parallelizable = 2;
     aelf.Hash transaction_id = 3;
+}
+
+message CodeRemarks {
+    aelf.Hash code_hash = 1;
+    bool non_parallelizable = 2;
 }
