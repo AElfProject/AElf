@@ -19,15 +19,16 @@ namespace AElf.OS.Consensus.DPos
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var services = context.Services;
-            services.AddSingleton<IPeerPool, PeerPool>();
-            var peerList = new List<IPeer>();
             var publicKeys = new[]
             {
                 OSConsensusDPosTestConstants.Bp1PublicKey,
                 OSConsensusDPosTestConstants.Bp2PublicKey,
                 OSConsensusDPosTestConstants.Bp3PublicKey
             };
+            
+            var services = context.Services;
+            services.AddSingleton<IPeerPool, PeerPool>();
+            var peerList = new List<IPeer>();
             for (var i = 0; i < 3; i++)
             {
                 var connectionInfo = new PeerInfo
@@ -56,12 +57,7 @@ namespace AElf.OS.Consensus.DPos
                 var mockService = new Mock<IAEDPoSInformationProvider>();
                 mockService.Setup(m => m.GetCurrentMinerList(It.IsAny<ChainContext>()))
                     .Returns(async () =>
-                        await Task.FromResult(new[]
-                        {
-                            OSConsensusDPosTestConstants.Bp1PublicKey,
-                            OSConsensusDPosTestConstants.Bp2PublicKey,
-                            OSConsensusDPosTestConstants.Bp3PublicKey
-                        }));
+                        await Task.FromResult(publicKeys));
                 return mockService.Object;
             });
         }
