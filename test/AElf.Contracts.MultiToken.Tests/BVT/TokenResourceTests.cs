@@ -27,7 +27,7 @@ namespace AElf.Contracts.MultiToken
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
             result.NonParallelizable.ShouldBeFalse();
-            result.Reources.Count.ShouldBeGreaterThan(0);
+            result.Paths.Count.ShouldBeGreaterThan(0);
         }
         
         [Fact]
@@ -45,7 +45,7 @@ namespace AElf.Contracts.MultiToken
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
             result.NonParallelizable.ShouldBeFalse();
-            result.Reources.Count.ShouldBeGreaterThan(0);
+            result.Paths.Count.ShouldBeGreaterThan(0);
         }
         
         [Fact]
@@ -56,7 +56,7 @@ namespace AElf.Contracts.MultiToken
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
             result.NonParallelizable.ShouldBeFalse();
-            result.Reources.Count.ShouldBeGreaterThan(0);
+            result.Paths.Count.ShouldBeGreaterThan(0);
         }
         
         [Fact]
@@ -67,7 +67,7 @@ namespace AElf.Contracts.MultiToken
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
             result.NonParallelizable.ShouldBeFalse();
-            result.Reources.Count.ShouldBeGreaterThan(0);
+            result.Paths.Count.ShouldBeGreaterThan(0);
         }
         
         [Fact]

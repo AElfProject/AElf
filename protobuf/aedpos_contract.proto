@@ -72,8 +72,7 @@ service AEDPoSContract {
 // Events
 message IrreversibleBlockFound {
     option (aelf.is_event) = true;
-    sint64 offset = 1;
-    sint64 irreversible_block_height = 2;
+    sint64 irreversible_block_height = 1;
 }
 
 message InitialAElfConsensusContractInput {
