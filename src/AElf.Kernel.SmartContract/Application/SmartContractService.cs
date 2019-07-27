@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
@@ -41,14 +40,15 @@ namespace AElf.Kernel.SmartContract.Application
 //            await _functionMetadataService.DeployContract(contractAddress, contractTemplate);
         }
 
-        public async Task UpdateContractAsync(Address contractAddress,
-            SmartContractRegistration newRegistration, bool isPrivileged, Hash name)
+        public async Task UpdateContractAsync(Address contractAddress, SmartContractRegistration newRegistration,
+            long blockHeight, Hash previousBlockHash, bool isPrivileged, Hash name)
         {
             // get runner
             var runner = _smartContractRunnerContainer.GetRunner(newRegistration.Category);
             await Task.Run(() => runner.CodeCheck(newRegistration.Code.ToByteArray(), isPrivileged));
 
-            _smartContractExecutiveService.ClearExecutivePool(contractAddress);
+            _smartContractExecutiveService.SetUpdateContractInfo(contractAddress, newRegistration.CodeHash, blockHeight,
+                previousBlockHash);
 
             //Todo New version metadata handle it
 //            var oldRegistration = await GetContractByAddressAsync(contractAddress);

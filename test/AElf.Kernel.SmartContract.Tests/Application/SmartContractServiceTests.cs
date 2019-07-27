@@ -54,10 +54,12 @@ namespace AElf.Kernel.SmartContract.Application
             };
 
             await _smartContractService.DeployContractAsync(SampleAddress.AddressList[0], registrationA, false, null);
-            await _smartContractService.UpdateContractAsync(SampleAddress.AddressList[1], registrationANew, false, null);
+            await _smartContractService.UpdateContractAsync(SampleAddress.AddressList[1], registrationANew, 1,
+                Hash.Empty, false, null);
 
 
-            await _smartContractService.UpdateContractAsync(SampleAddress.AddressList[2], registrationB, false, null);
+            await _smartContractService.UpdateContractAsync(SampleAddress.AddressList[2], registrationB, 1, Hash.Empty,
+                false, null);
 
         }
     }

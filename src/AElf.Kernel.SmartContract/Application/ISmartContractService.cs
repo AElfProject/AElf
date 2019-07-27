@@ -16,8 +16,8 @@ namespace AElf.Kernel.SmartContract.Application
         Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration, bool isPrivileged,
             Hash name = null);
 
-        Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration, bool isPrivileged,
-            Hash name = null);
+        Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration, long blockHeight,
+            Hash previousBlockHash, bool isPrivileged, Hash name = null);
 
 
 //        Task<IExecutive> GetExecutiveAsync(Address contractAddress, );

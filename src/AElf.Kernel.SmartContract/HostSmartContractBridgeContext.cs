@@ -235,7 +235,7 @@ namespace AElf.Kernel.SmartContract
             }
 
             AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(address, registration,
-                false, null));
+                CurrentHeight, PreviousBlockHash, false, null));
         }
     }
 }
