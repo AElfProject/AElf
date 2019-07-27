@@ -22,7 +22,7 @@ namespace AElf.Kernel.Blockchain.Application
         [Fact]
         public async Task Create_Chain_Success()
         {
-            var block = _kernelTestHelper.GenerateBlock(0, Hash.Empty, transactions:new List<Transaction>());
+            var block = _kernelTestHelper.GenerateBlock(0, Hash.Empty, new List<Transaction>());
 
             var chain = await _fullBlockchainService.GetChainAsync();
             chain.ShouldBeNull();

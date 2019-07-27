@@ -194,7 +194,7 @@ namespace AElf.Kernel
                 }
             }
 
-            var newBlock = GenerateBlock(previousBlockHeight, previousBlockHash, transactions:transactions);
+            var newBlock = GenerateBlock(previousBlockHeight, previousBlockHash, transactions);
 
             var bloom = new Bloom();
             foreach (var transactionResult in transactionResults)
@@ -241,7 +241,7 @@ namespace AElf.Kernel
 
         private async Task<Chain> CreateChain()
         {
-            var genesisBlock = GenerateBlock(0, Hash.Empty, transactions:new List<Transaction>());
+            var genesisBlock = GenerateBlock(0, Hash.Empty, new List<Transaction>());
             
             var chain = await _blockchainService.CreateChainAsync(genesisBlock, new List<Transaction>());
             
