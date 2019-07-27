@@ -42,6 +42,12 @@ namespace AElf.OS.Network
         }
 
         [Fact]
+        public async Task SendAnnoucement_PeerShouldDropTrasaction_WhenBufferfull()
+        {
+            
+        }
+
+        [Fact]
         public async Task RequestBlockAsync_Success()
         {
             var block = await _grpcPeer.GetBlockByHashAsync(Hash.FromRawBytes(new byte[]{1,2,7}));
