@@ -96,11 +96,21 @@ namespace AElf.OS.Network.Application
             
             foreach (var peer in _peerPool.GetPeers())
             {
-                peer.EnqueueBlock(blockWithTransactions, async ex =>
+                try
+                {
+                    peer.EnqueueBlock(blockWithTransactions, async ex =>
+                    {
+                        if (ex != null)
+                        {
+                            Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
+                            await HandleNetworkException(peer, ex);
+                        }
+                    });
+                }
+                catch (NetworkException ex)
                 {
                     Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
-                    await HandleNetworkException(peer, ex);
-                });
+                }
             }
             
             return Task.CompletedTask;
@@ -125,11 +135,21 @@ namespace AElf.OS.Network.Application
 
             foreach (var peer in _peerPool.GetPeers())
             {
-                peer.EnqueueAnnouncement(blockAnnouncement, async ex =>
+                try
+                {
+                    peer.EnqueueAnnouncement(blockAnnouncement, async ex =>
+                    {
+                        if (ex != null)
+                        {
+                            Logger.LogError(ex, $"Error while broadcasting announcement to {peer}.");
+                            await HandleNetworkException(peer, ex);
+                        }
+                    });
+                }
+                catch (NetworkException ex)
                 {
                     Logger.LogError(ex, $"Error while broadcasting announcement to {peer}.");
-                    await HandleNetworkException(peer, ex);
-                });
+                }
             }
             
             return Task.CompletedTask;
@@ -139,11 +159,21 @@ namespace AElf.OS.Network.Application
         {
             foreach (var peer in _peerPool.GetPeers())
             {
-                peer.EnqueueTransaction(transaction, async ex =>
+                try
+                {
+                    peer.EnqueueTransaction(transaction, async ex =>
+                    {
+                        if (ex != null)
+                        {
+                            Logger.LogError(ex, $"Error while broadcasting transaction to {peer}.");
+                            await HandleNetworkException(peer, ex);
+                        }
+                    });
+                }
+                catch (NetworkException ex)
                 {
                     Logger.LogError(ex, $"Error while broadcasting transaction to {peer}.");
-                    await HandleNetworkException(peer, ex);
-                });
+                }
             }
             
             return Task.CompletedTask;

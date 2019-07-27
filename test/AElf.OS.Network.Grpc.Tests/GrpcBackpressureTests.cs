@@ -18,49 +18,34 @@ namespace AElf.OS.Network
         [Fact]
         public void EnqueueAnnouncement_ShouldDrop_IfBufferFull()
         {
-            NetworkException callbackException = null;
-            void ErrorCallback(NetworkException networkException) => callbackException = networkException;
-
+            // fill the buffer
             for (int i = 0; i <= NetworkConstants.DefaultMaxBufferedAnnouncementCount; i++)
-            {
-                _peerUnderTest.EnqueueAnnouncement(new BlockAnnouncement(), ErrorCallback);
-                callbackException.ShouldBeNull();
-            }
+                _peerUnderTest.EnqueueAnnouncement(new BlockAnnouncement(), null);
             
-            _peerUnderTest.EnqueueAnnouncement(new BlockAnnouncement(), ErrorCallback);
-            callbackException.ShouldNotBeNull();
+            var overflowException = Assert.Throws<NetworkException>(()=> _peerUnderTest.EnqueueAnnouncement(new BlockAnnouncement(), null));
+            overflowException.ExceptionType.ShouldBe(NetworkExceptionType.FullBuffer);
         }
 
         [Fact]
         public void EnqueueTransaction_ShouldDrop_IfBufferFull()
         {
-            NetworkException callbackException = null;
-            void ErrorCallback(NetworkException networkException) => callbackException = networkException;
-
+            // fill the buffer
             for (int i = 0; i <= NetworkConstants.DefaultMaxBufferedTransactionCount; i++)
-            {
-                _peerUnderTest.EnqueueTransaction(new Transaction(), ErrorCallback);
-                callbackException.ShouldBeNull();
-            }
+                _peerUnderTest.EnqueueTransaction(new Transaction(), null);
             
-            _peerUnderTest.EnqueueTransaction(new Transaction(), ErrorCallback);
-            callbackException.ShouldNotBeNull();
-        } 
-
+            var overflowException = Assert.Throws<NetworkException>(()=> _peerUnderTest.EnqueueTransaction(new Transaction(), null));
+            overflowException.ExceptionType.ShouldBe(NetworkExceptionType.FullBuffer);
+        }
+        
         [Fact]
         public void EnqueueBlock_ShouldDrop_IfBufferFull()
         {
-            NetworkException callbackException = null;
-            void ErrorCallback(NetworkException networkException) => callbackException = networkException;
-
+            // fill the buffer
             for (int i = 0; i <= NetworkConstants.DefaultMaxBufferedBlockCount; i++)
-            {
-                _peerUnderTest.EnqueueBlock(new BlockWithTransactions(), ErrorCallback);
-                callbackException.ShouldBeNull();
-            }
+                _peerUnderTest.EnqueueBlock(new BlockWithTransactions(), null);
             
-            _peerUnderTest.EnqueueBlock(new BlockWithTransactions(), ErrorCallback);
-            callbackException.ShouldNotBeNull();
-        } 
+            var overflowException = Assert.Throws<NetworkException>(()=> _peerUnderTest.EnqueueBlock(new BlockWithTransactions(), null));
+            overflowException.ExceptionType.ShouldBe(NetworkExceptionType.FullBuffer);
+        }
     }
 }

@@ -1,7 +1,10 @@
+using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
@@ -15,11 +18,8 @@ namespace AElf.OS.Network
 {
     public class GrpcPeerTests : GrpcNetworkTestBase
     {
-        private OSTestHelper _osTestHelper;
-        
         private IBlockchainService _blockchainService;
         private IAElfNetworkServer _networkServer;
-        private ILocalEventBus _eventBus;
         
         private IPeerPool _pool;
         private GrpcPeer _grpcPeer;
@@ -28,11 +28,10 @@ namespace AElf.OS.Network
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _networkServer = GetRequiredService<IAElfNetworkServer>();
-            _eventBus = GetRequiredService<ILocalEventBus>();
-            _osTestHelper = GetRequiredService<OSTestHelper>();
             _pool = GetRequiredService<IPeerPool>();
 
             _grpcPeer = GrpcTestPeerHelpers.CreateNewPeer();
+            _grpcPeer.IsConnected = true;
             _pool.TryAddPeer(_grpcPeer);
         }
 
@@ -42,9 +41,60 @@ namespace AElf.OS.Network
         }
 
         [Fact]
-        public async Task SendAnnoucement_PeerShouldDropTrasaction_WhenBufferfull()
+        public void EnqueueBlock_ShouldExecuteCallback()
         {
+            AutoResetEvent executed = new AutoResetEvent(false);
             
+            NetworkException exception = null;
+            bool called = false;
+            _grpcPeer.EnqueueBlock(new BlockWithTransactions(), ex =>
+            {
+                exception = ex;
+                called = true;
+                executed.Set();
+            });
+
+            executed.WaitOne(TimeSpan.FromMilliseconds(10));
+            exception.ShouldBeNull();
+            called.ShouldBeTrue();
+        }
+        
+        [Fact]
+        public void EnqueueTransaction_ShouldExecuteCallback()
+        {
+            AutoResetEvent executed = new AutoResetEvent(false);
+            
+            NetworkException exception = null;
+            bool called = false;
+            _grpcPeer.EnqueueTransaction(new Transaction(), ex =>
+            {
+                exception = ex;
+                called = true;
+                executed.Set();
+            });
+
+            executed.WaitOne(TimeSpan.FromMilliseconds(10));
+            exception.ShouldBeNull();
+            called.ShouldBeTrue();
+        }
+        
+        [Fact]
+        public void EnqueueAnnouncement_ShouldExecuteCallback()
+        {
+            AutoResetEvent executed = new AutoResetEvent(false);
+            
+            NetworkException exception = null;
+            bool called = false;
+            _grpcPeer.EnqueueAnnouncement(new BlockAnnouncement(), ex =>
+            {
+                exception = ex;
+                called = true;
+                executed.Set();
+            });
+
+            executed.WaitOne(TimeSpan.FromMilliseconds(10));
+            exception.ShouldBeNull();
+            called.ShouldBeTrue();
         }
 
         [Fact]

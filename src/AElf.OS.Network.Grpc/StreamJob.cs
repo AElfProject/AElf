@@ -9,6 +9,6 @@ namespace AElf.OS.Network.Grpc
         public Transaction Transaction { get; set; }
         public BlockAnnouncement BlockAnnouncement { get; set; }
         public BlockWithTransactions BlockWithTransactions { get; set; }
-        public Action<NetworkException> ErrorCallback { get; set; }
+        public Action<NetworkException> SendCallback { get; set; }
     }
 }

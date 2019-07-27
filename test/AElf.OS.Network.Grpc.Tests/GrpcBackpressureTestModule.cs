@@ -48,12 +48,14 @@ namespace AElf.OS.Network
             
             context.Services.AddSingleton<IPeer>(_peerUnderTest);
         }
-        
-        private AsyncClientStreamingCall<TReq, TResp> MockStreamCall<TReq, TResp>(Task<TResp> replyTask)
+
+        private AsyncClientStreamingCall<TReq, TResp> MockStreamCall<TReq, TResp>(Task<TResp> replyTask) where TResp : new()
         {
             var mockRequestStream = new Mock<IClientStreamWriter<TReq>>();
+            mockRequestStream.Setup(m => m.WriteAsync(It.IsAny<TReq>()))
+                .Returns(replyTask);
             
-            var call = TestCalls.AsyncClientStreamingCall(mockRequestStream.Object, replyTask,
+            var call = TestCalls.AsyncClientStreamingCall<TReq, TResp>(mockRequestStream.Object, Task.FromResult(new TResp()),
                 Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
 
             return call;
