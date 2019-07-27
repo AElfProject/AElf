@@ -41,7 +41,7 @@ namespace AElf.Contracts.Economic.TestBase
         protected Dictionary<ProfitType, Hash> ProfitItemsIds { get; set; }
 
         private Address _zeroAddress;
-        protected Address ContractZeroAddress => GetZeroContract();
+        protected new Address ContractZeroAddress => GetZeroContract();
 
         private Address _tokenAddress;
         protected Address TokenContractAddress => GetOrDeployContract(Contracts.MultiToken, ref _tokenAddress);

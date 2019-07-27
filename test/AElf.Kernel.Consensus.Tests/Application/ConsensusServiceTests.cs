@@ -13,16 +13,8 @@ namespace AElf.Kernel.Consensus.Application
 
         public ConsensusServiceTests()
         {
-            _consensusService = GetRequiredService<IConsensusService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
-        }
-
-        [Fact]
-        public async Task TriggerConsensusAsync_Test()
-        {
-            var chainContext = await GetDefaultChainContext();
-            
-            await _consensusService.TriggerConsensusAsync(chainContext);
+            _consensusService = GetRequiredService<IConsensusService>();
         }
 
         [Fact]
@@ -54,7 +46,7 @@ namespace AElf.Kernel.Consensus.Application
         {
             var chainContext = await GetDefaultChainContext();
 
-            await TriggerConsensusAsync_Test();
+            await TriggerConsensusAsync();
             var result = await _consensusService.GetInformationToUpdateConsensusAsync(chainContext);
             result.ShouldNotBeNull();
         }
@@ -64,11 +56,17 @@ namespace AElf.Kernel.Consensus.Application
         {
             var chainContext = await GetDefaultChainContext();
 
-            await TriggerConsensusAsync_Test();
+            await TriggerConsensusAsync();
             var result = await _consensusService.GenerateConsensusTransactionsAsync(chainContext);
             result.Count().ShouldBe(1);
         }
 
+        private async Task TriggerConsensusAsync()
+        {
+            var chainContext = await GetDefaultChainContext();
+            await _consensusService.TriggerConsensusAsync(chainContext);
+        }
+        
         private async Task<ChainContext> GetDefaultChainContext()
         {
             var chain = await _blockchainService.GetChainAsync();

@@ -89,7 +89,5 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
-        
-        
     }
 }

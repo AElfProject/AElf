@@ -25,7 +25,7 @@ namespace AElf.OS
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<INetworkService>(o =>
+            context.Services.AddSingleton(o =>
             {
                 var networkServiceMock = new Mock<INetworkService>();
                 networkServiceMock
@@ -69,7 +69,6 @@ namespace AElf.OS
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var blockchainService = context.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var genService = context.ServiceProvider.GetRequiredService<IBlockGenerationService>();
             var exec = context.ServiceProvider.GetRequiredService<IBlockExecutingService>();
             var osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
 

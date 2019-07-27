@@ -26,7 +26,7 @@ namespace AElf.OS.Consensus.DPos
         [Fact]
         public async Task HandleAnnounceReceiveEventAsync_IrreversibleBlockIndex_IsNull()
         {
-            var an = new BlockAnnouncement { };
+            var an = new BlockAnnouncement();
             var sendKey = string.Empty;
             var announcementData = new AnnouncementReceivedEventData(an, sendKey);
 
@@ -70,7 +70,7 @@ namespace AElf.OS.Consensus.DPos
             var block = await _blockchainService.GetBlockByHashAsync(hash);
             
             var peers = _peerPool.GetPeers();
-            for(int i=0; i<number; i++)
+            for(var i=0; i<number; i++)
             {
                 var grpcPeer = peers[i] as GrpcPeer;
                 grpcPeer.AddKnowBlock(new BlockAnnouncement

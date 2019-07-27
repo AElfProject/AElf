@@ -17,19 +17,12 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel.Consensus.DPoS.Tests
 {
     [DependsOn(
-        typeof(CoreAElfModule),
-        typeof(KernelAElfModule),
+        typeof(KernelTestAElfModule),
         typeof(AEDPoSAElfModule))]
     public class AEDPoSTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddTransient(o =>
-            {
-                var mockService = new Mock<IAccountService>();
-                return mockService.Object;
-            });
-
             var _interestedEvent = new IrreversibleBlockFound();
             var _logEvent = _interestedEvent.ToLogEvent(SampleAddress.AddressList[0]);
             
@@ -73,7 +66,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 return mockBlockChainService.Object;
             });
 
-            context.Services.AddTransient<ITransactionResultQueryService>(provider =>
+            context.Services.AddTransient(provider =>
             {
                 var mockService = new Mock<ITransactionResultQueryService>();
                 mockService.Setup(m => m.GetTransactionResultAsync(It.IsIn(Hash.FromString("not exist"))))
@@ -92,14 +85,14 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                         Logs = { new LogEvent
                         {
                             Address = SampleAddress.AddressList[0],
-                            Name = _logEvent.Name,
+                            Name = _logEvent.Name
                         }}
                     }));
                 
                 return mockService.Object;
             });
 
-            context.Services.AddTransient<ISmartContractAddressService>(provider =>
+            context.Services.AddTransient(provider =>
             {
                 var mockService = new Mock<ISmartContractAddressService>();
                 mockService.Setup(o => o.GetAddressByContractName(It.IsAny<Hash>()))
@@ -108,7 +101,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 return mockService.Object;
             });
 
-            context.Services.AddTransient<IConsensusService>(provider =>
+            context.Services.AddTransient(provider =>
             {
                 var mockService = new Mock<IConsensusService>();
                 mockService.Setup(m => m.GetInformationToUpdateConsensusAsync(It.IsAny<ChainContext>())).Returns(
@@ -119,7 +112,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 return mockService.Object;
             });
 
-            context.Services.AddTransient<ITransactionReadOnlyExecutionService>(provider =>
+            context.Services.AddTransient(provider =>
             {
                 var mockService = new Mock<ITransactionReadOnlyExecutionService>();
                 mockService.Setup(m =>

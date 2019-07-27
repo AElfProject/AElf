@@ -2,6 +2,8 @@ using System.Threading.Tasks;
 using Acs4;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Consensus.AEDPoS.Application;
+using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using AElf.OS;
@@ -10,16 +12,14 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Volo.Abp;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.Consensus
 {
     [DependsOn(
-        typeof(CoreAElfModule),
-        typeof(OSCoreTestAElfModule),
-        typeof(KernelAElfModule),
         typeof(ConsensusAElfModule),
-        typeof(CoreKernelAElfModule)
+        typeof(KernelCoreWithChainTestAElfModule)
     )]
     public class ConsensusTestAElfModule : AElfModule
     {
@@ -27,20 +27,34 @@ namespace AElf.Kernel.Consensus
         {
             var services = context.Services;
 
-            services.AddSingleton<IBlockchainService>(provider =>
+            services.AddTransient(provider =>
             {
-                var mockService = new Mock<IBlockchainService>();
-                mockService.Setup(m => m.GetChainAsync()).Returns(
-                    Task.FromResult(new Chain
-                    {
-                        BestChainHash = Hash.FromString("BestChainHash"),
-                        BestChainHeight = 10L
-                    }));
+                var mockService = new Mock<IConsensusScheduler>();
 
                 return mockService.Object;
             });
 
-            services.AddTransient<ISmartContractAddressService>(provider =>
+            services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IBlockTimeProvider>();
+
+                return mockService.Object;
+            });
+
+            services.AddTransient(provider =>
+            {
+                var mockService = new Mock<ITriggerInformationProvider>();
+                mockService.Setup(m => m.GetTriggerInformationForConsensusCommand(It.IsAny<BytesValue>()))
+                    .Returns(new BytesValue());
+                mockService.Setup(m => m.GetTriggerInformationForBlockHeaderExtraDataAsync(It.IsAny<BytesValue>()))
+                    .Returns(Task.FromResult(new BytesValue()));
+                mockService.Setup(m => m.GetTriggerInformationForConsensusTransactionsAsync(It.IsAny<BytesValue>()))
+                    .Returns(Task.FromResult(new BytesValue()));
+
+                return mockService.Object;
+            });
+            
+            services.AddTransient(provider =>
             {
                 var mockService = new Mock<ISmartContractAddressService>();
                 mockService.Setup(m => m.GetAddressByContractName(It.IsAny<Hash>()))
@@ -50,7 +64,7 @@ namespace AElf.Kernel.Consensus
             });
 
             //mock consensus service transaction execution result
-            services.AddTransient<ITransactionReadOnlyExecutionService>(provider =>
+            services.AddTransient(provider =>
             {
                 var mockService = new Mock<ITransactionReadOnlyExecutionService>();
                 mockService.Setup(m =>
@@ -136,6 +150,9 @@ namespace AElf.Kernel.Consensus
 
                 return mockService.Object;
             });
+
+            services.AddSingleton<IRandomHashCacheService, RandomHashCacheService>();
+            services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
         }
     }
 }

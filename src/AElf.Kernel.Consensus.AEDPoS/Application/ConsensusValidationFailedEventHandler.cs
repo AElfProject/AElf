@@ -21,9 +21,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public async Task HandleEventAsync(ConsensusValidationFailedEventData eventData)
         {
-            var chain = await _blockchainService.GetChainAsync();
             if (eventData.ValidationResultMessage == "Time slot already passed before execution.")
             {
+                var chain = await _blockchainService.GetChainAsync();
                 await _consensusService.TriggerConsensusAsync(new ChainContext
                 {
                     BlockHash = chain.BestChainHash,
