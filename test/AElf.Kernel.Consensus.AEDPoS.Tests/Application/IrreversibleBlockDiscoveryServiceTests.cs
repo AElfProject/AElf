@@ -18,6 +18,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
             _chainService = GetRequiredService<IBlockchainService>();
         }
 
+        // TODO: Mock more to test internal logic of DiscoverAndSetIrreversibleAsync.
         [Fact]
         public async Task DiscoverAndSetIrreversibleAsync_Test()
         {
@@ -25,8 +26,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
             var blockId = chain.LastIrreversibleBlockHash;
             var blockIndex =
                 await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(chain, new[] {blockId});
-            blockIndex.Hash.ShouldBe(Hash.Empty);
-            blockIndex.Height.ShouldBe(15);
+            blockIndex.ShouldBeNull();
         }
     }
 }
