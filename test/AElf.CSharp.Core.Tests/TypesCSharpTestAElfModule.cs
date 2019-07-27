@@ -1,8 +1,8 @@
-using Volo.Abp;
+using AElf.Modularity;
 
 namespace AElf.CSharp.Core
 {
-    public class TypesCSharpTestAElfModule : AbpTestBaseModule
+    public class TypesCSharpTestAElfModule : AElfModule
     {
     }
 }

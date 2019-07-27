@@ -137,8 +137,9 @@ namespace AElf.Kernel
             return transactionResult;
         }
 
-        public Block GenerateBlock(long previousBlockHeight, Hash previousBlockHash, List<Transaction> transactions = null)
+        public Block GenerateBlock(long previousBlockHeight, Hash previousBlockHash, List<Transaction> transactions = null, ByteString extraData = null)
         {
+            
             var newBlock = new Block
             {
                 Header = new BlockHeader
@@ -149,7 +150,7 @@ namespace AElf.Kernel
                     MerkleTreeRootOfWorldState = Hash.Empty,
                     MerkleTreeRootOfTransactionStatus = Hash.Empty,
                     MerkleTreeRootOfTransactions = Hash.Empty,
-                    ExtraData = { ByteString.Empty },
+                    ExtraData = { extraData==null? ByteString.Empty : extraData },
                     SignerPubkey = ByteString.CopyFrom(KeyPair.PublicKey)
                 },
                 Body = new BlockBody()
@@ -166,7 +167,7 @@ namespace AElf.Kernel
 
             return newBlock;
         }
-
+        
         public async Task<Block> AttachBlock(long previousBlockHeight, Hash previousBlockHash,
             List<Transaction> transactions = null, List<TransactionResult> transactionResults = null)
         {
@@ -193,7 +194,7 @@ namespace AElf.Kernel
                 }
             }
 
-            var newBlock = GenerateBlock(previousBlockHeight, previousBlockHash, transactions);
+            var newBlock = GenerateBlock(previousBlockHeight, previousBlockHash, transactions:transactions);
 
             var bloom = new Bloom();
             foreach (var transactionResult in transactionResults)
@@ -240,7 +241,7 @@ namespace AElf.Kernel
 
         private async Task<Chain> CreateChain()
         {
-            var genesisBlock = GenerateBlock(0, Hash.Empty, new List<Transaction>());
+            var genesisBlock = GenerateBlock(0, Hash.Empty, transactions:new List<Transaction>());
             
             var chain = await _blockchainService.CreateChainAsync(genesisBlock, new List<Transaction>());
             

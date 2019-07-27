@@ -95,11 +95,6 @@ namespace AElf.Kernel
 
                     return dataProvider.Object;
                 });
-
-
-//            services.AddTransient<IConsensusService, ConsensusService>();
-//            
-//            services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
         }
     }
 }

@@ -17,7 +17,7 @@ using ServiceDescriptor = Google.Protobuf.Reflection.ServiceDescriptor;
 
 namespace AElf.Kernel.SmartContract.Parallel.Tests
 {
-    public class TestModule : AbpModule
+    public class ParallelMockTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

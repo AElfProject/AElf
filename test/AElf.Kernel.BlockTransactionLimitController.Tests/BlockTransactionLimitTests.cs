@@ -11,7 +11,7 @@ using Xunit;
 
 namespace AElf.Kernel.BlockTransactionLimitController.Tests
 {
-    public class Test : ContractTestBase<TestModule>
+    public class BlockTransactionLimitTests : ContractTestBase<BlockTransactionLimitTestModule>
     {
         private Address ConfigurationContractAddress { get; set; }
         private Configuration.ConfigurationContainer.ConfigurationStub ConfigurationStub;

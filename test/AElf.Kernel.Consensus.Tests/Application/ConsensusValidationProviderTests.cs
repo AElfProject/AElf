@@ -10,48 +10,34 @@ namespace AElf.Kernel.Consensus.Application
     public class ConsensusValidationProviderTests : ConsensusTestBase
     {
         private readonly IBlockValidationProvider _blockValidationProvider;
+        private readonly KernelTestHelper _kernelTestHelper;
 
         public ConsensusValidationProviderTests()
         {
             _blockValidationProvider = GetRequiredService<IBlockValidationProvider>();
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
 
         [Fact]
         public async Task ValidateBeforeAttachAsync_Test()
         {
-            var block = new Block
+            var block = _kernelTestHelper.GenerateBlock(9, Hash.FromString("test"));
+            block.Header = new BlockHeader
             {
-                Header = new BlockHeader
-                {
-                    Height = 1,
-                    ExtraData = { }
-                }
-            }; 
+                Height = 1,
+                ExtraData = { }
+            };
             var result = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
             result.ShouldBeTrue();
 
-            block = new Block
-            {
-                Header = new BlockHeader
-                {
-                    ChainId = 10010,
-                    Height = 10,
-                    SignerPubkey = ByteString.CopyFromUtf8("pubkey"),
-                    Signature = ByteString.CopyFromUtf8("sig data"),
-                    PreviousBlockHash = Hash.FromString("PreviousBlockHash"),
-                    Time = TimestampHelper.GetUtcNow(),
-                    MerkleTreeRootOfTransactions = Hash.FromString("MerkleTreeRootOfTransactions"),
-                    MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
-                    MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus")
-                }
-            };
+            block = _kernelTestHelper.GenerateBlock(9, Hash.FromString("test"));
             result = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
             result.ShouldBeFalse();
-            
+
             block.Header = new BlockHeader
             {
                 Height = 10,
-                ExtraData = { ByteString.CopyFromUtf8("test") }
+                ExtraData = {ByteString.CopyFromUtf8("test")}
             };
             result = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
             result.ShouldBeTrue();
@@ -70,41 +56,12 @@ namespace AElf.Kernel.Consensus.Application
             };
             var result = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             result.ShouldBeTrue();
-            
-            block = new Block
-            {
-                Header = new BlockHeader
-                {
-                    ChainId = 10010,
-                    Height = 10,
-                    SignerPubkey = ByteString.CopyFromUtf8("pubkey"),
-                    Signature = ByteString.CopyFromUtf8("sig data"),
-                    PreviousBlockHash = Hash.FromString("PreviousBlockHash"),
-                    Time = TimestampHelper.GetUtcNow(),
-                    MerkleTreeRootOfTransactions = Hash.FromString("MerkleTreeRootOfTransactions"),
-                    MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
-                    MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus")
-                }
-            };
+
+            block = _kernelTestHelper.GenerateBlock(9, Hash.FromString("test"));
             result = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             result.ShouldBeFalse();
-            
-            block.Header = new BlockHeader
-            {
-                ChainId = 10010,
-                Height = 10,
-                SignerPubkey = ByteString.CopyFromUtf8("pubkey"),
-                Signature = ByteString.CopyFromUtf8("sig data"),
-                PreviousBlockHash = Hash.FromString("PreviousBlockHash"),
-                Time = TimestampHelper.GetUtcNow(),
-                MerkleTreeRootOfTransactions = Hash.FromString("MerkleTreeRootOfTransactions"),
-                MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
-                MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus"),
-                ExtraData =
-                {
-                    ByteString.CopyFromUtf8("extra data")
-                }
-            };
+
+            block = _kernelTestHelper.GenerateBlock(9, Hash.FromString("test"), null, ByteString.CopyFromUtf8("extra data"));
             result = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             result.ShouldBeTrue();
         }
@@ -122,41 +79,12 @@ namespace AElf.Kernel.Consensus.Application
             };
             var result = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             result.ShouldBeTrue();
-            
-            block = new Block
-            {
-                Header = new BlockHeader
-                {
-                    ChainId = 10010,
-                    Height = 10,
-                    SignerPubkey = ByteString.CopyFromUtf8("pubkey"),
-                    Signature = ByteString.CopyFromUtf8("sig data"),
-                    PreviousBlockHash = Hash.FromString("PreviousBlockHash"),
-                    Time = TimestampHelper.GetUtcNow(),
-                    MerkleTreeRootOfTransactions = Hash.FromString("MerkleTreeRootOfTransactions"),
-                    MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
-                    MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus")
-                }
-            };
+
+            block = _kernelTestHelper.GenerateBlock(9, Hash.FromString("test"));
             result = await _blockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             result.ShouldBeFalse();
-            
-            block.Header = new BlockHeader
-            {
-                ChainId = 10010,
-                Height = 10,
-                SignerPubkey = ByteString.CopyFromUtf8("pubkey"),
-                Signature = ByteString.CopyFromUtf8("sig data"),
-                PreviousBlockHash = Hash.FromString("PreviousBlockHash"),
-                Time = TimestampHelper.GetUtcNow(),
-                MerkleTreeRootOfTransactions = Hash.FromString("MerkleTreeRootOfTransactions"),
-                MerkleTreeRootOfWorldState = Hash.FromString("MerkleTreeRootOfWorldState"),
-                MerkleTreeRootOfTransactionStatus = Hash.FromString("MerkleTreeRootOfTransactionStatus"),
-                ExtraData =
-                {
-                    ByteString.CopyFromUtf8("extra data")
-                }
-            };
+
+            block = _kernelTestHelper.GenerateBlock(9, Hash.FromString("test"), null, ByteString.CopyFromUtf8("extra data"));
             result = await _blockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             result.ShouldBeTrue();
         }

@@ -6,7 +6,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
 {
     [DependsOn(typeof(ContractTestModule),
         typeof(BlockTransactionLimitControllerModule))]
-    public class TestModule : ContractTestModule
+    public class BlockTransactionLimitTestModule : ContractTestModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
