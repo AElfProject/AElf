@@ -19,21 +19,21 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         [Fact]
-        public async Task Server_Start_Test()
+        public async Task ServerStart_Test()
         {
             var chainId = _chainOptions.ChainId;
             await _grpcCrossChainServerNodePlugin.StartAsync(chainId);
         }
         
         [Fact]
-        public async Task Client_Start_Test()
+        public async Task ClientStart_Test()
         {
             var chainId = _chainOptions.ChainId;
             await _grpcCrossChainClientNodePlugin.StartAsync(chainId);
         }
         
         [Fact]
-        public async Task Server_Shutdown_Test()
+        public async Task ServerShutdown_Test()
         {
             await _grpcCrossChainServerNodePlugin.StopAsync();
         }

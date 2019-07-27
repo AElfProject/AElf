@@ -22,7 +22,7 @@ namespace AElf.CrossChain
         #region Side chain
 
         [Fact]
-        public async Task Validate_Without_ProvidedSideChainBlockData()
+        public async Task Validate_WithoutProvidedSideChainBlockData_Test()
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockCacheEntity>();
@@ -45,7 +45,7 @@ namespace AElf.CrossChain
         }
 
         [Fact]
-        public async Task ValidateSideChainBlock_WithCaching()
+        public async Task ValidateSideChainBlock_WithCaching_Test()
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockCacheEntity>
@@ -71,7 +71,7 @@ namespace AElf.CrossChain
         }
 
         [Fact]
-        public async Task ValidateSideChainBlock_WithoutCaching()
+        public async Task ValidateSideChainBlock_WithoutCaching_Test()
         {
             int chainId = 123;
 
@@ -89,7 +89,7 @@ namespace AElf.CrossChain
         }
 
         [Fact]
-        public async Task ValidateSideChainBlock_WithWrongBlockIndex()
+        public async Task ValidateSideChainBlock_WithWrongBlockIndex_Test()
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockCacheEntity>
@@ -113,7 +113,7 @@ namespace AElf.CrossChain
         }
 
         [Fact]
-        public async Task ValidateSideChainBlock__NotEnoughCaching()
+        public async Task ValidateSideChainBlock__NotEnoughCaching_Test()
         {
             int chainId = 123;
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, 1);
@@ -132,7 +132,7 @@ namespace AElf.CrossChain
         }
         
         [Fact]
-        public async Task ValidateSideChainBlock__NotExcepted()
+        public async Task ValidateSideChainBlock__NotExcepted_Test()
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockCacheEntity>
@@ -163,7 +163,7 @@ namespace AElf.CrossChain
         }
         
         [Fact]
-        public async Task TryTwice_ValidateSideChainBlock()
+        public async Task TryTwice_ValidateSideChainBlock_Test()
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockCacheEntity>();            
@@ -211,7 +211,7 @@ namespace AElf.CrossChain
         }
 
         [Fact]
-        public async Task ValidateParentChainBlock_WithoutProvidedData()
+        public async Task ValidateParentChainBlock_WithoutProvidedData_Test()
         {
             int chainId = 123;
             _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 0);
@@ -223,7 +223,7 @@ namespace AElf.CrossChain
         }
 
         [Fact]
-        public async Task ValidateParentChainBlock_WithCaching()
+        public async Task ValidateParentChainBlock_WithCaching_Test()
         {
             int chainId = 123;
             _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 0);
@@ -255,7 +255,7 @@ namespace AElf.CrossChain
         }
         
         [Fact]
-        public async Task ValidateParentChainBlock_WithoutCaching()
+        public async Task ValidateParentChainBlock_WithoutCaching_Test()
         {
             int chainId = 123;
             _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 1);
@@ -275,7 +275,7 @@ namespace AElf.CrossChain
         }
 
         [Fact]
-        public async Task ValidateParentChainBlock_WithWrongIndex()
+        public async Task ValidateParentChainBlock_WithWrongIndex_Test()
         {
             int chainId = 123;
             _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 0);
@@ -302,7 +302,7 @@ namespace AElf.CrossChain
         }
         
         [Fact]
-        public async Task TryTwice_ValidateParentChainBlock()
+        public async Task TryTwice_ValidateParentChainBlock_Test()
         {
             int chainId = 123;
             var blockInfoCache = new List<IBlockCacheEntity>();            
@@ -350,7 +350,7 @@ namespace AElf.CrossChain
         }
         
         [Fact]
-        public async Task GetIndexedCrossChainBlockData_WithIndex()
+        public async Task GetIndexedCrossChainBlockData_WithIndex_Test()
         {
             var chainId = 123;
             var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
@@ -385,7 +385,7 @@ namespace AElf.CrossChain
         }
 
         [Fact]
-        public async Task GetIndexedCrossChainBlockData_WithoutIndex()
+        public async Task GetIndexedCrossChainBlockData_WithoutIndex_Test()
         {
             var chainId = 123;
             var fakeSideChainBlockData = new SideChainBlockData
@@ -403,7 +403,7 @@ namespace AElf.CrossChain
         }
         
         [Fact]
-        public async Task GetCrossChainBlockDataForNextMining()
+        public async Task GetCrossChainBlockDataForNextMining_Test()
         {
             var parentChainId = 123;
             var sideChainId = 456;
@@ -441,7 +441,7 @@ namespace AElf.CrossChain
         }
         
         [Fact]
-        public async Task GetCrossChainBlockDataForNextMining_WithoutCachingParentBlock()
+        public async Task GetCrossChainBlockDataForNextMining_WithoutCachingParentBlock_Test()
         {
             var chainId = 123;
             var blockInfoCache = new List<IBlockCacheEntity>();
@@ -466,7 +466,7 @@ namespace AElf.CrossChain
         }
         
         [Fact]
-        public async Task GetCrossChainBlockDataForNextMining_WithoutCachingSideBlock()
+        public async Task GetCrossChainBlockDataForNextMining_WithoutCachingSideBlock_Test()
         {
             var chainId = 123;
             var blockInfoCache = new List<IBlockCacheEntity>();
@@ -490,7 +490,7 @@ namespace AElf.CrossChain
         }
         
         [Fact]
-        public async Task GetCrossChainBlockDataForNextMining_WithoutCaching()
+        public async Task GetCrossChainBlockDataForNextMining_WithoutCaching_Test()
         {
             var res = await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(Hash.Empty, 1);
             Assert.True(res == null);

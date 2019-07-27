@@ -14,14 +14,14 @@ namespace AElf.CrossChain.Communication
         }
 
         [Fact]
-        public async Task StartAsync()
+        public async Task StartAsync_Test()
         {
             int chainId = 123;
             await _crossChainPlugin.StartAsync(chainId);
         }
 
         [Fact]
-        public async Task GetChainInitializationData()
+        public async Task GetChainInitializationData_Test()
         {
             int chainId = 123;
             var res = await _crossChainPlugin.GetChainInitializationDataAsync(chainId);

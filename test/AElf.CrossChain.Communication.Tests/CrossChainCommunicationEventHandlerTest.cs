@@ -1,4 +1,7 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Acs7;
+using AElf.CrossChain.Cache;
 using Xunit;
 
 namespace AElf.CrossChain.Communication
@@ -13,9 +16,18 @@ namespace AElf.CrossChain.Communication
         }
 
         [Fact]
-        public async Task HandleEventAsync()
+        public async Task HandleEventAsync_Test()
         {
             var eventData = new CrossChainDataValidatedEvent();
+            int chainId = 123;
+
+            var blockInfoCache = new List<IBlockCacheEntity>
+            {
+                new ParentChainBlockData {ChainId = chainId, Height = 1}
+            };
+            AddFakeParentChainIdHeight(chainId, 1);
+            var fakeCache = new Dictionary<int, List<IBlockCacheEntity>> {{chainId, blockInfoCache}};
+            AddFakeCacheData(fakeCache);
             await _crossChainCommunicationEventHandler.HandleEventAsync(eventData);
         }
     }

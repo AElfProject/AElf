@@ -17,7 +17,7 @@ namespace AElf.CrossChain.Communication
         }
 
         [Fact]
-        public async Task RequestCrossChainDataFromOtherChains()
+        public async Task RequestCrossChainDataFromOtherChains_Test()
         {
             int chainId = 123;
 

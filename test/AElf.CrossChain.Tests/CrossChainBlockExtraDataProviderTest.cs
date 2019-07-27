@@ -23,7 +23,7 @@ namespace AElf.CrossChain
         }
 
         [Fact]
-        public async Task FillExtraData_GenesisHeight()
+        public async Task FillExtraData_GenesisHeight_Test()
         {
             var header = new BlockHeader
             {
@@ -35,7 +35,7 @@ namespace AElf.CrossChain
         }
 
         [Fact]
-        public async Task FillExtraData_WithoutCacheData()
+        public async Task FillExtraData_WithoutCacheData_Test()
         {
             var header = new BlockHeader
             {
@@ -47,7 +47,7 @@ namespace AElf.CrossChain
         }
 
         [Fact]
-        public async Task FillExtraData_WithoutSideChainCacheData()
+        public async Task FillExtraData_WithoutSideChainCacheData_Test()
         {
             int chainId1 = 123;
             _crossChainTestHelper.AddFakeParentChainIdHeight(chainId1, 0);
@@ -79,7 +79,7 @@ namespace AElf.CrossChain
         }
 
         [Fact]
-        public async Task FillExtraData()
+        public async Task FillExtraData_Test()
         {
             var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
             var fakeMerkleTreeRoot2 = Hash.FromString("fakeMerkleTreeRoot2");

@@ -51,7 +51,7 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         [Fact]
-        public async Task GetClient()
+        public async Task GetClient_Test()
         {
             var remoteChainId = 123;
             var localChainId = 456;
@@ -63,7 +63,7 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         [Fact]
-        public async Task GetClientService()
+        public async Task GetClientService_Test()
         {
             var remoteChainId = 123;
             var localChainId = 456;
@@ -85,7 +85,7 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         [Fact]
-        public async Task RequestChainInitializationData_SideClientTest()
+        public async Task RequestChainInitializationData_SideClient_Test()
         {
             var chainId = 123;
             await _server.StartAsync(Host, 5000);
@@ -96,17 +96,17 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         [Fact]
-        public async Task RequestChainInitializationData_ParentClientTest()
+        public async Task RequestChainInitializationData_ParentClient_Test()
         {
             var chainId = 123;
             await _server.StartAsync(Host, 5000);
-            var client = CreateCrossChainClient(chainId, true);
+            var client = _grpcCrossChainClientService.CreateClientForChainInitializationData(chainId);
             await client.RequestChainInitializationDataAsync(chainId);
             Dispose();
         }
 
         [Fact]
-        public async Task RequestCrossChainData()
+        public async Task RequestCrossChainData_Test()
         {
             var chainId = 123;
             var height = 2;

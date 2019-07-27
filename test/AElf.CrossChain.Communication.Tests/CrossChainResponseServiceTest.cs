@@ -14,14 +14,14 @@ namespace AElf.CrossChain.Communication
         }
 
         [Fact]
-        public async Task ResponseSideChainBlockData()
+        public async Task ResponseSideChainBlockData_Test()
         {
             var res = await _chainResponseService.ResponseSideChainBlockDataAsync(2);
             Assert.NotNull(res);
         }
 
         [Fact]
-        public async Task ResponseParentChainBlockData_WithoutBlock()
+        public async Task ResponseParentChainBlockData_WithoutBlock_Test()
         {
             var chainId = 123;
             var height = 5;
@@ -30,7 +30,7 @@ namespace AElf.CrossChain.Communication
         }
         
         [Fact]
-        public async Task ResponseParentChainBlockData()
+        public async Task ResponseParentChainBlockData_Test()
         {
             var chainId = 123;
             var height = 3;

@@ -15,7 +15,7 @@ namespace AElf.CrossChain
         }
 
         [Fact]
-        public async Task FinishInitialSync()
+        public async Task FinishInitialSync_Test()
         {
             int chainId = 123;
             long libHeight = 10;
@@ -29,7 +29,7 @@ namespace AElf.CrossChain
         }
         
         [Fact]
-        public async Task FinishInitialSync_NotReady()
+        public async Task FinishInitialSync_NotReady_Test()
         {
             await _crossChainService.FinishInitialSyncAsync();
             var info = _crossChainService.GetNeededChainIdAndHeightPairs();
@@ -37,7 +37,7 @@ namespace AElf.CrossChain
         }
         
         [Fact]
-        public async Task GetNonIndexedBlock()
+        public async Task GetNonIndexedBlock_Test()
         {
             _crossChainTestHelper.SetFakeLibHeight(2);
             var res = await _crossChainService.GetNonIndexedBlockAsync(1);
@@ -45,7 +45,7 @@ namespace AElf.CrossChain
         }
         
         [Fact]
-        public async Task GetNonIndexedBlock_NoBlock()
+        public async Task GetNonIndexedBlock_NoBlock_Test()
         { 
             _crossChainTestHelper.SetFakeLibHeight(1);
             var res = await _crossChainService.GetNonIndexedBlockAsync(2);

@@ -60,7 +60,7 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         [Fact]
-        public async Task RequestIndexingSideChain()
+        public async Task RequestIndexingSideChain_Test()
         {
             var requestData = new CrossChainRequest
             {
@@ -74,7 +74,7 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         [Fact]
-        public async Task CrossChainIndexingShake()
+        public async Task CrossChainIndexingShake_Test()
         {
             var request = new HandShake
             {
