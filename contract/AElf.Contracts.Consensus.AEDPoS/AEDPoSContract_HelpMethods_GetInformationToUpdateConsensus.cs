@@ -94,6 +94,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var updatedRound = currentRound.ApplyNormalConsensusData(publicKey, previousInValue,
                 outValue, signature);
 
+            updatedRound.RealTimeMinersInformation[publicKey].ImpliedIrreversibleBlockHeight = Context.CurrentHeight;
+
             ShareInValueOfCurrentRound(updatedRound, previousRound, inValue, publicKey);
 
             // To publish Out Value.

@@ -46,7 +46,7 @@ namespace AElf.OS
                 keyStore.Setup(k => k.GetAccountsAsync()).Returns(Task.FromResult(new List<string>()));
                 
                 keyStore.Setup(k => k.CreateAccountKeyPairAsync(It.IsAny<string>()))
-                    .Returns(Task.FromResult(CryptoHelper.FromPrivateKey(ByteArrayHelper.FromHexString("5945c176c4269dc2aa7daf7078bc63b952832e880da66e5f2237cdf79bc59c5f"))));
+                    .Returns(Task.FromResult(CryptoHelper.FromPrivateKey(ByteArrayHelper.HexStringToByteArray("5945c176c4269dc2aa7daf7078bc63b952832e880da66e5f2237cdf79bc59c5f"))));
 
                 keyStore.Setup(k => k.UnlockAccountAsync(It.IsAny<string>(), It.IsAny<string>(), false)).Returns(() =>
                 {

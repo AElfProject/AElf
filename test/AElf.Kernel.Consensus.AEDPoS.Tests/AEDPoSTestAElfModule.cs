@@ -31,7 +31,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             });
 
             var _interestedEvent = new IrreversibleBlockFound();
-            var _logEvent = _interestedEvent.ToLogEvent(Address.FromString("test"));
+            var _logEvent = _interestedEvent.ToLogEvent(SampleAddress.AddressList[0]);
             
             context.Services.AddTransient(provider =>
             {
@@ -91,7 +91,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                         Bloom = ByteString.CopyFrom(_logEvent.GetBloom().Data),
                         Logs = { new LogEvent
                         {
-                            Address = Address.FromString("test"),
+                            Address = SampleAddress.AddressList[0],
                             Name = _logEvent.Name,
                         }}
                     }));
@@ -103,7 +103,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             {
                 var mockService = new Mock<ISmartContractAddressService>();
                 mockService.Setup(o => o.GetAddressByContractName(It.IsAny<Hash>()))
-                    .Returns(Address.FromString("test"));
+                    .Returns(SampleAddress.AddressList[0]);
 
                 return mockService.Object;
             });

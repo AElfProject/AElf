@@ -48,7 +48,7 @@ namespace AElf.Blockchains.MainChain
                             Convert.ToInt64(_economicOptions.TotalSupply *
                                             (1 - _economicOptions.DividendPoolRatio)) /
                             _consensusOptions.InitialMinerList.Count,
-                        To = Address.FromPublicKey(ByteArrayHelper.FromHexString(tokenReceiver)),
+                        To = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(tokenReceiver)),
                         Memo = "Set initial miner's balance."
                     });
             }

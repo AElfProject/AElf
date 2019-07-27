@@ -88,7 +88,7 @@ namespace AElf.Sdk.CSharp.Tests
             hash.ShouldBe(hash1);
 
             //Address test
-            var address = Address.Generate();
+            var address = SampleAddress.AddressList[0];
             var addressArray = SerializationHelper.Serialize(address);
             var address1 = SerializationHelper.Deserialize<Address>(addressArray);
             address.ShouldBe(address1);
@@ -96,8 +96,8 @@ namespace AElf.Sdk.CSharp.Tests
             //Transaction test
             var transaction = new Transaction
             {
-                From = Address.Generate(),
-                To = Address.Generate(),
+                From = SampleAddress.AddressList[1],
+                To = SampleAddress.AddressList[2],
                 Params = ByteString.CopyFromUtf8("test"),
                 MethodName = "TestMethod",
                 RefBlockNumber = 1,

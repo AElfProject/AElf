@@ -396,7 +396,7 @@ namespace AElf.Contracts.Treasury
             {
                 if (minerReElectionInformation.ContinualAppointmentTimes.ContainsKey(victory))
                 {
-                    var minerAddress = Address.FromPublicKey(ByteArrayHelper.FromHexString(victory));
+                    var minerAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(victory));
                     var continualAppointmentCount =
                         minerReElectionInformation.ContinualAppointmentTimes[victory].Add(1);
                     minerReElectionInformation.ContinualAppointmentTimes[victory] = continualAppointmentCount;
@@ -462,7 +462,7 @@ namespace AElf.Contracts.Treasury
                     obtainedVotes = dataCenterRankingList.DataCenters[victory];
                 }
 
-                var minerAddress = Address.FromPublicKey(ByteArrayHelper.FromHexString(victory));
+                var minerAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(victory));
                 if (obtainedVotes > 0)
                 {
                     votesWeightRewardProfitAddBeneficiaries.BeneficiaryShares.Add(new BeneficiaryShare

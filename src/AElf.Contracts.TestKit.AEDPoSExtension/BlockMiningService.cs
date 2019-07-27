@@ -221,7 +221,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 
         private (AEDPoSContractImplContainer.AEDPoSContractImplStub, BytesValue) ProperContractStub(MinerInRound minerInRound)
         {
-            var pubkey = ByteArrayHelper.FromHexString(minerInRound.Pubkey);
+            var pubkey = ByteArrayHelper.HexStringToByteArray(minerInRound.Pubkey);
             var keyPair = SampleECKeyPairs.KeyPairs.First(p => p.PublicKey.BytesEqual(pubkey));
             _testDataProvider.SetKeyPair(keyPair);
             return (_contractTesterFactory.Create<AEDPoSContractImplContainer.AEDPoSContractImplStub>(

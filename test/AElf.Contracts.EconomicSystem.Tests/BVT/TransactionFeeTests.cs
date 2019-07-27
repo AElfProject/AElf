@@ -62,7 +62,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = BootMinerAddress
             })).Balance;
-            var address = Address.Generate().GetFormatted();
+            var address = SampleAddress.AddressList[1].GetFormatted();
             var transactionResult = (await VoteContractStub.AddOption.SendAsync(new AddOptionInput
             {
                 Option = address,
@@ -212,7 +212,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             int totalSnapshotNumber = int.MaxValue)
         {
             var startTime = TimestampHelper.GetUtcNow();
-            var options = Enumerable.Range(0, optionsCount).Select(_ => Address.Generate().GetFormatted()).ToList();
+            var options = Enumerable.Range(0, optionsCount).Select(_ => SampleAddress.AddressList[0].GetFormatted()).ToList();
             var input = new VotingRegisterInput
             {
                 TotalSnapshotNumber = totalSnapshotNumber,

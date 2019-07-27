@@ -87,8 +87,8 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             foreach (var keyPair in keyPairs)
             {
                 var amount = await GetBalanceAsync(Address.FromPublicKey(keyPair.PublicKey));
-                amount.ShouldBeGreaterThan(shouldIncrease + balancesBefore[keyPair] - tolerance);
-                amount.ShouldBeLessThan(shouldIncrease + balancesBefore[keyPair] + tolerance);
+                amount.ShouldBeGreaterThanOrEqualTo(shouldIncrease + balancesBefore[keyPair] - tolerance);
+                amount.ShouldBeLessThanOrEqualTo(shouldIncrease + balancesBefore[keyPair] + tolerance);
             }
         }
 
@@ -129,7 +129,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     ContractAddresses[ElectionSmartContractAddressNameProvider.Name], p)).ToList();
         }
 
-        internal async Task<List<Transaction>> GetVoteTransactionsAsync(int timesOfMinimumLockDays,
+        internal List<Transaction> GetVoteTransactions(int timesOfMinimumLockDays,
             long amount, string candidatePubkey, int votersCount = 0)
         {
             if (votersCount > AEDPoSExtensionConstants.CitizenKeyPairsCount)

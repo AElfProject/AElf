@@ -18,15 +18,15 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
             _chainService = GetRequiredService<IBlockchainService>();
         }
 
+        // TODO: Mock more to test internal logic of DiscoverAndSetIrreversibleAsync.
         [Fact]
         public async Task DiscoverAndSetIrreversibleAsync_Test()
         {
             var chain = await _chainService.GetChainAsync();
             var blockId = chain.LastIrreversibleBlockHash;
-            var iblockIndex =
+            var blockIndex =
                 await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(chain, new[] {blockId});
-            iblockIndex.Hash.ShouldBe(new Hash());
-            iblockIndex.Height.ShouldBe(15);
+            blockIndex.ShouldBeNull();
         }
     }
 }

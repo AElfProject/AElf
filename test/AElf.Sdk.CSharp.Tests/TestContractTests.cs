@@ -14,11 +14,9 @@ namespace AElf.Sdk.CSharp.Tests
 {
     public class TestContractTests : SdkCSharpTestBase
     {
-        private List<Address> AddressList { get; } = new[] {"a", "b", "c", "d"}.Select(Address.FromString).ToList();
         private CustomContract.TestContract Contract = new CustomContract.TestContract();
         private IStateProvider StateProvider { get; }
         private IHostSmartContractBridgeContext BridgeContext { get; }
-        private ISmartContractBridgeContext SmartBridgeContext { get; }
 
         public TestContractTests()
         {
@@ -29,16 +27,14 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 Transaction = new Transaction()
                 {
-                    From = AddressList[1],
-                    To = AddressList[0]
+                    From = SampleAddress.AddressList[0],
+                    To = SampleAddress.AddressList[1]
                 }
             };
 
             BridgeContext.TransactionContext = transactionContext;
             
             Contract.InternalInitialize(BridgeContext);
-            
-            SmartBridgeContext = BridgeContext;
         }
 
         [Fact]
@@ -137,7 +133,7 @@ namespace AElf.Sdk.CSharp.Tests
         {
             var input = new CustomContract.BytesInput
             {
-                BytesValue = Address.Generate().ToByteString()
+                BytesValue = SampleAddress.AddressList[0].ToByteString()
             };
 
             var output = Contract.TestBytesState(input);
@@ -253,7 +249,7 @@ namespace AElf.Sdk.CSharp.Tests
         [Fact]
         public void SendVirtualInline_Test()
         {
-            SmartBridgeContext.SendVirtualInline(Hash.FromString("SendVirtualInline_Test"), Address.Generate(), "TestMethod", new CustomContract.StringInput
+            BridgeContext.SendVirtualInline(Hash.FromString("hash"), SampleAddress.AddressList[0], "TestMethod", new CustomContract.StringInput
             {
                 StringValue = "test send virtual inline"
             });
@@ -262,7 +258,7 @@ namespace AElf.Sdk.CSharp.Tests
         [Fact]
         public void SendInline_Test()
         {
-            SmartBridgeContext.SendInline(Address.Generate(), "TestMethod", new CustomContract.StringInput
+            BridgeContext.SendInline(SampleAddress.AddressList[0], "TestMethod", new CustomContract.StringInput
             {
                 StringValue = "test send inline"
             });
