@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
-using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -106,7 +105,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Transfer(TransferInput input)
         {
-            AssertValidToken(input.Symbol, input.Amount);
+            AssertValidSymbolAndAmount(input.Symbol, input.Amount);
             DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
             return new Empty();
         }
@@ -213,7 +212,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty TransferFrom(TransferFromInput input)
         {
-            AssertValidToken(input.Symbol, input.Amount);
+            AssertValidSymbolAndAmount(input.Symbol, input.Amount);
 
             // First check allowance.
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
