@@ -678,7 +678,7 @@ namespace AElf.Contracts.Profit
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
-            var availableDetails = profitDetails.Details.Where(d => d.EndPeriod > d.LastProfitPeriod).ToList();
+            var availableDetails = profitDetails.Details.Where(d => d.EndPeriod >= d.LastProfitPeriod).ToList();
             var profitableDetails = availableDetails.Where(d => d.LastProfitPeriod < scheme.CurrentPeriod).ToList();
 
             Context.LogDebug(() =>

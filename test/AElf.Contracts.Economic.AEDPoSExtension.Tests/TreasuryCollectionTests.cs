@@ -10,7 +10,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 {
     public partial class EconomicTests : EconomicTestBase
     {
-        [Fact]
+        [Fact(Skip = "Skip for saving time.")]
         public async Task TreasuryCollectionTest_FirstTerm()
         {
             var distributedAmount = await TreasuryDistributionTest_FirstTerm();
@@ -28,7 +28,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 distributedAmount / 5 / 5 - EconomicTestConstants.TransactionFeeOfClaimProfit, balancesBefore);
         }
 
-        [Fact]
+        [Fact(Skip = "Skip for saving time.")]
         public async Task TreasuryCollectionTest_SecondTerm()
         {
             var distributedAmountOfFirstTerm = await TreasuryDistributionTest_FirstTerm();
@@ -100,7 +100,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Skip for saving time.")]
         public async Task TreasuryCollectionTest_ThirdTerm()
         {
             var distributedAmountOfFirstTerm = await TreasuryDistributionTest_FirstTerm();
@@ -230,7 +230,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                         Owner = Address.FromPublicKey(k.PublicKey),
                         Symbol = EconomicTestConstants.TokenSymbol
                     })).Balance);
-                // Because we have limit of profiting, need call ClaimProfits 4 times to profit all.
+                // We limited profiting, thus ClaimProfits need to be called 4 times to profit all.
                 await ClaimProfits(firstTenVoters, _schemes[SchemeType.CitizenWelfare].SchemeId);
                 await ClaimProfits(firstTenVoters, _schemes[SchemeType.CitizenWelfare].SchemeId);
                 await ClaimProfits(firstTenVoters, _schemes[SchemeType.CitizenWelfare].SchemeId);
