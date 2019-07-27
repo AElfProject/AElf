@@ -117,6 +117,7 @@ namespace AElf.Contracts.Profit
             Assert(subScheme != null, "Sub scheme not found.");
 
             var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeId);
+            // Add profit details and total shares of the father scheme.
             AddBeneficiary(new AddBeneficiaryInput
             {
                 SchemeId = input.SchemeId,
@@ -134,7 +135,6 @@ namespace AElf.Contracts.Profit
                 SchemeId = input.SubSchemeId,
                 Shares = input.SubSchemeShares
             });
-            scheme.TotalShares = scheme.TotalShares.Add(input.SubSchemeShares);
             State.SchemeInfos[input.SchemeId] = scheme;
 
             return new Empty();
@@ -156,11 +156,8 @@ namespace AElf.Contracts.Profit
             if (subScheme == null) return new Empty();
 
             var subSchemeVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeId);
-            RemoveBeneficiary(new RemoveBeneficiaryInput
-            {
-                SchemeId = input.SchemeId,
-                Beneficiary = subSchemeVirtualAddress
-            });
+            // Remove profit details
+            State.ProfitDetailsMap[input.SchemeId][subSchemeVirtualAddress] = new ProfitDetails();
 
             var shares = scheme.SubSchemes.Single(d => d.SchemeId == input.SubSchemeId);
             scheme.SubSchemes.Remove(shares);

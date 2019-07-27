@@ -87,9 +87,11 @@ namespace AElf.Kernel.SmartContract.Parallel
             returnSets.AddRange(nonParallelizableReturnSets);
             if (conflictingSets.Count > 0)
             {
-                // TODO: Add event handler somewhere, identify the conflicting transactions and remove them from txHub
-                await EventBus.PublishAsync(
-                    new ConflictingTransactionsFoundInParallelGroupsEvent(returnSets, conflictingSets));
+                await EventBus.PublishAsync(new ConflictingTransactionsFoundInParallelGroupsEvent(
+                    blockHeader.Height - 1,
+                    blockHeader.PreviousBlockHash,
+                    returnSets, conflictingSets
+                ));
             }
 
             var transactionOrder = transactions.Select(t => t.GetHash()).ToList();
@@ -121,6 +123,10 @@ namespace AElf.Kernel.SmartContract.Parallel
                 if (!existingKeys.Overlaps(keys))
                 {
                     returnSets.AddRange(sets);
+                    foreach (var key in keys)
+                    {
+                        existingKeys.Add(key);
+                    }
                 }
                 else
                 {

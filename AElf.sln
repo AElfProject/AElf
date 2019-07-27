@@ -325,6 +325,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.AEDPoSExtens
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Economic.AEDPoSExtension.Tests", "test\AElf.Contracts.Economic.AEDPoSExtension.Tests\AElf.Contracts.Economic.AEDPoSExtension.Tests.csproj", "{A33DF532-A418-400F-B803-89AC4C669490}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Parallel.Tests", "test\AElf.Parallel.Tests\AElf.Parallel.Tests.csproj", "{51D379F2-B146-4266-BC1A-C98EBF5C69EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.BasicFunctionWithParallel", "test\AElf.Contracts.TestContract.BasicFunctionWithParallel\AElf.Contracts.TestContract.BasicFunctionWithParallel.csproj", "{D62A334F-6237-4B83-B195-09ED1F25E344}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -919,6 +923,14 @@ Global
 		{A33DF532-A418-400F-B803-89AC4C669490}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A33DF532-A418-400F-B803-89AC4C669490}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A33DF532-A418-400F-B803-89AC4C669490}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51D379F2-B146-4266-BC1A-C98EBF5C69EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51D379F2-B146-4266-BC1A-C98EBF5C69EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51D379F2-B146-4266-BC1A-C98EBF5C69EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51D379F2-B146-4266-BC1A-C98EBF5C69EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D62A334F-6237-4B83-B195-09ED1F25E344}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D62A334F-6237-4B83-B195-09ED1F25E344}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D62A334F-6237-4B83-B195-09ED1F25E344}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D62A334F-6237-4B83-B195-09ED1F25E344}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1083,5 +1095,7 @@ Global
 		{B48EE4A8-8BA9-404E-9839-A2522002FD2E} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{4DD0A6AA-2F9A-49BA-88D3-2285F927CA4A} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{A33DF532-A418-400F-B803-89AC4C669490} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{51D379F2-B146-4266-BC1A-C98EBF5C69EC} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{D62A334F-6237-4B83-B195-09ED1F25E344} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 	EndGlobalSection
 EndGlobal
