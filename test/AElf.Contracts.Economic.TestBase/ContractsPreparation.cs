@@ -539,11 +539,15 @@ namespace AElf.Contracts.Economic.TestBase
             CheckResult(createResult.TransactionResult);
 
             var proposalHash = Hash.FromMessage(proposal);
-            var approveResult = await ParliamentAuthContractStub.Approve.SendAsync(new Acs3.ApproveInput
+            foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
-                ProposalId = proposalHash,
-            });
-            CheckResult(approveResult.TransactionResult);
+                var tester = GetParliamentAuthContractTester(bp);
+                var approveResult = await tester.Approve.SendAsync(new Acs3.ApproveInput
+                {
+                    ProposalId = proposalHash,
+                });
+                CheckResult(approveResult.TransactionResult);
+            }
 
             var releaseResult = await ParliamentAuthContractStub.Release.SendAsync(proposalHash);
             CheckResult(releaseResult.TransactionResult);
