@@ -41,6 +41,8 @@ service TokenContract {
     }
     rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {
     }
+    rpc RegisterNativeTokenInfo(RegisterNativeTokenInfoInput) returns (google.protobuf.Empty) {
+    }  
     rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
     }
     rpc CrossChainReceiveToken (CrossChainReceiveTokenInput) returns (google.protobuf.Empty) {
@@ -52,6 +54,9 @@ service TokenContract {
     
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetNativeTokenInfo (google.protobuf.Empty) returns (TokenInfo) {
         option (aelf.is_view) = true;
     }
     rpc GetBalance (GetBalanceInput) returns (GetBalanceOutput) {
@@ -94,6 +99,16 @@ message CreateNativeTokenInput {
     aelf.Address issuer = 5;
     bool is_burnable = 6;
     repeated aelf.Hash lock_white_system_contract_name_list = 7;
+}
+
+message RegisterNativeTokenInfoInput{
+    string symbol = 1;
+    string tokenName = 2;
+    sint64 totalSupply = 3;
+    sint32 decimals = 4;
+    aelf.Address issuer = 5;
+    bool is_burnable = 6;
+    sint32 issue_chain_id = 8;
 }
 
 message IssueInput {

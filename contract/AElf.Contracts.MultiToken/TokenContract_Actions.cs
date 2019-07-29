@@ -65,6 +65,26 @@ namespace AElf.Contracts.MultiToken
             return Create(createInput);
         }
 
+        public override Empty RegisterNativeTokenInfo(RegisterNativeTokenInfoInput input)
+        {
+            Assert(string.IsNullOrEmpty(State.NativeTokenSymbol.Value), "Native token already registered.");
+            State.NativeTokenSymbol.Value = input.Symbol;
+            
+            var tokenInfo = new TokenInfo
+            {
+                Symbol = input.Symbol,
+                TokenName = input.TokenName,
+                TotalSupply = input.TotalSupply,
+                Issuer = input.Issuer,
+                Decimals = input.Decimals,
+                IsBurnable = true,
+                IssueChainId = input.IssueChainId
+            };
+
+            RegisterTokenInfo(tokenInfo);
+            return new Empty();
+        }
+
         /// <summary>
         /// Issue the token of corresponding contract
         /// </summary>
