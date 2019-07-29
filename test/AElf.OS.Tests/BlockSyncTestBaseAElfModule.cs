@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Modularity;
 
 namespace AElf.OS
@@ -22,6 +23,8 @@ namespace AElf.OS
 
                 return taskQueue.Object;
             });
+            
+            Configure<BackgroundWorkerOptions>(o => { o.IsEnabled = false; });
         }
     }
 }
