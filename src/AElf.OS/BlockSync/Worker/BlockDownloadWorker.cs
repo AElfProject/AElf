@@ -139,7 +139,8 @@ namespace AElf.OS.BlockSync.Worker
                         PreviousBlockHeight = jobInfo.CurrentTargetBlockHeight,
                         BatchRequestBlockCount = jobInfo.BatchRequestBlockCount,
                         SuggestedPeerPubkey = jobInfo.SuggestedPeerPubkey,
-                        MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount
+                        MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount,
+                        UseSuggestedPeer = false
                     });
                 }
             }
@@ -152,7 +153,8 @@ namespace AElf.OS.BlockSync.Worker
                     PreviousBlockHeight = chain.LongestChainHeight,
                     BatchRequestBlockCount = jobInfo.BatchRequestBlockCount,
                     SuggestedPeerPubkey = jobInfo.SuggestedPeerPubkey,
-                    MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount
+                    MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount,
+                    UseSuggestedPeer = true
                 });
                 // Download blocks from best chain
                 if (downloadResult.DownloadBlockCount == 0)
@@ -163,7 +165,8 @@ namespace AElf.OS.BlockSync.Worker
                         PreviousBlockHeight = chain.BestChainHeight,
                         BatchRequestBlockCount = jobInfo.BatchRequestBlockCount,
                         SuggestedPeerPubkey = jobInfo.SuggestedPeerPubkey,
-                        MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount
+                        MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount,
+                        UseSuggestedPeer = true
                     });
                 }
                 // Download blocks from LIB
@@ -176,7 +179,8 @@ namespace AElf.OS.BlockSync.Worker
                         PreviousBlockHeight = chain.LastIrreversibleBlockHeight,
                         BatchRequestBlockCount = jobInfo.BatchRequestBlockCount,
                         SuggestedPeerPubkey = jobInfo.SuggestedPeerPubkey,
-                        MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount
+                        MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount,
+                        UseSuggestedPeer = true
                     });
                 }
             }

@@ -36,6 +36,34 @@ namespace AElf.OS.BlockSync.Application
 
         public async Task<DownloadBlocksResult> DownloadBlocksAsync(DownloadBlockDto downloadBlockDto)
         {
+            if (downloadBlockDto.UseSuggestedPeer)
+            {
+                return await DownloadBlocksAsync(downloadBlockDto, downloadBlockDto.SuggestedPeerPubkey);
+            }
+
+            var suggestedPeer = _networkService.GetPeerByPubkey(downloadBlockDto.SuggestedPeerPubkey);
+            var downloadTargetHeight = downloadBlockDto.PreviousBlockHeight + downloadBlockDto.MaxBlockDownloadCount;
+            if (downloadTargetHeight > suggestedPeer.LastKnownLibHeight)
+            {
+                return await DownloadBlocksAsync(downloadBlockDto, downloadBlockDto.SuggestedPeerPubkey);
+            }
+
+            // Select a random peer
+            var random = new Random();
+            var peers = _networkService.GetPeers();
+            var randomPeer = peers[random.Next() % peers.Count];
+
+            var downloadResult = await DownloadBlocksAsync(downloadBlockDto, randomPeer.Info.Pubkey);
+            if (downloadResult.DownloadBlockCount == 0)
+            {
+                // Found bad peer, how to know which one is the bad peer?
+            }
+
+            return downloadResult;
+        }
+
+        private async Task<DownloadBlocksResult> DownloadBlocksAsync(DownloadBlockDto downloadBlockDto, string peerPubkey)
+        {
             var downloadBlockCount = 0;
             var lastDownloadBlockHash = downloadBlockDto.PreviousBlockHash;
             var lastDownloadBlockHeight = downloadBlockDto.PreviousBlockHeight;
@@ -46,7 +74,7 @@ namespace AElf.OS.BlockSync.Application
                     $"Request blocks start with block hash: {lastDownloadBlockHash}, block height: {lastDownloadBlockHeight}");
 
                 var blocksWithTransactions = await _networkService.GetBlocksAsync(lastDownloadBlockHash,
-                    downloadBlockDto.BatchRequestBlockCount, downloadBlockDto.SuggestedPeerPubkey);
+                    downloadBlockDto.BatchRequestBlockCount, peerPubkey);
 
                 if (blocksWithTransactions == null || !blocksWithTransactions.Any())
                 {

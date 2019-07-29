@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
@@ -9,6 +7,7 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -62,6 +61,8 @@ namespace AElf.OS
                         return Task.FromResult(result);
                     });
 
+                networkServiceMock.Setup(p => p.GetPeerByPubkey(It.IsAny<string>())).Returns(Mock.Of<IPeer>());
+
                 return networkServiceMock.Object;
             });
         }
@@ -69,7 +70,6 @@ namespace AElf.OS
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var blockchainService = context.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var genService = context.ServiceProvider.GetRequiredService<IBlockGenerationService>();
             var exec = context.ServiceProvider.GetRequiredService<IBlockExecutingService>();
             var osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
 

@@ -13,5 +13,7 @@ namespace AElf.OS.BlockSync.Dto
         public int MaxBlockDownloadCount { get; set; }
 
         public string SuggestedPeerPubkey { get; set; }
+
+        public bool UseSuggestedPeer { get; set; }
     }
 }

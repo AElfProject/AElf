@@ -10,9 +10,11 @@ namespace AElf.OS.Network.Application
     {
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
+        // TODO: Peer is a network infrastructure, it is not correct to return peer directly.
         List<IPeer> GetPeers();
-        Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash, string peer = null);
-        Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, string peerPubKey = null);
+        IPeer GetPeerByPubkey(string peerPubkey);
+        Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash, string peerPubkey = null);
+        Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, string peerPubkey = null);
         Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork);
         Task BroadcastTransactionAsync(Transaction transaction);
         Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions);

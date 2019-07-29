@@ -57,6 +57,11 @@ namespace AElf.OS.Network.Application
             return _peerPool.GetPeers(true).ToList();
         }
 
+        public IPeer GetPeerByPubkey(string peerPubkey)
+        {
+            return _peerPool.FindPeerByPublicKey(peerPubkey);
+        }
+
         private bool IsOldBlock(BlockHeader header)
         {
             var limit = TimestampHelper.GetUtcNow() 
@@ -192,13 +197,13 @@ namespace AElf.OS.Network.Application
         }
 
         public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, 
-            string peerPubKey = null)
+            string peerPubkey = null)
         {
-            var peers = SelectPeers(peerPubKey);
+            var peers = SelectPeers(peerPubkey);
 
             var blocks = await RequestAsync(peers, p => p.GetBlocksAsync(previousBlock, count), 
                 blockList => blockList != null && blockList.Count > 0, 
-                peerPubKey);
+                peerPubkey);
 
             if (blocks != null && (blocks.Count == 0 || blocks.Count != count))
                 Logger.LogWarning($"Block count miss match, asked for {count} but got {blocks.Count}");
@@ -242,12 +247,12 @@ namespace AElf.OS.Network.Application
             return peers;
         }
         
-        public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash, string peer = null)
+        public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash, string peerPubkey = null)
         {
-            Logger.LogDebug($"Getting block by hash, hash: {hash} from {peer}.");
+            Logger.LogDebug($"Getting block by hash, hash: {hash} from {peerPubkey}.");
             
-            var peers = SelectPeers(peer);
-            return await RequestAsync(peers, p => p.GetBlockByHashAsync(hash), blockWithTransactions => blockWithTransactions != null, peer);
+            var peers = SelectPeers(peerPubkey);
+            return await RequestAsync(peers, p => p.GetBlockByHashAsync(hash), blockWithTransactions => blockWithTransactions != null, peerPubkey);
         }
 
         private async Task<(IPeer, T)> DoRequest<T>(IPeer peer, Func<IPeer, Task<T>> func) where T : class
