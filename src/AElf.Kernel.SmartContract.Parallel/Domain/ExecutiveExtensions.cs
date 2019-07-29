@@ -60,9 +60,9 @@ namespace AElf.Kernel.SmartContract.Parallel
             return new TransactionResourceInfo
             {
                 TransactionId = txId,
-                Resources =
+                Paths =
                 {
-                    resourceInfo.Reources
+                    resourceInfo.Paths
                 },
                 NonParallelizable = resourceInfo.NonParallelizable
             };

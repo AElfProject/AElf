@@ -38,7 +38,10 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         {
             var txn = GetAcs2Transaction(new ResourceInfo
             {
-                Reources = {12345}
+                Paths =
+                {
+                    GetPath(12345)
+                }
             });
             var resourceInfos =
                 (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, CancellationToken.None))
@@ -48,10 +51,33 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
             {
                 TransactionId = txn.GetHash(),
-                Resources =
+                Paths =
                 {
-                    12345
+                    GetPath(12345)
                 }
+            });
+        }
+
+        [Fact]
+        public async Task GetResourcesAsync_Acs2_MarkedNonParallelizable()
+        {
+            var txn = GetAcs2Transaction(new ResourceInfo
+            {
+                Paths =
+                {
+                    GetPath(12345)
+                }
+            });
+            MockCodeRemarksManager.NonParallelizable = true;
+            var resourceInfos =
+                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, CancellationToken.None))
+                .ToList();
+
+            resourceInfos.Count.ShouldBe(1);
+            resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
+            {
+                TransactionId = txn.GetHash(),
+                NonParallelizable = true
             });
         }
 
@@ -95,6 +121,17 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 MethodName = nameof(SmartContractExecution.Parallel.Tests.TestContract.TestContract.GetResourceInfo),
                 Params = resourceInfo.ToByteString(),
                 Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
+            };
+        }
+
+        private ScopedStatePath GetPath(int value)
+        {
+            return new ScopedStatePath
+            {
+                Path = new StatePath
+                {
+                    Parts = {value.ToString()}
+                }
             };
         }
     }

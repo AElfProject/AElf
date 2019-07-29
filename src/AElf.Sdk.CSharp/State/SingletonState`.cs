@@ -54,7 +54,7 @@ namespace AElf.Sdk.CSharp.State
                 stateSet.Writes[key] = ByteString.CopyFrom(SerializationHelper.Serialize(_value));
             }
 
-            stateSet.Reads[key] = true;
+            if (Loaded) stateSet.Reads[key] = true;
 
             return stateSet;
         }
