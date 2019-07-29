@@ -5,6 +5,7 @@ using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -526,9 +527,9 @@ namespace AElf.Contract.CrossChain.Tests
             await ApproveWithMinersAsync(proposalId);
             await ReleaseProposalAsync(proposalId);
 
+            var otherUser = Tester.CreateNewContractTester(Tester.InitialMinerList[1]);
             var txResult = await Tester.ExecuteContractWithMiningAsync(CrossChainContractAddress,
-                nameof(CrossChainContractContainer.CrossChainContractStub.ChangOwnerAddress),
-                Address.FromString("Test"));
+                nameof(CrossChainContractContainer.CrossChainContractStub.ChangOwnerAddress),otherUser.GetCallOwnerAddress());
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Mined);
         }
@@ -537,8 +538,7 @@ namespace AElf.Contract.CrossChain.Tests
         public async Task ChangeOwnerAddress_NotAuthorized()
         {
             var txResult = await Tester.ExecuteContractWithMiningAsync(CrossChainContractAddress,
-                nameof(CrossChainContractContainer.CrossChainContractStub.ChangOwnerAddress),
-                Address.FromString("Test"));
+                nameof(CrossChainContractContainer.CrossChainContractStub.ChangOwnerAddress), Tester.GetCallOwnerAddress());
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
             Assert.Contains("Not authorized to do this.", txResult.Error);
