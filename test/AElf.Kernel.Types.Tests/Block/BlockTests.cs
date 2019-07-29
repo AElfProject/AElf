@@ -102,8 +102,8 @@ namespace AElf.Kernel.Types.Tests
             {
                var transaction = new Transaction()
                {
-                   From = Address.Generate(),
-                   To = Address.Generate(),
+                   From = AddressHelper.Base58StringToAddress("z1NVbziJbekvcza3Zr4Gt4eAvoPBZThB68LHRQftrVFwjtGVM"),
+                   To = AddressHelper.Base58StringToAddress("2vNDCj1WjNLAXm3VnEeGGRMw3Aab4amVSEaYmCyxQKjNhLhfL7"),
                    MethodName = $"Test{i}",
                    Params = ByteString.Empty
                };

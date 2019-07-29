@@ -100,8 +100,8 @@ namespace AElf.Kernel.Blockchain.Application
         {
             return new Transaction()
             {
-                From = Address.Zero,
-                To = Address.Zero,
+                From = SampleAddress.AddressList[0],
+                To = SampleAddress.AddressList[1],
                 MethodName = id
             };
         }

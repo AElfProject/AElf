@@ -55,7 +55,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             if (state != null)
             {
                 _toBeCleanedKeys.Enqueue(key);
-                while (_toBeCleanedKeys.Count > 100)
+                while (_toBeCleanedKeys.Count > 1024)
                 {
                     try
                     {

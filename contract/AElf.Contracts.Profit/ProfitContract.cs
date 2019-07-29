@@ -134,7 +134,7 @@ namespace AElf.Contracts.Profit
                 ProfitId = input.SubProfitId,
                 Weight = input.SubItemWeight
             });
-            profitItem.TotalWeight = profitItem.TotalWeight.Add(input.SubItemWeight);
+            //profitItem.TotalWeight = profitItem.TotalWeight.Add(input.SubItemWeight);
             State.ProfitItemsMap[input.ProfitId] = profitItem;
 
             return new Empty();

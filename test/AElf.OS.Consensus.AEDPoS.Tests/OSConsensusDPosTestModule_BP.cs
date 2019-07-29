@@ -24,13 +24,13 @@ namespace AElf.OS.Consensus.DPos
     public class OSConsensusDPosTestModule_BP : AElfModule
     {
         private readonly ECKeyPair _keyPair = CryptoHelper.FromPrivateKey(
-            ByteArrayHelper.FromHexString(OSConsensusDPosTestConstants.PrivateKeyHex));
+            ByteArrayHelper.HexStringToByteArray(OSConsensusDPosTestConstants.PrivateKeyHex));
         
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
             services.AddTransient<IAccountService, AccountService>();
-            services.AddSingleton<IPeerPool, GrpcPeerPool>();
+            services.AddSingleton<IPeerPool, PeerPool>();
 
             services.AddTransient(o =>
             {
@@ -55,12 +55,12 @@ namespace AElf.OS.Consensus.DPos
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            var peerPool = context.ServiceProvider.GetRequiredService<IPeerPool>();
+            var peerPool = context.ServiceProvider.GetRequiredService<IKnownBlockCacheProvider>();
             var osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
             var blocks = osTestHelper.BestBranchBlockList.GetRange(0, 6);
             foreach (var block in blocks)
             {
-                peerPool.AddRecentBlockHeightAndHash(block.Height,block.GetHash(),false);
+                peerPool.AddKnownBlock(block.Height,block.GetHash(),false);
             }
         }
     }
