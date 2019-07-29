@@ -23,7 +23,7 @@ namespace AElf.CrossChain.Communication
         [Fact]
         public async Task ResponseParentChainBlockData_WithoutBlock_Test()
         {
-            var chainId = 123;
+            var chainId = ChainHelper.GetChainId(1);
             var height = 5;
             var res = await _chainResponseService.ResponseParentChainBlockDataAsync(height, chainId);
             Assert.Null(res);
@@ -32,7 +32,7 @@ namespace AElf.CrossChain.Communication
         [Fact]
         public async Task ResponseParentChainBlockData_Test()
         {
-            var chainId = 123;
+            var chainId = ChainHelper.GetChainId(1);
             var height = 3;
             var res = await _chainResponseService.ResponseParentChainBlockDataAsync(height, chainId);
             Assert.NotNull(res);

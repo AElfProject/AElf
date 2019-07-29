@@ -22,20 +22,6 @@ namespace AElf.CrossChain.Communication.Grpc
             _grpcCrossChainClientProvider = GetRequiredService<GrpcCrossChainClientProvider>();
         }
 
-        // TODO: These cases are meaningless and should be rewritten.
-//        [Fact]
-//        public async Task ParentChainClient_StartIndexingRequest_WithException()
-//        {
-//            await Assert.ThrowsAsync<RpcException>(()=>parentClient.StartIndexingRequest(0, 1, _crossChainDataProducer));  
-//        }
-//        
-//        [Fact(Skip = "Not meaningful at all.")]
-//        public async Task SideChainClient_StartIndexingRequest_WithException()
-//        {
-//            // is this meaningful? 
-//            await Assert.ThrowsAsync<RpcException>(()=>sideClient.StartIndexingRequest(0, 2, _crossChainDataProducer));
-//        }
-
         [Fact]
         public async Task BasicCrossChainClient_TryHandShake_Test()
         {
@@ -53,8 +39,8 @@ namespace AElf.CrossChain.Communication.Grpc
         [Fact]
         public async Task GetClient_Test()
         {
-            var remoteChainId = 123;
-            var localChainId = 456;
+            var remoteChainId = ChainHelper.GetChainId(1);
+            var localChainId = ChainHelper.GetChainId(2);
             await _server.StartAsync(Host, 5000);
             CreateAndCacheClient(localChainId, false, 5000, remoteChainId);
             var client = await _grpcCrossChainClientProvider.GetClientAsync(remoteChainId);
@@ -65,8 +51,8 @@ namespace AElf.CrossChain.Communication.Grpc
         [Fact]
         public async Task GetClientService_Test()
         {
-            var remoteChainId = 123;
-            var localChainId = 456;
+            var remoteChainId = ChainHelper.GetChainId(1);
+            var localChainId = ChainHelper.GetChainId(2);
             await _server.StartAsync(Host, 5000);
 
             var fakeCrossChainClient = new CrossChainClientDto
@@ -87,7 +73,7 @@ namespace AElf.CrossChain.Communication.Grpc
         [Fact]
         public async Task RequestChainInitializationData_SideClient_Test()
         {
-            var chainId = 123;
+            var chainId = ChainHelper.GetChainId(1);
             await _server.StartAsync(Host, 5000);
             var client = CreateCrossChainClient(chainId, false);
             await Assert.ThrowsAsync<NotImplementedException>(() =>
@@ -98,7 +84,7 @@ namespace AElf.CrossChain.Communication.Grpc
         [Fact]
         public async Task RequestChainInitializationData_ParentClient_Test()
         {
-            var chainId = 123;
+            var chainId = _chainOptions.ChainId;
             await _server.StartAsync(Host, 5000);
             var client = _grpcCrossChainClientService.CreateClientForChainInitializationData(chainId);
             await client.RequestChainInitializationDataAsync(chainId);
@@ -108,7 +94,7 @@ namespace AElf.CrossChain.Communication.Grpc
         [Fact]
         public async Task RequestCrossChainData_Test()
         {
-            var chainId = 123;
+            var chainId = ChainHelper.GetChainId(1);
             var height = 2;
             await _server.StartAsync(Host, 5000);
             var client = CreateCrossChainClient(chainId, false);

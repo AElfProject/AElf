@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Kernel;
 using Microsoft.Extensions.Options;
 using Xunit;
 
@@ -9,14 +8,12 @@ namespace AElf.CrossChain.Communication.Grpc
     {
         private readonly GrpcCrossChainServerNodePlugin _grpcCrossChainServerNodePlugin;
         private readonly GrpcCrossChainClientNodePlugin _grpcCrossChainClientNodePlugin;
-        private readonly ChainOptions _chainOptions;
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
 
         public GrpcCrossChainClientNodePluginTest()
         {
             _grpcCrossChainServerNodePlugin = GetRequiredService<GrpcCrossChainServerNodePlugin>();
             _grpcCrossChainClientNodePlugin = GetRequiredService<GrpcCrossChainClientNodePlugin>();
-            _chainOptions = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value;
             _grpcCrossChainConfigOption = GetRequiredService<IOptionsSnapshot<GrpcCrossChainConfigOption>>().Value;
         }
 
@@ -53,9 +50,7 @@ namespace AElf.CrossChain.Communication.Grpc
             };
             await _grpcCrossChainClientNodePlugin.CreateClientAsync(grpcCrossChainClientDto);
         }
-
-        //TODO: Add test cases for GrpcCrossChainClientNodePlugin.ShutdownAsync after it is implemented [Case]
-
+        
         [Fact]
         public async Task StopClientTest_Test()
         {

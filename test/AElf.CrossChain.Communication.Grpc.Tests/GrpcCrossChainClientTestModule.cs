@@ -3,18 +3,18 @@ using Acs7;
 using AElf.CrossChain.Cache.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    public class GrpcCrossChainClientTestModule : GrpcCrossChainTestModule
+    [DependsOn(typeof(GrpcCrossChainTestModule))]
+    public class GrpcCrossChainClientTestModule :AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            base.ConfigureServices(context);
-
             var services = context.Services;
             services.AddSingleton<IGrpcCrossChainServer, GrpcCrossChainServer>();
 

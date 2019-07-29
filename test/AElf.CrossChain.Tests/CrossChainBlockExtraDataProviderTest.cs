@@ -49,8 +49,8 @@ namespace AElf.CrossChain
         [Fact]
         public async Task FillExtraData_WithoutSideChainCacheData_Test()
         {
-            int chainId1 = 123;
-            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId1, 0);
+            int chainId = _chainOptions.ChainId;
+            _crossChainTestHelper.AddFakeParentChainIdHeight(chainId, 0);
             var fakeParentChainBlockDataList = new List<IBlockCacheEntity>();
 
             for (int i = 0; i < CrossChainConstants.MinimalBlockCacheEntityCount + 1; i++)
@@ -58,14 +58,14 @@ namespace AElf.CrossChain
                 fakeParentChainBlockDataList.Add(new ParentChainBlockData()
                     {
                         Height = i + 1,
-                        ChainId = chainId1
+                        ChainId = chainId
                     }
                 );
             }
 
             AddFakeCacheData(new Dictionary<int, List<IBlockCacheEntity>>
             {
-                {chainId1, fakeParentChainBlockDataList}
+                {chainId, fakeParentChainBlockDataList}
             });
             _crossChainTestHelper.SetFakeLibHeight(1);
 

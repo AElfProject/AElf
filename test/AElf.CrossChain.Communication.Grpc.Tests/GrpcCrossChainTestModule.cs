@@ -24,14 +24,6 @@ namespace AElf.CrossChain.Communication.Grpc
                 option.RemoteParentChainServerPort = 5000;
             });
             
-            Configure<ChainOptions>(option =>
-            {
-                option.ChainId = ChainHelper.ConvertBase58ToChainId("AELF");
-            });
-            
-            services.AddTransient<IGrpcClientPlugin, GrpcCrossChainClientNodePlugin>();
-            services.AddTransient<IGrpcServePlugin, GrpcCrossChainServerNodePlugin>();
-            services.AddSingleton<IGrpcCrossChainServer, GrpcCrossChainServer>();
             services.AddSingleton<GrpcCrossChainClientNodePlugin>();
         }
     }

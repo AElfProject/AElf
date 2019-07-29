@@ -17,7 +17,7 @@ namespace AElf.CrossChain
         [Fact]
         public async Task FinishInitialSync_Test()
         {
-            int chainId = 123;
+            int chainId = _chainOptions.ChainId;
             long libHeight = 10;
             _crossChainTestHelper.SetFakeLibHeight(libHeight);
             _crossChainTestHelper.AddFakeParentChainIdHeight(chainId,libHeight);

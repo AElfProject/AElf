@@ -9,13 +9,11 @@ namespace AElf.CrossChain.Communication.Grpc
     {
         private readonly GrpcCrossChainServerNodePlugin _grpcCrossChainServerNodePlugin;
         private readonly GrpcCrossChainClientNodePlugin _grpcCrossChainClientNodePlugin;
-        private readonly ChainOptions _chainOptions;
         
         public GrpcCrossChainServerNodePluginTest()
         {
             _grpcCrossChainServerNodePlugin = GetRequiredService<GrpcCrossChainServerNodePlugin>();
             _grpcCrossChainClientNodePlugin = GetRequiredService<GrpcCrossChainClientNodePlugin>();
-            _chainOptions = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value;
         }
 
         [Fact]

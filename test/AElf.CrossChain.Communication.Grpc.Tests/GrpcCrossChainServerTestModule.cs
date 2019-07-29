@@ -4,15 +4,16 @@ using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Communication.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Modularity;
 using AElf.Types;
-using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    public class GrpcCrossChainServerTestModule : GrpcCrossChainTestModule
+    [DependsOn(typeof(GrpcCrossChainTestModule))]
+    public class GrpcCrossChainServerTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
@@ -61,7 +62,7 @@ namespace AElf.CrossChain.Communication.Grpc
                         {
                             var parentChanBlockData = new ParentChainBlockData
                             {
-                                ChainId = 123,
+                                ChainId = ChainHelper.GetChainId(1),
                                 Height = 10,
                                 TransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot")
                             };
@@ -73,7 +74,7 @@ namespace AElf.CrossChain.Communication.Grpc
                         {
                             var sideChanBlockData = new SideChainBlockData()
                             {
-                                ChainId = 123,
+                                ChainId = ChainHelper.GetChainId(1),
                                 Height = 10,
                             };
                             return Task.FromResult(sideChanBlockData);

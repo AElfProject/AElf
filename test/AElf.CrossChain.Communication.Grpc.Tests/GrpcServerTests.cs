@@ -36,7 +36,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             var requestData = new CrossChainRequest
             {
-                FromChainId = 0,
+                FromChainId = ChainHelper.GetChainId(1),
                 NextHeight = 10
             };
 
@@ -50,7 +50,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             var requestData = new CrossChainRequest
             {
-                FromChainId = 0,
+                FromChainId = ChainHelper.GetChainId(1),
                 NextHeight = 9
             };
 
@@ -64,7 +64,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             var requestData = new CrossChainRequest
             {
-                FromChainId = 0,
+                FromChainId = ChainHelper.GetChainId(1),
                 NextHeight = 10
             };
             
@@ -79,7 +79,7 @@ namespace AElf.CrossChain.Communication.Grpc
             var request = new HandShake
             {
                 ListeningPort = 2100,
-                FromChainId = 0,
+                FromChainId = ChainHelper.GetChainId(1),
                 Host = "127.0.0.1"
             };
             var context = BuildServerCallContext();
@@ -94,7 +94,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             var requestData = new SideChainInitializationRequest
             {
-                ChainId = 123
+                ChainId = ChainHelper.GetChainId(1),
             };
             var context = BuildServerCallContext(); 
             var sideChainInitializationResponse =

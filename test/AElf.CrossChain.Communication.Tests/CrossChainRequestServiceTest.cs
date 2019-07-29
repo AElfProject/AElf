@@ -19,7 +19,7 @@ namespace AElf.CrossChain.Communication
         [Fact]
         public async Task RequestCrossChainDataFromOtherChains_Test()
         {
-            int chainId = 123;
+            int chainId = ChainHelper.GetChainId(1);
 
             var blockInfoCache = new List<IBlockCacheEntity>
             {

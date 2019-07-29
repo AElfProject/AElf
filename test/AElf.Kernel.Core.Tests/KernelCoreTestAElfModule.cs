@@ -6,6 +6,7 @@ using AElf.Modularity;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Moq;
 using Volo.Abp;
 using Volo.Abp.EventBus;
@@ -21,7 +22,8 @@ namespace AElf.Kernel
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddTransient<BlockValidationProvider>(); 
+            services.AddTransient<BlockValidationProvider>();
+            Configure<ChainOptions>(option => { option.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
         }
     }
     
