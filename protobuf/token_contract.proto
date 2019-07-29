@@ -213,7 +213,7 @@ message GetAllowanceOutput {
 
 message CrossChainTransferInput {
     aelf.Address to = 1;
-    TokenInfo token_info = 2;
+    string symbol = 2;
     sint64 amount = 3;
     string memo = 4;
     int32 to_chain_id = 5;

@@ -133,36 +133,18 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty CrossChainCreateToken(CrossChainCreateTokenInput input)
         {
-            var parentChainId = State.CrossChainContractReferenceState.GetParentChainId.Call(new Empty()).Value;
+            var parentChainId = GetValidCrossChainContractReferenceState().GetParentChainId.Call(new Empty()).Value;
             var tokenContractAddress = State.CrossChainTransferWhiteList[parentChainId];
             Assert(tokenContractAddress != null, "Token contract address of parent chain not found.");
             
             var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
 
-            AssertCrossChainTransaction(originalTransaction, tokenContractAddress, nameof(Create),
-                nameof(CreateNativeToken));
+            AssertCrossChainTransaction(originalTransaction, tokenContractAddress, nameof(Create));
             
             var originalTransactionId = originalTransaction.GetHash();
             CrossChainVerify(originalTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
 
-            CreateInput creationInput;
-            if (originalTransaction.MethodName == nameof(Create))
-            {
-                creationInput = CreateInput.Parser.ParseFrom(originalTransaction.Params);
-            }
-            else
-            {
-                var createNativeTokenInput = CreateNativeTokenInput.Parser.ParseFrom(originalTransaction.Params);
-                creationInput = new CreateInput
-                {
-                    Symbol = createNativeTokenInput.Symbol,
-                    TokenName = createNativeTokenInput.TokenName,
-                    TotalSupply = createNativeTokenInput.TotalSupply,
-                    Issuer = createNativeTokenInput.Issuer,
-                    Decimals = createNativeTokenInput.Decimals,
-                    IsBurnable = true
-                };
-            }
+            CreateInput creationInput = CreateInput.Parser.ParseFrom(originalTransaction.Params);
 
             RegisterTokenInfo(new TokenInfo
             {
@@ -203,14 +185,14 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty CrossChainTransfer(CrossChainTransferInput input)
         {
-            AssertValidToken(input.TokenInfo.Symbol, input.Amount);
-            int issueChainId = GetIssueChainId(input.TokenInfo.Symbol);
+            AssertValidToken(input.Symbol, input.Amount);
+            int issueChainId = GetIssueChainId(input.Symbol);
             Assert(issueChainId == input.IssueChainId, "Incorrect issue chain id.");
             Assert(State.CrossChainTransferWhiteList[input.ToChainId] != null, "Invalid transfer target chain.");
             var burnInput = new BurnInput
             {
                 Amount = input.Amount,
-                Symbol = input.TokenInfo.Symbol
+                Symbol = input.Symbol
             };
             Burn(burnInput);
             return new Empty();
@@ -232,7 +214,7 @@ namespace AElf.Contracts.MultiToken
 
             var crossChainTransferInput = 
                 CrossChainTransferInput.Parser.ParseFrom(transferTransaction.Params.ToByteArray());
-            var symbol = crossChainTransferInput.TokenInfo.Symbol;
+            var symbol = crossChainTransferInput.Symbol;
             var amount = crossChainTransferInput.Amount;
             var receivingAddress = crossChainTransferInput.To;
             var targetChainId = crossChainTransferInput.ToChainId;

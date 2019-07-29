@@ -81,13 +81,17 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.Issuer != null, "Invalid issuer address.");
             State.TokenInfos[tokenInfo.Symbol] = tokenInfo;
         }
-        
-        private void CrossChainVerify(Hash transactionId, long parentChainHeight, int chainId, IEnumerable<Hash> merklePath)
+
+        private CrossChainContractContainer.CrossChainContractReferenceState GetValidCrossChainContractReferenceState()
         {
             if (State.CrossChainContractReferenceState.Value == null)
                 State.CrossChainContractReferenceState.Value =
                     Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
-            
+            return State.CrossChainContractReferenceState;
+        }
+        
+        private void CrossChainVerify(Hash transactionId, long parentChainHeight, int chainId, IEnumerable<Hash> merklePath)
+        {
             var verificationInput = new VerifyTransactionInput
             {
                 TransactionId = transactionId,
@@ -95,8 +99,7 @@ namespace AElf.Contracts.MultiToken
                 VerifiedChainId = chainId
             };
             verificationInput.Path.AddRange(merklePath);
-            var verificationResult =
-                State.CrossChainContractReferenceState.VerifyTransaction.Call(verificationInput);
+            var verificationResult = GetValidCrossChainContractReferenceState().VerifyTransaction.Call(verificationInput);
             Assert(verificationResult.Value, "Cross chain verification failed.");
         }
         
