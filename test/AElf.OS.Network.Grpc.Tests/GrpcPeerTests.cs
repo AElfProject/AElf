@@ -54,7 +54,7 @@ namespace AElf.OS.Network
                 executed.Set();
             });
 
-            executed.WaitOne(TimeSpan.FromMilliseconds(10));
+            executed.WaitOne(TimeSpan.FromMilliseconds(1000));
             exception.ShouldBeNull();
             called.ShouldBeTrue();
         }
@@ -73,7 +73,7 @@ namespace AElf.OS.Network
                 executed.Set();
             });
 
-            executed.WaitOne(TimeSpan.FromMilliseconds(10));
+            executed.WaitOne(TimeSpan.FromMilliseconds(1000));
             exception.ShouldBeNull();
             called.ShouldBeTrue();
         }
@@ -92,7 +92,7 @@ namespace AElf.OS.Network
                 executed.Set();
             });
 
-            executed.WaitOne(TimeSpan.FromMilliseconds(10));
+            executed.WaitOne(TimeSpan.FromMilliseconds(1000));
             exception.ShouldBeNull();
             called.ShouldBeTrue();
         }
