@@ -30,11 +30,11 @@ namespace AElf.OS.Network.Grpc
 
         private const int UpdateHandshakeTimeout = 400;
         
-        private const int StreamRecoveryWaitTimeinMilliseconds = NetworkConstants.DefaultPeerRecoveryTimeoutInMilliSeconds + 1000;
+        private const int StreamRecoveryWaitTimeInMilliseconds = NetworkConstants.DefaultPeerRecoveryTimeoutInMilliSeconds + 1000;
         
-        private int _bufferedTransactionCount;
-        private int _bufferedBlockCount;
-        private int _bufferedAnnouncementCount;
+        private int _bufferedTransactionsCount;
+        private int _bufferedBlocksCount;
+        private int _bufferedAnnouncementsCount;
         
         private enum MetricNames
         {
@@ -62,6 +62,10 @@ namespace AElf.OS.Network.Grpc
         public bool IsShutdown { get; set; }
         public Hash CurrentBlockHash { get; private set; }
         public long CurrentBlockHeight { get; private set; }
+
+        public int BufferedTransactionsCount => _bufferedTransactionsCount;
+        public int BufferedBlocksCount => _bufferedBlocksCount;
+        public int BufferedAnnouncementsCount => _bufferedAnnouncementsCount;
 
         public string IpAddress { get; }
 
@@ -214,9 +218,9 @@ namespace AElf.OS.Network.Grpc
                     NetworkExceptionType.NotConnected);
             }
 
-            if (_bufferedTransactionCount > NetworkConstants.DefaultMaxBufferedTransactionCount)
+            if (_bufferedTransactionsCount > NetworkConstants.DefaultMaxBufferedTransactionCount)
             {
-                throw new NetworkException($"Dropping transaction, peer has reached max capacity {_bufferedTransactionCount} - {this}.",
+                throw new NetworkException($"Dropping transaction, peer has reached max capacity {_bufferedTransactionsCount} - {this}.",
                     NetworkExceptionType.FullBuffer);
             }
 
@@ -224,11 +228,11 @@ namespace AElf.OS.Network.Grpc
 
             if (!enqueueSuccess)
             {
-                throw new NetworkException( $"Dropping transaction, buffer is full {_bufferedTransactionCount} - {this}.",
+                throw new NetworkException( $"Dropping transaction, buffer is full {_bufferedTransactionsCount} - {this}.",
                     NetworkExceptionType.FullBuffer);
             }
 
-            Interlocked.Increment(ref _bufferedTransactionCount);
+            Interlocked.Increment(ref _bufferedTransactionsCount);
         }
 
         public void EnqueueAnnouncement(BlockAnnouncement announcement, Action<NetworkException> sendCallback)
@@ -239,10 +243,10 @@ namespace AElf.OS.Network.Grpc
                     NetworkExceptionType.NotConnected);
             }
 
-            if (_bufferedAnnouncementCount > NetworkConstants.DefaultMaxBufferedAnnouncementCount)
+            if (_bufferedAnnouncementsCount > NetworkConstants.DefaultMaxBufferedAnnouncementCount)
             {
                 throw new NetworkException(
-                    $"Dropping announcement, peer has reached max capacity {_bufferedAnnouncementCount} - {this}.",
+                    $"Dropping announcement, peer has reached max capacity {_bufferedAnnouncementsCount} - {this}.",
                     NetworkExceptionType.FullBuffer);
             }
 
@@ -251,11 +255,11 @@ namespace AElf.OS.Network.Grpc
             if (!enqueueSuccess)
             {
                 throw new NetworkException(
-                    $"Dropping announcement, buffer is full {_bufferedAnnouncementCount} - {this}.",
+                    $"Dropping announcement, buffer is full {_bufferedAnnouncementsCount} - {this}.",
                     NetworkExceptionType.FullBuffer);
             }
             
-            Interlocked.Increment(ref _bufferedAnnouncementCount);
+            Interlocked.Increment(ref _bufferedAnnouncementsCount);
         }
 
         public void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException> sendCallback)
@@ -266,9 +270,9 @@ namespace AElf.OS.Network.Grpc
                     NetworkExceptionType.NotConnected);
             }
 
-            if (_bufferedBlockCount > NetworkConstants.DefaultMaxBufferedBlockCount)
+            if (_bufferedBlocksCount > NetworkConstants.DefaultMaxBufferedBlockCount)
             {
-                throw new NetworkException($"Dropping block, peer has reached max capacity {_bufferedBlockCount} - {this}.", 
+                throw new NetworkException($"Dropping block, peer has reached max capacity {_bufferedBlocksCount} - {this}.", 
                     NetworkExceptionType.FullBuffer);
             }
 
@@ -276,11 +280,11 @@ namespace AElf.OS.Network.Grpc
             
             if (!enqueueSuccess)
             {
-                throw new NetworkException($"Dropping block, buffer is full {_bufferedBlockCount} - {this}.",
+                throw new NetworkException($"Dropping block, buffer is full {_bufferedBlocksCount} - {this}.",
                     NetworkExceptionType.FullBuffer);
             }
             
-            Interlocked.Increment(ref _bufferedBlockCount);
+            Interlocked.Increment(ref _bufferedBlocksCount);
         }
         
         private async Task StartBroadcastingAsync()
@@ -304,23 +308,23 @@ namespace AElf.OS.Network.Grpc
                 if (job.Transaction != null)
                 {
                     await SendTransactionAsync(job.Transaction);
-                    Interlocked.Decrement(ref _bufferedTransactionCount);
+                    Interlocked.Decrement(ref _bufferedTransactionsCount);
                 }
                 else if (job.BlockAnnouncement != null)
                 {
                     await SendAnnouncementAsync(job.BlockAnnouncement);
-                    Interlocked.Decrement(ref _bufferedAnnouncementCount);
+                    Interlocked.Decrement(ref _bufferedAnnouncementsCount);
                 }
                 else if (job.BlockWithTransactions != null)
                 {
                     await BroadcastBlockAsync(job.BlockWithTransactions);
-                    Interlocked.Decrement(ref _bufferedBlockCount);
+                    Interlocked.Decrement(ref _bufferedBlocksCount);
                 }
             }
             catch (RpcException ex)
             {
                 job.SendCallback?.Invoke(CreateNetworkException(ex, $"Error on broadcast to {this}: "));
-                await Task.Delay(StreamRecoveryWaitTimeinMilliseconds);
+                await Task.Delay(StreamRecoveryWaitTimeInMilliseconds);
             }
 
             job.SendCallback?.Invoke(null);

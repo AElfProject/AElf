@@ -15,6 +15,10 @@ namespace AElf.OS.Network.Infrastructure
         
         long LastKnownLibHeight { get; }
         string IpAddress { get; }
+        
+        int BufferedTransactionsCount { get; }
+        int BufferedBlocksCount { get; }
+        int BufferedAnnouncementsCount { get; }
 
         PeerInfo Info { get; }
 
