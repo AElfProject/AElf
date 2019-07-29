@@ -51,6 +51,8 @@ namespace AElf.OS.BlockSync.Worker
              _blockSyncStateProvider.TryGetDownloadJobTargetState(chain.BestChainHash, out var state).ShouldBeTrue();
              state.ShouldBeFalse();
 
+             _blockSyncStateProvider.SetDownloadJobTargetState(chain.BestChainHash, true);
+
             await _blockDownloadWorker.ProcessDownloadJobAsync();
 
             jobInfo = await _blockDownloadJobStore.GetFirstWaitingJobAsync();
