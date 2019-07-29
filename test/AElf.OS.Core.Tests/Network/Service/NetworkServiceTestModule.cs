@@ -83,10 +83,6 @@ namespace AElf.OS
                     
                     var exceptionOnBcast = new Mock<IPeer>();
                     exceptionOnBcast.Setup(p => p.Info).Returns(new PeerInfo { Pubkey = "exceptionOnBcast" });
-//                    exceptionOnBcast.Setup(p => p.SendAnnouncementAsync(It.IsAny<BlockAnnouncement>()))
-//                        .Throws(new NetworkException());
-//                    exceptionOnBcast.Setup(p => p.SendTransactionAsync(It.IsAny<Transaction>()))
-//                        .Throws(new NetworkException());
                     
                     peers.Add(exceptionOnBcast.Object);
 
@@ -98,14 +94,6 @@ namespace AElf.OS
                     
                     return peers;
                 });
-            
-//            peerPoolMock.Setup(p => p.AddRecentBlockHeightAndHash(It.IsAny<long>(), It.IsAny<Hash>(), It.IsAny<bool>
-//                ())).Callback<long, Hash, bool>((blockHeight, blockHash, hasFork) =>
-//            {
-//                recentBlockHeightAndHashMappings[blockHeight] = blockHash;
-//            });
-//
-//            peerPoolMock.Setup(p => p.RecentBlockHeightAndHashMappings).Returns(recentBlockHeightAndHashMappings);
             
             context.Services.AddSingleton<IPeerPool>(o => peerPoolMock.Object);
         }
