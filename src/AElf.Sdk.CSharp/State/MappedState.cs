@@ -32,6 +32,7 @@ namespace AElf.Sdk.CSharp.State
                 if (!Cache.TryGetValue(key, out var valuePair))
                 {
                     valuePair = LoadKey(key);
+                    Cache[key] = valuePair;
                 }
 
                 return valuePair.Value;
@@ -75,10 +76,11 @@ namespace AElf.Sdk.CSharp.State
             var path = GetSubStatePath(key.ToString());
             var bytes = Provider.GetAsync(path).Result;
             var value = SerializationHelper.Deserialize<TEntity>(bytes);
+            var originalValue = SerializationHelper.Deserialize<TEntity>(bytes);
 
             return new ValuePair()
             {
-                OriginalValue = value,
+                OriginalValue = originalValue,
                 Value = value
             };
         }

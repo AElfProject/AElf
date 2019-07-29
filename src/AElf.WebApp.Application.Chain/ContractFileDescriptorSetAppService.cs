@@ -36,7 +36,7 @@ namespace AElf.WebApp.Application.Chain
         {
             try
             {
-                var result = await GetFileDescriptorSetAsync(Address.Parse(address));
+                var result = await GetFileDescriptorSetAsync(AddressHelper.Base58StringToAddress(address));
                 return result;
             }
             catch

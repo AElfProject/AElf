@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Runtime.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -35,6 +36,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                     }));
                     return mock.Object;
                 });
+            context.Services.AddSingleton<ICodeRemarksManager, MockCodeRemarksManager>();
         }
 
         #region Mocks
@@ -55,7 +57,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
 
         private static IExecutive GetAcs2Executive()
         {
-            var testContractFile = typeof(SmartContractExecution.Parallel.Tests.TestContract.TestContract).Assembly.Location;
+            var testContractFile = typeof(SmartContractExecution.Parallel.Tests.TestContract.TestContract).Assembly
+                .Location;
             var code = File.ReadAllBytes(testContractFile);
             var runner = new SmartContractRunnerForCategoryZero(
                 Path.GetDirectoryName(testContractFile)
@@ -80,7 +83,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             {
                 executiveService.Setup(
                     s => s.GetExecutiveAsync(It.IsAny<IChainContext>(),
-                        It.Is<Address>(address => address == Address.FromString(tuple.Item1)))
+                        It.Is<Address>(address => address == AddressHelper.Base58StringToAddress(tuple.Item1)))
                 ).Returns(Task.FromResult(tuple.Item2));
             }
 

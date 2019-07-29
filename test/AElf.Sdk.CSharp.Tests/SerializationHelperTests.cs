@@ -82,13 +82,13 @@ namespace AElf.Sdk.CSharp.Tests
         public void Serialization_ByteArray_Test()
         {
             //Hash test
-            var hash = Hash.Generate();
+            var hash = Hash.FromString("hash");
             var hashArray = SerializationHelper.Serialize(hash);
             var hash1 = SerializationHelper.Deserialize<Hash>(hashArray);
             hash.ShouldBe(hash1);
 
             //Address test
-            var address = Address.Generate();
+            var address = SampleAddress.AddressList[0];
             var addressArray = SerializationHelper.Serialize(address);
             var address1 = SerializationHelper.Deserialize<Address>(addressArray);
             address.ShouldBe(address1);
@@ -96,8 +96,8 @@ namespace AElf.Sdk.CSharp.Tests
             //Transaction test
             var transaction = new Transaction
             {
-                From = Address.Generate(),
-                To = Address.Generate(),
+                From = SampleAddress.AddressList[1],
+                To = SampleAddress.AddressList[2],
                 Params = ByteString.CopyFromUtf8("test"),
                 MethodName = "TestMethod",
                 RefBlockNumber = 1,
@@ -127,7 +127,7 @@ namespace AElf.Sdk.CSharp.Tests
             var body = new BlockBody
             {
                 BlockHeader = header.GetHash(),
-                Transactions = { transaction.GetHash() }
+                TransactionIds = { transaction.GetHash() }
             };
             var bodyArray = SerializationHelper.Serialize(body);
             var body1 = SerializationHelper.Deserialize<BlockBody>(bodyArray);

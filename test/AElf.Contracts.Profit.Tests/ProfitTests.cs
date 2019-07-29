@@ -3,6 +3,7 @@ using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -211,7 +212,7 @@ namespace AElf.Contracts.Profit
             await creator.AddWeight.SendAsync(new AddWeightInput
             {
                 ProfitId = profitId,
-                Receiver = Address.Generate(),
+                Receiver = SampleAddress.AddressList[0],
                 Weight = weight
             });
 
@@ -363,8 +364,8 @@ namespace AElf.Contracts.Profit
 
             const int weight1 = 100;
             const int weight2 = 200;
-            var receiver1 = Address.Generate();
-            var receiver2 = Address.Generate();
+            var receiver1 = SampleAddress.AddressList[0];
+            var receiver2 = SampleAddress.AddressList[1];
 
             await creator.AddWeight.SendAsync(new AddWeightInput
             {
@@ -424,7 +425,7 @@ namespace AElf.Contracts.Profit
             const long weight = 10;
 
             var creator = Creators[0];
-            var receiver = Address.Generate();
+            var receiver = SampleAddress.AddressList[0];
 
             var profitId = await CreateProfitItem();
 
@@ -490,8 +491,8 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await creator.AddWeight.SendAsync(new AddWeightInput
             {
-                ProfitId = Hash.Generate(),
-                Receiver = Address.Generate(),
+                ProfitId = Hash.FromString("hash"),
+                Receiver = SampleAddress.AddressList[0],
                 Weight = 100
             });
 
@@ -678,8 +679,8 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await creator.SubWeight.SendAsync(new SubWeightInput
             {
-                ProfitId = Hash.Generate(),
-                Receiver = Address.Generate()
+                ProfitId = Hash.FromString("hash2"),
+                Receiver = SampleAddress.AddressList[0]
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -697,7 +698,7 @@ namespace AElf.Contracts.Profit
 
             await creator.AddWeight.SendAsync(new AddWeightInput
             {
-                Receiver = Address.Generate(),
+                Receiver = SampleAddress.AddressList[0],
                 ProfitId = profitId,
                 Weight = 100
             });
@@ -726,7 +727,7 @@ namespace AElf.Contracts.Profit
 
             await creator.AddWeight.SendAsync(new AddWeightInput
             {
-                Receiver = Address.Generate(),
+                Receiver = SampleAddress.AddressList[0],
                 ProfitId = profitId,
                 Weight = 100
             });
@@ -774,7 +775,7 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await user.ReleaseProfit.SendAsync(new ReleaseProfitInput
             {
-                ProfitId = Hash.Generate(),
+                ProfitId = Hash.FromString("hash3"),
                 Amount = amount,
                 Period = 1
             });
@@ -796,7 +797,7 @@ namespace AElf.Contracts.Profit
 
             await creator.AddWeight.SendAsync(new AddWeightInput
             {
-                Receiver = Address.Generate(),
+                Receiver = SampleAddress.AddressList[0],
                 ProfitId = profitId,
                 Weight = 100
             });
@@ -1110,7 +1111,7 @@ namespace AElf.Contracts.Profit
 
             var executionResult = await receiver.Profit.SendAsync(new ProfitInput
             {
-                ProfitId = Hash.Generate()
+                ProfitId = Hash.FromString("hash4")
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);

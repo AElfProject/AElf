@@ -38,9 +38,9 @@ namespace AElf.WebApp.Application.Chain
 
             var chain = await _blockchainService.GetChainAsync();
 
-            var branches = chain.Branches.ToDictionary(b => Hash.LoadBase64(b.Key).ToHex(), b => b.Value);
-            var notLinkedBlocks = chain.NotLinkedBlocks.ToDictionary(b => Hash.LoadBase64(b.Key).ToHex(),
-                b => Hash.LoadBase64(b.Value).ToHex());
+            var branches = chain.Branches.ToDictionary(b => HashHelper.Base64ToHash(b.Key).ToHex(), b => b.Value);
+            var notLinkedBlocks = chain.NotLinkedBlocks.ToDictionary(b => HashHelper.Base64ToHash(b.Key).ToHex(),
+                b => HashHelper.Base64ToHash(b.Value).ToHex());
 
             return new ChainStatusDto
             {

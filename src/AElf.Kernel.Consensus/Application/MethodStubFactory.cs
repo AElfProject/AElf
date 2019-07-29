@@ -17,6 +17,8 @@ namespace AElf.Kernel.Consensus.Application
         private readonly IChainContext _chainContext;
         private readonly IBlockTimeProvider _blockTimeProvider;
 
+        private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
+
         private Address ConsensusContractAddress =>
             _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
 
@@ -43,7 +45,7 @@ namespace AElf.Kernel.Consensus.Application
                 var chainContext = _chainContext;
                 var transaction = new Transaction()
                 {
-                    From = Address.Zero,
+                    From = FromAddress,
                     To = ConsensusContractAddress,
                     MethodName = method.Name,
                     Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))

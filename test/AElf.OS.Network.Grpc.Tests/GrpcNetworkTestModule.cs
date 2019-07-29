@@ -36,18 +36,17 @@ namespace AElf.OS.Network
             base.OnApplicationInitialization(context);
             
             var pool = context.ServiceProvider.GetRequiredService<IPeerPool>();
-            var channel = new Channel(GrpcTestConstants.FakeIpEndpoint, ChannelCredentials.Insecure);
+            var channel = new Channel(NetworkTestConstants.FakeIpEndpoint, ChannelCredentials.Insecure);
             
             var connectionInfo = new PeerInfo
             {
-                Pubkey = GrpcTestConstants.FakePubkey2,
+                Pubkey = NetworkTestConstants.FakePubkey2,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                StartHeight = 1,
                 IsInbound = true
             };
             
-            pool.AddPeer(new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), GrpcTestConstants.FakeIpEndpoint, connectionInfo));
+            pool.TryAddPeer(new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), NetworkTestConstants.FakeIpEndpoint, connectionInfo));
         }
     }
 }
