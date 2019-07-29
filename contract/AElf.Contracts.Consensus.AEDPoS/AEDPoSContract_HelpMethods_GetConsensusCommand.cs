@@ -87,7 +87,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 // Produce tiny blocks as fast as one can.
                 if (behaviour == AElfConsensusBehaviour.TinyBlock)
                 {
-                    nextBlockMiningLeftMilliseconds = AEDPoSContractConstants.TimeForNetwork;
+                    nextBlockMiningLeftMilliseconds = AEDPoSContractConstants.MinimumIntervalOfProducingBlocks;
                 }
 
                 return new ConsensusCommand

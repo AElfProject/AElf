@@ -173,7 +173,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             }
             
-            var amount = previousRound.GetMinedBlocks().Mul(AEDPoSContractConstants.MiningRewardPerBlock);
+            var amount = previousRound.GetMinedBlocks().Mul(GetMiningRewardPerBlock());
 
             if (amount > 0)
             {
@@ -185,6 +185,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             Context.LogDebug(() => $"Released {amount} mining rewards.");
+        }
+
+        private long GetMiningRewardPerBlock()
+        {
+            var miningReward = AEDPoSContractConstants.InitialMiningRewardPerBlock;
+            var blockAge = GetBlockchainAge();
+            var denominator = blockAge.Div(AEDPoSContractConstants.TimeToReduceMiningRewardByHalf);
+            for (var i = 0; i < denominator; i++)
+            {
+                miningReward = miningReward.Div(2);
+            }
+
+            return miningReward;
         }
     }
 }

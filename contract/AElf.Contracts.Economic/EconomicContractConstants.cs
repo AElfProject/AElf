@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace AElf.Contracts.Economic
 {
-    public class EconomicContractConstants
+    public static class EconomicContractConstants
     {
         public const long NativeTokenConnectorInitialVirtualBalance = 100_000_00000000;
 
@@ -24,7 +24,7 @@ namespace AElf.Contracts.Economic
         public const long CpuUnitPrice = 100;
         public const long StoUnitPrice = 100;
         public const long NetUnitPrice = 100;
-        
+
         // Election related.
         public const string ElectionTokenSymbol = "VOTE";
         public const long ElectionTokenTotalSupply = long.MaxValue;

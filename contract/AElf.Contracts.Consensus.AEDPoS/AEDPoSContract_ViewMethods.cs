@@ -282,9 +282,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             if (!TryToGetRoundInformation(1, out _)) return 0;
             // TODO: the configuration about the minercountinterval should become a const when online;
-            return input.RealTimeMinersInformation.Count < AEDPoSContractConstants.MinMinersCount
-                ? AEDPoSContractConstants.MinMinersCount
-                : AEDPoSContractConstants.MinMinersCount.Add(
+            return input.RealTimeMinersInformation.Count < AEDPoSContractConstants.InitialMinersCount
+                ? AEDPoSContractConstants.InitialMinersCount
+                : AEDPoSContractConstants.InitialMinersCount.Add(
                     (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
                     .Div(State.MinerIncreaseInterval.Value).Mul(2));
         }
@@ -294,7 +294,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
                 return new SInt64Value
-                    {Value = currentRound.GetMinedBlocks().Mul(AEDPoSContractConstants.MiningRewardPerBlock)};
+                    {Value = currentRound.GetMinedBlocks().Mul(GetMiningRewardPerBlock())};
             }
 
             return new SInt64Value {Value = 0};
