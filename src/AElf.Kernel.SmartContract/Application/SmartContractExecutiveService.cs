@@ -254,64 +254,16 @@ namespace AElf.Kernel.SmartContract.Application
         {
             if (!_updateContractInfoCache.TryGetValue(address, out var updateContractInfos)) return executive;
 
-            var updateHeights = updateContractInfos.Select(c => c.BlockHeight).ToArray();
-            var minUpdateHeight = updateHeights.Min();
-            var blockHeight = chainContext.BlockHeight;
-            var blockHash = chainContext.BlockHash;
-            if (blockHeight < minUpdateHeight && updateContractInfos.Any(c => c.CodeHash == executive.ContractHash))
-            {
-                var smartContractRegistration =
-                    await GetGetSmartContractRegistrationWithoutCacheAsync(chainContext, address);
-                executive = await GetExecutiveAsync(address, smartContractRegistration);
-            }
-
-            if (blockHeight < minUpdateHeight) return executive;
-            if (!_linkedBlocksCache.TryGetValue(address, out var linkedBlocks))
-            {
-                linkedBlocks = new Dictionary<Hash, Hash>();
-                _linkedBlocksCache[address] = linkedBlocks;
-            }
+            var minUpdateHeight = updateContractInfos.Select(c => c.BlockHeight).Min();
+            var blockIndex = new BlockIndex(chainContext.BlockHash, chainContext.BlockHeight);
 
             UpdateContractInfo updateContractInfo = null;
-            while (blockHeight >= minUpdateHeight)
+            while (blockIndex.Height >= minUpdateHeight && updateContractInfo == null)
             {
-                if (linkedBlocks.ContainsKey(blockHash))
-                {
-                    if (blockHeight.IsIn(updateHeights))
-                    {
-                        updateContractInfo = updateContractInfos.FirstOrDefault(c => c.BlockHash == blockHash);
-                        if (updateContractInfo != null) break;
-                    }
-
-                    blockHash = linkedBlocks[blockHash];
-                }
-                else
-                {
-                    var blockState = await _blockchainStateManager.GetBlockStateSetAsync(blockHash);
-                    linkedBlocks.Add(blockHash, blockState.PreviousHash);
-                    if (blockHeight.IsIn(updateHeights))
-                    {
-                        var key = string.Join("/",
-                            _defaultContractZeroCodeProvider.ContractZeroAddress.GetFormatted(),
-                            "ContractInfos", address.ToString());
-                        if (blockState.Changes.TryGetValue(key, out var byteString))
-                        {
-                            var codeHash = ContractInfo.Parser.ParseFrom(byteString).CodeHash;
-                            updateContractInfo = updateContractInfos.FirstOrDefault(c =>
-                                c.CodeHash == codeHash && c.BlockHeight == blockHeight &&
-                                c.PrevBlockHash == blockState.PreviousHash && c.BlockHash == null);
-                            if (updateContractInfo != null)
-                            {
-                                updateContractInfo.BlockHash = blockHash;
-                                break;
-                            }
-                        }
-                    }
-
-                    blockHash = blockState.PreviousHash;
-                }
-
-                blockHeight--;
+                updateContractInfo = GetUpdateContractInfoByLinkedBlocks(blockIndex, address);
+                if (updateContractInfo != null) break;
+                updateContractInfo = await GetUpdateContractInfoByBlockStateSetAsync(blockIndex, address);
+                blockIndex.Height--;
             }
 
             if (updateContractInfo != null && updateContractInfo.CodeHash != executive.ContractHash ||
@@ -323,6 +275,48 @@ namespace AElf.Kernel.SmartContract.Application
             }
 
             return executive;
+        }
+
+        private Dictionary<Hash, Hash> GetLinkedBlocks(Address address)
+        {
+            if (!_linkedBlocksCache.TryGetValue(address, out var linkedBlocks))
+            {
+                linkedBlocks = new Dictionary<Hash, Hash>();
+                _linkedBlocksCache[address] = linkedBlocks;
+            }
+
+            return linkedBlocks;
+        }
+
+        private UpdateContractInfo GetUpdateContractInfoByLinkedBlocks(BlockIndex blockIndex, Address address)
+        {
+            var linkedBlocks = GetLinkedBlocks(address);
+            if (!linkedBlocks.TryGetValue(blockIndex.Hash, out var blockHash)) return null;
+            var updateContractInfos = _updateContractInfoCache[address];
+            var updateContractInfo = updateContractInfos.FirstOrDefault(c => c.BlockHash == blockIndex.Hash);
+            blockIndex.Hash = blockHash;
+            return updateContractInfo;
+        }
+
+        private async Task<UpdateContractInfo> GetUpdateContractInfoByBlockStateSetAsync(BlockIndex blockIndex,Address address)
+        {
+            var updateContractInfos = _updateContractInfoCache[address];
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(blockIndex.Hash);
+            blockIndex.Hash = blockStateSet.PreviousHash;
+            if (updateContractInfos.All(c => c.BlockHeight != blockIndex.Height)) return null;
+            
+            var key = string.Join("/",
+                _defaultContractZeroCodeProvider.ContractZeroAddress.GetFormatted(),
+                "ContractInfos", address.ToString());
+            if (!blockStateSet.Changes.TryGetValue(key, out var byteString)) return null;
+            
+            var codeHash = ContractInfo.Parser.ParseFrom(byteString).CodeHash;
+            var updateContractInfo = updateContractInfos.FirstOrDefault(c =>
+                c.CodeHash == codeHash && c.BlockHeight == blockStateSet.BlockHeight &&
+                c.PrevBlockHash == blockStateSet.PreviousHash && c.BlockHash == null);
+            if (updateContractInfo == null) return null;
+            updateContractInfo.BlockHash = blockStateSet.BlockHash;
+            return updateContractInfo;
         }
 
         #endregion

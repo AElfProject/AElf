@@ -54,12 +54,26 @@ namespace AElf.Kernel.SmartContract.Application
             };
 
             await _smartContractService.DeployContractAsync(SampleAddress.AddressList[0], registrationA, false, null);
-            await _smartContractService.UpdateContractAsync(SampleAddress.AddressList[1], registrationANew, 1,
-                Hash.Empty, false, null);
-
-
-            await _smartContractService.UpdateContractAsync(SampleAddress.AddressList[2], registrationB, 1, Hash.Empty,
-                false, null);
+            
+            await _smartContractService.UpdateContractAsync(new UpdateContractDto
+            {
+                ContractAddress = SampleAddress.AddressList[1],
+                SmartContractRegistration = registrationANew,
+                BlockHeight = 1,
+                PreviousBlockHash = Hash.Empty,
+                IsPrivileged = false,
+                ContractName = null
+            });
+            
+            await _smartContractService.UpdateContractAsync(new UpdateContractDto
+            {
+                ContractAddress = SampleAddress.AddressList[2],
+                SmartContractRegistration = registrationB,
+                BlockHeight = 1,
+                PreviousBlockHash = Hash.Empty,
+                IsPrivileged = false,
+                ContractName = null
+            });
 
         }
     }

@@ -40,15 +40,16 @@ namespace AElf.Kernel.SmartContract.Application
 //            await _functionMetadataService.DeployContract(contractAddress, contractTemplate);
         }
 
-        public async Task UpdateContractAsync(Address contractAddress, SmartContractRegistration newRegistration,
-            long blockHeight, Hash previousBlockHash, bool isPrivileged, Hash name)
+        public async Task UpdateContractAsync(UpdateContractDto updateContractDto)
         {
             // get runner
-            var runner = _smartContractRunnerContainer.GetRunner(newRegistration.Category);
-            await Task.Run(() => runner.CodeCheck(newRegistration.Code.ToByteArray(), isPrivileged));
+            var runner = _smartContractRunnerContainer.GetRunner(updateContractDto.SmartContractRegistration.Category);
+            await Task.Run(() => runner.CodeCheck(updateContractDto.SmartContractRegistration.Code.ToByteArray(),
+                updateContractDto.IsPrivileged));
 
-            _smartContractExecutiveService.SetUpdateContractInfo(contractAddress, newRegistration.CodeHash, blockHeight,
-                previousBlockHash);
+            _smartContractExecutiveService.SetUpdateContractInfo(updateContractDto.ContractAddress,
+                updateContractDto.SmartContractRegistration.CodeHash, updateContractDto.BlockHeight,
+                updateContractDto.PreviousBlockHash);
 
             //Todo New version metadata handle it
 //            var oldRegistration = await GetContractByAddressAsync(contractAddress);
