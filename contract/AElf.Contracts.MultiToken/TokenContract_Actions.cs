@@ -450,10 +450,12 @@ namespace AElf.Contracts.MultiToken
                 if (totalAmount > 0)
                 {
                     State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalAmount);
+                    var burnAmount = totalAmount.Div(2);
+                    var donateAmount = totalAmount.Sub(burnAmount);
                     State.TreasuryContract.Donate.Send(new DonateInput
                     {
                         Symbol = symbol,
-                        Amount = totalAmount
+                        Amount = donateAmount
                     });
                 }
             }
