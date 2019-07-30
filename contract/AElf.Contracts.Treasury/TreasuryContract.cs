@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Election;
@@ -403,7 +404,8 @@ namespace AElf.Contracts.Treasury
                     reElectionProfitAddBeneficiaries.BeneficiaryShares.Add(new BeneficiaryShare
                     {
                         Beneficiary = minerAddress,
-                        Shares = continualAppointmentCount
+                        Shares = Math.Min(continualAppointmentCount,
+                            TreasuryContractConstants.MaximumReElectionRewardShare)
                     });
                 }
                 else

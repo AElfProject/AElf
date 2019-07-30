@@ -129,7 +129,8 @@ namespace AElf.Contracts.Election
                     SchemeId = State.SubsidyHash.Value,
                     BeneficiaryShare = new BeneficiaryShare
                     {
-                        Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.CandidatePubkey)),
+                        Beneficiary =
+                            Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.CandidatePubkey)),
                         Shares = 1
                     }
                 });
@@ -212,6 +213,49 @@ namespace AElf.Contracts.Election
 
         #endregion
 
+        #region ChangeVotingTarget
+
+        public override Empty ChangeVotingOption(ChangeVotingOptionInput input)
+        {
+            var votingRecord = State.VoteContract.GetVotingRecord.Call(input.VoteId);
+            var actualLockedTime = Context.CurrentBlockTime.Seconds.Sub(votingRecord.VoteTimestamp.Seconds);
+            var claimedLockDays = State.LockTimeMap[input.VoteId];
+            Assert(actualLockedTime < claimedLockDays, "This vote already expired.");
+
+            // Withdraw old votes
+            State.VoteContract.Withdraw.Send(new WithdrawInput
+            {
+                VoteId = input.VoteId
+            });
+
+            // Create new votes
+            State.VoteContract.Vote.Send(new VoteInput
+            {
+                VoteId = input.VoteId,
+                VotingItemId = State.MinerElectionVotingItemId.Value,
+                Amount = votingRecord.Amount,
+                Voter = votingRecord.Voter,
+                Option = input.CandidatePubkey
+            });
+
+            // Update related candidate
+            var oldCandidateVotes = State.CandidateVotes[votingRecord.Option];
+            oldCandidateVotes.ObtainedActiveVotingRecordIds.Remove(input.VoteId);
+            oldCandidateVotes.ObtainedActiveVotedVotesAmount =
+                oldCandidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
+            State.CandidateVotes[votingRecord.Option] = oldCandidateVotes;
+
+            var newCandidateVotes = State.CandidateVotes[votingRecord.Option];
+            newCandidateVotes.ObtainedActiveVotingRecordIds.Add(input.VoteId);
+            newCandidateVotes.ObtainedActiveVotedVotesAmount =
+                newCandidateVotes.ObtainedActiveVotedVotesAmount.Add(votingRecord.Amount);
+            State.CandidateVotes[votingRecord.Option] = newCandidateVotes;
+
+            return new Empty();
+        }
+
+        #endregion
+
         #region Withdraw
 
         /// <summary>
@@ -281,7 +325,6 @@ namespace AElf.Contracts.Election
                     rankingList.DataCenters[votingRecord.Option].Sub(votingRecord.Amount);
                 State.DataCentersRankingList.Value = rankingList;
             }
-
 
             return new Empty();
         }
