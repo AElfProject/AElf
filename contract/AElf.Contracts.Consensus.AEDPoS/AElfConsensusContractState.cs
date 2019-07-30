@@ -18,7 +18,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public SingletonState<Timestamp> BlockchainStartTimestamp { get; set; }
 
-        // TODO: Just keep necessary rounds.
         public MappedState<long, Round> Rounds { get; set; }
 
         public Int32State MiningInterval { get; set; }

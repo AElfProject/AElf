@@ -50,7 +50,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             if (TryToGetTermNumber(out var termNumber))
             {
-                var targetRound = State.FirstRoundNumberOfEachTerm[termNumber] - 1;
+                var targetRound = State.FirstRoundNumberOfEachTerm[termNumber].Sub(1);
                 if (TryToGetRoundInformation(targetRound, out var round))
                 {
                     return new SInt64Value {Value = round.GetMinedBlocks()};

@@ -1,4 +1,5 @@
 using System.Linq;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -98,6 +99,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             State.Rounds[round.RoundNumber] = round;
+
+            if (round.RoundNumber > AEDPoSContractConstants.KeepRounds)
+            {
+                // TODO: Set to null.
+                State.Rounds[round.RoundNumber.Sub(AEDPoSContractConstants.KeepRounds)] = new Round();
+            }
+
             return true;
         }
 
