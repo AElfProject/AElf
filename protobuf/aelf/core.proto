@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package aelf;
 
-import "google/protobuf/timestamp.proto";
-
 option csharp_namespace = "AElf.Types";
 
 message Transaction {
@@ -97,4 +95,10 @@ message MerklePath {
 message MerklePathNode{
     Hash hash = 1;
     bool isLeftChildNode = 2;
+}
+
+message BinaryMerkleTree {
+    repeated Hash nodes = 1;
+    Hash root = 2;
+    int32 leaf_count = 3;
 }

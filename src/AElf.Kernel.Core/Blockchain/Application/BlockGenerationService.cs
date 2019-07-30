@@ -7,8 +7,6 @@ using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-
 namespace AElf.Kernel.Blockchain.Application
 {
     public class BlockGenerationService : IBlockGenerationService
@@ -134,12 +132,12 @@ namespace AElf.Kernel.Blockchain.Application
                 nodes.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
             }
 
-            return nodes.ComputeBinaryMerkleTreeRootWithLeafNodes();
+            return BinaryMerkleTreeHelper.ComputeRootWithLeafNodes(nodes);
         }
 
         private Hash CalculateTransactionMerkleTreeRoot(IEnumerable<Hash> transactionIds)
         {
-            return transactionIds.ComputeBinaryMerkleTreeRootWithLeafNodes();
+            return BinaryMerkleTreeHelper.ComputeRootWithLeafNodes(transactionIds);
         }
         
         private Hash GetHashCombiningTransactionAndStatus(Hash txId,

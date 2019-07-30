@@ -13,7 +13,7 @@ namespace AElf.Kernel
         {
             if (blockBody.TransactionsCount == 0)
                 return Hash.Empty;
-            var merkleTreeRoot = blockBody.TransactionIds.ComputeBinaryMerkleTreeRootWithLeafNodes();
+            var merkleTreeRoot = BinaryMerkleTreeHelper.ComputeRootWithLeafNodes(blockBody.TransactionIds);
 
             return merkleTreeRoot;
         }

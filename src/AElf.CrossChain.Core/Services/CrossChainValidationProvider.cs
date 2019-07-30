@@ -72,7 +72,7 @@ namespace AElf.CrossChain
             CrossChainExtraData extraData, IBlock block)
         {
             var txRootHashList = crossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMerkleTreeRoot).ToList();
-            var calculatedSideChainTransactionsRoot = txRootHashList.ComputeBinaryMerkleTreeRootWithLeafNodes();
+            var calculatedSideChainTransactionsRoot = BinaryMerkleTreeHelper.ComputeRootWithLeafNodes(txRootHashList);
             
             // first check identity with the root in header
             if (extraData != null && !calculatedSideChainTransactionsRoot.Equals(extraData.SideChainTransactionsRoot) ||

@@ -34,12 +34,12 @@ namespace AElf.Contracts.CrossChain
             var txResultStatusRawBytes =
                 EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString());
             var hash = Hash.FromRawBytes(txId.ToByteArray().Concat(txResultStatusRawBytes).ToArray());
-            return path.ComputeBinaryMerkleTreeRootWithPathAndLeafNode(hash);
+            return path.ComputeRootWithLeafNode(hash);
         }
 
         private Hash ComputeRootWithMultiHash(IEnumerable<Hash> nodes)
         {
-            return nodes.ComputeBinaryMerkleTreeRootWithLeafNodes();
+            return BinaryMerkleTreeHelper.ComputeRootWithLeafNodes(nodes);
         }
         
         /// <summary>

@@ -1,63 +1,48 @@
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using AElf.Types;
 
 namespace AElf
 {
     public static class MerkleTreeExtensions
     {
-        public static Hash ComputeParentNodeWith(this Hash left, Hash right)
+        public static MerklePath GenerateMerklePath(this BinaryMerkleTree binaryMerkleTree, int index)
         {
-            var res = left.ToByteArray().Concat(right.ToByteArray()).ToArray();
-            return Hash.FromRawBytes(res);
-        }
-
-        public static Hash ComputeBinaryMerkleTreeRootWithLeafNodes(this IEnumerable<Hash> hashList)
-        {
-            var treeNodeHashes = GenerateBinaryMerkleTreeNodesWithLeafNodes(hashList.ToList());
-            return treeNodeHashes.Any() ? treeNodeHashes.Last() : Hash.Empty;
-        }
-
-        public static List<Hash> GenerateBinaryMerkleTreeNodesWithLeafNodes(this IList<Hash> hashList)
-        {
-            if (!hashList.Any())
+            if (binaryMerkleTree.Root == null || index >= binaryMerkleTree.LeafCount)
+                throw new InvalidOperationException("Cannot generate merkle path from incomplete binary merkle tree.");
+            MerklePath path = new MerklePath();
+            int firstInRow = 0;
+            int rowcount = binaryMerkleTree.LeafCount;
+            while (index < binaryMerkleTree.Nodes.Count - 1)
             {
-                return hashList.ToList();
-            }
-
-            if (hashList.Count % 2 == 1)
-                hashList.Add(hashList.Last());
-            var nodeToAdd = hashList.Count / 2;
-            var newAdded = 0;
-            var i = 0; 
-            while (i < hashList.Count - 1)
-            {
-                var left = hashList[i++];
-                var right = hashList[i++];
-                hashList.Add(left.ComputeParentNodeWith(right));
-                if (++newAdded != nodeToAdd)
-                    continue;
-
-                // complete this row
-                if (nodeToAdd % 2 == 1 && nodeToAdd != 1)
+                Hash neighbor;
+                bool isLeftNeighbor;
+                if (index % 2 == 0)
                 {
-                    nodeToAdd++;
-                    hashList.Add(hashList.Last());
+                    // add right neighbor node
+                    neighbor = binaryMerkleTree.Nodes[index + 1];
+                    isLeftNeighbor = false;
                 }
-
-                // start a new row
-                nodeToAdd /= 2;
-                newAdded = 0;
+                else
+                {
+                    // add left neighbor node
+                    neighbor = binaryMerkleTree.Nodes[index - 1];
+                    isLeftNeighbor = true;
+                }
+                
+                path.MerklePathNodes.Add(new MerklePathNode
+                {
+                    Hash = Hash.FromByteArray(neighbor.ToByteArray()),
+                    IsLeftChildNode = isLeftNeighbor
+                });
+                
+                rowcount = rowcount % 2 == 0 ? rowcount : rowcount + 1;
+                int shift = (index - firstInRow) / 2;
+                firstInRow += rowcount;
+                index = firstInRow + shift;
+                rowcount /= 2;
             }
-
-            return hashList.ToList();
-        }
-
-        public static Hash ComputeBinaryMerkleTreeRootWithPathAndLeafNode(this MerklePath path, Hash leaf)
-        {
-            return path.MerklePathNodes.Aggregate(leaf, (current, node) => node.IsLeftChildNode
-                ? node.Hash.ComputeParentNodeWith(current)
-                : current.ComputeParentNodeWith(node.Hash));
+            
+            return path;
         }
     }
 }

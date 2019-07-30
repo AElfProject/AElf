@@ -536,7 +536,7 @@ namespace AElf.Contract.CrossChain.Tests
             Assert.Equal(merklePath.ToByteString(),
                 crossChainMerkleProofContext.MerklePathForParentChainRoot.ToByteString());
             var calculatedRoot = crossChainMerkleProofContext.MerklePathForParentChainRoot
-                .ComputeBinaryMerkleTreeRootWithPathAndLeafNode(transactionId);
+                .ComputeRootWithLeafNode(transactionId);
             Assert.Equal(merkleTreeRoot, calculatedRoot);
         }
 

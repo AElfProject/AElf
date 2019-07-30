@@ -30,7 +30,7 @@ namespace AElf.Kernel
 
         private Block GenerateBlock(BlockHeader blockHeader, IEnumerable<Hash> transactionIds)
         {
-            blockHeader.MerkleTreeRootOfTransactions = transactionIds.ComputeBinaryMerkleTreeRootWithLeafNodes();
+            blockHeader.MerkleTreeRootOfTransactions = BinaryMerkleTreeHelper.ComputeRootWithLeafNodes(transactionIds);
             blockHeader.MerkleTreeRootOfWorldState = Hash.Empty;
             blockHeader.MerkleTreeRootOfTransactionStatus = Hash.Empty;
             blockHeader.SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey");

@@ -1,21 +1,15 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using AElf.Types;
-using Google.Protobuf;
-using Virgil.Crypto;
 using Xunit;
 
-namespace AElf.Kernel.Types.Tests
+namespace AElf.Types.Tests
 {
-    /// <summary>
-    /// Use Transaction to be the type of the merkle node.
-    /// </summary>
-    public class MerkleTest
+    public class BinaryMerkleTestTest
     {
         private Hash GetHashFromStrings(params string[] strings)
         {
-            return strings.Select(Hash.FromString).ToList().ComputeBinaryMerkleTreeRootWithLeafNodes();
+            return BinaryMerkleTreeHelper.ComputeRootWithLeafNodes(strings.Select(Hash.FromString).ToList());
         }
 
         private Hash GetHashFromHexString(params string[] strings)
@@ -35,13 +29,11 @@ namespace AElf.Kernel.Types.Tests
         [Fact]
         public void SingleNodeTest()
         {
-            var tree = new BinaryMerkleTree();
-
             string hex = "5a7d71da020cae179a0dfe82bd3c967e1573377578f4cc87bc21f74f2556c0ef";
-            tree.AddNode(CreateLeafFromHex(hex));
+            var tree = BinaryMerkleTree.FromLeafNodes(new[] {CreateLeafFromHex(hex)});
 
             //See if the hash of merkle tree is equal to the element’s hash.
-            var root = tree.ComputeRootHash();
+            var root = tree.Root;
             var expected = GetHashFromHexString(hex, hex);
             Assert.Equal(expected, root);
         }
@@ -49,44 +41,38 @@ namespace AElf.Kernel.Types.Tests
         [Fact]
         public void MerkleProofTest()
         {
-            var tree = new BinaryMerkleTree();
-
             string hex = "5a7d71da020cae179a0dfe82bd3c967e1573377578f4cc87bc21f74f2556c0ef";
             var leaf = CreateLeafFromHex(hex);
-            tree.AddNode(leaf);
+            var tree = BinaryMerkleTree.FromLeafNodes(new[] {leaf});
 
             //See if the hash of merkle tree is equal to the element’s hash.
-            var root = tree.ComputeRootHash();
+            var root = tree.Root;
             var path = tree.GenerateMerklePath(0);
-            var calculatedRoot = path.ComputeBinaryMerkleTreeRootWithPathAndLeafNode(leaf);
+            var calculatedRoot = path.ComputeRootWithLeafNode(leaf);
             Assert.Equal(root, calculatedRoot);
         }
         
         [Fact]
         public void MerkleProofTest_MultiTwoLeaves()
         {
-            var tree = new BinaryMerkleTree();
-
             string hex1 = "5a7d71da020cae179a0dfe82bd3c967e1573377578f4cc87bc21f74f2556c0ef";
             var leaf1 = CreateLeafFromHex(hex1);
             
             string hex2 = "a28bf94d0491a234d1e99abc62ed344eb55bb11aeecacc35c1b75bfa85c8983f";
             var leaf2 = CreateLeafFromHex(hex2);
-            
-            tree.AddNodes(new[] {leaf1, leaf2});
+
+            var tree = BinaryMerkleTree.FromLeafNodes(new[] {leaf1, leaf2});
 
             //See if the hash of merkle tree is equal to the element’s hash.
-            var root = tree.ComputeRootHash();
+            var root = tree.Root;
             var path = tree.GenerateMerklePath(0);
-            var calculatedRoot = path.ComputeBinaryMerkleTreeRootWithPathAndLeafNode(leaf1);
+            var calculatedRoot = path.ComputeRootWithLeafNode(leaf1);
             Assert.Equal(root, calculatedRoot);
         }
         
         [Fact]
         public void MerkleProofTest_MultiThreeLeaves()
         {
-            var tree = new BinaryMerkleTree();
-
             string hex1 = "5a7d71da020cae179a0dfe82bd3c967e1573377578f4cc87bc21f74f2556c0ef";
             var leaf1 = CreateLeafFromHex(hex1);
             
@@ -95,19 +81,17 @@ namespace AElf.Kernel.Types.Tests
             
             string hex3 = "bf6ae8809d017f07b27ad1620839c6503666fb55f7fe7ac70881e8864ce5a3ff";
             var leaf3 = CreateLeafFromHex(hex3);
-            tree.AddNodes(new[] {leaf1, leaf2, leaf3});
+            var tree = BinaryMerkleTree.FromLeafNodes(new[] {leaf1, leaf2, leaf3});
 
-            var root = tree.ComputeRootHash();
+            var root = tree.Root;
             var path = tree.GenerateMerklePath(2);
-            var calculatedRoot = path.ComputeBinaryMerkleTreeRootWithPathAndLeafNode(leaf3);
+            var calculatedRoot = path.ComputeRootWithLeafNode(leaf3);
             Assert.Equal(root, calculatedRoot);
         }
             
         [Fact]
         public void MerkleProofTest_MultiLeaves()
         {
-            var tree = new BinaryMerkleTree();
-
             string hex1 = "5a7d71da020cae179a0dfe82bd3c967e1573377578f4cc87bc21f74f2556c0ef";
             var hash1 = CreateLeafFromHex(hex1);
             
@@ -122,12 +106,12 @@ namespace AElf.Kernel.Types.Tests
 
             string hex5 = "bac4adcf8066921237320cdcddb721f5ba5d34065b9c54fe7f9893d8dfe52f17";
             var hash5 = CreateLeafFromHex(hex5);
-            tree.AddNodes(new[] {hash1, hash2, hash3, hash4, hash5});
+            var tree = BinaryMerkleTree.FromLeafNodes(new[] {hash1, hash2, hash3, hash4, hash5});
 
             //See if the hash of merkle tree is equal to the element’s hash.
-            var root = tree.ComputeRootHash();
+            var root = tree.Root;
             var path = tree.GenerateMerklePath(4);
-            var calculatedRoot = path.ComputeBinaryMerkleTreeRootWithPathAndLeafNode(hash5);
+            var calculatedRoot = path.ComputeRootWithLeafNode(hash5);
             //Assert.Contains(hash3, path.Path);
             Assert.Equal(root, calculatedRoot);
         }
@@ -135,48 +119,40 @@ namespace AElf.Kernel.Types.Tests
         [Fact]
         public void MultiNodesTest()
         {
-            var tree1 = new BinaryMerkleTree();
-            tree1.AddNodes(CreateLeaves(new[] {"a", "e"}));
+            var tree1 = BinaryMerkleTree.FromLeafNodes(CreateLeaves(new[] {"a", "e"}));
 
             //See if the hash of merkle tree is equal to the element’s hash.
-            var root1 = tree1.ComputeRootHash();
+            var root1 = tree1.Root;
             Assert.Equal(GetHashFromStrings("a", "e"), root1);
 
-            var tree2 = new BinaryMerkleTree();
-            tree2.AddNodes(CreateLeaves(new[] {"a", "e", "l"}));
-            var root2 = tree2.ComputeRootHash();
+            var tree2 = BinaryMerkleTree.FromLeafNodes(CreateLeaves(new[] {"a", "e", "l"}));
+            var root2 = tree2.Root;
             Hash right = GetHashFromStrings("l", "l");
-            Assert.Equal(root1.ComputeParentNodeWith(right), root2);
+            Assert.Equal(root1.Concat(right), root2);
 
-            var tree3 = new BinaryMerkleTree();
-            tree3.AddNodes(CreateLeaves(new[] {"a", "e", "l", "f"}));
-            var root3 = tree3.ComputeRootHash();
+            var tree3 = BinaryMerkleTree.FromLeafNodes(CreateLeaves(new[] {"a", "e", "l", "f"}));
+            var root3 = tree3.Root;
             Hash right2 = GetHashFromStrings("l", "f");
-            Assert.Equal(root1.ComputeParentNodeWith(right2), root3);
+            Assert.Equal(root1.Concat(right2), root3);
 
-            var tree4 = new BinaryMerkleTree();
-            tree4.AddNodes(CreateLeaves(new[] {"a", "e", "l", "f", "a"}));
-            var root4 = tree4.ComputeRootHash();
+            var tree4 = BinaryMerkleTree.FromLeafNodes(CreateLeaves(new[] {"a", "e", "l", "f", "a"}));
+            var root4 = tree4.Root;
             Hash l2 = GetHashFromStrings("a", "a");
-            Hash l3 = l2.ComputeParentNodeWith(l2);
-            Assert.Equal(root3.ComputeParentNodeWith(l3), root4);
+            Hash l3 = l2.Concat(l2);
+            Assert.Equal(root3.Concat(l3), root4);
         }
 
         [Fact]
         public void MerklePathTest1LeafNode()
         {
             var hashes = CreateLeaves(new[] {"a"});
-            var tree = new BinaryMerkleTree();
-            tree.AddNodes(hashes);
-            var path = tree.GenerateMerklePath(0);
-            Assert.Null(path);
-            tree.ComputeRootHash();
+            var tree = BinaryMerkleTree.FromLeafNodes(hashes);
+            
             // test invalid index
-            path = tree.GenerateMerklePath(1);
-            Assert.Null(path);
+            Assert.Throws<InvalidOperationException>(() => tree.GenerateMerklePath(1));
 
             // test 1st "a"
-            path = tree.GenerateMerklePath(0);
+            var path = tree.GenerateMerklePath(0);
             Assert.NotNull(path);
             Assert.True(1 == path.MerklePathNodes.Count);
             var realPath = GenerateMerklePath(new[] {1}, tree.Nodes);
@@ -187,17 +163,12 @@ namespace AElf.Kernel.Types.Tests
         public void MerklePathTest2LeafNodes()
         {
             var hashes = CreateLeaves(new[] {"a", "e"});
-            var tree = new BinaryMerkleTree();
-            tree.AddNodes(hashes);
-            var path = tree.GenerateMerklePath(0);
-            Assert.Null(path);
-            tree.ComputeRootHash();
+            var tree = BinaryMerkleTree.FromLeafNodes(hashes);
             // test invalid index
-            path = tree.GenerateMerklePath(2);
-            Assert.Null(path);
+            Assert.Throws<InvalidOperationException>(() => tree.GenerateMerklePath(2));
 
             // test "a"
-            path = tree.GenerateMerklePath(0);
+            var path = tree.GenerateMerklePath(0);
             Assert.NotNull(path);
             Assert.True(1 == path.MerklePathNodes.Count);
             var realPath1 = GenerateMerklePath(new[] {1}, tree.Nodes);
@@ -215,11 +186,8 @@ namespace AElf.Kernel.Types.Tests
         public void MerklePathTest5LeafNodes()
         {
             var hashes = CreateLeaves(new[] {"a", "e", "l", "f", "a"});
-            var tree = new BinaryMerkleTree();
-            tree.AddNodes(hashes);
-            var path = tree.GenerateMerklePath(5);
-            Assert.Null(path);
-            var root = tree.ComputeRootHash();
+            var tree = BinaryMerkleTree.FromLeafNodes(hashes);
+            var root = tree.Root;
 
             // test 1st "a"
             var path1 = tree.GenerateMerklePath(0);
@@ -268,8 +236,7 @@ namespace AElf.Kernel.Types.Tests
             Assert.Equal(root, actualRoot5);
 
             // test invalid index
-            var path6 = tree.GenerateMerklePath(5);
-            Assert.Null(path6);
+            Assert.Throws<InvalidOperationException>(() => tree.GenerateMerklePath(5));
         }
 
         [Theory]
@@ -279,11 +246,10 @@ namespace AElf.Kernel.Types.Tests
         public void MerklePathTest(int leaveCount, int index)
         {
             var hashes = CreateLeaves(leaveCount);
-            var bmt = new BinaryMerkleTree();
-            bmt.AddNodes(hashes);
-            var root = bmt.ComputeRootHash();
-            var path = bmt.GenerateMerklePath(index);
-            var calculatedRoot = path.ComputeBinaryMerkleTreeRootWithPathAndLeafNode(hashes[index]);
+            var tree = BinaryMerkleTree.FromLeafNodes(hashes.ToArray());
+            var root = tree.Root;
+            var path = tree.GenerateMerklePath(index);
+            var calculatedRoot = path.ComputeRootWithLeafNode(hashes[index]);
             Assert.Equal(root, calculatedRoot);
         }
 
@@ -312,7 +278,7 @@ namespace AElf.Kernel.Types.Tests
 
         private Hash ComputeRootWithMerklePathAndLeaf(Hash leaf, MerklePath path)
         {
-            return path.ComputeBinaryMerkleTreeRootWithPathAndLeafNode(leaf);
+            return path.ComputeRootWithLeafNode(leaf);
         }
 
         private MerklePath GenerateMerklePath(IList<int> index, IList<Hash> hashes)

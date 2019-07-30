@@ -114,12 +114,6 @@ message Block {
     BlockBody body = 2;
 }
 
-message BinaryMerkleTree {
-    repeated Hash nodes = 1;
-    Hash root = 2;
-    int32 leaf_count = 3;
-}
-
 message VersionedState {
     string key = 1;
     bytes value = 2;
