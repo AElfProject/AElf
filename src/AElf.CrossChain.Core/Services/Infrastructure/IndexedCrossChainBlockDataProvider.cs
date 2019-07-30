@@ -32,10 +32,5 @@ namespace AElf.CrossChain
                 _indexedCrossChainBlockData.Remove(hash);
             }
         }
-
-        public int GetCachedCrossChainBlockDataCount()
-        {
-            return _indexedCrossChainBlockData.Count;
-        }
     }
 }

@@ -216,8 +216,6 @@ namespace AElf.CrossChain
             crossChainBlockData.PreviousBlockHeight = blockHeight;
             
             _indexedCrossChainBlockDataProvider.SetIndexedBlockData(blockHash, crossChainBlockData);
-            Logger.LogTrace(
-                $"IndexedCrossChainBlockData count {_indexedCrossChainBlockDataProvider.GetCachedCrossChainBlockDataCount()}");
             return crossChainBlockData;
         }
 
@@ -227,10 +225,8 @@ namespace AElf.CrossChain
         /// <param name="blockHash"></param>
         /// <param name="previousBlockHeight"></param>
         /// <returns></returns>
-        public CrossChainBlockData GetUsedCrossChainBlockDataForLastMiningAsync(Hash blockHash, long previousBlockHeight)
+        public CrossChainBlockData GetUsedCrossChainBlockDataForLastMining(Hash blockHash, long previousBlockHeight)
         {
-            Logger.LogTrace(
-                $"IndexedCrossChainBlockData count {_indexedCrossChainBlockDataProvider.GetCachedCrossChainBlockDataCount()}");
             return _indexedCrossChainBlockDataProvider.GetIndexedBlockData(blockHash);
         }
 

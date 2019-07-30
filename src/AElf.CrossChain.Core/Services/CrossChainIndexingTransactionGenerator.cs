@@ -26,15 +26,6 @@ namespace AElf.CrossChain
         private IEnumerable<Transaction> GenerateCrossChainIndexingTransaction(Address from, long refBlockNumber,
             Hash previousBlockHash)
         {
-//            var sideChainBlockData = await _crossChainService.GetSideChainBlockDataAsync(previousBlockHash, refBlockNumber);
-//            var parentChainBlockData = await _crossChainService.GetParentChainBlockDataAsync(previousBlockHash, refBlockNumber);
-//            if (parentChainBlockData.Count == 0 && sideChainBlockData.Count == 0)
-//                return generatedTransactions;
-//            
-//            var crossChainBlockData = new CrossChainBlockData();
-//            crossChainBlockData.ParentChainBlockData.AddRange(parentChainBlockData);
-//            crossChainBlockData.SideChainBlockData.AddRange(sideChainBlockData);
-            
             var generatedTransactions = new List<Transaction>();
             var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
 
@@ -42,7 +33,7 @@ namespace AElf.CrossChain
             
             // should return the same data already filled in block header.
             var filledCrossChainBlockData =
-                _crossChainIndexingDataService.GetUsedCrossChainBlockDataForLastMiningAsync(previousBlockHash, refBlockNumber);
+                _crossChainIndexingDataService.GetUsedCrossChainBlockDataForLastMining(previousBlockHash, refBlockNumber);
             
             // filledCrossChainBlockData == null means no cross chain data filled in this block.
             if (filledCrossChainBlockData != null)

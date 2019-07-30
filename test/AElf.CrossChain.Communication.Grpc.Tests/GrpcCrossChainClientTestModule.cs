@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs7;
+using AElf.CrossChain.Cache;
 using AElf.CrossChain.Cache.Application;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -44,6 +46,29 @@ namespace AElf.CrossChain.Communication.Grpc
             {
                 var mockService = new Mock<ICrossChainCacheEntityService>();
                 return mockService.Object;
+            });
+
+            services.AddTransient(o =>
+            {
+                var mockBlockCacheEntityProvider = new Mock<IBlockCacheEntityProducer>();
+                mockBlockCacheEntityProvider.Setup(b => b.TryAddBlockCacheEntity(It.IsAny<IBlockCacheEntity>()))
+                    .Returns<IBlockCacheEntity>(
+                        blockCacheEntity =>
+                        {
+                            if (!GrpcCrossChainCommunicationTestHelper.CrossChainBlockDataEntityCache.TryGetValue(
+                                blockCacheEntity.ChainId, out var blockCacheEntities))
+                            {
+                                GrpcCrossChainCommunicationTestHelper.CrossChainBlockDataEntityCache.Add(
+                                    blockCacheEntity.ChainId, new List<IBlockCacheEntity> {blockCacheEntity});
+                                return true;
+                            }
+
+                            if (blockCacheEntities.Contains(blockCacheEntity))
+                                return false;
+                            blockCacheEntities.Add(blockCacheEntity);
+                            return true;
+                        });
+                return mockBlockCacheEntityProvider.Object;
             });
         }
     }
