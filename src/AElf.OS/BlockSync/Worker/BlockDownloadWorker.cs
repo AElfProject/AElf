@@ -184,7 +184,6 @@ namespace AElf.OS.BlockSync.Worker
                     });
                 }
             }
-
             return downloadResult;
         }
 
