@@ -10,7 +10,8 @@ namespace AElf.OS.Network.Infrastructure
     {
         bool IsBest { get; set; }
         bool IsReady { get; }
-        
+
+        Hash LastKnownLibHash { get; }
         long LastKnownLibHeight { get; }
         string IpAddress { get; }
 
@@ -18,11 +19,12 @@ namespace AElf.OS.Network.Infrastructure
 
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         void AddKnowBlock(BlockAnnouncement blockAnnouncement);
-
+        void UpdateLastKnownLib(LibAnnouncement libAnnouncement);
         Task<Handshake> DoHandshakeAsync(Handshake handshake);
         Task SendAnnouncementAsync(BlockAnnouncement an);
         Task SendTransactionAsync(Transaction transaction);
         Task SendBlockAsync(BlockWithTransactions blockWithTransactions);
+        Task SendLibAnnouncementAsync(LibAnnouncement libAnnouncement);
         Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash);
         Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);
         Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest);

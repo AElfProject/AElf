@@ -45,7 +45,9 @@ namespace AElf.OS.Network.Grpc
         {
             get { return (_channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready) && IsConnected; }
         }
-        
+
+        public Hash LastKnownLibHash { get; private set; }
+
         public long LastKnownLibHeight { get; private set; }
 
         public bool IsBest { get; set; }
@@ -69,6 +71,7 @@ namespace AElf.OS.Network.Grpc
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
         private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
+        private AsyncClientStreamingCall<LibAnnouncement, VoidReply> _libAnnouncementStreamCall;
 
         public GrpcPeer(GrpcClient client, string ipAddress, PeerInfo peerInfo)
         {
@@ -149,7 +152,18 @@ namespace AElf.OS.Network.Grpc
             CurrentBlockHash = handshake.HandshakeData.BestChainHead.GetHash();
             CurrentBlockHeight = handshake.HandshakeData.BestChainHead.Height;
         }
-        
+
+        public void UpdateLastKnownLib(LibAnnouncement libAnnouncement)
+        {
+            if (libAnnouncement.LibHeight <= LastKnownLibHeight)
+            {
+                return;
+            }
+
+            LastKnownLibHash = libAnnouncement.LibHash;
+            LastKnownLibHeight = libAnnouncement.LibHeight;
+        }
+
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
         {
             var blockRequest = new BlockRequest {Hash = hash};
@@ -261,6 +275,31 @@ namespace AElf.OS.Network.Grpc
                 _transactionStreamCall = null;
                 
                 HandleFailure(e, $"Error during transaction broadcast: {transaction.GetHash()}.");
+            }
+        }
+        
+        /// <summary>
+        /// Send a lib announcement to the peer using the stream call.
+        /// Note: this method is not thread safe.
+        /// </summary>
+        public async Task SendLibAnnouncementAsync(LibAnnouncement libAnnouncement)
+        {
+            if (!IsConnected)
+                return;
+            
+            if (_libAnnouncementStreamCall == null)
+                _libAnnouncementStreamCall = _client.LibAnnouncementBroadcastStream();
+            
+            try
+            {
+                await _libAnnouncementStreamCall.RequestStream.WriteAsync(libAnnouncement);
+            }
+            catch (RpcException e)
+            {
+                _libAnnouncementStreamCall.Dispose();
+                _libAnnouncementStreamCall = null;
+                
+                HandleFailure(e, $"Error during lib announcement broadcast: hash: {libAnnouncement.LibHash}, height: {libAnnouncement.LibHeight}.");
             }
         }
 

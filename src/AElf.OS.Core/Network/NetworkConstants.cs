@@ -14,6 +14,7 @@ namespace AElf.OS.Network
         
         public const int AnnouncementQueueJobTimeout = 1000;
         public const int TransactionQueueJobTimeout = 1000;
+        public const int LibAnnouncementQueueJobTimeout = 1000;
         
         public const int DefaultDiscoveryMaxNodesToRequest = 10;
         public const int DefaultDiscoveryPeriodInMilliSeconds = 60_000;
@@ -23,5 +24,6 @@ namespace AElf.OS.Network
         public const string AnnouncementBroadcastQueueName = "AnnouncementBroadcastQueue";
         public const string TransactionBroadcastQueueName = "TransactionBroadcastQueue";
         public const string BlockBroadcastQueueName = "BlockBroadcastQueue";
+        public const string LibAnnouncementBroadcastQueueName = "LibAnnouncementBroadcastQueue";
     }
 }

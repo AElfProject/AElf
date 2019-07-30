@@ -124,6 +124,28 @@ namespace AElf.OS.Network.Grpc
             
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent { Transactions = new List<Transaction> {tx} });
         }
+        
+        public override async Task<VoidReply> LibAnnouncementBroadcastStream(IAsyncStreamReader<LibAnnouncement> requestStream, ServerCallContext context)
+        {
+            await requestStream.ForEachAsync(async r => await ProcessLibAnnouncement(r, context));
+            return new VoidReply();
+        }
+
+        public Task ProcessLibAnnouncement(LibAnnouncement announcement, ServerCallContext context)
+        {
+            if (announcement?.LibHash == null)
+            {
+                Logger.LogError($"Received null or empty announcement from {context.GetPeerInfo()}.");
+                return Task.CompletedTask;
+            }
+            
+            Logger.LogDebug($"Received lib announce hash: {announcement.LibHash}, height {announcement.LibHeight} from {context.GetPeerInfo()}.");
+
+            var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
+            peer?.UpdateLastKnownLib(announcement);
+            
+            return Task.CompletedTask;
+        }
 
         /// <summary>
         /// This method is called when a peer wants to broadcast an announcement.

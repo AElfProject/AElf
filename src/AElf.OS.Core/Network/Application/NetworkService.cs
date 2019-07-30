@@ -196,6 +196,43 @@ namespace AElf.OS.Network.Application
             return Task.CompletedTask;
         }
 
+        public Task BroadcastLibAnnounceAsync(Hash libHash, long libHeight)
+        {
+            var announce = new LibAnnouncement
+            {
+                LibHash = libHash,
+                LibHeight = libHeight
+            };
+            
+            var beforeEnqueue = TimestampHelper.GetUtcNow();
+            _taskQueueManager.Enqueue(async () =>
+            {
+                var execTime = TimestampHelper.GetUtcNow();
+                if (execTime > beforeEnqueue +
+                    TimestampHelper.DurationFromMilliseconds(NetworkConstants.LibAnnouncementQueueJobTimeout))
+                {
+                    Logger.LogWarning($"Lib announcement too old: {execTime - beforeEnqueue}");
+                    return;
+                }
+                
+                foreach (var peer in _peerPool.GetPeers())
+                {
+                    try
+                    {
+                        await peer.SendLibAnnouncementAsync(announce);
+                    }
+                    catch (NetworkException ex)
+                    {
+                        Logger.LogError(ex, $"Error while lib announcing to {peer}.");
+                        await HandleNetworkException(peer, ex);
+                    }
+                }
+                
+            }, NetworkConstants.LibAnnouncementBroadcastQueueName);
+            
+            return Task.CompletedTask;
+        }
+
         public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, 
             string peerPubkey = null)
         {

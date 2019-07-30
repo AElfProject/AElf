@@ -67,12 +67,12 @@ namespace AElf.OS.BlockSync.Application
             var downloadBlockCount = 0;
             var lastDownloadBlockHash = downloadBlockDto.PreviousBlockHash;
             var lastDownloadBlockHeight = downloadBlockDto.PreviousBlockHeight;
+            
+            Logger.LogDebug(
+                $"Download blocks start with block hash: {lastDownloadBlockHash}, block height: {lastDownloadBlockHeight}, PeerPubkey: {peerPubkey}");
 
             while (downloadBlockCount < downloadBlockDto.MaxBlockDownloadCount)
             {
-                Logger.LogDebug(
-                    $"Request blocks start with block hash: {lastDownloadBlockHash}, block height: {lastDownloadBlockHeight}");
-
                 var blocksWithTransactions = await _networkService.GetBlocksAsync(lastDownloadBlockHash,
                     downloadBlockDto.BatchRequestBlockCount, peerPubkey);
 
