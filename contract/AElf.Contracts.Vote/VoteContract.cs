@@ -14,7 +14,7 @@ namespace AElf.Contracts.Vote
         public override Empty Register(VotingRegisterInput input)
         {
             var votingItemId = AssertValidNewVotingItem(input);
-            
+
             if (State.TokenContract.Value == null)
             {
                 State.TokenContract.Value =
@@ -128,7 +128,7 @@ namespace AElf.Contracts.Vote
 
             return new Empty();
         }
-        
+
         private void UpdateVotedItems(Hash voteId, Address voter, VotingItem votingItem)
         {
             var votedItems = State.VotedItemsMap[voter] ?? new VotedItems();
@@ -281,6 +281,8 @@ namespace AElf.Contracts.Vote
             var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
             Assert(!votingItem.Options.Contains(input.Option), "Option already exists.");
+            Assert(votingItem.Options.Count <= VoteContractConstants.MaximumOptionsCount,
+                $"The count of options can't greater than {VoteContractConstants.MaximumOptionsCount}");
             votingItem.Options.Add(input.Option);
             State.VotingItems[votingItem.VotingItemId] = votingItem;
             return new Empty();

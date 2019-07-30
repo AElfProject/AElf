@@ -58,6 +58,8 @@ service TokenContract {
     }
     rpc TakeResourceTokenBack (TakeResourceTokenBackInput) returns (google.protobuf.Empty) {
     }
+    rpc SetFeeReceiver (aelf.Address) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {

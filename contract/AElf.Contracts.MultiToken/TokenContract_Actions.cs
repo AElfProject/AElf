@@ -299,7 +299,7 @@ namespace AElf.Contracts.MultiToken
 
             return new Empty();
         }
-        
+
         private void ChargeFirstSufficientToken(MapField<string, long> symbolToAmountMap, out string symbol,
             out long amount, out long existingBalance)
         {
@@ -364,16 +364,41 @@ namespace AElf.Contracts.MultiToken
 
                 if (totalFee > 0)
                 {
-                    State.TreasuryContract.Donate.Send(new DonateInput
-                    {
-                        Symbol = symbol,
-                        Amount = totalFee
-                    });
+                    TransferTransactionFeesToFeeReceiver(symbol, totalFee);
                 }
             }
 
             State.PreviousBlockTransactionFeeTokenSymbolList.Value = new TokenSymbolList();
 
+            return new Empty();
+        }
+
+        private void TransferTransactionFeesToFeeReceiver(string symbol, long totalFee)
+        {
+            if (State.TreasuryContract.Donate != null)
+            {
+                State.TreasuryContract.Donate.Send(new DonateInput
+                {
+                    Symbol = symbol,
+                    Amount = totalFee
+                });
+            }
+            else
+            {
+                Assert(State.FeeReceiver.Value != null, "Fee receiver not set.");
+                Transfer(new TransferInput
+                {
+                    To = State.FeeReceiver.Value,
+                    Symbol = symbol,
+                    Amount = totalFee,
+                });
+            }
+        }
+
+        public override Empty SetFeeReceiver(Address input)
+        {
+            Assert(State.FeeReceiver.Value != null, "Fee receiver already set.");
+            State.FeeReceiver.Value = input;
             return new Empty();
         }
 

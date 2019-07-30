@@ -13,7 +13,6 @@ namespace AElf.Contracts.Economic
     {
         public SingletonState<bool> Initialized { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
-        internal TreasuryContractContainer.TreasuryContractReferenceState TreasuryContract { get; set; }
         internal ElectionContractContainer.ElectionContractReferenceState ElectionContract { get; set; }
         internal ProfitContractContainer.ProfitContractReferenceState ProfitContract { get; set; }
         internal TokenConverterContractContainer.TokenConverterContractReferenceState TokenConverterContract { get; set; }

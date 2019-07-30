@@ -1,9 +1,7 @@
 namespace AElf.Contracts.Vote
 {
-    public class VoteContractConstants
+    public static class VoteContractConstants
     {
-        public const int MaxActiveDays = 100;
-
-        public const int OptionLengthLimit = 50;
+        public const int MaximumOptionsCount = 64;
     }
 }
