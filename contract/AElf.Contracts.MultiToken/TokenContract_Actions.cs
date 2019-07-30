@@ -373,14 +373,27 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
+        /// <summary>
+        /// Burn 10%
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <param name="totalFee"></param>
         private void TransferTransactionFeesToFeeReceiver(string symbol, long totalFee)
         {
+            var burnAmount = totalFee.Div(10);
+            Burn(new BurnInput
+            {
+                Symbol = symbol,
+                Amount = burnAmount
+            });
+
+            var transferAmount = totalFee.Sub(burnAmount);
             if (State.TreasuryContract.Donate != null)
             {
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,
-                    Amount = totalFee
+                    Amount = transferAmount
                 });
             }
             else
@@ -390,7 +403,7 @@ namespace AElf.Contracts.MultiToken
                 {
                     To = State.FeeReceiver.Value,
                     Symbol = symbol,
-                    Amount = totalFee,
+                    Amount = transferAmount,
                 });
             }
         }
