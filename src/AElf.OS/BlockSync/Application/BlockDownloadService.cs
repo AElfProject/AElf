@@ -69,11 +69,13 @@ namespace AElf.OS.BlockSync.Application
             if (downloadResult.DownloadBlockCount == 0)
             {
                 // TODO: Handle bad peer or network problems.
-                // If we cannot get the blocks, there should be network problems or bad peer,
+                // If cannot get the blocks, there should be network problems or bad peer,
                 // because we have selected peer with lib height greater than or equal to the target height.
-                // Now we have no way to know if it is a network problem through the network interface.
                 // 1. network problems, need to retry from other peer.
                 // 2. not network problems, this peer or the last peer is bad peer, we need to remove it.
+                //
+                // But now we have no way to know if it is a network problem through the network service,
+                // so we need to modify the implementation of NetworkService.GetBlocksAsync.
                 Logger.LogWarning("Found bad peer or network problems.");
             }
 
