@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
@@ -14,11 +15,13 @@ namespace AElf.OS.Network
     {
         private readonly INetworkService _networkService;
         private readonly IPeerPool _peerPool;
+        private readonly KernelTestHelper _kernelTestHelper;
 
         public NetworkServiceTests()
         {
             _networkService = GetRequiredService<INetworkService>();
             _peerPool = GetRequiredService<IPeerPool>();
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
 
         #region GetBlocks
@@ -72,28 +75,18 @@ namespace AElf.OS.Network
         [Fact]
         public async Task BroadcastAnnounce_Test()
         {
-            var blockHeader = new BlockHeader
-            {
-                ChainId = 0,
-                Height = 10,
-                Time = TimestampHelper.GetUtcNow(),
-                PreviousBlockHash = Hash.FromString("previous"),
-                Signature = ByteString.CopyFromUtf8("sign"),
-                SignerPubkey = ByteString.CopyFromUtf8("pubkey"),
-                MerkleTreeRootOfTransactions = Hash.Empty,
-                MerkleTreeRootOfWorldState = Hash.Empty,
-                MerkleTreeRootOfTransactionStatus = Hash.Empty
-            };
+            var blockHeader = _kernelTestHelper.GenerateBlock(10, Hash.FromString("test")).Header;
 
             //old block
             blockHeader.Time = TimestampHelper.GetUtcNow() - TimestampHelper.DurationFromMinutes(20);
             await _networkService.BroadcastAnnounceAsync(blockHeader, false);
             
-            //normal case
+            //known block
             blockHeader.Time = TimestampHelper.GetUtcNow();
             await _networkService.BroadcastAnnounceAsync(blockHeader, false);
 
             //broadcast again
+            blockHeader = _kernelTestHelper.GenerateBlock(11, Hash.FromString("new")).Header;
             await _networkService.BroadcastAnnounceAsync(blockHeader, false);
         }
 
@@ -102,23 +95,12 @@ namespace AElf.OS.Network
         {
             var blockWithTransaction = new BlockWithTransactions
             {
-                Header = new BlockHeader
-                {
-                    ChainId = 0,
-                    Height = 10,
-                    Time = TimestampHelper.GetUtcNow(),
-                    PreviousBlockHash = Hash.FromString("previous"),
-                    Signature = ByteString.CopyFromUtf8("sign"),
-                    SignerPubkey = ByteString.CopyFromUtf8("pubkey"),
-                    MerkleTreeRootOfTransactions = Hash.Empty,
-                    MerkleTreeRootOfWorldState = Hash.Empty,
-                    MerkleTreeRootOfTransactionStatus = Hash.Empty
-                },
+                Header = _kernelTestHelper.GenerateBlock(10, Hash.FromString("test")).Header,
                Transactions =
                {
                    new Transaction(),
                    new Transaction()
-               },
+               }
             };
             await _networkService.BroadcastBlockWithTransactionsAsync(blockWithTransaction);
         }
