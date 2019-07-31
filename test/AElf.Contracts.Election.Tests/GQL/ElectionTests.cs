@@ -16,7 +16,7 @@ namespace AElf.Contracts.Election
     public partial class ElectionContractTests : ElectionContractTestBase
     {
         [Fact]
-        public async Task ElectionContract_InitializeTwice()
+        public async Task ElectionContract_InitializeTwice_Test()
         {
             var transactionResult = (await ElectionContractStub.InitialElectionContract.SendAsync(
                 new InitialElectionContractInput())).TransactionResult;
@@ -28,7 +28,7 @@ namespace AElf.Contracts.Election
         #region AnnounceElection
 
         [Fact]
-        public async Task ElectionContract_AnnounceElection_TokenNotEnough()
+        public async Task ElectionContract_AnnounceElection_TokenNotEnough_Test()
         {
             var candidateKeyPair = VoterKeyPairs[0];
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -51,9 +51,9 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task ElectionContract_AnnounceElection_Twice()
+        public async Task ElectionContract_AnnounceElection_Twice_Test()
         {
-            var candidateKeyPair = (await ElectionContract_AnnounceElection())[0];
+            var candidateKeyPair = (await ElectionContract_AnnounceElection_Test())[0];
             var transactionResult = await AnnounceElectionAsync(candidateKeyPair);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("This public key already announced election.");
@@ -64,7 +64,7 @@ namespace AElf.Contracts.Election
         #region QuitElection
 
         [Fact]
-        public async Task ElectionContract_QuitElection_NotCandidate()
+        public async Task ElectionContract_QuitElection_NotCandidate_Test()
         {
             var userKeyPair = SampleECKeyPairs.KeyPairs[2];
 
@@ -78,7 +78,7 @@ namespace AElf.Contracts.Election
         #region Vote
 
         [Fact]
-        public async Task ElectionContract_Vote_Failed()
+        public async Task ElectionContract_Vote_Failed_Test()
         {
             var candidateKeyPair = ValidationDataCenterKeyPairs[0];
             var voterKeyPair = VoterKeyPairs[0];
@@ -123,7 +123,7 @@ namespace AElf.Contracts.Election
         #region GetVictories
 
         [Fact]
-        public async Task ElectionContract_GetVictories_NoCandidate()
+        public async Task ElectionContract_GetVictories_NoCandidate_Test()
         {
             // To get previous round information.
             await NextRound(BootMinerKeyPair);
@@ -140,7 +140,7 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task ElectionContract_GetVictories_CandidatesNotEnough()
+        public async Task ElectionContract_GetVictories_CandidatesNotEnough_Test()
         {
             // To get previous round information.
             await NextRound(BootMinerKeyPair);
@@ -160,7 +160,7 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task ElectionContract_GetVictories_NoValidCandidate()
+        public async Task ElectionContract_GetVictories_NoValidCandidate_Test()
         {
             await NextRound(BootMinerKeyPair);
 
@@ -178,7 +178,7 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task<List<string>> ElectionContract_GetVictories_ValidCandidatesNotEnough()
+        public async Task<List<string>> ElectionContract_GetVictories_ValidCandidatesNotEnough_Test()
         {
             const int amount = 100;
 
@@ -223,7 +223,7 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task<List<ECKeyPair>> ElectionContract_GetVictories_NotAllCandidatesGetVotes()
+        public async Task<List<ECKeyPair>> ElectionContract_GetVictories_NotAllCandidatesGetVotes_Test()
         {
             await NextRound(BootMinerKeyPair);
 
@@ -245,7 +245,7 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task<List<string>> ElectionContract_GetVictories_ValidCandidatesEnough()
+        public async Task<List<string>> ElectionContract_GetVictories_ValidCandidatesEnough_Test()
         {
             await NextRound(BootMinerKeyPair);
 

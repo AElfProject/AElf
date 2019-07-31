@@ -164,7 +164,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         [Fact]
-        public async Task CandidatesNotEnough()
+        public async Task Candidates_NotEnough_Test()
         {
             await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(new Empty());
 
@@ -241,8 +241,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }.ToBytesValue())).ToConsensusHeaderInformation();
             var updateResult = await oneCandidate.UpdateValue.SendAsync(
                 informationOfSecondRound.Round.ExtractInformationToUpdateConsensus(ValidationDataCenterKeyPairs[0]
-                    .PublicKey
-                    .ToHex()));
+                    .PublicKey.ToHex()));
 
             var thirdRoundStartTime = changeTermTime.AddMinutes(AEDPoSContractTestConstants.TimeEachTerm + 2);
             BlockTimeProvider.SetBlockTime(thirdRoundStartTime.ToTimestamp());
@@ -269,9 +268,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         [Fact]
-        public async Task UpdateTinyBlockInformation()
+        public async Task Update_TinyBlockInformation_Test()
         {
-            await AEDPoSContract_FirstRound_BootMiner();
+            await AEDPoSContract_FirstRound_BootMiner_Test();
 
             var roundInfo = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
@@ -290,9 +289,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         [Fact]
-        public async Task UpdateConsensusInformation()
+        public async Task Update_ConsensusInformation_Test()
         {
-            await AEDPoSContract_FirstRound_BootMiner();
+            await AEDPoSContract_FirstRound_BootMiner_Test();
 
             //just verify method, will add other logic
             {

@@ -15,7 +15,7 @@ namespace AElf.Contracts.MultiToken
 {
     public class MultiTokenContractWithCustomSystemTransactionTest : MultiTokenContractTestBase
     {
-        private static long _totalSupply = 1_000_000L;
+        private static long _totalSupply = 1_000_000_00000000L;
 
         public MultiTokenContractWithCustomSystemTransactionTest()
         {
@@ -24,36 +24,35 @@ namespace AElf.Contracts.MultiToken
 
         private async Task InitializeAsync()
         {
-            {
-                // TokenContract
-                var category = KernelConstants.CodeCoverageRunnerCategory;
-                var code = TokenContractCode;
-                TokenContractAddress = await DeployContractAsync(category, code, Hash.FromString("MultiToken"), DefaultKeyPair);
-                TokenContractStub =
-                    GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
-                Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);
+            // TokenContract
+            var category = KernelConstants.CodeCoverageRunnerCategory;
+            var code = TokenContractCode;
+            TokenContractAddress =
+                await DeployContractAsync(category, code, Hash.FromString("MultiToken"), DefaultKeyPair);
+            TokenContractStub =
+                GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
+            Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);
 
-                await TokenContractStub.Create.SendAsync(new CreateInput
-                {
-                    Symbol = DefaultSymbol,
-                    Decimals = 2,
-                    IsBurnable = true,
-                    TokenName = "elf token",
-                    TotalSupply = _totalSupply,
-                    Issuer = DefaultAddress
-                });
-                await TokenContractStub.Issue.SendAsync(new IssueInput()
-                {
-                    Symbol = DefaultSymbol,
-                    Amount = _totalSupply,
-                    To = DefaultAddress,
-                    Memo = "Set for token converter."
-                });
-            }
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = DefaultSymbol,
+                Decimals = 2,
+                IsBurnable = true,
+                TokenName = "elf token",
+                TotalSupply = _totalSupply,
+                Issuer = DefaultAddress
+            });
+            await TokenContractStub.Issue.SendAsync(new IssueInput()
+            {
+                Symbol = DefaultSymbol,
+                Amount = _totalSupply,
+                To = DefaultAddress,
+                Memo = "Set for token converter."
+            });
         }
 
         [Fact]
-        public async Task TokenContract_WithSystemTransaction()
+        public async Task TokenContract_WithSystemTransaction_Test()
         {
             var transferAmountInSystemTxn = 1000L;
             // Set the address so that a transfer

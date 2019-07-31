@@ -52,7 +52,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task Token_Lock()
+        public async Task Token_Lock_Test()
         {
             await tokenTestElectionContractStub.AnnounceElection.SendAsync(new Empty());
             var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -64,10 +64,10 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task Token_Unlock()
+        public async Task Token_Unlock_Test()
         {
-            Token_Lock();
-            var address = AnnounceElectionKeyPair.PublicKey;
+            await Token_Lock_Test();
+            
             await tokenTestElectionContractStub.QuitElection.SendAsync(new Empty());
             var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -78,7 +78,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task SetResourceTokenUnitPrice()
+        public async Task SetResourceTokenUnitPrice_Test()
         {
             var result = await TokenContractStub.SetResourceTokenUnitPrice.SendAsync(
                 new SetResourceTokenUnitPriceInput()

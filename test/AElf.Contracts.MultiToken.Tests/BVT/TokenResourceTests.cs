@@ -14,7 +14,7 @@ namespace AElf.Contracts.MultiToken
     public partial class MultiTokenContractTests
     {
         [Fact]
-        public async Task ACS2_GetResourceInfo_Transfer()
+        public async Task ACS2_GetResourceInfo_Transfer_Test()
         {
             var transaction = GenerateTokenTransaction(SampleAddress.AddressList[0], nameof(TokenContractStub.Transfer),
                 new TransferInput
@@ -31,7 +31,7 @@ namespace AElf.Contracts.MultiToken
         }
         
         [Fact]
-        public async Task ACS2_GetResourceInfo_TransferFrom()
+        public async Task ACS2_GetResourceInfo_TransferFrom_Test()
         {
             var transaction = GenerateTokenTransaction(SampleAddress.AddressList[0], nameof(TokenContractStub.TransferFrom),
                 new TransferFromInput
@@ -49,7 +49,7 @@ namespace AElf.Contracts.MultiToken
         }
         
         [Fact]
-        public async Task ACS2_GetResourceInfo_DonateResourceToken()
+        public async Task ACS2_GetResourceInfo_DonateResourceToken_Test()
         {
             var transaction = GenerateTokenTransaction(SampleAddress.AddressList[0], nameof(TokenContractStub.DonateResourceToken),
                 new Empty());
@@ -60,7 +60,7 @@ namespace AElf.Contracts.MultiToken
         }
         
         [Fact]
-        public async Task ACS2_GetResourceInfo_ClaimTransactionFees()
+        public async Task ACS2_GetResourceInfo_ClaimTransactionFees_Test()
         {
             var transaction = GenerateTokenTransaction(SampleAddress.AddressList[0], nameof(TokenContractStub.ClaimTransactionFees),
                 new Empty());
@@ -71,7 +71,7 @@ namespace AElf.Contracts.MultiToken
         }
         
         [Fact]
-        public async Task ACS2_GetResourceInfo_UnsupportedMethod()
+        public async Task ACS2_GetResourceInfo_UnsupportedMethod_Test()
         {
             var transaction = GenerateTokenTransaction(SampleAddress.AddressList[0], "TestMethod",
                 new Empty());
