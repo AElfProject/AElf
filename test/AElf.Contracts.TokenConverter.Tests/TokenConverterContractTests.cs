@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -15,7 +16,7 @@ namespace AElf.Contracts.TokenConverter
         private string _nativeSymbol = "ELF";
 
         private string _ramSymbol = "RAM";
-        
+
         //init connector
         private Connector ELFConnector = new Connector
         {
@@ -60,7 +61,7 @@ namespace AElf.Contracts.TokenConverter
             //GetTokenContractAddress
             var tokenContractAddress = await DefaultStub.GetTokenContractAddress.CallAsync(new Empty());
             tokenContractAddress.ShouldBe(TokenContractAddress);
-            
+
             //GetBaseTokenSymbol
             var tokenSymbol = await DefaultStub.GetBaseTokenSymbol.CallAsync(new Empty());
             tokenSymbol.ShouldNotBeNull();
@@ -157,7 +158,7 @@ namespace AElf.Contracts.TokenConverter
                 Symbol = "RAM"
             });
             ramNewInfo.IsPurchaseEnabled.ShouldBeFalse();
-            
+
             var connectorsInfo = await DefaultStub.GetConnector.CallAsync(new TokenSymbol() {Symbol = "CPU"});
             connectorsInfo.Symbol.ShouldBeEmpty();
 
@@ -199,14 +200,15 @@ namespace AElf.Contracts.TokenConverter
             await CreateRamToken();
             await InitializeTokenConverterContract();
             await PrepareToBuyAndSell();
-            
+
             //check the price and fee
             var fromConnectorBalance = ELFConnector.VirtualBalance;
             var fromConnectorWeight = decimal.Parse(ELFConnector.Weight);
             var toConnectorBalance = await GetBalanceAsync(_ramSymbol, TokenConverterContractAddress);
             var toConnectorWeight = decimal.Parse(RamConnector.Weight);
-            
-            var amountToPay = BancorHelper.GetAmountToPayFromReturn(fromConnectorBalance,fromConnectorWeight,toConnectorBalance,toConnectorWeight,1000L);
+
+            var amountToPay = BancorHelper.GetAmountToPayFromReturn(fromConnectorBalance, fromConnectorWeight,
+                toConnectorBalance, toConnectorWeight, 1000L);
             var fee = Convert.ToInt64(amountToPay * 5 / 1000);
 
             var buyResult = (await DefaultStub.Buy.SendAsync(
@@ -217,23 +219,23 @@ namespace AElf.Contracts.TokenConverter
                     PayLimit = amountToPay + fee + 10L
                 })).TransactionResult;
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             //Verify the outcome of the transaction
-            var balanceOfTesterRam = await GetBalanceAsync(_ramSymbol,DefaultSender);
+            var balanceOfTesterRam = await GetBalanceAsync(_ramSymbol, DefaultSender);
             balanceOfTesterRam.ShouldBe(1000L);
 
-            var balanceOfElfToken = await GetBalanceAsync(_nativeSymbol,TokenConverterContractAddress);
+            var balanceOfElfToken = await GetBalanceAsync(_nativeSymbol, TokenConverterContractAddress);
             balanceOfElfToken.ShouldBe(amountToPay);
 
-            var balanceOfFeeReceiver = await GetBalanceAsync(_nativeSymbol,FeeReceiverAddress);
-            balanceOfFeeReceiver.ShouldBe(fee);
+            var balanceOfFeeReceiver = await GetBalanceAsync(_nativeSymbol, FeeReceiverAddress);
+            balanceOfFeeReceiver.ShouldBe(fee.Div(2));
 
-            var balanceOfRamToken = await GetBalanceAsync(_ramSymbol,TokenConverterContractAddress);
+            var balanceOfRamToken = await GetBalanceAsync(_ramSymbol, TokenConverterContractAddress);
             balanceOfRamToken.ShouldBe(100_0000L - 1000L);
 
-            var balanceOfTesterToken = await GetBalanceAsync(_nativeSymbol,DefaultSender);
+            var balanceOfTesterToken = await GetBalanceAsync(_nativeSymbol, DefaultSender);
             balanceOfTesterToken.ShouldBe(100_0000L - amountToPay - fee);
-            
+
         }
 
         [Fact]
@@ -291,44 +293,46 @@ namespace AElf.Contracts.TokenConverter
                     PayLimit = 1010L
                 })).TransactionResult;
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             //Balance  before Sell
             var balanceOfFeeReceiver = await GetBalanceAsync(_nativeSymbol, FeeReceiverAddress);
-            var balanceOfElfToken = await GetBalanceAsync(_nativeSymbol,TokenConverterContractAddress);
-            var balanceOfTesterToken = await GetBalanceAsync(_nativeSymbol,DefaultSender);
-           
+            var balanceOfElfToken = await GetBalanceAsync(_nativeSymbol, TokenConverterContractAddress);
+            var balanceOfTesterToken = await GetBalanceAsync(_nativeSymbol, DefaultSender);
+
             //check the price and fee
             var toConnectorBalance = ELFConnector.VirtualBalance + balanceOfElfToken;
             var toConnectorWeight = decimal.Parse(ELFConnector.Weight);
-            var fromConnectorBalance = await GetBalanceAsync(_ramSymbol,TokenConverterContractAddress);
+            var fromConnectorBalance = await GetBalanceAsync(_ramSymbol, TokenConverterContractAddress);
             var fromConnectorWeight = decimal.Parse(RamConnector.Weight);
-            
-            var amountToReceive = BancorHelper.GetReturnFromPaid(fromConnectorBalance,fromConnectorWeight,toConnectorBalance,toConnectorWeight,1000L);
+
+            var amountToReceive = BancorHelper.GetReturnFromPaid(fromConnectorBalance, fromConnectorWeight,
+                toConnectorBalance, toConnectorWeight, 1000L);
             var fee = Convert.ToInt64(amountToReceive * 5 / 1000);
-            
-            var sellResult =(await DefaultStub.Sell.SendAsync(new SellInput
-                {
-                    Symbol = RamConnector.Symbol,
-                    Amount = 1000L,
-                    ReceiveLimit = amountToReceive - fee - 10L 
-                })).TransactionResult;
+
+            var sellResult = (await DefaultStub.Sell.SendAsync(new SellInput
+            {
+                Symbol = RamConnector.Symbol,
+                Amount = 1000L,
+                ReceiveLimit = amountToReceive - fee - 10L
+            })).TransactionResult;
             sellResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             //Verify the outcome of the transaction
             var balanceOfTesterRam = await GetBalanceAsync(_ramSymbol, DefaultSender);
             balanceOfTesterRam.ShouldBe(0L);
 
-            var balanceOfFeeReceiverAfterSell = await GetBalanceAsync(_nativeSymbol,FeeReceiverAddress);
-            balanceOfFeeReceiverAfterSell.ShouldBe(fee+balanceOfFeeReceiver);
+            var balanceOfFeeReceiverAfterSell = await GetBalanceAsync(_nativeSymbol, FeeReceiverAddress);
+            balanceOfFeeReceiverAfterSell.ShouldBe(fee.Div(2) + balanceOfFeeReceiver);
 
+            // TODO: Double check.
             var balanceOfElfTokenAfterSell = await GetBalanceAsync(_nativeSymbol, TokenConverterContractAddress);
-            balanceOfElfTokenAfterSell.ShouldBe(balanceOfElfToken-amountToReceive);
+            balanceOfElfTokenAfterSell.ShouldBe(balanceOfElfToken - amountToReceive + fee);
 
-            var balanceOfRamToken = await GetBalanceAsync(_ramSymbol,TokenConverterContractAddress);
+            var balanceOfRamToken = await GetBalanceAsync(_ramSymbol, TokenConverterContractAddress);
             balanceOfRamToken.ShouldBe(100_0000L);
 
             var balanceOfTesterTokenAfterSell = await GetBalanceAsync(_nativeSymbol, DefaultSender);
-            balanceOfTesterTokenAfterSell.ShouldBe(balanceOfTesterToken + (amountToReceive - fee));
+            balanceOfTesterTokenAfterSell.ShouldBe(balanceOfTesterToken + (amountToReceive - fee) - fee);
         }
 
         [Fact]
@@ -396,10 +400,11 @@ namespace AElf.Contracts.TokenConverter
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Only manager can perform this action").ShouldBeTrue();
             }
-            
-            var testManager = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+
+            var testManager = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
+                TokenConverterContractAddress,
                 ManagerKeyPair);
-            
+
             //invalid feeRate
             {
                 var transactionResult = (await testManager.SetFeeRate.SendAsync(
@@ -408,9 +413,9 @@ namespace AElf.Contracts.TokenConverter
                         Value = "test value"
                     })).TransactionResult;
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Invalid decimal").ShouldBeTrue();            
+                transactionResult.Error.Contains("Invalid decimal").ShouldBeTrue();
             }
-            
+
             //feeRate not correct
             {
                 var transactionResult = (await testManager.SetFeeRate.SendAsync(
@@ -419,9 +424,9 @@ namespace AElf.Contracts.TokenConverter
                         Value = "1.05"
                     })).TransactionResult;
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Fee rate has to be a decimal between 0 and 1").ShouldBeTrue(); 
+                transactionResult.Error.Contains("Fee rate has to be a decimal between 0 and 1").ShouldBeTrue();
             }
-            
+
             //correct 
             {
                 var feeRate = new StringValue
@@ -430,9 +435,9 @@ namespace AElf.Contracts.TokenConverter
                 };
                 var transactionResult = (await testManager.SetFeeRate.SendAsync(feeRate))
                     .TransactionResult;
-                
+
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                
+
                 var feeRate1 = await testManager.GetFeeRate.CallAsync(new Empty());
                 feeRate1.ShouldBe(feeRate);
             }
@@ -449,7 +454,7 @@ namespace AElf.Contracts.TokenConverter
             {
                 var transactionResult = (await DefaultStub.SetManagerAddress.SendAsync(
                     new Address()
-                    )).TransactionResult;
+                )).TransactionResult;
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Only manager can perform this action").ShouldBeTrue();
             }
@@ -457,7 +462,7 @@ namespace AElf.Contracts.TokenConverter
             var testManager = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
                 TokenConverterContractAddress,
                 ManagerKeyPair);
-            
+
             //invalid address
             {
                 var transactionResult = (await testManager.SetManagerAddress.SendAsync(
@@ -466,11 +471,11 @@ namespace AElf.Contracts.TokenConverter
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.Contains("Input is not a valid address").ShouldBeTrue();
             }
-            
+
             //valid address
             {
                 var address = SampleAddress.AddressList[0];
-                
+
                 var transactionResult = (await testManager.SetManagerAddress.SendAsync(address)).TransactionResult;
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -478,11 +483,11 @@ namespace AElf.Contracts.TokenConverter
                 managerAddress.ShouldBe(address);
             }
         }
-        
+
         #endregion
 
         #region Private Task
-        
+
         private async Task CreateRamToken()
         {
             var createResult = (await TokenContractStub.Create.SendAsync(
@@ -527,13 +532,13 @@ namespace AElf.Contracts.TokenConverter
         {
             //approve
             var approveTokenResult = (await TokenContractStub.Approve.SendAsync(new ApproveInput
-                {
-                    Spender = TokenConverterContractAddress,
-                    Symbol = "ELF",
-                    Amount = 2000L,
-                })).TransactionResult;
+            {
+                Spender = TokenConverterContractAddress,
+                Symbol = "ELF",
+                Amount = 2000L,
+            })).TransactionResult;
             approveTokenResult.Status.ShouldBe(TransactionResultStatus.Mined);
-             
+
             var approveRamTokenResult = (await TokenContractStub.Approve.SendAsync(new ApproveInput
             {
                 Spender = TokenConverterContractAddress,

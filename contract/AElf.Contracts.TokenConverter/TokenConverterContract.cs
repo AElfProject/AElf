@@ -226,12 +226,25 @@ namespace AElf.Contracts.TokenConverter
         {
             var donateFee = fee.Div(2);
             var burnFee = fee.Sub(donateFee);
-            State.TokenContract.Transfer.Send(
-                new TransferInput
+
+            // Transfer to fee receiver.
+            State.TokenContract.TransferFrom.Send(
+                new TransferFromInput
                 {
                     Symbol = State.BaseTokenSymbol.Value,
+                    From = Context.Sender,
                     To = State.FeeReceiverAddress.Value,
                     Amount = donateFee
+                });
+
+            // Transfer to self contract then burn
+            State.TokenContract.TransferFrom.Send(
+                new TransferFromInput
+                {
+                    Symbol = State.BaseTokenSymbol.Value,
+                    From = Context.Sender,
+                    To = Context.Self,
+                    Amount = burnFee
                 });
             State.TokenContract.Burn.Send(
                 new BurnInput
