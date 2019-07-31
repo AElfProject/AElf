@@ -87,6 +87,7 @@ namespace AElf.CrossChain.Communication.Grpc
         /// <returns></returns>
         public async Task CloseAsync()
         {
+            IsConnected = false;
             await Channel.ShutdownAsync();
         }
         

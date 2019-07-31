@@ -4,7 +4,6 @@ using Acs7;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
-using AElf.Types;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Grpc.Core.Utils;
@@ -28,9 +27,10 @@ namespace AElf.CrossChain.Communication.Grpc
             SideChainGrpcServerBase = GetRequiredService<GrpcSideChainServerBase>();
             BasicCrossChainRpcBase = GetRequiredService<GrpcBasicServerBase>();
             _smartContractAddressService = GetRequiredService<SmartContractAddressService>();
-            _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name, SampleAddress.AddressList[0]);
+            _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name,
+                SampleAddress.AddressList[0]);
         }
-        
+
         [Fact]
         public async Task RequestIndexingParentChain_WithoutExtraData_Test()
         {
@@ -40,11 +40,12 @@ namespace AElf.CrossChain.Communication.Grpc
                 NextHeight = 10
             };
 
-            IServerStreamWriter<ParentChainBlockData> responseStream = Mock.Of<IServerStreamWriter<ParentChainBlockData>>();
+            IServerStreamWriter<ParentChainBlockData> responseStream =
+                Mock.Of<IServerStreamWriter<ParentChainBlockData>>();
             var context = BuildServerCallContext();
             await ParentChainGrpcServerBase.RequestIndexingFromParentChain(requestData, responseStream, context);
         }
-        
+
         [Fact]
         public async Task RequestIndexingParentChain_WithExtraData_Test()
         {
@@ -54,7 +55,8 @@ namespace AElf.CrossChain.Communication.Grpc
                 NextHeight = 9
             };
 
-            IServerStreamWriter<ParentChainBlockData> responseStream = Mock.Of<IServerStreamWriter<ParentChainBlockData>>();
+            IServerStreamWriter<ParentChainBlockData> responseStream =
+                Mock.Of<IServerStreamWriter<ParentChainBlockData>>();
             var context = BuildServerCallContext();
             await ParentChainGrpcServerBase.RequestIndexingFromParentChain(requestData, responseStream, context);
         }
@@ -67,7 +69,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 FromChainId = ChainHelper.GetChainId(1),
                 NextHeight = 10
             };
-            
+
             IServerStreamWriter<SideChainBlockData> responseStream = Mock.Of<IServerStreamWriter<SideChainBlockData>>();
             var context = BuildServerCallContext();
             await SideChainGrpcServerBase.RequestIndexingFromSideChain(requestData, responseStream, context);
@@ -84,11 +86,11 @@ namespace AElf.CrossChain.Communication.Grpc
             };
             var context = BuildServerCallContext();
             var indexingHandShakeReply = await BasicCrossChainRpcBase.CrossChainHandShake(request, context);
-            
+
             indexingHandShakeReply.ShouldNotBeNull();
             indexingHandShakeReply.Success.ShouldBeTrue();
         }
-        
+
         [Fact]
         public async Task RequestChainInitializationDataFromParentChain_Test()
         {
@@ -96,17 +98,19 @@ namespace AElf.CrossChain.Communication.Grpc
             {
                 ChainId = ChainHelper.GetChainId(1),
             };
-            var context = BuildServerCallContext(); 
+            var context = BuildServerCallContext();
             var sideChainInitializationResponse =
-                await ParentChainGrpcServerBase.RequestChainInitializationDataFromParentChain(requestData,context);
+                await ParentChainGrpcServerBase.RequestChainInitializationDataFromParentChain(requestData, context);
             sideChainInitializationResponse.CreationHeightOnParentChain.ShouldBe(1);
         }
 
         private ServerCallContext BuildServerCallContext(Metadata metadata = null)
         {
             var meta = metadata ?? new Metadata();
-            return TestServerCallContext.Create("mock", "127.0.0.1", TimestampHelper.GetUtcNow().AddHours(1).ToDateTime(), meta, CancellationToken.None, 
-                "ipv4:127.0.0.1:2100", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
+            return TestServerCallContext.Create("mock", "127.0.0.1",
+                TimestampHelper.GetUtcNow().AddHours(1).ToDateTime(), meta, CancellationToken.None,
+                "ipv4:127.0.0.1:2100", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(),
+                writeOptions => { });
         }
     }
 }

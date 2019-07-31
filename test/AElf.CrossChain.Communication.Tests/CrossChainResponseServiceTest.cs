@@ -17,7 +17,7 @@ namespace AElf.CrossChain.Communication
         public async Task ResponseSideChainBlockData_Test()
         {
             var res = await _chainResponseService.ResponseSideChainBlockDataAsync(2);
-            Assert.NotNull(res);
+            Assert.True(res.Height == 2);
         }
 
         [Fact]
@@ -35,7 +35,7 @@ namespace AElf.CrossChain.Communication
             var chainId = ChainHelper.GetChainId(1);
             var height = 3;
             var res = await _chainResponseService.ResponseParentChainBlockDataAsync(height, chainId);
-            Assert.NotNull(res);
+            Assert.True(res.Height == 3);
         }
     }
 }
