@@ -40,11 +40,6 @@ namespace AElf.OS.BlockSync.Application
 
         public async Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions, string senderPubKey)
         {
-            if (!TryCacheNewAnnouncement(blockWithTransactions.GetHash(), blockWithTransactions.Height, senderPubKey))
-            {
-                return false;
-            }
-
             if (blockWithTransactions.Height <= chain.LastIrreversibleBlockHeight)
             {
                 Logger.LogWarning($"Receive lower block {blockWithTransactions} ignore.");
