@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.OS.BlockSync.Dto;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.BlockSync.Types;
+using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
@@ -79,12 +80,13 @@ namespace AElf.OS.BlockSync.Application
             return downloadResult;
         }
 
-        private async Task<DownloadBlocksResult> DownloadBlocksAsync(DownloadBlockDto downloadBlockDto, string peerPubkey)
+        private async Task<DownloadBlocksResult> DownloadBlocksAsync(DownloadBlockDto downloadBlockDto,
+            string peerPubkey)
         {
             var downloadBlockCount = 0;
             var lastDownloadBlockHash = downloadBlockDto.PreviousBlockHash;
             var lastDownloadBlockHeight = downloadBlockDto.PreviousBlockHeight;
-            
+
             Logger.LogDebug(
                 $"Download blocks start with block hash: {lastDownloadBlockHash}, block height: {lastDownloadBlockHeight}, PeerPubkey: {peerPubkey}");
 
@@ -109,18 +111,7 @@ namespace AElf.OS.BlockSync.Application
                 foreach (var blockWithTransactions in blocksWithTransactions)
                 {
                     Logger.LogDebug($"Processing block {blockWithTransactions}.");
-
-                    _blockSyncQueueService.Enqueue(
-                        async () =>
-                        {
-                            await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions,
-                                async () =>
-                                {
-                                    _blockSyncStateProvider.TryUpdateDownloadJobTargetState(blockWithTransactions.GetHash(),true);
-                                });
-                        },
-                        OSConstants.BlockSyncAttachQueueName);
-
+                    EnqueueAttachBlockJob(blockWithTransactions);
                     downloadBlockCount++;
                 }
 
@@ -138,6 +129,21 @@ namespace AElf.OS.BlockSync.Application
                 LastDownloadBlockHash = lastDownloadBlockHash,
                 LastDownloadBlockHeight = lastDownloadBlockHeight
             };
+        }
+
+        private void EnqueueAttachBlockJob(BlockWithTransactions blockWithTransactions)
+        {
+            _blockSyncQueueService.Enqueue(
+                async () =>
+                {
+                    await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions,
+                        async () =>
+                        {
+                            _blockSyncStateProvider.TryUpdateDownloadJobTargetState(blockWithTransactions.GetHash(),
+                                true);
+                        });
+                },
+                OSConstants.BlockSyncAttachQueueName);
         }
 
         public bool ValidateQueueAvailabilityBeforeDownload()
