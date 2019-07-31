@@ -245,11 +245,11 @@ namespace AElf.Contracts.Election
                 oldCandidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
             State.CandidateVotes[votingRecord.Option] = oldCandidateVotes;
 
-            var newCandidateVotes = State.CandidateVotes[votingRecord.Option];
+            var newCandidateVotes = State.CandidateVotes[input.CandidatePubkey];
             newCandidateVotes.ObtainedActiveVotingRecordIds.Add(input.VoteId);
             newCandidateVotes.ObtainedActiveVotedVotesAmount =
                 newCandidateVotes.ObtainedActiveVotedVotesAmount.Add(votingRecord.Amount);
-            State.CandidateVotes[votingRecord.Option] = newCandidateVotes;
+            State.CandidateVotes[input.CandidatePubkey] = newCandidateVotes;
 
             return new Empty();
         }
