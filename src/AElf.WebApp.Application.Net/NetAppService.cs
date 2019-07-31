@@ -68,7 +68,7 @@ namespace AElf.WebApp.Application.Net
             
             var peerDtoList = peerList.Select(p => new PeerDto
             {
-                IpAddress = p.RemoteEndpoint,
+                IpAddress = p.RemoteEndpoint.ToString(),
                 ProtocolVersion = p.Info.ProtocolVersion,
                 ConnectionTime = p.Info.ConnectionTime,
                 Inbound = p.Info.IsInbound,
