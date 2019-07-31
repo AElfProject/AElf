@@ -1,6 +1,6 @@
 jobs:
 
-# All tasks on Windows
+# All tasks on Windows....
 - job: build_all_windows
   displayName: Build all tasks (Windows)
   pool:
@@ -36,10 +36,18 @@ jobs:
   - task: DotNetCoreInstaller@0
     inputs:
       version: '2.2.300'
-  - script: sudo apt install nodejs yarn -y
+  - script: sudo apt update ;sudo apt install nodejs -y
   - script: bash scripts/install_protobuf.sh
   - script: LD_LIBRARY_PATH=$HOME/.chakracore/1_11_1/:$LD_LIBRARY_PATH;bash scripts/install_chakracore.sh 1_11_1
-  - script: bash scripts/build.sh;bash scripts/test.sh
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: 'AElf.sln'
+      arguments: '/p:NoBuild=false --configuration Debug'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'test'
+      projects: 'AElf.sln'
 
 
 # All tasks on macOS
@@ -53,4 +61,8 @@ jobs:
       version: '2.2.300' 
   - script: bash scripts/install_protobuf.sh
   - script: LD_LIBRARY_PATH=$HOME/.chakracore/1_11_1/:$LD_LIBRARY_PATH;bash scripts/install_chakracore.sh 1_11_1
-  - script: bash scripts/build.sh
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: 'AElf.sln'
+      arguments: '/p:NoBuild=false --configuration Debug'
