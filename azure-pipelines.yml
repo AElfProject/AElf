@@ -6,7 +6,10 @@ jobs:
   pool:
     vmImage: vs2017-win2016
   steps:
-  - script:  choco upgrade protoc -y
+  - task: DotNetCoreInstaller@0
+    inputs:
+      version: '2.2.300'
+  - script: choco  install  protoc --version 3.6.0 -y
   - task: DotNetCoreCLI@2
     inputs:
       command: 'build'
