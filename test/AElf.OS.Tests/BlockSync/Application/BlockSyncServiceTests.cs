@@ -69,13 +69,11 @@ namespace AElf.OS.BlockSync.Application
                 chain.BestChainHeight.ShouldBe(12);
             }
 
-            Hash forkedBlockHash;
             {
                 // Mined one block, and fork
-                _osTestHelper.MinedOneBlock();
+                await _osTestHelper.MinedOneBlock();
                 chain = await _blockchainService.GetChainAsync();
                 chain.BestChainHeight.ShouldBe(13);
-                forkedBlockHash = chain.BestChainHash;
             }
 
             {

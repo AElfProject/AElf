@@ -16,9 +16,10 @@ namespace AElf.OS.Handlers
             _NetworkService = networkService;
         }
 
-        public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
+        public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
             var _ = _NetworkService.BroadcastLibAnnounceAsync(eventData.BlockHash, eventData.BlockHeight);
+            return Task.CompletedTask;
         }
     }
 }

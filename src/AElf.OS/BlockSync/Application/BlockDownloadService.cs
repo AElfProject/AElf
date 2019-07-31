@@ -137,10 +137,11 @@ namespace AElf.OS.BlockSync.Application
                 async () =>
                 {
                     await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions,
-                        async () =>
+                         () =>
                         {
                             _blockSyncStateProvider.TryUpdateDownloadJobTargetState(blockWithTransactions.GetHash(),
                                 true);
+                            return Task.CompletedTask;
                         });
                 },
                 OSConstants.BlockSyncAttachQueueName);
