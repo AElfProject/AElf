@@ -30,27 +30,6 @@ namespace AElf.OS.BlockSync.Application
             _blockDownloadJobManager = blockDownloadJobManager;
         }
 
-        public async Task SyncByAnnouncementAsync(Chain chain, SyncAnnouncementDto syncAnnouncementDto)
-        {
-            if (syncAnnouncementDto.SyncBlockHash != null && syncAnnouncementDto.SyncBlockHeight <=
-                chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset)
-            {
-                if(!_blockSyncQueueService.ValidateQueueAvailability(OSConstants.BlockFetchQueueName))
-                {
-                    Logger.LogWarning("Block sync fetch queue is too busy.");
-                    return;
-                }
-                
-                EnqueueFetchBlockJob(syncAnnouncementDto, BlockSyncConstants.FetchBlockRetryTimes);
-            }
-            else
-            {
-                await _blockDownloadJobManager.EnqueueAsync(syncAnnouncementDto.SyncBlockHash, syncAnnouncementDto
-                .SyncBlockHeight,
-                    syncAnnouncementDto.BatchRequestBlockCount, syncAnnouncementDto.SuggestedPeerPubkey);
-            }
-        }
-        
         public async Task SyncByBlockAsync(Chain chain, SyncBlockDto syncBlockDto)
         {
             if (syncBlockDto.BlockWithTransactions.Height <=
@@ -63,27 +42,6 @@ namespace AElf.OS.BlockSync.Application
                 await _blockDownloadJobManager.EnqueueAsync(syncBlockDto.BlockWithTransactions.GetHash(), syncBlockDto.BlockWithTransactions.Height,
                     syncBlockDto.BatchRequestBlockCount, syncBlockDto.SuggestedPeerPubkey);
             }
-        }
-
-        private void EnqueueFetchBlockJob(SyncAnnouncementDto syncAnnouncementDto, int retryTimes)
-        {
-            _blockSyncQueueService.Enqueue(async () =>
-            {
-                Logger.LogTrace(
-                    $"Block sync: Fetch block, block height: {syncAnnouncementDto.SyncBlockHeight}, block hash: {syncAnnouncementDto.SyncBlockHash}.");
-
-                var fetchResult = false;
-                if (ValidateQueueAvailability())
-                {
-                    fetchResult = await _blockFetchService.FetchBlockAsync(syncAnnouncementDto.SyncBlockHash,
-                        syncAnnouncementDto.SyncBlockHeight, syncAnnouncementDto.SuggestedPeerPubkey);
-                }
-
-                if (!fetchResult && retryTimes > 1)
-                {
-                    EnqueueFetchBlockJob(syncAnnouncementDto, retryTimes - 1);
-                }
-            }, OSConstants.BlockFetchQueueName);
         }
 
         private void EnqueueSyncBlockJob(BlockWithTransactions blockWithTransactions)
