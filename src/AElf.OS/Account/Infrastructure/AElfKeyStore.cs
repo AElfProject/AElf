@@ -22,8 +22,6 @@ namespace AElf.OS.Account.Infrastructure
         private const string KeyFileExtension = ".json";
         private const string KeyFolderName = "keys";
 
-        private const string _algo = "AES-256-CFB";
-
         private readonly List<Account> _unlockedAccounts;
         private readonly KeyStoreService _keyStoreService;
 
