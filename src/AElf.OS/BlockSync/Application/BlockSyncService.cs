@@ -48,8 +48,6 @@ namespace AElf.OS.BlockSync.Application
             }
             else
             {
-                Logger.LogTrace(
-                    $"New download job, announcement hash: {syncAnnouncementDto.SyncBlockHash}, announcement height: {syncAnnouncementDto.SyncBlockHeight}, longest chain height: {chain.LongestChainHeight}");
                 await _blockDownloadJobManager.EnqueueAsync(syncAnnouncementDto.SyncBlockHash, syncAnnouncementDto
                 .SyncBlockHeight,
                     syncAnnouncementDto.BatchRequestBlockCount, syncAnnouncementDto.SuggestedPeerPubkey);
@@ -65,8 +63,6 @@ namespace AElf.OS.BlockSync.Application
             }
             else
             {
-                Logger.LogTrace(
-                    $"New download job, announcement hash: {syncBlockDto.BlockWithTransactions.GetHash()}, announcement height: {syncBlockDto.BlockWithTransactions.GetHash()}, longest chain height: {chain.LongestChainHeight}");
                 await _blockDownloadJobManager.EnqueueAsync(syncBlockDto.BlockWithTransactions.GetHash(), syncBlockDto.BlockWithTransactions.Height,
                     syncBlockDto.BatchRequestBlockCount, syncBlockDto.SuggestedPeerPubkey);
             }
