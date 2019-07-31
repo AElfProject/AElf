@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
@@ -9,6 +11,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -297,22 +300,20 @@ namespace AElf.OS.Network
             //wrong format
             {
                 string address = "127.0.0.1:8000";
-                var grpcUrl = GrpcUrl.Parse(address);
+                var parsed = GrpcUriHelpers.TryParseGrpcUri(address, out var endpoint);
 
-                grpcUrl.ShouldBeNull();
+                parsed.ShouldBeFalse();
+                endpoint.ShouldBeNull();
             }
             
             //correct format
             {
                 string address = "ipv4:127.0.0.1:8000";
-                var grpcUrl = GrpcUrl.Parse(address);
+                var parsed = GrpcUriHelpers.TryParseGrpcUri(address, out var endpoint);
                 
-                grpcUrl.IpVersion.ShouldBe("ipv4");
-                grpcUrl.IpAddress.ShouldBe("127.0.0.1");
-                grpcUrl.Port.ShouldBe(8000);
-
-                var ipPortFormat = grpcUrl.ToIpPortFormat();
-                ipPortFormat.ShouldBe("127.0.0.1:8000");
+                parsed.ShouldBeTrue();
+                endpoint.ToString().ShouldBe("127.0.0.1:8000");
+                endpoint.Port.ShouldBe(8000);
             }
         }
         

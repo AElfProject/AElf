@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -34,7 +35,7 @@ namespace AElf.OS.Consensus.DPos
                     IsInbound = true
                 };
                 
-                peerList.Add(new GrpcPeer(new GrpcClient(null, null), $"127.0.0.1:68{i + 1}0", connectionInfo));
+                peerList.Add(new GrpcPeer(new GrpcClient(null, null), IpEndpointHelpers.Parse($"127.0.0.1:68{i + 1}0"), connectionInfo));
             }
             
             services.AddTransient(o =>

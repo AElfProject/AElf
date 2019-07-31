@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using Moq;
 using Shouldly;
@@ -35,7 +36,7 @@ namespace AElf.OS.Network
             _peerPool.TryAddPeer(peer);
             
             _peerPool.PeerCount.ShouldBe(1);
-            _peerPool.FindPeerByAddress(peer.IpAddress).ShouldNotBeNull();
+            _peerPool.FindPeerByEndpoint(peer.RemoteEndpoint).ShouldNotBeNull();
             _peerPool.FindPeerByPublicKey(peer.Info.Pubkey).ShouldNotBeNull();
         }
 
@@ -48,7 +49,7 @@ namespace AElf.OS.Network
             _peerPool.RemovePeer(peer.Info.Pubkey);
             
             _peerPool.PeerCount.ShouldBe(0);
-            _peerPool.FindPeerByAddress(peer.IpAddress).ShouldBeNull();
+            _peerPool.FindPeerByEndpoint(peer.RemoteEndpoint).ShouldBeNull();
             _peerPool.FindPeerByPublicKey(peer.Info.Pubkey).ShouldBeNull();
         }
 
@@ -60,7 +61,7 @@ namespace AElf.OS.Network
             _peerPool.TryAddPeer(peer).ShouldBeFalse();
             
             _peerPool.PeerCount.ShouldBe(1);
-            _peerPool.FindPeerByAddress(peer.IpAddress).ShouldNotBeNull();
+            _peerPool.FindPeerByEndpoint(peer.RemoteEndpoint).ShouldNotBeNull();
             _peerPool.FindPeerByPublicKey(peer.Info.Pubkey).ShouldNotBeNull();
         }
         
@@ -79,7 +80,10 @@ namespace AElf.OS.Network
                 IsInbound = true
             };
 
-            peerMock.Setup(p => p.IpAddress).Returns(ip);
+            if (!IpEndpointHelpers.TryParse(ip, out var endpoint))
+                throw new Exception($"Endpoint {ip} could not be parsed.");
+
+            peerMock.Setup(p => p.RemoteEndpoint).Returns(endpoint);
             peerMock.Setup(p => p.Info).Returns(peerInfo);
             
             return peerMock.Object;

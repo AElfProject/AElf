@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
+using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Grpc.Core;
@@ -54,7 +56,11 @@ namespace AElf.OS.Network.Grpc
         public override async Task<ConnectReply> Connect(ConnectRequest connectionRequest, ServerCallContext context)
         {
             Logger.LogTrace($"{context.Peer} has initiated a connection.");
-            return await _connectionService.DialBackAsync(context.Peer, connectionRequest.Info);
+            
+            if(!GrpcUriHelpers.TryParseGrpcUri(context.Peer, out IPEndPoint peerEndpoint))
+                return new ConnectReply { Error = ConnectError.InvalidPeer };
+            
+            return await _connectionService.DialBackAsync(peerEndpoint, connectionRequest.Info);
         }
         
         public override async Task<HandshakeReply> DoHandshake(HandshakeRequest request, ServerCallContext context)

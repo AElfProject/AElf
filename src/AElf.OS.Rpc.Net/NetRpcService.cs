@@ -30,7 +30,7 @@ namespace AElf.OS.Rpc.Net
         [JsonRpcMethod("GetPeers")]
         public async Task<List<string>> GetPeers()
         {
-            return NetworkService.GetPeers().Select(p => p.IpAddress).ToList();
+            return NetworkService.GetPeers().Select(p => p.RemoteEndpoint.ToString()).ToList();
         }
     }
 }
