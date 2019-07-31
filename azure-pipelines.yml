@@ -1,0 +1,66 @@
+trigger:
+- master
+- dev
+
+jobs:
+
+# All tasks on Windows
+- job: build_all_windows
+  displayName: Build all tasks (Windows)
+  pool:
+    vmImage: vs2017-win2016
+  steps:
+  - script:  choco upgrade protoc -y
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: 'AElf.sln'
+      arguments: '/p:NoBuild=false --configuration Debug'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: 'AElf.Management.sln'
+      arguments: '/p:NoBuild=false --configuration Debug'  
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: 'AElf.Console.sln'
+      arguments: '/p:NoBuild=false --configuration Debug'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'test'
+      projects: 'AElf.sln'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'test'
+      projects: 'AElf.Management.sln'
+  
+
+
+# All tasks on Linux
+- job: build_all_linux
+  displayName: Build all tasks (Linux)
+  pool:
+    vmImage: ubuntu-16.04
+  steps:
+  - task: DotNetCoreInstaller@0
+    inputs:
+      version: '2.2.300'
+  - script: sudo apt install nodejs yarn -y
+  - script: bash scripts/install_protobuf.sh
+  - script: LD_LIBRARY_PATH=$HOME/.chakracore/1_11_1/:$LD_LIBRARY_PATH;bash scripts/install_chakracore.sh 1_11_1
+  - script: bash scripts/build.sh;bash scripts/test.sh
+
+
+# All tasks on macOS
+- job: build_all_darwin
+  displayName: Build all tasks (macOS)
+  pool:
+    vmImage: macos-10.13
+  steps:
+  - task: DotNetCoreInstaller@0
+    inputs:
+      version: '2.2.300' 
+  - script: bash scripts/install_protobuf.sh
+  - script: LD_LIBRARY_PATH=$HOME/.chakracore/1_11_1/:$LD_LIBRARY_PATH;bash scripts/install_chakracore.sh 1_11_1
+  - script: bash scripts/build.sh
