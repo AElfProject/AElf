@@ -55,7 +55,7 @@ namespace AElf.OS.Account.Infrastructure
         [Fact]
         public async Task Account_Create_And_Read_Compare()
         {
-            for (var i = 0; i < 1000; i++)
+            for (var i = 0; i < 10; i++)
             {
                 //Create
                 var keyPair = await _keyStore.CreateAccountKeyPairAsync("123");
