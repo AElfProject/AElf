@@ -13,7 +13,7 @@ namespace AElf.Contracts.Election
     public partial class ElectionContractTests : ElectionContractTestBase
     {
         [Fact]
-        public async Task CheckTreasuryProfitsDistribution()
+        public async Task CheckTreasuryProfitsDistribution_Test()
         {
             const long txFee = 1_00000000L;
             long rewardAmount;

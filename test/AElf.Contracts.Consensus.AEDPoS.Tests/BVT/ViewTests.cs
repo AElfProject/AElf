@@ -10,7 +10,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     public partial class AEDPoSTest
     {
         [Fact]
-        public async Task Query_RoundInformation()
+        public async Task Query_RoundInformation_Test()
         {
             //first round
             var roundNumber = await AEDPoSContractStub.GetCurrentRoundNumber.CallAsync(new Empty());
