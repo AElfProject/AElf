@@ -7,7 +7,6 @@ using AElf.OS.BlockSync.Dto;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.BlockSync.Types;
 using AElf.Sdk.CSharp;
-using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.BackgroundWorkers;
@@ -124,26 +123,11 @@ namespace AElf.OS.BlockSync.Worker
 
             return true;
         }
-        
+
         private async Task<DownloadBlocksResult> DownloadBlocksAsync(Chain chain, BlockDownloadJobInfo jobInfo)
         {
             var downloadResult = new DownloadBlocksResult();
-            if (jobInfo.CurrentTargetBlockHeight > 0)
-            {
-                if (jobInfo.CurrentTargetBlockHeight <= chain.BestChainHeight)
-                {
-                    downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
-                    {
-                        PreviousBlockHash = jobInfo.CurrentTargetBlockHash,
-                        PreviousBlockHeight = jobInfo.CurrentTargetBlockHeight,
-                        BatchRequestBlockCount = jobInfo.BatchRequestBlockCount,
-                        SuggestedPeerPubkey = jobInfo.SuggestedPeerPubkey,
-                        MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount,
-                        UseSuggestedPeer = false
-                    });
-                }
-            }
-            else
+            if (jobInfo.CurrentTargetBlockHeight == 0)
             {
                 // Download blocks from longest chain
                 downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
@@ -168,6 +152,7 @@ namespace AElf.OS.BlockSync.Worker
                         UseSuggestedPeer = true
                     });
                 }
+
                 // Download blocks from LIB
                 if (downloadResult.DownloadBlockCount == 0)
                 {
@@ -182,7 +167,21 @@ namespace AElf.OS.BlockSync.Worker
                         UseSuggestedPeer = true
                     });
                 }
+
             }
+            else if (jobInfo.CurrentTargetBlockHeight <= chain.BestChainHeight)
+            {
+                downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
+                {
+                    PreviousBlockHash = jobInfo.CurrentTargetBlockHash,
+                    PreviousBlockHeight = jobInfo.CurrentTargetBlockHeight,
+                    BatchRequestBlockCount = jobInfo.BatchRequestBlockCount,
+                    SuggestedPeerPubkey = jobInfo.SuggestedPeerPubkey,
+                    MaxBlockDownloadCount = _blockSyncOptions.MaxBlockDownloadCount,
+                    UseSuggestedPeer = false
+                });
+            }
+
             return downloadResult;
         }
 
