@@ -98,10 +98,10 @@ namespace AElf.OS.BlockSync.Worker
                 if (blockDownloadJob == null)
                     return null;
 
-                if (blockDownloadJob.TargetBlockHeight <= chain.BestChainHeight &&
-                    blockDownloadJob.CurrentTargetBlockHeight == 0)
+                if (blockDownloadJob.CurrentTargetBlockHeight == 0 &&
+                    blockDownloadJob.TargetBlockHeight <= chain.BestChainHeight)
                 {
-                    await RemoveJobAndTargetStateAsync(blockDownloadJob);
+                    await _blockDownloadJobStore.RemoveAsync(blockDownloadJob.JobId);
                     continue;
                 }
 
@@ -124,14 +124,13 @@ namespace AElf.OS.BlockSync.Worker
 
             return true;
         }
-
+        
         private async Task<DownloadBlocksResult> DownloadBlocksAsync(Chain chain, BlockDownloadJobInfo jobInfo)
         {
             var downloadResult = new DownloadBlocksResult();
             if (jobInfo.CurrentTargetBlockHeight > 0)
             {
-                if (jobInfo.CurrentTargetBlockHeight <= chain.BestChainHeight || await BlockIsInBestChain(chain,
-                        jobInfo.CurrentTargetBlockHash, jobInfo.CurrentTargetBlockHeight))
+                if (jobInfo.CurrentTargetBlockHeight <= chain.BestChainHeight)
                 {
                     downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
                     {
@@ -185,12 +184,6 @@ namespace AElf.OS.BlockSync.Worker
                 }
             }
             return downloadResult;
-        }
-
-        private async Task<bool> BlockIsInBestChain(Chain chain, Hash blockHash, long blockHeight)
-        {
-            return await _blockchainService.GetBlockHashByHeightAsync(chain, blockHeight, chain.BestChainHash) ==
-                   blockHash;
         }
 
         private async Task RemoveJobAndTargetStateAsync(BlockDownloadJobInfo blockDownloadJobInfo)

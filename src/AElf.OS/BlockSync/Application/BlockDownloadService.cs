@@ -34,6 +34,14 @@ namespace AElf.OS.BlockSync.Application
             _blockSyncStateProvider = blockSyncStateProvider;
         }
 
+        /// <summary>
+        /// Download and attach blocks
+        /// UseSuggestedPeer == true: Download blocks from suggested peer directly;
+        /// Target download height > peer lib height, download blocks from suggested peer;
+        /// Target download height <= peer lib height, select a random peer to download.
+        /// </summary>
+        /// <param name="downloadBlockDto"></param>
+        /// <returns></returns>
         public async Task<DownloadBlocksResult> DownloadBlocksAsync(DownloadBlockDto downloadBlockDto)
         {
             if (downloadBlockDto.UseSuggestedPeer)
@@ -48,7 +56,6 @@ namespace AElf.OS.BlockSync.Application
                 return await DownloadBlocksAsync(downloadBlockDto, downloadBlockDto.SuggestedPeerPubkey);
             }
 
-            // Select a random peer
             var random = new Random();
             var peers = _networkService.GetPeers()
                 .Where(p => p.LastKnownLibHeight >= downloadTargetHeight &&
@@ -61,8 +68,11 @@ namespace AElf.OS.BlockSync.Application
             if (downloadResult.DownloadBlockCount == 0)
             {
                 // TODO: Handle bad peer or network problems.
-                // If network problems, need to retry from other peer.
-                // If not network problems, this peer or the last peer is bad peer, we need to remove it.
+                // If we cannot get the blocks, there should be network problems or bad peer,
+                // because we have selected peer with lib height greater than or equal to the target height.
+                // Now we have no way to know if it is a network problem through the network interface.
+                // 1. network problems, need to retry from other peer.
+                // 2. not network problems, this peer or the last peer is bad peer, we need to remove it.
                 Logger.LogWarning("Found bad peer or network problems.");
             }
 
