@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -97,9 +98,9 @@ namespace AElf.OS
                     var exceptionOnBcast = new Mock<IPeer>();
                     exceptionOnBcast.Setup(p => p.Info).Returns(new PeerInfo { Pubkey = "exceptionOnBcast" });
                     exceptionOnBcast.Setup(p => p.SendAnnouncementAsync(It.IsAny<BlockAnnouncement>()))
-                        .Throws(new NetworkException());
+                        .Throws(new NetworkException("network exception",new Exception(), NetworkExceptionType.Unrecoverable));
                     exceptionOnBcast.Setup(p => p.SendTransactionAsync(It.IsAny<Transaction>()))
-                        .Throws(new NetworkException());
+                        .Throws(new NetworkException("network exception", new Exception(), NetworkExceptionType.PeerUnstable));
                     
                     peers.Add(exceptionOnBcast.Object);
 
