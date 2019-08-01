@@ -9,6 +9,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
+using Volo.Abp.Threading;
 using Xunit;
 
 namespace AElf.Contracts.Consensus.AEDPoS
@@ -116,6 +117,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 await AEDPoSContractStub.NextTerm.SendAsync(nextRoundInformation.Round);
                 termCount++;
             }
+        }
+
+        [Fact]
+        public async Task AEDPoSContract_SetMaximumMinersCount_NoPermission()
+        {
+            var transactionResult =
+                (await AEDPoSContractStub.SetMaximumMinersCount.SendAsync(new SInt32Value {Value = 100}))
+                .TransactionResult;
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("No permission");
+        }
+
+        [Fact]
+        public async Task AEDPoSContract_SetMaximumMinersCount()
+        {
+            
         }
     }
 }

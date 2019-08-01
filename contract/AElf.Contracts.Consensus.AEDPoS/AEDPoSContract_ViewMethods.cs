@@ -281,12 +281,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private int GetMinersCount(Round input)
         {
             if (!TryToGetRoundInformation(1, out _)) return 0;
-            // TODO: the configuration about the minercountinterval should become a const when online;
-            return input.RealTimeMinersInformation.Count < AEDPoSContractConstants.InitialMinersCount
+            return Math.Min(input.RealTimeMinersInformation.Count < AEDPoSContractConstants.InitialMinersCount
                 ? AEDPoSContractConstants.InitialMinersCount
                 : AEDPoSContractConstants.InitialMinersCount.Add(
                     (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
-                    .Div(State.MinerIncreaseInterval.Value).Mul(2));
+                    .Div(State.MinerIncreaseInterval.Value).Mul(2)), State.MaximumMinersCount.Value);
         }
 
         public override SInt64Value GetCurrentWelfareReward(Empty input)
