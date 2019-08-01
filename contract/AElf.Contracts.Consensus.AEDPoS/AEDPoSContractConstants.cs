@@ -12,5 +12,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public const long TimeToReduceMiningRewardByHalf = 126144000;// 60 * 60 * 24 * 365 * 4
         public const int InitialMinersCount = 9;
         public const int KeepRounds = 32;
+        public const long MaximumMissedBlocksCount = 34560;
     }
 }

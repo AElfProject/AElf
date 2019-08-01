@@ -180,6 +180,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 : int.MaxValue;
         }
 
+        public bool TryToDetectEvilMiners(out List<string> evilMiners)
+        {
+            evilMiners = RealTimeMinersInformation.Values
+                .Where(m => m.MissedTimeSlots >= AEDPoSContractConstants.MaximumMissedBlocksCount)
+                .Select(m => m.Pubkey).ToList();
+            return evilMiners.Count > 0;
+        }
+
         /// <summary>
         /// If daysEachTerm == 7:
         /// 1, 1, 1 => 0 != 1 - 1 => false

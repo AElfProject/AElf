@@ -219,6 +219,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
+            if (currentRound.TryToDetectEvilMiners(out var evilMiners))
+            {
+                foreach (var evilMiner in evilMiners)
+                {
+                    State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
+                    {
+                        Pubkey = evilMiner,
+                        IsEvilNode = true
+                    });
+                }
+            }
+
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
