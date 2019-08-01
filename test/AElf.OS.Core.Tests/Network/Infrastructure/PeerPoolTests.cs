@@ -18,15 +18,6 @@ namespace AElf.OS.Network
         {
             _peerPool = GetRequiredService<IPeerPool>();
         }
-        
-        // todo move to handshake provider tests
-//        [Fact]
-//        public async Task GetHandshakeAsync()
-//        {
-//            var handshake = await _pool.GetHandshakeAsync();
-//            handshake.ShouldNotBeNull();
-//            handshake.HandshakeData.Version.ShouldBe(KernelConstants.ProtocolVersion);
-//        }
             
         [Fact]
         public void AddedPeer_IsFindable_ByAddressAndPubkey()
