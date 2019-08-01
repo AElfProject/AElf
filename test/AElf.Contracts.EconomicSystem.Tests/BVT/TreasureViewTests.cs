@@ -36,9 +36,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 await NextTerm(BootMinerKeyPair);
             }
             
-            const int lockTime1 = 100 * 24 * 60 * 60;
-            const int lockTime2 = 200 * 24 * 60 * 60;
-            const int lockTime3 = 500 * 24 * 60 * 60;
+            const int lockTime1 = 300 * 24 * 60 * 60;
+            const int lockTime2 = 600 * 24 * 60 * 60;
+            const int lockTime3 = 900 * 24 * 60 * 60;
             var rewardAmount = await TreasuryContractStub.GetWelfareRewardAmountSample.CallAsync(
                 new GetWelfareRewardAmountSampleInput
                 {
@@ -48,9 +48,6 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             
             var rewardMoney = rewardAmount.Value.ToArray();
             rewardMoney[0].ShouldBeGreaterThan(0);
-            rewardMoney[1].ShouldBeGreaterThan(0);
-            rewardMoney[2].ShouldBeGreaterThan(0);
-            
             rewardMoney[1].ShouldBeGreaterThan(rewardMoney[0]);
             rewardMoney[2].ShouldBeGreaterThan(rewardMoney[1]);
         }
