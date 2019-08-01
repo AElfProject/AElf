@@ -219,7 +219,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 if (chainBlockLink == null || chainBlockLink.IsIrreversibleBlock)
                     break;
                 if (!chainBlockLink.IsLinked)
-                    throw new InvalidOperationException("should not set an unlinked block as irreversible block");
+                    throw new InvalidOperationException($"should not set an unlinked block as irreversible block, height: {chainBlockLink.Height}, hash: {chainBlockLink.BlockHash}");
                 chainBlockLink.IsIrreversibleBlock = true;
                 links.Push(chainBlockLink);
                 irreversibleBlockHash = chainBlockLink.PreviousBlockHash;
