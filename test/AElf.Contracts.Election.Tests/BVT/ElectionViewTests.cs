@@ -105,7 +105,7 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task GetTermSnapshot_Test()
         {
-            //first round
+            //first term
             {
                 await ProduceBlocks(InitialCoreDataCenterKeyPairs[0], 5);
                 await ProduceBlocks(InitialCoreDataCenterKeyPairs[1], 10);
@@ -120,7 +120,7 @@ namespace AElf.Contracts.Election
                 snapshot.ElectionResult.Count.ShouldBe(0);
             }
 
-            //second round
+            //second term
             {
                 ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
 

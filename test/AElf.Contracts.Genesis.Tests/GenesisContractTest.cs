@@ -109,7 +109,7 @@ namespace AElf.Contracts.Genesis
         }
         
         [Fact]
-        public async Task Update_SmartContract_WrongUser_Test()
+        public async Task Update_SmartContract_WrongAuthor_Test()
         {
             var contractAddress = await Deploy_SmartContracts_Test();
 

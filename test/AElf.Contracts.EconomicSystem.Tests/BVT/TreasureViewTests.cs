@@ -50,6 +50,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             rewardMoney[0].ShouldBeGreaterThan(0);
             rewardMoney[1].ShouldBeGreaterThan(0);
             rewardMoney[2].ShouldBeGreaterThan(0);
+            
+            rewardMoney[1].ShouldBeGreaterThan(rewardMoney[0]);
+            rewardMoney[2].ShouldBeGreaterThan(rewardMoney[1]);
         }
 
         [Fact]

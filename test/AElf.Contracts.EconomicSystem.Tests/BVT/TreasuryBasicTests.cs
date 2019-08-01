@@ -121,7 +121,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task EconomicSystem_ChangeMethodTransactionFee_MultipleSymbol_Test()
+        public async Task EconomicSystem_ChargeMethodTransactionFee_MultipleSymbol_Test()
         {
             var feeAmount = await EconomistSystem_SetMethodTransactionFee_MultipleSymbol_Test();
 
@@ -178,7 +178,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
         
         [Fact]
-        public async Task EconomistSystem_SetMethodProfitFee_Test()
+        public async Task EconomistSystem_SetMethodCallThreshold_Test()
         {
             const long feeAmount = 100L;
             var setMethodResult = await MethodCallThresholdContractStub.SetMethodCallingThreshold.SendAsync(new SetMethodCallingThresholdInput

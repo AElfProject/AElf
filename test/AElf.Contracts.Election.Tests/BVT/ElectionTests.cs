@@ -198,7 +198,6 @@ namespace AElf.Contracts.Election
                     {
                         Value = voterKeyPair.PublicKey.ToHex()
                     });
-                // TODO: Withdraw votes and test this.
                 voterVotesWithAllRecords.WithdrawnVotesRecords.Count.ShouldBe(0);
             }
 
