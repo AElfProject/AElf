@@ -7,6 +7,7 @@ using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Shouldly;
 using Xunit;
 
 namespace AElf.OS.Network
@@ -102,7 +103,8 @@ namespace AElf.OS.Network
                    new Transaction()
                }
             };
-            await _networkService.BroadcastBlockWithTransactionsAsync(blockWithTransaction);
+            var result = _networkService.BroadcastBlockWithTransactionsAsync(blockWithTransaction);
+            result.Status.ShouldBe(TaskStatus.RanToCompletion);
         }
         #endregion
     }
