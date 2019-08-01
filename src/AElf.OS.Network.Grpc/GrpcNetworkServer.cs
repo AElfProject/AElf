@@ -8,7 +8,6 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
-using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
@@ -98,7 +97,7 @@ namespace AElf.OS.Network.Grpc
             var taskList = NetworkOptions.BootNodes
                 .Select(async node =>
                 {
-                    if (!IpEndpointHelpers.TryParse(node, out IPEndPoint endpoint))
+                    if (!IpEndpointHelper.TryParse(node, out IPEndPoint endpoint))
                         return false;
                     
                     return await ConnectAsync(endpoint);

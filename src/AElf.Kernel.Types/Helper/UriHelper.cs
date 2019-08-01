@@ -1,16 +1,16 @@
 using System.Net;
 
-namespace AElf.OS.Network.Grpc.Helpers
+namespace AElf.Kernel.Helper
 {
-    public static class GrpcUriHelper
+    public static class UriHelper
     {
         /// <summary>
-        /// Tries to parse a grpc URI.
+        /// Tries to parse a grpc URI. format: ipv4:127.0.0.1:8000 "
         /// </summary>
         /// <param name="url"></param>
         /// <param name="endPoint"></param>
         /// <returns></returns>
-        public static bool TryParseGrpcUri(string url, out IPEndPoint endPoint)
+        public static bool TryParsePrefixedEndpoint(string url, out IPEndPoint endPoint)
         {
             endPoint = null;
             

@@ -8,10 +8,10 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Helper;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
-using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -293,30 +293,7 @@ namespace AElf.OS.Network
                 peer.IsReady.ShouldBeFalse();
             }
         }
-        
-        [Fact]
-        public void GrpcUrl_ParseTest()
-        {
-            //wrong format
-            {
-                string address = "127.0.0.1:8000";
-                var parsed = GrpcUriHelper.TryParseGrpcUri(address, out var endpoint);
 
-                parsed.ShouldBeFalse();
-                endpoint.ShouldBeNull();
-            }
-            
-            //correct format
-            {
-                string address = "ipv4:127.0.0.1:8000";
-                var parsed = GrpcUriHelper.TryParseGrpcUri(address, out var endpoint);
-                
-                parsed.ShouldBeTrue();
-                endpoint.ToString().ShouldBe("127.0.0.1:8000");
-                endpoint.Port.ShouldBe(8000);
-            }
-        }
-        
         [Fact]
         public async Task Auth_UnaryServerHandler_Success()
         {

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Helper;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
-using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Grpc.Core;
@@ -57,7 +57,7 @@ namespace AElf.OS.Network.Grpc
         {
             Logger.LogTrace($"{context.Peer} has initiated a connection.");
             
-            if(!GrpcUriHelper.TryParseGrpcUri(context.Peer, out IPEndPoint peerEndpoint))
+            if(!UriHelper.TryParsePrefixedEndpoint(context.Peer, out IPEndPoint peerEndpoint))
                 return new ConnectReply { Error = ConnectError.InvalidPeer };
             
             return await _connectionService.DialBackAsync(peerEndpoint, connectionRequest.Info);

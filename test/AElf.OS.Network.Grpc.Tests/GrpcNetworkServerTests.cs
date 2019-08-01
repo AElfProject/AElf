@@ -80,7 +80,7 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_DialException_ShouldReturnFalse()
         {
-            IpEndpointHelpers.TryParse(NetworkTestConstants.DialExceptionIpEndpoint, out var endpoint);
+            IpEndpointHelper.TryParse(NetworkTestConstants.DialExceptionIpEndpoint, out var endpoint);
             var added = await _networkServer.ConnectAsync(endpoint);
             
             added.ShouldBeFalse();
@@ -93,7 +93,7 @@ namespace AElf.OS.Network
             // two different hosts with the same pubkey.
             AddPeerToPool();
             
-            IpEndpointHelpers.TryParse(NetworkTestConstants.FakeIpEndpoint2, out var endpoint);
+            IpEndpointHelper.TryParse(NetworkTestConstants.FakeIpEndpoint2, out var endpoint);
             var added = await _networkServer.ConnectAsync(endpoint);
             
             added.ShouldBeFalse();
@@ -103,7 +103,7 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_GoodPeer_ShouldBeInPool()
         {
-            IpEndpointHelpers.TryParse(NetworkTestConstants.GoodPeerEndpoint, out var endpoint);
+            IpEndpointHelper.TryParse(NetworkTestConstants.GoodPeerEndpoint, out var endpoint);
 
             // two different hosts with the same pubkey.
             var added = await _networkServer.ConnectAsync(endpoint);
@@ -123,7 +123,7 @@ namespace AElf.OS.Network
             });
             
             // two different hosts with the same pubkey.
-            IpEndpointHelpers.TryParse(NetworkTestConstants.GoodPeerEndpoint, out var endpoint);
+            IpEndpointHelper.TryParse(NetworkTestConstants.GoodPeerEndpoint, out var endpoint);
             var added = await _networkServer.ConnectAsync(endpoint);
             
             added.ShouldBeTrue();
@@ -135,7 +135,7 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_HandshakeNetProblem_ShouldReturnFalse()
         {
-            IpEndpointHelpers.TryParse(NetworkTestConstants.HandshakeWithNetExceptionIp, out var endpoint);
+            IpEndpointHelper.TryParse(NetworkTestConstants.HandshakeWithNetExceptionIp, out var endpoint);
             var added = await _networkServer.ConnectAsync(endpoint);
             
             added.ShouldBeFalse();
@@ -145,7 +145,7 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_HandshakeError_ShouldReturnFalse()
         {
-            IpEndpointHelpers.TryParse(NetworkTestConstants.BadHandshakeIp, out var endpoint);
+            IpEndpointHelper.TryParse(NetworkTestConstants.BadHandshakeIp, out var endpoint);
             var added = await _networkServer.ConnectAsync(endpoint);
             
             added.ShouldBeFalse();

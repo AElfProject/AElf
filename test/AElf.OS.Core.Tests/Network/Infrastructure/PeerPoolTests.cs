@@ -80,7 +80,7 @@ namespace AElf.OS.Network
                 IsInbound = true
             };
 
-            if (!IpEndpointHelpers.TryParse(ip, out var endpoint))
+            if (!IpEndpointHelper.TryParse(ip, out var endpoint))
                 throw new Exception($"Endpoint {ip} could not be parsed.");
 
             peerMock.Setup(p => p.RemoteEndpoint).Returns(endpoint);

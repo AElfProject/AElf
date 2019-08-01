@@ -46,7 +46,7 @@ namespace AElf.WebApp.Application.Net.Tests
             
             var peerMock = new Mock<IPeer>();
             peerMock.SetupGet(p => p.Info).Returns(connectionInfo);
-            peerMock.SetupGet(p => p.RemoteEndpoint).Returns(IpEndpointHelpers.Parse(ipAddress));
+            peerMock.SetupGet(p => p.RemoteEndpoint).Returns(IpEndpointHelper.Parse(ipAddress));
             peerMock.Setup(p => p.GetRequestMetrics()).Returns(new Dictionary<string, List<RequestMetric>>());
 
             return peerMock.Object;

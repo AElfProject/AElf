@@ -38,7 +38,7 @@ namespace AElf.OS.Network.Application
 
         public async Task<bool> AddPeerAsync(string address)
         {
-            if (IpEndpointHelpers.TryParse(address, out IPEndPoint endpoint))
+            if (IpEndpointHelper.TryParse(address, out IPEndPoint endpoint))
                 return await _networkServer.ConnectAsync(endpoint);
 
             return false;
@@ -46,7 +46,7 @@ namespace AElf.OS.Network.Application
 
         public async Task<bool> RemovePeerAsync(string address)
         {
-            if (!IpEndpointHelpers.TryParse(address, out IPEndPoint endpoint)) 
+            if (!IpEndpointHelper.TryParse(address, out IPEndPoint endpoint)) 
                 return false;
             
             var peer = _peerPool.FindPeerByEndpoint(endpoint);
