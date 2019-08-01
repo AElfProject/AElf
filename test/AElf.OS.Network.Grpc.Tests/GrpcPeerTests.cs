@@ -20,6 +20,7 @@ namespace AElf.OS.Network
         
         private IPeerPool _pool;
         private GrpcPeer _grpcPeer;
+        private GrpcPeer _nonInterceptedPeer;
 
         public GrpcPeerTests()
         {
@@ -29,6 +30,10 @@ namespace AElf.OS.Network
 
             _grpcPeer = GrpcTestPeerHelpers.CreateNewPeer();
             _grpcPeer.IsConnected = true;
+
+            _nonInterceptedPeer = GrpcTestPeerHelpers.CreateNewPeer("127.0.0.1:2000", false);
+            _nonInterceptedPeer.IsConnected = true;
+
             _pool.TryAddPeer(_grpcPeer);
         }
 
@@ -44,7 +49,7 @@ namespace AElf.OS.Network
             
             NetworkException exception = null;
             bool called = false;
-            _grpcPeer.EnqueueBlock(new BlockWithTransactions(), ex =>
+            _nonInterceptedPeer.EnqueueBlock(new BlockWithTransactions(), ex =>
             {
                 exception = ex;
                 called = true;
@@ -63,7 +68,7 @@ namespace AElf.OS.Network
             
             NetworkException exception = null;
             bool called = false;
-            _grpcPeer.EnqueueTransaction(new Transaction(), ex =>
+            _nonInterceptedPeer.EnqueueTransaction(new Transaction(), ex =>
             {
                 exception = ex;
                 called = true;
@@ -82,7 +87,7 @@ namespace AElf.OS.Network
             
             NetworkException exception = null;
             bool called = false;
-            _grpcPeer.EnqueueAnnouncement(new BlockAnnouncement(), ex =>
+            _nonInterceptedPeer.EnqueueAnnouncement(new BlockAnnouncement(), ex =>
             {
                 exception = ex;
                 called = true;

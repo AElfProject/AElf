@@ -289,10 +289,10 @@ namespace AElf.OS.Network.Grpc
         
         private async Task StartBroadcastingAsync()
         {
-            while (await _streamJobs.OutputAvailableAsync().ConfigureAwait(false))
+            while (await _streamJobs.OutputAvailableAsync())
             {
-                var job = await _streamJobs.ReceiveAsync().ConfigureAwait(false);
-                await SendStreamJobAsync(job).ConfigureAwait(false);
+                var job = await _streamJobs.ReceiveAsync();
+                await SendStreamJobAsync(job);
             }
         }
 
@@ -355,7 +355,7 @@ namespace AElf.OS.Network.Grpc
         {
             if (_announcementStreamCall == null)
                 _announcementStreamCall = _client.AnnouncementBroadcastStream();
-            
+
             try
             {
                 await _announcementStreamCall.RequestStream.WriteAsync(header);
