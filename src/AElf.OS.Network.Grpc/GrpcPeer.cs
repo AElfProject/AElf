@@ -30,7 +30,7 @@ namespace AElf.OS.Network.Grpc
 
         private const int UpdateHandshakeTimeout = 400;
         
-        private const int StreamRecoveryWaitTimeInMilliseconds = NetworkConstants.DefaultPeerRecoveryTimeoutInMilliSeconds + 1000;
+        private const int StreamRecoveryWaitTimeInMilliseconds = 500;
         
         private int _bufferedTransactionsCount;
         private int _bufferedBlocksCount;
@@ -232,7 +232,7 @@ namespace AElf.OS.Network.Grpc
                     NetworkExceptionType.FullBuffer);
             }
 
-            Interlocked.Increment(ref _bufferedTransactionsCount);
+            _bufferedTransactionsCount++;
         }
 
         public void EnqueueAnnouncement(BlockAnnouncement announcement, Action<NetworkException> sendCallback)
@@ -259,7 +259,7 @@ namespace AElf.OS.Network.Grpc
                     NetworkExceptionType.FullBuffer);
             }
             
-            Interlocked.Increment(ref _bufferedAnnouncementsCount);
+            _bufferedAnnouncementsCount++;
         }
 
         public void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException> sendCallback)
@@ -284,7 +284,7 @@ namespace AElf.OS.Network.Grpc
                     NetworkExceptionType.FullBuffer);
             }
             
-            Interlocked.Increment(ref _bufferedBlocksCount);
+            _bufferedBlocksCount++;
         }
         
         private async Task StartBroadcastingAsync()
@@ -306,17 +306,17 @@ namespace AElf.OS.Network.Grpc
                 if (job.Transaction != null)
                 {
                     await SendTransactionAsync(job.Transaction);
-                    Interlocked.Decrement(ref _bufferedTransactionsCount);
+                    _bufferedTransactionsCount--;
                 }
                 else if (job.BlockAnnouncement != null)
                 {
                     await SendAnnouncementAsync(job.BlockAnnouncement);
-                    Interlocked.Decrement(ref _bufferedAnnouncementsCount);
+                    _bufferedAnnouncementsCount--;
                 }
                 else if (job.BlockWithTransactions != null)
                 {
                     await BroadcastBlockAsync(job.BlockWithTransactions);
-                    Interlocked.Decrement(ref _bufferedBlocksCount);
+                    _bufferedBlocksCount--;
                 }
             }
             catch (RpcException ex)

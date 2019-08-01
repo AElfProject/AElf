@@ -15,7 +15,7 @@ namespace AElf.WebApp.Application.Net
 
         Task<bool> RemovePeerAsync(string address);
 
-        List<PeerDto> GetPeers(bool withMetrics = false);
+        List<PeerDto> GetPeers(bool withMetrics);
 
         Task<GetNetworkInfoOutput> GetNetworkInfoAsync();
     }
@@ -62,7 +62,7 @@ namespace AElf.WebApp.Application.Net
         /// Get peer info about the connected network nodes
         /// </summary>
         /// <returns></returns>
-        public List<PeerDto> GetPeers(bool withMetrics)
+        public List<PeerDto> GetPeers(bool withMetrics = false)
         {
             var peerList = _networkService.GetPeers();
             
