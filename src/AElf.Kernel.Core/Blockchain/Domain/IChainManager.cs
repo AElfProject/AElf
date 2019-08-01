@@ -176,15 +176,12 @@ namespace AElf.Kernel.Blockchain.Domain
                 }
                 else
                 {
-                    if (chainBlockLink.Height <= chain.LongestChainHeight)
+                    //check database to ensure whether it can be a branch
+                    var previousChainBlockLink = await this.GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
+                    if (previousChainBlockLink != null && previousChainBlockLink.IsLinked)
                     {
-                        //check database to ensure whether it can be a branch
-                        var previousChainBlockLink = await this.GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
-                        if (previousChainBlockLink != null && previousChainBlockLink.IsLinked)
-                        {
-                            chain.Branches[previousChainBlockLink.BlockHash.ToStorageKey()] = previousChainBlockLink.Height;
-                            continue;
-                        }
+                        chain.Branches[previousChainBlockLink.BlockHash.ToStorageKey()] = previousChainBlockLink.Height;
+                        continue;
                     }
 
                     chain.NotLinkedBlocks[previousHash] = blockHash;
