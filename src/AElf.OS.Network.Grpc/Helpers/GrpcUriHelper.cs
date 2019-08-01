@@ -2,7 +2,7 @@ using System.Net;
 
 namespace AElf.OS.Network.Grpc.Helpers
 {
-    public static class GrpcUriHelpers
+    public static class GrpcUriHelper
     {
         /// <summary>
         /// Tries to parse a grpc URI.

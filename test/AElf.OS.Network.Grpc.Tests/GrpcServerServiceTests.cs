@@ -300,7 +300,7 @@ namespace AElf.OS.Network
             //wrong format
             {
                 string address = "127.0.0.1:8000";
-                var parsed = GrpcUriHelpers.TryParseGrpcUri(address, out var endpoint);
+                var parsed = GrpcUriHelper.TryParseGrpcUri(address, out var endpoint);
 
                 parsed.ShouldBeFalse();
                 endpoint.ShouldBeNull();
@@ -309,7 +309,7 @@ namespace AElf.OS.Network
             //correct format
             {
                 string address = "ipv4:127.0.0.1:8000";
-                var parsed = GrpcUriHelpers.TryParseGrpcUri(address, out var endpoint);
+                var parsed = GrpcUriHelper.TryParseGrpcUri(address, out var endpoint);
                 
                 parsed.ShouldBeTrue();
                 endpoint.ToString().ShouldBe("127.0.0.1:8000");

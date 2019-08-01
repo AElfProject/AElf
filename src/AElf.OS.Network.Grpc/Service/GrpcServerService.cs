@@ -57,7 +57,7 @@ namespace AElf.OS.Network.Grpc
         {
             Logger.LogTrace($"{context.Peer} has initiated a connection.");
             
-            if(!GrpcUriHelpers.TryParseGrpcUri(context.Peer, out IPEndPoint peerEndpoint))
+            if(!GrpcUriHelper.TryParseGrpcUri(context.Peer, out IPEndPoint peerEndpoint))
                 return new ConnectReply { Error = ConnectError.InvalidPeer };
             
             return await _connectionService.DialBackAsync(peerEndpoint, connectionRequest.Info);
