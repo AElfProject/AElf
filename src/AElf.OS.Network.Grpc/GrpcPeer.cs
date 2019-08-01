@@ -292,8 +292,6 @@ namespace AElf.OS.Network.Grpc
             while (await _streamJobs.OutputAvailableAsync().ConfigureAwait(false))
             {
                 var job = await _streamJobs.ReceiveAsync().ConfigureAwait(false);
-                job.SendCallback?.Invoke(null);
-
                 await SendStreamJobAsync(job).ConfigureAwait(false);
             }
         }
@@ -325,6 +323,7 @@ namespace AElf.OS.Network.Grpc
             {
                 job.SendCallback?.Invoke(CreateNetworkException(ex, $"Error on broadcast to {this}: "));
                 await Task.Delay(StreamRecoveryWaitTimeInMilliseconds);
+                return;
             }
 
             job.SendCallback?.Invoke(null);

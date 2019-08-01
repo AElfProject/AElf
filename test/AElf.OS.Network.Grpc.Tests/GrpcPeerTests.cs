@@ -128,48 +128,6 @@ namespace AElf.OS.Network
             blocks.Select(o => o.Height).ShouldBe(new long[] {2, 3, 4, 5, 6});
         }
 
-//        // TODO
-//        [Fact(Skip = "Either test client side logic or server side with corresponding mocks. Not both here.")]
-//        public async Task AnnounceAsync_Success()
-//        {
-//            AnnouncementReceivedEventData received = null;
-//            _eventBus.Subscribe<AnnouncementReceivedEventData>(a =>
-//            {
-//                received = a;
-//                return Task.CompletedTask;
-//            });
-//
-//            var header = new BlockAnnouncement
-//            {
-//                BlockHeight = 100,
-//                BlockHash = Hash.FromRawBytes(new byte[]{9,2})
-//            };
-//
-//            await _grpcPeer.SendAnnouncementAsync(header);
-//
-//            received.ShouldNotBeNull();
-//            received.Announce.BlockHeight.ShouldBe(100);
-//        }
-//
-//        // TODO
-//        [Fact(Skip = "Either test client side logic or server side with corresponding mocks. Not both here.")]
-//        public async Task SendTransactionAsync_Success()
-//        {
-//            TransactionsReceivedEvent received = null;
-//            _eventBus.Subscribe<TransactionsReceivedEvent>(t =>
-//            {
-//                received = t;
-//                return Task.CompletedTask;
-//            });
-//            var transactions = await _osTestHelper.GenerateTransferTransactions(1);
-//            await _grpcPeer.SendTransactionAsync(transactions.First());
-//
-//            await Task.Delay(200);
-//            received.ShouldNotBeNull();
-//            received.Transactions.Count().ShouldBe(1);
-//            received.Transactions.First().From.ShouldBe(transactions.First().From);
-//        }
-
         public async Task DisconnectAsync_Success()
         {
             var peers = _pool.GetPeers();
