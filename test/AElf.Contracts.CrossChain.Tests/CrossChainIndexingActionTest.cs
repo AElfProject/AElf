@@ -503,12 +503,12 @@ namespace AElf.Contract.CrossChain.Tests
             var sideChainId =
                 await InitAndCreateSideChainAsync(parentChainHeightOfCreation, parentChainId, lockedToken);
             var transactionId = Hash.FromString("sideChainBlockHash");
-            var binaryMerkleTree = new BinaryMerkleTree();
+            
             var fakeHash1 = Hash.FromString("fake1");
             var fakeHash2 = Hash.FromString("fake2");
 
-            binaryMerkleTree.AddNodes(new[] {transactionId, fakeHash1, fakeHash2});
-            var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(new[] {transactionId, fakeHash1, fakeHash2});
+            var merkleTreeRoot = binaryMerkleTree.Root;
             var merklePath = binaryMerkleTree.GenerateMerklePath(0);
             Hash fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
             var parentChainBlockData = CreateParentChainBlockData(parentChainHeightOfCreation, parentChainId,
@@ -549,7 +549,7 @@ namespace AElf.Contract.CrossChain.Tests
             var sideChainId =
                 await InitAndCreateSideChainAsync(parentChainHeightOfCreation, parentChainId, lockedToken);
             var txId = Hash.FromString("sideChainBlockHash");
-            var binaryMerkleTree = new BinaryMerkleTree();
+            
             var fakeHash1 = Hash.FromString("fake1");
             var fakeHash2 = Hash.FromString("fake2");
 
@@ -558,8 +558,8 @@ namespace AElf.Contract.CrossChain.Tests
                 .ToArray();
             var hash = Hash.FromRawBytes(rawBytes);
 
-            binaryMerkleTree.AddNodes(new[] {hash, fakeHash1, fakeHash2});
-            var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(new[] {hash, fakeHash1, fakeHash2});
+            var merkleTreeRoot = binaryMerkleTree.Root;
             var merklePath = binaryMerkleTree.GenerateMerklePath(0);
             Hash fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
             var parentChainBlockData = CreateParentChainBlockData(parentChainHeightOfCreation, parentChainId,
@@ -705,15 +705,15 @@ namespace AElf.Contract.CrossChain.Tests
                     TokenInfo = tokenInfo,
                     To = receiver
                 });
-            var binaryMerkleTree = new BinaryMerkleTree();
+            
             var fakeHash1 = Hash.FromString("fake1");
             var fakeHash2 = Hash.FromString("fake2");
 
             var rawBytes = crossChainTransferTransaction.GetHash().ToByteArray()
                 .Concat(EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString())).ToArray();
             var hash = Hash.FromRawBytes(rawBytes);
-            binaryMerkleTree.AddNodes(new[] {hash, fakeHash1, fakeHash2});
-            var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(new[] {hash, fakeHash1, fakeHash2});
+            var merkleTreeRoot = binaryMerkleTree.Root;
             var merklePath = binaryMerkleTree.GenerateMerklePath(0);
             Hash fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
             var parentChainBlockData = CreateParentChainBlockData(parentChainHeightOfCreation, parentChainId,
