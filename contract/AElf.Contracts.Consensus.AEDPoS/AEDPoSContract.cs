@@ -38,6 +38,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
 
+            State.MaximumMinersCount.Value = int.MaxValue;
+
             return new Empty();
         }
 
@@ -125,7 +127,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     IrreversibleBlockHeight = irreversibleBlockHeight
                 });
             }
-            
+
             return new Empty();
         }
 
@@ -251,6 +253,24 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 Pubkeys = {minersKeys.Select(k => k.ToByteString())}
             };
+            return new Empty();
+        }
+
+        #endregion
+
+        #region SetMaximumMinersCount
+
+        public override Empty SetMaximumMinersCount(SInt32Value input)
+        {
+            if (State.ParliamentAuthContract.Value == null)
+            {
+                State.ParliamentAuthContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+            }
+
+            var genesisOwnerAddress = State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty());
+            Assert(Context.Sender == genesisOwnerAddress, "No permission to set max miners count.");
+            State.MaximumMinersCount.Value = input.Value;
             return new Empty();
         }
 

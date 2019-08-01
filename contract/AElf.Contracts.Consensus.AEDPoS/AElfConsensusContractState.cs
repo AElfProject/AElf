@@ -33,5 +33,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public BoolState IsMainChain { get; set; }
 
         public Int64State MinerIncreaseInterval { get; set; }
+
+        public Int32State MaximumMinersCount { get; set; }
     }
 }

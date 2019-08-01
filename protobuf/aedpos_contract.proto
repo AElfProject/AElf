@@ -29,6 +29,9 @@ service AEDPoSContract {
     
     rpc UpdateConsensusInformation (ConsensusInformation) returns (google.protobuf.Empty) {
     }
+    
+    rpc SetMaximumMinersCount (aelf.SInt32Value) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
