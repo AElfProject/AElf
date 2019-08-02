@@ -23,9 +23,9 @@
         <ContractStub Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf/Proto/acs4.proto</Link>
         </ContractStub>
-      <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
-        <Link>Protobuf/Proto/aedpos_contract.proto</Link>
-      </ContractStub>
+        <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
+        </ContractStub>
     </ItemGroup>
 
     <Target Name="CopyContractDll" AfterTargets="AfterBuild">

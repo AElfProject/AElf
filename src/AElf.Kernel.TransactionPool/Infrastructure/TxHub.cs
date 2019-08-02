@@ -7,6 +7,7 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Types;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.TransactionPool.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -23,6 +24,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockchainService _blockchainService;
+        private readonly ITransactionValidationService _transactionValidationService;
 
         private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTransactions =
             new ConcurrentDictionary<Hash, TransactionReceipt>();
@@ -44,11 +46,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public ILocalEventBus LocalEventBus { get; set; }
 
         public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService, 
-            IOptionsSnapshot<TransactionOptions> transactionOptions)
+            IOptionsSnapshot<TransactionOptions> transactionOptions, ITransactionValidationService transactionValidationService)
         {
             Logger = NullLogger<TxHub>.Instance;
             _transactionManager = transactionManager;
             _blockchainService = blockchainService;
+            _transactionValidationService = transactionValidationService;
             LocalEventBus = NullLocalEventBus.Instance;
             _transactionOptions = transactionOptions.Value;
         }
@@ -232,6 +235,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 if (txn != null)
                 {
                     //Logger.LogWarning($"Transaction already exists in TxStore");
+                    continue;
+                }
+
+                if (!await _transactionValidationService.ValidateTransactionAsync(transaction))
+                {
                     continue;
                 }
 

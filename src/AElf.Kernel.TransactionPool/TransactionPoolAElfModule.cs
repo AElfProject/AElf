@@ -1,8 +1,7 @@
-using AElf.Kernel;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
-using Volo.Abp;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.TransactionPool
@@ -14,6 +13,11 @@ namespace AElf.Kernel.TransactionPool
         {
             var services = context.Services;
             services.AddSingleton<ITxHub, TxHub>();
+            services.AddSingleton<ITransactionValidationService, TransactionValidationService>();
+            services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
+
+            context.Services.AddSingleton<IContractDeployDiscoveryService, ContractDeployDiscoveryService>();
+            context.Services.AddSingleton<BestChainFoundEventHandler>();
 
             var configuration = context.Services.GetConfiguration();
             Configure<TransactionOptions>(configuration.GetSection("Transaction"));

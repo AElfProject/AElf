@@ -13,7 +13,7 @@ namespace AElf.Contracts.Genesis
 
         public override UInt64Value CurrentContractSerialNumber(Empty input)
         {
-            return new UInt64Value() {Value = State.ContractSerialNumber.Value};
+            return new UInt64Value {Value = State.ContractSerialNumber.Value};
         }
 
         public override ContractInfo GetContractInfo(Address input)
@@ -136,7 +136,6 @@ namespace AElf.Contracts.Genesis
 
             Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
             Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
-
 
             if (name != null)
                 State.NameAddressMapping[name] = contractAddress;
