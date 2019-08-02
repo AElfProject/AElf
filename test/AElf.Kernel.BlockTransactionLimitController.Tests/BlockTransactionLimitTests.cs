@@ -30,7 +30,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
         }
 
         [Fact]
-        public async Task LimitCanBeSetByExecutingContract()
+        public async Task LimitCanBeSetByExecutingContract_Test()
         {
             await DeployContractsAsync();
             OptionalLogEventListeningService.Enabled = true;

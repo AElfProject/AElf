@@ -21,7 +21,7 @@ namespace AElf.Types.Tests.Helper
 
         static Random _rnd = new Random();
 
-        public static byte[] RandomFill(int count)
+        private static byte[] RandomFill(int count)
         {
             byte[] random = new byte[count];
 

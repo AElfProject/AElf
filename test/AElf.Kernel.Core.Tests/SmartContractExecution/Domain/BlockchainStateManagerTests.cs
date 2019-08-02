@@ -41,7 +41,7 @@ namespace AElf.Kernel
         }
 
         [Fact]
-        public async Task TestAddBlockStateSet()
+        public async Task AddBlockStateSet_Test()
         {
             // one level tests without best chain state
             await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
@@ -194,7 +194,7 @@ namespace AElf.Kernel
         }
 
         [Fact]
-        public async Task Test_MergeBlockState_WithStatus_NotCommonStatus()
+        public async Task MergeBlockState_WithStatus_NotCommonStatus_Test()
         {
             await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
             {
@@ -217,7 +217,7 @@ namespace AElf.Kernel
         }
         
         [Fact]
-        public async Task Test_GetState_From_VersionedState()
+        public async Task GetState_From_VersionedState_Test()
         {
             await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
             {
@@ -262,7 +262,7 @@ namespace AElf.Kernel
         }
 
         [Fact]
-        public async Task Test_GetState_From_BlockStateSet()
+        public async Task GetState_From_BlockStateSet_Test()
         {
             await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
             {
@@ -275,7 +275,7 @@ namespace AElf.Kernel
         }
         
         [Fact]
-        public async Task TestState_MergedSituation()
+        public async Task State_MergedSituation_Test()
         {
             int chainId = 1;
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();

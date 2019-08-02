@@ -19,7 +19,7 @@ namespace AElf.Kernel.ChainController.Application
         }
 
         [Fact]
-        public async Task Create_NewChain_Success()
+        public async Task Create_NewChain_Success_Test()
         {
             var chainId = 1;
 

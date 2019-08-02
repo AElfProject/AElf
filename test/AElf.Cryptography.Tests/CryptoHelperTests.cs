@@ -11,13 +11,13 @@ namespace AElf.Cryptography.Tests
     public class CryptoHelperTests
     {
         [Fact]
-        public void Test_Generate_Key()
+        public void Generate_Key_Test()
         {
             CryptoHelper.GenerateKeyPair();
         }
 
         [Fact]
-        public void Test_Generate_KeyPair_Not_Same()
+        public void Generate_KeyPair_Not_Same_Test()
         {
             var keyPair1 = CryptoHelper.GenerateKeyPair();
             var keyPair2 = CryptoHelper.GenerateKeyPair();
@@ -25,7 +25,7 @@ namespace AElf.Cryptography.Tests
         }
 
         [Fact]
-        public void Test_Recover_Public_key()
+        public void Recover_Public_Key_Test()
         {
             var keyPair = CryptoHelper.GenerateKeyPair();
 
@@ -47,7 +47,6 @@ namespace AElf.Cryptography.Tests
             Assert.True(recoverResult2);
             Assert.False(publicKey2.BytesEqual(keyPair.PublicKey));
         }
-
 
         [Fact]
         public void Test_Decrypt_Message()
@@ -84,7 +83,7 @@ namespace AElf.Cryptography.Tests
         }
 
         [Fact]
-        public void Test_RandomByteArrayGenerate()
+        public void RandomByteArrayGenerate_Test()
         {
             var byteArray1 = CryptoHelper.RandomFill(30);
             byteArray1.Length.ShouldBe(30);

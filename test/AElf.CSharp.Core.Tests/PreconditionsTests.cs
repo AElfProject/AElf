@@ -9,7 +9,7 @@ namespace AElf.CSharp.Core
     public class PreconditionsTests : TypesCSharpTestBase
     {
         [Fact]
-        public void PreCondition_CheckTest()
+        public void PreCondition_Check_Test()
         {
             Func<Address> func1 = null;
             Should.Throw<ArgumentException>(() => Preconditions.CheckNotNull(func1));

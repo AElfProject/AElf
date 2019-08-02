@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Shouldly;
@@ -17,7 +16,7 @@ namespace AElf
         }
 
         [Fact]
-        public void Test_StartAsync()
+        public void Test_StartAsync_Test()
         {
             var testQueue = _taskQueueManager.CreateQueue("TestQueue");
 
@@ -30,7 +29,7 @@ namespace AElf
         }
 
         [Fact]
-        public async Task Test_Enqueue()
+        public void Test_Enqueue_Test()
         {
             var result = 1;
             var testQueue = _taskQueueManager.CreateQueue("TestQueue");
@@ -49,7 +48,7 @@ namespace AElf
         }
 
         [Fact]
-        public async Task Test_Many_Enqueue()
+        public void Test_Many_Enqueue_Test()
         {
             var testData = new int[3];
             var testQueueA = _taskQueueManager.CreateQueue("TestQueueA");
@@ -73,7 +72,7 @@ namespace AElf
         }
 
         [Fact]
-        public async Task Test_Dispose()
+        public void Test_Dispose_Test()
         {
             var result = 1;
 
@@ -96,7 +95,7 @@ namespace AElf
         }
 
         [Fact]
-        public void Test_GetQueue()
+        public void Test_GetQueue_Test()
         {
             var defaultQueueA = _taskQueueManager.GetQueue();
             var defaultQueueB = _taskQueueManager.GetQueue();
@@ -115,7 +114,7 @@ namespace AElf
         }
 
         [Fact]
-        public async Task Test_TaskQueue_StopAsync()
+        public void Test_TaskQueue_StopAsync_Test()
         {
             var testQueue = _taskQueueManager.CreateQueue("TestQueue");
             testQueue.Dispose();

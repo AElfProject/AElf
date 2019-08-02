@@ -111,14 +111,6 @@ namespace AElf.Kernel.Types.Tests
         }
 
         [Fact]
-        public void Test()
-        {
-            string base64 ="CiBbTv9+r6QF+6wdIX6uzCHiZBIjYtU7mhP0ybyLGYgUKQ==";
-            var hash = Hash.Parser.ParseFrom(ByteString.FromBase64(base64));
-            ;
-        }
-
-        [Fact]
         public void MultiNodesTest()
         {
             var tree1 = new BinaryMerkleTree();
