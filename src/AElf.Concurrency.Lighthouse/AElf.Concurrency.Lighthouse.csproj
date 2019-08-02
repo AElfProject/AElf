@@ -7,7 +7,7 @@
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Akka" Version="1.3.12" />
+    <PackageReference Include="Akka" Version="1.3.14" />
     <PackageReference Include="Akka.Cluster" Version="1.3.12" />
     <PackageReference Include="CommandLineParser" Version="2.4.3" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting" Version="2.2.0" />
