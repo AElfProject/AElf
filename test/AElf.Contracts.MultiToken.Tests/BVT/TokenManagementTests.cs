@@ -22,6 +22,7 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class MultiTokenContractTests : MultiTokenContractTestBase
     {
+        private const long Total_Supply = 1000_000_000_00000000;
         /// <summary>
         /// Burnable & Transferable
         /// </summary>
@@ -148,11 +149,10 @@ namespace AElf.Contracts.MultiToken
                         OtherBasicFunctionContractAddress,
                         DefaultKeyPair);
             }
-
         }
 
         [Fact(DisplayName = "[MultiToken] Create token test.")]
-        public async Task MultiTokenContract_Create()
+        public async Task MultiTokenContract_Create_Test()
         {
             // Check token information before creating.
             {
@@ -250,9 +250,9 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact(DisplayName = "[MultiToken] Create different tokens.")]
-        public async Task MultiTokenContract_Create_NotSame()
+        public async Task MultiTokenContract_Create_NotSame_Test()
         {
-            await MultiTokenContract_Create();
+            await MultiTokenContract_Create_Test();
 
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
@@ -276,7 +276,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact(DisplayName = "[MultiToken] Create Token use custom address")]
-        public async Task MultiTokenContract_Create_UseCustomAddress()
+        public async Task MultiTokenContract_Create_UseCustomAddress_Test()
         {
             var transactionResult = (await TokenContractStub.Create.SendAsync(new CreateInput
             {
@@ -296,9 +296,9 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact(DisplayName = "[MultiToken] Issue token test")]
-        public async Task MultiTokenContract_Issue()
+        public async Task MultiTokenContract_Issue_Test()
         {
-            MultiTokenContract_Create();
+            await MultiTokenContract_Create_Test();
             //issue AliceToken amount of 1000_00L to DefaultAddress 
             {
                 var result = await TokenContractStub.Issue.SendAsync(new IssueInput()
@@ -376,9 +376,9 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact(DisplayName = "[MultiToken] Issue out of total amount")]
-        public async Task MultiTokenContract_Issue_OutOfAmount()
+        public async Task MultiTokenContract_Issue_OutOfAmount_Test()
         {
-            MultiTokenContract_Create();
+            await MultiTokenContract_Create_Test();
             //issue AliceToken amount of 1000L to User1Address 
             var result = (await TokenContractStub.Issue.SendAsync(new IssueInput()
             {
@@ -390,7 +390,5 @@ namespace AElf.Contracts.MultiToken
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains($"Total supply exceeded").ShouldBeTrue();
         }
-
-
     }
 }

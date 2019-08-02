@@ -24,7 +24,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public void OffChainDecryptMessageTest()
+        public void OffChain_DecryptMessage_Test()
         {
             var message = Hash.FromString("message").ToByteArray();
             var secrets =
@@ -67,7 +67,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         [Fact]
-        public async Task DecryptMessageTest()
+        public async Task DecryptMessage_Test()
         {
             var previousTriggers = await GenerateEncryptedMessagesAsync();
 

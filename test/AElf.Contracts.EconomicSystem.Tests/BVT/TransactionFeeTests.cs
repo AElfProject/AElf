@@ -52,7 +52,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
         
         [Fact]
-        public async Task Vote_Execute_AddOption()
+        public async Task Vote_Execute_AddOption_Test()
         {
             await Vote_SetMethodFee_Test();
 
@@ -108,7 +108,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task Profit_Execute_CreateScheme()
+        public async Task Profit_Execute_CreateScheme_Test()
         {
             await Profit_SetMethodFee_Test();
             

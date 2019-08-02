@@ -70,6 +70,12 @@ service AEDPoSContract {
     rpc GetNextMinerPubkey (google.protobuf.Empty) returns (google.protobuf.StringValue) {
         option (aelf.is_view) = true;
     }
+    rpc GetCurrentMinerPubkey (google.protobuf.Empty) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc IsCurrentMiner (aelf.Address) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 // Events

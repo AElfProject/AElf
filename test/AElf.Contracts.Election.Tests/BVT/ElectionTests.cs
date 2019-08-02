@@ -20,7 +20,7 @@ namespace AElf.Contracts.Election
         public const int CandidatesCount = 19;
 
         [Fact]
-        public async Task ElectionContract_RegisterElectionVotingEvent()
+        public async Task ElectionContract_RegisterElectionVotingEvent_Test()
         {
             // `RegisterElectionVotingEvent` will be called during AElf Consensus Contract initialization,
             // so we can check corresponding voting item directly.
@@ -44,7 +44,7 @@ namespace AElf.Contracts.Election
         /// </summary>
         /// <returns>Return 7 candidates key pairs.</returns>
         [Fact]
-        public async Task<List<ECKeyPair>> ElectionContract_AnnounceElection()
+        public async Task<List<ECKeyPair>> ElectionContract_AnnounceElection_Test()
         {
             var candidatesKeyPairs = ValidationDataCenterKeyPairs.Take(CandidatesCount).ToList();
 
@@ -73,10 +73,10 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task ElectionContract_AnnounceElectionAgain()
+        public async Task ElectionContract_AnnounceElectionAgain_Test()
         {
-            await ElectionContract_QuiteElection();
-
+            await ElectionContract_QuiteElection_Test();
+            
             var candidatesKeyPair = ValidationDataCenterKeyPairs.First();
 
             var balanceBeforeAnnouncing = await GetNativeTokenBalance(candidatesKeyPair.PublicKey);
@@ -91,11 +91,11 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task ElectionContract_QuiteElection()
+        public async Task ElectionContract_QuiteElection_Test()
         {
             const int quitCount = 2;
 
-            var candidates = await ElectionContract_AnnounceElection();
+            var candidates = await ElectionContract_AnnounceElection_Test();
 
             // Check VotingEvent before quiting election.
             {
@@ -140,13 +140,13 @@ namespace AElf.Contracts.Election
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task<List<ECKeyPair>> ElectionContract_Vote()
+        public async Task<List<ECKeyPair>> ElectionContract_Vote_Test()
         {
             const int votersCount = 2;
             const long amount = 500;
             const int lockTime = 100 * 60 * 60 * 24;
 
-            var candidatesKeyPairs = await ElectionContract_AnnounceElection();
+            var candidatesKeyPairs = await ElectionContract_AnnounceElection_Test();
             var candidateKeyPair = candidatesKeyPairs[0];
 
             var votersKeyPairs = VoterKeyPairs.Take(votersCount).ToList();
@@ -204,7 +204,6 @@ namespace AElf.Contracts.Election
                     {
                         Value = voterKeyPair.PublicKey.ToHex()
                     });
-                // TODO: Withdraw votes and test this.
                 voterVotesWithAllRecords.WithdrawnVotesRecords.Count.ShouldBe(0);
             }
 
@@ -251,7 +250,7 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task ElectionContract_ChangeVotingTarget()
         {
-            var candidatesKeyPairs = await ElectionContract_Vote();
+            var candidatesKeyPairs = await ElectionContract_Vote_Test();
             var voterKeyPair = VoterKeyPairs[0];
 
             var electionStub = GetElectionContractTester(voterKeyPair);
@@ -318,7 +317,7 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task ElectionContract_Withdraw()
+        public async Task ElectionContract_Withdraw_Test()
         {
             const int amount = 1000;
             const int lockTime = 120 * 60 * 60 * 24;
@@ -369,9 +368,9 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task ElectionContract_GetCandidates()
+        public async Task ElectionContract_GetCandidates_Test()
         {
-            var announcedFullNodesKeyPairs = await ElectionContract_AnnounceElection();
+            var announcedFullNodesKeyPairs = await ElectionContract_AnnounceElection_Test();
             var candidates = await ElectionContractStub.GetCandidates.CallAsync(new Empty());
             announcedFullNodesKeyPairs.Count.ShouldBe(candidates.Value.Count);
             foreach (var keyPair in announcedFullNodesKeyPairs)
@@ -381,13 +380,13 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task ElectionContract_GetCandidateInformation()
+        public async Task ElectionContract_GetCandidateInformation_Test()
         {
             const int roundCount = 5;
 
             var minerKeyPair = ValidationDataCenterKeyPairs[0];
 
-            await ElectionContract_GetVictories_ValidCandidatesEnough();
+            await ElectionContract_GetVictories_ValidCandidatesEnough_Test();
 
             await ProduceBlocks(BootMinerKeyPair, 1, true);
 
@@ -402,9 +401,9 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task ElectionContract_MarkCandidateAsEvilNode()
+        public async Task ElectionContract_MarkCandidateAsEvilNode_Test()
         {
-            await ElectionContract_AnnounceElection();
+            await ElectionContract_AnnounceElection_Test();
 
             var publicKey = ValidationDataCenterKeyPairs.First().PublicKey.ToHex();
             var transactionResult = (await ElectionContractStub.UpdateCandidateInformation.SendAsync(

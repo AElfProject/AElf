@@ -21,7 +21,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task AEDPoSContract_ChangeMinersCount()
+        public async Task AEDPoSContract_ChangeMinersCount_Test()
         {
             const int termIntervalMin = 31536000 / 60;
             

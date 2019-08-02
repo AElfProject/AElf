@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
+using AElf.OS.Handlers;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.Types;
@@ -64,6 +65,8 @@ namespace AElf.OS
 
                 return networkServiceMock.Object;
             });
+
+            context.Services.AddSingleton<PeerConnectedEventHandler>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

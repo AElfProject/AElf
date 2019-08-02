@@ -260,7 +260,6 @@ namespace AElf.Contracts.ParliamentAuth
             transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             transactionResult1.Output.Value.ShouldBe(true);
 
-            Thread.Sleep(100);
             var transactionResult2 =
                 await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
             transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
