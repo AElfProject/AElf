@@ -15,8 +15,6 @@
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
-      <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
-      <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>

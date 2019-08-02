@@ -13,6 +13,5 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Cryptography\AElf.Cryptography.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
 </Project>

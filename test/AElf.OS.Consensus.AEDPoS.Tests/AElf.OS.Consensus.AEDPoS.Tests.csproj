@@ -17,10 +17,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
       <ProjectReference Include="..\..\src\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
-      <ProjectReference Include="..\..\src\AElf.OS.Consensus.DPos\AElf.OS.Consensus.DPos.csproj" />
-      <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
       <ProjectReference Include="..\..\src\AElf.OS\AElf.OS.csproj" />
       <ProjectReference Include="..\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
     </ItemGroup>
