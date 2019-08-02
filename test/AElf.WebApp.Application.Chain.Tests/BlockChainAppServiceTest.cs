@@ -61,7 +61,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Deploy_Contract_success()
+        public async Task Deploy_Contract_Success_Test()
         {
             var keyPair = CryptoHelper.GenerateKeyPair();
             var chain = await _blockchainService.GetChainAsync();
@@ -95,7 +95,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task GetBlockHeightTest()
+        public async Task GetBlockHeight_Test()
         {
             // Get current height
             var response = await GetResponseAsStringAsync("/api/blockChain/blockHeight");
@@ -116,7 +116,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task ExecuteTransaction_Success()
+        public async Task ExecuteTransaction_Success_Test()
         {
             // Generate a transaction
             var transaction = await GenerateViewTransaction(
@@ -126,19 +126,19 @@ namespace AElf.WebApp.Application.Chain.Tests
                     Symbol = "ELF"
                 });
 
-            var paramters = new Dictionary<string, string>
+            var parameters = new Dictionary<string, string>
             {
                 {"rawTransaction", transaction.ToByteArray().ToHex()}
             };
 
-            var response = await PostResponseAsStringAsync("/api/blockChain/executeTransaction", paramters);
+            var response = await PostResponseAsStringAsync("/api/blockChain/executeTransaction", parameters);
             response.ShouldNotBeNullOrEmpty();
         }
 
         [Fact]
-        public async Task ExecuteTransaction_Failed()
+        public async Task ExecuteTransaction_Failed_Test()
         {
-            var paramters = new Dictionary<string, string>
+            var parameters = new Dictionary<string, string>
             {
                 {
                     "rawTransaction",
@@ -146,7 +146,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 }
             };
             var response =
-                await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/executeTransaction", paramters,
+                await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/executeTransaction", parameters,
                     expectedStatusCode: HttpStatusCode.Forbidden);
 
             response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
@@ -154,7 +154,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task ExecuteRawTransaction_Success()
+        public async Task ExecuteRawTransaction_Success_Test()
         {
             const string methodName = "GetBalance";
             var contractAddress =
@@ -192,7 +192,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task ExecuteRawTransaction_Failed()
+        public async Task ExecuteRawTransaction_Failed_Test()
         {
             var parameters = new Dictionary<string, string>
             {
@@ -236,7 +236,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Send_Transaction_Success()
+        public async Task Send_Transaction_Success_Test()
         {
             // Generate a transaction
             var transaction = await _osTestHelper.GenerateTransferTransaction();
@@ -258,7 +258,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Send_Transaction_ReturnInvalidTransaction()
+        public async Task Send_Transaction_ReturnInvalidTransaction_Test()
         {
             var fakeTransaction = "FakeTransaction";
             var parameters = new Dictionary<string, string>
@@ -297,7 +297,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Send_Transaction_ReturnNoMatchMethodInContractAddress()
+        public async Task Send_Transaction_ReturnNoMatchMethodInContractAddress_Test()
         {
             var accountAddress = await _accountService.GetAccountAsync();
             var from = Base64.ToBase64String(accountAddress.Value.ToByteArray());
@@ -324,7 +324,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Send_Transaction_ReturnInvalidParams()
+        public async Task Send_Transaction_ReturnInvalidParams_Test()
         {
             var accountAddress = await _accountService.GetAccountAsync();
             var from = Base64.ToBase64String(accountAddress.Value.ToByteArray());
@@ -355,7 +355,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Send_UnableVerify_Transaction_ReturnInvalidTransaction()
+        public async Task Send_UnableVerify_Transaction_ReturnInvalidTransaction_Test()
         {
             // Generate unsigned transaction
             var transaction = await _osTestHelper.GenerateTransferTransaction();
@@ -376,7 +376,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Send_Transactions_Success()
+        public async Task Send_Transactions_Success_Test()
         {
             // Generate two transactions
             var transaction1 = await _osTestHelper.GenerateTransferTransaction();
@@ -404,7 +404,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Send_Transactions_ReturnInvalidTransaction()
+        public async Task Send_Transactions_ReturnInvalidTransaction_Test()
         {
             var transaction1 = await _osTestHelper.GenerateTransferTransaction();
             var transaction2 = await _osTestHelper.GenerateTransferTransaction();
@@ -435,7 +435,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Send_Transactions_ReturnNoMatchMethodInContractAddress()
+        public async Task Send_Transactions_ReturnNoMatchMethodInContractAddress_Test()
         {
             var transaction1 = await _osTestHelper.GenerateTransferTransaction();
             var transaction2 = await _osTestHelper.GenerateTransferTransaction();
@@ -467,7 +467,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Send_Transactions_ReturnInvalidParams()
+        public async Task Send_Transactions_ReturnInvalidParams_Test()
         {
             var transaction1 = await _osTestHelper.GenerateTransferTransaction();
             var transaction2 = await _osTestHelper.GenerateTransferTransaction();
@@ -503,7 +503,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Get_TransactionResult_Success()
+        public async Task Get_TransactionResult_Success_Test()
         {
             // Generate a transaction and broadcast
             var transaction = await _osTestHelper.GenerateTransferTransaction();
@@ -528,7 +528,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Get_Failed_TransactionResult_Success()
+        public async Task Get_Failed_TransactionResult_Success_Test()
         {
             // Generate a transaction and broadcast
             var transactionList = await GenerateTwoInitializeTransaction();
@@ -547,7 +547,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Get_NotExisted_TransactionResult()
+        public async Task Get_NotExisted_TransactionResult_Test()
         {
             // Generate a transaction
             var transaction = await _osTestHelper.GenerateTransferTransaction();
@@ -561,7 +561,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Get_TransactionResult_ReturnInvalidTransactionId()
+        public async Task Get_TransactionResult_ReturnInvalidTransactionId_Test()
         {
             var fakeTransactionId = "FakeTransactionId";
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
@@ -573,7 +573,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Get_TransactionResults_Success()
+        public async Task Get_TransactionResults_Success_Test()
         {
             // Generate 20 transactions and mined
             var transactions = new List<Transaction>();
@@ -597,7 +597,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Get_NotExisted_TransactionResults()
+        public async Task Get_NotExisted_TransactionResults_Test()
         {
             var block = _osTestHelper.GenerateBlock(Hash.Empty, 10);
             var blockHash = block.GetHash().ToHex();
@@ -610,7 +610,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Get_TransactionResults_With_InvalidParameter()
+        public async Task Get_TransactionResults_With_InvalidParameter_Test()
         {
             var block = _osTestHelper.GenerateBlock(Hash.Empty, 10);
             var blockHash = block.GetHash().ToHex();
@@ -636,7 +636,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Get_Block_By_BlockHeight_Success()
+        public async Task Get_Block_By_BlockHeight_Success_Test()
         {
             var chain = await _blockchainService.GetChainAsync();
             var transactions = new List<Transaction>();
@@ -668,7 +668,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Get_Block_By_BlockHash_Success()
+        public async Task Get_Block_By_BlockHash_Success_Test()
         {
             var chain = await _blockchainService.GetChainAsync();
             var transactions = new List<Transaction>();
@@ -700,7 +700,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Get_Block_ReturnNotFound()
+        public async Task Get_Block_ReturnNotFound_Test()
         {
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
                 "/api/blockChain/blockByHeight?blockHeight=0",
@@ -725,10 +725,18 @@ namespace AElf.WebApp.Application.Chain.Tests
                 expectedStatusCode: HttpStatusCode.Forbidden);
             response.Error.Code.ShouldBe(Error.NotFound.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
+            
+            //invalid block hash parameter
+            const string blockHash = "invalid-hash";
+            response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
+                $"/api/blockChain/block?blockHash={blockHash}",
+                expectedStatusCode: HttpStatusCode.Forbidden);
+            response.Error.Code.ShouldBe(Error.InvalidBlockHash.ToString());
+            response.Error.Message.ShouldBe(Error.Message[Error.InvalidBlockHash]);
         }
 
         [Fact]
-        public async Task Get_Chain_Status_Success()
+        public async Task Get_Chain_Status_Success_Test()
         {
             var chain = await _blockchainService.GetChainAsync();
             var basicContractZero = _smartContractAddressService.GetZeroSmartContractAddress();
@@ -748,7 +756,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Get_Block_State_Success()
+        public async Task Get_Block_State_Success_Test()
         {
             var transactions = new List<Transaction>();
             for (int i = 0; i < 3; i++)
@@ -773,7 +781,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Get_Block_State_FewBlocks_Later()
+        public async Task Get_Block_State_FewBlocks_Later_Test()
         {
             var transactions = new List<Transaction>();
             for (int i = 0; i < 3; i++)
@@ -811,7 +819,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Query_NonExist_Api_Failed()
+        public async Task Query_NonExist_Api_Failed_Test()
         {
             var getResponse = await GetResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/TestMethod",
                 expectedStatusCode: HttpStatusCode.NotFound);
@@ -826,7 +834,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Get_ContractFileDescriptorSet_Success()
+        public async Task Get_ContractFileDescriptorSet_Success_Test()
         {
             // Generate a transaction and broadcast
             var transaction = await _osTestHelper.GenerateTransferTransaction();
@@ -844,7 +852,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task Get_ContractFileDescriptorSet_Failed()
+        public async Task Get_ContractFileDescriptorSet_Failed_Test()
         {
             var addressInfo = SampleAddress.AddressList[0].GetFormatted();
             var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
@@ -862,7 +870,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task CreateRawTransaction_Failed()
+        public async Task CreateRawTransaction_Failed_Test()
         {
             var newUserKeyPair = CryptoHelper.GenerateKeyPair();
             var toAddressValue =
@@ -967,7 +975,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task CreateRawTransaction_Success()
+        public async Task CreateRawTransaction_Success_Test()
         {
             var toAddress = Base64.ToBase64String(AddressHelper.Base58StringToAddress("21oXyCxvUd7YUUkgbZxkbmu4EWs65yos6iVC39rPwPknune6qZ")
                 .Value.ToByteArray());
@@ -993,7 +1001,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task SendRawTransaction_Success()
+        public async Task SendRawTransaction_Success_Test()
         {
             const string methodName = "Transfer";
             var contractAddress =
@@ -1064,7 +1072,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task SendRawTransaction_ReturnInvalidTransaction()
+        public async Task SendRawTransaction_ReturnInvalidTransaction_Test()
         {
             var contractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
@@ -1090,7 +1098,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task SendRawTransaction_ReturnNoMatchMethodInContractAddress()
+        public async Task SendRawTransaction_ReturnNoMatchMethodInContractAddress_Test()
         {
             var accountAddress = await _accountService.GetAccountAsync();
             var from = Base64.ToBase64String(accountAddress.Value.ToByteArray());
@@ -1116,7 +1124,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        public async Task SendRawTransaction_ReturnInvalidParams()
+        public async Task SendRawTransaction_ReturnInvalidParams_Test()
         {
             var accountAddress = await _accountService.GetAccountAsync();
             var from = Base64.ToBase64String(accountAddress.Value.ToByteArray());
@@ -1196,6 +1204,16 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Count.ShouldBe(2 + count);
             response.First(info => info.Name == testQueueTwoName).Size.ShouldBe(2);
             response.Any(info => info.Name == testQueueTwoName).ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task GetCurrentRoundInformation_Test()
+        {
+            var response = await GetResponseAsObjectAsync<RoundDto>("/api/blockChain/currentRoundInformation");
+            response.RoundNumber.ShouldBe(12);
+            response.TermNumber.ShouldBe(1);
+            response.RoundId.ShouldBeGreaterThan(0);
+            response.RealTimeMinerInformation.Count.ShouldBeGreaterThan(0);
         }
 
         private Task<List<Transaction>> GenerateTwoInitializeTransaction()
