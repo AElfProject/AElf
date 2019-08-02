@@ -77,7 +77,6 @@ namespace AElf.WebApp.Application
 
                 return mockService.Object;
             });
-            
         }
     }
 }
