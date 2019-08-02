@@ -38,7 +38,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
           #region FeeReceiver Contract cases
 
         [Fact]
-        public async Task Query_FeeReceiver_Information()
+        public async Task Query_FeeReceiver_Information_Test()
         {
             {
                 var addressResult = await Tester.CallContractMethodAsync(FeeReceiverContractAddress,
@@ -59,7 +59,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         [Fact]
-        public async Task FeeReceiver_WithDraw_WithoutPermission()
+        public async Task FeeReceiver_WithDraw_WithoutPermission_Test()
         {
             var anotherUser = Tester.CreateNewContractTester(CryptoHelper.GenerateKeyPair());
             var withdrawResult = await anotherUser.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
@@ -69,7 +69,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         [Fact]
-        public async Task FeeReceiver_WithDraw_OverToken()
+        public async Task FeeReceiver_WithDraw_OverToken_Test()
         {
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
             var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
@@ -83,7 +83,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         [Fact]
-        public async Task FeeReceiver_WithDraw_NormalCase()
+        public async Task FeeReceiver_WithDraw_NormalCase_Test()
         {
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
             var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
@@ -96,7 +96,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         [Fact]
-        public async Task FeeReceiver_WithDraw_All()
+        public async Task FeeReceiver_WithDraw_All_Test()
         {
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
             var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
@@ -106,7 +106,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         [Fact]
-        public async Task FeeReceiver_Burn()
+        public async Task FeeReceiver_Burn_Test()
         {
             //Give FeeReceiver address some token for burn operation
             var balance = 5;

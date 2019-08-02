@@ -15,7 +15,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
     public class AEDPoSExtensionTests : AEDPoSExtensionDemoTestBase
     {
         [Fact(Skip = "Time consuming.")]
-        public async Task DemoTest()
+        public async Task Demo_Test()
         {
             // Check round information after initialization.
             {

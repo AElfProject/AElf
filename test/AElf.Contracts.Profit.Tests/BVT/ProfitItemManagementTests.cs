@@ -20,7 +20,7 @@ namespace AElf.Contracts.Profit.BVT
         }
 
         [Fact]
-        public async Task ProfitContract_CreateScheme()
+        public async Task ProfitContract_CreateScheme_Test()
         {
             var creator = Creators[0];
             var creatorAddress = Address.FromPublicKey(CreatorKeyPair[0].PublicKey);
@@ -69,7 +69,7 @@ namespace AElf.Contracts.Profit.BVT
         }
 
         [Fact]
-        public async Task ProfitContract_DelayDistribution()
+        public async Task ProfitContract_DelayDistribution_Test()
         {
             const int delayDistributePeriodCount = 3;
             const int contributeAmountEachTime = 100_000;

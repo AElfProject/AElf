@@ -22,7 +22,7 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task Initialize_MultiTimesContract()
+        public async Task Initialize_MultiTimesContract_Test()
         {
             var transactionResult = (await TestBasicFunctionContractStub.InitialBasicFunctionContract.SendAsync(
                 new AElf.Contracts.TestContract.BasicFunction.InitialBasicContractInput
@@ -38,7 +38,7 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task UpdateContract_WithOwner_Success()
+        public async Task UpdateContract_WithOwner_Success_Test()
         {
             var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
                 new Acs0.ContractUpdateInput
@@ -63,7 +63,7 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task UpdateContract_WithSameCode_Failed()
+        public async Task UpdateContract_WithSameCode_Failed_Test()
         {
             var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
                 new Acs0.ContractUpdateInput
@@ -78,7 +78,7 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task UpdateContract_And_Call_Old_Method()
+        public async Task UpdateContract_And_Call_Old_Method_Test()
         {
             var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
                 new Acs0.ContractUpdateInput
@@ -113,7 +113,7 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task ChangeAuthor_Without_Permission_Failed()
+        public async Task ChangeAuthor_Without_Permission_Failed_Test()
         {
             var otherUser = SampleECKeyPairs.KeyPairs[2];
             var otherZeroStub = GetContractZeroTester(otherUser);
@@ -130,7 +130,7 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task ChangeAuthor_With_Permission_Success()
+        public async Task ChangeAuthor_With_Permission_Success_Test()
         {
             var otherUser = SampleAddress.AddressList[2];
             var transactionResult = (await BasicContractZeroStub.ChangeContractAuthor.SendAsync(

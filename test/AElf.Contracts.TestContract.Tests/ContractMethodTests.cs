@@ -22,7 +22,7 @@ namespace AElf.Contract.TestContract
 
         #region Basic1 methods Test
         [Fact]
-        public async Task Basic1Contract_UpdateBetLimit_WithoutPermission()
+        public async Task Basic1Contract_UpdateBetLimit_WithoutPermission_Test()
         {
             var transactionResult = (await TestBasicFunctionContractStub.UpdateBetLimit.SendAsync(
                 new BetLimitInput
@@ -36,7 +36,7 @@ namespace AElf.Contract.TestContract
         }
         
         [Fact]
-        public async Task Basic1Contract_UpdateBetLimit_WithException()
+        public async Task Basic1Contract_UpdateBetLimit_WithException_Test()
         {
             var managerStub = GetTestBasicFunctionContractStub(SampleECKeyPairs.KeyPairs[1]);
             var transactionResult = (await managerStub.UpdateBetLimit.SendAsync(
@@ -51,7 +51,7 @@ namespace AElf.Contract.TestContract
         }
         
         [Fact]
-        public async Task Basic1Contract_UpdateBetLimit_Success()
+        public async Task Basic1Contract_UpdateBetLimit_Success_Test()
         {
             var managerStub = GetTestBasicFunctionContractStub(SampleECKeyPairs.KeyPairs[1]);
             var transactionResult = (await managerStub.UpdateBetLimit.SendAsync(
@@ -65,7 +65,7 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task Basic1Contract_QueryMethod()
+        public async Task Basic1Contract_QueryMethod_Test()
         {
             for (int i = 0; i < 10; i++)
             {
@@ -87,7 +87,7 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task BasicContract_ValidateOrigin_Success()
+        public async Task BasicContract_ValidateOrigin_Success_Test()
         {
             var transaction1 = await TestBasicSecurityContractStub.TestOriginAddress.SendAsync(DefaultSender);
             transaction1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -345,7 +345,6 @@ namespace AElf.Contract.TestContract
             queryResult.FromAmount.ShouldBe(0);
             queryResult.ToAmount.ShouldBe(0);
         }
-        
         #endregion
     }
 }

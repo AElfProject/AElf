@@ -12,7 +12,7 @@ namespace AElf.Contracts.Vote
     public partial class VoteTests : VoteContractTestBase
     {
         [Fact]
-        public async Task VoteContract_Register_Again()
+        public async Task VoteContract_Register_Again_Test()
         {
             var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 10);
             var transactionResult = (await VoteContractStub.Register.SendAsync(new VotingRegisterInput
@@ -30,7 +30,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_Register_CurrencyNotSupportVoting()
+        public async Task VoteContract_Register_CurrencyNotSupportVoting_Test()
         {
             var startTime = TimestampHelper.GetUtcNow();
             var input = new VotingRegisterInput
@@ -52,7 +52,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_Vote_NotSuccess()
+        public async Task VoteContract_Vote_NotSuccess_Test()
         {
             //did not find related vote event
             {

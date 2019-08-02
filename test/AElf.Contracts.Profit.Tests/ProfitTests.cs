@@ -19,7 +19,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_CheckTreasury()
+        public async Task ProfitContract_CheckTreasury_Test()
         {
             await CreateTreasury();
         }
@@ -29,7 +29,7 @@ namespace AElf.Contracts.Profit
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task ProfitContract_CreateManyProfitItems()
+        public async Task ProfitContract_CreateManyProfitItems_Test()
         {
             const int createTimes = 5;
 
@@ -53,7 +53,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_DistributeProfits()
+        public async Task ProfitContract_DistributeProfits_Test()
         {
             const int amount = 1000;
 
@@ -128,7 +128,7 @@ namespace AElf.Contracts.Profit
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task ProfitContract_ContributeProfits_ByThirdParty()
+        public async Task ProfitContract_ContributeProfits_ByThirdParty_Test()
         {
             const long amountReleasedByCreator = 1000;
             const long amountAddedByGoodGuy = 1000;
@@ -226,7 +226,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_RemoveSubScheme()
+        public async Task ProfitContract_RemoveSubScheme_Test()
         {
             const int shares1 = 80;
             const int shares2 = 20;
@@ -308,7 +308,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_AddWeight()
+        public async Task ProfitContract_AddWeight_Test()
         {
             var creator = Creators[0];
 
@@ -369,7 +369,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_AddBeneficiary_IncorrectEndPeriod()
+        public async Task ProfitContract_AddBeneficiary_IncorrectEndPeriod_Test()
         {
             const long amount = 100;
             const long shares = 10;
@@ -433,7 +433,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_AddWeight_ProfitItemNotFound()
+        public async Task ProfitContract_AddWeight_ProfitItemNotFound_Test()
         {
             var creator = Creators[0];
 
@@ -452,7 +452,7 @@ namespace AElf.Contracts.Profit
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task ProfitContract_AddWeight_RemoveExpiredProfitDetails()
+        public async Task ProfitContract_AddWeight_RemoveExpiredProfitDetails_Test()
         {
             const long expiredPeriodNumber = 1;
             const long amount = 150;
@@ -558,7 +558,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_RemoveBeneficiary()
+        public async Task ProfitContract_RemoveBeneficiary_Test()
         {
             const int shares = 100;
             const int amount = 100;
@@ -626,7 +626,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_RemoveBeneficiary_SchemeNotFound()
+        public async Task ProfitContract_RemoveBeneficiary_SchemeNotFound_Test()
         {
             var creator = Creators[0];
 
@@ -641,7 +641,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_ReleaseProfits_WithoutEnoughBalance()
+        public async Task ProfitContract_ReleaseProfits_WithoutEnoughBalance_Test()
         {
             const long amount = 100;
 
@@ -668,7 +668,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_ReleaseProfits_InvalidPeriod()
+        public async Task ProfitContract_ReleaseProfits_InvalidPeriod_Test()
         {
             const long amount = 100;
 
@@ -697,7 +697,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_ReleaseProfits_NotCreator()
+        public async Task ProfitContract_ReleaseProfits_NotCreator_Test()
         {
             const long amount = 100;
 
@@ -721,7 +721,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_ReleaseProfits_ProfitItemNotFound()
+        public async Task ProfitContract_ReleaseProfits_ProfitItemNotFound_Test()
         {
             const long amount = 100;
 
@@ -740,7 +740,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_ReleaseProfits()
+        public async Task ProfitContract_ReleaseProfits_Test()
         {
             const long amount = 100;
 
@@ -783,7 +783,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_ReleaseProfits_WithSubProfitItems()
+        public async Task ProfitContract_ReleaseProfits_WithSubProfitItems_Test()
         {
             const long amount = 100;
             const long weight1 = 80;
@@ -859,7 +859,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_Profit()
+        public async Task ProfitContract_Profit_Test()
         {
             const long shares = 100;
             const long amount = 100;
@@ -906,7 +906,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_Profit_TwoReceivers()
+        public async Task ProfitContract_Profit_TwoReceivers_Test()
         {
             const long weight1 = 100;
             const long weight2 = 400;
@@ -989,7 +989,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_Profit_RegisteredSubProfitItems()
+        public async Task ProfitContract_Profit_RegisteredSubProfitItems_Test()
         {
             const long weight1 = 100;
             const long weight2 = 400;
@@ -1081,7 +1081,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_Profit_ProfitItemNotFound()
+        public async Task ProfitContract_Profit_ProfitItemNotFound_Test()
         {
             var beneficiary = Normal[0];
 
@@ -1096,7 +1096,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_Profit_NotRegisteredBefore()
+        public async Task ProfitContract_Profit_NotRegisteredBefore_Test()
         {
             const long amount = 100;
 
@@ -1126,7 +1126,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_Profit_MultiplePeriods()
+        public async Task ProfitContract_Profit_MultiplePeriods_Test()
         {
             const int periodCount = 5;
             const long shares = 100;
@@ -1235,7 +1235,7 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ContributeProfits_MultipleTimes()
+        public async Task ContributeProfits_MultipleTimes_Test()
         {
             const long amount = 100;
 

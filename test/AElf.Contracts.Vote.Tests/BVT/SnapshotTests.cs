@@ -10,7 +10,7 @@ namespace AElf.Contracts.Vote
     public partial class VoteTests : VoteContractTestBase
     {
         [Fact]
-        public async Task VoteContract_TakeSnapshot_WithoutPermission()
+        public async Task VoteContract_TakeSnapshot_WithoutPermission_Test()
         {
             var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 1);
 
@@ -27,7 +27,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_TakeSnapshot_WithoutVotingItem()
+        public async Task VoteContract_TakeSnapshot_WithoutVotingItem_Test()
         {
             var transactionResult = (await VoteContractStub.TakeSnapshot.SendAsync(
                 new TakeSnapshotInput
@@ -41,7 +41,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_TakeSnapshot_WithWrongSnapshotNumber()
+        public async Task VoteContract_TakeSnapshot_WithWrongSnapshotNumber_Test()
         {
             var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 2);
             var transactionResult = (await VoteContractStub.TakeSnapshot.SendAsync(
@@ -56,7 +56,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_TakeSnapshot_Success()
+        public async Task VoteContract_TakeSnapshot_Success_Test()
         {
             var registerItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 3);
             for (int i = 0; i < 3; i++)
