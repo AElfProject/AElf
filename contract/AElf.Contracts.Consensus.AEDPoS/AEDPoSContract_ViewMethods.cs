@@ -85,6 +85,35 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new StringValue();
         }
 
+        public override StringValue GetCurrentMinerPubkey(Empty input)
+        {
+            if (TryToGetCurrentRoundInformation(out var round))
+            {
+                var currentMinerPubkey = round.GetCurrentMinerPubkey(Context.CurrentBlockTime);
+                if (currentMinerPubkey != null)
+                {
+                    return new StringValue {Value = currentMinerPubkey};
+                }
+            }
+
+            return new StringValue();
+        }
+
+        public override BoolValue IsCurrentMiner(Address input)
+        {
+            var currentMinerPubkey = GetCurrentMinerPubkey(new Empty());
+            if (currentMinerPubkey.Value.Any())
+            {
+                return new BoolValue
+                {
+                    Value = input == Address.FromPublicKey(
+                                ByteArrayHelper.HexStringToByteArray(currentMinerPubkey.Value))
+                };
+            }
+
+            return new BoolValue {Value = false};
+        }
+
         private Round GenerateFirstRoundOfNextTerm(string senderPublicKey, int miningInterval)
         {
             Round round;

@@ -14,7 +14,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
     // ReSharper disable once InconsistentNaming
     public class AEDPoSExtensionTests : AEDPoSExtensionDemoTestBase
     {
-        [Fact(Skip = "Time consuming.")]
+        [Fact]
         public async Task DemoTest()
         {
             // Check round information after initialization.
@@ -23,12 +23,19 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 round.RoundNumber.ShouldBe(1);
                 round.TermNumber.ShouldBe(1);
                 round.RealTimeMinersInformation.Count.ShouldBe(AEDPoSExtensionConstants.InitialKeyPairCount);
+
+                var firstMinerPubkey = round.RealTimeMinersInformation.Single(m => m.Value.Order == 1).Key;
+                var currentMinerPubkey = await ConsensusStub.GetCurrentMinerPubkey.CallAsync(new Empty());
+                currentMinerPubkey.Value.ShouldBe(firstMinerPubkey);
+                (await ConsensusStub.IsCurrentMiner.CallAsync(
+                        Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(firstMinerPubkey)))).Value
+                    .ShouldBeTrue();
             }
 
             // We can use this method process testing.
             // Basically this will produce one block with no transaction.
             await BlockMiningService.MineBlockAsync();
-            
+
             // And this will produce one block with one transaction.
             // This transaction will call Create method of Token Contract.
             await BlockMiningService.MineBlockAsync(new List<Transaction>
@@ -43,7 +50,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                     TotalSupply = 1_000_000_000_00000000
                 })
             });
-            
+
             // Check whether previous Create transaction successfully executed.
             {
                 var tokenInfo = await TokenStub.GetTokenInfo.CallAsync(new GetTokenInfoInput {Symbol = "ELF"});
@@ -55,6 +62,17 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 await BlockMiningService.MineBlockAsync();
             }
             
+            // Check miner information
+            {
+                var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
+                var secondMinerPubkey = round.RealTimeMinersInformation.Single(m => m.Value.Order == 2).Key;
+                var currentMinerPubkey = await ConsensusStub.GetCurrentMinerPubkey.CallAsync(new Empty());
+                currentMinerPubkey.Value.ShouldBe(secondMinerPubkey);
+                (await ConsensusStub.IsCurrentMiner.CallAsync(
+                        Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(secondMinerPubkey)))).Value
+                    .ShouldBeTrue();
+            }
+
             // Miner of order 2 produce his first block.
             await BlockMiningService.MineBlockAsync();
 
@@ -69,7 +87,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             {
                 await BlockMiningService.MineBlockAsync();
             }
-            
+
             // Miner of order 3 produce his first block.
             await BlockMiningService.MineBlockAsync();
 
@@ -95,13 +113,13 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
                 round.RoundNumber.ShouldBe(2);
             }
-            
+
             // 6 more blocks will end second round.
             for (var i = 0; i < AEDPoSExtensionConstants.TinyBlocksNumber * 6; i++)
             {
                 await BlockMiningService.MineBlockAsync(new List<Transaction>());
             }
-            
+
             // Check round number.
             {
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
