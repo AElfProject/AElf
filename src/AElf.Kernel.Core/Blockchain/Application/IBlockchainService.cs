@@ -289,11 +289,9 @@ namespace AElf.Kernel.Blockchain.Application
 
             var success = await _chainManager.SetIrreversibleBlockAsync(chain, irreversibleBlockHash);
             if (!success) return;
-            // TODO: move to background job, it will slow down our system
             // Clean last branches and not linked
-            var toCleanBlocks = await _chainManager.CleanBranchesAsync(chain, eventDataToPublish.PreviousIrreversibleBlockHash,
+            await _chainManager.CleanBranchesAsync(chain, eventDataToPublish.PreviousIrreversibleBlockHash,
                 eventDataToPublish.PreviousIrreversibleBlockHeight);
-            await RemoveBlocksAsync(toCleanBlocks);
 
             await LocalEventBus.PublishAsync(eventDataToPublish);
         }
@@ -408,15 +406,6 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task<Chain> GetChainAsync()
         {
             return await _chainManager.GetAsync();
-        }
-
-        private async Task RemoveBlocksAsync(List<Hash> blockHashes)
-        {
-            foreach (var blockHash in blockHashes)
-            {
-                await _chainManager.RemoveChainBlockLinkAsync(blockHash);
-                await _blockManager.RemoveBlockAsync(blockHash);
-            }
         }
     }
 }

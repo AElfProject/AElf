@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Infrastructure;
 using AElf.Types;
 using Shouldly;
 using Xunit;
@@ -415,12 +416,25 @@ namespace AElf.Kernel.Blockchain.Application
                 chain = await _fullBlockchainService.GetChainAsync();
                 chain.LastIrreversibleBlockHash.ShouldBe(_kernelTestHelper.BestBranchBlockList[6].GetHash());
                 chain.LastIrreversibleBlockHeight.ShouldBe(_kernelTestHelper.BestBranchBlockList[6].Height);
+                
                 chain.Branches.Count.ShouldBe(3);
+                chain.Branches.ShouldContainKey(_kernelTestHelper.BestBranchBlockList.Last().GetHash().ToStorageKey());
+                chain.Branches.ShouldContainKey(
+                    _kernelTestHelper.LongestBranchBlockList.Last().GetHash().ToStorageKey());
+                chain.Branches.ShouldContainKey(
+                    _kernelTestHelper.ForkBranchBlockList.Last().GetHash().ToStorageKey());
+                
                 chain.NotLinkedBlocks.Count.ShouldBe(5);
-                BlocksShouldExist(_kernelTestHelper.BestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.LongestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.ForkBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.UnlinkedBranchBlockList.Select(b => b.GetHash()).ToList());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[0].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[1].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[2].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[3].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[4].Header
+                    .PreviousBlockHash.ToStorageKey());
             }
 
             {
@@ -437,12 +451,25 @@ namespace AElf.Kernel.Blockchain.Application
                 chain = await _fullBlockchainService.GetChainAsync();
                 chain.LastIrreversibleBlockHash.ShouldBe(_kernelTestHelper.BestBranchBlockList[8].GetHash());
                 chain.LastIrreversibleBlockHeight.ShouldBe(_kernelTestHelper.BestBranchBlockList[8].Height);
+                
                 chain.Branches.Count.ShouldBe(2);
+                chain.Branches.ShouldContainKey(_kernelTestHelper.BestBranchBlockList.Last().GetHash().ToStorageKey());
+                chain.Branches.ShouldContainKey(
+                    _kernelTestHelper.LongestBranchBlockList.Last().GetHash().ToStorageKey());
+                chain.Branches.ShouldNotContainKey(
+                    _kernelTestHelper.ForkBranchBlockList.Last().GetHash().ToStorageKey());
+                
                 chain.NotLinkedBlocks.Count.ShouldBe(5);
-                BlocksShouldNotExist(_kernelTestHelper.ForkBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.BestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.LongestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.UnlinkedBranchBlockList.Select(b => b.GetHash()).ToList());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[0].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[1].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[2].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[3].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[4].Header
+                    .PreviousBlockHash.ToStorageKey());
             }
 
             {
@@ -459,12 +486,25 @@ namespace AElf.Kernel.Blockchain.Application
                 chain = await _fullBlockchainService.GetChainAsync();
                 chain.LastIrreversibleBlockHash.ShouldBe(_kernelTestHelper.BestBranchBlockList[9].GetHash());
                 chain.LastIrreversibleBlockHeight.ShouldBe(_kernelTestHelper.BestBranchBlockList[9].Height);
+                
                 chain.Branches.Count.ShouldBe(1);
+                chain.Branches.ShouldContainKey(_kernelTestHelper.BestBranchBlockList.Last().GetHash().ToStorageKey());
+                chain.Branches.ShouldNotContainKey(
+                    _kernelTestHelper.LongestBranchBlockList.Last().GetHash().ToStorageKey());
+                chain.Branches.ShouldNotContainKey(
+                    _kernelTestHelper.ForkBranchBlockList.Last().GetHash().ToStorageKey());
+                
                 chain.NotLinkedBlocks.Count.ShouldBe(5);
-                BlocksShouldNotExist(_kernelTestHelper.ForkBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.BestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldNotExist(_kernelTestHelper.LongestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.UnlinkedBranchBlockList.Select(b => b.GetHash()).ToList());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[0].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[1].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[2].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[3].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[4].Header
+                    .PreviousBlockHash.ToStorageKey());
             }
 
             {
@@ -481,21 +521,27 @@ namespace AElf.Kernel.Blockchain.Application
                 chain = await _fullBlockchainService.GetChainAsync();
                 chain.LastIrreversibleBlockHash.ShouldBe(_kernelTestHelper.BestBranchBlockList[10].GetHash());
                 chain.LastIrreversibleBlockHeight.ShouldBe(_kernelTestHelper.BestBranchBlockList[10].Height);
+                
                 chain.Branches.Count.ShouldBe(1);
+                chain.Branches.ShouldContainKey(_kernelTestHelper.BestBranchBlockList.Last().GetHash().ToStorageKey());
+                chain.Branches.ShouldNotContainKey(
+                    _kernelTestHelper.LongestBranchBlockList.Last().GetHash().ToStorageKey());
+                chain.Branches.ShouldNotContainKey(
+                    _kernelTestHelper.ForkBranchBlockList.Last().GetHash().ToStorageKey());
+                
                 chain.NotLinkedBlocks.Count.ShouldBe(4);
+                chain.NotLinkedBlocks.ShouldNotContainKey(_kernelTestHelper.UnlinkedBranchBlockList[0].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[1].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[2].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[3].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[4].Header
+                    .PreviousBlockHash.ToStorageKey());
                 chain.LongestChainHash.ShouldBe(chain.BestChainHash);
                 chain.LongestChainHeight.ShouldBe(chain.BestChainHeight);
-                BlocksShouldExist(_kernelTestHelper.BestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldNotExist(_kernelTestHelper.LongestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldNotExist(_kernelTestHelper.ForkBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldNotExist(new List<Hash> {_kernelTestHelper.UnlinkedBranchBlockList[0].GetHash()});
-                BlocksShouldExist(new List<Hash>
-                {
-                    _kernelTestHelper.UnlinkedBranchBlockList[1].GetHash(),
-                    _kernelTestHelper.UnlinkedBranchBlockList[2].GetHash(),
-                    _kernelTestHelper.UnlinkedBranchBlockList[3].GetHash(),
-                    _kernelTestHelper.UnlinkedBranchBlockList[4].GetHash()
-                });
             }
         }
 
@@ -523,13 +569,26 @@ namespace AElf.Kernel.Blockchain.Application
                 chain = await _fullBlockchainService.GetChainAsync();
                 chain.LastIrreversibleBlockHash.ShouldBe(_kernelTestHelper.BestBranchBlockList[9].GetHash());
                 chain.LastIrreversibleBlockHeight.ShouldBe(_kernelTestHelper.BestBranchBlockList[9].Height);
+                
                 chain.Branches.Count.ShouldBe(4);
+                chain.Branches.ShouldContainKey(_kernelTestHelper.BestBranchBlockList.Last().GetHash().ToStorageKey());
+                chain.Branches.ShouldContainKey(
+                    _kernelTestHelper.LongestBranchBlockList.Last().GetHash().ToStorageKey());
+                chain.Branches.ShouldContainKey(
+                    _kernelTestHelper.ForkBranchBlockList.Last().GetHash().ToStorageKey());
+                chain.Branches.ShouldContainKey(newBlock2.GetHash().ToStorageKey());
+                
                 chain.NotLinkedBlocks.Count.ShouldBe(5);
-                BlocksShouldExist(_kernelTestHelper.BestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.LongestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.ForkBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.UnlinkedBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(new List<Hash> {newBlock1.GetHash(), newBlock2.GetHash()});
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[0].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[1].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[2].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[3].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[4].Header
+                    .PreviousBlockHash.ToStorageKey());
             }
             {
                 //         LIB height: 11
@@ -546,22 +605,28 @@ namespace AElf.Kernel.Blockchain.Application
                 chain = await _fullBlockchainService.GetChainAsync();
                 chain.LastIrreversibleBlockHash.ShouldBe(_kernelTestHelper.BestBranchBlockList[10].GetHash());
                 chain.LastIrreversibleBlockHeight.ShouldBe(_kernelTestHelper.BestBranchBlockList[10].Height);
+                
                 chain.Branches.Count.ShouldBe(1);
+                chain.Branches.ShouldContainKey(_kernelTestHelper.BestBranchBlockList.Last().GetHash().ToStorageKey());
+                chain.Branches.ShouldNotContainKey(
+                    _kernelTestHelper.LongestBranchBlockList.Last().GetHash().ToStorageKey());
+                chain.Branches.ShouldNotContainKey(
+                    _kernelTestHelper.ForkBranchBlockList.Last().GetHash().ToStorageKey());
+                chain.Branches.ShouldNotContainKey(newBlock2.GetHash().ToStorageKey());
+                
                 chain.NotLinkedBlocks.Count.ShouldBe(4);
+                chain.NotLinkedBlocks.ShouldNotContainKey(_kernelTestHelper.UnlinkedBranchBlockList[0].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[1].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[2].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[3].Header
+                    .PreviousBlockHash.ToStorageKey());
+                chain.NotLinkedBlocks.ShouldContainKey(_kernelTestHelper.UnlinkedBranchBlockList[4].Header
+                    .PreviousBlockHash.ToStorageKey());
                 chain.LongestChainHash.ShouldBe(chain.BestChainHash);
                 chain.LongestChainHeight.ShouldBe(chain.BestChainHeight);
-                BlocksShouldExist(_kernelTestHelper.BestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldNotExist(_kernelTestHelper.LongestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldNotExist(_kernelTestHelper.ForkBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldNotExist(new List<Hash> {_kernelTestHelper.UnlinkedBranchBlockList[0].GetHash()});
-                BlocksShouldExist(new List<Hash>
-                {
-                    _kernelTestHelper.UnlinkedBranchBlockList[1].GetHash(),
-                    _kernelTestHelper.UnlinkedBranchBlockList[2].GetHash(),
-                    _kernelTestHelper.UnlinkedBranchBlockList[3].GetHash(),
-                    _kernelTestHelper.UnlinkedBranchBlockList[4].GetHash()
-                });
-                BlocksShouldNotExist(new List<Hash> {newBlock1.GetHash(), newBlock2.GetHash()});
             }
         }
 
@@ -626,7 +691,6 @@ namespace AElf.Kernel.Blockchain.Application
                 //       Miner Branch:                                                    (k) -> aa
                 //Network Sync Branch:                                                    (k) -> ab -> ac    
                 syncAttachChain.NotLinkedBlocks.Count.ShouldBe(6);
-                BlocksShouldExist(new List<Hash> {newUnlinkedBlock.GetHash()});
 
                 await _fullBlockchainService.SetIrreversibleBlockAsync(syncAttachChain, _kernelTestHelper
                     .BestBranchBlockList[8].Height, _kernelTestHelper.BestBranchBlockList[8].GetHash());
@@ -636,11 +700,6 @@ namespace AElf.Kernel.Blockchain.Application
                 chain.LastIrreversibleBlockHeight.ShouldBe(_kernelTestHelper.BestBranchBlockList[8].Height);
                 chain.Branches.Count.ShouldBe(3);
                 chain.NotLinkedBlocks.Count.ShouldBe(5);
-                BlocksShouldNotExist(_kernelTestHelper.ForkBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.BestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.LongestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.UnlinkedBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldNotExist(new List<Hash> {newUnlinkedBlock.GetHash()});
             }
             
             {
@@ -668,11 +727,6 @@ namespace AElf.Kernel.Blockchain.Application
                 chain.LastIrreversibleBlockHash.ShouldBe(_kernelTestHelper.BestBranchBlockList[9].GetHash());
                 chain.Branches.Count.ShouldBe(2);
                 chain.NotLinkedBlocks.Count.ShouldBe(5);
-                BlocksShouldNotExist(_kernelTestHelper.ForkBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.BestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.LongestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.UnlinkedBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldNotExist(new List<Hash>{newBlock.GetHash()});
             }
             
             {
@@ -696,17 +750,6 @@ namespace AElf.Kernel.Blockchain.Application
                 chain.LongestChainHeight.ShouldBe(minerAttachBlock.Height);
                 chain.Branches.Count.ShouldBe(1);
                 chain.NotLinkedBlocks.Count.ShouldBe(4);
-                BlocksShouldNotExist(_kernelTestHelper.ForkBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldExist(_kernelTestHelper.BestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldNotExist(_kernelTestHelper.LongestBranchBlockList.Select(b => b.GetHash()).ToList());
-                BlocksShouldNotExist(new List<Hash> {_kernelTestHelper.UnlinkedBranchBlockList[0].GetHash()});
-                BlocksShouldExist(new List<Hash>
-                {
-                    _kernelTestHelper.UnlinkedBranchBlockList[1].GetHash(),
-                    _kernelTestHelper.UnlinkedBranchBlockList[2].GetHash(),
-                    _kernelTestHelper.UnlinkedBranchBlockList[3].GetHash(),
-                    _kernelTestHelper.UnlinkedBranchBlockList[4].GetHash()
-                });
             }
         }
 
@@ -731,31 +774,6 @@ namespace AElf.Kernel.Blockchain.Application
             await _fullBlockchainService.AddBlockAsync(linkedBlock);
             var status = await _fullBlockchainService.AttachBlockToChainAsync(chain, linkedBlock);
             status.ShouldBe(BlockAttachOperationStatus.NewBlockLinked);
-        }
-
-        private void BlocksShouldNotExist(List<Hash> blockHashes)
-        {
-            foreach (var hash in blockHashes)
-            {
-                var block = _fullBlockchainService.GetBlockByHashAsync(hash).Result;
-                block.ShouldBeNull();
-                var blockLink = _chainManager.GetChainBlockLinkAsync(hash).Result;
-                blockLink.ShouldBeNull();
-            }
-        }
-
-        private void BlocksShouldExist(List<Hash> blockHashes)
-        {
-            foreach (var hash in blockHashes)
-            {
-                var block = _fullBlockchainService.GetBlockByHashAsync(hash).Result;
-                block.ShouldNotBeNull();
-                block.GetHash().ShouldBe(hash);
-
-                var blockLink = _chainManager.GetChainBlockLinkAsync(hash).Result;
-                blockLink.ShouldNotBeNull();
-                blockLink.BlockHash.ShouldBe(hash);
-            }
         }
     }
 }
