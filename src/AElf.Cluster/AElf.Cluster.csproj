@@ -6,8 +6,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\AElf.Blockchains.MainChain\AElf.Blockchains.MainChain.csproj" />
-        <ProjectReference Include="..\AElf.OS\AElf.OS.csproj" />
-        <ProjectReference Include="..\AElf.RuntimeSetup\AElf.RuntimeSetup.csproj" />
 
     </ItemGroup>
 

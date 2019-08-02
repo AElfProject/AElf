@@ -12,8 +12,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
     </ItemGroup>
 
 </Project>
