@@ -387,7 +387,6 @@ namespace AElf.Kernel.Blockchain.Domain
             }
 
             Logger.LogTrace($"Cleanup branches: [{toCleanBranchKeys.JoinAsString(",")}]");
-            Logger.LogTrace($"Cleanup blocks: [{toRemoveBlocks.JoinAsString(",")}]");
 
             await RemoveChainBranchesAsync(chain, toCleanBranchKeys, toCleanNotLinkedKeys);
 
