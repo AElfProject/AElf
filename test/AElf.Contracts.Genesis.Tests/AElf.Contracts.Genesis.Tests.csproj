@@ -28,6 +28,11 @@
         <ProjectReference Include="..\..\src\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
         <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
         <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
