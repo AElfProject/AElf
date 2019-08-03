@@ -23,23 +23,18 @@ namespace AElf.CrossChain.Communication.Application
         public async Task RequestCrossChainDataFromOtherChainsAsync()
         {
             var chainIdHeightDict = _crossChainService.GetNeededChainIdAndHeightPairs();
-            Logger.LogTrace(
-                $"Try to request from chain {string.Join(",", chainIdHeightDict.Keys.Select(ChainHelper.ConvertChainIdToBase58))}");
+            
             foreach (var chainIdHeightPair in chainIdHeightDict)
             {
-                var client = await _crossChainClientService.GetClientAsync(chainIdHeightPair.Key);
-                if (client == null)
-                    continue;
-                Logger.LogTrace($" Request chain {ChainHelper.ConvertChainIdToBase58(chainIdHeightPair.Key)} from {chainIdHeightPair.Value}");
-                _ = client.RequestCrossChainDataAsync(chainIdHeightPair.Value);
+                Logger.LogTrace(
+                    $"Try to request from chain {ChainHelper.ConvertChainIdToBase58(chainIdHeightPair.Key)}, from height {chainIdHeightPair.Value}");
+                await _crossChainClientService.RequestCrossChainDataAsync(chainIdHeightPair.Key, chainIdHeightPair.Value);
             }
         }
 
         public async Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId)
         {
-            var client = _crossChainClientService.CreateClientForChainInitializationData(chainId);
-            var chainInitializationData =
-                await client.RequestChainInitializationDataAsync(chainId);
+            var chainInitializationData = await _crossChainClientService.RequestChainInitializationData(chainId);
             return chainInitializationData;
         }
     }

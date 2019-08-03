@@ -43,7 +43,7 @@ namespace AElf.CrossChain.Communication.Grpc
             var localChainId = ChainHelper.GetChainId(2);
             await _server.StartAsync(Host, 5000);
             CreateAndCacheClient(localChainId, false, 5000, remoteChainId);
-            var client = await _grpcCrossChainClientProvider.GetClientAsync(remoteChainId);
+            var client = await _grpcCrossChainClientProvider.TryGetClient(remoteChainId);
             Assert.NotNull(client);
             Dispose();
         }
@@ -86,7 +86,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             var chainId = _chainOptions.ChainId;
             await _server.StartAsync(Host, 5000);
-            var client = _grpcCrossChainClientService.CreateClientForChainInitializationData(chainId);
+            var client = _grpcCrossChainClientService.RequestChainInitializationData(chainId);
             await client.RequestChainInitializationDataAsync(chainId);
             Dispose();
         }

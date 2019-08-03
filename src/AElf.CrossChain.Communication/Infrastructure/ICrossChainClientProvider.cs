@@ -1,12 +1,13 @@
-using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace AElf.CrossChain.Communication.Infrastructure
 {
     public interface ICrossChainClientProvider
     {
-        void CreateAndCacheClient(CrossChainClientDto crossChainClientDto);
-        Task<ICrossChainClient> GetClientAsync(int chainId);
+        ICrossChainClient CreateAndCacheClient(CrossChainClientDto crossChainClientDto);
+        bool TryGetClient(int chainId, out ICrossChainClient client);
         ICrossChainClient CreateCrossChainClient(CrossChainClientDto crossChainClientDto);
-        Task CloseClientsAsync();
+
+        List<ICrossChainClient> GetAllClients();
     }
 }

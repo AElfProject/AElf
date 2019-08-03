@@ -8,17 +8,15 @@ namespace AElf.CrossChain.Communication.Grpc
     public class GrpcCrossChainClientNodePlugin : IGrpcClientPlugin
     {
         private readonly ICrossChainClientService _crossChainClientService;
-        private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
         private readonly CrossChainConfigOptions _crossChainConfigOptions;
         private int _localChainId;
 
         public ILogger<GrpcCrossChainClientNodePlugin> Logger { get; set; }
 
-        public GrpcCrossChainClientNodePlugin(IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption,
-            IOptionsSnapshot<CrossChainConfigOptions> crossChainConfigOption, ICrossChainClientService crossChainClientService)
+        public GrpcCrossChainClientNodePlugin(IOptionsSnapshot<CrossChainConfigOptions> crossChainConfigOption, 
+            ICrossChainClientService crossChainClientService)
         {
             _crossChainClientService = crossChainClientService;
-            _grpcCrossChainConfigOption = grpcCrossChainConfigOption.Value;
             _crossChainConfigOptions = crossChainConfigOption.Value;
         }
 
@@ -26,16 +24,13 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             _localChainId = chainId;
             
-            if (string.IsNullOrEmpty(_grpcCrossChainConfigOption.RemoteParentChainServerHost)
-                || _grpcCrossChainConfigOption.RemoteParentChainServerPort == 0)
+            if (_crossChainConfigOptions.ParentChainId == 0)
                 return;
             Logger.LogTrace("Starting client to parent chain..");
 
             await _crossChainClientService.CreateClientAsync(new CrossChainClientDto
             {
                 RemoteChainId = _crossChainConfigOptions.ParentChainId,
-                RemoteServerHost = _grpcCrossChainConfigOption.RemoteParentChainServerHost,
-                RemoteServerPort = _grpcCrossChainConfigOption.RemoteParentChainServerPort,
                 LocalChainId = chainId,
                 IsClientToParentChain = true
             });

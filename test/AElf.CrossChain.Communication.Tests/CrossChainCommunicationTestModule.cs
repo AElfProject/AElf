@@ -123,7 +123,7 @@ namespace AElf.CrossChain.Communication
                     var client = crossChainClientProvider.CreateCrossChainClient(crossChainClientDto);
                     return Task.FromResult(client);
                 });
-                mockCrossChainClientService.Setup(m => m.CreateClientForChainInitializationData(It.IsAny<int>()))
+                mockCrossChainClientService.Setup(m => m.RequestChainInitializationData(It.IsAny<int>()))
                     .Returns(() =>
                     {
                         var mockClient = new Mock<ICrossChainClient>();
