@@ -21,8 +21,6 @@ namespace AElf.Kernel.ChainController.Application
         [Fact]
         public async Task Create_NewChain_Success_Test()
         {
-            var chainId = 1;
-
             var chain = await _blockchainService.GetChainAsync();
             chain.ShouldBeNull();
 

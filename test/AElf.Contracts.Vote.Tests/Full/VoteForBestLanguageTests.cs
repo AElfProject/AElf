@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AElf.Contracts.Vote
 {
-    public partial class VoteTests : VoteContractTestBase
+    public partial class VoteTests
     {
         [Fact]
         public async Task MultipleUsers_Vote_Scenario_Test()

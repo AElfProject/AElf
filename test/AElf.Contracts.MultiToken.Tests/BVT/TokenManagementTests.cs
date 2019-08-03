@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using Acs2;
-using AElf.Contracts.Consensus.DPoS;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.BasicFunction;
@@ -10,7 +9,6 @@ using AElf.Contracts.Treasury;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -22,7 +20,7 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class MultiTokenContractTests : MultiTokenContractTestBase
     {
-        private const long Total_Supply = 1000_000_000_00000000;
+        private const long TotalSupply = 1000_000_000_00000000;
         /// <summary>
         /// Burnable & Transferable
         /// </summary>
@@ -30,7 +28,7 @@ namespace AElf.Contracts.MultiToken
         {
             Symbol = "ALICE",
             TokenName = "For testing multi-token contract",
-            TotalSupply = 1_000_000_000_00000000,
+            TotalSupply = TotalSupply,
             Decimals = 8,
             IsBurnable = true,
             Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),

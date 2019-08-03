@@ -155,7 +155,6 @@ namespace AElf.Kernel
             await check2();
             await check3_2();
 
-            int chainId = 1;
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
             await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
 
@@ -277,7 +276,6 @@ namespace AElf.Kernel
         [Fact]
         public async Task State_MergedSituation_Test()
         {
-            int chainId = 1;
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
             chainStateInfo.Status = ChainStateMergingStatus.Merged;
             chainStateInfo.MergingBlockHash = _tv[1].BlockHash;

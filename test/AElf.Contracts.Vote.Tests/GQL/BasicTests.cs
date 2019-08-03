@@ -9,7 +9,7 @@ using Xunit;
 
 namespace AElf.Contracts.Vote
 {
-    public partial class VoteTests : VoteContractTestBase
+    public partial class VoteTests
     {
         [Fact]
         public async Task VoteContract_Register_Again_Test()

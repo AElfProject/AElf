@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Shouldly;
 using Xunit;

@@ -18,7 +18,7 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task ElectionContract_NextTerm()
+        public async Task ElectionContract_NextTerm_Test()
         {
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
             var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
@@ -26,7 +26,7 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task ElectionContract_NormalBlock()
+        public async Task ElectionContract_NormalBlock_Test()
         {
             await NormalBlock(InitialCoreDataCenterKeyPairs[0]);
             var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());

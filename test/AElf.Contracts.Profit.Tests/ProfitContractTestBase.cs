@@ -14,8 +14,6 @@ using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
 using InitializeInput = AElf.Contracts.ParliamentAuth.InitializeInput;
 
@@ -86,11 +84,6 @@ namespace AElf.Contracts.Profit
                         TransactionMethodCallList = GenerateParliamentInitializationCallList()
                     })).Output;
             ParliamentContractStub = GetParliamentContractTester(StarterKeyPair);
-        }
-
-        protected async Task CreateTreasury()
-        {
-
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)

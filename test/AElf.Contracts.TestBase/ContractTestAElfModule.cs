@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
-using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Modularity;
 using AElf.OS;

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Acs3;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Economic;
 using AElf.Contracts.Economic.TestBase;
@@ -10,23 +5,13 @@ using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Profit;
-using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.AEDPoS;
-using AElf.Kernel.Token;
-using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.DependencyInjection;
-using Shouldly;
 using Volo.Abp.Threading;
-using Xunit;
 
 namespace AElf.Contracts.Election
 {

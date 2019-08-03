@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Acs3;
@@ -6,7 +5,6 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -314,8 +312,8 @@ namespace AElf.Contracts.ReferendumAuth
             var newToken = await TokenContractStub.GetTokenInfo.CallAsync(new GetTokenInfoInput{Symbol = "NEW"});
             newToken.Issuer.ShouldBe(organizationAddress);
         }
-        
-        public async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair,Address organizationAddress)
+
+        private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair,Address organizationAddress)
         {
             var createInput = new CreateInput()
             {
@@ -339,8 +337,8 @@ namespace AElf.Contracts.ReferendumAuth
             proposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             return proposal.Output;
         }
-        
-        public async Task<Address> CreateOrganizationAsync()
+
+        private async Task<Address> CreateOrganizationAsync()
         {           
             var createOrganizationInput =  new CreateOrganizationInput
             {

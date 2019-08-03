@@ -18,12 +18,6 @@ namespace AElf.Contracts.Profit
             InitializeContracts();
         }
 
-        [Fact]
-        public async Task ProfitContract_CheckTreasury_Test()
-        {
-            await CreateTreasury();
-        }
-
         /// <summary>
         /// Of course it's okay for an address to creator many profit items.
         /// </summary>

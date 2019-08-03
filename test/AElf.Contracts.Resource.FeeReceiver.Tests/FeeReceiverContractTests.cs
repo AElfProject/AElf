@@ -1,10 +1,8 @@
 using System.Threading.Tasks;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -32,7 +30,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
             FeeKeyPair = CryptoHelper.GenerateKeyPair();
             FoundationKeyPair = CryptoHelper.GenerateKeyPair();
 
-            AsyncHelper.RunSync(()=>InitFeeReceiverContract());
+            AsyncHelper.RunSync(InitFeeReceiverContract);
         }
         
           #region FeeReceiver Contract cases

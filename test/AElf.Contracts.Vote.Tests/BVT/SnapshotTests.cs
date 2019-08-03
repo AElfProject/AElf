@@ -1,13 +1,12 @@
 using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
-using AElf.Kernel;
 using AElf.Types;
 using Shouldly;
 using Xunit;
 
 namespace AElf.Contracts.Vote
 {
-    public partial class VoteTests : VoteContractTestBase
+    public partial class VoteTests
     {
         [Fact]
         public async Task VoteContract_TakeSnapshot_WithoutPermission_Test()
