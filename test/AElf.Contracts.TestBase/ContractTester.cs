@@ -703,7 +703,6 @@ namespace AElf.Contracts.TestBase
         {
             totalSupply = TokenTotalSupply;
             isPrivilegePreserved = IsPrivilegePreserved;
-            var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
             var nativeTokenInfo = new TokenInfo
             {
                 Symbol = "ELF",
@@ -712,7 +711,7 @@ namespace AElf.Contracts.TestBase
                 IsBurnable = true,
                 TokenName = "elf token",
                 TotalSupply = TokenTotalSupply,
-                IssueChainId = chainOptions.ChainId
+                IssueChainId = ChainHelper.ConvertBase58ToChainId("AELF")
             };
             var tokenInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenInitializationCallList.Add(
@@ -738,7 +737,7 @@ namespace AElf.Contracts.TestBase
             });
             return list =>
             {
-                list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name);
+                list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name,tokenInitializationCallList);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
