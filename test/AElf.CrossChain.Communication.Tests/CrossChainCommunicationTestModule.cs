@@ -42,6 +42,8 @@ namespace AElf.CrossChain.Communication
                 option.RemoteParentChainServerPort = 5000;
             });
 
+            Configure<CrossChainConfigOptions>(option => { option.ParentChainId = ChainHelper.GetChainId(1); });
+
             context.Services.AddTransient(provider =>
             {
                 var kernelTestHelper = context.Services.GetRequiredServiceLazy<KernelTestHelper>();
@@ -69,6 +71,7 @@ namespace AElf.CrossChain.Communication
                             return Task.FromResult(block);
                         }
                     }
+
                     return Task.FromResult<Block>(null);
                 });
                 return mockBlockChainService.Object;
@@ -100,13 +103,20 @@ namespace AElf.CrossChain.Communication
                     {
                         var crossChainBlockData = new CrossChainBlockData
                         {
-                            SideChainBlockData = {new SideChainBlockData{ChainId = 123, Height = 1,TransactionMerkleTreeRoot = Hash.FromString("fakeTransactionMerkleTree")}}
+                            SideChainBlockData =
+                            {
+                                new SideChainBlockData
+                                {
+                                    ChainId = 123, Height = 1,
+                                    TransactionMerkleTreeRoot = Hash.FromString("fakeTransactionMerkleTree")
+                                }
+                            }
                         };
                         return Task.FromResult(crossChainBlockData);
                     });
                 return mockCrossChainIndexingDataService.Object;
             });
-            
+
             context.Services.AddTransient(provider =>
             {
                 var mockCrossChainClientService = new Mock<ICrossChainClientService>();
