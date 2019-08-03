@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Infrastructure;
@@ -37,7 +38,9 @@ namespace AElf.OS.BlockSync.Application
                 BlockHeight = chain.LastIrreversibleBlockHeight + 1
             };
 
-            var validateResult = await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement);
+            var validateResult =
+                await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement,
+                    GetEncodedPubKeyString());
 
             validateResult.ShouldBeTrue();
         }
@@ -53,10 +56,14 @@ namespace AElf.OS.BlockSync.Application
                 BlockHeight = chain.LastIrreversibleBlockHeight + 1
             };
 
-            var validateResult = await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement);
+            var validateResult =
+                await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement,
+                    GetEncodedPubKeyString());
             validateResult.ShouldBeTrue();
-            
-            validateResult = await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement);
+
+            validateResult =
+                await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement,
+                    GetEncodedPubKeyString());
             validateResult.ShouldBeFalse();
         }
 
@@ -71,7 +78,9 @@ namespace AElf.OS.BlockSync.Application
                 BlockHeight = chain.LastIrreversibleBlockHeight
             };
 
-            var validateResult = await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement);
+            var validateResult =
+                await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement,
+                    GetEncodedPubKeyString());
 
             validateResult.ShouldBeFalse();
         }
@@ -84,24 +93,9 @@ namespace AElf.OS.BlockSync.Application
             var block = _osTestHelper.GenerateBlockWithTransactions(chain.LastIrreversibleBlockHash,
                 chain.LastIrreversibleBlockHeight);
 
-            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block);
+            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block, GetEncodedPubKeyString());
 
             validateResult.ShouldBeTrue();
-        }
-
-        [Fact]
-        public async Task ValidateBlock_AlreadySynchronized()
-        {
-            var chain = await _blockchainService.GetChainAsync();
-
-            var block = _osTestHelper.GenerateBlockWithTransactions(chain.LastIrreversibleBlockHash,
-                chain.LastIrreversibleBlockHeight);
-
-            _announcementCacheProvider.TryAddAnnouncementCache(block.GetHash(), block.Height);
-
-            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block);
-
-            validateResult.ShouldBeFalse();
         }
         
         [Fact]
@@ -112,7 +106,7 @@ namespace AElf.OS.BlockSync.Application
             var block = _osTestHelper.GenerateBlockWithTransactions(Hash.FromString("SyncBlockHash"),
                 chain.LastIrreversibleBlockHeight - 1);
 
-            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block);
+            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block, GetEncodedPubKeyString());
 
             validateResult.ShouldBeFalse();
         }
@@ -127,6 +121,13 @@ namespace AElf.OS.BlockSync.Application
                 var result = _announcementCacheProvider.TryAddAnnouncementCache(blockHash, blockHeight);
                 result.ShouldBeTrue();
             }
+        }
+
+        private string GetEncodedPubKeyString()
+        {
+            var pk = CryptoHelper.GenerateKeyPair().PublicKey;
+            var address = Address.FromPublicKey(pk);
+            return address.GetFormatted();
         }
     }
 }

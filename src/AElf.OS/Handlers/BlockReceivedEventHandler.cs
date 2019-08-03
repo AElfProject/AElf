@@ -47,7 +47,7 @@ namespace AElf.OS.Handlers
 
             var chain = await _blockchainService.GetChainAsync();
 
-            if (!await _blockSyncValidationService.ValidateBlockAsync(chain, blockWithTransactions))
+            if (!await _blockSyncValidationService.ValidateBlockAsync(chain, blockWithTransactions, senderPubkey))
             {
                 return;
             }
