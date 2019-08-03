@@ -73,6 +73,9 @@ namespace AElf.Contracts.TestBase
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("CrossChain")).Value;
         public byte[] ParliamentAuthContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("ParliamentAuth")).Value;
+        public byte[] ConfigurationContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Configuration")).Value;
+
         
         private IAbpApplicationWithInternalServiceProvider Application { get; }
 
@@ -693,6 +696,7 @@ namespace AElf.Contracts.TestBase
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
+                list.AddGenesisSmartContract(ConfigurationContractCode,ConfigurationSmartContractAddressNameProvider.Name);
             };
         }
         

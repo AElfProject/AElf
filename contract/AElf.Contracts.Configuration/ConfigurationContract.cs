@@ -3,11 +3,12 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace Configuration
 {
-    public class ConfigurationContract : ConfigurationContainer.ConfigurationBase
+    public partial class ConfigurationContract : ConfigurationContainer.ConfigurationBase
     {
         public override Empty SetBlockTransactionLimit(Int32Value input)
         {
-            // TODO: Check permission
+            CheckOwnerAuthority();
+            
             var oldValue = State.BlockTransactionLimit.Value;
             var newValue = input.Value;
             State.BlockTransactionLimit.Value = newValue;

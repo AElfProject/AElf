@@ -35,6 +35,7 @@
         <ProjectReference Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj"/>
         <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj"/>
         <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Kernel.BlockTransactionLimitController\AElf.Kernel.BlockTransactionLimitController.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj"/>
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj"/>
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj"/>

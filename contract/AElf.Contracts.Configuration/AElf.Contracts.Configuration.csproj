@@ -7,8 +7,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ContractReference Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\reference\acs3.proto</Link>
+        </ContractReference>
         <ContractCode Include="..\..\protobuf\configuration.proto">
             <Link>Protobuf/Proto/configuration.proto</Link>
         </ContractCode>
+        <ContractReference Include="..\..\protobuf\parliament_auth_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
+        </ContractReference>
     </ItemGroup>
 </Project>
