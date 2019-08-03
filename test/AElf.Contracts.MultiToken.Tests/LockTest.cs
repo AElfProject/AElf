@@ -11,6 +11,7 @@ using AElf.Kernel.Token;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
+using SampleAddress = AElf.Contracts.TestKit.SampleAddress;
 
 namespace AElf.Contracts.MultiToken
 {

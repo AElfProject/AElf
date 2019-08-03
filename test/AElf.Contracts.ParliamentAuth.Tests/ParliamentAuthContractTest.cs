@@ -49,7 +49,6 @@ namespace AElf.Contracts.ParliamentAuth
             result.TransactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }
 
-
         [Fact]
         public async Task Get_Organization()
         {
@@ -258,8 +257,7 @@ namespace AElf.Contracts.ParliamentAuth
                 await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
             transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             transactionResult1.Output.Value.ShouldBe(true);
-
-            Thread.Sleep(100);
+            
             var transactionResult2 =
                 await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
             transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);

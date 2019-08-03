@@ -6,6 +6,7 @@ using Acs0;
 using Acs3;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TestBase;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -19,7 +20,7 @@ using Volo.Abp.Threading;
 
 namespace AElf.Contracts.ParliamentAuth
 {
-    public class ParliamentAuthContractTestBase : ContractTestBase<ParliamentAuthContractTestAElfModule>
+    public class ParliamentAuthContractTestBase : TestKit.ContractTestBase<ParliamentAuthContractTestAElfModule>
     {
         protected const int MinersCount = 3;
         protected const int MiningInterval = 4000;
@@ -46,12 +47,7 @@ namespace AElf.Contracts.ParliamentAuth
         internal AEDPoSContractContainer.AEDPoSContractStub ConsensusContractStub { get; set; }
         internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthContractStub { get; set; }
-
-        internal ParliamentAuthContractContainer.ParliamentAuthContractStub OtherParliamentAuthContractStub
-        {
-            get;
-            set;
-        }
+        internal ParliamentAuthContractContainer.ParliamentAuthContractStub OtherParliamentAuthContractStub { get; set; }
 
         protected void InitializeContracts()
         {
@@ -161,14 +157,17 @@ namespace AElf.Contracts.ParliamentAuth
         protected long TotalSupply;
         protected long BalanceOfStarter;
         protected bool IsPrivilegePreserved;
+        protected ContractTester<ParliamentAuthContractPrivilegeTestAElfModule> Tester;
+
 
         public ParliamentAuthContractPrivilegeTestBase()
         {
+        var mainChainId = ChainHelper.ConvertBase58ToChainId("AELF");
+            Tester = new ContractTester<ParliamentAuthContractPrivilegeTestAElfModule>(mainChainId,SampleECKeyPairs.KeyPairs[1]);
             AsyncHelper.RunSync(() =>
-                Tester.InitialChainAsyncWithAuthAsync(Tester.GetSideChainSystemContractDtos(
+                Tester.InitialChainAsyncWithAuthAsync(Tester.GetSideChainSystemContract(
                     Tester.GetCallOwnerAddress(), out TotalSupply,
-                    out _,
-                    out BalanceOfStarter, Tester.GetCallOwnerAddress(), out IsPrivilegePreserved)));
+                     Tester.GetCallOwnerAddress(), out IsPrivilegePreserved)));
             BasicContractZeroAddress = Tester.GetZeroContractAddress();
             ParliamentAddress = Tester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);

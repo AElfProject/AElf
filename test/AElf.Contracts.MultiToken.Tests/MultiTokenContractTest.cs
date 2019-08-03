@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs1;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TestKit;
+using AElf.CSharp.Core.Utils;
 using AElf.Kernel;
 using AElf.Types;
 using Xunit;
@@ -52,7 +55,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Initialize_TokenContract()
+        public async Task InitializeTokenContract_Test()
         {
             await TokenContractStub.Create.SendAsync(
                 new CreateInput
@@ -80,7 +83,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Initialize_View_TokenContract()
+        public async Task ViewTokenContract_Test()
         {
             await TokenContractStub.Create.SendAsync(new CreateInput
             {
@@ -105,10 +108,9 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Initialize_TokenContract_Failed()
+        public async Task Initialize_TokenContract_FailedTest()
         {
-            await Initialize_TokenContract();
-
+            await InitializeTokenContract_Test();
             var anotherStub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
 
             var result = (await anotherStub.Create.SendAsync(new CreateInput
@@ -125,10 +127,9 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Transfer_TokenContract()
+        public async Task TransferToken_Test()
         {
-            await Initialize_TokenContract();
-
+            await InitializeTokenContract_Test();
             await TokenContractStub.Transfer.SendAsync(new TransferInput
             {
                 Amount = 1000L,
@@ -153,16 +154,14 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Transfer_Without_Enough_Token()
+        public async Task Transfer_WithoutEnoughToken_Test()
         {
-            await Initialize_TokenContract();
-
             var anotherStub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
             var result = (await anotherStub.Transfer.SendAsync(new TransferInput
             {
                 Amount = 1000L,
                 Memo = "transfer test",
-                Symbol = SymbolForTestingInitialLogic,
+                Symbol = DefaultSymbol,
                 To = User2Address
             })).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -170,10 +169,8 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Approve_TokenContract()
+        public async Task ApproveToken_Test()
         {
-            await Initialize_TokenContract();
-
             var result1 = (await TokenContractStub.Approve.SendAsync(new ApproveInput
             {
                 Symbol = DefaultSymbol,
@@ -192,9 +189,9 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task UnApprove_TokenContract()
+        public async Task UnApproveToken_Test()
         {
-            await Approve_TokenContract();
+            await ApproveToken_Test();
             var result2 = (await TokenContractStub.UnApprove.SendAsync(new UnApproveInput
             {
                 Amount = 1000L,
@@ -213,10 +210,8 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task UnApprove_Without_Enough_Allowance()
+        public async Task UnApproveToken_WithoutEnoughAllowance_Test()
         {
-            await Initialize_TokenContract();
-
             var allowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
             {
                 Owner = DefaultSender,
@@ -229,15 +224,15 @@ namespace AElf.Contracts.MultiToken
             {
                 Amount = 1000L,
                 Spender = User1Address,
-                Symbol = SymbolForTestingInitialLogic
+                Symbol = DefaultSymbol
             })).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         [Fact]
-        public async Task TransferFrom_TokenContract()
+        public async Task TransferFromToken_Test()
         {
-            await Approve_TokenContract();
+            await ApproveToken_Test();
             var user1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
             var result2 = await user1Stub.TransferFrom.SendAsync(new TransferFromInput
             {
@@ -266,9 +261,9 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task TransferFrom_With_ErrorAccount()
+        public async Task TransferFromToken_WithErrorAccount_Test()
         {
-            await Approve_TokenContract();
+            await ApproveToken_Test();
             var result2 = (await TokenContractStub.TransferFrom.SendAsync(new TransferFromInput
             {
                 Amount = 1000L,
@@ -297,9 +292,8 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task TransferFrom_Without_Enough_Allowance()
+        public async Task TransferFromToken_WithoutEnoughAllowance_Test()
         {
-            await Initialize_TokenContract();
             var allowanceOutput = await TokenContractStub.GetAllowance.CallAsync(new GetAllowanceInput
             {
                 Owner = DefaultSender,
@@ -321,9 +315,8 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Burn_TokenContract()
-        {
-            await Initialize_TokenContract();
+        public async Task BurnToken_Test()
+        { 
             await TokenContractStub.Burn.SendAsync(new BurnInput
             {
                 Amount = 3000L,
@@ -338,9 +331,8 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Burn_Without_Enough_Balance()
+        public async Task BurnToken_WithoutEnoughBalance_Test()
         {
-            await Initialize_TokenContract();
             var user1Stub = GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, User1KeyPair);
             var result = (await user1Stub.Burn.SendAsync(new BurnInput
             {
@@ -352,10 +344,8 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Charge_Transaction_Fees()
+        public async Task ChargeTransactionFees_Test()
         {
-            await Initialize_TokenContract();
-
             var result = (await TokenContractStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
             {
                 Amount = 10L,
@@ -378,9 +368,8 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Claim_Transaction_Fees_Without_FeePoolAddress()
+        public async Task ClaimTransactionFees_WithoutFeePoolAddress_Test()
         {
-            await Initialize_TokenContract();
             var result = (await TokenContractStub.ClaimTransactionFees.SendAsync(new ClaimTransactionFeesInput
             {
                 Symbol = DefaultSymbol,
@@ -391,9 +380,8 @@ namespace AElf.Contracts.MultiToken
         }
 
         [Fact]
-        public async Task Set_And_Get_Method_Fee()
+        public async Task SetAndGetMethodFee_Test()
         {
-            await Initialize_TokenContract();
             var feeChargerStub = GetTester<FeeChargedContractContainer.FeeChargedContractStub>(TokenContractAddress,
                 DefaultSenderKeyPair);
             {
@@ -426,8 +414,6 @@ namespace AElf.Contracts.MultiToken
         [Fact(Skip = "Failed because we didn't deploy election contract in test base for now.")]
         public async Task Set_FeePoolAddress()
         {
-            await Initialize_TokenContract();
-
             // this is needed, NOT GOOD DESIGN, it doesn't matter what code we deploy, all we need is an address
             await DeploySystemSmartContract(KernelConstants.CodeCoverageRunnerCategory, TokenContractCode, DividendSmartContractAddressNameProvider.Name,
                 DefaultSenderKeyPair);

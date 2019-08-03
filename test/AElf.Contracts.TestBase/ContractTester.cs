@@ -224,16 +224,15 @@ namespace AElf.Contracts.TestBase
         {
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
-            var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
             var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             var consensusOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ConsensusOptions>>().Value;
             var dto = new OsBlockchainNodeContextStartDto
             {
-                ChainId = chainOptions.ChainId,
+                ChainId = ChainHelper.ConvertBase58ToChainId("AELF"),
                 ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
+                ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired
             };
-            dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
             dto.InitializationSmartContracts.AddGenesisSmartContract(
                 ConsensusContractCode,
                 ConsensusSmartContractAddressNameProvider.Name,
@@ -317,14 +316,13 @@ namespace AElf.Contracts.TestBase
             return consensusMethodCallList;
         }
 
-        public async Task InitialSideChainAsync(Action<List<GenesisSmartContractDto>> configureSmartContract = null)
+        public async Task InitialSideChainAsync(int chainId,Action<List<GenesisSmartContractDto>> configureSmartContract = null)
         {
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
-            var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
             var dto = new OsBlockchainNodeContextStartDto
             {
-                ChainId = chainOptions.ChainId,
+                ChainId = chainId,
                 ZeroSmartContract = typeof(BasicContractZero),
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
             };
@@ -700,13 +698,35 @@ namespace AElf.Contracts.TestBase
         /// System contract dto for side chain initialization.
         /// </summary>
         /// <returns></returns>
-        public Action<List<GenesisSmartContractDto>> GetSideChainSystemContractDtos(Address issuer, out long totalSupply,
-            out long dividend, out long balanceOfStarter, Address proposer,out bool isPrivilegePreserved)
+        public Action<List<GenesisSmartContractDto>> GetSideChainSystemContract(Address issuer, out long totalSupply,
+            Address proposer,out bool isPrivilegePreserved)
         {
             totalSupply = TokenTotalSupply;
-            dividend = InitialTreasuryAmount;
-            balanceOfStarter = InitialBalanceOfStarter;
             isPrivilegePreserved = IsPrivilegePreserved;
+            var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
+            var nativeTokenInfo = new TokenInfo
+            {
+                Symbol = "ELF",
+                Decimals = 2,
+                Issuer = issuer,
+                IsBurnable = true,
+                TokenName = "elf token",
+                TotalSupply = TokenTotalSupply,
+                IssueChainId = chainOptions.ChainId
+            };
+            var tokenInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
+            tokenInitializationCallList.Add(
+                nameof(TokenContractContainer.TokenContractStub.RegisterNativeTokenInfo),
+                new RegisterNativeTokenInfoInput
+                {
+                    Decimals = nativeTokenInfo.Decimals,
+                    IssueChainId = nativeTokenInfo.IssueChainId,
+                    Issuer = nativeTokenInfo.Issuer,
+                    IsBurnable = nativeTokenInfo.IsBurnable,
+                    Symbol = nativeTokenInfo.Symbol,
+                    TokenName = nativeTokenInfo.TokenName,
+                    TotalSupply = nativeTokenInfo.TotalSupply
+                });
 
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
@@ -719,8 +739,6 @@ namespace AElf.Contracts.TestBase
             return list =>
             {
                 list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name);
-                list.AddGenesisSmartContract(FeeReceiverContractCode, ResourceFeeReceiverSmartContractAddressNameProvider
-                    .Name);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);

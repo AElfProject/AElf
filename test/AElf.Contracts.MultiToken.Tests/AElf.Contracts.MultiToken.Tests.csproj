@@ -18,7 +18,8 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
-        <ProjectReference Include="..\AElf.Contracts.TestContract.BasicFunction\AElf.Contracts.TestContract.BasicFunction.csproj" >
+        <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
+        <ProjectReference Include="..\AElf.Contracts.TestContract.BasicFunction\AElf.Contracts.TestContract.BasicFunction.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -34,6 +35,9 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ContractStub Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\acs0.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>
         </ContractStub>
@@ -43,6 +47,18 @@
         <ContractStub Include="..\..\protobuf\test_basic_function_contract.proto">
             <Link>Protobuf\Proto\test_basic_function_contract.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\acs3.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs7.proto">
+            <Link>Protobuf\Proto\acs7.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
+            <Link>Protobuf\Proto\cross_chain_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
+            <Link>Protobuf\Proto\parliament_auth_contract.proto</Link>
+        </ContractStub>
     </ItemGroup>
-
+    <Import Project="..\..\test\AllContracts.props" />
 </Project>
