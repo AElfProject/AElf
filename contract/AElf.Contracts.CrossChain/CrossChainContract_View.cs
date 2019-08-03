@@ -155,7 +155,6 @@ namespace AElf.Contracts.CrossChain
         {
             var sideChainInfo = State.SideChainInfo[chainId.Value];
             Assert(sideChainInfo != null, "Side chain Not Found.");
-            Assert(sideChainInfo.SideChainStatus == SideChainStatus.Active, "Incorrect side chain status.");
             var res = new ChainInitializationData
             {
                 CreationHeightOnParentChain = sideChainInfo.CreationHeightOnParentChain,

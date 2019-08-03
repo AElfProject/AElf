@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.CrossChain.Communication.Infrastructure;
 
 namespace AElf.CrossChain.Communication.Application
 {

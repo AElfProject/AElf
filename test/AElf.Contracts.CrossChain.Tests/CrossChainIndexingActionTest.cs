@@ -414,35 +414,6 @@ namespace AElf.Contract.CrossChain.Tests
         }
 
         [Fact]
-        public async Task GetChainInitializationContext_IncorrectStatus()
-        {
-            var parentChainId = 123;
-            var lockedToken = 10L;
-            long parentChainHeightOfCreation = 10;
-            var sideChainId =
-                await InitAndCreateSideChainAsync(parentChainHeightOfCreation, parentChainId, lockedToken);
-            var proposalId = await DisposalSideChainProposalAsync(new SInt32Value
-            {
-                Value = sideChainId
-            });
-            await ApproveWithMinersAsync(proposalId);
-            await ReleaseProposalAsync(proposalId);
-
-            var result = await Tester.ExecuteContractWithMiningAsync(CrossChainContractAddress,
-                nameof(CrossChainContractContainer.CrossChainContractStub.GetChainInitializationData),
-                new SInt32Value()
-                {
-                    Value = sideChainId
-                });
-            result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.Contains("Incorrect side chain status.").ShouldBeTrue();
-
-            var chainInitializationContext = ChainInitializationData.Parser.ParseFrom(result.ReturnValue);
-            chainInitializationContext.ChainId.ShouldBe(0);
-            chainInitializationContext.Creator.ShouldBeNull();
-        }
-
-        [Fact]
         public async Task Get_SideChain_Height()
         {
             await InitializeCrossChainContractAsync();

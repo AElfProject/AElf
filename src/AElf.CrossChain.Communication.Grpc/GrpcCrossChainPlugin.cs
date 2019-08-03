@@ -1,15 +1,16 @@
 using System.Threading.Tasks;
+using AElf.Kernel.Node.Infrastructure;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    public class GrpcCommunicationController : ICrossChainCommunicationController, ILocalEventHandler<NewChainConnectionEvent>, ITransientDependency
+    public class GrpcCrossChainPlugin : INodePlugin, ILocalEventHandler<NewChainConnectionEvent>, ITransientDependency
     {
         private readonly IGrpcClientPlugin _grpcClientPlugin;
         private readonly IGrpcServePlugin _grpcServePlugin;
 
-        public GrpcCommunicationController(IGrpcClientPlugin grpcClientPlugin, IGrpcServePlugin grpcServePlugin)
+        public GrpcCrossChainPlugin(IGrpcClientPlugin grpcClientPlugin, IGrpcServePlugin grpcServePlugin)
         {
             _grpcClientPlugin = grpcClientPlugin;
             _grpcServePlugin = grpcServePlugin;
@@ -20,8 +21,8 @@ namespace AElf.CrossChain.Communication.Grpc
             await _grpcServePlugin.StartAsync(chainId);
             await _grpcClientPlugin.StartAsync(chainId);
         }
-
-        public async Task StopAsync()
+        
+        public async Task ShutdownAsync()
         {
             await _grpcClientPlugin.StopAsync();
             await _grpcServePlugin.StopAsync();
