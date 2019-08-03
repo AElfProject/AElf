@@ -32,7 +32,7 @@ namespace AElf.Kernel.Types.Tests
         /// Add node(s) and compute root hash
         /// </summary>
         [Fact]
-        public void SingleNodeTest()
+        public void SingleNode_Test()
         {
             var tree = new BinaryMerkleTree();
 
@@ -46,7 +46,7 @@ namespace AElf.Kernel.Types.Tests
         }
 
         [Fact]
-        public void MerkleProofTest()
+        public void MerkleProof_Test()
         {
             var tree = new BinaryMerkleTree();
 
@@ -63,7 +63,7 @@ namespace AElf.Kernel.Types.Tests
         }
         
         [Fact]
-        public void MerkleProofTest_MultiTwoSameLeaves()
+        public void MerkleProofTest_MultiTwoSameLeaves_Test()
         {
             var tree = new BinaryMerkleTree();
 
@@ -81,7 +81,7 @@ namespace AElf.Kernel.Types.Tests
         }
             
         [Fact]
-        public void MerkleProofTest_MultiLeaves()
+        public void MerkleProofTest_MultiLeaves_Test()
         {
             var tree = new BinaryMerkleTree();
 
@@ -111,7 +111,7 @@ namespace AElf.Kernel.Types.Tests
         }
 
         [Fact]
-        public void MultiNodesTest()
+        public void MultiNodes_Test()
         {
             var tree1 = new BinaryMerkleTree();
             tree1.AddNodes(CreateLeaves(new[] {"a", "e"}));
@@ -141,7 +141,7 @@ namespace AElf.Kernel.Types.Tests
         }
 
         [Fact]
-        public void MerklePathTest1LeafNode()
+        public void MerklePathTest1LeafNode_Test()
         {
             var hashes = CreateLeaves(new[] {"a"});
             var tree = new BinaryMerkleTree();
@@ -162,7 +162,7 @@ namespace AElf.Kernel.Types.Tests
         }
 
         [Fact]
-        public void MerklePathTest2LeafNodes()
+        public void MerklePathTest2LeafNodes_Test()
         {
             var hashes = CreateLeaves(new[] {"a", "e"});
             var tree = new BinaryMerkleTree();
@@ -190,7 +190,7 @@ namespace AElf.Kernel.Types.Tests
         }
 
         [Fact]
-        public void MerklePathTest5LeafNodes()
+        public void MerklePathTest5LeafNodes_Test()
         {
             var hashes = CreateLeaves(new[] {"a", "e", "l", "f", "a"});
             var tree = new BinaryMerkleTree();
@@ -253,7 +253,7 @@ namespace AElf.Kernel.Types.Tests
         [InlineData(16, 0)]
         [InlineData(16, 15)]
         [InlineData(9, 8)]
-        public void MerklePathTest(int leaveCount, int index)
+        public void MerklePath_Test(int leaveCount, int index)
         {
             var hashes = CreateLeaves(leaveCount);
             var bmt = new BinaryMerkleTree();

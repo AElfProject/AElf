@@ -13,7 +13,15 @@ namespace AElf.Cryptography.Tests
         [Fact]
         public void Generate_Key_Test()
         {
-            CryptoHelper.GenerateKeyPair();
+            var keyPair = CryptoHelper.GenerateKeyPair();
+            keyPair.ShouldNotBeNull();
+            keyPair.PrivateKey.Length.ShouldBe(32);
+            keyPair.PublicKey.Length.ShouldBe(65);
+
+            //invalid key length
+            var bytes = new byte[30];
+            new Random().NextBytes(bytes);
+            Assert.Throws<ArgumentException>(() => CryptoHelper.FromPrivateKey(bytes));
         }
 
         [Fact]
@@ -49,7 +57,7 @@ namespace AElf.Cryptography.Tests
         }
 
         [Fact]
-        public void Test_Decrypt_Message()
+        public void Decrypt_Message_Test()
         {
             var alice = CryptoHelper.GenerateKeyPair();
             var bob = CryptoHelper.GenerateKeyPair();

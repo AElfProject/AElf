@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -148,6 +149,27 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
+
+            //invalid signature
+            var transaction = await GenerateViewTransaction(
+                nameof(TokenContractContainer.TokenContractStub.GetTokenInfo),
+                new GetTokenInfoInput
+                {
+                    Symbol = "ELF"
+                });
+            transaction.Signature = ByteString.CopyFromUtf8("invalid");
+
+            parameters = new Dictionary<string, string>
+            {
+                {
+                    "rawTransaction", transaction.ToByteArray().ToHex()
+                }
+            };
+            response =
+                await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/executeTransaction", parameters,
+                    expectedStatusCode: HttpStatusCode.Forbidden);
+            response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
+            response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
         }
 
         [Fact]
@@ -161,17 +183,18 @@ namespace AElf.WebApp.Application.Chain.Tests
             var toAddress = Base64.ToBase64String(accountAddress.Value.ToByteArray());
             var parameters = new Dictionary<string, string>
             {
-                {"From",accountAddress.GetFormatted()},
-                {"To",contractAddress.GetFormatted()},
-                {"RefBlockNumber",chain.BestChainHeight.ToString()},
-                {"RefBlockHash",chain.BestChainHash.ToHex()},
-                {"MethodName",methodName},
-                {"Params","{\"owner\":{ \"value\": \""+toAddress+"\" },\"symbol\":\"ELF\"}"}
+                {"From", accountAddress.GetFormatted()},
+                {"To", contractAddress.GetFormatted()},
+                {"RefBlockNumber", chain.BestChainHeight.ToString()},
+                {"RefBlockHash", chain.BestChainHash.ToHex()},
+                {"MethodName", methodName},
+                {"Params", "{\"owner\":{ \"value\": \"" + toAddress + "\" },\"symbol\":\"ELF\"}"}
             };
             var createTransactionResponse =
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
-            var transactionId = Hash.FromRawBytes(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
+            var transactionId =
+                Hash.FromRawBytes(ByteArrayHelper.HexStringToByteArray(createTransactionResponse.RawTransaction));
 
             var signature = await _accountService.SignAsync(transactionId.ToByteArray());
             parameters = new Dictionary<string, string>
@@ -209,21 +232,21 @@ namespace AElf.WebApp.Application.Chain.Tests
             var toAddress = Base64.ToBase64String(accountAddress.Value.ToByteArray());
             parameters = new Dictionary<string, string>
             {
-                {"From",accountAddress.GetFormatted()},
-                {"To",contractAddress.GetFormatted()},
-                {"RefBlockNumber",chain.BestChainHeight.ToString()},
-                {"RefBlockHash",chain.BestChainHash.ToHex()},
-                {"MethodName",methodName},
-                {"Params","{\"owner\":{ \"value\": \""+toAddress+"\" },\"symbol\":\"ELF\"}"}
+                {"From", accountAddress.GetFormatted()},
+                {"To", contractAddress.GetFormatted()},
+                {"RefBlockNumber", chain.BestChainHeight.ToString()},
+                {"RefBlockHash", chain.BestChainHash.ToHex()},
+                {"MethodName", methodName},
+                {"Params", "{\"owner\":{ \"value\": \"" + toAddress + "\" },\"symbol\":\"ELF\"}"}
             };
             var createTransactionResponse =
                 await PostResponseAsObjectAsync<CreateRawTransactionOutput>("/api/blockChain/rawTransaction",
                     parameters);
-
+            var wrongSignature = ByteString.CopyFromUtf8("wrongSignature").ToByteArray().ToHex();
             parameters = new Dictionary<string, string>
             {
                 {"RawTransaction", createTransactionResponse.RawTransaction},
-                {"Signature", "wrongSignature"}
+                {"Signature", wrongSignature}
             };
             var wrongSignatureResponse =
                 await PostResponseAsObjectAsync<WebAppErrorResponse>("/api/blockChain/executeRawTransaction",
@@ -630,6 +653,11 @@ namespace AElf.WebApp.Application.Chain.Tests
                 expectedStatusCode: HttpStatusCode.Forbidden);
             response3.Error.Code.ShouldBe(Error.InvalidLimit.ToString());
             response3.Error.Message.Contains("Limit must between 0 and 100").ShouldBeTrue();
+            
+            var response4 = await GetResponseAsObjectAsync<WebAppErrorResponse>(
+                $"/api/blockChain/transactionResults?blockHash={blockHash.Substring(2)}&offset=0&limit=20",
+                expectedStatusCode: HttpStatusCode.Forbidden);
+            response4.Error.Code.ShouldBe(Error.InvalidBlockHash.ToString());
         }
 
         [Fact]
@@ -722,7 +750,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 expectedStatusCode: HttpStatusCode.Forbidden);
             response.Error.Code.ShouldBe(Error.NotFound.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
-            
+
             //invalid block hash parameter
             const string blockHash = "invalid-hash";
             response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
@@ -974,7 +1002,8 @@ namespace AElf.WebApp.Application.Chain.Tests
         [Fact]
         public async Task CreateRawTransaction_Success_Test()
         {
-            var toAddress = Base64.ToBase64String(AddressHelper.Base58StringToAddress("21oXyCxvUd7YUUkgbZxkbmu4EWs65yos6iVC39rPwPknune6qZ")
+            var toAddress = Base64.ToBase64String(AddressHelper
+                .Base58StringToAddress("21oXyCxvUd7YUUkgbZxkbmu4EWs65yos6iVC39rPwPknune6qZ")
                 .Value.ToByteArray());
             var contractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
