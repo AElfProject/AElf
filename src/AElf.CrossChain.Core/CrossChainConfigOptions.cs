@@ -6,5 +6,7 @@ namespace AElf.CrossChain
 
         public int MaximalCountForIndexingParentChainBlock { get; set; } = 32;
         public int MaximalCountForIndexingSideChainBlock { get; set; } = 32;
+
+        public bool CrossChainDataValidationIgnored { get; set; } = true;
     }
 }

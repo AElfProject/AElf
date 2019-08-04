@@ -1,12 +1,13 @@
 ﻿using System;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 
 namespace AElf.Kernel
 {
     public partial class BlockBody : IBlockBody
     {
-        public int TransactionsCount => Transactions.Count;
+        public int TransactionsCount => TransactionIds.Count;
         private Hash _blockBodyHash;
 
         private Hash CalculateBodyHash()
@@ -21,7 +22,7 @@ namespace AElf.Kernel
 
         public bool VerifyFields()
         {
-            if (Transactions.Count == 0)
+            if (TransactionIds.Count == 0)
                 return false;
 
             if (BlockHeader == null)

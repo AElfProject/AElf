@@ -29,7 +29,7 @@ namespace AElf.Kernel
 
         public byte[] GetHashBytes()
         {
-            return GetHash().DumpByteArray();
+            return GetHash().ToByteArray();
         }
 
         private byte[] GetSignatureData()

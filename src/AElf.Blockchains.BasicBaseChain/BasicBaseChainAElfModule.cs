@@ -1,9 +1,7 @@
 ﻿using System.Linq;
 using AElf.Contracts.Genesis;
-using AElf.CrossChain;
 using AElf.CrossChain.Communication.Grpc;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
@@ -21,7 +19,6 @@ using AElf.RuntimeSetup;
 using AElf.WebApp.Web;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.AspNetCore;
@@ -50,7 +47,7 @@ namespace AElf.Blockchains.BasicBaseChain
 
         typeof(ParallelExecutionModule)
     )]
-    public class BasicBaseChainAElfModule : AElfModule<BasicBaseChainAElfModule>
+    public class BasicBaseChainAElfModule : AElfModule
     {
         public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
 
@@ -67,18 +64,6 @@ namespace AElf.Blockchains.BasicBaseChain
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var s = context.Services;
-            s.TryAddSingleton<ISmartContractAddressNameProvider, ConsensusSmartContractAddressNameProvider>();
-            s.TryAddSingleton<ISmartContractAddressNameProvider, CrossChainSmartContractAddressNameProvider>();
-            s.TryAddSingleton<ISmartContractAddressNameProvider, ElectionSmartContractAddressNameProvider>();
-            s.TryAddSingleton<ISmartContractAddressNameProvider, ParliamentAuthSmartContractAddressNameProvider>();
-            s.TryAddSingleton<ISmartContractAddressNameProvider, ProfitSmartContractAddressNameProvider>();
-            s.TryAddSingleton<ISmartContractAddressNameProvider, ResourceSmartContractAddressNameProvider>();
-            s.TryAddSingleton<ISmartContractAddressNameProvider, ResourceFeeReceiverSmartContractAddressNameProvider>();
-            s.TryAddSingleton<ISmartContractAddressNameProvider, TokenConverterSmartContractAddressNameProvider>();
-            s.TryAddSingleton<ISmartContractAddressNameProvider, TokenSmartContractAddressNameProvider>();
-            s.TryAddSingleton<ISmartContractAddressNameProvider, VoteSmartContractAddressNameProvider>();
-
             var configuration = context.Services.GetConfiguration();
             Configure<TokenInitialOptions>(configuration.GetSection("TokenInitial"));
             Configure<ChainOptions>(option =>

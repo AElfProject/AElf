@@ -13,7 +13,7 @@ namespace AElf.Blockchains.MainChain
         typeof(BasicBaseChainAElfModule),
         typeof(BlockTransactionLimitControllerModule)
     )]
-    public class MainChainAElfModule : AElfModule<MainChainAElfModule>
+    public class MainChainAElfModule : AElfModule
     {
         public ILogger<MainChainAElfModule> Logger { get; set; }
 

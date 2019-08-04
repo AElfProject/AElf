@@ -104,7 +104,8 @@ namespace AElf.CrossChain
                 var cachedSideChainBlockData =
                     _blockCacheEntityConsumer.Take<SideChainBlockData>(sideChainBlockData.ChainId, targetHeight, false);
                 if (cachedSideChainBlockData == null)
-                    throw new ValidateNextTimeBlockValidationException("Cross chain data is not ready.");
+                    throw new ValidateNextTimeBlockValidationException(
+                        $"Side chain data not found, chainId: {ChainHelper.ConvertChainIdToBase58(sideChainBlockData.ChainId)}, side chain height: {targetHeight}.");
                 if (!cachedSideChainBlockData.Equals(sideChainBlockData))
                     return false;
                 
@@ -175,11 +176,11 @@ namespace AElf.CrossChain
                                    .CallAsync(new Empty())).Value + 1;
             while (i < length)
             {
-                var parentChainBlockData = _blockCacheEntityConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, false);
+                var parentChainBlockData =
+                    _blockCacheEntityConsumer.Take<ParentChainBlockData>(parentChainId, targetHeight, false);
                 if (parentChainBlockData == null)
-                {
-                    throw new ValidateNextTimeBlockValidationException("Cross chain data is not ready.");
-                }
+                    throw new ValidateNextTimeBlockValidationException(
+                        $"Parent chain data not found, chainId: {ChainHelper.ConvertChainIdToBase58(parentChainId)}, parent chain height: {targetHeight}.");
                 
                 if (!parentChainBlockDataList[i].Equals(parentChainBlockData))
                     return false;
@@ -196,8 +197,7 @@ namespace AElf.CrossChain
             var crossChainBlockData = await _readerFactory.Create(currentBlockHash,
                     currentBlockHeight).GetIndexedCrossChainBlockDataByHeight
                 .CallAsync(new SInt64Value() {Value = currentBlockHeight});
-            if (crossChainBlockData == null) return null;
-            return CrossChainBlockData.Parser.ParseFrom(crossChainBlockData.ToByteString());
+            return crossChainBlockData;
         }
         
         /// <summary>

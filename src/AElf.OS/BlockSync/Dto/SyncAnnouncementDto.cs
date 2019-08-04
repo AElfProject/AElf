@@ -8,7 +8,7 @@ namespace AElf.OS.BlockSync.Dto
 
         public long SyncBlockHeight { get; set; }
 
-        public string SuggestedPeerPubKey { get; set; }
+        public string SuggestedPeerPubkey { get; set; }
         
         public int BatchRequestBlockCount { get; set; }
     }

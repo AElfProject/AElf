@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.CrossChain
@@ -13,6 +14,8 @@ namespace AElf.CrossChain
     {
         private readonly ICrossChainDataProvider _crossChainDataProvider;
         private readonly IBlockExtraDataService _blockExtraDataService;
+        public IOptionsMonitor<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
+
         public ILocalEventBus LocalEventBus { get; set; }
         
         public CrossChainValidationProvider(ICrossChainDataProvider crossChainDataProvider, IBlockExtraDataService blockExtraDataService)
@@ -54,6 +57,11 @@ namespace AElf.CrossChain
                 var res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, extraData, block);
                 return res;
             }
+            catch (ValidateNextTimeBlockValidationException ex)
+            {
+                throw new BlockValidationException(
+                    $"Cross chain data is not ready at height: {block.Header.Height}, hash: {block.GetHash()}.", ex);
+            }
             finally
             {
                 await LocalEventBus.PublishAsync(new CrossChainDataValidatedEvent());
@@ -72,12 +80,8 @@ namespace AElf.CrossChain
                 return false;
             
             // check cache identity
-            var res =
-                await _crossChainDataProvider.ValidateSideChainBlockDataAsync(
-                    crossChainBlockData.SideChainBlockData.ToList(), block.Header.PreviousBlockHash,
-                    block.Header.Height - 1) && await _crossChainDataProvider.ValidateParentChainBlockDataAsync(
-                    crossChainBlockData.ParentChainBlockData.ToList(), block.Header.PreviousBlockHash,
-                    block.Header.Height - 1);
+            var res = await ValidateCrossChainBlockDataAsync(crossChainBlockData, block.Header.PreviousBlockHash,
+                block.Header.Height - 1);
             return res;
         }
 
@@ -85,6 +89,27 @@ namespace AElf.CrossChain
         {
             var bytes = _blockExtraDataService.GetExtraDataFromBlockHeader("CrossChain", header);
             return bytes == ByteString.Empty || bytes == null ? null : CrossChainExtraData.Parser.ParseFrom(bytes);
+        }
+
+        private async Task<bool> ValidateCrossChainBlockDataAsync(CrossChainBlockData crossChainBlockData, 
+            Hash blockHash, long blockHeight)
+        {
+            if (CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored)
+                return true;
+            
+            var sideChainBlockDataValidationResult =
+                await _crossChainDataProvider.ValidateSideChainBlockDataAsync(
+                    crossChainBlockData.SideChainBlockData.ToList(), blockHash, blockHeight);
+            if (!sideChainBlockDataValidationResult)
+                return false;
+            
+            var parentChainBlockDataValidationResult =
+                await _crossChainDataProvider.ValidateParentChainBlockDataAsync(
+                    crossChainBlockData.ParentChainBlockData.ToList(), blockHash, blockHeight);
+            if (!parentChainBlockDataValidationResult)
+                return false;
+
+            return true;
         }
     }
 }
