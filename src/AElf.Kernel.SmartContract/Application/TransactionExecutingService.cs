@@ -151,14 +151,13 @@ namespace AElf.Kernel.SmartContract.Application
         private async Task<bool> ProcessTransactionExecution(int depth, IExecutive executive,
          TransactionExcuteEntry excuteEntry, CancellationToken cancellationToken)
         {
-            bool result = true;
             #region PreTransaction
             if (depth == 0)
             {
                 if (!await ExecutePluginOnPreTransactionStageAsync(executive, excuteEntry.txCtxt, excuteEntry.txCtxt.CurrentBlockTime,
                     excuteEntry.internalChainContext, excuteEntry.internalStateCache, cancellationToken))
                 {
-                    result = false;
+                    return false;
                 }
             }
             #endregion
@@ -167,7 +166,7 @@ namespace AElf.Kernel.SmartContract.Application
             await ExecuteInlineTransactions(depth, excuteEntry.txCtxt.CurrentBlockTime, excuteEntry.txCtxt, excuteEntry.internalStateCache,
                 excuteEntry.internalChainContext, cancellationToken);
 
-            return result;
+            return true;
         }
 
 
@@ -335,8 +334,8 @@ namespace AElf.Kernel.SmartContract.Application
             
             this.internalStateCache = new TieredStateCache(parameters.ChainContext.StateCache);
             this.internalChainContext = new ChainContextWithTieredStateCache(parameters.ChainContext, internalStateCache);
-                    
         }
+
     }
     class TransactionParameters
     {
