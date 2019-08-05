@@ -291,6 +291,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Configuratio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Kernel.BlockTransactionLimitController.Tests", "test\AElf.Kernel.BlockTransactionLimitController.Tests\AElf.Kernel.BlockTransactionLimitController.Tests.csproj", "{8024E54C-51C0-48B7-BBE2-CD298F117CA0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Parallel.Tests", "test\AElf.Parallel.Tests\AElf.Parallel.Tests.csproj", "{51D379F2-B146-4266-BC1A-C98EBF5C69EC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.BasicFunctionWithParallel", "test\AElf.Contracts.TestContract.BasicFunctionWithParallel\AElf.Contracts.TestContract.BasicFunctionWithParallel.csproj", "{D62A334F-6237-4B83-B195-09ED1F25E344}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -817,6 +821,14 @@ Global
 		{8024E54C-51C0-48B7-BBE2-CD298F117CA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8024E54C-51C0-48B7-BBE2-CD298F117CA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8024E54C-51C0-48B7-BBE2-CD298F117CA0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{51D379F2-B146-4266-BC1A-C98EBF5C69EC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{51D379F2-B146-4266-BC1A-C98EBF5C69EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{51D379F2-B146-4266-BC1A-C98EBF5C69EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{51D379F2-B146-4266-BC1A-C98EBF5C69EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D62A334F-6237-4B83-B195-09ED1F25E344}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D62A334F-6237-4B83-B195-09ED1F25E344}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D62A334F-6237-4B83-B195-09ED1F25E344}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D62A334F-6237-4B83-B195-09ED1F25E344}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -964,5 +976,7 @@ Global
 		{F8E416C6-4B4D-4EB4-8023-84A570BAA0BD} = {90B310B4-C2DB-419E-B5EE-97FA096B62CC}
 		{A9436A00-8763-4C23-BBE0-BFC6C5B49056} = {9AA521A5-80BF-4D20-9339-31D7E86D5868}
 		{8024E54C-51C0-48B7-BBE2-CD298F117CA0} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{51D379F2-B146-4266-BC1A-C98EBF5C69EC} = {4E54480A-D155-43ED-9736-1A5BE7957211}
+		{D62A334F-6237-4B83-B195-09ED1F25E344} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 	EndGlobalSection
 EndGlobal

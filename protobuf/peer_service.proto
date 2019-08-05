@@ -8,6 +8,8 @@ import "aelf/core.proto";
 
 service PeerService {
     
+    rpc Ping (PingRequest) returns (PongReply) {}
+    
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}
     rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
 
@@ -21,9 +23,8 @@ service PeerService {
 
     rpc GetNodes (NodesRequest) returns (NodeList) {}
 
-    rpc Connect (Handshake) returns (ConnectReply) {}
-    rpc FinalizeConnect (Handshake) returns (FinalizeConnectReply) {}
-    rpc UpdateHandshake(UpdateHandshakeRequest) returns (Handshake) {}
+    rpc Connect (ConnectRequest) returns (ConnectReply) {}
+    rpc DoHandshake (HandshakeRequest) returns (HandshakeReply) {}
 
     rpc Disconnect (DisconnectReason) returns (VoidReply) {}
 }
@@ -33,4 +34,9 @@ service PeerService {
 message VoidReply {
 }
 
+message PingRequest {
+}
+
+message PongReply {
+}
 

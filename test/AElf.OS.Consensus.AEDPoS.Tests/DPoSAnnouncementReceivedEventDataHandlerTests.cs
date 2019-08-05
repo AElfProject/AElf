@@ -73,7 +73,7 @@ namespace AElf.OS.Consensus.DPos
             for(int i=0; i<number; i++)
             {
                 var grpcPeer = peers[i] as GrpcPeer;
-                grpcPeer.ProcessReceivedAnnouncement(new BlockAnnouncement
+                grpcPeer.AddKnowBlock(new BlockAnnouncement
                 {
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height

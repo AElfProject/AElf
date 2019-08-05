@@ -70,7 +70,7 @@ namespace AElf.OS.Rpc.ChainController
             byte[] response;
             try
             {
-                var hexString = ByteArrayHelper.FromHexString(rawTransaction);
+                var hexString = ByteArrayHelper.HexStringToByteArray(rawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(hexString);
                 response = await this.CallReadOnly(transaction);
             }
@@ -87,7 +87,7 @@ namespace AElf.OS.Rpc.ChainController
         {
             try
             {
-                return await this.GetFileDescriptorSetAsync(Address.Parse(address));
+                return await this.GetFileDescriptorSetAsync(AddressHelper.Base58StringToAddress(address));
             }
             catch(Exception)
             {
