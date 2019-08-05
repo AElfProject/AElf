@@ -344,6 +344,24 @@ namespace AElf.Contract.TestContract
             queryResult.FromAmount.ShouldBe(0);
             queryResult.ToAmount.ShouldBe(0);
         }
+
+        [Fact]
+        public async Task QueryExternalMethod_Tests()
+        {
+            var transactionResult = await TestBasicFunctionContractStub.UserPlayBet.SendAsync(
+                new BetInput
+                {
+                    Int64Value = 125
+                });
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var queryResult1 = await TestBasicSecurityContractStub.QueryExternalMethod1.CallAsync(DefaultSender);
+            queryResult1.Int64Value.ShouldBe(0);
+            
+            var queryResult2 = await TestBasicSecurityContractStub.QueryExternalMethod2.CallAsync(DefaultSender);
+            queryResult2.Int64Value.ShouldBe(125);
+        }
+        
         #endregion
     }
 }

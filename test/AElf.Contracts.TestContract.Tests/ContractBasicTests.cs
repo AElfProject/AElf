@@ -105,6 +105,18 @@ namespace AElf.Contract.TestContract
             var loseData = (await TestBasicFunctionContractStub.QueryUserLoseMoney.CallAsync(
                 DefaultSender)).Int64Value;
             (winData + loseData).ShouldBe(100);
+            
+            //execute again
+            transactionResult = (await TestBasicFunctionContractStub.UserPlayBet.SendAsync(
+                new AElf.Contracts.TestContract.BasicFunction.BetInput
+                {
+                    Int64Value = 100
+                })).TransactionResult;
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            //check result
+            loseData = (await TestBasicFunctionContractStub.QueryUserLoseMoney.CallAsync(
+                DefaultSender)).Int64Value;
+            (winData + loseData).ShouldBe(200);
         }
 
         [Fact]
