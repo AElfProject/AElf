@@ -1,3 +1,4 @@
+using AElf.CrossChain.Communication.Infrastructure;
 using AElf.Kernel;
 using AElf.TestBase;
 using Microsoft.Extensions.Options;
@@ -7,15 +8,15 @@ namespace AElf.CrossChain.Communication.Grpc
     public class GrpcCrossChainClientTestBase : AElfIntegratedTest<GrpcCrossChainClientTestModule>
     {
         protected ChainOptions _chainOptions;
-        private GrpcCrossChainClientProvider _grpcCrossChainClientProvider;
+        private ICrossChainClientProvider _grpcCrossChainClientProvider;
 
         public GrpcCrossChainClientTestBase()
         {
             _chainOptions = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value;
-            _grpcCrossChainClientProvider = GetRequiredService<GrpcCrossChainClientProvider>();
+            _grpcCrossChainClientProvider = GetRequiredService<ICrossChainClientProvider>();
         }
 
-        public void CreateAndCacheClient(int chainId, bool toParenChain, int port, int remoteChainId = 0)
+        public ICrossChainClient CreateAndCacheClient(int chainId, bool toParenChain, int port, int remoteChainId = 0)
         {
             var fakeCrossChainClient = new CrossChainClientDto
             {
@@ -25,7 +26,8 @@ namespace AElf.CrossChain.Communication.Grpc
                 RemoteServerHost = "localhost",
                 RemoteServerPort = port
             };
-            _grpcCrossChainClientProvider.CreateAndCacheClient(fakeCrossChainClient);
+            var client = _grpcCrossChainClientProvider.CreateAndCacheClient(fakeCrossChainClient);
+            return client;
         }
     }
 }

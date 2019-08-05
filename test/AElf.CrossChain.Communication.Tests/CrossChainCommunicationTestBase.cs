@@ -3,8 +3,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.CrossChain.Cache;
 using AElf.CrossChain.Cache.Application;
-using AElf.CrossChain.Communication.Grpc;
+using AElf.CrossChain.Communication.Application;
+using AElf.CrossChain.Communication.Infrastructure;
+using AElf.Kernel;
 using AElf.TestBase;
+using Microsoft.Extensions.Options;
 
 namespace AElf.CrossChain.Communication
 {
@@ -12,14 +15,16 @@ namespace AElf.CrossChain.Communication
     {
         protected readonly ICrossChainCacheEntityProvider CrossChainCacheEntityProvider;
         protected readonly IBlockCacheEntityProducer BlockCacheEntityProducer;
-        protected readonly GrpcCrossChainClientProvider _grpcCrossChainClientProvider;
+        protected readonly ICrossChainClientProvider _grpcCrossChainClientProvider;
         private readonly Dictionary<int, long> _parentChainIdHeight = new Dictionary<int, long>();
+        protected ChainOptions _chainOptions;
 
         public CrossChainCommunicationTestBase()
         {
             CrossChainCacheEntityProvider = GetRequiredService<ICrossChainCacheEntityProvider>();
             BlockCacheEntityProducer = GetRequiredService<IBlockCacheEntityProducer>();
-            _grpcCrossChainClientProvider = GetRequiredService<GrpcCrossChainClientProvider>();
+            _grpcCrossChainClientProvider = GetRequiredService<ICrossChainClientProvider>();
+            _chainOptions = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value;
         }
 
         protected void AddFakeCacheData(Dictionary<int, List<IBlockCacheEntity>> fakeCache)
@@ -39,19 +44,18 @@ namespace AElf.CrossChain.Communication
             _parentChainIdHeight.Add(parentChainId, height);
         }
 
-        public async Task<ICrossChainClient> CreateAndGetClient(int chainId, bool toParenChain, int port,
+        public  ICrossChainClient CreateAndGetClient(int chainId, bool toParenChain,
             int remoteChainId = 0)
         {
             var fakeCrossChainClient = new CrossChainClientDto
             {
                 LocalChainId = chainId,
-                RemoteChainId = remoteChainId,
+                RemoteChainId = _chainOptions.ChainId,
                 IsClientToParentChain = toParenChain,
                 RemoteServerHost = "localhost",
-                RemoteServerPort = port
+                RemoteServerPort = 5000
             };
-            _grpcCrossChainClientProvider.CreateAndCacheClient(fakeCrossChainClient);
-            var client = await _grpcCrossChainClientProvider.GetClientAsync(remoteChainId);
+            var client = _grpcCrossChainClientProvider.CreateAndCacheClient(fakeCrossChainClient);
             return client;
         }
     }

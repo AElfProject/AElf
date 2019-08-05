@@ -1,43 +1,44 @@
 using System.Threading.Tasks;
+using AElf.CrossChain.Communication.Infrastructure;
 using Xunit;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    public sealed class GrpcCrossChainServerNodePluginTest : GrpcCrossChainServerTestBase
+    public sealed class GrpcCrossChainServerNodePluginTests : GrpcCrossChainServerTestBase
     {
         private readonly GrpcCrossChainServerNodePlugin _grpcCrossChainServerNodePlugin;
-        private GrpcCrossChainClientProvider _grpcCrossChainClientProvider;
+        private ICrossChainClientProvider _grpcCrossChainClientProvider;
 
 
-        public GrpcCrossChainServerNodePluginTest()
+        public GrpcCrossChainServerNodePluginTests()
         {
-            _grpcCrossChainClientProvider = GetRequiredService<GrpcCrossChainClientProvider>();
+            _grpcCrossChainClientProvider = GetRequiredService<ICrossChainClientProvider>();
             _grpcCrossChainServerNodePlugin = GetRequiredService<GrpcCrossChainServerNodePlugin>();
         }
 
         [Fact]
-        public async Task ServerStart_Test()
+        public async Task CrossChainServerStart_Test()
         {
             var remoteChainId = ChainHelper.GetChainId(1);
             var localChainId = ChainHelper.GetChainId(2);
             await _grpcCrossChainServerNodePlugin.StartAsync(localChainId);
             CreateAndCacheClient(localChainId, false, 5001, remoteChainId);
-            var client = await _grpcCrossChainClientProvider.GetClientAsync(remoteChainId);
-            Assert.True(client.RemoteChainId == remoteChainId);
-            Assert.True(client.TargetUriString.Equals("localhost:5001"));
-            Assert.True(client.IsConnected);
+            var client = _grpcCrossChainClientProvider.GetAllClients();
+            Assert.True(client[0].RemoteChainId == remoteChainId);
+            Assert.True(client[0].TargetUriString.Equals("localhost:5001"));
         }
 
 
         [Fact]
-        public async Task ServerShutdown_Test()
+        public async Task CrossChainServerShutdown_Test()
         {
             var remoteChainId = ChainHelper.GetChainId(1);
             var localChainId = ChainHelper.GetChainId(2);
             await _grpcCrossChainServerNodePlugin.StartAsync(localChainId);
             CreateAndCacheClient(localChainId, false, 5001, remoteChainId);
-            var client = await _grpcCrossChainClientProvider.GetClientAsync(remoteChainId);
-            Assert.True(client.IsConnected);
+            var client = _grpcCrossChainClientProvider.GetAllClients();
+            Assert.True(client[0].RemoteChainId == remoteChainId);
+            Assert.True(client[0].TargetUriString.Equals("localhost:5001"));
             await _grpcCrossChainServerNodePlugin.StopAsync();
         }
     }

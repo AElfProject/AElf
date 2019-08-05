@@ -1,20 +1,18 @@
 using System.Threading.Tasks;
 using Acs7;
-using AElf.CrossChain.Communication.Application;
 using AElf.CrossChain.Communication.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.CrossChain.Communication.Grpc
+namespace AElf.CrossChain.Communication.Application
 {
-    public class GrpcCrossChainClientService : ICrossChainClientService, ITransientDependency
+    public class CrossChainClientService : ICrossChainClientService, ITransientDependency
     {
         private readonly ICrossChainClientProvider _crossChainClientProvider;
 
+        public ILogger<CrossChainClientService> Logger { get; set; }
 
-        public ILogger<GrpcCrossChainClientService> Logger { get; set; }
-
-        public GrpcCrossChainClientService(ICrossChainClientProvider crossChainClientProvider)
+        public CrossChainClientService(ICrossChainClientProvider crossChainClientProvider)
         {
             _crossChainClientProvider = crossChainClientProvider;
         }

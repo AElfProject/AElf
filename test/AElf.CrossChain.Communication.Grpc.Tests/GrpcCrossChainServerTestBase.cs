@@ -1,3 +1,4 @@
+using AElf.CrossChain.Communication.Infrastructure;
 using AElf.TestBase;
 using Xunit;
 
@@ -7,11 +8,11 @@ namespace AElf.CrossChain.Communication.Grpc
 {
     public class GrpcCrossChainServerTestBase : AElfIntegratedTest<GrpcCrossChainServerTestModule>
     {
-        private GrpcCrossChainClientProvider _grpcCrossChainClientProvider;
+        private ICrossChainClientProvider _grpcCrossChainClientProvider;
 
         public GrpcCrossChainServerTestBase()
         {
-            _grpcCrossChainClientProvider = GetRequiredService<GrpcCrossChainClientProvider>();
+            _grpcCrossChainClientProvider = GetRequiredService<ICrossChainClientProvider>();
         }
 
         public void CreateAndCacheClient(int chainId, bool toParenChain, int port, int remoteChainId = 0)
