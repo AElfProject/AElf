@@ -7,7 +7,7 @@ namespace AElf.Types.Tests.Helper
     public class ByteArrayHelperTests
     {
         [Fact]
-        public void Convert_Byte_FromString()
+        public void Convert_Byte_FromString_Test()
         {
             var hexValue = Hash.FromString("hexvalue").ToHex();
             var hashArray = ByteArrayHelper.HexStringToByteArray(hexValue);
@@ -31,7 +31,7 @@ namespace AElf.Types.Tests.Helper
         }
 
         [Fact]
-        public void Bytes_Equal()
+        public void Bytes_Equal_Test()
         {
             var byteArray1 = RandomFill(10);
             var byteArray2 = RandomFill(10);
