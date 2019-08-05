@@ -1,30 +1,31 @@
 using AElf.Kernel.SmartContract.Application;
 using AElf.Contracts.Genesis;
+using AElf.Contracts.MultiToken.Messages;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    internal interface IZeroContractReaderFactory
+    internal interface ITokenContractReaderFactory
     {
-        BasicContractZeroContainer.BasicContractZeroStub Create(IChainContext chainContext);
+        TokenContractContainer.TokenContractStub Create(IChainContext chainContext);
     }
 
-    internal class ZeroContractReaderFactory : IZeroContractReaderFactory
+    internal class TokenContractReaderFactory : ITokenContractReaderFactory
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ISmartContractAddressService _smartContractAddressService;
 
-        public ZeroContractReaderFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
+        public TokenContractReaderFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             ISmartContractAddressService smartContractAddressService)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _smartContractAddressService = smartContractAddressService;
         }
 
-        public BasicContractZeroContainer.BasicContractZeroStub Create(IChainContext chainContext)
+        public TokenContractContainer.TokenContractStub Create(IChainContext chainContext)
         {
-            return new BasicContractZeroContainer.BasicContractZeroStub
+            return new TokenContractContainer.TokenContractStub
             {
-                __factory = new ZeroContractMethodStubFactory(_transactionReadOnlyExecutionService,
+                __factory = new TokenContractMethodStubFactory(_transactionReadOnlyExecutionService,
                     _smartContractAddressService,
                     chainContext)
             };

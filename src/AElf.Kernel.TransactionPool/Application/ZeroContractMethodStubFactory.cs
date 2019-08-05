@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -10,7 +11,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    public class MethodStubFactory : IMethodStubFactory, ITransientDependency
+    public class ZeroContractMethodStubFactory : IMethodStubFactory, ITransientDependency
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -20,7 +21,7 @@ namespace AElf.Kernel.TransactionPool.Application
 
         private Address ZeroContractAddress => _smartContractAddressService.GetZeroSmartContractAddress();
 
-        public MethodStubFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
+        public ZeroContractMethodStubFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             ISmartContractAddressService smartContractAddressService, IChainContext chainContext)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;

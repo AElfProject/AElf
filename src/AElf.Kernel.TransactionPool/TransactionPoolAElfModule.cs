@@ -15,6 +15,7 @@ namespace AElf.Kernel.TransactionPool
             services.AddSingleton<ITxHub, TxHub>();
             services.AddSingleton<ITransactionValidationService, TransactionValidationService>();
             services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
+            services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
 
             context.Services.AddSingleton<IContractDeployDiscoveryService, ContractDeployDiscoveryService>();
             context.Services.AddSingleton<BestChainFoundEventHandler>();
