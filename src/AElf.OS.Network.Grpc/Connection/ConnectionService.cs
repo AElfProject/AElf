@@ -221,8 +221,14 @@ namespace AElf.OS.Network.Grpc.Connection
 
         private async Task<bool> ValidateHandshake(Handshake handshake, string connectionPubkey)
         {
-            if (!await _handshakeProvider.ValidateHandshakeAsync(handshake, connectionPubkey))
+            if (!await _handshakeProvider.ValidateHandshakeAsync(handshake))
             {
+                return false;
+            }
+            
+            if (handshake.HandshakeData.Pubkey.ToHex() != connectionPubkey)
+            {
+                Logger.LogWarning("Handshake pubkey is incorrect.");
                 return false;
             }
 

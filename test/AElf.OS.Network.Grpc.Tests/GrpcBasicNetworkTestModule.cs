@@ -93,9 +93,9 @@ namespace AElf.OS.Network
                     mockDialer.Setup(d => d.DialPeerAsync(It.Is<string>(ip => ip == NetworkTestConstants.GoodPeerEndpoint)))
                         .Returns<string>(s =>
                         {
-                            var keypair = CryptoHelper.GenerateKeyPair();
+                            var keyPair = CryptoHelper.GenerateKeyPair();
                             var handshakeReply = new HandshakeReply {
-                                Handshake = netTestHelper.CreateValidHandshake(keypair, 10)
+                                Handshake = netTestHelper.CreateValidHandshake(keyPair, 10)
                             };
                             var handshakeCall = TestCalls.AsyncUnaryCall(Task.FromResult(handshakeReply), 
                                 Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
@@ -105,7 +105,7 @@ namespace AElf.OS.Network
                                     CancellationToken.None)).Returns(handshakeCall);
                         
                             var peer = GrpcTestPeerHelpers.CreatePeerWithClient(NetworkTestConstants.GoodPeerEndpoint,
-                                keypair.PublicKey.ToHex(), mockClient.Object);
+                                keyPair.PublicKey.ToHex(), mockClient.Object);
                             
                             netTestHelper.AddDialedPeer(peer);
                             

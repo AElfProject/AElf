@@ -6,6 +6,6 @@ namespace AElf.OS.Network.Infrastructure
     {
         Task<Handshake> GetHandshakeAsync();
 
-        Task<bool> ValidateHandshakeAsync(Handshake handshake, string connectionPubkey);
+        Task<bool> ValidateHandshakeAsync(Handshake handshake);
     }
 }

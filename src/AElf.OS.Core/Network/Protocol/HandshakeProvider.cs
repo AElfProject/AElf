@@ -49,17 +49,11 @@ namespace AElf.OS.Network.Protocol
             return hsk;
         }
 
-        public Task<bool> ValidateHandshakeAsync(Handshake handshake, string connectionPubkey)
+        public Task<bool> ValidateHandshakeAsync(Handshake handshake)
         {
             if (handshake?.HandshakeData == null)
             {
                 Logger.LogWarning("Handshake is null.");
-                return Task.FromResult(false);
-            }
-
-            if (handshake.HandshakeData.Pubkey.ToHex() != connectionPubkey)
-            {
-                Logger.LogWarning("Handshake pubkey is incorrect.");
                 return Task.FromResult(false);
             }
 

@@ -11,4 +11,9 @@ namespace AElf.OS
     {
         
     }
+
+    public class NetworkTestBase : AElfIntegratedTest<OSCoreWithChainTestAElfModule>
+    {
+        
+    }
 }
