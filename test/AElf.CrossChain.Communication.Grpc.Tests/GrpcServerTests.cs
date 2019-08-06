@@ -8,7 +8,6 @@ using Grpc.Core;
 using Grpc.Core.Testing;
 using Grpc.Core.Utils;
 using Moq;
-using Shouldly;
 using Xunit;
 
 namespace AElf.CrossChain.Communication.Grpc
