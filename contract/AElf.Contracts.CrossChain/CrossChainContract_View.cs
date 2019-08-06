@@ -139,15 +139,15 @@ namespace AElf.Contracts.CrossChain
         {
             var info = State.SideChainInfo[input.Value];
             Assert(info != null, "Side chain Not Found.");
-            Assert(info.SideChainStatus != (SideChainStatus) 2, "Disposed side chain.");
+            Assert(info.SideChainStatus != SideChainStatus.Terminated, "Disposed side chain.");
             return new SInt64Value() {Value = info.SideChainCreationRequest.LockedTokenAmount};
         }
 
         public override Address LockedAddress(SInt32Value input)
         {
             var info = State.SideChainInfo[input.Value];
-            Assert(info != null, "Not existed side chain.");
-            Assert(info.SideChainStatus != (SideChainStatus) 2, "Disposed side chain.");
+            Assert(info != null, "Side chain Not Found.");
+            Assert(info.SideChainStatus != SideChainStatus.Terminated, "Disposed side chain.");
             return info.Proposer;
         }
 

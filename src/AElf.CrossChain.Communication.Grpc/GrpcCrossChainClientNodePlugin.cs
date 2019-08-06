@@ -2,10 +2,11 @@ using System.Threading.Tasks;
 using AElf.CrossChain.Communication.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    public class GrpcCrossChainClientNodePlugin : IGrpcClientPlugin
+    public class GrpcCrossChainClientNodePlugin : IGrpcClientPlugin, ILocalEventHandler<NewChainConnectionEvent>
     {
         private readonly ICrossChainClientService _crossChainClientService;
         private readonly CrossChainConfigOptions _crossChainConfigOptions;
@@ -48,6 +49,16 @@ namespace AElf.CrossChain.Communication.Grpc
         public async Task StopAsync()
         {
             await _crossChainClientService.CloseClientsAsync();
+        }
+
+        public Task HandleEventAsync(NewChainConnectionEvent eventData)
+        {
+            return CreateClientAsync(new CrossChainClientDto
+            {
+                RemoteChainId = eventData.RemoteChainId,
+                RemoteServerHost = eventData.RemoteServerHost,
+                RemoteServerPort = eventData.RemoteServerPort
+            });
         }
     }
 }
