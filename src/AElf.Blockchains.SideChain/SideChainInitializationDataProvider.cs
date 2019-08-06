@@ -19,7 +19,7 @@ namespace AElf.Blockchains.SideChain
         {
             _chainOptions = chainOptions.Value;
             _chainInitializationDataPlugin = chainInitializationDataPlugin;
-            ParentChainId = crossChainConfigOptions.Value.ParentChainId;
+            ParentChainId = ChainHelper.ConvertBase58ToChainId(crossChainConfigOptions.Value.ParentChainId);
         }
 
         public async Task<ChainInitializationData> GetChainInitializationDataAsync()

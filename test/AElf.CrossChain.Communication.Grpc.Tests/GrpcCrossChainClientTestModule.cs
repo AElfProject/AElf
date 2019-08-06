@@ -33,14 +33,14 @@ namespace AElf.CrossChain.Communication.Grpc
             });
             services.AddTransient(o =>
             {
-                var mockCrossChainDataProvider = new Mock<ICrossChainService>();
-                mockCrossChainDataProvider
+                var mockCrossChainService = new Mock<ICrossChainService>();
+                mockCrossChainService
                     .Setup(c => c.GetChainInitializationDataAsync(It.IsAny<int>())).Returns(async () =>
                         await Task.FromResult(new ChainInitializationData
                         {
                             CreationHeightOnParentChain = 1,
                         }));
-                return mockCrossChainDataProvider.Object;
+                return mockCrossChainService.Object;
             });
 
             services.AddTransient(o =>

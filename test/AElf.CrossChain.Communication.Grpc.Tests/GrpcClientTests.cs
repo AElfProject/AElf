@@ -56,7 +56,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 RemoteServerPort = 5000
             };
             
-            _grpcCrossChainClientProvider.CreateAndCacheClient(fakeCrossChainClient);
+            _grpcCrossChainClientProvider.AddOrUpdateClient(fakeCrossChainClient);
             var getClient = _grpcCrossChainClientProvider.TryGetClient(remoteChainId, out _);
             Assert.True(getClient);
             var client = _grpcCrossChainClientProvider.GetAllClients();

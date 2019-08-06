@@ -2,11 +2,12 @@ using System.Threading.Tasks;
 using AElf.CrossChain.Communication.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    public class GrpcCrossChainClientNodePlugin : IGrpcClientPlugin, ILocalEventHandler<NewChainConnectionEvent>
+    public class GrpcCrossChainClientNodePlugin : IGrpcCrossChainPlugin, ILocalEventHandler<NewChainConnectionEvent>, ISingletonDependency
     {
         private readonly ICrossChainClientService _crossChainClientService;
         private readonly CrossChainConfigOptions _crossChainConfigOptions;
@@ -25,28 +26,19 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             _localChainId = chainId;
             
-            if (_crossChainConfigOptions.ParentChainId == 0)
+            if (string.IsNullOrEmpty(_crossChainConfigOptions.ParentChainId))
                 return;
             Logger.LogTrace("Starting client to parent chain..");
 
             await _crossChainClientService.CreateClientAsync(new CrossChainClientDto
             {
-                RemoteChainId = _crossChainConfigOptions.ParentChainId,
+                RemoteChainId = ChainHelper.ConvertBase58ToChainId(_crossChainConfigOptions.ParentChainId),
                 LocalChainId = chainId,
                 IsClientToParentChain = true
             });
         }
 
-        public async Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
-        {
-            Logger.LogTrace(
-                $"Handle cross chain request received event from chain {ChainHelper.ConvertChainIdToBase58(crossChainClientDto.RemoteChainId)}.");
-
-            crossChainClientDto.LocalChainId = _localChainId;
-            _ = _crossChainClientService.CreateClientAsync(crossChainClientDto);
-        }
-
-        public async Task StopAsync()
+        public async Task ShutdownAsync()
         {
             await _crossChainClientService.CloseClientsAsync();
         }
@@ -59,6 +51,15 @@ namespace AElf.CrossChain.Communication.Grpc
                 RemoteServerHost = eventData.RemoteServerHost,
                 RemoteServerPort = eventData.RemoteServerPort
             });
+        }
+        
+        private async Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
+        {
+            Logger.LogTrace(
+                $"Handle cross chain request received event from chain {ChainHelper.ConvertChainIdToBase58(crossChainClientDto.RemoteChainId)}.");
+
+            crossChainClientDto.LocalChainId = _localChainId;
+            _ = _crossChainClientService.CreateClientAsync(crossChainClientDto);
         }
     }
 }

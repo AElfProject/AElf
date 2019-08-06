@@ -43,7 +43,10 @@ namespace AElf.CrossChain.Communication
                 option.RemoteParentChainServerPort = 5000;
             });
 
-            Configure<CrossChainConfigOptions>(option => { option.ParentChainId = ChainHelper.GetChainId(1); });
+            Configure<CrossChainConfigOptions>(option =>
+            {
+                option.ParentChainId = ChainHelper.ConvertChainIdToBase58(ChainHelper.GetChainId(1));
+            });
 
             context.Services.AddTransient(provider =>
             {

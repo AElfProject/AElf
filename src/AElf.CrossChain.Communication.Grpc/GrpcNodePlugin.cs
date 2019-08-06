@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Node.Infrastructure;
 
@@ -5,25 +6,27 @@ namespace AElf.CrossChain.Communication.Grpc
 {
     public class GrpcNodePlugin : INodePlugin
     {
-        private readonly IGrpcClientPlugin _grpcClientPlugin;
-        private readonly IGrpcServePlugin _grpcServePlugin;
-
-        public GrpcNodePlugin(IGrpcClientPlugin grpcClientPlugin, IGrpcServePlugin grpcServePlugin)
+        private readonly IEnumerable<IGrpcCrossChainPlugin> _grpcCrossChainPlugins;
+        
+        public GrpcNodePlugin(IEnumerable<IGrpcCrossChainPlugin> grpcCrossChainPlugins)
         {
-            _grpcClientPlugin = grpcClientPlugin;
-            _grpcServePlugin = grpcServePlugin;
+            _grpcCrossChainPlugins = grpcCrossChainPlugins;
         }
 
         public async Task StartAsync(int chainId)
         {
-            await _grpcServePlugin.StartAsync(chainId);
-            await _grpcClientPlugin.StartAsync(chainId);
+            foreach (var grpcCrossChainPlugin in _grpcCrossChainPlugins)
+            {
+                await grpcCrossChainPlugin.StartAsync(chainId);
+            }
         }
         
         public async Task ShutdownAsync()
         {
-            await _grpcClientPlugin.StopAsync();
-            await _grpcServePlugin.StopAsync();
+            foreach (var grpcCrossChainPlugin in _grpcCrossChainPlugins)
+            {
+                await grpcCrossChainPlugin.ShutdownAsync();
+            }
         }
     }
 }

@@ -30,7 +30,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
         #region Create client
 
-        public ICrossChainClient CreateAndCacheClient(CrossChainClientDto crossChainClientDto)
+        public ICrossChainClient AddOrUpdateClient(CrossChainClientDto crossChainClientDto)
         {
             var chainId = crossChainClientDto.RemoteChainId;
             var uriStr = crossChainClientDto.IsClientToParentChain

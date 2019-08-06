@@ -42,27 +42,6 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         [Fact]
-        public async Task CreateClientTest_Test()
-        {
-            var chainId = ChainHelper.GetChainId(1);
-
-            await _server.StartAsync("localhost", 5000);
-            var grpcCrossChainClientDto = new CrossChainClientDto()
-            {
-                RemoteChainId = _chainOptions.ChainId,
-                RemoteServerHost = _grpcCrossChainConfigOption.RemoteParentChainServerHost,
-                RemoteServerPort = _grpcCrossChainConfigOption.RemoteParentChainServerPort,
-                LocalChainId = chainId
-            };
-            await _grpcCrossChainClientNodePlugin.CreateClientAsync(grpcCrossChainClientDto);
-            var getClient = _crossChainClientProvider.TryGetClient(grpcCrossChainClientDto.RemoteChainId, out _);
-            Assert.True(getClient);
-            var client = _crossChainClientProvider.GetAllClients();
-            Assert.True(client[0].RemoteChainId == _chainOptions.ChainId);
-            Dispose();
-        }
-
-        [Fact]
         public async Task StopClientTest_Test()
         {
             var chainId = ChainHelper.GetChainId(1);
@@ -72,7 +51,7 @@ namespace AElf.CrossChain.Communication.Grpc
             var client = _crossChainClientProvider.GetAllClients();
             await client[0].ConnectAsync();
             Assert.True(client[0].IsConnected);
-            await _grpcCrossChainClientNodePlugin.StopAsync();
+            await _grpcCrossChainClientNodePlugin.ShutdownAsync();
             Assert.False(client[0].IsConnected);
             Dispose();
         }

@@ -39,7 +39,7 @@ namespace AElf.CrossChain.Communication.Grpc
             var client = _grpcCrossChainClientProvider.GetAllClients();
             Assert.True(client[0].RemoteChainId == remoteChainId);
             Assert.True(client[0].TargetUriString.Equals("localhost:5001"));
-            await _grpcCrossChainServerNodePlugin.StopAsync();
+            await _grpcCrossChainServerNodePlugin.ShutdownAsync();
         }
     }
 }

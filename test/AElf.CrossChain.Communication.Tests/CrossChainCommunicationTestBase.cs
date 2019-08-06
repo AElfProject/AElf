@@ -55,7 +55,7 @@ namespace AElf.CrossChain.Communication
                 RemoteServerHost = "localhost",
                 RemoteServerPort = 5000
             };
-            var client = _grpcCrossChainClientProvider.CreateAndCacheClient(fakeCrossChainClient);
+            var client = _grpcCrossChainClientProvider.AddOrUpdateClient(fakeCrossChainClient);
             return client;
         }
     }
