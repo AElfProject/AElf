@@ -47,7 +47,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 //                    $"Throwing exception is not supported in {nameof(LocalParallelTransactionExecutingService)}.");
 //            }
 
-            var chainContext = new ChainContext()
+            var chainContext = new ChainContext
             {
                 BlockHash = blockHeader.PreviousBlockHash,
                 BlockHeight = blockHeader.Height - 1
@@ -62,7 +62,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 }, cancellationToken, throwException));
             var results = await Task.WhenAll(tasks);
 
-            Logger.LogTrace($"Executed parallelizables.");
+            Logger.LogTrace("Executed parallelizables.");
 
             var returnSets = MergeResults(results, out var conflictingSets).Item1;
             var returnSetCollection = new ReturnSetCollection(returnSets);
@@ -71,7 +71,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             updatedPartialBlockStateSet.MergeFrom(transactionExecutingDto.PartialBlockStateSet?.Clone() ??
                                                   new BlockStateSet());
 
-            Logger.LogTrace($"Merged results from parallelizables.");
+            Logger.LogTrace("Merged results from parallelizables.");
 
             var nonParallelizableReturnSets = await _plainExecutingService.ExecuteAsync(
                 new TransactionExecutingDto
@@ -82,13 +82,13 @@ namespace AElf.Kernel.SmartContract.Parallel
                 },
                 cancellationToken, throwException);
 
-            Logger.LogTrace($"Merged results from non-parallelizables.");
+            Logger.LogTrace("Merged results from non-parallelizables.");
             returnSets.AddRange(nonParallelizableReturnSets);
 
             var transactionWithoutContractReturnSets = await ProcessTransactionsWithoutContract(
-                groupedTransactions.TracesWithoutContract, blockHeader);
+                groupedTransactions.TransactionsWithoutContract, blockHeader);
             
-            Logger.LogTrace($"Merged results from transactions without contract.");
+            Logger.LogTrace("Merged results from transactions without contract.");
             returnSets.AddRange(transactionWithoutContractReturnSets);
             
             if (conflictingSets.Count > 0)
@@ -105,23 +105,19 @@ namespace AElf.Kernel.SmartContract.Parallel
             return returnSets.AsParallel().OrderBy(d => transactionOrder.IndexOf(d.TransactionId)).ToList();
         }
         
-        private async Task<List<ExecutionReturnSet>> ProcessTransactionsWithoutContract(List<TransactionTrace> traces,
+        private async Task<List<ExecutionReturnSet>> ProcessTransactionsWithoutContract(List<Transaction> transactions,
             BlockHeader blockHeader)
         {
             var returnSets = new List<ExecutionReturnSet>();
-            foreach (var trace in traces)
+            foreach (var transaction in transactions)
             {
-                if (trace.Error != string.Empty)
-                {
-                    Logger.LogError(trace.Error);
-                }
-
                 var result = new TransactionResult
                 {
-                    TransactionId = trace.TransactionId,
+                    TransactionId = transaction.GetHash(),
                     Status = TransactionResultStatus.Failed,
-                    Error = trace.Error
+                    Error = "Invalid contract address."
                 };
+                Logger.LogError(result.Error);
                 await _transactionResultService.AddTransactionResultAsync(result, blockHeader);
 
                 var returnSet = new ExecutionReturnSet

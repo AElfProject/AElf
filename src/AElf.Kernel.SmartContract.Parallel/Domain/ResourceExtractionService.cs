@@ -55,7 +55,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 return (transaction, new TransactionResourceInfo()
                 {
                     TransactionId = transaction.GetHash(),
-                    NonParallelizable = true
+                    Type = TransactionResourceInfoType.NonParallelizable
                 });
 
             if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache))
@@ -79,7 +79,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     return new TransactionResourceInfo
                     {
                         TransactionId = transaction.GetHash(),
-                        NonParallelizable = true
+                        Type = TransactionResourceInfoType.NonParallelizable
                     };
                 }
 
@@ -89,12 +89,10 @@ namespace AElf.Kernel.SmartContract.Parallel
             }
             catch (SmartContractFindRegistrationException e)
             {
-                Logger.LogWarning(e.Message);
                 return new TransactionResourceInfo
                 {
                     TransactionId = transaction.GetHash(),
-                    NonParallelizable = true,
-                    Error = "Invalid contract address."
+                    Type = TransactionResourceInfoType.InvalidContractAddress
                 };
             }
             finally

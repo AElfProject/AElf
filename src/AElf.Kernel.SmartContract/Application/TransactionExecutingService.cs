@@ -151,7 +151,6 @@ namespace AElf.Kernel.SmartContract.Application
             }
             catch (SmartContractFindRegistrationException e)
             {
-                Logger.LogWarning(e.Message);
                 txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                 txCtxt.Trace.Error += "Invalid contract address.\n";
                 return trace;

@@ -63,14 +63,9 @@ namespace AElf.Kernel.SmartContract.Parallel
                 
                 foreach (var twr in txsWithResources)
                 {
-                    if (twr.Item2.NonParallelizable && !twr.Item2.Error.IsNullOrWhiteSpace())
+                    if (twr.Item2.Type == TransactionResourceInfoType.InvalidContractAddress)
                     {
-                        groupedTransactions.TracesWithoutContract.Add(new TransactionTrace
-                        {
-                            TransactionId = twr.Item2.TransactionId,
-                            ExecutionStatus = ExecutionStatus.ContractError,
-                            Error = twr.Item2.Error
-                        });
+                        groupedTransactions.TransactionsWithoutContract.Add(twr.Item1);
                         continue;
                     }
 
@@ -81,7 +76,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                         continue;
                     }
                     
-                    if (twr.Item2.NonParallelizable)
+                    if (twr.Item2.Type == TransactionResourceInfoType.NonParallelizable)
                     {
                         groupedTransactions.NonParallelizables.Add(twr.Item1);
                         continue;

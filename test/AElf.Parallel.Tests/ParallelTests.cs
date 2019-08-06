@@ -179,12 +179,13 @@ namespace AElf.Parallel.Tests
             
             var transactionWithoutContract = _parallelTestHelper.GenerateTransaction(accountAddress,
                 SampleAddress.AddressList[0], "Transfer", new Empty());
-            var signature = await _accountService.SignAsync(transactionWithoutContract.GetHash().ToByteArray());
+            var transactionHash = transactionWithoutContract.GetHash();
+            var signature = await _accountService.SignAsync(transactionHash.ToByteArray());
             transactionWithoutContract.Signature = ByteString.CopyFrom(signature);
             prepareTransactions.Add(transactionWithoutContract);
 
             var cancellableTransaction = _parallelTestHelper.GenerateTransaction(accountAddress,
-                _parallelTestHelper.BasicFunctionWithParallelContractAddress, "QueryTwoUserWinMoney",
+                _parallelTestHelper.BasicFunctionWithParallelContractAddress, "QueryWinMoney",
                 new Empty()); 
             signature = await _accountService.SignAsync(cancellableTransaction.GetHash().ToByteArray());
             cancellableTransaction.Signature = ByteString.CopyFrom(signature);
@@ -198,11 +199,9 @@ namespace AElf.Parallel.Tests
                 prepareTransactions);
             groupedTransactions.Parallelizables.Count.ShouldBe(1);
             groupedTransactions.NonParallelizables.Count.ShouldBe(0);
-            groupedTransactions.TracesWithoutContract.Count.ShouldBe(1);
-            var traceWithoutContract = groupedTransactions.TracesWithoutContract[0];
-            traceWithoutContract.TransactionId.ShouldBe(transactionWithoutContract.GetHash());
-            traceWithoutContract.ExecutionStatus.ShouldBe(ExecutionStatus.ContractError);
-            traceWithoutContract.Error.ShouldBe("Invalid contract address.");
+            groupedTransactions.TransactionsWithoutContract.Count.ShouldBe(1); 
+            var transaction = groupedTransactions.TransactionsWithoutContract[0];
+            transaction.GetHash().ShouldBe(transactionHash);
             
             var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, allTransactions);
             block = await _blockExecutingService.ExecuteBlockAsync(block.Header, prepareTransactions,
@@ -212,18 +211,18 @@ namespace AElf.Parallel.Tests
             await _blockAttachService.AttachBlockAsync(block);
             
             var transactionResult =
-                await _transactionResultManager.GetTransactionResultAsync(traceWithoutContract.TransactionId,
+                await _transactionResultManager.GetTransactionResultAsync(transactionHash,
                     block.Header.GetPreMiningHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldBe(traceWithoutContract.Error);
-            
+            transactionResult.Error.ShouldContain("Invalid contract address");
             
             var systemTransactions = await _parallelTestHelper.GenerateTransferTransactions(1);
             cancellableTransactions = await _parallelTestHelper.GenerateTransactionsWithoutConflict(keyPairs, tokenAmount);
             
             transactionWithoutContract = _parallelTestHelper.GenerateTransaction(accountAddress,
                 SampleAddress.AddressList[0], "Transfer", new Empty());
-            signature = await _accountService.SignAsync(transactionWithoutContract.GetHash().ToByteArray());
+            transactionHash = transactionWithoutContract.GetHash();
+            signature = await _accountService.SignAsync(transactionHash.ToByteArray());
             transactionWithoutContract.Signature = ByteString.CopyFrom(signature);
             cancellableTransactions.Add(transactionWithoutContract);
             
@@ -234,11 +233,9 @@ namespace AElf.Parallel.Tests
                 cancellableTransactions);
             groupedTransactions.Parallelizables.Count.ShouldBe(_groupCount);
             groupedTransactions.NonParallelizables.Count.ShouldBe(0);
-            groupedTransactions.TracesWithoutContract.Count.ShouldBe(1);
-            traceWithoutContract = groupedTransactions.TracesWithoutContract[0];
-            traceWithoutContract.TransactionId.ShouldBe(transactionWithoutContract.GetHash());
-            traceWithoutContract.ExecutionStatus.ShouldBe(ExecutionStatus.ContractError);
-            traceWithoutContract.Error.ShouldBe("Invalid contract address.");
+            groupedTransactions.TransactionsWithoutContract.Count.ShouldBe(1);
+            transaction = groupedTransactions.TransactionsWithoutContract[0];
+            transaction.GetHash().ShouldBe(transactionHash);
 
             block = _parallelTestHelper.GenerateBlock(block.GetHash(), block.Height, allTransaction);
             block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
@@ -256,13 +253,13 @@ namespace AElf.Parallel.Tests
             groupedTransactions.NonParallelizables.Count.ShouldBe(0);
 
             block.TransactionIds.Count().ShouldBe(allTransaction.Count);
-            block.TransactionIds.ShouldContain(traceWithoutContract.TransactionId);
+            block.TransactionIds.ShouldContain(transactionHash);
 
             transactionResult =
-                await _transactionResultManager.GetTransactionResultAsync(traceWithoutContract.TransactionId,
+                await _transactionResultManager.GetTransactionResultAsync(transactionHash,
                     block.Header.GetPreMiningHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.ShouldBe(traceWithoutContract.Error);
+            transactionResult.Error.ShouldContain("Invalid contract address");
         }
     }
 }
