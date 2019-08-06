@@ -87,6 +87,16 @@ namespace AElf.Kernel.SmartContract.Parallel
                 // Try storing in cache here
                 return resourceInfo;
             }
+            catch (SmartContractFindRegistrationException e)
+            {
+                Logger.LogWarning(e.Message);
+                return new TransactionResourceInfo
+                {
+                    TransactionId = transaction.GetHash(),
+                    NonParallelizable = true,
+                    Error = "Invalid contract address."
+                };
+            }
             finally
             {
                 if (executive != null)

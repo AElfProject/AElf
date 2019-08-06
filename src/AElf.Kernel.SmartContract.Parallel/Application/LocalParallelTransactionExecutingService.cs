@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -18,6 +17,7 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private readonly ITransactionGrouper _grouper;
         private readonly ITransactionExecutingService _plainExecutingService;
+        private readonly ITransactionResultService _transactionResultService;
         public ILogger<LocalParallelTransactionExecutingService> Logger { get; set; }
 
         public ILocalEventBus EventBus { get; set; }
@@ -29,6 +29,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             _grouper = grouper;
             _plainExecutingService =
                 new TransactionExecutingService(transactionResultService, smartContractExecutiveService, plugins);
+            _transactionResultService = transactionResultService;
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<LocalParallelTransactionExecutingService>.Instance;
         }
@@ -83,6 +84,13 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             Logger.LogTrace($"Merged results from non-parallelizables.");
             returnSets.AddRange(nonParallelizableReturnSets);
+
+            var transactionWithoutContractReturnSets = await ProcessTransactionsWithoutContract(
+                groupedTransactions.TracesWithoutContract, blockHeader);
+            
+            Logger.LogTrace($"Merged results from transactions without contract.");
+            returnSets.AddRange(transactionWithoutContractReturnSets);
+            
             if (conflictingSets.Count > 0)
             {
                 await EventBus.PublishAsync(new ConflictingTransactionsFoundInParallelGroupsEvent(
@@ -95,6 +103,37 @@ namespace AElf.Kernel.SmartContract.Parallel
             var transactionOrder = transactions.Select(t => t.GetHash()).ToList();
 
             return returnSets.AsParallel().OrderBy(d => transactionOrder.IndexOf(d.TransactionId)).ToList();
+        }
+        
+        private async Task<List<ExecutionReturnSet>> ProcessTransactionsWithoutContract(List<TransactionTrace> traces,
+            BlockHeader blockHeader)
+        {
+            var returnSets = new List<ExecutionReturnSet>();
+            foreach (var trace in traces)
+            {
+                if (trace.Error != string.Empty)
+                {
+                    Logger.LogError(trace.Error);
+                }
+
+                var result = new TransactionResult
+                {
+                    TransactionId = trace.TransactionId,
+                    Status = TransactionResultStatus.Failed,
+                    Error = trace.Error
+                };
+                await _transactionResultService.AddTransactionResultAsync(result, blockHeader);
+
+                var returnSet = new ExecutionReturnSet
+                {
+                    TransactionId = result.TransactionId,
+                    Status = result.Status,
+                    Bloom = result.Bloom
+                };
+                returnSets.Add(returnSet);
+            }
+
+            return returnSets;
         }
 
         private async Task<(List<ExecutionReturnSet>, HashSet<string>)> ExecuteAndPreprocessResult(

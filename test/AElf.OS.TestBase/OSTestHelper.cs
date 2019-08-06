@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,9 +25,7 @@ using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
-using Org.BouncyCastle.Asn1.TeleTrust;
 using Volo.Abp.Threading;
 
 namespace AElf.OS
@@ -313,7 +310,7 @@ namespace AElf.OS
             return block;
         }
 
-        public Block GenerateBlock(Hash preBlockHash, long preBlockHeight, IEnumerable<Transaction> transactions = null)
+        public virtual Block GenerateBlock(Hash preBlockHash, long preBlockHeight, IEnumerable<Transaction> transactions = null)
         {
             var block = new Block
             {
