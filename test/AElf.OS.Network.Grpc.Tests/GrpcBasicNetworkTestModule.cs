@@ -27,7 +27,7 @@ namespace AElf.OS.Network
             context.Services.AddSingleton(netTestHelper);
                 
             Configure<NetworkOptions>(o => {
-                o.ListeningPort = 2001;
+                o.ListeningPort = 20001;
                 o.MaxPeers = 2;
             });
 
