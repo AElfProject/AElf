@@ -83,7 +83,6 @@ message HandshakeRequest {
 
 message HandshakeReply {
     Handshake handshake = 1;
-    HandshakeError error = 2;
 }
 
 enum HandshakeError {

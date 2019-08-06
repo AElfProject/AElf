@@ -3,9 +3,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
+using AElf.Types;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -28,11 +30,19 @@ namespace AElf.OS.Network
                 o.MaxPeers = 2;
             });
 
-            context.Services.AddTransient(o =>
-            {
-                var mockHandshakeProvider = new Mock<IHandshakeProvider>();
-                mockHandshakeProvider.Setup(h => h.GetHandshakeAsync()).ReturnsAsync(new Handshake());
-                return mockHandshakeProvider.Object;
+            context.Services.AddTransient(o=>{
+                var mockBlockchainService = new Mock<IBlockchainService>();
+                var keypair = CryptoHelper.GenerateKeyPair();
+
+                mockBlockchainService.Setup(b => b.GetChainAsync()).ReturnsAsync(new Chain
+                {
+                    Id = NetworkTestConstants.DefaultChainId
+                });
+                
+                mockBlockchainService.Setup(b => b.GetBlockHeaderByHashAsync(It.IsAny<Hash>())).ReturnsAsync(netTestHelper
+                    .CreateFakeBlockHeader(NetworkTestConstants.DefaultChainId, 1, keypair));
+
+                return mockBlockchainService.Object;
             });
             
             context.Services.AddTransient(sp =>
@@ -77,9 +87,7 @@ namespace AElf.OS.Network
                 mockDialer.Setup(d => d.DialPeerAsync(It.Is<string>(ip => ip == NetworkTestConstants.BadHandshakeIp)))
                     .Returns<string>((s) =>
                     {
-                        var handshakeReply = new HandshakeReply {
-                            Error = HandshakeError.InvalidHandshake,
-                        };
+                        var handshakeReply = new HandshakeReply();
                         
                         var handshakeCall = TestCalls.AsyncUnaryCall(Task.FromResult(handshakeReply), 
                             Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
@@ -102,7 +110,6 @@ namespace AElf.OS.Network
                         {
                             var keypair = CryptoHelper.GenerateKeyPair();
                             var handshakeReply = new HandshakeReply {
-                                Error = HandshakeError.HandshakeOk,
                                 Handshake = netTestHelper.CreateValidHandshake(keypair, 10)
                             };
                             var handshakeCall = TestCalls.AsyncUnaryCall(Task.FromResult(handshakeReply), 

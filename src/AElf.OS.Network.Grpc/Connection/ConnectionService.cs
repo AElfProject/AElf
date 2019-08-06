@@ -110,10 +110,9 @@ namespace AElf.OS.Network.Grpc.Connection
                 return false;
             }
 
-            HandshakeError handshakeError = ValidateHandshake(peerHandshake, peerPubkey);
-            if (handshakeError != HandshakeError.HandshakeOk)
+            if (!await ValidateHandshake(peerHandshake, peerPubkey))
             {
-                Logger.LogWarning($"Invalid handshake [{handshakeError}] from {ipAddress} - {peerPubkey}");
+                Logger.LogWarning($"Invalid handshake from {ipAddress} - {peerPubkey}");
                 await DisconnectAsync(peer);
                 return false;
             }
@@ -176,12 +175,10 @@ namespace AElf.OS.Network.Grpc.Connection
         
         public async Task<HandshakeReply> CheckIncomingHandshakeAsync(string peerId, Handshake handshake)
         {
-            var error = ValidateHandshake(handshake, peerId);
-
-            if (error != HandshakeError.HandshakeOk)
+            if (!await ValidateHandshake(handshake, peerId))
             {
-                Logger.LogWarning($"Handshake not valid: {error}");
-                return new HandshakeReply { Error = error };
+                Logger.LogWarning("Handshake is not valid");
+                return new HandshakeReply();
             }
             
             var peer = _peerPool.FindPeerByPublicKey(peerId) as GrpcPeer;
@@ -190,8 +187,8 @@ namespace AElf.OS.Network.Grpc.Connection
             // is remove between the interceptor's check and here: stop the process.
             if (peer == null)
             {
-                Logger.LogWarning($"Peer {peerId}: {error}");
-                return new HandshakeReply { Error = HandshakeError.WrongConnection };
+                Logger.LogWarning($"Peer: {peerId} is incorrect ");
+                return new HandshakeReply();
             }
             
             peer.UpdateLastReceivedHandshake(handshake);
@@ -222,31 +219,24 @@ namespace AElf.OS.Network.Grpc.Connection
             return ConnectError.ConnectOk;
         }
 
-        private HandshakeError ValidateHandshake(Handshake handshake, string connectionPubkey)
+        private async Task<bool> ValidateHandshake(Handshake handshake, string connectionPubkey)
         {
-            if (handshake?.HandshakeData == null)
-                return HandshakeError.InvalidHandshake;
-
-            if (handshake.HandshakeData.Pubkey.ToHex() != connectionPubkey)
-                return HandshakeError.InvalidKey;
-            
-            var validData = CryptoHelper.VerifySignature(handshake.Signature.ToByteArray(),
-                Hash.FromMessage(handshake.HandshakeData).ToByteArray(), handshake.HandshakeData.Pubkey.ToByteArray());
-            
-            if (!validData)
-                return HandshakeError.WrongSignature;
-            
-            // verify authentication
-            var pubKey = handshake.HandshakeData.Pubkey.ToHex();
-            
-            if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.Authorized 
-                && !NetworkOptions.AuthorizedKeys.Contains(pubKey))
+            if (!await _handshakeProvider.ValidateHandshakeAsync(handshake, connectionPubkey))
             {
-                Logger.LogDebug($"{pubKey} not in the authorized peers.");
-                return HandshakeError.NotListed;
+                return false;
             }
 
-            return HandshakeError.HandshakeOk;
+            // verify authentication
+            var pubkey = handshake.HandshakeData.Pubkey.ToHex();
+
+            if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.Authorized &&
+                !NetworkOptions.AuthorizedKeys.Contains(pubkey))
+            {
+                Logger.LogDebug($"{pubkey} not in the authorized peers.");
+                return false;
+            }
+
+            return true;
         }
 
         public async Task DisconnectPeersAsync(bool gracefulDisconnect)
