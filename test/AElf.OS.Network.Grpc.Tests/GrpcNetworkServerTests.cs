@@ -137,7 +137,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task DialPeerAsync_HandshakeDataProblem_ShouldThrowException()
         {
-            _networkServer.ConnectAsync(NetworkTestConstants.HandshakeWithSignatureExceptionIp).ShouldThrow<Exception>();
+            _networkServer.ConnectAsync(NetworkTestConstants.HandshakeWithDataExceptionIp).ShouldThrow<Exception>();
             
             _peerPool.PeerCount.ShouldBe(0);
         }
