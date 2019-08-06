@@ -34,19 +34,19 @@ namespace AElf.OS.Network.Protocol
             {
                 Pubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
                 BestChainHead = await _blockchainService.GetBestChainLastBlockHeaderAsync(),
-                LibBlockHeight = chain?.LastIrreversibleBlockHeight ?? 0,
+                LibBlockHeight = chain.LastIrreversibleBlockHeight,
                 Time = TimestampHelper.GetUtcNow()
             };
 
-            byte[] sig = await _accountService.SignAsync(Hash.FromMessage(nd).ToByteArray());
+            var signature = await _accountService.SignAsync(Hash.FromMessage(nd).ToByteArray());
                 
-            var hsk = new Handshake
+            var handshake = new Handshake
             {
                 HandshakeData = nd,
-                Signature = ByteString.CopyFrom(sig)
+                Signature = ByteString.CopyFrom(signature)
             };
 
-            return hsk;
+            return handshake;
         }
 
         public Task<bool> ValidateHandshakeAsync(Handshake handshake)

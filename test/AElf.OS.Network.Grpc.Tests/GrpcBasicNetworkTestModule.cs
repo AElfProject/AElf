@@ -91,12 +91,12 @@ namespace AElf.OS.Network
                     });
                 
                 // Incorrect handshake signature
-                mockDialer.Setup(d => d.DialPeerAsync(It.Is<string>(ip => ip == NetworkTestConstants.HandshakeWithSignatureExceptionIp)))
+                mockDialer.Setup(d => d.DialPeerAsync(It.Is<string>(ip => ip == NetworkTestConstants.HandshakeWithDataExceptionIp)))
                     .Returns<string>(async (s) =>
                     {
                         var handshakeProvider = context.Services.GetServiceLazy<IHandshakeProvider>().Value;
                         var handshake = await handshakeProvider.GetHandshakeAsync();
-                        handshake.Signature = ByteString.CopyFrom(new byte[65]);
+                        handshake.HandshakeData.Time = null;
                         var handshakeReply = new HandshakeReply{Handshake = handshake};
                         
                         var handshakeCall = TestCalls.AsyncUnaryCall(Task.FromResult(handshakeReply), 

@@ -134,8 +134,8 @@ namespace AElf.OS.Network
             _peerPool.PeerCount.ShouldBe(0);
         }
         
-        [Fact(Skip = "Cannot catch RecoverPublicKey exception")]
-        public async Task DialPeerAsync_HandshakeSignatureProblem_ShouldThrowException()
+        [Fact]
+        public async Task DialPeerAsync_HandshakeDataProblem_ShouldThrowException()
         {
             _networkServer.ConnectAsync(NetworkTestConstants.HandshakeWithSignatureExceptionIp).ShouldThrow<Exception>();
             
