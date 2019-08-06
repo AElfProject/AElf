@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
@@ -126,11 +127,18 @@ namespace AElf.OS.Network
         }
         
         [Fact] 
-        public async Task DialPeerAsync_HandshakeNetProblem_ShouldReturnFalse()
+        public async Task DialPeerAsync_HandshakeNetProblem_ShouldThrowException()
         {
-            var added = await _networkServer.ConnectAsync(NetworkTestConstants.HandshakeWithNetExceptionIp);
+            _networkServer.ConnectAsync(NetworkTestConstants.HandshakeWithNetExceptionIp).ShouldThrow<Exception>();
             
-            added.ShouldBeFalse();
+            _peerPool.PeerCount.ShouldBe(0);
+        }
+        
+        [Fact(Skip = "Cannot catch RecoverPublicKey exception")]
+        public async Task DialPeerAsync_HandshakeSignatureProblem_ShouldThrowException()
+        {
+            _networkServer.ConnectAsync(NetworkTestConstants.HandshakeWithSignatureExceptionIp).ShouldThrow<Exception>();
+            
             _peerPool.PeerCount.ShouldBe(0);
         }
         
@@ -144,5 +152,6 @@ namespace AElf.OS.Network
         }
 
         #endregion
+        
     }
 }

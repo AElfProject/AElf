@@ -8,6 +8,7 @@ using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
+using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -87,6 +88,30 @@ namespace AElf.OS.Network
                         netTestHelper.AddDialedPeer(peer);
                             
                         return Task.FromResult(peer);
+                    });
+                
+                // Incorrect handshake signature
+                mockDialer.Setup(d => d.DialPeerAsync(It.Is<string>(ip => ip == NetworkTestConstants.HandshakeWithSignatureExceptionIp)))
+                    .Returns<string>(async (s) =>
+                    {
+                        var handshakeProvider = context.Services.GetServiceLazy<IHandshakeProvider>().Value;
+                        var handshake = await handshakeProvider.GetHandshakeAsync();
+                        handshake.Signature = ByteString.CopyFrom(new byte[65]);
+                        var handshakeReply = new HandshakeReply{Handshake = handshake};
+                        
+                        var handshakeCall = TestCalls.AsyncUnaryCall(Task.FromResult(handshakeReply), 
+                            Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
+                            
+                        var mockClient = new Mock<PeerService.PeerServiceClient>();
+                        mockClient.Setup(m => m.DoHandshakeAsync(It.IsAny<HandshakeRequest>(), It.IsAny<Metadata>(), It.IsAny<DateTime?>(), 
+                            CancellationToken.None)).Returns(handshakeCall);
+                        
+                        var peer = GrpcTestPeerHelpers.CreatePeerWithClient(NetworkTestConstants.GoodPeerEndpoint,
+                            NetworkTestConstants.FakePubkey, mockClient.Object);
+                            
+                        netTestHelper.AddDialedPeer(peer);
+                            
+                        return peer;
                     });
                     
                     // This peer will pass all checks with success.

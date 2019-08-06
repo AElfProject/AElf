@@ -97,24 +97,22 @@ namespace AElf.OS.Network.Grpc.Connection
                 return false;
             }
             
-            Handshake peerHandshake;
-            
             try
             {
-                peerHandshake = await peer.DoHandshakeAsync(await _handshakeProvider.GetHandshakeAsync());
+                var peerHandshake = await peer.DoHandshakeAsync(await _handshakeProvider.GetHandshakeAsync());
+                
+                if (!await ValidateHandshake(peerHandshake, peerPubkey))
+                {
+                    Logger.LogWarning($"Invalid handshake from {ipAddress} - {peerPubkey}");
+                    await DisconnectAsync(peer);
+                    return false;
+                }
             }
-            catch (NetworkException ex)
+            catch (Exception ex)
             {
                 Logger.LogError(ex, $"Handshake failed to {ipAddress} - {peerPubkey}.");
                 await DisconnectAsync(peer);
-                return false;
-            }
-
-            if (!await ValidateHandshake(peerHandshake, peerPubkey))
-            {
-                Logger.LogWarning($"Invalid handshake from {ipAddress} - {peerPubkey}");
-                await DisconnectAsync(peer);
-                return false;
+                throw ex;
             }
             
             Logger.LogTrace($"Connected to {peer} - LIB height {peer.LastKnownLibHeight}, " +
