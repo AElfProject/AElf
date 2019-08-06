@@ -2,6 +2,7 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.OS.Network";
 
+import "google/protobuf/timestamp.proto";
 import "aelf/core.proto";
 import "kernel.proto";
 
@@ -75,6 +76,7 @@ message HandshakeData {
     bytes pubkey = 1;
     aelf.BlockHeader best_chain_head = 2;
     sint64 lib_block_height = 3;
+    google.protobuf.Timestamp time = 4;
 }
 
 message HandshakeRequest {

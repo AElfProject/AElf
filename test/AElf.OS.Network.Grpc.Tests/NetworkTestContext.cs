@@ -35,7 +35,8 @@ namespace AElf.OS.Network
             {
                 BestChainHead = CreateFakeBlockHeader(chainId, bestChainHeight, producer),
                 LibBlockHeight = 1,
-                Pubkey = ByteString.CopyFrom(producer.PublicKey)
+                Pubkey = ByteString.CopyFrom(producer.PublicKey),
+                Time = TimestampHelper.GetUtcNow()
             };
             
             var signature = CryptoHelper.SignWithPrivateKey(producer.PrivateKey, Hash.FromMessage(data).ToByteArray());

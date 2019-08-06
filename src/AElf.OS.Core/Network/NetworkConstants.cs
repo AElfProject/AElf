@@ -23,5 +23,7 @@ namespace AElf.OS.Network
         public const string AnnouncementBroadcastQueueName = "AnnouncementBroadcastQueue";
         public const string TransactionBroadcastQueueName = "TransactionBroadcastQueue";
         public const string BlockBroadcastQueueName = "BlockBroadcastQueue";
+
+        public const long HandshakeTimeout = 1000;
     }
 }

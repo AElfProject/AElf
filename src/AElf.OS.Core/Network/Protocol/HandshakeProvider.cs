@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Cryptography;
+using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Infrastructure;
@@ -33,7 +34,8 @@ namespace AElf.OS.Network.Protocol
             {
                 Pubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
                 BestChainHead = await _blockchainService.GetBestChainLastBlockHeaderAsync(),
-                LibBlockHeight = chain?.LastIrreversibleBlockHeight ?? 0
+                LibBlockHeight = chain?.LastIrreversibleBlockHeight ?? 0,
+                Time = TimestampHelper.GetUtcNow()
             };
 
             byte[] sig = await _accountService.SignAsync(Hash.FromMessage(nd).ToByteArray());
@@ -60,7 +62,14 @@ namespace AElf.OS.Network.Protocol
                 Logger.LogWarning("Handshake pubkey is incorrect.");
                 return Task.FromResult(false);
             }
-            
+
+            if (TimestampHelper.GetUtcNow() > handshake.HandshakeData.Time +
+                TimestampHelper.DurationFromMilliseconds(NetworkConstants.HandshakeTimeout))
+            {
+                Logger.LogWarning("Handshake is expired.");
+                return Task.FromResult(false);
+            }
+
             var validData = CryptoHelper.VerifySignature(handshake.Signature.ToByteArray(),
                 Hash.FromMessage(handshake.HandshakeData).ToByteArray(), handshake.HandshakeData.Pubkey.ToByteArray());
 
