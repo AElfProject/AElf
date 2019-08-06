@@ -17,7 +17,7 @@ using Volo.Abp.Modularity;
 
 namespace AElf.OS.Network
 {
-    [DependsOn(typeof(OSCoreTestAElfModule), typeof(GrpcNetworkModule))]
+    [DependsOn(typeof(OSCoreWithChainTestAElfModule), typeof(GrpcNetworkModule))]
     public class GrpcBasicNetworkTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -30,21 +30,6 @@ namespace AElf.OS.Network
                 o.MaxPeers = 2;
             });
 
-            context.Services.AddTransient(o=>{
-                var mockBlockchainService = new Mock<IBlockchainService>();
-                var keypair = CryptoHelper.GenerateKeyPair();
-
-                mockBlockchainService.Setup(b => b.GetChainAsync()).ReturnsAsync(new Chain
-                {
-                    Id = NetworkTestConstants.DefaultChainId
-                });
-                
-                mockBlockchainService.Setup(b => b.GetBlockHeaderByHashAsync(It.IsAny<Hash>())).ReturnsAsync(netTestHelper
-                    .CreateFakeBlockHeader(NetworkTestConstants.DefaultChainId, 1, keypair));
-
-                return mockBlockchainService.Object;
-            });
-            
             context.Services.AddTransient(sp =>
             {
                 var mockDialer = new Mock<IPeerDialer>();
