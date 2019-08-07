@@ -72,7 +72,7 @@ namespace AElf.OS.Network.Grpc
             return connectReply;
         }
         
-        public async Task<GrpcPeer> DialBackPeer(string ipAddress, ConnectionInfo peerConnectionInfo)
+        public async Task<GrpcPeer> DialBackPeerAsync(string ipAddress, ConnectionInfo peerConnectionInfo)
         {
             var client = CreateClient(ipAddress);
             

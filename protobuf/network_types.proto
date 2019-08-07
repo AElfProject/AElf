@@ -73,10 +73,15 @@ message Handshake {
 }
 
 message HandshakeData {
-    bytes pubkey = 1;
-    aelf.BlockHeader best_chain_head = 2;
-    sint64 lib_block_height = 3;
-    google.protobuf.Timestamp time = 4;
+    int32 chain_id = 1;
+    int32 version = 2;
+    int32 listening_port = 3;
+    bytes pubkey = 4;
+    aelf.Hash best_chain_hash = 5;
+    int64 best_chain_height = 6;
+    aelf.Hash last_irreversible_block_hash = 7;
+    int64 last_irreversible_block_height = 8;
+    google.protobuf.Timestamp time = 9;
 }
 
 message HandshakeRequest {

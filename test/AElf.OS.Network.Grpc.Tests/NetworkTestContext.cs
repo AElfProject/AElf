@@ -33,9 +33,14 @@ namespace AElf.OS.Network
         {
             var data = new HandshakeData
             {
-                BestChainHead = CreateFakeBlockHeader(chainId, bestChainHeight, producer),
-                LibBlockHeight = 1,
+                ChainId = chainId,
+                Version = KernelConstants.ProtocolVersion,
+                ListeningPort = 0,
                 Pubkey = ByteString.CopyFrom(producer.PublicKey),
+                BestChainHash = Hash.FromString("BestChainHash"),
+                BestChainHeight = bestChainHeight,
+                LastIrreversibleBlockHash = Hash.FromString("LastIrreversibleBlockHash"),
+                LastIrreversibleBlockHeight = 1,
                 Time = TimestampHelper.GetUtcNow()
             };
             

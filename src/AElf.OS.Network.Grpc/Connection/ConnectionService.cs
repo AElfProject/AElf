@@ -126,9 +126,10 @@ namespace AElf.OS.Network.Grpc.Connection
         private void FireConnectionEvent(GrpcPeer peer)
         {
             var nodeInfo = new NodeInfo { Endpoint = peer.IpAddress, Pubkey = peer.Info.Pubkey.ToByteString() };
-            var bestChainHeader = peer.LastReceivedHandshake.HandshakeData.BestChainHead;
+            var bestChainHash = peer.LastReceivedHandshake.HandshakeData.BestChainHash;
+            var bestChainHeight = peer.LastReceivedHandshake.HandshakeData.BestChainHeight;
 
-            _ = EventBus.PublishAsync(new PeerConnectedEventData(nodeInfo, bestChainHeader));
+            _ = EventBus.PublishAsync(new PeerConnectedEventData(nodeInfo, bestChainHash, bestChainHeight));
         }
                 
         public async Task<ConnectReply> DialBackAsync(string peerConnectionIp, ConnectionInfo peerConnectionInfo)
@@ -156,7 +157,7 @@ namespace AElf.OS.Network.Grpc.Connection
             var peerAddress = peer.IpAddress + ":" + peerConnectionInfo.ListeningPort;
             
             Logger.LogDebug($"Attempting to create channel to {peerAddress}");
-            var grpcPeer = await _peerDialer.DialBackPeer(peerAddress, peerConnectionInfo);
+            var grpcPeer = await _peerDialer.DialBackPeerAsync(peerAddress, peerConnectionInfo);
 
             // If auth ok -> add it to our peers
             if (!_peerPool.TryAddPeer(grpcPeer))

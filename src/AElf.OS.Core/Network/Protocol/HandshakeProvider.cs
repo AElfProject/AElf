@@ -8,6 +8,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace AElf.OS.Network.Protocol
 {
@@ -15,14 +16,17 @@ namespace AElf.OS.Network.Protocol
     {
         private readonly IAccountService _accountService;
         private readonly IBlockchainService _blockchainService;
-        
+        private readonly NetworkOptions _networkOptions;
+
         public ILogger<HandshakeProvider> Logger { get; set; }
 
-        public HandshakeProvider(IAccountService accountService, IBlockchainService blockchainService)
+        public HandshakeProvider(IAccountService accountService, IBlockchainService blockchainService,
+            IOptionsSnapshot<NetworkOptions> networkOptions)
         {
             _accountService = accountService;
             _blockchainService = blockchainService;
-            
+            _networkOptions = networkOptions.Value;
+
             Logger = NullLogger<HandshakeProvider>.Instance;
         }
 
@@ -30,19 +34,24 @@ namespace AElf.OS.Network.Protocol
         {
             var chain = await _blockchainService.GetChainAsync();
 
-            var nd = new HandshakeData
+            var handshakeData = new HandshakeData
             {
+                ChainId = chain.Id,
+                Version = KernelConstants.ProtocolVersion,
+                ListeningPort = _networkOptions.ListeningPort,
                 Pubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
-                BestChainHead = await _blockchainService.GetBestChainLastBlockHeaderAsync(),
-                LibBlockHeight = chain.LastIrreversibleBlockHeight,
+                BestChainHash = chain.BestChainHash,
+                BestChainHeight = chain.BestChainHeight,
+                LastIrreversibleBlockHash = chain.LastIrreversibleBlockHash,
+                LastIrreversibleBlockHeight = chain.LastIrreversibleBlockHeight,
                 Time = TimestampHelper.GetUtcNow()
             };
 
-            var signature = await _accountService.SignAsync(Hash.FromMessage(nd).ToByteArray());
-                
+            var signature = await _accountService.SignAsync(Hash.FromMessage(handshakeData).ToByteArray());
+
             var handshake = new Handshake
             {
-                HandshakeData = nd,
+                HandshakeData = handshakeData,
                 Signature = ByteString.CopyFrom(signature)
             };
 
@@ -54,6 +63,19 @@ namespace AElf.OS.Network.Protocol
             if (handshake?.HandshakeData == null)
             {
                 Logger.LogWarning("Handshake is null.");
+                return Task.FromResult(false);
+            }
+
+            var chainId = _blockchainService.GetChainId();
+            if (handshake.HandshakeData.ChainId != chainId)
+            {
+                Logger.LogWarning($"Chain is is incorrect: {handshake.HandshakeData.ChainId}.");
+                return Task.FromResult(false);
+            }
+
+            if (handshake.HandshakeData.Version != KernelConstants.ProtocolVersion)
+            {
+                Logger.LogWarning($"Version is is incorrect: {handshake.HandshakeData.Version}.");
                 return Task.FromResult(false);
             }
 
