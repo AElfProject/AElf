@@ -132,7 +132,7 @@ namespace AElf.OS.Rpc.ChainController
                     ["Status"] = nameof(TransactionResultStatus.NotExisted)
                 };
             
-            var transaction = await TransactionManager.GetTransaction(transactionResult.TransactionId);
+            var transaction = await TransactionManager.GetTransactionAsync(transactionResult.TransactionId);
             
             var response = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
             response["TransactionId"] = transactionResult.TransactionId.ToHex();
@@ -190,7 +190,7 @@ namespace AElf.OS.Rpc.ChainController
                 {
                     var transactionResult = await this.GetTransactionResult(hash);
                     var jObjectResult = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
-                    var transaction = await TransactionManager.GetTransaction(transactionResult.TransactionId);
+                    var transaction = await TransactionManager.GetTransactionAsync(transactionResult.TransactionId);
                     jObjectResult["BlockHash"] = block.GetHash().ToHex();
 
                     if (transactionResult.Status == TransactionResultStatus.Failed)

@@ -2,6 +2,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.TransactionPool.Application;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network;
 using AElf.Types;
@@ -14,19 +17,22 @@ namespace AElf.OS.BlockSync.Application
     {
         private readonly IAnnouncementCacheProvider _announcementCacheProvider;
         private readonly IBlockValidationService _blockValidationService;
+        private readonly ITransactionManager _transactionManager;
 
         public ILogger<BlockSyncValidationService> Logger { get; set; }
 
-        private IEnumerable<IBlockSyncTransactionValidationProvider> _blockSyncTransactionValidationProviders;
+        private readonly IEnumerable<ITransactionValidationProvider> _transactionValidationProviders;
 
         public BlockSyncValidationService(IAnnouncementCacheProvider announcementCacheProvider,
-            IBlockValidationService blockValidationService, IEnumerable<IBlockSyncTransactionValidationProvider> blockSyncTransactionValidationProviders)
+            IBlockValidationService blockValidationService, ITransactionManager transactionManager,
+            IEnumerable<ITransactionValidationProvider> transactionValidationProviders)
         {
             Logger = NullLogger<BlockSyncValidationService>.Instance;
 
             _announcementCacheProvider = announcementCacheProvider;
             _blockValidationService = blockValidationService;
-            _blockSyncTransactionValidationProviders = blockSyncTransactionValidationProviders;
+            _transactionManager = transactionManager;
+            _transactionValidationProviders = transactionValidationProviders;
         }
 
         public async Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement)
@@ -68,8 +74,13 @@ namespace AElf.OS.BlockSync.Application
         {
             foreach (var transaction in transactions)
             {
-                foreach (var validationProvider in _blockSyncTransactionValidationProviders)
+                foreach (var validationProvider in _transactionValidationProviders)
                 {
+                    // No need to validate again if this tx already in local database.
+                    var tx = await _transactionManager.GetTransactionAsync(transaction.GetHash());
+                    if (tx != null)
+                        continue;
+
                     if (!await validationProvider.ValidateTransactionAsync(transaction))
                         return false;
                 }

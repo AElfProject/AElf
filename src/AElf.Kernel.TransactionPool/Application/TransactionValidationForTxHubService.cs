@@ -6,9 +6,9 @@ namespace AElf.Kernel.TransactionPool.Application
 {
     public class TransactionValidationForTxHubService : ITransactionValidationService
     {
-        private readonly IEnumerable<ITransactionValidationForTxHubProvider> _transactionValidationProviders;
+        private readonly IEnumerable<ITransactionValidationProvider> _transactionValidationProviders;
 
-        public TransactionValidationForTxHubService(IEnumerable<ITransactionValidationForTxHubProvider> transactionValidationProviders)
+        public TransactionValidationForTxHubService(IEnumerable<ITransactionValidationProvider> transactionValidationProviders)
         {
             _transactionValidationProviders = transactionValidationProviders;
         }

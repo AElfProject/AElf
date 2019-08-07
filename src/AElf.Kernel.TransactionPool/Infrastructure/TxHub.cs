@@ -205,9 +205,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var executableTransactions = new List<Transaction>();
             foreach (var transaction in eventData.Transactions)
             {
-                if (!transaction.VerifySignature())
-                    continue;
-
                 var receipt = new TransactionReceipt
                 {
                     TransactionId = transaction.GetHash(),
@@ -224,27 +221,22 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     Logger.LogWarning($"TxStore is full, ignore tx {receipt.TransactionId}");
                     break;
                 }
-
-                if (transaction.CalculateSize() > TransactionPoolConsts.TransactionSizeLimit)
-                {
-                    Logger.LogWarning($"Transaction {receipt.TransactionId} oversize {transaction.CalculateSize()}");
-                    continue;
-                }
-
-                var txn = await _transactionManager.GetTransaction(receipt.TransactionId);
+                
+                // Skip this transaction if it is already in local database.
+                var txn = await _transactionManager.GetTransactionAsync(receipt.TransactionId);
                 if (txn != null)
                 {
-                    //Logger.LogWarning($"Transaction already exists in TxStore");
                     continue;
                 }
 
-                if (!await _transactionValidationService.ValidateTransactionAsync(transaction))
+                var validationResult = await _transactionValidationService.ValidateTransactionAsync(transaction);
+                if (!validationResult)
                 {
                     continue;
                 }
 
-                var success = _allTransactions.TryAdd(receipt.TransactionId, receipt);
-                if (!success)
+                var additionResult = _allTransactions.TryAdd(receipt.TransactionId, receipt);
+                if (!additionResult)
                 {
                     continue;
                 }

@@ -11,13 +11,13 @@ namespace AElf.Kernel.TransactionPool.Application
     /// <summary>
     /// Return true if native token balance of from address is greater than 0.
     /// </summary>
-    internal class TransactionFromAddressBalanceValidationForTxHubProvider : ITransactionValidationForTxHubProvider
+    internal class TransactionFromAddressBalanceValidationProvider : ITransactionValidationProvider
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ITokenContractReaderFactory _tokenContractReaderFactory;
         private readonly INativeTokenSymbolProvider _nativeTokenSymbolProvider;
 
-        public TransactionFromAddressBalanceValidationForTxHubProvider(IBlockchainService blockchainService,
+        public TransactionFromAddressBalanceValidationProvider(IBlockchainService blockchainService,
             ITokenContractReaderFactory tokenContractReaderFactory,
             INativeTokenSymbolProvider nativeTokenSymbolProvider)
         {

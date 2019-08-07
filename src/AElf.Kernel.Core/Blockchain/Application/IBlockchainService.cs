@@ -173,7 +173,7 @@ namespace AElf.Kernel.Blockchain.Application
             
             foreach (var transactionId in transactionIds)
             {
-                var transaction = await _transactionManager.GetTransaction(transactionId);
+                var transaction = await _transactionManager.GetTransactionAsync(transactionId);
                 transactions.Add(transaction);
             }
 
