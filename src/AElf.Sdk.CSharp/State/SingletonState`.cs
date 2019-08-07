@@ -10,7 +10,7 @@ namespace AElf.Sdk.CSharp.State
 
     public class SingletonState<TEntity> : SingletonState
     {
-        internal bool Loaded = false;
+        internal bool Loaded;
         internal bool Modified => Equals(_originalValue, _value);
 
         private TEntity _originalValue;
@@ -41,7 +41,7 @@ namespace AElf.Sdk.CSharp.State
         internal override void Clear()
         {
             Loaded = false;
-            _originalValue = default(TEntity);
+            _originalValue = default;
             _value = _originalValue;
         }
 
