@@ -48,7 +48,24 @@ namespace AElf.Cryptography.Tests
             Assert.False(publicKey2.BytesEqual(keyPair.PublicKey));
         }
 
+        [Fact]
+        public void VerifySignature_BadSignature()
+        {
+            var keyPair = CryptoHelper.GenerateKeyPair();
+            var messageBytes = Encoding.UTF8.GetBytes("Hello world.");
+            var messageHash = messageBytes.ComputeHash();
+            var signature = new byte[65];
 
+            var verifyResult = CryptoHelper.VerifySignature(signature, messageHash, keyPair.PublicKey);
+            verifyResult.ShouldBeFalse();
+        }
+
+        [Fact]
+        public void FromPrivateKey_BadPrivateKey_ShouldThrowArgumentException()
+        {
+            Assert.Throws<ArgumentException>(() => CryptoHelper.FromPrivateKey(new byte[32]));
+        }
+        
         [Fact]
         public void Test_Decrypt_Message()
         {
@@ -88,6 +105,12 @@ namespace AElf.Cryptography.Tests
         {
             var byteArray1 = CryptoHelper.RandomFill(30);
             byteArray1.Length.ShouldBe(30);
+        }
+        
+        [Fact]
+        public void Ecdh_BadArgument_ShouldThrowArgumentException()
+        {
+            Assert.Throws<ArgumentException>(() => CryptoHelper.Ecdh(new byte[32], new byte[33]));
         }
     }
 }

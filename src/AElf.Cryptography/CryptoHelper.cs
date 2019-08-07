@@ -37,9 +37,11 @@ namespace AElf.Cryptography
                 Lock.AcquireWriterLock(Timeout.Infinite);
                 var secp256K1PubKey = new byte[64];
 
-                Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey);
+                if(!Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey))
+                    throw new ArgumentException("Private key is incorrect.");
                 var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
-                Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey);
+                if(!Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey))
+                    throw new ArgumentException("Private key is incorrect.");
                 return new ECKeyPair(privateKey, pubKey);
             }
             finally
@@ -63,9 +65,11 @@ namespace AElf.Cryptography
                     rnd.GetBytes(privateKey);
                 } while (!Secp256K1.SecretKeyVerify(privateKey));
 
-                Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey);
+                if(!Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey))
+                    throw new InvalidOperationException("Generate key pair failed.");
                 var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
-                Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey);
+                if(!Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey))
+                    throw new InvalidOperationException("Generate key pair failed.");
                 return new ECKeyPair(privateKey, pubKey);
             }
             finally
@@ -81,8 +85,10 @@ namespace AElf.Cryptography
                 Lock.AcquireWriterLock(Timeout.Infinite);
                 var recSig = new byte[65];
                 var compactSig = new byte[65];
-                Secp256K1.SignRecoverable(recSig, hash, privateKey);
-                Secp256K1.RecoverableSignatureSerializeCompact(compactSig, out var recoverId, recSig);
+                if(!Secp256K1.SignRecoverable(recSig, hash, privateKey))
+                    throw new ArgumentException("Private key or hash is incorrect.");
+                if(!Secp256K1.RecoverableSignatureSerializeCompact(compactSig, out var recoverId, recSig))
+                    throw new ArgumentException("Private key or hash is incorrect.");
                 compactSig[64] = (byte) recoverId; // put recover id at the last slot
                 return compactSig;
             }
@@ -109,9 +115,12 @@ namespace AElf.Cryptography
                 var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
                 var recoveredPubKey = new byte[Secp256k1.PUBKEY_LENGTH];
                 var recSig = new byte[65];
-                Secp256K1.RecoverableSignatureParseCompact(recSig, signature, signature.Last());
-                Secp256K1.Recover(recoveredPubKey, recSig, hash);
-                Secp256K1.PublicKeySerialize(pubKey, recoveredPubKey);
+                if (!Secp256K1.RecoverableSignatureParseCompact(recSig, signature, signature.Last()))
+                    return false;
+                if (!Secp256K1.Recover(recoveredPubKey, recSig, hash))
+                    return false;
+                if (!Secp256K1.PublicKeySerialize(pubKey, recoveredPubKey))
+                    return false;
                 publicKey = pubKey;
                 return true;
             }
@@ -143,9 +152,11 @@ namespace AElf.Cryptography
             {
                 Lock.AcquireWriterLock(Timeout.Infinite);
                 var usablePublicKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
-                Secp256K1.PublicKeyParse(usablePublicKey, publicKey);
+                if(!Secp256K1.PublicKeyParse(usablePublicKey, publicKey))
+                    throw new ArgumentException("Private key or public key is incorrect.");
                 var ecdhKey = new byte[Secp256k1.SERIALIZED_COMPRESSED_PUBKEY_LENGTH];
-                Secp256K1.Ecdh(ecdhKey, usablePublicKey, privateKey);
+                if(!Secp256K1.Ecdh(ecdhKey, usablePublicKey, privateKey))
+                    throw new ArgumentException("Private key or public key is incorrect.");
                 return ecdhKey;
             }
             finally
