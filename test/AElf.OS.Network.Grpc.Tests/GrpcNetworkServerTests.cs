@@ -59,6 +59,7 @@ namespace AElf.OS.Network
             await _networkServer.StartAsync();
             var peer = AddPeerToPool();
             peer.IsShutdown.ShouldBeFalse();
+            await _networkServer.DisconnectAsync(peer, false);
             await _networkServer.StopAsync();
             peer.IsShutdown.ShouldBeTrue();
         }

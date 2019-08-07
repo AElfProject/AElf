@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
@@ -5,6 +6,7 @@ using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
+using Grpc.Core.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp;
@@ -23,7 +25,7 @@ namespace AElf.OS.Network
                 o.MaxPeers = 2;
             });
             
-            context.Services.AddSingleton<ISyncStateService>(o =>
+            context.Services.AddSingleton(o =>
             {
                 var mockService = new Mock<ISyncStateService>();
                 mockService.Setup(s => s.SyncState).Returns(SyncState.Finished);

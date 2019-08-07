@@ -348,6 +348,9 @@ namespace AElf.OS.Network
             var reply = await _service.RequestBlocks(new BlocksRequest { PreviousBlockHash = chain.GenesisBlockHash, Count = 5 }, reqBlockCtxt);
             
             Assert.True(reply.Blocks.Count == 5);
+
+            reply = await _service.RequestBlocks(new BlocksRequest { PreviousBlockHash = Hash.FromString("invalid"), Count = 5 }, reqBlockCtxt);
+            reply.ShouldBe(new BlockList());
         }
         
         [Fact]

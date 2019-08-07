@@ -16,9 +16,12 @@ namespace AElf.OS.Network
     {
     }
 
+    public class GrpcNetworkWithBootNodesTestBase : AElfIntegratedTest<GrpcNetworkWithBootNodesTestModule>
+    {
+    }
+
     public class GrpcBackpressureTestBase : AElfIntegratedTest<GrpcBackpressureTestModule>
     {
-        
     }
 
     public class TestAsyncStreamReader<T> : IAsyncStreamReader<T>

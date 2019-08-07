@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +44,7 @@ namespace AElf.OS.Network
         }
 
         [Fact]
-        public void EnqueueBlock_ShouldExecuteCallback()
+        public void EnqueueBlock_ShouldExecuteCallback_Test()
         {
             AutoResetEvent executed = new AutoResetEvent(false);
             
@@ -62,13 +63,14 @@ namespace AElf.OS.Network
         }
         
         [Fact]
-        public void EnqueueTransaction_ShouldExecuteCallback()
+        public void EnqueueTransaction_ShouldExecuteCallback_Test()
         {
             AutoResetEvent executed = new AutoResetEvent(false);
             
             NetworkException exception = null;
+            var transaction = new Transaction();
             bool called = false;
-            _nonInterceptedPeer.EnqueueTransaction(new Transaction(), ex =>
+            _nonInterceptedPeer.EnqueueTransaction(transaction, ex =>
             {
                 exception = ex;
                 called = true;
@@ -81,7 +83,7 @@ namespace AElf.OS.Network
         }
         
         [Fact]
-        public void EnqueueAnnouncement_ShouldExecuteCallback()
+        public void EnqueueAnnouncement_ShouldExecuteCallback_Test()
         {
             AutoResetEvent executed = new AutoResetEvent(false);
             
@@ -100,7 +102,18 @@ namespace AElf.OS.Network
         }
 
         [Fact]
-        public async Task RequestBlockAsync_Success()
+        public void GetRequestMetrics_Test()
+        {
+            var metrics = _grpcPeer.GetRequestMetrics();
+            metrics.Count.ShouldBe(3);
+            var dicKeys = metrics.Keys.ToList();
+            dicKeys.ShouldContain("GetBlock");
+            dicKeys.ShouldContain("GetBlocks");
+            dicKeys.ShouldContain("Announce");
+        }
+
+        [Fact]
+        public async Task RequestBlockAsync_Success_Test()
         {
             var block = await _grpcPeer.GetBlockByHashAsync(Hash.FromRawBytes(new byte[]{1,2,7}));
             block.ShouldBeNull();
@@ -110,20 +123,8 @@ namespace AElf.OS.Network
             block.ShouldNotBeNull();
         }
 
-        [Fact(Skip = "Improve the logic of this test.")]
-        public async Task RequestBlockAsync_Failed()
-        {
-            _grpcPeer = GrpcTestPeerHelpers.CreateNewPeer("127.0.0.1:3000", false);
-            _pool.TryAddPeer(_grpcPeer);
-
-            var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
-            var block = await _grpcPeer.GetBlockByHashAsync(blockHeader.GetHash());
-            
-            block.ShouldBeNull();
-        }
-
         [Fact]
-        public async Task GetBlocksAsync_Success()
+        public async Task GetBlocksAsync_Success_Test()
         {
             var chain = await _blockchainService.GetChainAsync();
             var genesisHash = chain.GenesisBlockHash;
@@ -131,16 +132,17 @@ namespace AElf.OS.Network
             var blocks = await _grpcPeer.GetBlocksAsync(genesisHash, 5);
             blocks.Count.ShouldBe(5);
             blocks.Select(o => o.Height).ShouldBe(new long[] {2, 3, 4, 5, 6});
+
+            var blockHash = Hash.Empty;
+            blocks = await _grpcPeer.GetBlocksAsync(blockHash, 1);
+            blocks.ShouldBe(new List<BlockWithTransactions>());
         }
 
-        public async Task DisconnectAsync_Success()
+        [Fact]
+        public async Task GetNodesAsync_Test()
         {
-            var peers = _pool.GetPeers();
-            peers.Count.ShouldBe(2);
-
-            await _grpcPeer.DisconnectAsync(true);
-            peers = _pool.GetPeers();
-            peers.Count.ShouldBe(1);
+            var nodeList = await _grpcPeer.GetNodesAsync();
+            nodeList.Nodes.Count.ShouldBe(0);
         }
     }
 }
