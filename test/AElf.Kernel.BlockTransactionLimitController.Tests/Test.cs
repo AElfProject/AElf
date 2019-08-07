@@ -45,7 +45,8 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
                 Assert.Equal(0, limit.Value);
             }
             var provider = Application.ServiceProvider.GetRequiredService<IBlockTransactionLimitProvider>();
-            Assert.Equal(0, provider.Limit);
+            var limitNum = await provider.GetLimitAsync();
+            Assert.Equal(0, limitNum);
         }
     }
 }

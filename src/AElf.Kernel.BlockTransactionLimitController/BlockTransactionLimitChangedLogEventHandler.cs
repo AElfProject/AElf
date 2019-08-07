@@ -49,9 +49,8 @@ namespace AElf.Kernel.BlockTransactionLimitController
             }
 
             eventData.MergeFrom(log.NonIndexed);
-            var old = _provider.Limit;
-            _provider.Limit = eventData.New;
-            Logger.LogInformation($"BlockTransactionLimit has been changed from {old} to {eventData.New}");
+            _provider.SetLimit(eventData.New);
+            Logger.LogInformation($"BlockTransactionLimit has been changed to {eventData.New}");
             await Task.CompletedTask;
         }
     }

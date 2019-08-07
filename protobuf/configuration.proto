@@ -12,8 +12,12 @@ service Configuration {
     // Actions
     rpc SetBlockTransactionLimit (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
     }
+    rpc SetTransactionOwnerAddress (aelf.Address) returns (google.protobuf.Empty){
+    }
     // Views
     rpc GetBlockTransactionLimit (google.protobuf.Empty) returns (google.protobuf.Int32Value) {
+    }
+    rpc GetTransactionOwnerAddress (google.protobuf.Empty) returns (aelf.Address) {
     }
 }
 

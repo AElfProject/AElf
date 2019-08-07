@@ -98,5 +98,27 @@ namespace AElf.Contracts.ConfigurationContract.Tests
                 nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Release), proposalId);
             return transactionResult;
         }
+        
+        internal async Task<Hash> SetTransactionOwnerAddressProposalAsync(Address address)
+        {
+            var createProposalInput = address;
+            var organizationAddress = Address.Parser.ParseFrom((await Tester.ExecuteContractWithMiningAsync(
+                    ParliamentAddress,
+                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetGenesisOwnerAddress),
+                    new Empty()))
+                .ReturnValue);
+            var proposal = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.CreateProposal),
+                new CreateProposalInput
+                {
+                    ContractMethodName = "SetTransactionOwnerAddress",
+                    ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
+                    Params = createProposalInput.ToByteString(),
+                    ToAddress = ConfigurationContractAddress,
+                    OrganizationAddress = organizationAddress
+                });
+            var proposalId = Hash.Parser.ParseFrom(proposal.ReturnValue);
+            return proposalId;
+        }
     }
 }

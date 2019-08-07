@@ -295,7 +295,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Parallel.Tests", "test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.BasicFunctionWithParallel", "test\AElf.Contracts.TestContract.BasicFunctionWithParallel\AElf.Contracts.TestContract.BasicFunctionWithParallel.csproj", "{D62A334F-6237-4B83-B195-09ED1F25E344}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.ConfigurationContract.Tests", "test\AElf.Contracts.ConfigurationContract.Tests\AElf.Contracts.ConfigurationContract.Tests.csproj", "{2911782F-D3A7-42C4-ABE1-501824BC753A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.Configuration.Tests", "test\AElf.Contracts.Configuration.Tests\AElf.Contracts.Configuration.Tests.csproj", "{2911782F-D3A7-42C4-ABE1-501824BC753A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
