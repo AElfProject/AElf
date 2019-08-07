@@ -47,7 +47,10 @@ namespace AElf.CrossChain.Communication.Grpc
             await Task.Run(() => _server.Start());
             
             Logger.LogDebug($"Grpc cross chain server started, listening at {localServerPort}");
+            IsStarted = true;
         }
+
+        public bool IsStarted { get; private set; }
 
         public void Dispose()
         {
@@ -55,6 +58,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 return;
             AsyncHelper.RunSync(() =>_server.ShutdownAsync());
             _server = null;
+            IsStarted = false;
         }
     }
 }

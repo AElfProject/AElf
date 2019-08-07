@@ -406,7 +406,7 @@ namespace AElf.Contract.CrossChain.Tests
                     Value = sideChainId
                 });
             result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.Contains("Side chain Not Found.").ShouldBeTrue();
+            result.Error.Contains("Side chain not found.").ShouldBeTrue();
 
             var chainInitializationContext = ChainInitializationData.Parser.ParseFrom(result.ReturnValue);
             chainInitializationContext.ChainId.ShouldBe(0);

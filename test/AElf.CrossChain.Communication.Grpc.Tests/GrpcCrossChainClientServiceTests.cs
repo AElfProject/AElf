@@ -46,7 +46,7 @@ namespace AElf.CrossChain.Communication.Grpc
             var localChainId = ChainHelper.GetChainId(1);
             
             var host = "127.0.0.1";
-            var port = 5000;
+            var port = 5010;
             await Server.StartAsync(host, port);
 
             var fakeCrossChainClient = new CrossChainClientDto

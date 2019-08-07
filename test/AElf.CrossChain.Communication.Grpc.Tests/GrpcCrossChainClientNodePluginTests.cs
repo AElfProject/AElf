@@ -45,7 +45,6 @@ namespace AElf.CrossChain.Communication.Grpc
         public async Task StopClientTest_Test()
         {
             var chainId = ChainHelper.GetChainId(1);
-            var remoteChainId = ChainOptions.ChainId;
             await _server.StartAsync("localhost", 5000);
             await _grpcCrossChainClientNodePlugin.StartAsync(chainId);
             var client = _crossChainClientProvider.GetAllClients();

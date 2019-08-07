@@ -24,7 +24,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 $"Parent Chain Server received IndexedInfo message from chain {ChainHelper.ConvertChainIdToBase58(crossChainRequest.FromChainId)}.");
             var requestedHeight = crossChainRequest.NextHeight;
             var remoteChainId = crossChainRequest.FromChainId;
-            while (requestedHeight - crossChainRequest.NextHeight <= CrossChainCommunicationConstants.MaximalIndexingCount)
+            while (requestedHeight - crossChainRequest.NextHeight < CrossChainCommunicationConstants.MaximalIndexingCount)
             {
                 var parentChainBlockData =
                     await _crossChainResponseService.ResponseParentChainBlockDataAsync(requestedHeight, remoteChainId);

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Acs7;
@@ -31,7 +33,7 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         [Fact]
-        public async Task RequestIndexingParentChain_WithoutExtraData_Test()
+        public async Task RequestIndexingParentChain_MaximalResponse_Test()
         {
             var requestData = new CrossChainRequest
             {
@@ -39,29 +41,50 @@ namespace AElf.CrossChain.Communication.Grpc
                 NextHeight = 10
             };
 
-            IServerStreamWriter<ParentChainBlockData> responseStream =
-                Mock.Of<IServerStreamWriter<ParentChainBlockData>>();
+            var responseResults = new List<ParentChainBlockData>();
+            IServerStreamWriter<ParentChainBlockData> responseStream = MockServerStreamWriter(responseResults); 
             var context = BuildServerCallContext();
             await ParentChainGrpcServerBase.RequestIndexingFromParentChain(requestData, responseStream, context);
+            Assert.Equal(CrossChainCommunicationConstants.MaximalIndexingCount, responseResults.Count);
+            Assert.Equal(10, responseResults[0].Height);
         }
 
         [Fact]
-        public async Task RequestIndexingParentChain_WithExtraData_Test()
+        public async Task RequestIndexingParentChain_EmptyResponse_Test()
         {
             var requestData = new CrossChainRequest
             {
                 FromChainId = ChainHelper.GetChainId(1),
-                NextHeight = 9
+                NextHeight = 101
             };
 
-            IServerStreamWriter<ParentChainBlockData> responseStream =
-                Mock.Of<IServerStreamWriter<ParentChainBlockData>>();
+            var responseResults = new List<ParentChainBlockData>();
+            IServerStreamWriter<ParentChainBlockData> responseStream = MockServerStreamWriter(responseResults); 
             var context = BuildServerCallContext();
             await ParentChainGrpcServerBase.RequestIndexingFromParentChain(requestData, responseStream, context);
+            Assert.Empty(responseResults);
+        }
+        
+        [Fact]
+        public async Task RequestIndexingParentChain_SpecificResponse_Test()
+        {
+            var requestData = new CrossChainRequest
+            {
+                FromChainId = ChainHelper.GetChainId(1),
+                NextHeight = 61
+            };
+
+            var responseResults = new List<ParentChainBlockData>();
+            IServerStreamWriter<ParentChainBlockData> responseStream = MockServerStreamWriter(responseResults); 
+            var context = BuildServerCallContext();
+            await ParentChainGrpcServerBase.RequestIndexingFromParentChain(requestData, responseStream, context);
+            Assert.Equal(40, responseResults.Count);
+            Assert.Equal(61, responseResults.First().Height);
+            Assert.Equal(100, responseResults.Last().Height);
         }
 
         [Fact]
-        public async Task RequestIndexingSideChain_Test()
+        public async Task RequestIndexingSideChain_MaximalResponse_Test()
         {
             var requestData = new CrossChainRequest
             {
@@ -69,9 +92,12 @@ namespace AElf.CrossChain.Communication.Grpc
                 NextHeight = 10
             };
 
-            IServerStreamWriter<SideChainBlockData> responseStream = Mock.Of<IServerStreamWriter<SideChainBlockData>>();
+            var responseResults = new List<SideChainBlockData>();
+            IServerStreamWriter<SideChainBlockData> responseStream = MockServerStreamWriter(responseResults); 
             var context = BuildServerCallContext();
             await SideChainGrpcServerBase.RequestIndexingFromSideChain(requestData, responseStream, context);
+            Assert.Equal(CrossChainCommunicationConstants.MaximalIndexingCount, responseResults.Count);
+            Assert.Equal(10, responseResults[0].Height);
         }
 
         [Fact]
@@ -86,8 +112,8 @@ namespace AElf.CrossChain.Communication.Grpc
             var context = BuildServerCallContext();
             var indexingHandShakeReply = await BasicCrossChainRpcBase.CrossChainHandShake(request, context);
 
-            indexingHandShakeReply.ShouldNotBeNull();
-            indexingHandShakeReply.Success.ShouldBeTrue();
+            Assert.NotNull(indexingHandShakeReply);
+            Assert.True(indexingHandShakeReply.Success);
         }
 
         [Fact]
@@ -100,7 +126,7 @@ namespace AElf.CrossChain.Communication.Grpc
             var context = BuildServerCallContext();
             var sideChainInitializationResponse =
                 await ParentChainGrpcServerBase.RequestChainInitializationDataFromParentChain(requestData, context);
-            sideChainInitializationResponse.CreationHeightOnParentChain.ShouldBe(1);
+            Assert.Equal(1, sideChainInitializationResponse.CreationHeightOnParentChain);
         }
 
         private ServerCallContext BuildServerCallContext(Metadata metadata = null)
@@ -111,5 +137,16 @@ namespace AElf.CrossChain.Communication.Grpc
                 "ipv4:127.0.0.1:2100", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(),
                 writeOptions => { });
         }
+
+        private IServerStreamWriter<T> MockServerStreamWriter<T>(IList<T> list)
+        {
+            var mockServerStreamWriter = new Mock<IServerStreamWriter<T>>();
+            mockServerStreamWriter.Setup(w => w.WriteAsync(It.IsAny<T>())).Returns<T>(o =>
+            {
+                list.Add(o);
+                return Task.CompletedTask;
+            });
+            return mockServerStreamWriter.Object;
+        } 
     }
 }

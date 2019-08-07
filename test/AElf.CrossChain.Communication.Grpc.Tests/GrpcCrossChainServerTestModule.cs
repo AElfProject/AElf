@@ -57,13 +57,16 @@ namespace AElf.CrossChain.Communication.Grpc
             {
                 var mockCrossChainResponseService = new Mock<ICrossChainResponseService>();
                 mockCrossChainResponseService
-                    .Setup(c => c.ResponseParentChainBlockDataAsync(It.IsAny<long>(), It.IsAny<int>())).Returns(
-                        () =>
+                    .Setup(c => c.ResponseParentChainBlockDataAsync(It.IsAny<long>(), It.IsAny<int>())).Returns<long, int>(
+                        (height, chainId) =>
                         {
+                            if (height > 100)
+                                return Task.FromResult<ParentChainBlockData>(null);
+                            
                             var parentChanBlockData = new ParentChainBlockData
                             {
-                                ChainId = ChainHelper.GetChainId(1),
-                                Height = 10,
+                                ChainId = chainId,
+                                Height = height,
                                 TransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot")
                             };
                             return Task.FromResult(parentChanBlockData);

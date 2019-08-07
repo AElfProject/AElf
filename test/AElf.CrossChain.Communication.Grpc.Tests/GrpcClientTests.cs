@@ -49,7 +49,7 @@ namespace AElf.CrossChain.Communication.Grpc
             };
             var client = new ClientForParentChain(grpcClientInitializationContext, _blockCacheEntityProducer);
             var res = await client.RequestChainInitializationDataAsync(chainId);
-            Assert.True(res.CreationHeightOnParentChain == 1);
+            Assert.Equal(1, res.CreationHeightOnParentChain);
             Dispose();
         }
 

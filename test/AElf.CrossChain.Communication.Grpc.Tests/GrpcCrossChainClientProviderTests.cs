@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using AElf.CrossChain.Communication.Infrastructure;
 using Xunit;
 
