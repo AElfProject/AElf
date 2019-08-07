@@ -452,7 +452,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task NetworkServer_Stop_Test()
         {
-            await _networkServer.StopAsync();
+            await _networkServer.StopAsync(false);
 
             var peers = _peerPool.GetPeers(true).Cast<GrpcPeer>();
 
