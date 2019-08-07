@@ -1,5 +1,7 @@
+using System;
 using System.Threading.Tasks;
 using Acs7;
+using AElf.CrossChain.Cache;
 
 namespace AElf.CrossChain.Communication.Infrastructure
 {
@@ -9,6 +11,8 @@ namespace AElf.CrossChain.Communication.Infrastructure
         string TargetUriString { get; }
         
         bool IsConnected { get; }
+
+        void SetCrossChainBlockDataEntityHandler(Func<IBlockCacheEntity, bool> crossChainBlockDataEntityHandler);
         Task RequestCrossChainDataAsync(long targetHeight);
         Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId);
         Task ConnectAsync();

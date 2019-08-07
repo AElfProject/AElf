@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Communication.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -17,14 +16,10 @@ namespace AElf.CrossChain.Communication.Grpc
         private readonly ConcurrentDictionary<int, ICrossChainClient> _grpcCrossChainClients =
             new ConcurrentDictionary<int, ICrossChainClient>();
         
-        private readonly IBlockCacheEntityProducer _blockCacheEntityProducer;
-
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
 
-        public GrpcCrossChainClientProvider(IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption, 
-            IBlockCacheEntityProducer blockCacheEntityProducer)
+        public GrpcCrossChainClientProvider(IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption)
         {
-            _blockCacheEntityProducer = blockCacheEntityProducer;
             _grpcCrossChainConfigOption = grpcCrossChainConfigOption.Value;
         }
 
@@ -66,12 +61,12 @@ namespace AElf.CrossChain.Communication.Grpc
             {
                 clientInitializationContext.UriStr = GetUriStr(_grpcCrossChainConfigOption.RemoteParentChainServerHost,
                     _grpcCrossChainConfigOption.RemoteParentChainServerPort);
-                return new ClientForParentChain(clientInitializationContext, _blockCacheEntityProducer);
+                return new ClientForParentChain(clientInitializationContext);
             }
 
             clientInitializationContext.UriStr = GetUriStr(crossChainClientDto.RemoteServerHost,
                 crossChainClientDto.RemoteServerPort);
-            return new ClientForSideChain(clientInitializationContext, _blockCacheEntityProducer);
+            return new ClientForSideChain(clientInitializationContext);
         }
 
         #endregion Create client

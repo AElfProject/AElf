@@ -47,7 +47,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 DialTimeout = 1000,
                 UriStr = string.Concat(Host, ":", "5000")
             };
-            var client = new ClientForParentChain(grpcClientInitializationContext, _blockCacheEntityProducer);
+            var client = new ClientForParentChain(grpcClientInitializationContext);
             var res = await client.RequestChainInitializationDataAsync(chainId);
             Assert.Equal(1, res.CreationHeightOnParentChain);
             Dispose();
@@ -69,7 +69,8 @@ namespace AElf.CrossChain.Communication.Grpc
                 DialTimeout = 1000,
                 UriStr = string.Concat(Host, ":", port)
             };
-            var client = new ClientForSideChain(grpcClientInitializationContext, _blockCacheEntityProducer);
+            var client = new ClientForSideChain(grpcClientInitializationContext);
+            client.SetCrossChainBlockDataEntityHandler(b => _blockCacheEntityProducer.TryAddBlockCacheEntity(b));
             _grpcCrossChainCommunicationTestHelper.GrpcCrossChainClients.TryAdd(remoteChainId, client);
             _grpcCrossChainCommunicationTestHelper.FakeSideChainBlockDataEntityCacheOnServerSide(height);
             await client.RequestCrossChainDataAsync(height);

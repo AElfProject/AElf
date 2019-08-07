@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Acs7;
+using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Communication.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
@@ -9,12 +10,15 @@ namespace AElf.CrossChain.Communication.Application
     public class CrossChainClientService : ICrossChainClientService, ITransientDependency
     {
         private readonly ICrossChainClientProvider _crossChainClientProvider;
+        private readonly IBlockCacheEntityProducer _blockCacheEntityProducer;
 
         public ILogger<CrossChainClientService> Logger { get; set; }
 
-        public CrossChainClientService(ICrossChainClientProvider crossChainClientProvider)
+        public CrossChainClientService(ICrossChainClientProvider crossChainClientProvider, 
+            IBlockCacheEntityProducer blockCacheEntityProducer)
         {
             _crossChainClientProvider = crossChainClientProvider;
+            _blockCacheEntityProducer = blockCacheEntityProducer;
         }
 
         public async Task<ChainInitializationData> RequestChainInitializationData(int chainId)
@@ -41,6 +45,8 @@ namespace AElf.CrossChain.Communication.Application
         public async Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
         {
             var crossChainClient = _crossChainClientProvider.AddOrUpdateClient(crossChainClientDto);
+            crossChainClient.SetCrossChainBlockDataEntityHandler(b =>
+                _blockCacheEntityProducer.TryAddBlockCacheEntity(b));
             _ = ConnectAsync(crossChainClient);
         }
 

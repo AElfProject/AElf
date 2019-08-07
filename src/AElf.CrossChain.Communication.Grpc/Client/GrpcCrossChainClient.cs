@@ -27,12 +27,12 @@ namespace AElf.CrossChain.Communication.Grpc
         protected Channel Channel;
         protected readonly int DialTimeout;
         protected TClient GrpcClient;
-        protected IBlockCacheEntityProducer BlockCacheEntityProducer;
 
         private readonly int _localChainId;
         private readonly int _localListeningPort;
         private readonly BasicCrossChainRpc.BasicCrossChainRpcClient _basicGrpcClient;
         private readonly string _host;
+        private Func<IBlockCacheEntity, bool> _crossChainBlockDataEntityHandler;
         
         public string TargetUriString => Channel.Target;
         public bool IsConnected { get; private set; }
@@ -91,7 +91,12 @@ namespace AElf.CrossChain.Communication.Grpc
             IsConnected = false;
             await Channel.ShutdownAsync();
         }
-        
+
+        public void SetCrossChainBlockDataEntityHandler(Func<IBlockCacheEntity, bool> crossChainBlockDataEntityHandler)
+        {
+            _crossChainBlockDataEntityHandler = crossChainBlockDataEntityHandler;
+        }
+
         /// <summary>
         /// Request target chain for cross chain data from target height. 
         /// </summary>
@@ -144,7 +149,7 @@ namespace AElf.CrossChain.Communication.Grpc
                     var response = serverStream.ResponseStream.Current;
 
                     // requestCrossChain failed or useless response
-                    if (!BlockCacheEntityProducer.TryAddBlockCacheEntity(response))
+                    if (!_crossChainBlockDataEntityHandler(response))
                     {
                         break;
                     }
@@ -170,11 +175,10 @@ namespace AElf.CrossChain.Communication.Grpc
     
     public class ClientForSideChain : GrpcCrossChainClient<SideChainBlockData, SideChainRpc.SideChainRpcClient>
     {
-        public ClientForSideChain(GrpcClientInitializationContext grpcClientInitializationContext, IBlockCacheEntityProducer blockCacheEntityProducer)
+        public ClientForSideChain(GrpcClientInitializationContext grpcClientInitializationContext)
             : base(grpcClientInitializationContext)
         {
             GrpcClient = new SideChainRpc.SideChainRpcClient(Channel);
-            BlockCacheEntityProducer = blockCacheEntityProducer;
         }
 
         public override Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId)
@@ -190,11 +194,10 @@ namespace AElf.CrossChain.Communication.Grpc
     
     public class ClientForParentChain : GrpcCrossChainClient<ParentChainBlockData, ParentChainRpc.ParentChainRpcClient>
     {
-        public ClientForParentChain(GrpcClientInitializationContext grpcClientInitializationContext, IBlockCacheEntityProducer blockCacheEntityProducer)
+        public ClientForParentChain(GrpcClientInitializationContext grpcClientInitializationContext)
             : base(grpcClientInitializationContext)
         {
             GrpcClient = new ParentChainRpc.ParentChainRpcClient(Channel);
-            BlockCacheEntityProducer = blockCacheEntityProducer;
         }
 
         protected override AsyncServerStreamingCall<ParentChainBlockData> RequestIndexing(CrossChainRequest crossChainRequest)
