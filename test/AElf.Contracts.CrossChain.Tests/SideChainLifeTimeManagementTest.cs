@@ -5,7 +5,6 @@ using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Cryptography;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -141,7 +140,7 @@ namespace AElf.Contract.CrossChain.Tests
                 });
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Not existed side chain.", txResult.Error);
+            Assert.Contains("Side chain not found.", txResult.Error);
         }
 
         [Fact]
@@ -198,7 +197,7 @@ namespace AElf.Contract.CrossChain.Tests
                 });
             var status = result.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Side chain Not Found.", result.Error);
+            Assert.Contains("Side chain not found.", result.Error);
         }
 
         [Fact]
@@ -255,7 +254,7 @@ namespace AElf.Contract.CrossChain.Tests
                 });
             var status = result.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Not existed side chain.", result.Error);
+            Assert.Contains("Side chain not found.", result.Error);
         }
 
         [Fact]
@@ -499,7 +498,7 @@ namespace AElf.Contract.CrossChain.Tests
                 });
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Not existed side chain.", txResult.Error);
+            Assert.Contains("Side chain not found.", txResult.Error);
         }
 
         #endregion
