@@ -13,6 +13,9 @@ namespace AElf.Sdk.CSharp.State
 
         private TEntity _value;
 
+        // If the target of current ReadonlyState is default(TEntity), it maybe not proper to use ReadonlyState.
+        private bool NotSetBefore => Equals(_value, default(TEntity));
+
         public TEntity Value
         {
             get
@@ -31,7 +34,7 @@ namespace AElf.Sdk.CSharp.State
                     Load();
                 }
 
-                if (_value == null)
+                if (NotSetBefore)
                 {
                     _value = value;
                 }

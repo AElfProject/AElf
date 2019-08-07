@@ -11,7 +11,7 @@ namespace AElf.Sdk.CSharp.State
     public class SingletonState<TEntity> : SingletonState
     {
         internal bool Loaded;
-        internal bool Modified => Equals(_originalValue, _value);
+        internal bool Modified => !Equals(_originalValue, _value);
 
         private TEntity _originalValue;
         private TEntity _value;
@@ -49,7 +49,7 @@ namespace AElf.Sdk.CSharp.State
         {
             var stateSet = new TransactionExecutingStateSet();
             var key = Path.ToStateKey(Context.Self);
-            if (!Equals(_originalValue, _value))
+            if (Modified)
             {
                 stateSet.Writes[key] = ByteString.CopyFrom(SerializationHelper.Serialize(_value));
             }
