@@ -14,7 +14,7 @@ namespace AElf.OS.Network
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            Configure<NetworkOptions>(o => { o.MaxPeersPerHost = 1; });
+            Configure<NetworkOptions>(o => { o.MaxPeersPerIpAddress = 1; });
 
             context.Services.AddSingleton(sp =>
             {

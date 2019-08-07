@@ -40,7 +40,7 @@ namespace AElf.OS.Network
             _peerPool.TryAddPeer(CreatePeer("12.34.56.64:1900"));
             _peerPool.TryAddPeer(CreatePeer("12.34.56.61:1900"));
 
-            var peersWithSameHost = _peerPool.GetPeersByHost(commonHost);
+            var peersWithSameHost = _peerPool.GetPeersByIpAddress(commonHost);
             peersWithSameHost.Count.ShouldBe(2);
         }
             

@@ -60,7 +60,7 @@ namespace AElf.OS.Network.Infrastructure
             return p;
         }
 
-        public List<IPeer> GetPeersByHost(string ipAddress)
+        public List<IPeer> GetPeersByIpAddress(string ipAddress)
         {
             return Peers
                 .Where(p => p.Value.IpAddress.Split(':')[0] == ipAddress)

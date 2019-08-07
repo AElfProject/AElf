@@ -220,14 +220,14 @@ namespace AElf.OS.Network.Grpc.Connection
                 return ConnectError.ConnectionRefused;
             }
 
-            if (NetworkOptions.MaxPeersPerHost != 0 
+            if (NetworkOptions.MaxPeersPerIpAddress != 0 
                 && IPAddress.TryParse(peerEndpoint.IpAddress, out var ipAddress)
                 && !ipAddress.Equals(IPAddress.Loopback))
             {
-                int peerFromHost = _peerPool.GetPeersByHost(peerEndpoint.IpAddress).Count;
-                if (peerFromHost >= NetworkOptions.MaxPeersPerHost)
+                int peerFromIp = _peerPool.GetPeersByIpAddress(peerEndpoint.IpAddress).Count;
+                if (peerFromIp >= NetworkOptions.MaxPeersPerIpAddress)
                 {
-                    Logger.LogWarning($"Max peers from {peerEndpoint.IpAddress} exceeded, current count {peerFromHost} (max. per host {NetworkOptions.MaxPeersPerHost}).");
+                    Logger.LogWarning($"Max peers from {peerEndpoint.IpAddress} exceeded, current count {peerFromIp} (max. per ip {NetworkOptions.MaxPeersPerIpAddress}).");
                     return ConnectError.ConnectionRefused;
                 }
             }
