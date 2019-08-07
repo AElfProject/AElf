@@ -18,7 +18,7 @@ namespace AElf.OS.Network
     {
         private IBlockchainService _blockchainService;
         private IAElfNetworkServer _networkServer;
-        
+
         private IPeerPool _pool;
         private GrpcPeer _grpcPeer;
         private GrpcPeer _nonInterceptedPeer;
@@ -47,7 +47,7 @@ namespace AElf.OS.Network
         public void EnqueueBlock_ShouldExecuteCallback_Test()
         {
             AutoResetEvent executed = new AutoResetEvent(false);
-            
+
             NetworkException exception = null;
             bool called = false;
             _nonInterceptedPeer.EnqueueBlock(new BlockWithTransactions(), ex =>
@@ -61,12 +61,12 @@ namespace AElf.OS.Network
             exception.ShouldBeNull();
             called.ShouldBeTrue();
         }
-        
+
         [Fact]
         public void EnqueueTransaction_ShouldExecuteCallback_Test()
         {
             AutoResetEvent executed = new AutoResetEvent(false);
-            
+
             NetworkException exception = null;
             var transaction = new Transaction();
             bool called = false;
@@ -81,12 +81,12 @@ namespace AElf.OS.Network
             exception.ShouldBeNull();
             called.ShouldBeTrue();
         }
-        
+
         [Fact]
         public void EnqueueAnnouncement_ShouldExecuteCallback_Test()
         {
             AutoResetEvent executed = new AutoResetEvent(false);
-            
+
             NetworkException exception = null;
             bool called = false;
             _nonInterceptedPeer.EnqueueAnnouncement(new BlockAnnouncement(), ex =>
@@ -99,6 +99,31 @@ namespace AElf.OS.Network
             executed.WaitOne(TimeSpan.FromMilliseconds(1000));
             exception.ShouldBeNull();
             called.ShouldBeTrue();
+        }
+
+        [Fact]
+        public void EnqueueAnnouncement_WithPeerNotReady_Test()
+        {
+            AutoResetEvent executed = new AutoResetEvent(false);
+
+            NetworkException exception = null;
+            bool called = false;
+            _grpcPeer.IsConnected = false;
+            Should.Throw<NetworkException>(() =>
+                _grpcPeer.EnqueueAnnouncement(new BlockAnnouncement(), ex =>
+                {
+                    exception = ex;
+                    called = true;
+                    executed.Set();
+                }));
+
+            Should.Throw<NetworkException>(()=>
+                _grpcPeer.EnqueueBlock(new BlockWithTransactions(), ex =>
+                {
+                    exception = ex;
+                    called = true;
+                    executed.Set();
+                }));
         }
 
         [Fact]
@@ -115,7 +140,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task RequestBlockAsync_Success_Test()
         {
-            var block = await _grpcPeer.GetBlockByHashAsync(Hash.FromRawBytes(new byte[]{1,2,7}));
+            var block = await _grpcPeer.GetBlockByHashAsync(Hash.FromRawBytes(new byte[] {1, 2, 7}));
             block.ShouldBeNull();
 
             var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
@@ -143,6 +168,15 @@ namespace AElf.OS.Network
         {
             var nodeList = await _grpcPeer.GetNodesAsync();
             nodeList.Nodes.Count.ShouldBe(0);
+        }
+
+        [Fact]
+        public async Task Peer_DisconnectAsync_Test()
+        {
+            await _grpcPeer.DisconnectAsync(true);
+            
+            var isReady = _grpcPeer.IsReady;
+            isReady.ShouldBeFalse();
         }
     }
 }

@@ -539,7 +539,7 @@ namespace AElf.OS.Network.Grpc
             
             // send disconnect message if the peer is still connected and the connection
             // is stable.
-            if (gracefulDisconnect && IsReady)
+            if (gracefulDisconnect && (_channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready))
             {
                 GrpcRequest request = new GrpcRequest { ErrorMessage = "Error while sending disconnect." };
                 

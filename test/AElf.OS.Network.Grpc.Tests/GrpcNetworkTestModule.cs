@@ -5,6 +5,7 @@ using AElf.Modularity;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
+using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -49,6 +50,37 @@ namespace AElf.OS.Network
             };
             
             pool.TryAddPeer(new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), NetworkTestConstants.FakeIpEndpoint, connectionInfo));
+        }
+    }
+
+    [DependsOn(
+        typeof(GrpcNetworkTestModule))]
+    public class GrpcNetworkDialerTestModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
+
+            services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IConnectionService>();
+                mockService.Setup(m =>m.ConnectAsync(It.IsAny<string>()))
+                    .Returns(Task.FromResult(true));
+                mockService.Setup(m=>m.DialBackAsync(It.IsAny<string>(), It.IsAny<ConnectionInfo>()))
+                    .Returns(Task.FromResult(new ConnectReply
+                    {
+                        Error = ConnectError.ConnectOk,
+                        Info = new ConnectionInfo
+                        {
+                            ChainId = 1,
+                            ListeningPort = 2000,
+                            Pubkey = ByteString.CopyFromUtf8("pubkey"),
+                            Version = 1
+                        }
+                    }));
+
+                return mockService.Object;
+            });
         }
     }
 }

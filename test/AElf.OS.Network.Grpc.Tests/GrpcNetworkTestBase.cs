@@ -11,6 +11,9 @@ namespace AElf.OS.Network
     public class GrpcNetworkTestBase : AElfIntegratedTest<GrpcNetworkTestModule>
     {
     }
+    
+    public class GrpcNetworkDialerTestBase : AElfIntegratedTest<GrpcNetworkDialerTestModule>
+    {}
 
     public class GrpcBasicNetworkTestBase : AElfIntegratedTest<GrpcBasicNetworkTestModule>
     {
