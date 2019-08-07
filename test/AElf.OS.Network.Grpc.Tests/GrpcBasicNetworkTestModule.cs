@@ -8,17 +8,15 @@ using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
-using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using NSubstitute;
 using Volo.Abp.Modularity;
 
 namespace AElf.OS.Network
 {
-    [DependsOn(typeof(OSCoreWithChainTestAElfModule), typeof(GrpcNetworkModule))]
+    [DependsOn(typeof(OSCoreTestAElfModule), typeof(GrpcNetworkModule))]
     public class GrpcBasicNetworkTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -27,8 +25,24 @@ namespace AElf.OS.Network
             context.Services.AddSingleton(netTestHelper);
                 
             Configure<NetworkOptions>(o => {
-                o.ListeningPort = 20001;
+                o.ListeningPort = 2001;
                 o.MaxPeers = 2;
+            });
+
+            context.Services.AddTransient(o =>
+            {
+                var mockBlockchainService = new Mock<IBlockchainService>();
+                var keyPair = CryptoHelper.GenerateKeyPair();
+
+                mockBlockchainService.Setup(b => b.GetChainAsync()).ReturnsAsync(new Chain
+                {
+                    Id = NetworkTestConstants.DefaultChainId
+                });
+
+                mockBlockchainService.Setup(b => b.GetBlockHeaderByHashAsync(It.IsAny<Hash>())).ReturnsAsync(
+                    netTestHelper.CreateFakeBlockHeader(NetworkTestConstants.DefaultChainId, 1, keyPair));
+
+                return mockBlockchainService.Object;
             });
 
             context.Services.AddTransient(sp =>
