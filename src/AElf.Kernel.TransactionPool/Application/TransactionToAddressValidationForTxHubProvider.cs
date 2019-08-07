@@ -3,11 +3,11 @@ using AElf.Types;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    internal class TransactionToAddressValidationProvider : ITransactionValidationProvider
+    internal class TransactionToAddressValidationForTxHubProvider : ITransactionValidationForTxHubProvider
     {
         private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
 
-        public TransactionToAddressValidationProvider(IDeployedContractAddressProvider deployedContractAddressProvider)
+        public TransactionToAddressValidationForTxHubProvider(IDeployedContractAddressProvider deployedContractAddressProvider)
         {
             _deployedContractAddressProvider = deployedContractAddressProvider;
         }

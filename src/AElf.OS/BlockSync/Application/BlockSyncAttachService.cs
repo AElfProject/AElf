@@ -16,13 +16,13 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockAttachService _blockAttachService;
         private readonly IBlockSyncQueueService _blockSyncQueueService;
-        private readonly IBlockValidationService _validationService;
+        private readonly IBlockSyncValidationService _validationService;
 
         public ILogger<BlockSyncAttachService> Logger { get; set; }
 
         public BlockSyncAttachService(IBlockchainService blockchainService,
             IBlockAttachService blockAttachService,
-            IBlockValidationService validationService,
+            IBlockSyncValidationService validationService,
             IBlockSyncQueueService blockSyncQueueService)
         {
             Logger = NullLogger<BlockSyncAttachService>.Instance;
@@ -34,19 +34,25 @@ namespace AElf.OS.BlockSync.Application
         }
 
         public async Task AttachBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions,
-            Func<Task> attachFinishedCallback =null)
+            Func<Task> attachFinishedCallback = null)
         {
-            var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
-            if (!valid)
+            var txsValid = await _validationService.ValidateTransactionAsync(blockWithTransactions.Transactions);
+            if (!txsValid)
+            {
+                throw new InvalidOperationException($"Tx in this block was invalid: {blockWithTransactions}");
+            }
+
+            var blockValid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
+            if (!blockValid)
             {
                 throw new InvalidOperationException(
-                    $"The block was invalid, block hash: {blockWithTransactions}.");
+                    $"The block was invalid: {blockWithTransactions}.");
             }
 
             await _blockchainService.AddTransactionsAsync(blockWithTransactions.Transactions);
             var block = blockWithTransactions.ToBlock();
             await _blockchainService.AddBlockAsync(block);
- 
+
             _blockSyncQueueService.Enqueue(async () =>
                 {
                     try

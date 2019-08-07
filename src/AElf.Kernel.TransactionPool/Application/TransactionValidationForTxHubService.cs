@@ -4,11 +4,11 @@ using AElf.Types;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    public class TransactionValidationService : ITransactionValidationService
+    public class TransactionValidationForTxHubService : ITransactionValidationService
     {
-        private readonly IEnumerable<ITransactionValidationProvider> _transactionValidationProviders;
+        private readonly IEnumerable<ITransactionValidationForTxHubProvider> _transactionValidationProviders;
 
-        public TransactionValidationService(IEnumerable<ITransactionValidationProvider> transactionValidationProviders)
+        public TransactionValidationForTxHubService(IEnumerable<ITransactionValidationForTxHubProvider> transactionValidationProviders)
         {
             _transactionValidationProviders = transactionValidationProviders;
         }

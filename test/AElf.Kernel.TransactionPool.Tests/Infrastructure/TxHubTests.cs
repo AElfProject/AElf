@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {
-    public class TxHubTests : TransactionPoolWithChainTestBase
+    public sealed class TxHubTests : TransactionPoolWithChainTestBase
     {
         private readonly TxHub _txHub;
         private readonly IBlockchainService _blockchainService;

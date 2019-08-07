@@ -3,11 +3,11 @@ using AElf.Types;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    public class BasicTransactionValidationProvider : ITransactionValidationProvider
+    public class BasicTransactionValidationForTxHubProvider : ITransactionValidationForTxHubProvider
     {
         public Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
-            throw new System.NotImplementedException();
+            return Task.FromResult(true);
         }
     }
 }

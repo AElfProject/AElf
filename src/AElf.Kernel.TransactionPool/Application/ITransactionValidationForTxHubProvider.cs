@@ -3,7 +3,7 @@ using AElf.Types;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    public interface ITransactionValidationProvider
+    public interface ITransactionValidationForTxHubProvider
     {
         Task<bool> ValidateTransactionAsync(Transaction transaction);
     }
