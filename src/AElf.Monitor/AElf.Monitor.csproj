@@ -4,7 +4,7 @@
         <TargetFramework>netcoreapp2.2</TargetFramework>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Akka" Version="1.3.12" />
+        <PackageReference Include="Akka" Version="1.3.14" />
         <PackageReference Include="Akka.Cluster" Version="1.3.12" />
         <PackageReference Include="Anemonis.AspNetCore.JsonRpc" Version="1.14.1" />
         <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
