@@ -60,6 +60,14 @@ namespace AElf.OS.Network.Infrastructure
             return p;
         }
 
+        public List<IPeer> GetPeersByHost(string ipAddress)
+        {
+            return Peers
+                .Where(p => p.Value.IpAddress.Split(':')[0] == ipAddress)
+                .Select(p => p.Value)
+                .ToList();
+        }
+
         public IPeer RemovePeer(string publicKey)
         {
             Peers.TryRemove(publicKey, out IPeer removed);

@@ -31,6 +31,11 @@ namespace AElf.OS.Network
         /// The maximum number of peers accepted by this node (0 for no limit).
         /// </summary>
         public int MaxPeers { get; set; } = NetworkConstants.DefaultMaxPeers;
+        
+        /// <summary>
+        /// The maximum number of connection from a given host (0 for no limit).
+        /// </summary>
+        public int MaxPeersPerHost { get; set; } = NetworkConstants.DefaultMaxPeersPerHost;
 
         /// <summary>
         /// Timeout used when trying to connect to another peer.

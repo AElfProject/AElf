@@ -1,4 +1,5 @@
 using System;
+using System.Net;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -141,7 +142,7 @@ namespace AElf.OS.Network.Grpc.Connection
             if (peer == null)
                 return new ConnectReply { Error = ConnectError.InvalidPeer };
 
-            var error = ValidateConnectionInfo(peerConnectionInfo);
+            var error = ValidateConnectionInfo(peer, peerConnectionInfo);
             
             if (error != ConnectError.ConnectOk)
                 return new ConnectReply { Error = error };
@@ -202,7 +203,7 @@ namespace AElf.OS.Network.Grpc.Connection
             return new HandshakeReply { Handshake = await _handshakeProvider.GetHandshakeAsync() };
         }
 
-        private ConnectError ValidateConnectionInfo(ConnectionInfo connectionInfo)
+        private ConnectError ValidateConnectionInfo(GrpcUrl peerEndpoint, ConnectionInfo connectionInfo)
         {
             // verify chain id
             if (connectionInfo.ChainId != ChainOptions.ChainId)
@@ -217,6 +218,18 @@ namespace AElf.OS.Network.Grpc.Connection
             {
                 Logger.LogWarning($"Cannot add peer, there's currently {_peerPool.PeerCount} peers (max. {NetworkOptions.MaxPeers}).");
                 return ConnectError.ConnectionRefused;
+            }
+
+            if (NetworkOptions.MaxPeersPerHost != 0 
+                && IPAddress.TryParse(peerEndpoint.IpAddress, out var ipAddress)
+                && !ipAddress.Equals(IPAddress.Loopback))
+            {
+                int peerFromHost = _peerPool.GetPeersByHost(peerEndpoint.IpAddress).Count;
+                if (peerFromHost >= NetworkOptions.MaxPeersPerHost)
+                {
+                    Logger.LogWarning($"Max peers from {peerEndpoint.IpAddress} exceeded, current count {peerFromHost} (max. per host {NetworkOptions.MaxPeersPerHost}).");
+                    return ConnectError.ConnectionRefused;
+                }
             }
 
             return ConnectError.ConnectOk;

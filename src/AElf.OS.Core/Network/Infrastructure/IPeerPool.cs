@@ -15,6 +15,8 @@ namespace AElf.OS.Network.Infrastructure
         IPeer FindPeerByAddress(string peerIpAddress);
         IPeer FindPeerByPublicKey(string remotePubKey);
 
+        List<IPeer> GetPeersByHost(string ipAddress);
+
         bool TryAddPeer(IPeer peer);
         IPeer RemovePeer(string publicKey);
     }

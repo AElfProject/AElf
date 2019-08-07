@@ -27,6 +27,22 @@ namespace AElf.OS.Network
 //            handshake.ShouldNotBeNull();
 //            handshake.HandshakeData.Version.ShouldBe(KernelConstants.ProtocolVersion);
 //        }
+
+        [Fact]
+        public void GetPeersByHost_ShouldReturnAllPeers_WithSameHost()
+        {
+            string commonHost = "12.34.56.67";
+            string commonPort = "1900";
+            string commonEndpoint = commonHost + ":" + commonPort;
+            
+            _peerPool.TryAddPeer(CreatePeer(commonEndpoint));
+            _peerPool.TryAddPeer(CreatePeer(commonEndpoint));
+            _peerPool.TryAddPeer(CreatePeer("12.34.56.64:1900"));
+            _peerPool.TryAddPeer(CreatePeer("12.34.56.61:1900"));
+
+            var peersWithSameHost = _peerPool.GetPeersByHost(commonHost);
+            peersWithSameHost.Count.ShouldBe(2);
+        }
             
         [Fact]
         public void AddedPeer_IsFindable_ByAddressAndPubkey()
