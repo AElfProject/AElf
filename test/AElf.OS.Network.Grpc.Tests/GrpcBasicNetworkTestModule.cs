@@ -6,7 +6,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
-using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Protocol;
 using AElf.Types;
 using Grpc.Core;
 using Grpc.Core.Testing;

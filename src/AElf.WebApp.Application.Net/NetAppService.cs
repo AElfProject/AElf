@@ -70,7 +70,7 @@ namespace AElf.WebApp.Application.Net
             {
                 IpAddress = p.IpAddress,
                 ProtocolVersion = p.Info.ProtocolVersion,
-                ConnectionTime = p.Info.ConnectionTime,
+                ConnectionTime = p.Info.ConnectionTime.Seconds,
                 Inbound = p.Info.IsInbound,
                 RequestMetrics = p.GetRequestMetrics().Values.SelectMany(kvp => kvp).ToList()
             }).ToList();

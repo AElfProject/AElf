@@ -6,6 +6,7 @@ using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Metrics;
 using AElf.WebApp.Application.Net.Dto;
+using Google.Protobuf.WellKnownTypes;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -33,7 +34,7 @@ namespace AElf.WebApp.Application.Net.Tests
             responseTrue.ShouldBeFalse();
         }
 
-        private IPeer BuildPeer(string ipAddress, string pubkey, long connectionTime, bool isInbound)
+        private IPeer BuildPeer(string ipAddress, string pubkey, Timestamp connectionTime, bool isInbound)
         {
             var connectionInfo = new PeerInfo
             {
@@ -54,7 +55,7 @@ namespace AElf.WebApp.Application.Net.Tests
         [Fact]
         public async Task GetPeersTest()
         {
-            var connectionTime = TimestampHelper.GetUtcNow().Seconds;
+            var connectionTime = TimestampHelper.GetUtcNow();
             var ipAddressOne = "192.168.1.1:1680";
             var onePubkey = "048f5ced21f8d687cb9ade1c22dc0e183b05f87124c82073f5d82a09b139cc466efbfb6f28494d0a9d7366fcb769fe5436cfb7b5d322a2b0f69c4bcb1c33ac24ad";
 
@@ -73,7 +74,7 @@ namespace AElf.WebApp.Application.Net.Tests
             
             peers.ShouldContain(peer => peer.IpAddress.IsIn(ipAddressOne, ipAddressTwo));
             peers.ShouldContain(peer => peer.ProtocolVersion == KernelConstants.ProtocolVersion);
-            peers.ShouldContain(peer => peer.ConnectionTime == connectionTime);
+            peers.ShouldContain(peer => peer.ConnectionTime == connectionTime.Seconds);
             peers.ShouldContain(peer => peer.Inbound);
             peers.ShouldContain(peer => peer.Inbound == false);
         }
@@ -81,7 +82,7 @@ namespace AElf.WebApp.Application.Net.Tests
         [Fact]
         public async Task RemovePeerTest()
         {
-            var connectionTime = TimestampHelper.GetUtcNow().Seconds;
+            var connectionTime = TimestampHelper.GetUtcNow();
             var ipAddressOne = "192.168.1.1:1680";
             var onePubkey = "048f5ced21f8d687cb9ade1c22dc0e183b05f87124c82073f5d82a09b139cc466efbfb6f28494d0a9d7366fcb769fe5436cfb7b5d322a2b0f69c4bcb1c33ac24ad";
 
@@ -105,7 +106,7 @@ namespace AElf.WebApp.Application.Net.Tests
         [Fact]
         public async Task GetNetWorkInfoTest()
         {
-            var connectionTime = TimestampHelper.GetUtcNow().Seconds;
+            var connectionTime = TimestampHelper.GetUtcNow();
             var ipAddressOne = "192.168.1.1:1680";
             var onePubkey = "048f5ced21f8d687cb9ade1c22dc0e183b05f87124c82073f5d82a09b139cc466efbfb6f28494d0a9d7366fcb769fe5436cfb7b5d322a2b0f69c4bcb1c33ac24ad";
             

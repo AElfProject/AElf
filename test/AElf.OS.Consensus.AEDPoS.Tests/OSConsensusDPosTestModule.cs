@@ -30,7 +30,7 @@ namespace AElf.OS.Consensus.DPos
                 {
                     Pubkey = $"bp{i + 1}-pubkey",
                     ProtocolVersion = KernelConstants.ProtocolVersion,
-                    ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                    ConnectionTime = TimestampHelper.GetUtcNow(),
                     IsInbound = true
                 };
                 

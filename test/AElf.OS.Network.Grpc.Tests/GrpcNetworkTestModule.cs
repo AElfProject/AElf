@@ -42,7 +42,7 @@ namespace AElf.OS.Network
             {
                 Pubkey = NetworkTestConstants.FakePubkey2,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
-                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                ConnectionTime = TimestampHelper.GetUtcNow(),
                 IsInbound = true
             };
             

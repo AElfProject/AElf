@@ -44,7 +44,7 @@ namespace AElf.OS.Network
             {
                 Pubkey = NetworkTestConstants.FakePubkey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
-                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                ConnectionTime = TimestampHelper.GetUtcNow(),
                 IsInbound = true
             };
 
