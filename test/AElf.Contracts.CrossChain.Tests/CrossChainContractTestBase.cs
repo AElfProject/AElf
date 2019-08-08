@@ -69,7 +69,7 @@ namespace AElf.Contract.CrossChain.Tests
                 });
         }
 
-        protected async Task CreateAndIssueTokenAsync(long amount, params string[] symbols)
+        protected async Task CreateAndIssueTokenAsync(params string[] symbols)
         {
             var callOwner = Address.FromPublicKey(Tester.KeyPair.PublicKey);
             foreach (var symbol in symbols)
@@ -93,23 +93,6 @@ namespace AElf.Contract.CrossChain.Tests
                         Amount = 100,
                         Memo = "resource",
                         To = callOwner
-                    });
-                var approveResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                    nameof(TokenContractContainer.TokenContractStub.Approve),
-                    new ApproveInput
-                    {
-                        Symbol = symbol,
-                        Spender = CrossChainContractAddress,
-                        Amount = amount
-                    });
-                approveResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                await Tester.CallContractMethodAsync(TokenContractAddress,
-                    nameof(TokenContractContainer.TokenContractStub.GetAllowance),
-                    new GetAllowanceInput
-                    {
-                        Symbol = symbol,
-                        Owner = callOwner,
-                        Spender = CrossChainContractAddress
                     });
             }
         }
@@ -203,7 +186,7 @@ namespace AElf.Contract.CrossChain.Tests
             };
             if (resourceTypeBalancePairs != null)
             {
-                res.ResourceTypeBalance.AddRange(resourceTypeBalancePairs.Select(x =>
+                res.ResourceTypeBalancePairList.AddRange(resourceTypeBalancePairs.Select(x =>
                     ResourceTypeBalancePair.Parser.ParseFrom(x.ToByteString())));
             }
 

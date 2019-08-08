@@ -121,6 +121,10 @@ message ResourceTypeBalancePair {
     int64 amount = 2;
 }
 
+message ResourceTypeBalancePairList{
+    repeated ResourceTypeBalancePair resource_pair_list = 1;
+}
+
 message SideChainInfo {
     SideChainCreationRequest side_chain_creation_request = 1;
     aelf.Address proposer = 2;
@@ -136,7 +140,7 @@ message SideChainCreationRequest {
     int64 locked_token_amount = 2;
     bytes contract_code = 3;
     bool is_privilege_preserved = 4;
-    repeated ResourceTypeBalancePair resource_type_balance = 5;
+    repeated ResourceTypeBalancePair resource_type_balance_pair_list = 5;
 }
 
 message RequestChainCreationOutput {

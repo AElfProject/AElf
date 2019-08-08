@@ -68,10 +68,10 @@ namespace AElf.Contracts.CrossChain
                 Symbol = Context.Variables.NativeSymbol
             });
             State.IndexingBalance[chainId] = sideChainCreationRequest.LockedTokenAmount;
-            // Todo: enable resource
-
-            if (sideChainCreationRequest.ResourceTypeBalance.Count == 0) return;
-            foreach (var resource in sideChainCreationRequest.ResourceTypeBalance)
+            
+            // enable resource
+            if (!sideChainCreationRequest.ResourceTypeBalancePairList.Any()) return;
+            foreach (var resource in sideChainCreationRequest.ResourceTypeBalancePairList)
             {
                 LockResource(new LockInput
                 {
@@ -99,9 +99,9 @@ namespace AElf.Contracts.CrossChain
                 });
             State.IndexingBalance[chainId] = 0;
 
-            var resourceTypeBalances = sideChainInfo.SideChainCreationRequest.ResourceTypeBalance;
-            if(resourceTypeBalances.Count == 0) return;
-            foreach (var resourceType in resourceTypeBalances)
+            var resourceTypeBalancePairList = sideChainInfo.SideChainCreationRequest.ResourceTypeBalancePairList;
+            if(!resourceTypeBalancePairList.Any()) return;
+            foreach (var resourceType in resourceTypeBalancePairList)
             {
                 UnLockResource(new UnlockInput
                 {
@@ -112,8 +112,6 @@ namespace AElf.Contracts.CrossChain
                     Usage = "unlock resource."
                 });
             }
-
-            sideChainInfo.SideChainCreationRequest.ResourceTypeBalance.Clear();
         }
 
         private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)

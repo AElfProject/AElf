@@ -57,7 +57,7 @@ service CrossChainContract {
     rpc LockedBalance (aelf.SInt32Value) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc LockedResource (aelf.SInt32Value) returns (aelf.SInt64Value) {
+    rpc LockedResource (aelf.SInt32Value) returns (acs7.ResourceTypeBalancePairList) {
         option (aelf.is_view) = true;
     }
 }

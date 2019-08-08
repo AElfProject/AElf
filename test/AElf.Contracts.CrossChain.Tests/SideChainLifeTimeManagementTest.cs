@@ -45,19 +45,20 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContractAsync();
             const long lockedAmount = 10;
             await ApproveBalanceAsync(lockedAmount);
-            await CreateAndIssueTokenAsync(lockedAmount, "CPU", "NET");
+            await CreateAndIssueTokenAsync("CPU", "NET","RAM");
 
-            var resourceTypeBalance = new RepeatedField<ResourceTypeBalancePair>
+            var resourceTypeBalanceList = new RepeatedField<ResourceTypeBalancePair>
             {
                 new ResourceTypeBalancePair {Type = ResourceType.Cpu, Amount = 4},
-                new ResourceTypeBalancePair {Type = ResourceType.Net, Amount = 9}
+                new ResourceTypeBalancePair {Type = ResourceType.Net, Amount = 9},
+                new ResourceTypeBalancePair {Type = ResourceType.Ram, Amount = 20}
             };
 
             var proposalId = await CreateSideChainProposalAsync(
                 1,
                 lockedAmount,
                 ByteString.CopyFromUtf8("Test"),
-                resourceTypeBalance);
+                resourceTypeBalanceList);
             await ApproveWithMinersAsync(proposalId);
 
             // release proposal
@@ -71,10 +72,44 @@ namespace AElf.Contract.CrossChain.Tests
                 new SInt32Value {Value = chainId})).Value;
             Assert.True(chainStatus == (int) SideChainStatus.Active);
 
-            var lockedResource = SInt64Value.Parser.ParseFrom(await CallContractMethodAsync(CrossChainContractAddress,
+            var lockedResource = ResourceTypeBalancePairList.Parser.ParseFrom(await CallContractMethodAsync(CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub.LockedResource),
-                new SInt32Value {Value = chainId})).Value;
-            Assert.Equal(4,lockedResource);
+                new SInt32Value {Value = chainId}));
+            Assert.True(lockedResource.ResourcePairList[0].Type == ResourceType.Cpu);
+            Assert.Equal(4, lockedResource.ResourcePairList[0].Amount);
+            Assert.True(lockedResource.ResourcePairList[1].Type == ResourceType.Net);
+            Assert.Equal(9, lockedResource.ResourcePairList[1].Amount);
+            Assert.True(lockedResource.ResourcePairList[2].Type == ResourceType.Ram);
+            Assert.Equal(20, lockedResource.ResourcePairList[2].Amount);
+        }
+
+        [Fact]
+        public async Task Create_SideChainWith_NotExisted_Symbol()
+        {
+            await InitializeCrossChainContractAsync();
+            const long lockedAmount = 10;
+            await ApproveBalanceAsync(lockedAmount);
+            await CreateAndIssueTokenAsync("CPU");
+
+            var resourceTypeBalanceList = new RepeatedField<ResourceTypeBalancePair>
+            {
+                new ResourceTypeBalancePair {Type = ResourceType.Cpu, Amount = 4},
+                new ResourceTypeBalancePair {Type = ResourceType.Net, Amount = 9},
+                new ResourceTypeBalancePair {Type = ResourceType.Ram, Amount = 20}
+            };
+
+            var proposalId = await CreateSideChainProposalAsync(
+                1,
+                lockedAmount,
+                ByteString.CopyFromUtf8("Test"),
+                resourceTypeBalanceList);
+            await ApproveWithMinersAsync(proposalId);
+
+            // release proposal
+            var transactionResult = await ReleaseProposalAsync(proposalId);
+            Assert.Contains("Not in white", transactionResult.Error);
+            Assert.True(transactionResult.Status == TransactionResultStatus.Failed);
+            
         }
 
         [Fact]
@@ -239,7 +274,7 @@ namespace AElf.Contract.CrossChain.Tests
             long lockedTokenAmount = 10;
             await InitializeCrossChainContractAsync();
             await ApproveBalanceAsync(lockedTokenAmount);
-            await CreateAndIssueTokenAsync(15, "CPU", "NET");
+            await CreateAndIssueTokenAsync( "CPU", "NET");
             
             var resourceTypeBalance = new RepeatedField<ResourceTypeBalancePair>
             {

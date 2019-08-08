@@ -138,7 +138,7 @@ namespace AElf.Contracts.CrossChain
         {
             var info = State.SideChainInfo[input.Value];
             Assert(info != null, "Side chain Not Found.");
-            Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
+            Assert(info.SideChainStatus != SideChainStatus.Terminated, "Disposed side chain.");
             return new SInt64Value() {Value = info.SideChainCreationRequest.LockedTokenAmount};
         }
 
@@ -146,18 +146,19 @@ namespace AElf.Contracts.CrossChain
         {
             var info = State.SideChainInfo[input.Value];
             Assert(info != null, "Not existed side chain.");
-            Assert(info.SideChainStatus != (SideChainStatus) 3, "Disposed side chain.");
+            Assert(info.SideChainStatus != SideChainStatus.Terminated, "Disposed side chain.");
             return info.Proposer;
         }
 
-        public override SInt64Value LockedResource(SInt32Value input)
+        public override ResourceTypeBalancePairList LockedResource(SInt32Value input)
         {
             var info = State.SideChainInfo[input.Value];
             Assert(info != null, "Not existed side chain.");
-            Assert(info.SideChainStatus != (SideChainStatus) 2, "Disposed side chain.");
-            //return new SInt64Value {Value = info.SideChainCreationRequest.ResourceTypeBalance.Count};
+            Assert(info.SideChainStatus != SideChainStatus.Terminated, "Disposed side chain.");
             var request = info.SideChainCreationRequest;
-            return new SInt64Value {Value = request.ResourceTypeBalance[0].Amount};
+            var resourceTypeBalancePairList = new ResourceTypeBalancePairList();
+            resourceTypeBalancePairList.ResourcePairList.AddRange(request.ResourceTypeBalancePairList);
+            return resourceTypeBalancePairList;
         }
 
         public override ChainInitializationData GetChainInitializationData(SInt32Value chainId)
