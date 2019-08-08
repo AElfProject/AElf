@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -501,6 +502,21 @@ namespace AElf.OS.Network
             
             result.ShouldBe("test");
             context.RequestHeaders.Count.ShouldBeGreaterThan(headerCount);
+        }
+        
+        [Fact]
+        public async Task Auth_UnaryServerHandler_Failed_Test()
+        {
+            var authInterceptor = GetRequiredService<AuthInterceptor>();
+            
+            var continuation = new UnaryServerMethod<string, string>((s, y) => Task.FromResult(s));
+            var metadata = new Metadata
+                {{GrpcConstants.PubkeyMetadataKey, CryptoHelper.GenerateKeyPair().PublicKey.ToHex()}};
+            var context = BuildServerCallContext(metadata);
+            var headerCount = context.RequestHeaders.Count;
+            var result = await authInterceptor.UnaryServerHandler("test", context, continuation);
+            result.ShouldBeNull();
+            context.RequestHeaders.Count.ShouldBe(headerCount);
         }
 
         [Fact]
