@@ -520,6 +520,31 @@ namespace AElf.OS.Network
         }
 
         [Fact]
+        public async Task ClientStreamingServerHandler_Success_Test()
+        {
+            var authInterceptor = GetRequiredService<AuthInterceptor>();
+            var requestStream = new TestAsyncStreamReader<string>(new []{"test1", "test2", "test3"});
+            var continuation = new ClientStreamingServerMethod<string, string>((s,y) => Task.FromResult(s.Current));
+            var metadata = new Metadata
+                {{GrpcConstants.PubkeyMetadataKey, NetworkTestConstants.FakePubkey2}};
+            var context = BuildServerCallContext(metadata);
+            var headerCount = context.RequestHeaders.Count;
+            
+            await requestStream.MoveNext();
+            var result = await authInterceptor.ClientStreamingServerHandler(requestStream, context, continuation);
+            result.ShouldBe("test1");
+            context.RequestHeaders.Count.ShouldBeGreaterThan(headerCount);
+            
+            await requestStream.MoveNext();
+            result = await authInterceptor.ClientStreamingServerHandler(requestStream, context, continuation);
+            result.ShouldBe("test2");
+            
+            await requestStream.MoveNext();
+            result = await authInterceptor.ClientStreamingServerHandler(requestStream, context, continuation);
+            result.ShouldBe("test3");
+        }
+
+        [Fact]
         public async Task GetNodes_Test()
         {
             var context = BuildServerCallContext();
