@@ -14,10 +14,9 @@ namespace AElf.Kernel.SmartContract.Application
     {
         void LogDebug(Func<string> func);
 
-        Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged, Hash name);
+        Task DeployContractAsync(ContractDto contractDto);
 
-        Task UpdateContractAsync(UpdateContractDto updateContractDto);
+        Task UpdateContractAsync(ContractDto contractDto);
 
         Task<List<Transaction>> GetBlockTransactions(Hash blockHash);
         int GetChainId();
@@ -59,15 +58,14 @@ namespace AElf.Kernel.SmartContract.Application
 #endif
         }
 
-        public async Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged, Hash name)
+        public async Task DeployContractAsync(ContractDto contractDto)
         {
-            await _smartContractService.DeployContractAsync(contractAddress, registration, isPrivileged, name);
+            await _smartContractService.DeployContractAsync(contractDto);
         }
 
-        public async Task UpdateContractAsync(UpdateContractDto updateContractDto)
+        public async Task UpdateContractAsync(ContractDto contractDto)
         {
-            await _smartContractService.UpdateContractAsync(updateContractDto);
+            await _smartContractService.UpdateContractAsync(contractDto);
         }
 
         public async Task<List<Transaction>> GetBlockTransactions(Hash blockHash)

@@ -222,9 +222,17 @@ namespace AElf.Kernel.SmartContract
             {
                 throw new NoPermissionException();
             }
+            
+            var contractDto = new ContractDto
+            {
+                BlockHeight = CurrentHeight,
+                ContractAddress = address,
+                SmartContractRegistration = registration,
+                ContractName = name,
+                IsPrivileged = false
+            };
 
-            AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(address, registration,
-                false, name));
+            AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(contractDto));
         }
 
         public void UpdateContract(Address address, SmartContractRegistration registration, Hash name)
@@ -234,16 +242,15 @@ namespace AElf.Kernel.SmartContract
                 throw new NoPermissionException();
             }
 
-            var updateContractDto = new UpdateContractDto
+            var contractDto = new ContractDto
             {
                 BlockHeight = CurrentHeight,
                 ContractAddress = address,
-                PreviousBlockHash = PreviousBlockHash,
                 SmartContractRegistration = registration,
                 ContractName = null,
                 IsPrivileged = false
             };
-            AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(updateContractDto));
+            AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(contractDto));
         }
     }
 }

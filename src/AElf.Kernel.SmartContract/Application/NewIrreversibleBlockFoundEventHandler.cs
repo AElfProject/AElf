@@ -16,7 +16,7 @@ namespace AElf.Kernel.SmartContract.Application
         
         public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            _smartContractExecutiveService.ClearUpdateContractInfo(eventData.BlockHeight);
+            _smartContractExecutiveService.ClearContractInfoCache(eventData.BlockHeight);
             return Task.CompletedTask;
         }
     }

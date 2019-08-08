@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
@@ -28,10 +28,8 @@ namespace AElf.Kernel.SmartContract.Application
                 new ConcurrentDictionary<Address, SmartContractRegistration>();
 
         private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
-        private readonly ConcurrentDictionary<Address, List<UpdateContractInfo>> _updateContractInfoCache =
-            new ConcurrentDictionary<Address, List<UpdateContractInfo>>();
-        private readonly ConcurrentDictionary<Address, Dictionary<Hash,Hash>> _linkedBlocksCache =
-            new ConcurrentDictionary<Address, Dictionary<Hash,Hash>>();
+        private readonly ConcurrentDictionary<Address, long> _contractInfoCache =
+            new ConcurrentDictionary<Address, long>();
 
         public SmartContractExecutiveService(
             ISmartContractRunnerContainer smartContractRunnerContainer, IBlockchainStateManager blockchainStateManager,
@@ -122,30 +120,41 @@ namespace AElf.Kernel.SmartContract.Application
             await Task.CompletedTask;
         }
 
-        public void SetUpdateContractInfo(Address address, Hash codeHash, long blockHeight, Hash previousBlockHash)
+        public async Task SetContractInfoAsync(Address address, long blockHeight)
         {
-            if (!_updateContractInfoCache.TryGetValue(address, out var updateContractInfos))
+            if (!_contractInfoCache.TryGetValue(address, out var height) || blockHeight > height)
             {
-                updateContractInfos = new List<UpdateContractInfo>();
-                _updateContractInfoCache[address] = updateContractInfos;
+                _contractInfoCache[address] = blockHeight;
+                var chainContractInfo = await _blockchainStateManager.GetChainContractInfoAsync();
+                chainContractInfo.ContractInfos[address.ToStorageKey()] = blockHeight;
+                await _blockchainStateManager.SetChainContractInfoAsync(chainContractInfo);
             }
-            updateContractInfos.Add(new UpdateContractInfo
-                {CodeHash = codeHash, BlockHeight = blockHeight, PrevBlockHash = previousBlockHash});
         }
 
-        public void ClearUpdateContractInfo(long blockHeight)
+        public void ClearContractInfoCache(long blockHeight)
         {
-            var addresses = _updateContractInfoCache.Keys;
+            var addresses = _contractInfoCache.Keys;
             foreach (var address in addresses)
             {
-                if (!_updateContractInfoCache.TryGetValue(address, out var updateContractInfos)) continue;
-                updateContractInfos.RemoveAll(info => info.BlockHeight <= blockHeight);
-                if (updateContractInfos.Count != 0) continue;
-                _updateContractInfoCache.TryRemove(address,out _);
-                _linkedBlocksCache.TryRemove(address, out _);
+                if (_contractInfoCache.TryGetValue(address, out var height) && blockHeight >= height)
+                    _contractInfoCache.TryRemove(address, out _);
             }
         }
 
+        public async Task InitContractInfoCacheAsync()
+        {
+            if (!_contractInfoCache.IsEmpty) return;
+            
+            var chainContractInfo = await _blockchainStateManager.GetChainContractInfoAsync();
+            if (chainContractInfo.ContractInfos.IsNullOrEmpty()) return;
+            var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
+            chainContractInfo.ContractInfos.RemoveAll(c => c.Value <= chainStateInfo.BlockHeight);
+            await _blockchainStateManager.SetChainContractInfoAsync(chainContractInfo);
+            foreach (var key in chainContractInfo.ContractInfos.Keys)
+            {
+                _contractInfoCache[AddressHelper.Base58StringToAddress(key)] = chainContractInfo.ContractInfos[key];
+            }
+        }
 
         #region private methods
 
@@ -252,81 +261,24 @@ namespace AElf.Kernel.SmartContract.Application
         private async Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address,
             IExecutive executive)
         {
-            if (!_updateContractInfoCache.TryGetValue(address, out var updateContractInfos)) return executive;
+            if (!_contractInfoCache.TryGetValue(address, out _) || chainContext.BlockHeight == 0) return executive;
 
-            var minUpdateHeight = updateContractInfos.Select(c => c.BlockHeight).Min();
-            var blockIndex = new BlockIndex(chainContext.BlockHash, chainContext.BlockHeight);
-
-            UpdateContractInfo updateContractInfo = null;
-            while (blockIndex.Height >= minUpdateHeight && updateContractInfo == null)
-            {
-                updateContractInfo = GetUpdateContractInfoByLinkedBlocks(blockIndex, address);
-                if (updateContractInfo != null) break;
-                updateContractInfo = await GetUpdateContractInfoByBlockStateSetAsync(blockIndex, address);
-                blockIndex.Height--;
-            }
-
-            if (updateContractInfo != null && updateContractInfo.CodeHash != executive.ContractHash ||
-                updateContractInfo == null && updateContractInfos.Any(c => c.CodeHash == executive.ContractHash))
-            {
-                var smartContractRegistration =
-                    await GetGetSmartContractRegistrationWithoutCacheAsync(chainContext, address);
-                executive = await GetExecutiveAsync(address, smartContractRegistration);
-            }
+            var key = string.Join("/",
+                _defaultContractZeroCodeProvider.ContractZeroAddress.GetFormatted(),
+                "ContractInfos", address.ToString());
+            var byteString =
+                await _blockchainStateManager.GetStateAsync(key, chainContext.BlockHeight, chainContext.BlockHash);
+            if (byteString == null)
+                throw new InvalidOperationException("failed to find registration from zero contract");
+            var codeHash = ContractInfo.Parser.ParseFrom(byteString).CodeHash;
+            if (codeHash == executive.ContractHash) return executive;
+            var smartContractRegistration =
+                await GetGetSmartContractRegistrationWithoutCacheAsync(chainContext, address);
+            executive = await GetExecutiveAsync(address, smartContractRegistration);
 
             return executive;
         }
 
-        private Dictionary<Hash, Hash> GetLinkedBlocks(Address address)
-        {
-            if (!_linkedBlocksCache.TryGetValue(address, out var linkedBlocks))
-            {
-                linkedBlocks = new Dictionary<Hash, Hash>();
-                _linkedBlocksCache[address] = linkedBlocks;
-            }
-
-            return linkedBlocks;
-        }
-
-        private UpdateContractInfo GetUpdateContractInfoByLinkedBlocks(BlockIndex blockIndex, Address address)
-        {
-            var linkedBlocks = GetLinkedBlocks(address);
-            if (!linkedBlocks.TryGetValue(blockIndex.Hash, out var blockHash)) return null;
-            var updateContractInfos = _updateContractInfoCache[address];
-            var updateContractInfo = updateContractInfos.FirstOrDefault(c => c.BlockHash == blockIndex.Hash);
-            blockIndex.Hash = blockHash;
-            return updateContractInfo;
-        }
-
-        private async Task<UpdateContractInfo> GetUpdateContractInfoByBlockStateSetAsync(BlockIndex blockIndex,Address address)
-        {
-            var updateContractInfos = _updateContractInfoCache[address];
-            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(blockIndex.Hash);
-            blockIndex.Hash = blockStateSet.PreviousHash;
-            if (updateContractInfos.All(c => c.BlockHeight != blockIndex.Height)) return null;
-            
-            var key = string.Join("/",
-                _defaultContractZeroCodeProvider.ContractZeroAddress.GetFormatted(),
-                "ContractInfos", address.ToString());
-            if (!blockStateSet.Changes.TryGetValue(key, out var byteString)) return null;
-            
-            var codeHash = ContractInfo.Parser.ParseFrom(byteString).CodeHash;
-            var updateContractInfo = updateContractInfos.FirstOrDefault(c =>
-                c.CodeHash == codeHash && c.BlockHeight == blockStateSet.BlockHeight &&
-                c.PrevBlockHash == blockStateSet.PreviousHash && c.BlockHash == null);
-            if (updateContractInfo == null) return null;
-            updateContractInfo.BlockHash = blockStateSet.BlockHash;
-            return updateContractInfo;
-        }
-
         #endregion
-
-        class UpdateContractInfo
-        {
-            public long BlockHeight { get; set; }
-            public Hash PrevBlockHash { get; set; }
-            public Hash CodeHash { get; set; }
-            public Hash BlockHash { get; set; }
-        }
     }
 }

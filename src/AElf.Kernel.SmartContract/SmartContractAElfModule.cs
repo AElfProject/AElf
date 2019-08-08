@@ -1,7 +1,10 @@
-﻿using AElf.Kernel.SmartContract.Infrastructure;
+﻿using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp;
 using Volo.Abp.Modularity;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract
 {
@@ -13,6 +16,12 @@ namespace AElf.Kernel.SmartContract
             context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
 
             context.Services.AddSingleton<IDefaultContractZeroCodeProvider, DefaultContractZeroCodeProvider>();
+        }
+
+        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var smartContractExecutiveService = context.ServiceProvider.GetService<ISmartContractExecutiveService>();
+            AsyncHelper.RunSync(() => smartContractExecutiveService.InitContractInfoCacheAsync());
         }
     }
 }
