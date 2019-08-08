@@ -42,6 +42,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 minerInformation.AppendLine($"Miss:\t {minerInRound.MissedTimeSlots}");
                 minerInformation.AppendLine($"Tiny:\t {minerInRound.ProducedTinyBlocks}");
                 minerInformation.AppendLine($"NOrder:\t {minerInRound.FinalOrderOfNextRound}");
+                minerInformation.AppendLine($"Lib:\t {minerInRound.ImpliedIrreversibleBlockHeight}");
 
                 logs.Append(minerInformation);
             }

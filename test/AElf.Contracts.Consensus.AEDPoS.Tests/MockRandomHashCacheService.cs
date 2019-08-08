@@ -11,7 +11,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public Hash GetRandomHash(Hash bestChainBlockHash)
         {
-            return Hash.Generate();
+            return Hash.FromString("random");
         }
 
         public void SetGeneratedBlockPreviousBlockInformation(Hash blockHash, long blockHeight)
@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public Hash GetLatestGeneratedBlockRandomHash()
         {
-            return Hash.Generate();
+            return Hash.FromString("random2");
         }
     }
 }

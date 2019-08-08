@@ -25,7 +25,7 @@ namespace AElf.Kernel
                 return false;
 
             var recovered = CryptoHelper.RecoverPublicKey(block.Header.Signature.ToByteArray(),
-                                        block.GetHash().DumpByteArray(), out var publicKey);
+                                        block.GetHash().ToByteArray(), out var publicKey);
             if (!recovered)
                 return false;
 

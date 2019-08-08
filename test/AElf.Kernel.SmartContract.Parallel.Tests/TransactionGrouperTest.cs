@@ -58,7 +58,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             var chainContext = new ChainContext
             {
                 BlockHeight = 10,
-                BlockHash = Hash.Generate()
+                BlockHash = Hash.FromString("blockHash")
             };
             var grouped = await Grouper.GroupAsync(chainContext, allTxns);
             var groupedResources = grouped.Parallelizables.Select(g => g.Select(t => txLookup[t.Params]).ToList()).ToList();
@@ -75,7 +75,10 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 MethodName = methodName,
                 Params = new TransactionResourceInfo
                 {
-                    Resources = {from, to}
+                    Paths =
+                    {
+                        GetPath(from), GetPath(to)
+                    }
                 }.ToByteString()
             };
             return tx;
@@ -84,6 +87,17 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         private string StringRepresentation(List<(int, int)> resources)
         {
             return string.Join(" ", resources.Select(r => r.ToString()).OrderBy(x => x));
+        }
+
+        private ScopedStatePath GetPath(int value)
+        {
+            return new ScopedStatePath
+            {
+                Path = new StatePath
+                {
+                    Parts = {value.ToString()}
+                }
+            };
         }
     }
 }

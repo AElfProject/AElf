@@ -34,7 +34,7 @@ namespace AElf.Contracts.CrossChain
             var txResultStatusRawBytes =
                 EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString());
             return new MerklePath().AddRange(path).ComputeRootWith(
-                Hash.FromRawBytes(txId.DumpByteArray().Concat(txResultStatusRawBytes).ToArray()));
+                Hash.FromRawBytes(txId.ToByteArray().Concat(txResultStatusRawBytes).ToArray()));
         }
 
         private Hash ComputeRootWithMultiHash(IEnumerable<Hash> nodes)

@@ -31,11 +31,10 @@ namespace AElf.OS.Consensus.DPos
                     Pubkey = $"bp{i + 1}-pubkey",
                     ProtocolVersion = KernelConstants.ProtocolVersion,
                     ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                    StartHeight = 1,
                     IsInbound = true
                 };
                 
-                peerList.Add(new GrpcPeer(null, null, $"127.0.0.1:68{i + 1}0", connectionInfo));
+                peerList.Add(new GrpcPeer(new GrpcClient(null, null), $"127.0.0.1:68{i + 1}0", connectionInfo));
             }
             
             services.AddTransient(o =>
@@ -45,7 +44,6 @@ namespace AElf.OS.Consensus.DPos
                     .Returns(peerList[2]);
                 mockService.Setup(m=>m.GetPeers(It.IsAny<bool>()))
                     .Returns(peerList);
-                mockService.Setup(p => p.RecentBlockHeightAndHashMappings).Returns(new Dictionary<long, Hash>());
                 return mockService.Object;
             });
 

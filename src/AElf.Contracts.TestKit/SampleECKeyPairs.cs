@@ -16,7 +16,7 @@ namespace AElf.Contracts.TestKit
                 _keys.Select(x =>
                 {
                     var privateKeyHex = x.Split(",").First();
-                    var privateKey = ByteArrayHelper.FromHexString(privateKeyHex);
+                    var privateKey = ByteArrayHelper.HexStringToByteArray(privateKeyHex);
                     return CryptoHelper.FromPrivateKey(privateKey);
                 }).ToList());
         }

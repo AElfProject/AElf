@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using AElf.OS.Network;
+using AElf.OS.Network.Metrics;
 
 namespace AElf.WebApp.Application.Net.Dto
 {
@@ -12,8 +13,6 @@ namespace AElf.WebApp.Application.Net.Dto
         public long ConnectionTime { get; set; }
         
         public bool Inbound { get; set; }
-        
-        public long StartHeight { get; set; }
         
         public List<RequestMetric> RequestMetrics { get; set; }
     }

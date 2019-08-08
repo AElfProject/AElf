@@ -2,13 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using System.Text;
 using AElf.Types;
 
 namespace AElf.Cryptography.SecretSharing
 {
     /// <summary>
-    /// Implementation of Shamir's Secret Sharing: https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing
+    ///     Implementation of Shamir's Secret Sharing: https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing
     /// </summary>
     public static class SecretSharingHelper
     {
@@ -21,7 +20,7 @@ namespace AElf.Cryptography.SecretSharing
             for (var i = 1; i < threshold; i++)
             {
                 var foo = new byte[32];
-                Array.Copy(Hash.Generate().ToArray(), foo, 32);
+                Array.Copy(Hash.FromRawBytes(Guid.NewGuid().ToByteArray()).ToArray(), foo, 32);
                 coefficients[i] = BigInteger.Abs(new BigInteger(foo));
             }
 
@@ -45,17 +44,14 @@ namespace AElf.Cryptography.SecretSharing
         public static byte[] DecodeSecret(List<byte[]> sharedParts, List<int> orders, int threshold)
         {
             var result = BigInteger.Zero;
-            
+
             for (var i = 0; i < threshold; i++)
             {
                 var numerator = new BigInteger(sharedParts[i]);
                 var denominator = BigInteger.One;
                 for (var j = 0; j < threshold; j++)
                 {
-                    if (i == j)
-                    {
-                        continue;
-                    }
+                    if (i == j) continue;
 
                     (numerator, denominator) =
                         MultiplyRational(numerator, denominator, orders[j], orders[j] - orders[i]);
@@ -84,13 +80,11 @@ namespace AElf.Cryptography.SecretSharing
             }
         }
 
-        private static (BigInteger gcd, BigInteger invA, BigInteger invB) GetGreatestCommonDivisor2(BigInteger integer1, BigInteger integer2)
+        private static (BigInteger gcd, BigInteger invA, BigInteger invB) GetGreatestCommonDivisor2(BigInteger integer1,
+            BigInteger integer2)
         {
-            if (integer2 == 0)
-            {
-                return (integer1, 1, 0);
-            }
-            
+            if (integer2 == 0) return (integer1, 1, 0);
+
             var div = BigInteger.DivRem(integer1, integer2, out var rem);
             var (g, iA, iB) = GetGreatestCommonDivisor2(integer2, rem);
             return (g, iB, iA - iB * div);
@@ -100,7 +94,7 @@ namespace AElf.Cryptography.SecretSharing
         {
             return GetGreatestCommonDivisor2(SecretSharingConsts.FieldPrime, integer).invB.Abs();
         }
-        
+
         private static (BigInteger numerator, BigInteger denominator) MultiplyRational(
             BigInteger numeratorLhs, BigInteger denominatorLhs,
             BigInteger numeratorRhs, BigInteger denominatorRhs)

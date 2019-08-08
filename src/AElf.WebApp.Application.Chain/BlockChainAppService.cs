@@ -78,7 +78,7 @@ namespace AElf.WebApp.Application.Chain
             Hash realBlockHash;
             try
             {
-                realBlockHash = Hash.LoadHex(blockHash);
+                realBlockHash = HashHelper.HexStringToHash(blockHash);
             }
             catch
             {
@@ -117,11 +117,11 @@ namespace AElf.WebApp.Application.Chain
 
             if (includeTransactions)
             {
-                var transactions = block.Body.Transactions;
+                var transactions = block.Body.TransactionIds;
                 var txs = new List<string>();
-                foreach (var txHash in transactions)
+                foreach (var transactionId in transactions)
                 {
-                    txs.Add(txHash.ToHex());
+                    txs.Add(transactionId.ToHex());
                 }
 
                 blockDto.Body.Transactions = txs;
@@ -171,11 +171,11 @@ namespace AElf.WebApp.Application.Chain
 
             if (includeTransactions)
             {
-                var transactions = blockInfo.Body.Transactions;
+                var transactions = blockInfo.Body.TransactionIds;
                 var txs = new List<string>();
-                foreach (var txHash in transactions)
+                foreach (var transactionId in transactions)
                 {
-                    txs.Add(txHash.ToHex());
+                    txs.Add(transactionId.ToHex());
                 }
 
                 blockDto.Body.Transactions = txs;
@@ -204,7 +204,7 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<BlockStateDto> GetBlockStateAsync(string blockHash)
         {
-            var blockState = await _blockchainStateManager.GetBlockStateSetAsync(Hash.LoadHex(blockHash));
+            var blockState = await _blockchainStateManager.GetBlockStateSetAsync(HashHelper.HexStringToHash(blockHash));
             if (blockState == null)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
