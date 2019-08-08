@@ -269,7 +269,20 @@ namespace AElf.Kernel.SmartContract.Application
             var byteString =
                 await _blockchainStateManager.GetStateAsync(key, chainContext.BlockHeight, chainContext.BlockHash);
             if (byteString == null)
-                throw new InvalidOperationException("failed to find registration from zero contract");
+            {
+                var path = new ScopedStatePath
+                {
+                    Address = _defaultContractZeroCodeProvider.ContractZeroAddress,
+                    Path = new StatePath
+                    {
+                        Parts = { "ContractInfos",address.ToString()}
+                    }
+                };
+                if(!chainContext.StateCache.TryGetValue(path, out var byteArray))
+                    throw new InvalidOperationException("failed to find registration from zero contract");
+                byteString = ByteString.CopyFrom(byteArray);
+            }
+                
             var codeHash = ContractInfo.Parser.ParseFrom(byteString).CodeHash;
             if (codeHash == executive.ContractHash) return executive;
             var smartContractRegistration =
