@@ -178,5 +178,37 @@ namespace AElf.OS.Network
             var isReady = _grpcPeer.IsReady;
             isReady.ShouldBeFalse();
         }
+
+        [Fact]
+        public void Peer_AddKnowBlock_Test()
+        {
+            //fork clean hash
+            var announcement = new BlockAnnouncement
+            {
+                HasFork = true
+            };
+            _grpcPeer.AddKnowBlock(announcement);
+            _grpcPeer.RecentBlockHeightAndHashMappings.Count().ShouldBe(0);
+
+            for (var i = 0; i < 10; i++)
+            {
+                _grpcPeer.AddKnowBlock(new BlockAnnouncement
+                {
+                    BlockHash = Hash.FromString($"height-{i+1}"),
+                    BlockHeight = i+1,
+                    HasFork = false
+                });
+                _grpcPeer.RecentBlockHeightAndHashMappings.Count().ShouldBe(i+1);
+            }
+            
+            //over max value
+            _grpcPeer.AddKnowBlock(new BlockAnnouncement
+            {
+                BlockHash = Hash.FromString($"random-hash"),
+                BlockHeight = 20,
+                HasFork = false
+            });
+            _grpcPeer.RecentBlockHeightAndHashMappings.Count().ShouldBe(10);
+        }
     }
 }
