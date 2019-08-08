@@ -18,8 +18,6 @@ namespace AElf.OS.Network.Infrastructure
 
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         void AddKnowBlock(BlockAnnouncement blockAnnouncement);
-
-        Task<Handshake> DoHandshakeAsync(Handshake handshake);
         Task SendAnnouncementAsync(BlockAnnouncement an);
         Task SendTransactionAsync(Transaction transaction);
         Task SendBlockAsync(BlockWithTransactions blockWithTransactions);
@@ -30,7 +28,7 @@ namespace AElf.OS.Network.Infrastructure
         Task<bool> TryRecoverAsync();
         
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();
-
+        Task SendConfirmHandshakeAsync();
         Task DisconnectAsync(bool gracefulDisconnect);
     }
 }

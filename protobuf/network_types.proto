@@ -92,6 +92,9 @@ message HandshakeReply {
     Handshake handshake = 1;
 }
 
+message ConfirmHandshakeRequest {
+}
+
 enum HandshakeError {
     HANDSHAKE_OK = 0;
     UNKNOWN_HANDSHAKE_ERROR = 1;

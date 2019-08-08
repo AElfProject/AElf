@@ -57,9 +57,7 @@ namespace AElf.OS.Network.Grpc
         public string IpAddress { get; }
 
         public PeerInfo Info { get; }
-        
-        public Handshake LastReceivedHandshake { get; private set; }
-        
+
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
         
@@ -114,31 +112,6 @@ namespace AElf.OS.Network.Grpc
             Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString()} };
             
             return RequestAsync(_client, c => c.GetNodesAsync(new NodesRequest { MaxCount = count }, data), request);
-        }
-        
-        public async Task<Handshake> DoHandshakeAsync(Handshake handshake)
-        {
-            GrpcRequest request = new GrpcRequest { ErrorMessage = "Error while updating handshake." };
-            
-            Metadata data = new Metadata {
-                {GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString()}
-            };
-
-            var handshakeReply = await RequestAsync(_client, 
-                c => c.DoHandshakeAsync(new HandshakeRequest { Handshake = handshake}, data), request);
-
-            LastReceivedHandshake = handshakeReply?.Handshake;
-            
-            // Do some pre-checks that represent the minimum acceptable for the peers state.
-            if (LastReceivedHandshake?.HandshakeData == null)
-            {
-                IsConnected = false;
-                return null;
-            }
-            
-            UpdateLastReceivedHandshake(LastReceivedHandshake);
-
-            return LastReceivedHandshake;
         }
 
         public void UpdateLastReceivedHandshake(Handshake handshake)
@@ -265,6 +238,17 @@ namespace AElf.OS.Network.Grpc
         }
 
         #endregion
+        
+        public async Task SendConfirmHandshakeAsync()
+        {
+            var request = new GrpcRequest { ErrorMessage = "Error while sending confirm handshake." };
+            
+            Metadata data = new Metadata {
+                {GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString()}
+            };
+
+            await RequestAsync(_client, c => c.ConfirmHandshakeAsync(new ConfirmHandshakeRequest(), data), request);
+        }
         
         // todo consider removing client from the lambda as it is not used. It can be capture by the func.
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,

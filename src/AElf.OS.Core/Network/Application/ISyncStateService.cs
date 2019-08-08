@@ -105,25 +105,6 @@ namespace AElf.OS.Network.Application
             // also be true when the node starts.
             if (chain.LastIrreversibleBlockHeight >= _syncStateProvider.SyncTarget)
             {
-                var handshake = await _handshakeProvider.GetHandshakeAsync();
-                
-                // Update handshake information of all our peers
-                var tasks = _peerPool.GetPeers().Select(async peer =>
-                {
-                    try
-                    {
-                        await peer.DoHandshakeAsync(handshake);
-                    }
-                    catch (NetworkException e)
-                    {
-                        Logger.LogError(e, "Error while handshaking.");
-                    }
-                    
-                    Logger.LogDebug($"Peer {peer} last known LIB is {peer.LastKnownLibHeight}.");
-                    
-                }).ToList();
-                
-                await Task.WhenAll(tasks);
                 await UpdateSyncTargetAsync();
             }
         }

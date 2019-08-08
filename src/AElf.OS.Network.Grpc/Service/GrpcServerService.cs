@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
@@ -6,7 +5,6 @@ using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Extensions;
-using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Grpc.Core;
 using Grpc.Core.Utils;
@@ -46,21 +44,20 @@ namespace AElf.OS.Network.Grpc
             Logger = NullLogger<GrpcServerService>.Instance;
         }
 
-        /// <summary>
-        /// First step of the connect/auth process. Used to initiate a connection. The provided payload should be the
-        /// clients authentication information. When receiving this call, protocol dictates you send the client your auth
-        /// information. The response says whether or not you can connect.
-        /// </summary>
-        public override async Task<ConnectReply> Connect(ConnectRequest connectionRequest, ServerCallContext context)
-        {
-            Logger.LogTrace($"{context.Peer} has initiated a connection.");
-            return await _connectionService.DialBackAsync(context.Peer, connectionRequest.Info);
-        }
-        
         public override async Task<HandshakeReply> DoHandshake(HandshakeRequest request, ServerCallContext context)
         {
             Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a handshake.");
-            return await _connectionService.CheckIncomingHandshakeAsync(context.GetPublicKey(), request.Handshake);
+            return await _connectionService.DoHandshakeAsync(context.GetPublicKey(), request.Handshake);
+        }
+        
+        public override async Task<VoidReply> ConfirmHandshake(ConfirmHandshakeRequest request, ServerCallContext context)
+        {
+            Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a confirm handshake.");
+            var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
+            if (peer != null)
+                peer.IsConnected = true;
+            
+            return new VoidReply();
         }
         
         public override async Task<VoidReply> BlockBroadcastStream(IAsyncStreamReader<BlockWithTransactions> requestStream, ServerCallContext context)

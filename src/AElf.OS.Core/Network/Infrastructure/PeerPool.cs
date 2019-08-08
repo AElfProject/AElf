@@ -29,7 +29,7 @@ namespace AElf.OS.Network.Infrastructure
 
         public bool IsFull()
         {
-            return NetworkOptions.MaxPeers == 0 || PeerCount >= NetworkOptions.MaxPeers;
+            return NetworkOptions.MaxPeers != 0 && PeerCount >= NetworkOptions.MaxPeers;
         }
 
         public List<IPeer> GetPeers(bool includeFailing = false)

@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace AElf.OS.Network.Infrastructure
+namespace AElf.OS.Network.Protocol
 {
     public interface IHandshakeProvider
     {
