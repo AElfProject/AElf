@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Kernel;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol;
@@ -13,8 +12,6 @@ namespace AElf.OS.Network.Grpc.Connection
 {
     public class ConnectionService : IConnectionService
     {
-        private ChainOptions ChainOptions => ChainOptionsSnapshot.Value;
-        public IOptionsSnapshot<ChainOptions> ChainOptionsSnapshot { get; set; }
         private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
         
@@ -132,6 +129,19 @@ namespace AElf.OS.Network.Grpc.Connection
                 return new HandshakeReply();
             }
 
+            if (_peerPool.IsFull())
+            {
+                Logger.LogWarning("Peer pool is full.");
+                return new HandshakeReply();
+            }
+
+            if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.Authorized &&
+                !NetworkOptions.AuthorizedKeys.Contains(pubkey))
+            {
+                Logger.LogDebug($"{pubkey} not in the authorized peers.");
+                return new HandshakeReply();
+            }
+
             // TODO: find a URI type to use
             var peerAddress = peer.IpAddress + ":" + handshake.HandshakeData.ListeningPort;
             
@@ -140,13 +150,6 @@ namespace AElf.OS.Network.Grpc.Connection
             
             if(grpcPeer == null)
                 return new HandshakeReply();
-            
-            if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.Authorized &&
-                !NetworkOptions.AuthorizedKeys.Contains(grpcPeer.Info.Pubkey))
-            {
-                Logger.LogDebug($"{grpcPeer.Info.Pubkey} not in the authorized peers.");
-                return new HandshakeReply();
-            }
 
             // If auth ok -> add it to our peers
             if (!_peerPool.TryAddPeer(grpcPeer))
@@ -173,47 +176,7 @@ namespace AElf.OS.Network.Grpc.Connection
             peer.IsConnected = true;
             return Task.CompletedTask;
         }
-
-        private ConnectError ValidateConnectionInfo(ConnectionInfo connectionInfo)
-        {
-            // verify chain id
-            if (connectionInfo.ChainId != ChainOptions.ChainId)
-                return ConnectError.ChainMismatch;
-
-            // verify protocol
-            if (connectionInfo.Version != KernelConstants.ProtocolVersion)
-                return ConnectError.ProtocolMismatch;
-            
-            // verify if we still have room for more peers
-            if (NetworkOptions.MaxPeers != 0 && _peerPool.IsFull())
-            {
-                Logger.LogWarning($"Cannot add peer, there's currently {_peerPool.PeerCount} peers (max. {NetworkOptions.MaxPeers}).");
-                return ConnectError.ConnectionRefused;
-            }
-
-            return ConnectError.ConnectOk;
-        }
-
-        private async Task<bool> ValidateHandshakeAsync(Handshake handshake)
-        {
-            if (!await _handshakeProvider.ValidateHandshakeAsync(handshake))
-            {
-                return false;
-            }
-
-            // verify authentication
-            var pubkey = handshake.HandshakeData.Pubkey.ToHex();
-
-            if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.Authorized &&
-                !NetworkOptions.AuthorizedKeys.Contains(pubkey))
-            {
-                Logger.LogDebug($"{pubkey} not in the authorized peers.");
-                return false;
-            }
-
-            return true;
-        }
-
+        
         public async Task DisconnectPeersAsync(bool gracefulDisconnect)
         {
             var peers = _peerPool.GetPeers(true);

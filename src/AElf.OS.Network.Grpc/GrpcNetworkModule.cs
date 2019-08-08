@@ -14,7 +14,6 @@ namespace AElf.OS.Network.Grpc
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<IAElfNetworkServer, GrpcNetworkServer>();
-            context.Services.AddSingleton<IConnectionInfoProvider, ConnectionInfoProvider>();
             context.Services.AddSingleton<IConnectionService, ConnectionService>();
             
             context.Services.AddSingleton<PeerService.PeerServiceBase, GrpcServerService>();

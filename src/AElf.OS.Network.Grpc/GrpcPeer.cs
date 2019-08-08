@@ -9,6 +9,7 @@ using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Metrics;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -394,6 +395,13 @@ namespace AElf.OS.Network.Grpc
             {
                 // if channel already shutdown
             }
+        }
+
+        public bool IsInvalid()
+        {
+            return !IsConnected &&
+                   Info.ConnectionTime.AddMilliseconds(NetworkConstants.PeerConnectionTimeout) <
+                   TimestampHelper.GetUtcNow();
         }
 
         public override string ToString()

@@ -1,8 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Kernel;
-using AElf.Sdk.CSharp;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -31,10 +29,7 @@ namespace AElf.OS.Network.Infrastructure
 
         public bool IsFull()
         {
-            var peerCount = Peers.Where(p =>
-                p.Value.IsConnected ||
-                p.Value.Info.ConnectionTime.AddMilliseconds(NetworkConstants.PeerConnectionTimeout) >=
-                TimestampHelper.GetUtcNow()).ToList().Count;
+            var peerCount = Peers.Where(p => !p.Value.IsInvalid()).ToList().Count;
 
             return NetworkOptions.MaxPeers != 0 && peerCount >= NetworkOptions.MaxPeers;
         }
@@ -75,15 +70,12 @@ namespace AElf.OS.Network.Infrastructure
 
         public bool TryAddPeer(IPeer peer)
         {
-            // clear timeout peer
-            var timeoutPeers = Peers.Where(p =>
-                !p.Value.IsConnected &&
-                p.Value.Info.ConnectionTime.AddMilliseconds(NetworkConstants.PeerConnectionTimeout) <
-                TimestampHelper.GetUtcNow());
+            // clear invalid peer
+            var invalidPeers = Peers.Where(p =>p.Value.IsInvalid());
 
-            foreach (var timeoutPeer in timeoutPeers)
+            foreach (var invalidPeer in invalidPeers)
             {
-                var removedPeer = RemovePeer(timeoutPeer.Key);
+                var removedPeer = RemovePeer(invalidPeer.Key);
                 removedPeer?.DisconnectAsync(false);
             }
             
