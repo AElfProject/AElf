@@ -29,19 +29,16 @@ namespace AElf.OS.Network.Application
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockchainNodeContextService _blockchainNodeContextService;
         private readonly IPeerPool _peerPool;
-        private readonly IHandshakeProvider _handshakeProvider;
 
         public ILogger<SyncStateService> Logger { get; set; }
         
         public SyncStateService(INodeSyncStateProvider syncStateProvider, IBlockchainService blockchainService, 
-            IBlockchainNodeContextService blockchainNodeContextService, IPeerPool peerPool, 
-            IHandshakeProvider handshakeProvider)
+            IBlockchainNodeContextService blockchainNodeContextService, IPeerPool peerPool)
         {
             _syncStateProvider = syncStateProvider;
             _blockchainService = blockchainService;
             _blockchainNodeContextService = blockchainNodeContextService;
             _peerPool = peerPool;
-            _handshakeProvider = handshakeProvider;
         }
         
         public long GetCurrentSyncTarget() => _syncStateProvider.SyncTarget;

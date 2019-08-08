@@ -10,7 +10,7 @@ namespace AElf.OS.Network.Grpc.Extensions
             {
                 Pubkey = connectionInfo.Pubkey.ToHex(),
                 ProtocolVersion = connectionInfo.Version,
-                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                ConnectionTime = TimestampHelper.GetUtcNow(),
                 IsInbound = isInbound
             };
         }

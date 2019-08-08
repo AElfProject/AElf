@@ -1,12 +1,9 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
-using AElf.Types;
-using Google.Protobuf;
+using AElf.OS.Network.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;

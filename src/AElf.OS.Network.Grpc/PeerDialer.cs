@@ -58,7 +58,7 @@ namespace AElf.OS.Network.Grpc
             var peer = new GrpcPeer(client, ipAddress, new PeerInfo
             {
                 Pubkey = handshakeReply.Handshake.HandshakeData.Pubkey.ToHex(),
-                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                ConnectionTime = TimestampHelper.GetUtcNow(),
                 ProtocolVersion = handshakeReply.Handshake.HandshakeData.Version,
                 IsInbound = false
             });
@@ -129,7 +129,7 @@ namespace AElf.OS.Network.Grpc
             var peer = new GrpcPeer(client, ipAddress, new PeerInfo
             {
                 Pubkey = handshake.HandshakeData.Pubkey.ToHex(),
-                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                ConnectionTime = TimestampHelper.GetUtcNow(),
                 ProtocolVersion = handshake.HandshakeData.Version,
                 IsInbound = false
             });
