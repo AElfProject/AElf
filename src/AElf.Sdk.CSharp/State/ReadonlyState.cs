@@ -51,13 +51,11 @@ namespace AElf.Sdk.CSharp.State
         {
             var stateSet = new TransactionExecutingStateSet();
             var key = Path.ToStateKey(Context.Self);
-            if (_value != null)
+            if (!NotSetBefore)
             {
                 stateSet.Writes[key] = ByteString.CopyFrom(SerializationHelper.Serialize(_value));
             }
-
-            //if (Loaded) stateSet.Reads[key] = true;
-
+            
             return stateSet;
         }
 

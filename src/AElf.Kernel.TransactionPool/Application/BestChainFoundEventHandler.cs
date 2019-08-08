@@ -32,7 +32,10 @@ namespace AElf.Kernel.TransactionPool.Application
             var chain = await _blockchainService.GetChainAsync();
             var address = await _contractDeployDiscoveryService.GetDeployedContractAddress(chain,
                 eventData.ExecutedBlocks);
-            _deployedContractAddressProvider.AddDeployedContractAddress(address);
+            if (address != null)
+            {
+                _deployedContractAddressProvider.AddDeployedContractAddress(address);
+            }
         }
     }
 }

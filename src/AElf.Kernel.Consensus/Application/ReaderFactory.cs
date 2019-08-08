@@ -1,5 +1,6 @@
 using AElf.Kernel.SmartContract.Application;
 using Acs4;
+using AElf.Kernel.Account.Application;
 
 namespace AElf.Kernel.Consensus.Application
 {
@@ -12,14 +13,14 @@ namespace AElf.Kernel.Consensus.Application
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IBlockTimeProvider _blockTimeProvider;
+        private readonly IConsensusReaderContextService _contextService;
 
         public ConsensusReaderFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
-            ISmartContractAddressService smartContractAddressService, IBlockTimeProvider blockTimeProvider)
+            ISmartContractAddressService smartContractAddressService, IConsensusReaderContextService contextService)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _smartContractAddressService = smartContractAddressService;
-            _blockTimeProvider = blockTimeProvider;
+            _contextService = contextService;
         }
 
         public ConsensusContractContainer.ConsensusContractStub Create(IChainContext chainContext)
@@ -29,7 +30,7 @@ namespace AElf.Kernel.Consensus.Application
                 __factory = new MethodStubFactory(_transactionReadOnlyExecutionService,
                     _smartContractAddressService,
                     chainContext,
-                    _blockTimeProvider)
+                    _contextService)
             };
         }
     }
