@@ -1,3 +1,4 @@
+
 namespace AElf.OS.Network
 {
     public static class NetworkConstants
@@ -25,5 +26,7 @@ namespace AElf.OS.Network
         public const string BlockBroadcastQueueName = "BlockBroadcastQueue";
 
         public const long HandshakeTimeout = 1000;
+
+        public const long PeerConnectionTimeout = 3000;
     }
 }

@@ -16,5 +16,6 @@ namespace AElf.OS.Network.Application
         Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork);
         Task BroadcastTransactionAsync(Transaction transaction);
         Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions);
+        bool PeerPoolIsFull();
     }
 }

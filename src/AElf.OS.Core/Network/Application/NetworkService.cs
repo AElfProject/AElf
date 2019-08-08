@@ -206,6 +206,11 @@ namespace AElf.OS.Network.Application
             return blocks;
         }
 
+        public bool PeerPoolIsFull()
+        {
+            return _peerPool.IsFull();
+        }
+
         private List<IPeer> SelectPeers(string peerPubKey)
         {
             List<IPeer> peers = new List<IPeer>();
