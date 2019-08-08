@@ -9,7 +9,7 @@ namespace AElf.Types.Tests
     {
         private Hash GetHashFromStrings(params string[] strings)
         {
-            return BinaryMerkleTreeHelper.ComputeRootWithLeafNodes(strings.Select(Hash.FromString).ToList());
+            return BinaryMerkleTree.GetRootFromLeafNodes(strings.Select(Hash.FromString).ToList());
         }
 
         private Hash GetHashFromHexString(params string[] strings)
@@ -243,14 +243,28 @@ namespace AElf.Types.Tests
         [InlineData(16, 0)]
         [InlineData(16, 15)]
         [InlineData(9, 8)]
-        public void MerklePathTest(int leaveCount, int index)
+        public void MerklePathTest(int leafCount, int index)
         {
-            var hashes = CreateLeaves(leaveCount);
+            var hashes = CreateLeaves(leafCount);
             var tree = BinaryMerkleTree.FromLeafNodes(hashes.ToArray());
             var root = tree.Root;
             var path = tree.GenerateMerklePath(index);
             var calculatedRoot = path.ComputeRootWithLeafNode(hashes[index]);
             Assert.Equal(root, calculatedRoot);
+        }
+
+        [Theory]
+        [InlineData(4, 7)]
+        [InlineData(5, 13)]
+        [InlineData(6, 13)]
+        [InlineData(7, 15)]
+        [InlineData(9, 23)]
+        public void MerkleNodesCountTest(int leafCount, int expectCount)
+        {
+            var hashes = CreateLeaves(leafCount);
+            var tree = BinaryMerkleTree.FromLeafNodes(hashes);
+            var nodesCount = tree.Nodes.Count;
+            Assert.Equal(expectCount, nodesCount);
         }
 
         #region Some useful methods

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -58,6 +59,52 @@ namespace AElf.Types
                 nodeToAdd /= 2;
                 newAdded = 0;
             }
+        }
+        
+        public static Hash GetRootFromLeafNodes(IEnumerable<Hash> leafNodes)
+        {
+            var binaryMerkleTree = FromLeafNodes(leafNodes.ToList());
+            return binaryMerkleTree.Root;
+        }
+
+        public MerklePath GenerateMerklePath(int index)
+        {
+            if (Root == null || index >= LeafCount)
+                throw new InvalidOperationException("Cannot generate merkle path from incomplete binary merkle tree.");
+            MerklePath path = new MerklePath();
+            int indexOfFirstNodeInRow = 0;
+            int nodeCountInRow = LeafCount;
+            while (index < Nodes.Count - 1)
+            {
+                Hash neighbor;
+                bool isLeftNeighbor;
+                if (index % 2 == 0)
+                {
+                    // add right neighbor node
+                    neighbor = Nodes[index + 1];
+                    isLeftNeighbor = false;
+                }
+                else
+                {
+                    // add left neighbor node
+                    neighbor = Nodes[index - 1];
+                    isLeftNeighbor = true;
+                }
+                
+                path.MerklePathNodes.Add(new MerklePathNode
+                {
+                    Hash = Hash.FromByteArray(neighbor.ToByteArray()),
+                    IsLeftChildNode = isLeftNeighbor
+                });
+                
+                nodeCountInRow = nodeCountInRow % 2 == 0 ? nodeCountInRow : nodeCountInRow + 1;
+                int shift = (index - indexOfFirstNodeInRow) / 2;
+                indexOfFirstNodeInRow += nodeCountInRow;
+                index = indexOfFirstNodeInRow + shift;
+                nodeCountInRow /= 2;
+            }
+            
+            return path;
         }
     }
 }

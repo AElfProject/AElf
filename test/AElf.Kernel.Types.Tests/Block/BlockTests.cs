@@ -85,7 +85,7 @@ namespace AElf.Kernel.Types.Tests
             block.Body.TransactionIds.AddRange(transactionItems.Item2);
 
             block.Header.MerkleTreeRootOfTransactions =
-                BinaryMerkleTreeHelper.ComputeRootWithLeafNodes(block.Body.TransactionIds);
+                BinaryMerkleTree.GetRootFromLeafNodes(block.Body.TransactionIds);
             block.Header.MerkleTreeRootOfWorldState = Hash.Empty;
             block.Header.MerkleTreeRootOfTransactionStatus = Hash.Empty;
             block.Header.SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey");

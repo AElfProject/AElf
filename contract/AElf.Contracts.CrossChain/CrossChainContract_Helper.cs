@@ -39,7 +39,7 @@ namespace AElf.Contracts.CrossChain
 
         private Hash ComputeRootWithMultiHash(IEnumerable<Hash> nodes)
         {
-            return BinaryMerkleTreeHelper.ComputeRootWithLeafNodes(nodes);
+            return BinaryMerkleTree.GetRootFromLeafNodes(nodes);
         }
         
         /// <summary>

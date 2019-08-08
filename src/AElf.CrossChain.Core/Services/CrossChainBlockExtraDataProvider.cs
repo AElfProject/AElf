@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Acs7;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 
@@ -33,7 +34,7 @@ namespace AElf.CrossChain
                 return ByteString.Empty;
             
             var txRootHashList = newCrossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMerkleTreeRoot).ToList();
-            var calculatedSideChainTransactionsRoot = BinaryMerkleTreeHelper.ComputeRootWithLeafNodes(txRootHashList);
+            var calculatedSideChainTransactionsRoot = BinaryMerkleTree.GetRootFromLeafNodes(txRootHashList);
 
             return new CrossChainExtraData {SideChainTransactionsRoot = calculatedSideChainTransactionsRoot}
                 .ToByteString();
