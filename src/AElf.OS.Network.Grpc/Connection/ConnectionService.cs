@@ -1,20 +1,17 @@
 using System;
 using System.Threading.Tasks;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc.Connection
 {
     public class ConnectionService : IConnectionService
     {
-        private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
-        public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
-        
         private readonly IPeerPool _peerPool;
         private readonly IPeerDialer _peerDialer;
         private readonly IHandshakeProvider _handshakeProvider;
@@ -85,6 +82,7 @@ namespace AElf.OS.Network.Grpc.Connection
             }
             catch (Exception e)
             {
+                Logger.LogError(e, $"Peer {peer.Info.Pubkey} is already in the pool.");
                 await peer.DisconnectAsync(false);
                 throw e;
             }
@@ -106,14 +104,18 @@ namespace AElf.OS.Network.Grpc.Connection
 
             _ = EventBus.PublishAsync(new PeerConnectedEventData(nodeInfo, bestChainHash, bestChainHeight));
         }
-                
+
         public async Task<HandshakeReply> DoHandshakeAsync(string peerConnectionIp, Handshake handshake)
         {
             var peer = GrpcUrl.Parse(peerConnectionIp);
-
             if (peer == null)
             {
                 Logger.LogWarning($"Peer connection ip error: {peerConnectionIp}.");
+                return new HandshakeReply();
+            }
+
+            if (!await _handshakeProvider.ValidateHandshakeAsync(handshake))
+            {
                 return new HandshakeReply();
             }
 
@@ -131,15 +133,10 @@ namespace AElf.OS.Network.Grpc.Connection
                 return new HandshakeReply();
             }
 
-            if (!await _handshakeProvider.ValidateHandshakeAsync(handshake))
-            {
-                return new HandshakeReply();
-            }
-
             // TODO: find a URI type to use
             var peerAddress = peer.IpAddress + ":" + handshake.HandshakeData.ListeningPort;
-            
             Logger.LogDebug($"Attempting to create channel to {peerAddress}");
+
             var grpcPeer = await _peerDialer.DialBackPeerAsync(peerAddress, handshake);
 
             // If auth ok -> add it to our peers
@@ -148,7 +145,7 @@ namespace AElf.OS.Network.Grpc.Connection
                 Logger.LogWarning($"Stopping connection, peer already in the pool {grpcPeer.Info.Pubkey}.");
                 await grpcPeer.DisconnectAsync(false);
             }
-            
+
             Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
 
             var replyHandshake = await _handshakeProvider.GetHandshakeAsync();

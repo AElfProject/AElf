@@ -47,7 +47,7 @@ namespace AElf.OS.Network.Grpc
         public override async Task<HandshakeReply> DoHandshake(HandshakeRequest request, ServerCallContext context)
         {
             Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a handshake.");
-            return await _connectionService.DoHandshakeAsync(context.GetPublicKey(), request.Handshake);
+            return await _connectionService.DoHandshakeAsync(context.Peer, request.Handshake);
         }
         
         public override async Task<VoidReply> ConfirmHandshake(ConfirmHandshakeRequest request, ServerCallContext context)
@@ -85,10 +85,14 @@ namespace AElf.OS.Network.Grpc
             Logger.LogDebug($"Received announce {announcement.BlockHash} from {context.GetPeerInfo()}.");
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
-            peer?.AddKnowBlock(announcement);
 
-            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(announcement, context.GetPublicKey()));
-            
+            if (peer != null)
+            {
+                peer.AddKnowBlock(announcement);
+
+                _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(announcement, context.GetPublicKey()));
+            }
+
             return Task.CompletedTask;
         }
         
