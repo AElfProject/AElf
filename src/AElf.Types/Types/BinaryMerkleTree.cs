@@ -60,12 +60,6 @@ namespace AElf.Types
                 newAdded = 0;
             }
         }
-        
-        public static Hash GetRootFromLeafNodes(IEnumerable<Hash> leafNodes)
-        {
-            var binaryMerkleTree = FromLeafNodes(leafNodes.ToList());
-            return binaryMerkleTree.Root;
-        }
 
         public MerklePath GenerateMerklePath(int index)
         {

@@ -132,12 +132,12 @@ namespace AElf.Kernel.Blockchain.Application
                 nodes.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
             }
 
-            return BinaryMerkleTree.GetRootFromLeafNodes(nodes);
+            return BinaryMerkleTree.FromLeafNodes(nodes).Root;
         }
 
         private Hash CalculateTransactionMerkleTreeRoot(IEnumerable<Hash> transactionIds)
         {
-            return BinaryMerkleTree.GetRootFromLeafNodes(transactionIds);
+            return BinaryMerkleTree.FromLeafNodes(transactionIds).Root;
         }
         
         private Hash GetHashCombiningTransactionAndStatus(Hash txId,

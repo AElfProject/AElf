@@ -9,7 +9,7 @@ namespace AElf.Types.Tests
     {
         private Hash GetHashFromStrings(params string[] strings)
         {
-            return BinaryMerkleTree.GetRootFromLeafNodes(strings.Select(Hash.FromString).ToList());
+            return BinaryMerkleTree.FromLeafNodes(strings.Select(Hash.FromString).ToList()).Root;
         }
 
         private Hash GetHashFromHexString(params string[] strings)

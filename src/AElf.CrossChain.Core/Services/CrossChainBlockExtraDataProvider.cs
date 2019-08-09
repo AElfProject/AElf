@@ -34,7 +34,7 @@ namespace AElf.CrossChain
                 return ByteString.Empty;
             
             var txRootHashList = newCrossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMerkleTreeRoot).ToList();
-            var calculatedSideChainTransactionsRoot = BinaryMerkleTree.GetRootFromLeafNodes(txRootHashList);
+            var calculatedSideChainTransactionsRoot = BinaryMerkleTree.FromLeafNodes(txRootHashList).Root;
 
             return new CrossChainExtraData {SideChainTransactionsRoot = calculatedSideChainTransactionsRoot}
                 .ToByteString();
