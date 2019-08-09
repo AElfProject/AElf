@@ -16,8 +16,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var minersCount = currentRound.RealTimeMinersInformation.Count;
             var minimumCount = minersCount.Mul(2).Div(3);
             minimumCount = minimumCount == 0 ? 1 : minimumCount;
-
-            var secretShares = SecretSharingHelper.EncodeSecret(inValue.ToByteArray(), minimumCount, minersCount);
+            ICodeExcutor excutor = new SecretSharingExcutor();
+            var secretShares = excutor.EncodeSecret(inValue.ToByteArray(), minimumCount, minersCount);
             foreach (var pair in currentRound.RealTimeMinersInformation.OrderBy(m => m.Value.Order)
                 .ToDictionary(m => m.Key, m => m.Value.Order))
             {
@@ -91,8 +91,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var sharedParts = anotherMinerInPreviousRound.DecryptedPreviousInValues.Values.ToList()
                     .Select(s => s.ToByteArray()).ToList();
 
+                ICodeExcutor excutor = new SecretSharingExcutor();
+                IRationalHelper irh = new SecretSharingMathHelper();
                 var revealedInValue =
-                    Hash.FromRawBytes(SecretSharingHelper.DecodeSecret(sharedParts, orders, minimumCount));
+                    Hash.FromRawBytes(excutor.DecodeSecret(sharedParts, orders, minimumCount,irh));
 
                 Context.LogDebug(() =>
                     $"Revealed in value of {publicKeyOfAnotherMiner} of round {previousRound.RoundNumber}: {revealedInValue}");

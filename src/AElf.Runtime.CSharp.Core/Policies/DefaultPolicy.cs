@@ -45,7 +45,7 @@ namespace AElf.Runtime.CSharp.Policies
                 .Assembly(typeof(CSharpSmartContract).Assembly, Trust.Full) // AElf.Sdk.CSharp
                 .Assembly(typeof(Address).Assembly, Trust.Full) // AElf.Types
                 .Assembly(typeof(IMethod).Assembly, Trust.Full) // AElf.CSharp.Core
-                .Assembly(typeof(SecretSharingHelper).Assembly, Trust.Full) // AElf.Cryptography
+                .Assembly(typeof(ICodeExcutor).Assembly, Trust.Full) // AElf.Cryptography
                 ;
         }
 

@@ -28,11 +28,12 @@ namespace AElf.Cryptography.Tests
         public void SharingTest(string str, int threshold, int totalParts)
         {
             var bytes = Encoding.UTF8.GetBytes(str);
-            var parts = SecretSharingHelper.EncodeSecret(bytes, threshold, totalParts);
+            ICodeExcutor excutor = new SecretSharingExcutor();
+            var parts = excutor.EncodeSecret(bytes, threshold, totalParts);
             Assert.Equal(totalParts, parts.Count);
-
-            var result = SecretSharingHelper.DecodeSecret(parts.Take(threshold).ToList(),
-                Enumerable.Range(1, threshold).ToList(), threshold);
+            IRationalHelper irh = new SecretSharingMathHelper();
+            var result = excutor.DecodeSecret(parts.Take(threshold).ToList(),
+                Enumerable.Range(1, threshold).ToList(), threshold,irh);
             Assert.Equal(bytes, result);
         }
         
@@ -44,9 +45,11 @@ namespace AElf.Cryptography.Tests
         {
             var hash = Hash.FromString("hash");
             var hashBytes = hash.ToByteArray();
-            var parts = SecretSharingHelper.EncodeSecret(hashBytes, threshold, totalParts);
-            var result = SecretSharingHelper.DecodeSecret(parts.Take(threshold).ToList(),
-                Enumerable.Range(1, threshold).ToList(), threshold);
+            ICodeExcutor excutor = new SecretSharingExcutor();
+            var parts = excutor.EncodeSecret(hashBytes, threshold, totalParts);
+            IRationalHelper irh = new SecretSharingMathHelper();
+            var result = excutor.DecodeSecret(parts.Take(threshold).ToList(),
+                Enumerable.Range(1, threshold).ToList(), threshold,irh);
             Assert.Equal(hashBytes, result);
         }
     }
