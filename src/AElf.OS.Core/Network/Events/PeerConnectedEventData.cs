@@ -14,7 +14,7 @@ namespace AElf.OS.Network.Events
         {
             NodeInfo = nodeInfo;
             BestChainHash = bestChainHash;
-            bestChainHeight = bestChainHeight;
+            BestChainHeight = bestChainHeight;
         }
     }
 }
