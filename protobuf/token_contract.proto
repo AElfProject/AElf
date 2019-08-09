@@ -44,7 +44,6 @@ service TokenContract {
     }
     rpc CrossChainCreateToken(CrossChainCreateTokenInput) returns (google.protobuf.Empty) {        
     }
-    rpc SetFeePoolAddress (aelf.Hash) returns (google.protobuf.Empty) {
     rpc CheckThreshold (CheckThresholdInput) returns (google.protobuf.Empty) {
     }
     rpc SetProfitReceivingInformation (ProfitReceivingInformation) returns (google.protobuf.Empty) {

@@ -91,10 +91,10 @@ namespace AElf.Contracts.MultiToken
 
         private CrossChainContractContainer.CrossChainContractReferenceState GetValidCrossChainContractReferenceState()
         {
-            if (State.CrossChainContractReferenceState.Value == null)
-                State.CrossChainContractReferenceState.Value =
+            if (State.CrossChainContract.Value == null)
+                State.CrossChainContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
-            return State.CrossChainContractReferenceState;
+            return State.CrossChainContract;
         }
         
         private void CrossChainVerify(Hash transactionId, long parentChainHeight, int chainId, IEnumerable<Hash> merklePath)
