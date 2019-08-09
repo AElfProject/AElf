@@ -64,7 +64,9 @@ namespace AElf.Kernel.SmartContract.Parallel
                 {
                     resourceInfo.Paths
                 },
-                NonParallelizable = resourceInfo.NonParallelizable
+                Type = resourceInfo.NonParallelizable
+                    ? TransactionResourceInfoType.NonParallelizable
+                    : TransactionResourceInfoType.Parallelizable
             };
         }
 
@@ -78,7 +80,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             return new TransactionResourceInfo
             {
                 TransactionId = transactionId,
-                NonParallelizable = true
+                Type = TransactionResourceInfoType.NonParallelizable
             };
         }
     }

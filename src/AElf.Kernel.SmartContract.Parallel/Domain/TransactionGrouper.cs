@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -62,6 +63,12 @@ namespace AElf.Kernel.SmartContract.Parallel
                 
                 foreach (var twr in txsWithResources)
                 {
+                    if (twr.Item2.Type == TransactionResourceInfoType.InvalidContractAddress)
+                    {
+                        groupedTransactions.TransactionsWithoutContract.Add(twr.Item1);
+                        continue;
+                    }
+
                     // If timed out at this point, return all transactions as non-parallelizable
                     if (cts.IsCancellationRequested)
                     {
@@ -69,7 +76,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                         continue;
                     }
                     
-                    if (twr.Item2.NonParallelizable)
+                    if (twr.Item2.Type == TransactionResourceInfoType.NonParallelizable)
                     {
                         groupedTransactions.NonParallelizables.Add(twr.Item1);
                         continue;

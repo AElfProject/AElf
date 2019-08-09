@@ -55,7 +55,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 return (transaction, new TransactionResourceInfo()
                 {
                     TransactionId = transaction.GetHash(),
-                    NonParallelizable = true
+                    Type = TransactionResourceInfoType.NonParallelizable
                 });
 
             if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache))
@@ -79,13 +79,21 @@ namespace AElf.Kernel.SmartContract.Parallel
                     return new TransactionResourceInfo
                     {
                         TransactionId = transaction.GetHash(),
-                        NonParallelizable = true
+                        Type = TransactionResourceInfoType.NonParallelizable
                     };
                 }
 
                 var resourceInfo = await executive.GetTransactionResourceInfoAsync(chainContext, transaction);
                 // Try storing in cache here
                 return resourceInfo;
+            }
+            catch (SmartContractFindRegistrationException e)
+            {
+                return new TransactionResourceInfo
+                {
+                    TransactionId = transaction.GetHash(),
+                    Type = TransactionResourceInfoType.InvalidContractAddress
+                };
             }
             finally
             {
