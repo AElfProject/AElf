@@ -3,7 +3,6 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
@@ -71,7 +70,7 @@ namespace AElf.OS.Network.Protocol
                 !_networkOptions.AuthorizedKeys.Contains(pubkey))
             {
                 Logger.LogDebug($"{pubkey} not in the authorized peers.");
-                return false;
+                return Task.FromResult(false);
             }
 
             var chainId = _blockchainService.GetChainId();

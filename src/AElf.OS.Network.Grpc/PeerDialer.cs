@@ -51,7 +51,8 @@ namespace AElf.OS.Network.Grpc
             // verify handshake
             if (!await _handshakeProvider.ValidateHandshakeAsync(handshakeReply.Handshake))
             {
-                await CleanupAndGetExceptionAsync($"Connect error: {handshakeReply}.", client.Channel);
+                Logger.LogWarning($"Connect error: {handshakeReply}.");
+                await client.Channel.ShutdownAsync();
                 return null;
             }
 
@@ -87,9 +88,11 @@ namespace AElf.OS.Network.Grpc
                 handshakeReply =
                     await client.Client.DoHandshakeAsync(new HandshakeRequest {Handshake = handshake}, metadata);
             }
-            catch (AggregateException ex)
+            catch (Exception ex)
             {
-                await CleanupAndGetExceptionAsync($"Could not connect to {ipAddress}.", client.Channel, ex);
+                Logger.LogError(ex,$"Could not connect to {ipAddress}.");
+                await client.Channel.ShutdownAsync();
+                throw ex;
             }
 
             return handshakeReply;
@@ -126,18 +129,14 @@ namespace AElf.OS.Network.Grpc
                 
                 await client.Client.PingAsync(new PingRequest(), metadata);
             }
-            catch (AggregateException ex)
+            catch (Exception ex)
             {
-                await CleanupAndGetExceptionAsync($"Could not ping {ipAddress}.", client.Channel, ex);
+                Logger.LogError(ex,$"Could not ping {ipAddress}.");
+                await client.Channel.ShutdownAsync();
+                throw ex;
             }
         }
-        
-        private async Task CleanupAndGetExceptionAsync(string exceptionMessage, Channel channel, Exception inner = null)
-        {
-            await channel.ShutdownAsync();
-            throw new PeerDialException(exceptionMessage, inner);
-        }
-        
+
         /// <summary>
         /// Creates a channel/client pair with the appropriate options and interceptors.
         /// </summary>
