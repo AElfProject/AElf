@@ -6,6 +6,6 @@ namespace AElf.OS.Network.Protocol
     {
         Task<Handshake> GetHandshakeAsync();
 
-        Task<bool> ValidateHandshakeAsync(Handshake handshake);
+        Task<HandshakeValidationResult> ValidateHandshakeAsync(Handshake handshake);
     }
 }

@@ -49,7 +49,14 @@ namespace AElf.OS.Network.Grpc
             var handshakeReply = await CallDoHandshakeAsync(client, ipAddress, handshake);
 
             // verify handshake
-            if (!await _handshakeProvider.ValidateHandshakeAsync(handshakeReply.Handshake))
+            if (handshakeReply != null && handshakeReply.Handshake == null)
+            {
+                Logger.LogWarning($"Handshake error: {handshakeReply.ErrorMessage}.");
+                return null;
+            }
+
+            if (await _handshakeProvider.ValidateHandshakeAsync(handshakeReply.Handshake) !=
+                HandshakeValidationResult.Ok)
             {
                 Logger.LogWarning($"Connect error: {handshakeReply}.");
                 await client.Channel.ShutdownAsync();
@@ -63,7 +70,7 @@ namespace AElf.OS.Network.Grpc
                 ProtocolVersion = handshakeReply.Handshake.HandshakeData.Version,
                 IsInbound = false
             });
-            
+
             peer.UpdateLastReceivedHandshake(handshakeReply.Handshake);
 
             return peer;

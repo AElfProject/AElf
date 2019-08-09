@@ -57,40 +57,33 @@ namespace AElf.OS.Network.Protocol
             return handshake;
         }
 
-        public Task<bool> ValidateHandshakeAsync(Handshake handshake)
+        public Task<HandshakeValidationResult> ValidateHandshakeAsync(Handshake handshake)
         {
-            if (handshake?.HandshakeData == null)
-            {
-                Logger.LogWarning("Handshake is null.");
-                return Task.FromResult(false);
-            }
-            
             var pubkey = handshake.HandshakeData.Pubkey.ToHex();
             if (_networkOptions.AuthorizedPeers == AuthorizedPeers.Authorized &&
                 !_networkOptions.AuthorizedKeys.Contains(pubkey))
             {
-                Logger.LogDebug($"{pubkey} not in the authorized peers.");
-                return Task.FromResult(false);
+                return Task.FromResult(HandshakeValidationResult.Unauthorized);
             }
 
             var chainId = _blockchainService.GetChainId();
             if (handshake.HandshakeData.ChainId != chainId)
             {
                 Logger.LogWarning($"Chain is is incorrect: {handshake.HandshakeData.ChainId}.");
-                return Task.FromResult(false);
+                return Task.FromResult(HandshakeValidationResult.InvalidChainId);
             }
 
             if (handshake.HandshakeData.Version != KernelConstants.ProtocolVersion)
             {
                 Logger.LogWarning($"Version is is incorrect: {handshake.HandshakeData.Version}.");
-                return Task.FromResult(false);
+                return Task.FromResult(HandshakeValidationResult.InvalidVersion);
             }
 
             if (TimestampHelper.GetUtcNow() > handshake.HandshakeData.Time +
                 TimestampHelper.DurationFromMilliseconds(NetworkConstants.HandshakeTimeout))
             {
                 Logger.LogWarning("Handshake is expired.");
-                return Task.FromResult(false);
+                return Task.FromResult(HandshakeValidationResult.HandshakeTimeout);
             }
 
             var validData = CryptoHelper.VerifySignature(handshake.Signature.ToByteArray(),
@@ -99,10 +92,20 @@ namespace AElf.OS.Network.Protocol
             if (!validData)
             {
                 Logger.LogWarning("Handshake signature is incorrect.");
-                return Task.FromResult(false);
+                return Task.FromResult(HandshakeValidationResult.InvalidSignature);
             }
 
-            return Task.FromResult(true);
+            return Task.FromResult(HandshakeValidationResult.Ok);
         }
+    }
+
+    public enum HandshakeValidationResult
+    {
+        Ok = 0,
+        InvalidChainId = 1,
+        InvalidVersion = 2,
+        HandshakeTimeout = 3,
+        InvalidSignature = 4,
+        Unauthorized = 5
     }
 }
