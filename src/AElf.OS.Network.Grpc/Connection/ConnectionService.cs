@@ -72,13 +72,6 @@ namespace AElf.OS.Network.Grpc.Connection
             if (peer == null)
                 return false;
 
-            if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.Authorized &&
-                !NetworkOptions.AuthorizedKeys.Contains(peer.Info.Pubkey))
-            {
-                Logger.LogDebug($"{peer.Info.Pubkey} not in the authorized peers.");
-                return false;
-            }
-
             if (!_peerPool.TryAddPeer(peer))
             {
                 Logger.LogWarning($"Peer {peer.Info.Pubkey} is already in the pool.");
@@ -119,7 +112,10 @@ namespace AElf.OS.Network.Grpc.Connection
             var peer = GrpcUrl.Parse(peerConnectionIp);
 
             if (peer == null)
+            {
+                Logger.LogWarning($"Peer connection ip error: {peerConnectionIp}.");
                 return new HandshakeReply();
+            }
 
             var pubkey = handshake.HandshakeData.Pubkey.ToHex();
             var currentPeer = _peerPool.FindPeerByPublicKey(pubkey);
@@ -135,10 +131,8 @@ namespace AElf.OS.Network.Grpc.Connection
                 return new HandshakeReply();
             }
 
-            if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.Authorized &&
-                !NetworkOptions.AuthorizedKeys.Contains(pubkey))
+            if (!await _handshakeProvider.ValidateHandshakeAsync(handshake))
             {
-                Logger.LogDebug($"{pubkey} not in the authorized peers.");
                 return new HandshakeReply();
             }
 
@@ -147,9 +141,6 @@ namespace AElf.OS.Network.Grpc.Connection
             
             Logger.LogDebug($"Attempting to create channel to {peerAddress}");
             var grpcPeer = await _peerDialer.DialBackPeerAsync(peerAddress, handshake);
-            
-            if(grpcPeer == null)
-                return new HandshakeReply();
 
             // If auth ok -> add it to our peers
             if (!_peerPool.TryAddPeer(grpcPeer))

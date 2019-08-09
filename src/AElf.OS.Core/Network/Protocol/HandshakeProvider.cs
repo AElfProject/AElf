@@ -65,6 +65,14 @@ namespace AElf.OS.Network.Protocol
                 Logger.LogWarning("Handshake is null.");
                 return Task.FromResult(false);
             }
+            
+            var pubkey = handshake.HandshakeData.Pubkey.ToHex();
+            if (_networkOptions.AuthorizedPeers == AuthorizedPeers.Authorized &&
+                !_networkOptions.AuthorizedKeys.Contains(pubkey))
+            {
+                Logger.LogDebug($"{pubkey} not in the authorized peers.");
+                return false;
+            }
 
             var chainId = _blockchainService.GetChainId();
             if (handshake.HandshakeData.ChainId != chainId)

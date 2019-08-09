@@ -117,8 +117,6 @@ namespace AElf.OS.Network.Grpc
 
         public void UpdateLastReceivedHandshake(Handshake handshake)
         {
-            IsConnected = true;
-
             LastKnownLibHeight = handshake.HandshakeData.LastIrreversibleBlockHeight;
             CurrentBlockHash = handshake.HandshakeData.BestChainHash;
             CurrentBlockHeight = handshake.HandshakeData.BestChainHeight;

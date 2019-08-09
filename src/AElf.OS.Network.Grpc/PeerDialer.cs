@@ -49,7 +49,7 @@ namespace AElf.OS.Network.Grpc
             var handshakeReply = await CallDoHandshakeAsync(client, ipAddress, handshake);
 
             // verify handshake
-            if (!await ValidateHandshakeAsync(handshakeReply.Handshake))
+            if (!await _handshakeProvider.ValidateHandshakeAsync(handshakeReply.Handshake))
             {
                 await CleanupAndGetExceptionAsync($"Connect error: {handshakeReply}.", client.Channel);
                 return null;
@@ -64,7 +64,6 @@ namespace AElf.OS.Network.Grpc
             });
             
             peer.UpdateLastReceivedHandshake(handshakeReply.Handshake);
-            peer.IsConnected = false;
 
             return peer;
         }
@@ -96,33 +95,8 @@ namespace AElf.OS.Network.Grpc
             return handshakeReply;
         }
 
-        private async Task<bool> ValidateHandshakeAsync(Handshake handshake)
-        {
-            if (!await _handshakeProvider.ValidateHandshakeAsync(handshake))
-            {
-                return false;
-            }
-
-            // verify authentication
-            var pubkey = handshake.HandshakeData.Pubkey.ToHex();
-
-            if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.Authorized &&
-                !NetworkOptions.AuthorizedKeys.Contains(pubkey))
-            {
-                Logger.LogDebug($"{pubkey} not in the authorized peers.");
-                return false;
-            }
-
-            return true;
-        }
-
         public async Task<GrpcPeer> DialBackPeerAsync(string ipAddress, Handshake handshake)
         {
-            if (!await ValidateHandshakeAsync(handshake))
-            {
-                return null;
-            }
-            
             var client = CreateClient(ipAddress);
             await PingNodeAsync(client, ipAddress);
             
@@ -131,11 +105,10 @@ namespace AElf.OS.Network.Grpc
                 Pubkey = handshake.HandshakeData.Pubkey.ToHex(),
                 ConnectionTime = TimestampHelper.GetUtcNow(),
                 ProtocolVersion = handshake.HandshakeData.Version,
-                IsInbound = false
+                IsInbound = true
             });
             
             peer.UpdateLastReceivedHandshake(handshake);
-            peer.IsConnected = false;
 
             return peer;
         }
