@@ -30,6 +30,7 @@ namespace AElf.Contracts.TestKit
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
             var miningService = _serviceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
+            var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
 
             var block = await miningService.MineAsync(
                 new RequestMiningDto
@@ -38,7 +39,7 @@ namespace AElf.Contracts.TestKit
                     BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue)
                 },
                 new List<Transaction> {transaction},
-                DateTime.UtcNow.ToTimestamp());
+                blockTimeProvider.GetBlockTime());
 
             await blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
             await blockchainService.AddBlockAsync(block);

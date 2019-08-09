@@ -128,7 +128,7 @@ namespace AElf.OS.Rpc.ChainController.Tests
             resultString.ShouldNotBeNullOrEmpty();
 
             // The following is always true
-//            var bs = ByteArrayHelpers.FromHexString(resultString);
+//            var bs = ByteArrayHelper.FromHexString(resultString);
 //            var contractInfo = ContractInfo.Parser.ParseFrom(bs);
 //            contractInfo.ShouldNotBeNull();
         }

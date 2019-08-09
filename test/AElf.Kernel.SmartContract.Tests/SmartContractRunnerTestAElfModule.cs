@@ -29,8 +29,6 @@ namespace AElf.Kernel.SmartContract
                     .Returns(Task.FromResult(mockExecutive.Object));
                 return mockSmartContractRunner.Object;
             });
-
-            services.AddSingleton(p => Mock.Of<IAccountService>());
         }
     }
 }
