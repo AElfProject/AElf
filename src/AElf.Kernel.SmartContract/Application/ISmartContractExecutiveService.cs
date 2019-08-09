@@ -13,6 +13,10 @@ namespace AElf.Kernel.SmartContract.Application
 
         Task PutExecutiveAsync(Address address, IExecutive executive);
 
-        void ClearExecutivePool(Address address);
+        Task SetContractInfoAsync(Address address,long blockHeight);
+
+        void ClearContractInfoCache(long blockHeight);
+
+        Task InitContractInfoCacheAsync();
     }
 }

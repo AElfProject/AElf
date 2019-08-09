@@ -25,7 +25,14 @@ namespace AElf.Kernel.SmartContract.Application
             };
 
 
-            await _smartContractService.DeployContractAsync(SampleAddress.AddressList[0], registration, false, null);
+            await _smartContractService.DeployContractAsync(new ContractDto
+            {
+                BlockHeight = 1, 
+                ContractAddress = SampleAddress.AddressList[0], 
+                ContractName = null,
+                IsPrivileged = false, 
+                SmartContractRegistration = registration
+            });
 
         }
 
@@ -53,11 +60,32 @@ namespace AElf.Kernel.SmartContract.Application
                 CodeHash = Hash.FromString("TestContractB")
             };
 
-            await _smartContractService.DeployContractAsync(SampleAddress.AddressList[0], registrationA, false, null);
-            await _smartContractService.UpdateContractAsync(SampleAddress.AddressList[1], registrationANew, false, null);
-
-
-            await _smartContractService.UpdateContractAsync(SampleAddress.AddressList[2], registrationB, false, null);
+            await _smartContractService.DeployContractAsync(new ContractDto
+            {
+                BlockHeight = 1, 
+                ContractAddress = SampleAddress.AddressList[0], 
+                ContractName = null,
+                IsPrivileged = false, 
+                SmartContractRegistration = registrationA
+            });
+            
+            await _smartContractService.UpdateContractAsync(new ContractDto
+            {
+                ContractAddress = SampleAddress.AddressList[1],
+                SmartContractRegistration = registrationANew,
+                BlockHeight = 2,
+                IsPrivileged = false,
+                ContractName = null
+            });
+            
+            await _smartContractService.UpdateContractAsync(new ContractDto
+            {
+                ContractAddress = SampleAddress.AddressList[2],
+                SmartContractRegistration = registrationB,
+                BlockHeight = 2,
+                IsPrivileged = false,
+                ContractName = null
+            });
 
         }
     }

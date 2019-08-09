@@ -1,16 +1,13 @@
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Genesis;
-using AElf.Contracts.TestContract;
 using AElf.Contracts.TestContract.BasicFunction;
+using AElf.Contracts.TestContract.BasicFunctionWithParallel;
 using AElf.Contracts.TestContract.BasicUpdate;
 using AElf.Contracts.TestContract.BasicSecurity;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Types;
-using Google.Protobuf;
 using Volo.Abp.Threading;
 
 namespace AElf.Contract.TestContract
@@ -53,6 +50,14 @@ namespace AElf.Contract.TestContract
                 keyPair);
         }
 
+        internal BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub
+            GetTestBasicFunctionWithParallelContractStub(ECKeyPair keyPair)
+        {
+            return GetTester<BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub>(
+                BasicFunctionContractAddress,
+                keyPair);
+        }
+
         internal BasicSecurityContractContainer.BasicSecurityContractStub GetTestBasicSecurityContractStub(
             ECKeyPair keyPair)
         {
@@ -68,7 +73,7 @@ namespace AElf.Contract.TestContract
             BasicFunctionContractAddress = AsyncHelper.RunSync(async () =>
                 await DeploySystemSmartContract(
                     KernelConstants.CodeCoverageRunnerCategory,
-                    Codes.Single(kv => kv.Key.Contains("BasicFunction")).Value,
+                    Codes.Single(kv => kv.Key.EndsWith("BasicFunction")).Value,
                     TestBasicFunctionContractSystemName,
                     DefaultSenderKeyPair));
             TestBasicFunctionContractStub = GetTestBasicFunctionContractStub(DefaultSenderKeyPair);
@@ -78,7 +83,7 @@ namespace AElf.Contract.TestContract
             BasicSecurityContractAddress = AsyncHelper.RunSync(async () =>
                 await DeploySystemSmartContract(
                     KernelConstants.CodeCoverageRunnerCategory,
-                    Codes.Single(kv => kv.Key.Contains("BasicSecurity")).Value,
+                    Codes.Single(kv => kv.Key.EndsWith("BasicSecurity")).Value,
                     TestBasicSecurityContractSystemName,
                     DefaultSenderKeyPair));
             TestBasicSecurityContractStub = GetTestBasicSecurityContractStub(DefaultSenderKeyPair);
