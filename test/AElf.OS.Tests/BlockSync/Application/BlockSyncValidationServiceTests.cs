@@ -125,7 +125,7 @@ namespace AElf.OS.BlockSync.Application
             {
                 var blockHash = Hash.FromString(Guid.NewGuid().ToString());
                 var blockHeight = i;
-                var result = _announcementCacheProvider.TryAddAnnouncementCache(blockHash, blockHeight);
+                var result = _announcementCacheProvider.TryAddOrUpdateAnnouncementCache(blockHash, blockHeight, GetEncodedPubKeyString());
                 result.ShouldBeTrue();
             }
         }
