@@ -75,12 +75,14 @@ namespace AElf.Contract.CrossChain.Tests
             var lockedResource = ResourceTypeBalancePairList.Parser.ParseFrom(await CallContractMethodAsync(CrossChainContractAddress,
                 nameof(CrossChainContractContainer.CrossChainContractStub.LockedResource),
                 new SInt32Value {Value = chainId}));
-            Assert.True(lockedResource.ResourcePairList[0].Type == ResourceType.Cpu);
-            Assert.Equal(4, lockedResource.ResourcePairList[0].Amount);
-            Assert.True(lockedResource.ResourcePairList[1].Type == ResourceType.Net);
-            Assert.Equal(9, lockedResource.ResourcePairList[1].Amount);
-            Assert.True(lockedResource.ResourcePairList[2].Type == ResourceType.Ram);
-            Assert.Equal(20, lockedResource.ResourcePairList[2].Amount);
+            var list = lockedResource.ResourcePairList;
+            
+            Assert.True(list[0].Type == ResourceType.Cpu);
+            Assert.True(list[1].Type == ResourceType.Net);
+            Assert.True(list[2].Type == ResourceType.Ram);
+            Assert.Equal(4, list[0].Amount);
+            Assert.Equal(9, list[1].Amount);
+            Assert.Equal(20, list[2].Amount);
         }
 
         [Fact]
@@ -290,10 +292,11 @@ namespace AElf.Contract.CrossChain.Tests
             var transactionResult = await ReleaseProposalAsync(proposalId);
             var status = transactionResult.Status;
             Assert.True(status == TransactionResultStatus.Mined);
-            var lockedResource = SInt32Value.Parser.ParseFrom(await CallContractMethodAsync(CrossChainContractAddress,
-                nameof(CrossChainContractContainer.CrossChainContractStub.LockedResource),
+            
+            var chainStatus = SInt32Value.Parser.ParseFrom(await CallContractMethodAsync(CrossChainContractAddress,
+                nameof(CrossChainContractContainer.CrossChainContractStub.GetChainStatus),
                 new SInt32Value {Value = chainId})).Value;
-            Assert.Equal(0,lockedResource);
+            Assert.True(chainStatus == (int) SideChainStatus.Terminated);
         }
 
         [Fact]
