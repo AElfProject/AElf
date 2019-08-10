@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol;
