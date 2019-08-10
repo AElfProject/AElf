@@ -44,7 +44,7 @@ namespace AElf.OS.Worker
 
                 foreach (var node in newNodes.Nodes)
                 {
-                    if (_networkService.PeerPoolIsFull())
+                    if (_networkService.IsPeerPoolFull())
                     {
                         Logger.LogDebug("Discovery: Peer pool is full, aborting add.");
                         break;

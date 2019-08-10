@@ -29,7 +29,7 @@ namespace AElf.OS.Network.Infrastructure
 
         public bool IsFull()
         {
-            var peerCount = Peers.Where(p => !p.Value.IsInvalid()).ToList().Count;
+            var peerCount = Peers.Where(p => !p.Value.IsInvalid).ToList().Count;
 
             return NetworkOptions.MaxPeers != 0 && peerCount >= NetworkOptions.MaxPeers;
         }
@@ -71,7 +71,7 @@ namespace AElf.OS.Network.Infrastructure
         public bool TryAddPeer(IPeer peer)
         {
             // clear invalid peer
-            var invalidPeers = Peers.Where(p =>p.Value.IsInvalid());
+            var invalidPeers = Peers.Where(p =>p.Value.IsInvalid).ToList();
 
             foreach (var invalidPeer in invalidPeers)
             {

@@ -27,6 +27,6 @@ namespace AElf.OS.Network
 
         public const long HandshakeTimeout = 1000;
 
-        public const long PeerConnectionTimeout = 3000;
+        public const long PeerConnectionTimeout = 10000;
     }
 }

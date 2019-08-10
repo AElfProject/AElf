@@ -77,13 +77,13 @@ namespace AElf.OS.Network.Grpc.Connection
 
             try
             {
-                await peer.SendConfirmHandshakeAsync();
+                await peer.ConfirmHandshakeAsync();
             }
             catch (Exception e)
             {
                 Logger.LogError(e, $"Peer {peer.Info.Pubkey} is already in the pool.");
                 await peer.DisconnectAsync(false);
-                throw e;
+                throw;
             }
             peer.IsConnected = true;
 
@@ -176,17 +176,16 @@ namespace AElf.OS.Network.Grpc.Connection
             return errorMessage;
         }
 
-        public Task ConfirmHandshakeAsync(string peerPubkey)
+        public void ConfirmHandshake(string peerPubkey)
         {
             var peer = _peerPool.FindPeerByPublicKey(peerPubkey) as GrpcPeer;
             if (peer == null)
             {
                 Logger.LogWarning($"Cannot find Peer {peerPubkey} in the pool.");
-                return Task.CompletedTask;
+                return;
             }
 
             peer.IsConnected = true;
-            return Task.CompletedTask;
         }
         
         public async Task DisconnectPeersAsync(bool gracefulDisconnect)

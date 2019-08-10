@@ -22,20 +22,20 @@ namespace AElf.OS.Network.Grpc
     public class GrpcPeer : IPeer
     {
         private const int MaxMetricsPerMethod = 100;
-        
+
         private const int BlockRequestTimeout = 300;
         private const int BlocksRequestTimeout = 500;
         private const int GetNodesTimeout = 500;
 
         private const int UpdateHandshakeTimeout = 400;
-        
+
         private enum MetricNames
         {
             Announce,
             GetBlocks,
             GetBlock
         };
-        
+
         private readonly Channel _channel;
         private readonly PeerService.PeerServiceClient _client;
 
@@ -46,7 +46,17 @@ namespace AElf.OS.Network.Grpc
         {
             get { return (_channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready) && IsConnected; }
         }
-        
+
+        public bool IsInvalid
+        {
+            get
+            {
+                return !IsConnected &&
+                       Info.ConnectionTime.AddMilliseconds(NetworkConstants.PeerConnectionTimeout) <
+                       TimestampHelper.GetUtcNow();
+            }
+        }
+
         public long LastKnownLibHeight { get; private set; }
 
         public bool IsBest { get; set; }
@@ -238,7 +248,7 @@ namespace AElf.OS.Network.Grpc
 
         #endregion
         
-        public async Task SendConfirmHandshakeAsync()
+        public async Task ConfirmHandshakeAsync()
         {
             var request = new GrpcRequest { ErrorMessage = "Error while sending confirm handshake." };
             
@@ -393,13 +403,6 @@ namespace AElf.OS.Network.Grpc
             {
                 // if channel already shutdown
             }
-        }
-
-        public bool IsInvalid()
-        {
-            return !IsConnected &&
-                   Info.ConnectionTime.AddMilliseconds(NetworkConstants.PeerConnectionTimeout) <
-                   TimestampHelper.GetUtcNow();
         }
 
         public override string ToString()

@@ -206,7 +206,7 @@ namespace AElf.OS.Network.Application
             return blocks;
         }
 
-        public bool PeerPoolIsFull()
+        public bool IsPeerPoolFull()
         {
             return _peerPool.IsFull();
         }

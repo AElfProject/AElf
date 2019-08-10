@@ -83,7 +83,7 @@ namespace AElf.OS.Network.Grpc
         private async Task<HandshakeReply> CallDoHandshakeAsync(GrpcClient client, string ipAddress,
             Handshake handshake)
         {
-            HandshakeReply handshakeReply = null;
+            HandshakeReply handshakeReply;
 
             try
             {
@@ -99,7 +99,7 @@ namespace AElf.OS.Network.Grpc
             {
                 Logger.LogError(ex,$"Could not connect to {ipAddress}.");
                 await client.Channel.ShutdownAsync();
-                throw ex;
+                throw;
             }
 
             return handshakeReply;

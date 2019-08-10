@@ -53,7 +53,7 @@ namespace AElf.OS.Network.Grpc
         public override async Task<VoidReply> ConfirmHandshake(ConfirmHandshakeRequest request, ServerCallContext context)
         {
             Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a confirm handshake.");
-            await _connectionService.ConfirmHandshakeAsync(context.GetPublicKey());
+            _connectionService.ConfirmHandshake(context.GetPublicKey());
             return new VoidReply();
         }
         

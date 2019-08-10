@@ -10,6 +10,7 @@ namespace AElf.OS.Network.Infrastructure
     {
         bool IsBest { get; set; }
         bool IsReady { get; }
+        bool IsInvalid { get; }
         long LastKnownLibHeight { get; }
         string IpAddress { get; }
 
@@ -27,9 +28,6 @@ namespace AElf.OS.Network.Infrastructure
         Task<bool> TryRecoverAsync();
         
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();
-        Task SendConfirmHandshakeAsync();
         Task DisconnectAsync(bool gracefulDisconnect);
-
-        bool IsInvalid();
     }
 }

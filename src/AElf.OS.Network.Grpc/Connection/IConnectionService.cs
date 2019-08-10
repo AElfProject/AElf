@@ -9,7 +9,7 @@ namespace AElf.OS.Network.Grpc
         Task DisconnectAsync(IPeer peer, bool sendDisconnect = false);
         Task<bool> ConnectAsync(string ipAddress);
         Task<HandshakeReply> DoHandshakeAsync(string peerConnectionIp, Handshake handshake);
-        Task ConfirmHandshakeAsync(string peerPubkey);
+        void ConfirmHandshake(string peerPubkey);
         Task DisconnectPeersAsync(bool gracefulDisconnect);
         void RemovePeer(string pubkey);
     }
