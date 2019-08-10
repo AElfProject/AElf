@@ -73,6 +73,8 @@ namespace AElf.Kernel.TransactionPool.Application
                     continue;
                 }
 
+                Logger.LogTrace("ContractDeployed event received.");
+
                 foreach (var transactionId in block.Body.TransactionIds)
                 {
                     var result = await _transactionResultQueryService.GetTransactionResultAsync(transactionId);
@@ -101,6 +103,8 @@ namespace AElf.Kernel.TransactionPool.Application
 
                         var message = new ContractDeployed();
                         message.MergeFrom(log);
+
+                        Logger.LogTrace($"Add {log.Address} to deployed contract address list.");
 
                         return message.Address;
                     }

@@ -140,7 +140,6 @@ namespace AElf.Contracts.Genesis
             if (name != null)
                 State.NameAddressMapping[name] = contractAddress;
 
-
             return contractAddress;
         }
 
