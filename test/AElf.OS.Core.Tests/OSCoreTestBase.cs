@@ -12,7 +12,7 @@ namespace AElf.OS
         
     }
 
-    public class NetworkTestBase : AElfIntegratedTest<OSCoreWithChainTestAElfModule>
+    public class HandshakeTestBase : AElfIntegratedTest<OSCoreHandshakeTestModule>
     {
         
     }
