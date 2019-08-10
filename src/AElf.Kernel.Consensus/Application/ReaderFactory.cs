@@ -1,6 +1,5 @@
 using AElf.Kernel.SmartContract.Application;
 using Acs4;
-using AElf.Kernel.Account.Application;
 
 namespace AElf.Kernel.Consensus.Application
 {

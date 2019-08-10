@@ -94,6 +94,7 @@ message TokenInfo {
     aelf.Address issuer = 6;
     bool is_burnable = 7;
     bool is_transfer_disabled = 8;
+    sint64 burned = 9;
 }
 
 message CreateInput {
