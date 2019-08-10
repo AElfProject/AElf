@@ -60,11 +60,17 @@ namespace AElf.OS.Network
                 return Task.CompletedTask;
             });
 
+            var pubkey = _peerPool.GetPeers(true).First().Info.Pubkey;
+            var metadata = new Metadata {
+            {
+                GrpcConstants.PubkeyMetadataKey, pubkey
+            }};
+
             Hash hash = Hash.FromRawBytes(new byte[]{3,6,9});
             await _service.SendAnnouncement(new BlockAnnouncement
             {
                 BlockHeight = 10, BlockHash = hash
-            }, BuildServerCallContext());
+            }, BuildServerCallContext(metadata));
 
             Assert.NotNull(received);
             Assert.Equal(10, received.Announce.BlockHeight);
