@@ -78,11 +78,10 @@ namespace AElf.OS.Network
         }
         
         [Fact] 
-        public async Task DialPeerAsync_DialException_ShouldReturnFalse()
+        public async Task DialPeerAsync_ShouldThrowException()
         {
-            var added = await _networkServer.ConnectAsync(NetworkTestConstants.DialExceptionIpEndpoint);
+            _networkServer.ConnectAsync(NetworkTestConstants.DialExceptionIpEndpoint).ShouldThrow<Exception>();
             
-            added.ShouldBeFalse();
             _peerPool.PeerCount.ShouldBe(0);
         }
         

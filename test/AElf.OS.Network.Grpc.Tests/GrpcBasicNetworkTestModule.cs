@@ -66,7 +66,7 @@ namespace AElf.OS.Network
                     });
                 
                 mockDialer.Setup(d => d.DialPeerAsync(It.Is<string>(ip => ip == NetworkTestConstants.DialExceptionIpEndpoint)))
-                    .Throws<PeerDialException>();
+                    .Throws<Exception>();
 
                 mockDialer.Setup(d => d.DialPeerAsync(It.Is<string>(ip => ip == NetworkTestConstants.HandshakeWithNetExceptionIp)))
                     .Returns<string>(s =>
