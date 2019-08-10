@@ -19,7 +19,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
         {
             for (int i = 0; i < 26; i++)
             {
-                AccountList.Add(Address.Generate());
+                AccountList.Add(SampleAddress.AddressList[0]);
                 //0    1    2    3    4    5    6    7    8    9    10
                 //A    B    C    D    E    F    G    H    I    J    K
                 

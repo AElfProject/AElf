@@ -245,7 +245,7 @@ namespace AElf.Sdk.CSharp.Tests
             tradeMessage.FromAmount.ShouldBe(100);
             tradeMessage.ToAmount.ShouldBe(758);
         }
-        
+
         [Fact]
         public void SendVirtualInline_Test()
         {

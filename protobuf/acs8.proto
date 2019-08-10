@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package acs8;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option (aelf.identity) = "acs8";
+
+service ResourceConsumptionContract {
+    // Actions
+    rpc BuyResourceToken (BuyResourceTokenInput) returns (google.protobuf.Empty) {
+    }
+}
+
+message BuyResourceTokenInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    sint64 pay_limit = 3; // No buy if paying more than this, 0 if no limit
+}

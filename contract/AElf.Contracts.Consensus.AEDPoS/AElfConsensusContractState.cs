@@ -10,28 +10,28 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <summary>
         /// Seconds.
         /// </summary>
-        public SingletonState<long> TimeEachTerm { get; set; }
+        public Int64State TimeEachTerm { get; set; }
 
-        public SingletonState<long> CurrentRoundNumber { get; set; }
+        public Int64State CurrentRoundNumber { get; set; }
 
-        public SingletonState<long> CurrentTermNumber { get; set; }
+        public Int64State CurrentTermNumber { get; set; }
 
         public SingletonState<Timestamp> BlockchainStartTimestamp { get; set; }
 
         public MappedState<long, Round> Rounds { get; set; }
-        
-        public SingletonState<int> MiningInterval { get; set; }
+
+        public Int32State MiningInterval { get; set; }
 
         public MappedState<long, long> FirstRoundNumberOfEachTerm { get; set; }
 
         public MappedState<long, MinerList> MinerListMap { get; set; }
-        
-        public SingletonState<long> MainChainRoundNumber { get; set; }
+
+        public Int64State MainChainRoundNumber { get; set; }
 
         public SingletonState<MinerList> MainChainCurrentMinerList { get; set; }
 
-        public SingletonState<bool> IsMainChain { get; set; }
-        
-        public SingletonState<long> MinerIncreaseInterval { get; set; }
+        public BoolState IsMainChain { get; set; }
+
+        public Int64State MinerIncreaseInterval { get; set; }
     }
 }

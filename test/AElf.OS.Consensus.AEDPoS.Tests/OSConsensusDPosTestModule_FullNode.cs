@@ -10,8 +10,6 @@ namespace AElf.OS.Consensus.DPos
 {
     
     [DependsOn(
-        typeof(OSAElfModule),
-        typeof(OSCoreWithChainTestAElfModule),
         typeof(OSConsensusDPosTestModule_BP)
     )]
     // ReSharper disable once InconsistentNaming
@@ -20,6 +18,7 @@ namespace AElf.OS.Consensus.DPos
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
+            
             services.AddTransient(o =>
             {
                 var mockService = new Mock<IAEDPoSInformationProvider>();
@@ -31,7 +30,6 @@ namespace AElf.OS.Consensus.DPos
                             OSConsensusDPosTestConstants.Bp3PublicKey,
                         }));
                 return mockService.Object;
-
             });
         }
     }
