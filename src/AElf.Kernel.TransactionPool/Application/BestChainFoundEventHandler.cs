@@ -30,9 +30,9 @@ namespace AElf.Kernel.TransactionPool.Application
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
             var chain = await _blockchainService.GetChainAsync();
-            var address = await _contractDeployDiscoveryService.GetDeployedContractAddress(chain,
+            var addresses = await _contractDeployDiscoveryService.GetDeployedContractAddresses(chain,
                 eventData.ExecutedBlocks);
-            if (address != null)
+            foreach (var address in addresses)
             {
                 _deployedContractAddressProvider.AddDeployedContractAddress(address);
             }

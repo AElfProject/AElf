@@ -15,7 +15,7 @@ namespace AElf.Kernel.TransactionPool.Application
 {
     public interface IContractDeployDiscoveryService
     {
-        Task<Address> GetDeployedContractAddress(Chain chain, IEnumerable<Hash> blockIdsInOrder);
+        Task<List<Address>> GetDeployedContractAddresses(Chain chain, IEnumerable<Hash> blockIdsInOrder);
     }
 
     public class ContractDeployDiscoveryService : IContractDeployDiscoveryService, ITransientDependency
@@ -56,13 +56,13 @@ namespace AElf.Kernel.TransactionPool.Application
             _bloom = _logEvent.GetBloom();
         }
 
-        public async Task<Address> GetDeployedContractAddress(Chain chain, IEnumerable<Hash> blockIdsInOrder)
+        public async Task<List<Address>> GetDeployedContractAddresses(Chain chain, IEnumerable<Hash> blockIdsInOrder)
         {
             PrepareBloom();
+            
+            var addresses = new List<Address>();
 
-            var reverse = blockIdsInOrder.Reverse();
-
-            foreach (var blockId in reverse)
+            foreach (var blockId in blockIdsInOrder)
             {
                 var block = await _blockchainService.GetBlockByHashAsync(blockId);
                 Logger.LogTrace($"Check event for block {blockId} - {block.Height}");
@@ -104,14 +104,14 @@ namespace AElf.Kernel.TransactionPool.Application
                         var message = new ContractDeployed();
                         message.MergeFrom(log);
 
-                        Logger.LogTrace($"Add {log.Address} to deployed contract address list.");
+                        Logger.LogTrace($"Add {message.Address} to deployed contract address list.");
 
-                        return message.Address;
+                        addresses.Add(message.Address);
                     }
                 }
             }
 
-            return null;
+            return addresses;
         }
     }
 }
