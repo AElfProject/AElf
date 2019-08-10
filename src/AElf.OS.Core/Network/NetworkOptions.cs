@@ -26,6 +26,16 @@ namespace AElf.OS.Network
         /// Node Server listening Port.
         /// </summary>
         public int ListeningPort { get; set; }
+        
+        /// <summary>
+        /// When <see cref="RequireEncryption"/> is true, clients should connect to this.
+        /// </summary>
+        public int SecureListeningPort { get; set; }
+        
+        /// <summary>
+        /// If true clients need to connect to the <see cref="SecureListeningPort"/>
+        /// </summary>
+        public bool RequireEncryption { get; set; }
 
         /// <summary>
         /// The maximum number of peers accepted by this node (0 for no limit).

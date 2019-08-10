@@ -8,6 +8,7 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
+using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
@@ -66,18 +67,32 @@ namespace AElf.OS.Network.Grpc
             if (_authInterceptor != null)
                 serviceDefinition = serviceDefinition.Intercept(_authInterceptor);
 
-            _server = new Server(new List<ChannelOption>
-            {
+            var serverOptions = new List<ChannelOption> {
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
                 new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
-            })
-            {
-                Services = {serviceDefinition},
-                Ports =
-                {
-                    new ServerPort(IPAddress.Any.ToString(), NetworkOptions.ListeningPort, ServerCredentials.Insecure)
-                }
             };
+            
+            // Setup service
+            _server = new Server(serverOptions);
+            _server.Services.Add(serviceDefinition);
+
+            // Setup port
+            _server.Ports.Add(new ServerPort(IPAddress.Any.ToString(), NetworkOptions.ListeningPort, ServerCredentials.Insecure));
+            
+            if (NetworkOptions.RequireEncryption)
+            {
+
+                IPHostEntry IPHost = Dns.GetHostEntry(Dns.GetHostName());
+                string externalIP = IPHost.AddressList[0].ToString();
+                
+                var (keypair, certif) = TlsHelper.BuildKeyAndCertificate(externalIP);
+                
+                var keyCertificatePair = new KeyCertificatePair(TlsHelper.Serialize(certif), TlsHelper.Serialize(keypair.PrivateKey));
+                var ssls = new SslServerCredentials(new List<KeyCertificatePair> { keyCertificatePair });
+                
+                // setup encrypted endpoint
+                _server.Ports.Add(new ServerPort(IPAddress.Any.ToString(), NetworkOptions.SecureListeningPort, ssls));
+            }
             
             return Task.Run(() => _server.Start());
         }
