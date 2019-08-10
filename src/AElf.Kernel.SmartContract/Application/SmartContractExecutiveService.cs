@@ -279,7 +279,7 @@ namespace AElf.Kernel.SmartContract.Application
                     }
                 };
                 if(!chainContext.StateCache.TryGetValue(path, out var byteArray))
-                    throw new InvalidOperationException("failed to find registration from zero contract");
+                    throw new SmartContractFindRegistrationException("failed to find registration from zero contract");
                 byteString = ByteString.CopyFrom(byteArray);
             }
                 

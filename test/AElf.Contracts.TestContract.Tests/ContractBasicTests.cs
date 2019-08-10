@@ -119,10 +119,15 @@ namespace AElf.Contract.TestContract
                 }.ToByteString();
                 var queryTwoUserWinMoneyTransaction = CreateTransaction(DefaultSender, contractAddress,
                     "QueryTwoUserWinMoney", queryTwoUserWinMoneyInput, branchTwoBlock.Height, branchTwoBlock.GetHash());
-                
-                await ExecuteAsync(queryTwoUserWinMoneyTransaction, branchTwoBlock.Height,
-                        branchTwoBlock.GetHash())
-                    .ShouldThrowAsync<InvalidOperationException>("failed to find registration from zero contract");
+
+                branchTwoBlock = await ExecuteAsync(queryTwoUserWinMoneyTransaction, branchTwoBlock.Height,
+                    branchTwoBlock.GetHash());
+                await _blockAttachService.AttachBlockAsync(branchTwoBlock);
+                var queryTwoUserWinMoneyTransactionResult =
+                    await _transactionResultManager.GetTransactionResultAsync(queryTwoUserWinMoneyTransaction.GetHash(),
+                        branchTwoBlock.Header.GetPreMiningHash());
+                queryTwoUserWinMoneyTransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                queryTwoUserWinMoneyTransactionResult.Error.ShouldContain("Invalid contract address");
             }
         }
 
