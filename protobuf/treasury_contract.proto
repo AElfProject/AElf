@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package treasury;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "AElf.Contracts.Treasury";
+
+service TreasuryContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Treasury.TreasuryContractState";
+
+    // Action
+    rpc InitialTreasuryContract (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc InitialMiningRewardProfitItem (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc Donate (DonateInput) returns (google.protobuf.Empty) {
+    }
+    rpc Release (ReleaseInput) returns (google.protobuf.Empty) {
+    }
+    rpc DonateAll (DonateAllInput) returns (google.protobuf.Empty) {
+    }
+
+    // View
+    rpc GetCurrentTreasuryBalance (google.protobuf.Empty) returns (aelf.SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTreasurySchemeId (google.protobuf.Empty) returns (aelf.Hash) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message DonateInput {
+    string symbol = 1;
+    sint64 amount = 2;
+}
+
+message ReleaseInput {
+    sint64 term_number = 1;
+}
+
+message RegisterInput {
+    string token_symbol = 1;
+    string token_name = 2;
+    sint64 total_supply = 3;
+    sint32 decimals = 4;
+    string connector_weight = 5;
+}
+
+message GetWelfareRewardAmountSampleInput {
+    repeated sint64 value = 1;
+}
+
+message GetWelfareRewardAmountSampleOutput {
+    repeated sint64 value = 1;
+}
+
+message DonateAllInput {
+    string symbol = 1;
+}
+
+message ReleaseMiningRewardInput {
+    sint64 mined_blocks_count = 1;
+}
+
+message MinerReElectionInformation {
+    map<string, sint64> continual_appointment_times = 1;
+}

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Shouldly;
 using Xunit;
@@ -18,6 +20,8 @@ namespace AElf
         public void Test_StartAsync()
         {
             var testQueue = _taskQueueManager.CreateQueue("TestQueue");
+
+            Should.Throw<InvalidOperationException>(()=> _taskQueueManager.CreateQueue("TestQueue"));
             
             Should.Throw<InvalidOperationException>(()=>testQueue.Start());
 
@@ -124,6 +128,18 @@ namespace AElf
                     result = value + 1;
                 })
             );
+        }
+
+        [Fact]
+        public void GetQueueStatus_Test()
+        {
+            _taskQueueManager.CreateQueue("TestQueueA");
+            _taskQueueManager.CreateQueue("TestQueueB");
+
+            var queueInfos = _taskQueueManager.GetQueueStatus();
+            queueInfos.Count.ShouldBe(2);
+            queueInfos.Select(o=>o.Name).ShouldContain("TestQueueA");            
+            queueInfos.Select(o=>o.Name).ShouldContain("TestQueueB");
         }
     }
 }

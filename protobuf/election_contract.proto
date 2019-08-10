@@ -14,12 +14,11 @@ service ElectionContract {
     option (aelf.csharp_state) = "AElf.Contracts.Election.ElectionContractState";
 
     // Action
-    // -> Election
     rpc InitialElectionContract (InitialElectionContractInput) returns (google.protobuf.Empty) {
     }
-    rpc ConfigElectionContract (ConfigElectionContractInput) returns (google.protobuf.Empty) {
-    }
     rpc RegisterElectionVotingEvent (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc TakeSnapshot (TakeElectionSnapshotInput) returns (google.protobuf.Empty) {
     }
     rpc AnnounceElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
@@ -31,25 +30,24 @@ service ElectionContract {
     }
     rpc UpdateCandidateInformation (UpdateCandidateInformationInput) returns (google.protobuf.Empty) {
     }
+    rpc UpdateMultipleCandidateInformation (UpdateMultipleCandidateInformationInput) returns (google.protobuf.Empty) {
+    }
     rpc UpdateMinersCount (UpdateMinersCountInput) returns (google.protobuf.Empty) {
     }
-
-    // -> Treasury
-    rpc CreateTreasury (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    rpc SetTreasurySchemeIds (SetTreasurySchemeIdsInput) returns (google.protobuf.Empty) {
     }
-    rpc RegisterToTreasury (google.protobuf.Empty) returns (google.protobuf.Empty) {
-    }
-    rpc ReleaseTreasuryProfits (ReleaseTreasuryProfitsInput) returns (google.protobuf.Empty) {
-    }
-
+    
     // View
-    rpc GetCandidates (google.protobuf.Empty) returns (PublicKeysList) {
+    rpc GetCandidates (google.protobuf.Empty) returns (PubkeyList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVotedCandidates (google.protobuf.Empty) returns (PubkeyList) {
         option (aelf.is_view) = true;
     }
     rpc GetCandidateInformation (StringInput) returns (CandidateInformation) {
         option (aelf.is_view) = true;
     }
-    rpc GetVictories (google.protobuf.Empty) returns (PublicKeysList) {
+    rpc GetVictories (google.protobuf.Empty) returns (PubkeyList) {
         option (aelf.is_view) = true;
     }
     rpc GetTermSnapshot (GetTermSnapshotInput) returns (TermSnapshot) {
@@ -91,13 +89,13 @@ service ElectionContract {
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentWelfareReward (StringInput) returns (aelf.SInt64Value) {
-        option (aelf.is_view) = true;
-    }
     rpc GetPageableCandidateInformation (PageInformation) returns (GetPageableCandidateInformationOutput) {
         option (aelf.is_view) = true;
     }
     rpc GetMinerElectionVotingItemId (google.protobuf.Empty) returns (aelf.Hash) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetDataCenterRankingList (google.protobuf.Empty) returns (DataCenterRankingList) {
         option (aelf.is_view) = true;
     }
 }
@@ -105,12 +103,9 @@ service ElectionContract {
 message InitialElectionContractInput {
     sint64 minimum_lock_time = 1;
     sint64 maximum_lock_time = 2;
-}
-
-message ConfigElectionContractInput {
-    repeated string miner_list = 1;
-    sint64 time_each_term = 2;
-    sint64 miner_increase_interval = 3;
+    repeated string miner_list = 3;
+    sint64 time_each_term = 4;
+    sint64 miner_increase_interval = 5;
 }
 
 message GetTermSnapshotInput {
@@ -118,20 +113,24 @@ message GetTermSnapshotInput {
 }
 
 message UpdateCandidateInformationInput {
-    string public_key = 1;
+    string pubkey = 1;
     sint64 recently_produced_blocks = 2;
     sint64 recently_missed_time_slots = 3;
     bool is_evil_node = 4;
 }
 
-message ReleaseTreasuryProfitsInput {
+message UpdateMultipleCandidateInformationInput {
+    repeated UpdateCandidateInformationInput value = 1;
+}
+
+message TakeElectionSnapshotInput {
     sint64 term_number = 1;
     sint64 mined_blocks = 2;
     sint64 round_number = 3;
 }
 
 message VoteMinerInput {
-    string candidate_publicKey = 1;
+    string candidate_pubkey = 1;
     sint64 amount = 2;
     google.protobuf.Timestamp end_timestamp = 3;
 }
@@ -151,13 +150,13 @@ message ElectionResult {
 }
 
 message ElectorVote {
-    repeated aelf.Hash active_voting_record_ids = 1;
+    repeated aelf.Hash active_voting_record_ids = 1;// Not withdrawn.
     repeated aelf.Hash withdrawn_voting_record_ids = 2;
     sint64 active_voted_votes_amount = 3;
     sint64 all_voted_votes_amount = 4;
     repeated ElectionVotingRecord active_voting_records = 5;
     repeated ElectionVotingRecord withdrawn_votes_records = 6;
-    bytes public_key = 7;
+    bytes pubkey = 7;
 }
 
 message CandidateVote {
@@ -167,11 +166,11 @@ message CandidateVote {
     sint64 all_obtained_voted_votes_amount = 4;
     repeated ElectionVotingRecord obtained_active_voting_records = 5;
     repeated ElectionVotingRecord obtained_withdrawn_votes_records = 6;
-    bytes public_key = 7;
+    bytes pubkey = 7;
 }
 
 message CandidateInformation {
-    string public_key = 1;
+    string pubkey = 1;
     repeated sint64 terms = 2;
     sint64 produced_blocks = 3;
     sint64 missed_time_slots = 4;
@@ -196,6 +195,7 @@ message ElectionVotingRecord {
     google.protobuf.Timestamp withdraw_timestamp = 11;
     google.protobuf.Timestamp vote_timestamp = 12;
     bool is_withdrawn = 13;
+    sint64 weight = 14;
 }
 
 message PageInformation {
@@ -211,7 +211,7 @@ message StringOutput {
     string value = 1;
 }
 
-message PublicKeysList {
+message PubkeyList {
     repeated bytes value = 1;
 }
 
@@ -235,4 +235,17 @@ message GetWelfareRewardAmountSampleOutput {
 
 message GetPageableCandidateInformationOutput {
     repeated CandidateDetail value = 1;
+}
+
+message SetTreasurySchemeIdsInput {
+    aelf.Hash treasury_hash = 1;
+    aelf.Hash welfare_hash = 2;
+    aelf.Hash subsidy_hash = 3;
+    aelf.Hash votes_reward_hash = 4;
+    aelf.Hash re_election_reward_hash = 5;
+}
+
+message DataCenterRankingList {
+    map<string, sint64> data_centers = 1;
+    sint64 minimum_votes = 2;
 }

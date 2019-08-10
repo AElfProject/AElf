@@ -12,7 +12,7 @@ namespace AElf.OS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddTransient<ITaskQueue>(o =>
+            context.Services.AddTransient(o =>
             {
                 var taskQueue = new Mock<ITaskQueue>();
                 taskQueue.Setup(t => t.Enqueue(It.IsAny<Func<Task>>())).Callback<Func<Task>>(async task =>

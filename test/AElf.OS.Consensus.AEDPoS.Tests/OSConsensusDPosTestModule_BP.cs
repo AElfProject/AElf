@@ -2,11 +2,9 @@ using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Modularity;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -15,10 +13,8 @@ using Volo.Abp.Modularity;
 
 namespace AElf.OS.Consensus.DPos
 {
-    
     [DependsOn(
-        typeof(OSAElfModule),
-        typeof(OSCoreWithChainTestAElfModule)
+        typeof(OSConsensusDPosTestModule)
     )]
     // ReSharper disable once InconsistentNaming
     public class OSConsensusDPosTestModule_BP : AElfModule
@@ -29,7 +25,6 @@ namespace AElf.OS.Consensus.DPos
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddTransient<IAccountService, AccountService>();
             services.AddSingleton<IPeerPool, PeerPool>();
 
             services.AddTransient(o =>
@@ -43,7 +38,6 @@ namespace AElf.OS.Consensus.DPos
                             _keyPair.PublicKey.ToHex()
                         }));
                 return mockService.Object;
-
             });
         }
 

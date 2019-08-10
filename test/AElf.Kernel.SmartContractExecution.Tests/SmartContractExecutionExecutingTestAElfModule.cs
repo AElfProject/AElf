@@ -28,8 +28,7 @@ namespace AElf.Kernel.SmartContractExecution
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            // TODO: No need mock ITransactionExecutingService, just mock Executive.
-            services.AddTransient<ITransactionExecutingService>(p =>
+            services.AddTransient(p =>
             {
                 var mockService = new Mock<ITransactionExecutingService>();
                 mockService.Setup(m => m.ExecuteAsync(It.IsAny<TransactionExecutingDto>(),
@@ -62,7 +61,7 @@ namespace AElf.Kernel.SmartContractExecution
                 return mockService.Object;
             });
 
-            services.AddTransient<IBlockExecutingService>(p =>
+            services.AddTransient(p =>
             {
                 var mockService = new Mock<IBlockExecutingService>();
                 mockService.Setup(m => m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<IEnumerable<Transaction>>()))
