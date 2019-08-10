@@ -16,8 +16,8 @@ namespace AElf.OS.Network.Grpc.Connection
         private readonly IHandshakeProvider _handshakeProvider;
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcNetworkServer> Logger { get; set; }
-        
-        public ConnectionService(IPeerPool peerPool, IPeerDialer peerDialer, 
+
+        public ConnectionService(IPeerPool peerPool, IPeerDialer peerDialer,
             IHandshakeProvider handshakeProvider)
         {
             _peerPool = peerPool;
@@ -27,19 +27,19 @@ namespace AElf.OS.Network.Grpc.Connection
             Logger = NullLogger<GrpcNetworkServer>.Instance;
             EventBus = NullLocalEventBus.Instance;
         }
-        
+
         public async Task DisconnectAsync(IPeer peer, bool sendDisconnect = false)
         {
             if (peer == null)
                 throw new ArgumentNullException(nameof(peer));
-            
+
             // clean the pool
             if (_peerPool.RemovePeer(peer.Info.Pubkey) == null)
                 Logger.LogWarning($"{peer} was not found in pool.");
-            
+
             // clean the peer
             await peer.DisconnectAsync(sendDisconnect);
-            
+
             Logger.LogDebug($"Removed peer {peer}");
         }
 
@@ -85,6 +85,7 @@ namespace AElf.OS.Network.Grpc.Connection
                 await peer.DisconnectAsync(false);
                 throw;
             }
+
             peer.IsConnected = true;
 
             Logger.LogTrace($"Connected to {peer} - LIB height {peer.LastKnownLibHeight}, " +
@@ -97,7 +98,7 @@ namespace AElf.OS.Network.Grpc.Connection
 
         private void FireConnectionEvent(GrpcPeer peer)
         {
-            var nodeInfo = new NodeInfo { Endpoint = peer.IpAddress, Pubkey = peer.Info.Pubkey.ToByteString() };
+            var nodeInfo = new NodeInfo {Endpoint = peer.IpAddress, Pubkey = peer.Info.Pubkey.ToByteString()};
             var bestChainHash = peer.CurrentBlockHash;
             var bestChainHeight = peer.CurrentBlockHeight;
 
@@ -157,7 +158,7 @@ namespace AElf.OS.Network.Grpc.Connection
         private string GetHandshakeValidationErrorMessage(HandshakeValidationResult handshakeValidationResult)
         {
             var errorMessage = string.Empty;
-            
+
             switch (handshakeValidationResult)
             {
                 case HandshakeValidationResult.InvalidChainId:
@@ -187,7 +188,7 @@ namespace AElf.OS.Network.Grpc.Connection
 
             peer.IsConnected = true;
         }
-        
+
         public async Task DisconnectPeersAsync(bool gracefulDisconnect)
         {
             var peers = _peerPool.GetPeers(true);
@@ -196,7 +197,7 @@ namespace AElf.OS.Network.Grpc.Connection
                 await peer.DisconnectAsync(gracefulDisconnect);
             }
         }
-        
+
         public void RemovePeer(string pubkey)
         {
             _peerPool.RemovePeer(pubkey);

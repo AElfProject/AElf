@@ -21,10 +21,10 @@ namespace AElf.OS.Network.Grpc
     {
         private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
-        
+
         private readonly IAccountService _accountService;
         private readonly IHandshakeProvider _handshakeProvider;
-        
+
         public ILogger<PeerDialer> Logger { get; set; }
 
         public PeerDialer(IAccountService accountService,
@@ -32,7 +32,7 @@ namespace AElf.OS.Network.Grpc
         {
             _accountService = accountService;
             _handshakeProvider = handshakeProvider;
-            
+
             Logger = NullLogger<PeerDialer>.Instance;
         }
 
@@ -97,7 +97,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex,$"Could not connect to {ipAddress}.");
+                Logger.LogError(ex, $"Could not connect to {ipAddress}.");
                 await client.Channel.ShutdownAsync();
                 throw;
             }
@@ -109,7 +109,7 @@ namespace AElf.OS.Network.Grpc
         {
             var client = CreateClient(ipAddress);
             await PingNodeAsync(client, ipAddress);
-            
+
             var peer = new GrpcPeer(client, ipAddress, new PeerInfo
             {
                 Pubkey = handshake.HandshakeData.Pubkey.ToHex(),
@@ -117,7 +117,7 @@ namespace AElf.OS.Network.Grpc
                 ProtocolVersion = handshake.HandshakeData.Version,
                 IsInbound = true
             });
-            
+
             peer.UpdateLastReceivedHandshake(handshake);
 
             return peer;
@@ -131,14 +131,16 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                var metadata = new Metadata {
-                    {GrpcConstants.TimeoutMetadataKey, NetworkOptions.PeerDialTimeoutInMilliSeconds.ToString()}};
-                
+                var metadata = new Metadata
+                {
+                    {GrpcConstants.TimeoutMetadataKey, NetworkOptions.PeerDialTimeoutInMilliSeconds.ToString()}
+                };
+
                 await client.Client.PingAsync(new PingRequest(), metadata);
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex,$"Could not ping {ipAddress}.");
+                Logger.LogError(ex, $"Could not ping {ipAddress}.");
                 await client.Channel.ShutdownAsync();
                 throw ex;
             }
@@ -155,9 +157,9 @@ namespace AElf.OS.Network.Grpc
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
                 new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
             });
-            
+
             var nodePubkey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex();
-            
+
             var interceptedChannel = channel.Intercept(metadata =>
             {
                 metadata.Add(GrpcConstants.PubkeyMetadataKey, nodePubkey);

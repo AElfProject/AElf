@@ -71,10 +71,10 @@ namespace AElf.OS.Network.Grpc
 
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
-        
+
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
-        
+
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
         private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
@@ -89,7 +89,7 @@ namespace AElf.OS.Network.Grpc
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
-            
+
             _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
             RecentRequestsRoundtripTimes =
                 new ReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>>(_recentRequestsRoundtripTimes);
@@ -106,7 +106,7 @@ namespace AElf.OS.Network.Grpc
             foreach (var roundtripTime in _recentRequestsRoundtripTimes.ToArray())
             {
                 var metricsToAdd = new List<RequestMetric>();
-                
+
                 metrics.Add(roundtripTime.Key, metricsToAdd);
                 foreach (var requestMetric in roundtripTime.Value)
                 {
@@ -119,10 +119,10 @@ namespace AElf.OS.Network.Grpc
 
         public Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest)
         {
-            GrpcRequest request = new GrpcRequest { ErrorMessage = "Request nodes failed." };
-            Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString()} };
-            
-            return RequestAsync(_client, c => c.GetNodesAsync(new NodesRequest { MaxCount = count }, data), request);
+            GrpcRequest request = new GrpcRequest {ErrorMessage = "Request nodes failed."};
+            Metadata data = new Metadata {{GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString()}};
+
+            return RequestAsync(_client, c => c.GetNodesAsync(new NodesRequest {MaxCount = count}, data), request);
         }
 
         public void UpdateLastReceivedHandshake(Handshake handshake)
@@ -131,7 +131,7 @@ namespace AElf.OS.Network.Grpc
             CurrentBlockHash = handshake.HandshakeData.BestChainHash;
             CurrentBlockHeight = handshake.HandshakeData.BestChainHeight;
         }
-        
+
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
         {
             var blockRequest = new BlockRequest {Hash = hash};
@@ -143,7 +143,7 @@ namespace AElf.OS.Network.Grpc
                 MetricInfo = $"Block request for {hash}"
             };
 
-            Metadata data = new Metadata { {GrpcConstants.TimeoutMetadataKey, BlockRequestTimeout.ToString()} };
+            Metadata data = new Metadata {{GrpcConstants.TimeoutMetadataKey, BlockRequestTimeout.ToString()}};
 
             var blockReply = await RequestAsync(_client, c => c.RequestBlockAsync(blockRequest, data), request);
 
@@ -154,7 +154,7 @@ namespace AElf.OS.Network.Grpc
         {
             var blockRequest = new BlocksRequest {PreviousBlockHash = firstHash, Count = count};
             var blockInfo = $"{{ first: {firstHash}, count: {count} }}";
-            
+
             GrpcRequest request = new GrpcRequest
             {
                 ErrorMessage = $"Get blocks for {blockInfo} failed.",
@@ -173,12 +173,12 @@ namespace AElf.OS.Network.Grpc
         }
 
         #region Streaming
-        
+
         public async Task SendBlockAsync(BlockWithTransactions blockWithTransactions)
         {
             if (!IsConnected)
                 return;
-            
+
             if (_blockStreamCall == null)
                 _blockStreamCall = _client.BlockBroadcastStream();
 
@@ -190,7 +190,7 @@ namespace AElf.OS.Network.Grpc
             {
                 _blockStreamCall.Dispose();
                 _blockStreamCall = null;
-                
+
                 HandleFailure(e, $"Error during block broadcast: {blockWithTransactions.Header.GetHash()}.");
             }
         }
@@ -203,10 +203,10 @@ namespace AElf.OS.Network.Grpc
         {
             if (!IsConnected)
                 return;
-            
+
             if (_announcementStreamCall == null)
                 _announcementStreamCall = _client.AnnouncementBroadcastStream();
-            
+
             try
             {
                 await _announcementStreamCall.RequestStream.WriteAsync(header);
@@ -215,12 +215,12 @@ namespace AElf.OS.Network.Grpc
             {
                 _announcementStreamCall.Dispose();
                 _announcementStreamCall = null;
-                
+
                 HandleFailure(e, $"Error during announcement broadcast: {header.BlockHash}.");
             }
         }
-        
-        
+
+
         /// <summary>
         /// Send a transaction to the peer using the stream call.
         /// Note: this method is not thread safe.
@@ -229,7 +229,7 @@ namespace AElf.OS.Network.Grpc
         {
             if (!IsConnected)
                 return;
-                
+
             if (_transactionStreamCall == null)
                 _transactionStreamCall = _client.TransactionBroadcastStream();
 
@@ -241,24 +241,25 @@ namespace AElf.OS.Network.Grpc
             {
                 _transactionStreamCall.Dispose();
                 _transactionStreamCall = null;
-                
+
                 HandleFailure(e, $"Error during transaction broadcast: {transaction.GetHash()}.");
             }
         }
 
         #endregion
-        
+
         public async Task ConfirmHandshakeAsync()
         {
-            var request = new GrpcRequest { ErrorMessage = "Error while sending confirm handshake." };
-            
-            Metadata data = new Metadata {
+            var request = new GrpcRequest {ErrorMessage = "Error while sending confirm handshake."};
+
+            Metadata data = new Metadata
+            {
                 {GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString()}
             };
 
             await RequestAsync(_client, c => c.ConfirmHandshakeAsync(new ConfirmHandshakeRequest(), data), request);
         }
-        
+
         // todo consider removing client from the lambda as it is not used. It can be capture by the func.
         private async Task<TResp> RequestAsync<TResp>(PeerService.PeerServiceClient client,
             Func<PeerService.PeerServiceClient, AsyncUnaryCall<TResp>> func, GrpcRequest requestParams)
@@ -266,12 +267,12 @@ namespace AElf.OS.Network.Grpc
             var metricsName = requestParams.MetricName;
             bool timeRequest = !string.IsNullOrEmpty(metricsName);
             var requestStartTime = TimestampHelper.GetUtcNow();
-            
+
             Stopwatch requestTimer = null;
-            
+
             if (timeRequest)
                 requestTimer = Stopwatch.StartNew();
-                
+
             try
             {
                 var response = await func(client);
@@ -281,7 +282,7 @@ namespace AElf.OS.Network.Grpc
                     requestTimer.Stop();
                     RecordMetric(requestParams, requestStartTime, requestTimer.ElapsedMilliseconds);
                 }
-                
+
                 return response;
             }
             catch (AggregateException e)
@@ -303,10 +304,10 @@ namespace AElf.OS.Network.Grpc
         private void RecordMetric(GrpcRequest grpcRequest, Timestamp requestStartTime, long elapsedMilliseconds)
         {
             var metrics = _recentRequestsRoundtripTimes[grpcRequest.MetricName];
-                    
+
             while (metrics.Count >= MaxMetricsPerMethod)
                 metrics.TryDequeue(out _);
-                    
+
             metrics.Enqueue(new RequestMetric
             {
                 Info = grpcRequest.MetricInfo,
@@ -325,7 +326,7 @@ namespace AElf.OS.Network.Grpc
             // If channel has been shutdown (unrecoverable state) remove it.
             string message = $"Failed request to {this}: {errorMessage}";
             NetworkExceptionType type = NetworkExceptionType.Rpc;
-            
+
             if (_channel.State == ChannelState.Shutdown)
             {
                 message = $"Peer is shutdown - {this}: {errorMessage}";
@@ -341,7 +342,7 @@ namespace AElf.OS.Network.Grpc
                 message = $"Failed request to {this}: {errorMessage}";
                 type = NetworkExceptionType.Unrecoverable;
             }
-            
+
             throw new NetworkException(message, exception, type);
         }
 
@@ -356,7 +357,7 @@ namespace AElf.OS.Network.Grpc
 
             return true;
         }
-        
+
         public void AddKnowBlock(BlockAnnouncement blockAnnouncement)
         {
             if (blockAnnouncement.HasFork)
@@ -364,7 +365,7 @@ namespace AElf.OS.Network.Grpc
                 _recentBlockHeightAndHashMappings.Clear();
                 return;
             }
-            
+
             CurrentBlockHeight = blockAnnouncement.BlockHeight;
             CurrentBlockHash = blockAnnouncement.BlockHash;
             _recentBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;
@@ -373,28 +374,30 @@ namespace AElf.OS.Network.Grpc
                 _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
             }
         }
-        
+
         public async Task DisconnectAsync(bool gracefulDisconnect)
         {
             IsConnected = false;
             IsShutdown = true;
-            
+
             // send disconnect message if the peer is still connected and the connection
             // is stable.
             if (gracefulDisconnect && IsReady)
             {
-                GrpcRequest request = new GrpcRequest { ErrorMessage = "Error while sending disconnect." };
-                
+                GrpcRequest request = new GrpcRequest {ErrorMessage = "Error while sending disconnect."};
+
                 try
                 {
-                    await RequestAsync(_client, c => c.DisconnectAsync(new DisconnectReason {Why = DisconnectReason.Types.Reason.Shutdown}), request);
+                    await RequestAsync(_client,
+                        c => c.DisconnectAsync(new DisconnectReason {Why = DisconnectReason.Types.Reason.Shutdown}),
+                        request);
                 }
                 catch (NetworkException)
                 {
                     // swallow the exception, we don't care because we're disconnecting.
                 }
             }
-            
+
             try
             {
                 await _channel.ShutdownAsync();

@@ -56,9 +56,9 @@ namespace AElf.OS.Network.Infrastructure
         {
             if (string.IsNullOrEmpty(publicKey))
                 return null;
-            
+
             Peers.TryGetValue(publicKey, out IPeer p);
-            
+
             return p;
         }
 
@@ -71,14 +71,14 @@ namespace AElf.OS.Network.Infrastructure
         public bool TryAddPeer(IPeer peer)
         {
             // clear invalid peer
-            var invalidPeers = Peers.Where(p =>p.Value.IsInvalid).ToList();
+            var invalidPeers = Peers.Where(p => p.Value.IsInvalid).ToList();
 
             foreach (var invalidPeer in invalidPeers)
             {
                 var removedPeer = RemovePeer(invalidPeer.Key);
                 removedPeer?.DisconnectAsync(false);
             }
-            
+
             return Peers.TryAdd(peer.Info.Pubkey, peer);
         }
     }
