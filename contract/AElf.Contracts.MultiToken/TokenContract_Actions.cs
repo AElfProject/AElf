@@ -132,7 +132,6 @@ namespace AElf.Contracts.MultiToken
                 VerifiedChainId = input.FromChainId,
                 Path = input.MerklePath
             };
-            verificationInput.Path.AddRange(input.MerklePath);
             if (State.CrossChainContract.Value == null)
                 State.CrossChainContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
