@@ -44,7 +44,7 @@ namespace AElf.Contracts.MultiToken
                 ParentChainHeight = ParentChainHeightOfCreation,
                 TokenContractAddress = SideTokenContractAddress,
                 TransactionBytes = validateTransaction.ToByteString(),
-                merklePath.Path);
+                MerklePath = merklePath
             };
             var proposalId = await CreateProposalAsyncOnMainChain(
                 nameof(TokenContractContainer.TokenContractStub.RegisterCrossChainTokenContractAddress),
@@ -75,9 +75,9 @@ namespace AElf.Contracts.MultiToken
                 FromChainId = MainChainId,
                 ParentChainHeight = ParentChainHeightOfCreation,
                 TokenContractAddress = TokenContractAddress,
-                TransactionBytes = validateTransaction.ToByteString()
+                TransactionBytes = validateTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            registerCrossChainTokenContractAddressInput.MerklePath.AddRange(merklePath.Path);
             var proposalId = await CreateProposalAsyncOnSideChain(
                 nameof(TokenContractContainer.TokenContractStub.RegisterCrossChainTokenContractAddress),
                 registerCrossChainTokenContractAddressInput.ToByteString(), SideTokenContractAddress);
@@ -118,9 +118,9 @@ namespace AElf.Contracts.MultiToken
                 FromChainId = sideChainId,
                 ParentChainHeight = ParentChainHeightOfCreation,
                 TokenContractAddress = SideTokenContractAddress,
-                TransactionBytes = validateTransaction.ToByteString()
+                TransactionBytes = validateTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            registerCrossChainTokenContractAddressInput.MerklePath.AddRange(merklePath.Path);
             var proposalId = await CreateProposalAsyncOnSideChain(
                 nameof(TokenContractContainer.TokenContractStub.RegisterCrossChainTokenContractAddress),
                 registerCrossChainTokenContractAddressInput.ToByteString(), SideTokenContractAddress);
@@ -149,9 +149,9 @@ namespace AElf.Contracts.MultiToken
                 FromChainId = MainChainId,
                 ParentChainHeight = ParentChainHeightOfCreation,
                 TokenContractAddress = SideTokenContractAddress,
-                TransactionBytes = validateTransaction.ToByteString()
+                TransactionBytes = validateTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            registerCrossChainTokenContractAddressInput.MerklePath.AddRange(merklePath.Path);
             var proposalId = await CreateProposalAsyncOnMainChain(
                 nameof(TokenContractContainer.TokenContractStub.RegisterCrossChainTokenContractAddress),
                 registerCrossChainTokenContractAddressInput.ToByteString(), TokenContractAddress);
@@ -181,9 +181,9 @@ namespace AElf.Contracts.MultiToken
                 FromChainId = MainChainId,
                 ParentChainHeight = ParentChainHeightOfCreation,
                 TokenContractAddress = TokenContractAddress,
-                TransactionBytes = validateTransaction.ToByteString()
+                TransactionBytes = validateTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            registerCrossChainTokenContractAddressInput.MerklePath.AddRange(merklePath.Path);
             var proposalId = await CreateProposalAsyncOnSideChain(
                 nameof(TokenContractContainer.TokenContractStub.RegisterCrossChainTokenContractAddress),
                 registerCrossChainTokenContractAddressInput.ToByteString(), SideTokenContractAddress);
@@ -210,9 +210,9 @@ namespace AElf.Contracts.MultiToken
             {
                 FromChainId = MainChainId,
                 ParentChainHeight = ParentChainHeightOfCreation + 1,
-                TransactionBytes = createTransaction.ToByteString()
+                TransactionBytes = createTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            crossChainCreateTokenInput.MerklePath.AddRange(merklePath.Path);
             // Side chain cross chain create
             var result = await SideChainTester.ExecuteContractWithMiningAsync(SideTokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainCreateToken), crossChainCreateTokenInput);
@@ -245,9 +245,9 @@ namespace AElf.Contracts.MultiToken
             {
                 FromChainId = sideChainId,
                 ParentChainHeight = ParentChainHeightOfCreation + 1,
-                TransactionBytes = createTransaction.ToByteString()
+                TransactionBytes = createTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            crossChainCreateTokenInput.MerklePath.AddRange(merklePath.Path);
             // Main chain cross chain create
             var result = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainCreateToken), crossChainCreateTokenInput);
@@ -274,9 +274,9 @@ namespace AElf.Contracts.MultiToken
             {
                 FromChainId = MainChainId,
                 ParentChainHeight = ParentChainHeightOfCreation + 1,
-                TransactionBytes = createTransaction.ToByteString()
+                TransactionBytes = createTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            crossChainCreateTokenInput.MerklePath.AddRange(merklePath.Path);
 
             var result = await SideChainTester.ExecuteContractWithMiningAsync(SideTokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainCreateToken), crossChainCreateTokenInput);
@@ -300,9 +300,9 @@ namespace AElf.Contracts.MultiToken
             {
                 FromChainId = MainChainId,
                 ParentChainHeight = ParentChainHeightOfCreation + 1,
-                TransactionBytes = createTransaction.ToByteString()
+                TransactionBytes = createTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            crossChainCreateTokenInput.MerklePath.AddRange(merklePath.Path);
 
             var result = await SideChainTester.ExecuteContractWithMiningAsync(SideTokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainCreateToken), crossChainCreateTokenInput);
@@ -328,9 +328,9 @@ namespace AElf.Contracts.MultiToken
             {
                 FromChainId = MainChainId,
                 ParentChainHeight = ParentChainHeightOfCreation + 1,
-                TransactionBytes = createTransaction.ToByteString()
+                TransactionBytes = createTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            crossChainCreateTokenInput.MerklePath.AddRange(merklePath.Path);
 
             var result = await SideChainTester.ExecuteContractWithMiningAsync(SideTokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainCreateToken), crossChainCreateTokenInput);
@@ -360,9 +360,9 @@ namespace AElf.Contracts.MultiToken
             {
                 FromChainId = MainChainId,
                 ParentChainHeight = ParentChainHeightOfCreation + 1,
-                TransactionBytes = createTransaction.ToByteString()
+                TransactionBytes = createTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            crossChainCreateTokenInput.MerklePath.AddRange(merklePath.Path);
 
             var result = await SideChainTester.ExecuteContractWithMiningAsync(SideTokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainCreateToken), crossChainCreateTokenInput);
@@ -390,9 +390,9 @@ namespace AElf.Contracts.MultiToken
                 FromChainId = sideChainId,
                 ParentChainHeight = ParentChainHeightOfCreation,
                 TokenContractAddress = SideTokenContractAddress,
-                TransactionBytes = validateTransaction.ToByteString()
+                TransactionBytes = validateTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            registerCrossChainTokenContractAddressInput.MerklePath.AddRange(merklePath.Path);
             var proposalId = await CreateProposalAsyncOnMainChain(
                 nameof(TokenContractContainer.TokenContractStub.RegisterCrossChainTokenContractAddress),
                 registerCrossChainTokenContractAddressInput.ToByteString(), TokenContractAddress);
@@ -454,9 +454,9 @@ namespace AElf.Contracts.MultiToken
                 FromChainId = sideChainId,
                 ParentChainHeight = ParentChainHeightOfCreation,
                 TokenContractAddress = SideTokenContractAddress,
-                TransactionBytes = validateTransaction.ToByteString()
+                TransactionBytes = validateTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            registerCrossChainTokenContractAddressInput.MerklePath.AddRange(merklePath.Path);
             var proposalId = await CreateProposalAsyncOnMainChain(
                 nameof(TokenContractContainer.TokenContractStub.RegisterCrossChainTokenContractAddress),
                 registerCrossChainTokenContractAddressInput.ToByteString(), TokenContractAddress);
@@ -508,9 +508,9 @@ namespace AElf.Contracts.MultiToken
                 FromChainId = sideChainId,
                 ParentChainHeight = ParentChainHeightOfCreation,
                 TokenContractAddress = SideTokenContractAddress,
-                TransactionBytes = validateTransaction.ToByteString()
+                TransactionBytes = validateTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            registerCrossChainTokenContractAddressInput.MerklePath.AddRange(merklePath.Path);
             var proposalId = await CreateProposalAsyncOnMainChain(
                 nameof(TokenContractContainer.TokenContractStub.RegisterCrossChainTokenContractAddress),
                 registerCrossChainTokenContractAddressInput.ToByteString(), TokenContractAddress);
@@ -586,9 +586,9 @@ namespace AElf.Contracts.MultiToken
                 FromChainId = sideChainId,
                 ParentChainHeight = ParentChainHeightOfCreation,
                 TokenContractAddress = SideTokenContractAddress,
-                TransactionBytes = validateTransaction.ToByteString()
+                TransactionBytes = validateTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            registerCrossChainTokenContractAddressInput.MerklePath.AddRange(merklePath.Path);
             var proposalId = await CreateProposalAsyncOnMainChain(
                 nameof(TokenContractContainer.TokenContractStub.RegisterCrossChainTokenContractAddress),
                 registerCrossChainTokenContractAddressInput.ToByteString(), TokenContractAddress);
@@ -631,9 +631,9 @@ namespace AElf.Contracts.MultiToken
                 FromChainId = sideChainId,
                 ParentChainHeight = ParentChainHeightOfCreation,
                 TokenContractAddress = SideTokenContractAddress,
-                TransactionBytes = validateTransaction.ToByteString()
+                TransactionBytes = validateTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            registerCrossChainTokenContractAddressInput.MerklePath.AddRange(merklePath.Path);
             var proposalId = await CreateProposalAsyncOnMainChain(
                 nameof(TokenContractContainer.TokenContractStub.RegisterCrossChainTokenContractAddress),
                 registerCrossChainTokenContractAddressInput.ToByteString(), TokenContractAddress);
@@ -661,9 +661,9 @@ namespace AElf.Contracts.MultiToken
             {
                 FromChainId = MainChainId,
                 ParentChainHeight = ParentChainHeightOfCreation + 1,
-                TransferTransactionBytes = crossChainTransferTransaction.ToByteString()
+                TransferTransactionBytes = crossChainTransferTransaction.ToByteString(),
+                MerklePath = transferMerKlePath
             };
-            crossChainReceiveTokenInput.MerklePath.AddRange(transferMerKlePath.Path);
             var transferResult = await SideChainTester.ExecuteContractWithMiningAsync(SideTokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainReceiveToken), crossChainReceiveTokenInput);
             Assert.True(transferResult.Status == TransactionResultStatus.Mined);
@@ -691,16 +691,16 @@ namespace AElf.Contracts.MultiToken
             var validateResult = await SideChainTester.GetTransactionResultAsync(validateTransaction.GetHash());
             Assert.True(validateResult.Status == TransactionResultStatus.Mined);
 
-            var validateMerklePath =
+            var merklePath =
                 await IndexSideChainTransactionAsync(validateTransaction, ParentChainHeightOfCreation, MainChainId);
             var registerCrossChainTokenContractAddressInput = new RegisterCrossChainTokenContractAddressInput
             {
                 FromChainId = sideChainId,
                 ParentChainHeight = ParentChainHeightOfCreation,
                 TokenContractAddress = SideTokenContractAddress,
-                TransactionBytes = validateTransaction.ToByteString()
+                TransactionBytes = validateTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            registerCrossChainTokenContractAddressInput.MerklePath.AddRange(validateMerklePath.Path);
             var proposalId = await CreateProposalAsyncOnMainChain(
                 nameof(TokenContractContainer.TokenContractStub.RegisterCrossChainTokenContractAddress),
                 registerCrossChainTokenContractAddressInput.ToByteString(), TokenContractAddress);
@@ -730,9 +730,9 @@ namespace AElf.Contracts.MultiToken
             {
                 FromChainId = MainChainId,
                 ParentChainHeight = ParentChainHeightOfCreation + 2,
-                TransferTransactionBytes = crossChainTransferTransaction.ToByteString()
+                TransferTransactionBytes = crossChainTransferTransaction.ToByteString(),
+                MerklePath = transferMerKlePath
             };
-            crossChainReceiveTokenInput.MerklePath.AddRange(transferMerKlePath.Path);
             var transferResult = await SideChainTester.ExecuteContractWithMiningAsync(SideTokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainReceiveToken), crossChainReceiveTokenInput);
             Assert.True(transferResult.Status == TransactionResultStatus.Mined);
@@ -793,9 +793,9 @@ namespace AElf.Contracts.MultiToken
                 FromChainId = sideChainId,
                 ParentChainHeight = ParentChainHeightOfCreation,
                 TokenContractAddress = SideTokenContractAddress,
-                TransactionBytes = validateTransaction.ToByteString()
+                TransactionBytes = validateTransaction.ToByteString(),
+                MerklePath = validateMerklePath
             };
-            registerCrossChainTokenContractAddressInput.MerklePath.AddRange(validateMerklePath.Path);
             var proposalId = await CreateProposalAsyncOnMainChain(
                 nameof(TokenContractContainer.TokenContractStub.RegisterCrossChainTokenContractAddress),
                 registerCrossChainTokenContractAddressInput.ToByteString(), TokenContractAddress);
@@ -823,14 +823,14 @@ namespace AElf.Contracts.MultiToken
             {
                 FromChainId = MainChainId,
                 ParentChainHeight = ParentChainHeightOfCreation + 2,
-                TransferTransactionBytes = crossChainTransferTransaction.ToByteString()
+                TransferTransactionBytes = crossChainTransferTransaction.ToByteString(),
+                MerklePath = transferMerKlePath
             };
-            crossChainReceiveTokenInput.MerklePath.AddRange(transferMerKlePath.Path);
             var transferResult = await SideChainTester.ExecuteContractWithMiningAsync(SideTokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainReceiveToken), crossChainReceiveTokenInput);
             Assert.True(transferResult.Status == TransactionResultStatus.Mined);
 
-            crossChainReceiveTokenInput.MerklePath.AddRange(transferMerKlePath.Path);
+            crossChainReceiveTokenInput.MerklePath.MerklePathNodes.AddRange(transferMerKlePath.MerklePathNodes);
             var transferResultTwice = await SideChainTester.ExecuteContractWithMiningAsync(SideTokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainReceiveToken), crossChainReceiveTokenInput);
             Assert.True(transferResultTwice.Status == TransactionResultStatus.Failed);
@@ -857,9 +857,9 @@ namespace AElf.Contracts.MultiToken
                 FromChainId = sideChainId,
                 ParentChainHeight = ParentChainHeightOfCreation,
                 TokenContractAddress = SideTokenContractAddress,
-                TransactionBytes = validateTransaction.ToByteString()
+                TransactionBytes = validateTransaction.ToByteString(),
+                MerklePath = validateMerklePath
             };
-            registerCrossChainTokenContractAddressInput.MerklePath.AddRange(validateMerklePath.Path);
             var proposalId = await CreateProposalAsyncOnMainChain(
                 nameof(TokenContractContainer.TokenContractStub.RegisterCrossChainTokenContractAddress),
                 registerCrossChainTokenContractAddressInput.ToByteString(), TokenContractAddress);
@@ -892,9 +892,9 @@ namespace AElf.Contracts.MultiToken
             {
                 FromChainId = MainChainId,
                 ParentChainHeight = ParentChainHeightOfCreation + 2,
-                TransferTransactionBytes = crossChainTransferTransaction.ToByteString()
+                TransferTransactionBytes = crossChainTransferTransaction.ToByteString(),
+                MerklePath = transferMerKlePath
             };
-            crossChainReceiveTokenInput.MerklePath.AddRange(transferMerKlePath.Path);
             var transferResult = await SideChainTester.ExecuteContractWithMiningAsync(SideTokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainReceiveToken), crossChainReceiveTokenInput);
             Assert.True(transferResult.Status == TransactionResultStatus.Failed);
@@ -932,9 +932,9 @@ namespace AElf.Contracts.MultiToken
                 FromChainId = sideChainId,
                 ParentChainHeight = ParentChainHeightOfCreation,
                 TokenContractAddress = SideTokenContractAddress,
-                TransactionBytes = validateTransaction.ToByteString()
+                TransactionBytes = validateTransaction.ToByteString(),
+                MerklePath = merklePath
             };
-            registerCrossChainTokenContractAddressInput.MerklePath.AddRange(merklePath.Path);
             var proposalId = await CreateProposalAsyncOnMainChain(
                 nameof(TokenContractContainer.TokenContractStub.RegisterCrossChainTokenContractAddress),
                 registerCrossChainTokenContractAddressInput.ToByteString(), TokenContractAddress);
@@ -963,9 +963,9 @@ namespace AElf.Contracts.MultiToken
             {
                 FromChainId = MainChainId,
                 ParentChainHeight = ParentChainHeightOfCreation + 2,
-                TransferTransactionBytes = crossChainTransferTransaction.ToByteString()
+                TransferTransactionBytes = crossChainTransferTransaction.ToByteString(),
+                MerklePath = transferMerKlePath
             };
-            crossChainReceiveTokenInput.MerklePath.AddRange(transferMerKlePath.Path);
             var transferResult = await SideChainTester.ExecuteContractWithMiningAsync(SideTokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainReceiveToken), crossChainReceiveTokenInput);
             Assert.True(transferResult.Status == TransactionResultStatus.Failed);
@@ -991,9 +991,9 @@ namespace AElf.Contracts.MultiToken
                 FromChainId = sideChainId,
                 ParentChainHeight = ParentChainHeightOfCreation,
                 TokenContractAddress = SideTokenContractAddress,
-                TransactionBytes = validateTransaction.ToByteString()
+                TransactionBytes = validateTransaction.ToByteString(),
+                MerklePath = validateMerklePath
             };
-            registerCrossChainTokenContractAddressInput.MerklePath.AddRange(validateMerklePath.Path);
             var proposalId = await CreateProposalAsyncOnMainChain(
                 nameof(TokenContractContainer.TokenContractStub.RegisterCrossChainTokenContractAddress),
                 registerCrossChainTokenContractAddressInput.ToByteString(), TokenContractAddress);
@@ -1021,10 +1021,10 @@ namespace AElf.Contracts.MultiToken
             {
                 FromChainId = MainChainId,
                 ParentChainHeight = ParentChainHeightOfCreation + 2,
-                TransferTransactionBytes = crossChainTransferTransaction.ToByteString()
+                TransferTransactionBytes = crossChainTransferTransaction.ToByteString(),
+                MerklePath = transferMerKlePath
             };
             var otherUser = SideChainTester.CreateNewContractTester(SampleECKeyPairs.KeyPairs[2]);
-            crossChainReceiveTokenInput.MerklePath.AddRange(transferMerKlePath.Path);
             var transferResult = await otherUser.ExecuteContractWithMiningAsync(SideTokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainReceiveToken), crossChainReceiveTokenInput);
             Assert.True(transferResult.Status == TransactionResultStatus.Failed);
@@ -1101,18 +1101,16 @@ namespace AElf.Contracts.MultiToken
         private async Task<MerklePath> IndexSideChainTransactionAsync(Transaction transaction, long height, int chainId,
             Hash fakeMerkleTreeRoot = null)
         {
-            var binaryMerkleTree = new BinaryMerkleTree();
             var fakeHash1 = Hash.FromString("fake1");
             var fakeHash2 = Hash.FromString("fake2");
 
             var rawBytes = transaction.GetHash().ToByteArray()
                 .Concat(EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString())).ToArray();
             var hash = Hash.FromRawBytes(rawBytes);
-            binaryMerkleTree.AddNodes(new[] {hash, fakeHash1, fakeHash2});
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes((new[] {hash, fakeHash1, fakeHash2}));
 
-            var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
-            var merklePath = new MerklePath();
-            merklePath.Path.AddRange(binaryMerkleTree.GenerateMerklePath(0));
+            var merkleTreeRoot = binaryMerkleTree.Root;
+            var merklePath = binaryMerkleTree.GenerateMerklePath(0);
             Hash fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
 
             var parentChainBlockData = CreateParentChainBlockData(height, chainId,
@@ -1136,18 +1134,16 @@ namespace AElf.Contracts.MultiToken
         private async Task<MerklePath> IndexMainChainTransactionAsync(Transaction transaction, long height, int chainId,
             Hash fakeMerkleTreeRoot = null)
         {
-            var binaryMerkleTree = new BinaryMerkleTree();
             var fakeHash1 = Hash.FromString("fake1");
             var fakeHash2 = Hash.FromString("fake2");
 
             var rawBytes = transaction.GetHash().ToByteArray()
                 .Concat(EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString())).ToArray();
             var hash = Hash.FromRawBytes(rawBytes);
-            binaryMerkleTree.AddNodes(new[] {hash, fakeHash1, fakeHash2});
-            var merkleTreeRootHash = binaryMerkleTree.ComputeRootHash();
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(new[] {hash, fakeHash1, fakeHash2});
+            var merkleTreeRootHash = binaryMerkleTree.Root;
             var merkleTreeRoot = fakeMerkleTreeRoot == null ? merkleTreeRootHash : fakeMerkleTreeRoot;
-            var merklePath = new MerklePath();
-            merklePath.Path.AddRange(binaryMerkleTree.GenerateMerklePath(0));
+            var merklePath = binaryMerkleTree.GenerateMerklePath(0);
             var parentChainBlockData = CreateParentChainBlockData(height, chainId,
                 merkleTreeRoot);
 
