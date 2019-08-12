@@ -151,7 +151,9 @@ namespace AElf.Contracts.CrossChain
 
         public override Empty RecordCrossChainData(CrossChainBlockData crossChainBlockData)
         {
-            //Assert(IsMiner(), "Not authorized to do this.");
+            var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value; 
+            Assert(isCurrentMiner,"Not authorized to do this.");
+            
             var indexedCrossChainData = State.IndexedSideChainBlockData[Context.CurrentHeight];
             Assert(indexedCrossChainData == null); // This should not fail.
             
