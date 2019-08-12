@@ -111,6 +111,8 @@ namespace AElf
             testQueueB1.ShouldBe(testQueueB2);
             testQueueB1.ShouldNotBe(defaultQueueA);
             testQueueB1.ShouldNotBe(testQueueA1);
+            
+            _taskQueueManager.Dispose();
         }
 
         [Fact]
@@ -139,6 +141,8 @@ namespace AElf
             queueInfos.Count.ShouldBe(2);
             queueInfos.Select(o=>o.Name).ShouldContain("TestQueueA");            
             queueInfos.Select(o=>o.Name).ShouldContain("TestQueueB");
+            
+            _taskQueueManager.Dispose();
         }
     }
 }

@@ -16,6 +16,10 @@ namespace AElf.Types.Tests.Extensions
             var hexValueWithPrefix1 = hexValueWithPrefix.AppendHexPrefix();
             hexValueWithPrefix1.ShouldBeSameAs(hexValueWithPrefix);
 
+            var byteArray = Hash.FromString("hx").ToByteArray();
+            var hexString = byteArray.ToHex(true);
+            hexString.Substring(0, 2).ShouldBe("0x");
+
             var hex = hexValueWithPrefix.RemoveHexPrefix();
             hex.ShouldBe(hexValue);
             var hex1 = hex.RemoveHexPrefix();

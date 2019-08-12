@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using AElf.Types;
@@ -19,6 +20,27 @@ namespace AElf.Kernel.Types.Tests
 
             var hashByte = blockHeader.GetHashBytes();
             hashByte.ShouldNotBe(null);
+
+            //exception cases
+            blockHeader = GenerateBlockHeader();
+            blockHeader.ChainId = -12;
+            Should.Throw<InvalidOperationException>(() => { blockHeader.GetHash(); });
+
+            blockHeader = GenerateBlockHeader();
+            blockHeader.SignerPubkey = ByteString.Empty;
+            Should.Throw<InvalidOperationException>(() => { blockHeader.GetHash(); });
+            
+            blockHeader = GenerateBlockHeader();
+            blockHeader.PreviousBlockHash = null;
+            Should.Throw<InvalidOperationException>(() => { blockHeader.GetHash(); });
+            
+            blockHeader = GenerateBlockHeader();
+            blockHeader.MerkleTreeRootOfTransactionStatus = null;
+            Should.Throw<InvalidOperationException>(() => { blockHeader.GetHash(); });
+            
+            blockHeader = GenerateBlockHeader();
+            blockHeader.Time = null;
+            Should.Throw<InvalidOperationException>(() => { blockHeader.GetHash(); });
         }
 
         [Fact]
