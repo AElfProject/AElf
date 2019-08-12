@@ -6,7 +6,7 @@
 
   <summary><b>How to create a profit item</b></summary>
 
-Call `CreateProfitItem` and provide the token symbol you gonna use in this item. Also you can set the `ExpiredPeriodNumber`.
+Call `CreateScheme` and provide the token symbol you gonna use in this item. Also you can set the `ExpiredPeriodNumber`.
 
 </details>
 
@@ -33,7 +33,7 @@ Set contract system name of `Token Contract` in order to get its addresses in th
 
 <details>
 
-  <summary><b>CreateProfitItem</b></summary>
+  <summary><b>CreateScheme</b></summary>
 
 ### Purpose
 
@@ -41,7 +41,7 @@ For anyone to create a `ProfitItem`.
 
 ### Notes
 
-- A `ProfitItem` will be identified by a Hash value which called `ProfitId`. This Hash value is calculated from `TransactionId` of `CreateProfitItem` transction and the address of `Profit Contract`.
+- A `ProfitItem` will be identified by a Hash value which called `SchemeId`. This Hash value is calculated from `TransactionId` of `CreateScheme` transction and the address of `Profit Contract`.
 
 - To create a `ProfitItem`, the creator need to provide its binded token symbol. Like for item `Treasury` created by `AElf Consensus Contract`, the binded token symbol is `ELF`.
 
@@ -53,7 +53,7 @@ For anyone to create a `ProfitItem`.
 
 <details>
 
-  <summary><b>RegisterSubProfitItem</b></summary>
+  <summary><b>RemoveSubScheme</b></summary>
 
 ### Purpose
 
@@ -63,17 +63,17 @@ For a profit item `Creator` to register a `SubProfitItem` to one `ProfitItem` he
 
 - Sender must be the `Creator` of the `ProfitItem` to register to.
 
-- To register a `ProfitItem` as `SubProfitItem`, sender should provide `ProfitId`s of two `ProfitItem`s and the `Weight` of `SubProfitItem`.
+- To register a `ProfitItem` as `SubProfitItem`, sender should provide `SchemeId`s of two `ProfitItem`s and the `Shares` of `SubProfitItem`.
 
-- This method will actually call `AddWeight` to add the `Weight` of `SubProfitItem`.
+- This method will actually call `AddBeneficiary` to add the `Shares` of `SubProfitItem`.
 
-- Also, the `ProfitId` of `SubProfitItem` will be recorded to `ProfitItem`.
+- Also, the `SchemeId` of `SubProfitItem` will be recorded to `ProfitItem`.
 
 </details>
 
 <details>
 
-  <summary><b>AddWeight</b></summary>
+  <summary><b>AddBeneficiary</b></summary>
 
 ### Purpose
 
@@ -81,9 +81,9 @@ For a profit item `Creator` to add an Address to receive profits of one `ProfitI
 
 ### Notes
 
-- `TotalWeight` of this `ProfitItem` will be increased.
+- `TotalShares` of this `ProfitItem` will be increased.
 
-- Will add a `ProfitDetail` to record this addition for receiver address to profit from this `ProfitItem` in the future.
+- Will add a `ProfitDetail` to record this addition for Beneficiary address to profit from this `ProfitItem` in the future.
 
 - Will remove expired `ProfitDetail`s.
 
@@ -103,7 +103,7 @@ For a profit item `Creator` to remove an Address to receive profits of one `Prof
 
 <details>
 
-  <summary><b>ReleaseProfit</b></summary>
+  <summary><b>DistributeProfits</b></summary>
 
 ### Purpose
 
@@ -117,7 +117,7 @@ If this `ProfitItem` has `SubProfitItem`s, transfer tokens to `SubProfitItem`s' 
 
 <details>
 
-  <summary><b>AddProfits</b></summary>
+  <summary><b>DistributeProfits</b></summary>
 
 ### Purpose
 

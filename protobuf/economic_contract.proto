@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package economic;
+
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
+
+option csharp_namespace = "AElf.Contracts.Economic";
+
+service EconomicContract {
+    option (aelf.csharp_state) = "AElf.Contracts.Economic.EconomicContractState";
+    rpc IssueNativeToken (IssueNativeTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc IssueResourceToken (IssueResourceTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc InitialEconomicSystem (InitialEconomicSystemInput) returns (google.protobuf.Empty) {
+    }
+}
+
+message InitialEconomicSystemInput {
+    string native_token_symbol = 1;
+    string native_token_name = 2;
+    sint64 native_token_total_supply = 3;
+    sint32 native_token_decimals = 4;
+    bool is_native_token_burnable = 5;
+    sint64 mining_reward_total_amount = 6;
+}
+
+message IssueNativeTokenInput {
+    //string symbol = 1;
+    sint64 amount = 2;
+    string memo = 3;
+    aelf.Address to = 4;
+}
+
+message IssueResourceTokenInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    string memo = 3;
+    aelf.Address to = 4;
+}

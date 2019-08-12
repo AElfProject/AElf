@@ -112,13 +112,13 @@ namespace AElf.Kernel.Blockchain.Application
 
             if (block.Header.Height != Constants.GenesisBlockHeight && !block.VerifySignature())
             {
-                Logger.LogWarning($"Block verify signature failed. {block}");
+                Logger.LogWarning($"Block verify signature failed.");
                 return false;
             }
 
             if (block.Body.CalculateMerkleTreeRoot() != block.Header.MerkleTreeRootOfTransactions)
             {
-                Logger.LogWarning($"Block merkle tree root mismatch {block}");
+                Logger.LogWarning($"Block merkle tree root mismatch.");
                 return false;
             }
 

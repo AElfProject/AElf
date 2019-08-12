@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
+using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NSubstitute;
@@ -70,6 +72,18 @@ namespace AElf.OS
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { blockWithTransactions }));
                     p2.Setup(p => p.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("block"))))
                         .Returns<Hash>(h => Task.FromResult(blockWithTransactions));
+                    p2.Setup(m => m.GetNodesAsync(It.IsAny<int>()))
+                        .Returns(Task.FromResult(new NodeList
+                        {
+                            Nodes =
+                            {
+                                new NodeInfo
+                                {
+                                    Endpoint = "http://127.0.0.1:8000",
+                                    Pubkey = ByteString.CopyFromUtf8("p2")
+                                }
+                            }
+                        }));
                     peers.Add(p2.Object);
                     
                     

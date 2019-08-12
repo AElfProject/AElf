@@ -1,5 +1,4 @@
 using System.Linq;
-using System.Text;
 using AElf.Cryptography.SecretSharing;
 using AElf.Sdk.CSharp;
 using AElf.Types;
