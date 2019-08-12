@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.BlockSync.Domain;
 using AElf.OS.BlockSync.Dto;
+using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -14,13 +15,14 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockSyncAttachService _blockSyncAttachService;
         private readonly IBlockSyncQueueService _blockSyncQueueService;
         private readonly IBlockDownloadJobManager _blockDownloadJobManager;
-
+        private readonly IAnnouncementCacheProvider _announcementCacheProvider;
+        
         public ILogger<BlockSyncService> Logger { get; set; }
 
         public BlockSyncService(IBlockFetchService blockFetchService,
             IBlockSyncAttachService blockSyncAttachService,
             IBlockSyncQueueService blockSyncQueueService,
-            IBlockDownloadJobManager blockDownloadJobManager)
+            IBlockDownloadJobManager blockDownloadJobManager, IAnnouncementCacheProvider announcementCacheProvider)
         {
             Logger = NullLogger<BlockSyncService>.Instance;
 
@@ -28,6 +30,7 @@ namespace AElf.OS.BlockSync.Application
             _blockSyncAttachService = blockSyncAttachService;
             _blockSyncQueueService = blockSyncQueueService;
             _blockDownloadJobManager = blockDownloadJobManager;
+            _announcementCacheProvider = announcementCacheProvider;
         }
 
         public async Task SyncByAnnouncementAsync(Chain chain, SyncAnnouncementDto syncAnnouncementDto)
@@ -79,9 +82,16 @@ namespace AElf.OS.BlockSync.Application
                         syncAnnouncementDto.SyncBlockHeight, syncAnnouncementDto.SuggestedPeerPubkey);
                 }
 
-                if (!fetchResult && retryTimes > 1)
+                if (fetchResult)
+                    return;
+                if (retryTimes > 1)
                 {
                     EnqueueFetchBlockJob(syncAnnouncementDto, retryTimes - 1);
+                }
+                else if (_announcementCacheProvider.TryGetAnnouncementNextSender(syncAnnouncementDto.SyncBlockHash, out var senderPubKey))
+                {
+                    syncAnnouncementDto.SuggestedPeerPubkey = senderPubKey;
+                    EnqueueFetchBlockJob(syncAnnouncementDto, BlockSyncConstants.FetchBlockRetryTimes);
                 }
             }, OSConstants.BlockFetchQueueName);
         }
