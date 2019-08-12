@@ -111,6 +111,13 @@ namespace AElf.OS.BlockSync.Application
             validateResult.ShouldBeFalse();
         }
 
+        private string GetEncodedPubKeyString()
+        {
+            var pk = CryptoHelper.GenerateKeyPair().PublicKey;
+            var address = Address.FromPublicKey(pk);
+            return address.GetFormatted();
+        }
+
         [Fact]
         public void TryAddAnnouncementCache_MultipleTimes()
         {
@@ -118,16 +125,9 @@ namespace AElf.OS.BlockSync.Application
             {
                 var blockHash = Hash.FromString(Guid.NewGuid().ToString());
                 var blockHeight = i;
-                var result = _announcementCacheProvider.TryAddAnnouncementCache(blockHash, blockHeight);
+                var result = _announcementCacheProvider.TryAddOrUpdateAnnouncementCache(blockHash, blockHeight, GetEncodedPubKeyString());
                 result.ShouldBeTrue();
             }
-        }
-
-        private string GetEncodedPubKeyString()
-        {
-            var pk = CryptoHelper.GenerateKeyPair().PublicKey;
-            var address = Address.FromPublicKey(pk);
-            return address.GetFormatted();
         }
     }
 }
