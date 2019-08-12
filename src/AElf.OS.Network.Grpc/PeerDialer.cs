@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.OS.Network.Grpc.Extensions;
+using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
@@ -40,12 +42,16 @@ namespace AElf.OS.Network.Grpc
             
             ConnectReply connectReply = await CallConnectAsync(client, ipAddress, connectionInfo);
 
-            if (connectReply?.Info?.Pubkey == null || connectReply.Error != ConnectError.ConnectOk)
+            if (connectReply?.Info?.Pubkey == null 
+                || connectReply.Error != ConnectError.ConnectOk)
             {
                 await CleanupAndGetExceptionAsync($"Connect error: {connectReply?.Error}.", client.Channel);
-            }
-            
-            return new GrpcPeer(client, ipAddress, connectReply.Info.ToPeerInfo(isInbound: false));
+            }   
+
+            var peer = new GrpcPeer(client, ipAddress, connectReply.Info.ToPeerInfo(isInbound: false));
+            peer.InboundSessionId = connectionInfo.SessionId.ToByteArray();
+
+            return peer;
         }
 
         /// <summary>
@@ -77,6 +83,7 @@ namespace AElf.OS.Network.Grpc
             var client = CreateClient(ipAddress);
             
             await PingNodeAsync(client, ipAddress);
+            
             return new GrpcPeer(client, ipAddress, peerConnectionInfo.ToPeerInfo(isInbound: true));
         }
         

@@ -1,3 +1,5 @@
+using System;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
@@ -22,12 +24,20 @@ namespace AElf.OS.Network.Grpc
 
         public async Task<ConnectionInfo> GetConnectionInfoAsync()
         {
+            byte[] sessionId = new byte[NetworkConstants.DefaultSessionIdSize];
+
+            using (RNGCryptoServiceProvider rg = new RNGCryptoServiceProvider()) 
+            { 
+                rg.GetBytes(sessionId);
+            }
+            
             return new ConnectionInfo
             {
                 ChainId = ChainOptions.ChainId,
                 ListeningPort = NetworkOptions.ListeningPort,
                 Version = KernelConstants.ProtocolVersion,
-                Pubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync())
+                Pubkey = ByteString.CopyFrom(await _accountService.GetPublicKeyAsync()),
+                SessionId = ByteString.CopyFrom(sessionId)
             };
         }
     }

@@ -11,7 +11,8 @@ namespace AElf.OS.Network.Grpc.Extensions
                 Pubkey = connectionInfo.Pubkey.ToHex(),
                 ProtocolVersion = connectionInfo.Version,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                IsInbound = isInbound
+                IsInbound = isInbound,
+                SessionId = connectionInfo.SessionId.ToByteArray()
             };
         }
     }

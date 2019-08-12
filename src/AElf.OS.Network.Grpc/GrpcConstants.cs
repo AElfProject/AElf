@@ -3,6 +3,7 @@ namespace AElf.OS.Network.Grpc
     public static class GrpcConstants
     {
         public const string PubkeyMetadataKey = "public-key";
+        public const string SessionIdMetadataKey = "session-id-bin";
         public const string PeerInfoMetadataKey = "peer-info";
         public const string TimeoutMetadataKey = "timeout";
         public const string GrpcRequestCompressKey = "grpc-internal-encoding-request";

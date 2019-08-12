@@ -81,6 +81,7 @@ namespace AElf.OS.Network.Grpc.Connection
             {
                 // create the connection to the distant node
                 peer = await _peerDialer.DialPeerAsync(ipAddress);
+                Logger.LogWarning($"Dialed peer: in {peer.InboundSessionId.ToHex()}, out {peer.OutboundSessionId.ToHex()}.");
             }
             catch (PeerDialException ex)
             {
@@ -171,7 +172,11 @@ namespace AElf.OS.Network.Grpc.Connection
             Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
 
             var connectInfo = await _connectionInfoProvider.GetConnectionInfoAsync();
-            return new ConnectReply { Info = connectInfo};
+            grpcPeer.InboundSessionId = connectInfo.SessionId.ToByteArray();
+            
+            Logger.LogWarning($"Just dialed back peer: in {grpcPeer.InboundSessionId.ToHex()}, out {grpcPeer.OutboundSessionId.ToHex()}.");
+
+            return new ConnectReply { Info = connectInfo };
         }
         
         public async Task<HandshakeReply> CheckIncomingHandshakeAsync(string peerId, Handshake handshake)

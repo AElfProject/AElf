@@ -13,6 +13,7 @@ namespace AElf.OS.Network.Infrastructure
         
         long LastKnownLibHeight { get; }
         string IpAddress { get; }
+        byte[] InboundSessionId { get; }
 
         PeerInfo Info { get; }
 

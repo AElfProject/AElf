@@ -11,6 +11,12 @@ namespace AElf.OS.Network.Grpc
                 .FirstOrDefault(entry => entry.Key == GrpcConstants.PubkeyMetadataKey)?.Value;
         }
         
+        public static byte[] GetSessionId(this ServerCallContext context)
+        {
+            return context.RequestHeaders
+                .FirstOrDefault(entry => entry.Key == GrpcConstants.SessionIdMetadataKey)?.ValueBytes;
+        }
+        
         public static string GetPeerInfo(this ServerCallContext context)
         {
             return context.RequestHeaders

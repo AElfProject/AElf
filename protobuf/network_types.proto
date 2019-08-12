@@ -43,6 +43,7 @@ message ConnectionInfo {
     int32 version = 2;
     int64 listening_port = 3;
     bytes pubkey = 4;
+    bytes session_id = 5;
 }
 
 enum ConnectError {
