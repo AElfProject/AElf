@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using Acs7;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.CrossChain;
 using AElf.Kernel;
 using AElf.CSharp.Core.Utils;

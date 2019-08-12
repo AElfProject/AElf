@@ -1,7 +1,6 @@
 using System;
 using System.Linq;
 using Acs2;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestKit;

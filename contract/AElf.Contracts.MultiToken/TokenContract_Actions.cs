@@ -2,13 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
-using Approved = AElf.Contracts.MultiToken.Messages.Approved;
 
 namespace AElf.Contracts.MultiToken
 {

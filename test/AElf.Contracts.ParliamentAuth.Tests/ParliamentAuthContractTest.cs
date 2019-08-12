@@ -1,8 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Acs3;
-using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Sdk.CSharp;
