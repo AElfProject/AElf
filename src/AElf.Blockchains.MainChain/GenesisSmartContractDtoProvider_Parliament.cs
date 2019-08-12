@@ -12,7 +12,6 @@ namespace AElf.Blockchains.MainChain
         private IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForParliament()
         {
             var l = new List<GenesisSmartContractDto>();
-//            l.AddGenesisSmartContract<ParliamentAuthContract>(
             l.AddGenesisSmartContract(
                 _codes.Single(kv=>kv.Key.Contains("ParliamentAuth")).Value,
                 ParliamentAuthSmartContractAddressNameProvider.Name,

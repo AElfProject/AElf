@@ -12,7 +12,7 @@ namespace AElf.Contracts.Genesis
     public class GenesisContractAuthTest : BasicContractZeroTestBase
     {
         [Fact]
-        public async Task Initialize_AlreadyExist()
+        public async Task Initialize_AlreadyExist_Test()
         {
             var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(ACS0Container.ACS0Stub.ChangeGenesisOwner), SampleAddress.AddressList[0]);
@@ -22,7 +22,7 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task DeploySmartContracts()
+        public async Task DeploySmartContracts_Test()
         {
             var contractDeploymentInput = new ContractDeploymentInput
             {
@@ -46,7 +46,7 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task UpdateSmartContract()
+        public async Task UpdateSmartContract_Test()
         {
             var code = Codes.Single(kv => kv.Key.Contains("Consensus")).Value;
             var contractUpdateInput = new ContractUpdateInput
@@ -54,7 +54,7 @@ namespace AElf.Contracts.Genesis
                 Address = TokenContractAddress,
                 Code = ByteString.CopyFrom(code)
             };
-            string methodName = "UpdateSmartContract";
+            const string methodName = nameof(BasicContractZero.UpdateSmartContract);
             var proposalId = await CreateProposalAsync(methodName, contractUpdateInput);
             var txResult1 = await ApproveWithMinersAsync(proposalId);
             txResult1.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -69,7 +69,7 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task ChangeContractZeroOwner()
+        public async Task ChangeContractZeroOwner_Test()
         {
             var address = Tester.GetCallOwnerAddress();
             var methodName = "ChangeGenesisOwner";
@@ -90,7 +90,7 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task DeploySmartContracts_WithoutAuth()
+        public async Task DeploySmartContracts_WithoutAuth_Test()
         {
             var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(ACS0Container.ACS0Stub.DeploySmartContract), (new ContractDeploymentInput()
@@ -103,7 +103,7 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task UpdateSmartContract_WithoutAuth()
+        public async Task UpdateSmartContract_WithoutAuth_Test()
         {
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(ACS0Container.ACS0Stub.UpdateSmartContract), (
@@ -117,7 +117,7 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task ChangeContractZeroOwner_WithoutAuth()
+        public async Task ChangeContractZeroOwner_WithoutAuth_Test()
         {
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(ACS0Container.ACS0Stub.ChangeGenesisOwner), Tester.GetCallOwnerAddress());

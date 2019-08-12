@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -108,6 +109,18 @@ namespace AElf.OS.BlockSync.Application
             var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block, GetEncodedPubKeyString());
 
             validateResult.ShouldBeFalse();
+        }
+
+        [Fact]
+        public void TryAddAnnouncementCache_MultipleTimes()
+        {
+            for (var i = 0; i < 120; i++)
+            {
+                var blockHash = Hash.FromString(Guid.NewGuid().ToString());
+                var blockHeight = i;
+                var result = _announcementCacheProvider.TryAddAnnouncementCache(blockHash, blockHeight);
+                result.ShouldBeTrue();
+            }
         }
 
         private string GetEncodedPubKeyString()

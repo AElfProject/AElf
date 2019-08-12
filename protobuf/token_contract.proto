@@ -11,15 +11,10 @@ import "google/protobuf/wrappers.proto";
 option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
 
 service TokenContract {
-    
     // Actions
     rpc Create (CreateInput) returns (google.protobuf.Empty) {
     }
-    rpc CreateNativeToken (CreateNativeTokenInput) returns (google.protobuf.Empty) {
-    }
     rpc Issue (IssueInput) returns (google.protobuf.Empty) {
-    }
-    rpc IssueNativeToken (IssueNativeTokenInput) returns (google.protobuf.Empty) {
     }
     rpc Transfer (TransferInput) returns (google.protobuf.Empty) {
     }
@@ -37,15 +32,35 @@ service TokenContract {
     }
     rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (google.protobuf.Empty) {
     }
-    rpc ClaimTransactionFees (ClaimTransactionFeesInput) returns (google.protobuf.Empty) {
+    rpc ClaimTransactionFees (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
     }
     rpc CrossChainReceiveToken (CrossChainReceiveTokenInput) returns (google.protobuf.Empty) {
     }
-    rpc SetFeePoolAddress (aelf.Hash) returns (google.protobuf.Empty) {
+    rpc CheckThreshold (CheckThresholdInput) returns (google.protobuf.Empty) {
     }
-    
+    rpc SetProfitReceivingInformation (ProfitReceivingInformation) returns (google.protobuf.Empty) {
+    }
+    rpc ReceiveProfits (ReceiveProfitsInput) returns (google.protobuf.Empty) {
+    }
+    rpc CheckResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc ChargeResourceToken (ChargeResourceTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc DonateResourceToken (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+    rpc TransferToContract (TransferToContractInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetResourceTokenUnitPrice (SetResourceTokenUnitPriceInput) returns (google.protobuf.Empty) {
+    }
+    rpc AdvanceResourceToken (AdvanceResourceTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc TakeResourceTokenBack (TakeResourceTokenBackInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetFeeReceiver (aelf.Address) returns (google.protobuf.Empty) {
+    }
+
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
         option (aelf.is_view) = true;
@@ -59,6 +74,15 @@ service TokenContract {
     rpc IsInWhiteList (IsInWhiteListInput) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
+    rpc GetProfitReceivingInformation (aelf.Address) returns (ProfitReceivingInformation) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetLockedAmount (GetLockedAmountInput) returns (GetLockedAmountOutput) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVirtualAddressForLocking (GetVirtualAddressForLockingInput) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {
@@ -69,6 +93,7 @@ message TokenInfo {
     sint32 decimals = 5;
     aelf.Address issuer = 6;
     bool is_burnable = 7;
+    bool is_transfer_disabled = 8;
 }
 
 message CreateInput {
@@ -79,16 +104,7 @@ message CreateInput {
     aelf.Address issuer = 5;
     bool is_burnable = 6;
     repeated aelf.Address lock_white_list = 7;
-}
-
-message CreateNativeTokenInput {
-    string symbol = 1;
-    string tokenName = 2;
-    sint64 totalSupply = 3;
-    sint32 decimals = 4;
-    aelf.Address issuer = 5;
-    bool is_burnable = 6;
-    repeated aelf.Hash lock_white_system_contract_name_list = 7;
+    bool is_transfer_disabled = 8;
 }
 
 message IssueInput {
@@ -96,13 +112,6 @@ message IssueInput {
     sint64 amount = 2;
     string memo = 3;
     aelf.Address to = 4;
-}
-
-message IssueNativeTokenInput {
-    string symbol = 1;
-    sint64 amount = 2;
-    string memo = 3;
-    aelf.Hash to_system_contract_name = 4;
 }
 
 message TransferInput {
@@ -154,13 +163,18 @@ message BurnInput {
 }
 
 message ChargeTransactionFeesInput {
-    string symbol = 1;
-    sint64 amount = 2;
+    map<string, sint64> symbol_to_amount = 1;
 }
 
-message ClaimTransactionFeesInput {
-    string symbol = 1;
-    sint64 height = 2;
+message ChargeResourceTokenInput {
+    sint32 transaction_size = 1;
+    sint32 writes_count = 2;
+    sint32 reads_count = 3;
+    aelf.Address caller = 4;
+}
+
+message TokenSymbolList {
+    repeated string symbol_list = 1;
 }
 
 message GetTokenInfoInput {
@@ -206,7 +220,76 @@ message CrossChainReceiveTokenInput {
     repeated aelf.Hash merkle_path = 4;
 }
 
-// EventsCreateInput
+message IsInWhiteListInput {
+    string symbol = 1;
+    aelf.Address address = 2;
+}
+
+message CheckThresholdInput {
+    aelf.Address sender = 1;
+    map<string, sint64> symbol_to_threshold = 2;
+    bool is_check_allowance = 3;
+}
+
+message ProfitReceivingInformation {
+    aelf.Address contract_address = 1;
+    aelf.Address profit_receiver_address = 2;
+    sint32 donation_parts_per_hundred = 3;
+}
+
+message ReceiveProfitsInput {
+    aelf.Address contract_address = 1;
+    repeated string symbols = 2;
+}
+
+message TransferToContractInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    string memo = 3;
+}
+
+message ReturnTaxInput {
+    sint64 balance_before_selling = 1;
+    aelf.Address return_tax_receiver_address = 2;
+}
+
+message SetResourceTokenUnitPriceInput {
+    sint64 cpu_unit_price = 1;
+    sint64 sto_unit_price = 2;
+    sint64 net_unit_price = 3;
+}
+
+message AdvanceResourceTokenInput {
+    aelf.Address contract_address = 1;
+    string resource_token_symbol = 2;
+    sint64 amount = 3;
+}
+
+message TakeResourceTokenBackInput {
+    aelf.Address contract_address = 1;
+    string resource_token_symbol = 2;
+    sint64 amount = 3;
+}
+
+message GetLockedAmountInput {
+    aelf.Address address = 1;
+    string symbol = 3;
+    aelf.Hash lock_id = 4;
+}
+
+message GetLockedAmountOutput {
+    aelf.Address address = 1;
+    string symbol = 3;
+    aelf.Hash lock_id = 4;
+    sint64 amount = 5;
+}
+
+message GetVirtualAddressForLockingInput {
+    aelf.Address address = 1;
+    aelf.Hash lock_id = 3;
+}
+
+// Events
 message Transferred {
     option (aelf.is_event) = true;
     aelf.Address from = 1 [(aelf.is_indexed) = true];
@@ -238,9 +321,4 @@ message Burned
     aelf.Address burner = 1 [(aelf.is_indexed) = true];
     string symbol = 2 [(aelf.is_indexed) = true];
     sint64 amount = 3;
-}
-
-message IsInWhiteListInput {
-    string symbol = 1;
-    aelf.Address address = 2;
 }

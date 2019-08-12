@@ -86,7 +86,7 @@ namespace AElf.Contracts.TokenConverter
                 Connectors = {RamConnector}
             };
 
-            //token address is null
+/*            //token address is null
             {
                 input.TokenContractAddress = null;
                 var result = (await DefaultStub.Initialize.SendAsync(input)).TransactionResult;
@@ -100,7 +100,7 @@ namespace AElf.Contracts.TokenConverter
                 var result = (await DefaultStub.Initialize.SendAsync(input)).TransactionResult;
                 result.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.Error.Contains("Fee receiver address required.").ShouldBeTrue();
-            }
+            }*/
             //Base token symbol is invalid.
             {
                 input.FeeReceiverAddress = FeeReceiverAddress;
