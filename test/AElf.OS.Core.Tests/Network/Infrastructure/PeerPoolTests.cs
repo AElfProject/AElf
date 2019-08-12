@@ -54,6 +54,20 @@ namespace AElf.OS.Network
             _peerPool.FindPeerByAddress(peer.IpAddress).ShouldNotBeNull();
             _peerPool.FindPeerByPublicKey(peer.Info.Pubkey).ShouldNotBeNull();
         }
+
+        [Fact]
+        public async Task AddPeer_MultipleTimes_Test()
+        {
+            var peer = CreatePeer("127.0.0.1:1000");
+            _peerPool.TryAddPeer(peer);
+            _peerPool.PeerCount.ShouldBe(1);
+            _peerPool.IsFull().ShouldBeFalse();
+
+            peer = CreatePeer("127.0.0.1:2000");
+            _peerPool.TryAddPeer(peer);
+            _peerPool.PeerCount.ShouldBe(2);
+            _peerPool.IsFull().ShouldBeTrue();
+        }
         
         private static IPeer CreatePeer(string ip = NetworkTestConstants.FakeIpEndpoint)
         {

@@ -16,11 +16,9 @@ namespace AElf.Blockchains.MainChain
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForElection(Address zeroContractAddress)
         {
             var l = new List<GenesisSmartContractDto>();
-
             l.AddGenesisSmartContract(
-                _codes.Single(kv=>kv.Key.Contains("Election")).Value,
-               ElectionSmartContractAddressNameProvider.Name, GenerateElectionInitializationCallList());
-
+                _codes.Single(kv => kv.Key.Contains("Election")).Value,
+                ElectionSmartContractAddressNameProvider.Name, GenerateElectionInitializationCallList());
             return l;
         }
 
@@ -29,11 +27,15 @@ namespace AElf.Blockchains.MainChain
         {
             var electionContractMethodCallList =
                 new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            electionContractMethodCallList.Add(nameof(ElectionContractContainer.ElectionContractStub.InitialElectionContract),
+            electionContractMethodCallList.Add(
+                nameof(ElectionContractContainer.ElectionContractStub.InitialElectionContract),
                 new InitialElectionContractInput
                 {
-                    MaximumLockTime = 1080 * 86400,
-                    MinimumLockTime = 90 * 86400
+                    MaximumLockTime = _economicOptions.MaximumLockTime,
+                    MinimumLockTime = _economicOptions.MinimumLockTime,
+                    TimeEachTerm = _consensusOptions.TimeEachTerm,
+                    MinerList = {_consensusOptions.InitialMinerList},
+                    MinerIncreaseInterval = _consensusOptions.MinerIncreaseInterval
                 });
             return electionContractMethodCallList;
         }

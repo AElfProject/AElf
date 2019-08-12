@@ -33,19 +33,24 @@ namespace AElf.CSharp.Core
         Method<TInput, TOutput> Method { get; }
         Func<TInput, Task<IExecutionResult<TOutput>>> SendAsync { get; }
         Func<TInput, Task<TOutput>> CallAsync { get; }
+        Func<TInput, Transaction> GetTransaction { get; }
     }
 
-    public sealed class MethodStub<TInput, TOutput> : IMethodStub<TInput, TOutput> where TInput : IMessage<TInput> where TOutput : IMessage<TOutput>
+    public sealed class MethodStub<TInput, TOutput> : IMethodStub<TInput, TOutput> where TInput : IMessage<TInput>
+        where TOutput : IMessage<TOutput>
     {
         public Method<TInput, TOutput> Method { get; }
         public Func<TInput, Task<IExecutionResult<TOutput>>> SendAsync { get; }
         public Func<TInput, Task<TOutput>> CallAsync { get; }
+        public Func<TInput, Transaction> GetTransaction { get; }
 
-        public MethodStub(Method<TInput, TOutput> method, Func<TInput, Task<IExecutionResult<TOutput>>> sendAsync, Func<TInput, Task<TOutput>> callAsync)
+        public MethodStub(Method<TInput, TOutput> method, Func<TInput, Task<IExecutionResult<TOutput>>> sendAsync,
+            Func<TInput, Task<TOutput>> callAsync, Func<TInput, Transaction> getTransaction = null)
         {
             Method = method;
             SendAsync = sendAsync;
             CallAsync = callAsync;
+            GetTransaction = getTransaction;
         }
     }
 
