@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 
@@ -19,6 +20,8 @@ namespace AElf.WebApp.Application.Chain
     {
         Task<TransactionResultDto> GetTransactionResultAsync(string transactionId);
 
+        Task<TransactionResultDto> GetTransactionResult2Async(string transactionId, string blockHash);
+        
         Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
             int limit = 10);
     }
@@ -30,16 +33,19 @@ namespace AElf.WebApp.Application.Chain
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
+        private readonly ITransactionResultManager _transactionResultManager;
 
         public TransactionResultAppService(ITransactionResultProxyService transactionResultProxyService,
             ITransactionManager transactionManager,
             IBlockchainService blockchainService,
-            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
+            ITransactionResultManager transactionResultManager)
         {
             _transactionResultProxyService = transactionResultProxyService;
             _transactionManager = transactionManager;
             _blockchainService = blockchainService;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
+            _transactionResultManager = transactionResultManager;
         }
 
         /// <summary>
@@ -67,6 +73,39 @@ namespace AElf.WebApp.Application.Chain
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {
                 var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
+                output.BlockHash = block.GetHash().ToHex();
+            }
+
+            if (transactionResult.Status == TransactionResultStatus.Failed)
+                output.Error = transactionResult.Error;
+
+            if (transactionResult.Status == TransactionResultStatus.NotExisted)
+            {
+                output.Status = transactionResult.Status.ToString();
+                return output;
+            }
+
+            output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+
+            var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
+                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
+
+            output.Transaction.Params = JsonFormatter.ToDiagnosticString(
+                methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
+
+            return output;
+        }
+
+        public async Task<TransactionResultDto> GetTransactionResult2Async(string transactionId, string blockHash)
+        {
+            var block = await _blockchainService.GetBlockByHashAsync(HashHelper.HexStringToHash(blockHash));
+
+            var transactionResult = await _transactionResultManager.GetTransactionResultAsync(HashHelper.HexStringToHash(transactionId), HashHelper.HexStringToHash(blockHash));
+            var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
+
+            var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
+            if (transactionResult.Status == TransactionResultStatus.Mined)
+            {
                 output.BlockHash = block.GetHash().ToHex();
             }
 
