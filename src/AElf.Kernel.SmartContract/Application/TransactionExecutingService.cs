@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.SmartContractExecution.Events;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Application
 {
@@ -20,6 +22,8 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly List<IPostExecutionPlugin> _postPlugins;
         private readonly ITransactionResultService _transactionResultService;
         public ILogger<TransactionExecutingService> Logger { get; set; }
+        
+        public ILocalEventBus LocalEventBus { get; set; }
 
         public TransactionExecutingService(ITransactionResultService transactionResultService,
             ISmartContractExecutiveService smartContractExecutiveService, IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins
@@ -30,6 +34,7 @@ namespace AElf.Kernel.SmartContract.Application
             _prePlugins = GetUniquePrePlugins(prePlugins);
             _postPlugins = GetUniquePostPlugins(postPlugins);
             Logger = NullLogger<TransactionExecutingService>.Instance;
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
@@ -190,6 +195,10 @@ namespace AElf.Kernel.SmartContract.Application
             finally
             {
                 await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
+                await LocalEventBus.PublishAsync(new TransactionExecutedEventData
+                {
+                    TransactionTrace = trace
+                });
             }
 
             return trace;
