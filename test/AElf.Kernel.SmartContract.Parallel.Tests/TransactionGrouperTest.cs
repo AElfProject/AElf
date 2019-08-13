@@ -104,7 +104,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 BlockHash = Hash.FromString("blockHash")
             };
             var grouped = await Grouper.GroupAsync(chainContext, allTxns);
-            grouped.Parallelizables.Count.ShouldBe(4);
+            
+            grouped.Parallelizables.Count.ShouldBeGreaterThanOrEqualTo(4);
             grouped.NonParallelizables.Count.ShouldBe(1);
         }
 
