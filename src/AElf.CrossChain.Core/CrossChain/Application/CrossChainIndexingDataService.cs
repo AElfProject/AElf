@@ -15,7 +15,6 @@ namespace AElf.CrossChain
     internal class CrossChainIndexingDataService : ICrossChainIndexingDataService
     {
         private readonly IReaderFactory _readerFactory;
-        
         private readonly IBlockCacheEntityConsumer _blockCacheEntityConsumer;
         private readonly IIndexedCrossChainBlockDataProvider _indexedCrossChainBlockDataProvider;
         public ILogger<CrossChainIndexingDataService> Logger { get; set; }

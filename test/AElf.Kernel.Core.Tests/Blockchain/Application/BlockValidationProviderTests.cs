@@ -83,13 +83,13 @@ namespace AElf.Kernel.Blockchain.Application
             validateResult = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
             validateResult.ShouldBeFalse();
 
-            block.Header.ChainId = 0;
             block.Header.MerkleTreeRootOfTransactions = Hash.Empty;
             validateResult = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
             validateResult.ShouldBeFalse();
            
             block.Header = _kernelTestHelper.GenerateBlock(9, Hash.FromString("PreviousBlockHash")).Header;
             block.Body.BlockHeader = block.Header.GetHash();
+            block.Header.ChainId = ChainHelper.ConvertBase58ToChainId("AELF");
             block.Header.Signature = ByteString.CopyFrom(CryptoHelper.SignWithPrivateKey(_kernelTestHelper.KeyPair.PrivateKey, block.GetHash().ToByteArray())); 
             validateResult = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
             validateResult.ShouldBeFalse();
@@ -114,6 +114,8 @@ namespace AElf.Kernel.Blockchain.Application
             block.Body.BlockHeader = block.Header.GetHash();
             block.Body.TransactionIds.Add(Hash.Empty);
             block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoot();
+            block.Header.ChainId = ChainHelper.ConvertBase58ToChainId("AELF");
+
             block.Header.Signature = ByteString.CopyFrom(CryptoHelper.SignWithPrivateKey(_kernelTestHelper.KeyPair.PrivateKey, block.GetHash().ToByteArray())); 
 
             validateResult = await _blockValidationService.ValidateBlockBeforeAttachAsync(block);

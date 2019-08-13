@@ -85,6 +85,10 @@ message VerifyTransactionInput {
     int32 verified_chain_id = 4;
 }
 
+message IndexedChainHeightDict{
+    map<int32, int64> indexed_chain_heights = 1;
+}
+
 // Events
 message CreationRequested {
     option (aelf.is_event) = true;
@@ -95,6 +99,10 @@ message CreationRequested {
 message Disposed {
     option (aelf.is_event) = true;
     int32 chain_id = 1;
+}
+
+message CrossChainBlockDataIndexed{
+    option (aelf.is_event) = true;
 }
 
 

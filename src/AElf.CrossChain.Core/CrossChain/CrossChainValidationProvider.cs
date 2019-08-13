@@ -14,14 +14,17 @@ namespace AElf.CrossChain
     {
         private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
         private readonly IBlockExtraDataService _blockExtraDataService;
+        private readonly IIndexedCrossChainBlockDataDiscoveryService _indexedCrossChainBlockDataDiscoveryService;
         public IOptionsMonitor<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
         
-        public CrossChainValidationProvider(ICrossChainIndexingDataService crossChainIndexingDataService, IBlockExtraDataService blockExtraDataService)
+        public CrossChainValidationProvider(ICrossChainIndexingDataService crossChainIndexingDataService, 
+            IBlockExtraDataService blockExtraDataService, IIndexedCrossChainBlockDataDiscoveryService indexedCrossChainBlockDataDiscoveryService)
         {
             _crossChainIndexingDataService = crossChainIndexingDataService;
             _blockExtraDataService = blockExtraDataService;
+            _indexedCrossChainBlockDataDiscoveryService = indexedCrossChainBlockDataDiscoveryService;
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
@@ -40,20 +43,23 @@ namespace AElf.CrossChain
         {
             if (block.Header.Height == Constants.GenesisBlockHeight)
                 return true;
-            
-            var indexedCrossChainBlockData =
-                await _crossChainIndexingDataService.GetIndexedCrossChainBlockDataAsync(block.Header.GetHash(), block.Header.Height);
-//            var indexedCrossChainBlockData =
-//                message == null ? null : CrossChainBlockData.Parser.ParseFrom(message.ToByteString());
+
+            var isCrossChainDataIndexed = _indexedCrossChainBlockDataDiscoveryService.TryDiscoverCrossChainBlockDataAsync(block);
             var extraData = ExtractCrossChainExtraData(block.Header);
 
             try
             {
-                if (indexedCrossChainBlockData == null)
+                if (isCrossChainDataIndexed ^ (extraData != null))
                 {
-                    return extraData == null;
+                    // cross chain extra data in block header should be null if nothing indexed in contract 
+                    return false;
                 }
 
+                if (!isCrossChainDataIndexed)
+                    return true;
+
+                var indexedCrossChainBlockData =
+                    await _crossChainIndexingDataService.GetIndexedCrossChainBlockDataAsync(block.Header.GetHash(), block.Header.Height);
                 var res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, extraData, block);
                 return res;
             }

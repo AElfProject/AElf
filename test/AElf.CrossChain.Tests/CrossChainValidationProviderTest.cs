@@ -2,9 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
+using AElf.Contracts.CrossChain;
 using AElf.CrossChain.Cache;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Xunit;
@@ -16,12 +19,14 @@ namespace AElf.CrossChain
         private readonly IBlockValidationProvider _crossChainBlockValidationProvider;
         private readonly CrossChainTestHelper _crossChainTestHelper;
         private readonly KernelTestHelper _kernelTestHelper;
-
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        
         public CrossChainValidationProviderTest()
         {
             _crossChainBlockValidationProvider = GetRequiredService<IBlockValidationProvider>();
             _crossChainTestHelper = GetRequiredService<CrossChainTestHelper>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
+            _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
         }
 
         [Fact]
@@ -42,6 +47,7 @@ namespace AElf.CrossChain
         public async Task Validate_EmptyHeader_NoIndexedData_Test()
         {
             var block = _kernelTestHelper.GenerateBlock(10, Hash.Empty);
+            block.Header.Bloom = ByteString.CopyFrom(new byte[256]);
             var validationRes = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             Assert.True(validationRes);
         }
@@ -50,16 +56,8 @@ namespace AElf.CrossChain
         public async Task Validate_EmptyHeader_WithIndexedData_Test()
         {
             var block = _kernelTestHelper.GenerateBlock(10, Hash.Empty);
+            block.Header.Bloom = ByteString.CopyFrom(GetInterestedBloom());
 
-            var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
-            int chainId = ChainHelper.ConvertBase58ToChainId("2112");
-            var fakeSideChainBlockData = new SideChainBlockData
-            {
-                Height = 1,
-                TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
-                ChainId = chainId
-            };
-            CreateFakeCacheAndStateData(chainId, fakeSideChainBlockData, block.Height);
             var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             Assert.False(res);
         }
@@ -77,6 +75,8 @@ namespace AElf.CrossChain
             };
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new[] {sideChainBlockData});
             var block = CreateFilledBlock(sideChainTxMerkleTreeRoot);
+            block.Header.Bloom = ByteString.CopyFrom(GetInterestedBloom());
+            
             var fakeIndexedCrossChainData = new CrossChainBlockData();
             fakeIndexedCrossChainData.SideChainBlockData.Add(sideChainBlockData);
             _crossChainTestHelper.AddFakeIndexedCrossChainBlockData(2, fakeIndexedCrossChainData);
@@ -97,6 +97,8 @@ namespace AElf.CrossChain
             var fakeTxnMerkleTreeRoot = Hash.FromString("fakeMerkleTreeRoot2");
 
             var block = CreateFilledBlock(fakeTxnMerkleTreeRoot);
+            block.Header.Bloom = ByteString.CopyFrom(GetInterestedBloom());
+
             var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             Assert.False(res);
         }
@@ -114,6 +116,8 @@ namespace AElf.CrossChain
             CreateFakeCacheAndStateData(fakeSideChainId, fakeSideChainBlockData2, 2);
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new[] {fakeSideChainBlockData});
             var block = CreateFilledBlock(sideChainTxMerkleTreeRoot);
+            block.Header.Bloom = ByteString.CopyFrom(GetInterestedBloom());
+
             var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             Assert.False(res);
         }
@@ -128,6 +132,8 @@ namespace AElf.CrossChain
             CreateFakeCacheAndStateData(fakeSideChainId, fakeSideChainBlockData, 2);
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new[] {fakeSideChainBlockData});
             var block = CreateFilledBlock(sideChainTxMerkleTreeRoot);
+            block.Header.Bloom = ByteString.CopyFrom(GetInterestedBloom());
+
             var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             Assert.True(res);
         }
@@ -142,6 +148,7 @@ namespace AElf.CrossChain
             CreateFakeCacheAndStateData(fakeSideChainId, fakeSideChainBlockData, 2);
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new[] {fakeSideChainBlockData});
             var block = CreateFilledBlock(sideChainTxMerkleTreeRoot);
+            block.Header.Bloom = ByteString.CopyFrom(GetInterestedBloom());
             _configOptions.CrossChainDataValidationIgnored = true;
             var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             Assert.True(res);
@@ -219,6 +226,13 @@ namespace AElf.CrossChain
                 TransactionMerkleTreeRoot = transactionMerkleTreeRoot,
                 ChainId = chainId
             };
+        }
+
+        private byte[] GetInterestedBloom()
+        {
+            var contractAddress = _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
+            var logEvent = new CrossChainBlockDataIndexed().ToLogEvent(contractAddress);
+            return logEvent.GetBloom().Data;
         }
     }
 }

@@ -41,20 +41,6 @@ namespace AElf.CrossChain.Communication.Grpc
             Dispose();
         }
 
-        [Fact]
-        public async Task StopClientTest_Test()
-        {
-            var chainId = ChainHelper.GetChainId(1);
-            await _server.StartAsync("localhost", 5000);
-            await _grpcCrossChainClientNodePlugin.StartAsync(chainId);
-            var client = _crossChainClientProvider.GetAllClients();
-            await client[0].ConnectAsync();
-            Assert.True(client[0].IsConnected);
-            await _grpcCrossChainClientNodePlugin.ShutdownAsync();
-            Assert.False(client[0].IsConnected);
-            Dispose();
-        }
-
         public override void Dispose()
         {
             _server?.Dispose();
