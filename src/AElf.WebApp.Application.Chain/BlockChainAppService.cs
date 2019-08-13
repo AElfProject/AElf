@@ -218,20 +218,21 @@ namespace AElf.WebApp.Application.Chain
         
         private Hash CalculateWorldStateMerkleTreeRoot(BlockStateSet blockStateSet)
         {
-            Hash merkleTreeRootOfWorldState;
+//            Hash merkleTreeRootOfWorldState;
             var byteArrays = GetDeterministicByteArrays(blockStateSet);
-            using (var hashAlgorithm = SHA256.Create())
-            {
-                foreach (var bytes in byteArrays)
-                {
-                    hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
-                }
-
-                hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
-                merkleTreeRootOfWorldState = Hash.FromByteArray(hashAlgorithm.Hash);
-            }
-
-            return merkleTreeRootOfWorldState;
+            return byteArrays.Select(Hash.FromRawBytes).ToList().ComputeBinaryMerkleTreeRootWithLeafNodes();
+//            using (var hashAlgorithm = SHA256.Create())
+//            {
+//                foreach (var bytes in byteArrays)
+//                {
+//                    hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
+//                }
+//
+//                hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
+//                merkleTreeRootOfWorldState = Hash.FromByteArray(hashAlgorithm.Hash);
+//            }
+//
+//            return merkleTreeRootOfWorldState;
         }
         
         private IEnumerable<byte[]> GetDeterministicByteArrays(BlockStateSet blockStateSet)
