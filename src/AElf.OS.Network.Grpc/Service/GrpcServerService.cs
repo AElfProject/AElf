@@ -156,30 +156,38 @@ namespace AElf.OS.Network.Grpc
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
         {
-            if (request == null || request.PreviousBlockHash == null || _syncStateService.SyncState != SyncState.Finished)
-                return new BlockList();
-            
-            Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.Count} blocks from {request.PreviousBlockHash}.");
-
-            var blockList = new BlockList();
-            
-            var blocks = await _blockchainService.GetBlocksWithTransactions(request.PreviousBlockHash, request.Count);
-
-            if (blocks == null)
-                return blockList;
-            
-            blockList.Blocks.AddRange(blocks);
-
-            if (blockList.Blocks.Count != request.Count)
-                Logger.LogTrace($"Replied with {blockList.Blocks.Count} blocks for request {request}");
-
-            if (NetworkOptions.CompressBlocksOnRequest)
+            try
             {
-                var headers = new Metadata{new Metadata.Entry(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst)};
-                await context.WriteResponseHeadersAsync(headers);
-            }
+                if (request == null || request.PreviousBlockHash == null || _syncStateService.SyncState != SyncState.Finished)
+                    return new BlockList();
             
-            return blockList;
+                Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.Count} blocks from {request.PreviousBlockHash}.");
+
+                var blockList = new BlockList();
+            
+                var blocks = await _blockchainService.GetBlocksWithTransactions(request.PreviousBlockHash, request.Count);
+
+                if (blocks == null)
+                    return blockList;
+            
+                blockList.Blocks.AddRange(blocks);
+
+                if (blockList.Blocks.Count != request.Count)
+                    Logger.LogTrace($"Replied with {blockList.Blocks.Count} blocks for request {request}");
+
+                if (NetworkOptions.CompressBlocksOnRequest)
+                {
+                    var headers = new Metadata{new Metadata.Entry(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst)};
+                    await context.WriteResponseHeadersAsync(headers);
+                }
+            
+                return blockList;
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, $"##RequestBlocks");
+                throw;
+            }
         }
 
         public override async Task<NodeList> GetNodes(NodesRequest request, ServerCallContext context)
