@@ -23,13 +23,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             while (true)
             {
-                var isAlone = CheckLonelyMiner(publicKey);
-                if (behaviour == AElfConsensusBehaviour.TinyBlock && isAlone &&
-                    currentRound.RealTimeMinersInformation.Count >
-                    2 // There are more than 1 miner possible to save him.
-                )
+                var isAlone = false;
+                if (currentRound.RealTimeMinersInformation.Count > 1 && behaviour == AElfConsensusBehaviour.TinyBlock)
                 {
-                    behaviour = AElfConsensusBehaviour.Nothing;
+                    // Not single node.
+                    
+                    // If only this node mined during previous round, stop mining.
+                    if (TryToGetPreviousRoundInformation(out var previousRound))
+                    {
+                        var minedMiners = previousRound.GetMinedMiners();
+                        isAlone = minedMiners.Count == 1 &&
+                               minedMiners.Select(m => m.Pubkey).Contains(publicKey);
+                        if (isAlone)
+                        {
+                            behaviour = AElfConsensusBehaviour.Nothing;
+                        }
+                    }
                 }
 
                 var currentBlockTime = Context.CurrentBlockTime;
@@ -283,17 +292,5 @@ namespace AElf.Contracts.Consensus.AEDPoS
             LimitMillisecondsOfMiningBlock = 0,
             NextBlockMiningLeftMilliseconds = int.MaxValue
         };
-
-        private bool CheckLonelyMiner(string publicKey)
-        {
-            if (TryToGetPreviousRoundInformation(out var previousRound))
-            {
-                var minedMiners = previousRound.GetMinedMiners();
-                return minedMiners.Count == 1 &&
-                       minedMiners.Select(m => m.Pubkey).Contains(publicKey);
-            }
-
-            return false;
-        }
     }
 }
