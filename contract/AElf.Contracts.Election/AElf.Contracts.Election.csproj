@@ -8,8 +8,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ContractReference Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf/Proto/acs1.proto</Link>
+        </ContractReference>
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\reference\acs1.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\vote_contract.proto">
             <Link>Protobuf\Proto\reference\vote_contract.proto</Link>

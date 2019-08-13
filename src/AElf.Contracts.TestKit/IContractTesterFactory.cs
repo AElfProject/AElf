@@ -22,7 +22,7 @@ namespace AElf.Contracts.TestKit
 
         public T Create<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractStubBase, new()
         {
-            return new T()
+            return new T
             {
                 __factory = new MethodStubFactory(_serviceProvider)
                 {

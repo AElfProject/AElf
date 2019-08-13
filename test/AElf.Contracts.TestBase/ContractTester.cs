@@ -36,7 +36,6 @@ using Volo.Abp.Threading;
 using TokenContract = AElf.Contracts.MultiToken.Messages.TokenContractContainer.TokenContractStub;
 using ParliamentAuthContract = AElf.Contracts.ParliamentAuth.ParliamentAuthContractContainer.ParliamentAuthContractStub;
 using ResourceContract = AElf.Contracts.Resource.ResourceContractContainer.ResourceContractStub;
-using FeeReceiverContract = AElf.Contracts.Resource.FeeReceiver.FeeReceiverContractContainer.FeeReceiverContractStub;
 using CrossChainContract = AElf.Contracts.CrossChain.CrossChainContractContainer.CrossChainContractStub;
 
 namespace AElf.Contracts.TestBase
@@ -66,9 +65,6 @@ namespace AElf.Contracts.TestBase
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value;
         public byte[] TokenContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("MultiToken")).Value;
-        public byte[] FeeReceiverContractCode =>
-            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("FeeReceiver")).Value;
-
         public byte[] CrossChainContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("CrossChain")).Value;
         public byte[] ParliamentAuthContractCode =>
@@ -81,9 +77,9 @@ namespace AElf.Contracts.TestBase
 
         public string PublicKey => KeyPair.PublicKey.ToHex();
 
-        public long TokenTotalSupply = 1000_000L;
-        public long InitialTreasuryAmount = 200_000L;
-        public long InitialBalanceOfStarter = 800_000L;
+        public long TokenTotalSupply = 1_000_000_000_00000000L;
+        public long InitialTreasuryAmount = 200_000_000_00000000L;
+        public long InitialBalanceOfStarter = 800_000_000_00000000L;
         public bool IsPrivilegePreserved = true;
 
         public ContractTester() : this(0, null)
@@ -117,7 +113,7 @@ namespace AElf.Contracts.TestBase
                             miners.Add(minerKeyPair.PublicKey.ToHex());
                         }
 
-                        o.InitialMiners = miners;
+                        o.InitialMinerList = miners;
                         o.MiningInterval = 4000;
                         o.StartTimestamp = new Timestamp {Seconds = 0};
                     });
@@ -290,7 +286,7 @@ namespace AElf.Contracts.TestBase
                 {
                     Pubkeys =
                     {
-                        consensusOptions.InitialMiners.Select(k => k.ToByteString())
+                        consensusOptions.InitialMinerList.Select(k => k.ToByteString())
                     }
                 }.GenerateFirstRoundOfNewTerm(consensusOptions.MiningInterval,
                     consensusOptions.StartTimestamp));
@@ -661,23 +657,21 @@ namespace AElf.Contracts.TestBase
             balanceOfStarter = InitialBalanceOfStarter;
 
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
             {
                 Symbol = "ELF",
-                Decimals = 2,
-                Issuer = issuer,
-                IsBurnable = true,
-                TokenName = "elf token",
-                TotalSupply = TokenTotalSupply
+                TokenName = "Native token",
+                TotalSupply = totalSupply,
+                Decimals = 8,
+                Issuer = Address.FromPublicKey(KeyPair.PublicKey),
+                IsBurnable = true
             });
-            
-            tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
             {
                 Symbol = "ELF",
-                Amount = InitialBalanceOfStarter,
-                To = GetCallOwnerAddress()
+                Amount = balanceOfStarter,
+                To = Address.FromPublicKey(KeyPair.PublicKey)
             });
-
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             parliamentContractCallList.Add(nameof(ParliamentAuthContract.Initialize), new ParliamentAuth.InitializeInput
@@ -686,10 +680,7 @@ namespace AElf.Contracts.TestBase
             });
             return list =>
             {
-                //TODO: support initialize method, make the tester auto issue elf token
                 list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name, tokenContractCallList);
-                list.AddGenesisSmartContract(FeeReceiverContractCode, ResourceFeeReceiverSmartContractAddressNameProvider
-                    .Name);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
@@ -719,8 +710,6 @@ namespace AElf.Contracts.TestBase
             return list =>
             {
                 list.AddGenesisSmartContract(TokenContractCode,TokenSmartContractAddressNameProvider.Name);
-                list.AddGenesisSmartContract(FeeReceiverContractCode, ResourceFeeReceiverSmartContractAddressNameProvider
-                    .Name);
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);

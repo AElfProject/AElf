@@ -35,8 +35,6 @@ namespace AElf.OS.Handlers
             Logger = NullLogger<AnnouncementReceivedEventHandler>.Instance;
         }
 
-        //TODO: need to directly test ProcessNewBlockAsync, or unit test cannot catch exceptions of ProcessNewBlockAsync
-
         public Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
             var _ = ProcessNewBlockAsync(eventData.Announce, eventData.SenderPubKey);
@@ -50,7 +48,7 @@ namespace AElf.OS.Handlers
             
             var chain = await _blockchainService.GetChainAsync();
             
-            if (!await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement))
+            if (!await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement, senderPubkey))
             {
                 return;
             }
