@@ -185,7 +185,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"##RequestBlocks");
+                Logger.LogError(e, $"##Previous Block Hash: {request.PreviousBlockHash}");
                 throw;
             }
         }
