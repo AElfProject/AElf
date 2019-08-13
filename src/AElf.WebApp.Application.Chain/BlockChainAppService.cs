@@ -10,7 +10,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
+using Google.Protobuf;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.EventBus.Local;
@@ -207,7 +210,38 @@ namespace AElf.WebApp.Application.Chain
             var blockState = await _blockchainStateManager.GetBlockStateSetAsync(HashHelper.HexStringToHash(blockHash));
             if (blockState == null)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-            return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
+            var dto = JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
+            dto.WorldStateMerkleTreeRoot = CalculateWorldStateMerkleTreeRoot(blockState).ToHex();
+            dto.BlockState = blockState.ToByteString().ToBase64();
+            return dto;
+        }
+        
+        private Hash CalculateWorldStateMerkleTreeRoot(BlockStateSet blockStateSet)
+        {
+            Hash merkleTreeRootOfWorldState;
+            var byteArrays = GetDeterministicByteArrays(blockStateSet);
+            using (var hashAlgorithm = SHA256.Create())
+            {
+                foreach (var bytes in byteArrays)
+                {
+                    hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
+                }
+
+                hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
+                merkleTreeRootOfWorldState = Hash.FromByteArray(hashAlgorithm.Hash);
+            }
+
+            return merkleTreeRootOfWorldState;
+        }
+        
+        private IEnumerable<byte[]> GetDeterministicByteArrays(BlockStateSet blockStateSet)
+        {
+            var keys = blockStateSet.Changes.Keys;
+            foreach (var k in new SortedSet<string>(keys))
+            {
+                yield return Encoding.UTF8.GetBytes(k);
+                yield return blockStateSet.Changes[k].ToByteArray();
+            }
         }
 
         /// <summary>
