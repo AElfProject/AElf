@@ -93,10 +93,10 @@ namespace AElf.Kernel.SmartContract
 
         public void LogDebug(Func<string> func)
         {
-#if DEBUG
+//#if DEBUG
             _smartContractBridgeService.LogDebug(() =>
                 $"TX = {Transaction?.GetHash().ToHex()}, Method = {Transaction?.MethodName}, {func()}");
-#endif
+//#endif
         }
 
         public void FireLogEvent(LogEvent logEvent)
