@@ -17,7 +17,7 @@ namespace AElf.OS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<INodeEnvironmentService>(o =>
+            context.Services.AddSingleton(o =>
             {
                 var service = new Mock<INodeEnvironmentService>();
 

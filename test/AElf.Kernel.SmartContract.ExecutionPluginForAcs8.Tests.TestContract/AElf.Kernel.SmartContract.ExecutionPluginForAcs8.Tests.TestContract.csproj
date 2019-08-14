@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf/Proto/acs0.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\token_converter_contract.proto">
+            <Link>Protobuf/Proto/token_converter_contract.proto</Link>
+        </ContractReference>
+        <ContractBase Include="..\..\protobuf\acs8.proto">
+            <Link>Protobuf/Proto/acs8.proto</Link>
+        </ContractBase>
+        <ContractCode Include="..\..\protobuf\acs8_plugin_test_contract.proto">
+            <Link>Protobuf/Proto/acs8_plugin_test_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+
+</Project>
