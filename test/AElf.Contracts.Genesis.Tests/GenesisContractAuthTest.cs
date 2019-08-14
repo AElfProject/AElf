@@ -55,7 +55,7 @@ namespace AElf.Contracts.Genesis
                 Address = TokenContractAddress,
                 Code = ByteString.CopyFrom(code)
             };
-            string methodName = "UpdateSmartContract";
+            const string methodName = nameof(BasicContractZero.UpdateSmartContract);
             var proposalId = await CreateProposalAsync(methodName, contractUpdateInput);
             var txResult1 = await ApproveWithMinersAsync(proposalId);
             txResult1.Status.ShouldBe(TransactionResultStatus.Mined);

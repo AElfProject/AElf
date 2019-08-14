@@ -162,7 +162,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var chain = await _blockchainService.GetChainAsync();
             var accountAddress = await _accountService.GetAccountAsync();
             var toAddress = Base64.ToBase64String(accountAddress.Value.ToByteArray());
-            var parameters = new Dictionary<string,string>
+            var parameters = new Dictionary<string, string>
             {
                 {"From",accountAddress.GetFormatted()},
                 {"To",contractAddress.GetFormatted()},
@@ -203,14 +203,14 @@ namespace AElf.WebApp.Application.Chain.Tests
                     parameters, expectedStatusCode: HttpStatusCode.Forbidden);
             wrongTransactionResponse.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             wrongTransactionResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
-            
+
             const string methodName = "GetBalance";
             var contractAddress =
                 _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
             var chain = await _blockchainService.GetChainAsync();
             var accountAddress = await _accountService.GetAccountAsync();
             var toAddress = Base64.ToBase64String(accountAddress.Value.ToByteArray());
-            parameters = new Dictionary<string,string>
+            parameters = new Dictionary<string, string>
             {
                 {"From",accountAddress.GetFormatted()},
                 {"To",contractAddress.GetFormatted()},
@@ -234,7 +234,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             wrongSignatureResponse.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             wrongSignatureResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
         }
-        
+
         [Fact]
         public async Task Send_Transaction_Success()
         {
@@ -246,7 +246,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             {
                 {"rawTransaction", transaction.ToByteArray().ToHex()}
             };
-            
+
             var sendTransactionResponse =
                 await PostResponseAsObjectAsync<SendTransactionOutput>("/api/blockChain/sendTransaction",
                     parameters);
@@ -1144,14 +1144,13 @@ namespace AElf.WebApp.Application.Chain.Tests
             errorResponse.Error.Code.ShouldBe(Error.InvalidParams.ToString());
             errorResponse.Error.Message.ShouldBe(Error.Message[Error.InvalidParams]);
 
-            var issueNativeTokenInput = IssueNativeTokenInput.Parser.ParseJson(
-                "{\"toSystemContractName\":{ \"value\": \"" +
-                Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidHash")) +
+            var issueInput = IssueInput.Parser.ParseJson(
+                "{\"to\":{ \"value\": \"" + Base64.ToBase64String(Encoding.UTF8.GetBytes("InvalidHash")) +
                 "\" },\"symbol\":\"ELF\",\"amount\":100,\"memo\":\"test\"}");
 
             json = "{ \"from\": { \"value\": \"" + from + "\" }, \"to\": { \"value\": \"" + to +
-                   "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"IssueNativeToken\", \"params\": \"" +
-                   Base64.ToBase64String(issueNativeTokenInput.ToByteArray()) + "\" }";
+                   "\" }, \"ref_block_number\": \"11\", \"ref_block_prefix\": \"H9f1zQ==\", \"method_name\": \"Issue\", \"params\": \"" +
+                   Base64.ToBase64String(issueInput.ToByteArray()) + "\" }";
             transaction = Transaction.Parser.ParseJson(json);
 
             signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());

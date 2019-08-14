@@ -95,7 +95,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         [Fact]
-        public async Task FeeReceiver_WithDraw_all()
+        public async Task FeeReceiver_WithDraw_All()
         {
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
             var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
@@ -153,7 +153,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
 
         private async Task InitFeeReceiverContract()
         {
-            //init fee receiver contract
+            //init fee Beneficiary contract
             var foundationAddress = Tester.GetAddress(FoundationKeyPair);
             var feeReceiverResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
                 nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Initialize),

@@ -28,15 +28,15 @@ namespace AElf.Contract.CrossChain.Tests
         protected Address TokenContractAddress;
         protected Address ParliamentAddress;
 
-        protected long _totalSupply;
-        protected long _balanceOfStarter;
+        protected long TotalSupply;
+        protected long BalanceOfStarter;
 
         public CrossChainContractTestBase()
         {
             AsyncHelper.RunSync(() =>
-                Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply,
+                Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out TotalSupply,
                     out _,
-                    out _balanceOfStarter)));
+                    out BalanceOfStarter)));
             CrossChainContractAddress = Tester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
             ParliamentAddress = Tester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
@@ -50,7 +50,7 @@ namespace AElf.Contract.CrossChain.Tests
                 nameof(TokenContractContainer.TokenContractStub.Approve), new ApproveInput
                 {
                     Spender = CrossChainContractAddress,
-                    Symbol = "ELF",
+                    Symbol = "ELF", 
                     Amount = amount
                 });
             approveResult.Status.ShouldBe(TransactionResultStatus.Mined);

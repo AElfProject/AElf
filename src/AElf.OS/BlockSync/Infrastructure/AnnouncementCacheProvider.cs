@@ -52,10 +52,10 @@ namespace AElf.OS.BlockSync.Infrastructure
 
         public bool TryGetAnnouncementNextSender(Hash blockHash, out string senderPubKey)
         {
-            if (_cache.TryGetValue(blockHash, out var announcementCache))
-            {
-                return announcementCache.SenderPubKeys.TryDequeue(out senderPubKey);
-            }
+//            if (_cache.TryGetValue(blockHash, out var announcementCache))
+//            {
+//                return announcementCache.SenderPubKeys.TryDequeue(out senderPubKey);
+//            }
 
             senderPubKey = null;
             return false;
