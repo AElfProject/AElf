@@ -1,9 +1,7 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
@@ -50,7 +48,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
 
         private async Task InitializeTokenAsync()
         {
-            await TokenContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput()
+            await TokenContractStub.Create.SendAsync(new CreateInput
             {
                 Symbol = "ELF",
                 Decimals = 2,
@@ -73,16 +71,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
         public async Task GetPreTransactionsTest()
         {
             await DeployContractsAsync();
-            var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IExecutionPlugin>>()
+            await SetMethodFee_Successful(10);
+            var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IPreExecutionPlugin>>()
                 .ToLookup(p => p.GetType()).Select(coll => coll.First()); // One instance per type
-            var plugin = plugins.SingleOrDefault(p => p.GetType() == typeof(FeeChargeExecutionPlugin));
+            var plugin = plugins.SingleOrDefault(p => p.GetType() == typeof(FeeChargePreExecutionPlugin));
             plugin.ShouldNotBeNull();
             var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var chain = await bcs.GetChainAsync();
             var transactions = (await plugin.GetPreTransactionsAsync(TestContract.ContractContainer.Descriptors,
-                new TransactionContext()
+                new TransactionContext
                 {
-                    Transaction = new Transaction()
+                    Transaction = new Transaction
                     {
                         From = DefaultSender,
                         To = TestContractAddress,
@@ -99,17 +98,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
 
         private async Task SetMethodFee_Successful(long feeAmount)
         {
-            await DefaultTester.SetMethodFee.SendAsync(new SetMethodFeeInput()
+            await DefaultTester.SetMethodFee.SendAsync(new TokenAmounts
             {
                 Method = nameof(DefaultTester.DummyMethod),
-                Symbol = "ELF",
-                Amount = feeAmount
+                Amounts = {new TokenAmount {Symbol = "ELF", Amount = feeAmount}}
             });
-            var fee = await DefaultTester.GetMethodFee.CallAsync(new MethodName()
+            var fee = await DefaultTester.GetMethodFee.CallAsync(new MethodName
             {
                 Name = nameof(DefaultTester.DummyMethod)
             });
-            fee.Amount.ShouldBe(feeAmount);
+            fee.Amounts.First(a => a.Symbol == "ELF").Amount.ShouldBe(feeAmount);
         }
 
         [Fact]
@@ -140,7 +138,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
         }
 
         [Fact]
-        public async Task ChargeFee_Prefailed()
+        public async Task ChargeFee_PreFailed()
         {
             await DeployContractsAsync();
             await InitializeTokenAsync();

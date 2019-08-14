@@ -83,7 +83,7 @@ message IndexedSideChainBlockData{
 
 message VerifyTransactionInput {
     aelf.Hash transaction_id = 1;
-    repeated aelf.Hash path = 2;
+    aelf.MerklePath path = 2;
     sint64 parent_chain_height = 3;
     int32 verified_chain_id = 4;
 }

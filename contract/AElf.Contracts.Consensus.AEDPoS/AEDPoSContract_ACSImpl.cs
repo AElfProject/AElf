@@ -25,7 +25,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var behaviour = GetConsensusBehaviour(currentRound, publicKey);
 
-            Context.LogDebug(() => currentRound.GetLogs(publicKey, behaviour));
+            Context.LogDebug(() => currentRound.ToString(publicKey));
+
+            Context.LogDebug(() => $"Current behaviour: {behaviour.ToString()}");
 
             return behaviour == AElfConsensusBehaviour.Nothing
                 ? GetInvalidConsensusCommand() // Handle this situation previously.

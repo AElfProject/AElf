@@ -13,6 +13,8 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task MultipleUsers_Vote_Scenario()
         {
+            const long txFee = 1_00000000;
+            
             var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 3);
 
             var user1 = SampleECKeyPairs.KeyPairs[1];
@@ -54,9 +56,9 @@ namespace AElf.Contracts.Vote
                 var beforeBalance = GetUserBalance(Address.FromPublicKey(user1.PublicKey));
                 await Withdraw(user1, voteIds.ActiveVotes.First());
                 var afterBalance = GetUserBalance(Address.FromPublicKey(user1.PublicKey));
-
-                beforeBalance.ShouldBe(afterBalance - 100);
-
+                
+                beforeBalance.ShouldBe(afterBalance + txFee - 100);
+                
                 voteIds = await GetVoteIds(user1, registerItem.VotingItemId);
                 voteIds.ActiveVotes.Count.ShouldBe(0);
                 voteIds.WithdrawnVotes.Count.ShouldBe(1);

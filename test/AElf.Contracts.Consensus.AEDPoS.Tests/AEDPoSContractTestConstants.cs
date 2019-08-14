@@ -17,12 +17,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
         internal const int MiningInterval = 4000;
 
         internal const string Symbol = "ELF";
+        
+        internal const int Decimals = 8;
+        
+        internal const bool IsBurnable = true;
 
-        internal const long TotalSupply = 1000_000_000;
+        internal const long TotalSupply = 1000_000_000_00000000;
 
         internal static readonly int SmallBlockMiningInterval = MiningInterval.Div(TinySlots)
             .Mul(AEDPoSContractConstants.LimitBlockExecutionTimeWeight)
-            .Div(AEDPoSContractConstants.LimitBlockExecutionTimeTotalWeight);
+            .Div(AEDPoSContractConstants.LimitBlockExecutionTimeTotalShares);
 
         /// <summary>
         /// 7 days.
