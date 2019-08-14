@@ -142,12 +142,12 @@ namespace AElf.Kernel.Types.Tests
             block.Body.TransactionIds.AddRange(transactionItems.Item2);
 
             block.Header.MerkleTreeRootOfTransactions =
-                block.Body.TransactionIds.ComputeBinaryMerkleTreeRootWithLeafNodes();
+                BinaryMerkleTree.FromLeafNodes(block.Body.TransactionIds).Root;
             block.Header.MerkleTreeRootOfWorldState = Hash.Empty;
             block.Header.MerkleTreeRootOfTransactionStatus = Hash.Empty;
             block.Header.SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey");
             block.Header.ExtraData.Add(ByteString.Empty);
-            block.Body.BlockHeader = block.Header.GetHash();
+            block.Body.BlockHeader = block.Header.GetHash();           
 
             return block;
         }
