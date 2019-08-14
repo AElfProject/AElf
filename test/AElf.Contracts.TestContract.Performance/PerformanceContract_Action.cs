@@ -18,28 +18,28 @@ namespace AElf.Contracts.TestContract.Performance
         public override Empty Write1KContentByte(WriteInput input)
         {
             Assert(input.Content.Length == 1000, $"input length not correct, {input.Content.Length}/1k");
-            State.Content[Context.Sender].Value = input.Content.ToHex();
+            State.Content[Context.Sender] = input.Content.ToHex();
             return new Empty();
         }
 
         public override Empty Write2KContentByte(WriteInput input)
         {
             Assert(input.Content.Length == 2000, $"input length not correct, {input.Content.Length}/2k");
-            State.Content[Context.Sender].Value = input.Content.ToHex();
+            State.Content[Context.Sender] = input.Content.ToHex();
             return new Empty();
         }
 
         public override Empty Write5KContentByte(WriteInput input)
         {
             Assert(input.Content.Length == 5000, $"input length not correct, {input.Content.Length}/5k");
-            State.Content[Context.Sender].Value = input.Content.ToHex();
+            State.Content[Context.Sender] = input.Content.ToHex();
             return new Empty();
         }
         
         public override Empty Write10KContentByte(WriteInput input)
         {
             Assert(input.Content.Length == 10000, $"input length not correct, {input.Content.Length}/10k");
-            State.Content[Context.Sender].Value = input.Content.ToHex();
+            State.Content[Context.Sender] = input.Content.ToHex();
             return new Empty();
         }
 

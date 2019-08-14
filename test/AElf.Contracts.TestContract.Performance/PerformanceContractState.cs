@@ -11,7 +11,7 @@ namespace AElf.Contracts.TestContract.Performance
         
         public ProtobufState<Address> ContractManager { get; set; }
         
-        public MappedState<Address, StringState> Content { get; set; }
+        public MappedState<Address, string> Content { get; set; }
         
         public MappedState<Address, long, long> MapContent { get; set; }
     }
