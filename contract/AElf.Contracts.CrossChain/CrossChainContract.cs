@@ -154,20 +154,17 @@ namespace AElf.Contracts.CrossChain
             var indexedCrossChainData = State.IndexedSideChainBlockData[Context.CurrentHeight];
             Assert(indexedCrossChainData == null); // This should not fail.
 
-            var isCrossChainBlockIndexed = false;
             var indexedParentChainBlockData = IndexParentChainBlockData(crossChainBlockData.ParentChainBlockData);
+            
+            State.LastIndexedParentChainBlockData.Value = indexedParentChainBlockData;
             if (indexedParentChainBlockData.ParentChainBlockData.Count > 0)
-            {
-                State.LastIndexedParentChainBlockData.Value = indexedParentChainBlockData;
-                isCrossChainBlockIndexed = true;
-            }
+                Context.Fire(new ParentChainBlockDataIndexed());
             
             var indexedSideChainBlockData = IndexSideChainBlockData(crossChainBlockData.SideChainBlockData);
             State.IndexedSideChainBlockData[Context.CurrentHeight] = indexedSideChainBlockData;
-            isCrossChainBlockIndexed |= indexedSideChainBlockData.SideChainBlockData.Count > 0;
             
-            if (isCrossChainBlockIndexed)
-                Context.Fire(new CrossChainBlockDataIndexed());
+            if (indexedSideChainBlockData.SideChainBlockData.Count > 0)
+                Context.Fire(new SideChainBlockDataIndexed());
             
             return new Empty();
         }

@@ -4,6 +4,7 @@ namespace AElf.CrossChain
 {
     public interface IIndexedCrossChainBlockDataDiscoveryService
     {
-        bool TryDiscoverCrossChainBlockDataAsync(IBlock block);
+        bool TryDiscoverIndexedParentChainBlockDataAsync(IBlock block);
+        bool TryDiscoverIndexedSideChainBlockDataAsync(IBlock block);
     }
 }

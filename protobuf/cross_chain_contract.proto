@@ -101,8 +101,10 @@ message Disposed {
     int32 chain_id = 1;
 }
 
-message CrossChainBlockDataIndexed{
+message ParentChainBlockDataIndexed{
     option (aelf.is_event) = true;
 }
 
-
+message SideChainBlockDataIndexed{
+    option (aelf.is_event) = true;
+}

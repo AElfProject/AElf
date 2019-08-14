@@ -56,7 +56,11 @@ namespace AElf.CrossChain
         public async Task Validate_EmptyHeader_WithIndexedData_Test()
         {
             var block = _kernelTestHelper.GenerateBlock(10, Hash.Empty);
-            block.Header.Bloom = ByteString.CopyFrom(GetInterestedBloom());
+            var bloom = new Bloom();
+            bloom.Combine(new []{
+                GetSideChainBlockDataIndexedEventBloom(), GetParentChainBlockDataIndexedEventBloom()
+            });
+            block.Header.Bloom = ByteString.CopyFrom(bloom.Data);
 
             var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             Assert.False(res);
@@ -75,7 +79,7 @@ namespace AElf.CrossChain
             };
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new[] {sideChainBlockData});
             var block = CreateFilledBlock(sideChainTxMerkleTreeRoot);
-            block.Header.Bloom = ByteString.CopyFrom(GetInterestedBloom());
+            block.Header.Bloom = ByteString.CopyFrom(GetSideChainBlockDataIndexedEventBloom().Data);
             
             var fakeIndexedCrossChainData = new CrossChainBlockData();
             fakeIndexedCrossChainData.SideChainBlockData.Add(sideChainBlockData);
@@ -97,7 +101,7 @@ namespace AElf.CrossChain
             var fakeTxnMerkleTreeRoot = Hash.FromString("fakeMerkleTreeRoot2");
 
             var block = CreateFilledBlock(fakeTxnMerkleTreeRoot);
-            block.Header.Bloom = ByteString.CopyFrom(GetInterestedBloom());
+            block.Header.Bloom = ByteString.CopyFrom(GetSideChainBlockDataIndexedEventBloom().Data);
 
             var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             Assert.False(res);
@@ -116,7 +120,7 @@ namespace AElf.CrossChain
             CreateFakeCacheAndStateData(fakeSideChainId, fakeSideChainBlockData2, 2);
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new[] {fakeSideChainBlockData});
             var block = CreateFilledBlock(sideChainTxMerkleTreeRoot);
-            block.Header.Bloom = ByteString.CopyFrom(GetInterestedBloom());
+            block.Header.Bloom = ByteString.CopyFrom(GetSideChainBlockDataIndexedEventBloom().Data);
 
             var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             Assert.False(res);
@@ -132,7 +136,7 @@ namespace AElf.CrossChain
             CreateFakeCacheAndStateData(fakeSideChainId, fakeSideChainBlockData, 2);
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new[] {fakeSideChainBlockData});
             var block = CreateFilledBlock(sideChainTxMerkleTreeRoot);
-            block.Header.Bloom = ByteString.CopyFrom(GetInterestedBloom());
+            block.Header.Bloom = ByteString.CopyFrom(GetSideChainBlockDataIndexedEventBloom().Data);
 
             var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             Assert.True(res);
@@ -148,7 +152,7 @@ namespace AElf.CrossChain
             CreateFakeCacheAndStateData(fakeSideChainId, fakeSideChainBlockData, 2);
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new[] {fakeSideChainBlockData});
             var block = CreateFilledBlock(sideChainTxMerkleTreeRoot);
-            block.Header.Bloom = ByteString.CopyFrom(GetInterestedBloom());
+            block.Header.Bloom = ByteString.CopyFrom(GetSideChainBlockDataIndexedEventBloom().Data);
             _configOptions.CrossChainDataValidationIgnored = true;
             var res = await _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             Assert.True(res);
@@ -228,11 +232,18 @@ namespace AElf.CrossChain
             };
         }
 
-        private byte[] GetInterestedBloom()
+        private Bloom GetSideChainBlockDataIndexedEventBloom()
         {
             var contractAddress = _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
-            var logEvent = new CrossChainBlockDataIndexed().ToLogEvent(contractAddress);
-            return logEvent.GetBloom().Data;
+            var logEvent = new SideChainBlockDataIndexed().ToLogEvent(contractAddress);
+            return logEvent.GetBloom();
+        }
+        
+        private Bloom GetParentChainBlockDataIndexedEventBloom()
+        {
+            var contractAddress = _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
+            var logEvent = new ParentChainBlockDataIndexed().ToLogEvent(contractAddress);
+            return logEvent.GetBloom();
         }
     }
 }

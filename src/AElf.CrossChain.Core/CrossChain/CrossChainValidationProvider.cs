@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus.Local;
 
@@ -18,6 +19,8 @@ namespace AElf.CrossChain
         public IOptionsMonitor<CrossChainConfigOptions> CrossChainConfigOptions { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
+        
+        public ILogger<CrossChainValidationProvider> Logger { get; set; }
         
         public CrossChainValidationProvider(ICrossChainIndexingDataService crossChainIndexingDataService, 
             IBlockExtraDataService blockExtraDataService, IIndexedCrossChainBlockDataDiscoveryService indexedCrossChainBlockDataDiscoveryService)
@@ -44,23 +47,41 @@ namespace AElf.CrossChain
             if (block.Header.Height == Constants.GenesisBlockHeight)
                 return true;
 
-            var isCrossChainDataIndexed = _indexedCrossChainBlockDataDiscoveryService.TryDiscoverCrossChainBlockDataAsync(block);
+            var isParentChainBlockDataIndexed =
+                _indexedCrossChainBlockDataDiscoveryService.TryDiscoverIndexedParentChainBlockDataAsync(block);
+            Logger.LogTrace($"Try discovery indexed parent chain block data: {isParentChainBlockDataIndexed}");
+
+            var isSideChainBlockDataIndexed =
+                _indexedCrossChainBlockDataDiscoveryService.TryDiscoverIndexedSideChainBlockDataAsync(block);
+            Logger.LogTrace($"Try discovery indexed side chain block data: {isSideChainBlockDataIndexed}");
+            
             var extraData = ExtractCrossChainExtraData(block.Header);
 
             try
             {
-                if (isCrossChainDataIndexed ^ (extraData != null))
+                if (isSideChainBlockDataIndexed ^ (extraData != null))
                 {
-                    // cross chain extra data in block header should be null if nothing indexed in contract 
+                    // cross chain extra data in block header should be null if no side chain block data indexed in contract 
                     return false;
                 }
 
-                if (!isCrossChainDataIndexed)
+                if (!isParentChainBlockDataIndexed && !isSideChainBlockDataIndexed)
                     return true;
 
                 var indexedCrossChainBlockData =
                     await _crossChainIndexingDataService.GetIndexedCrossChainBlockDataAsync(block.Header.GetHash(), block.Header.Height);
-                var res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, extraData, block);
+                
+                var res = true;
+                
+                if (isSideChainBlockDataIndexed)
+                    res = ValidateBlockExtraDataAsync(indexedCrossChainBlockData, extraData);
+                
+                if (res)
+                {
+                    res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, block.Header.PreviousBlockHash,
+                        block.Header.Height - 1);
+                }
+                
                 return res;
             }
             catch (ValidateNextTimeBlockValidationException ex)
@@ -74,21 +95,12 @@ namespace AElf.CrossChain
             }
         }
 
-        private async Task<bool> ValidateCrossChainBlockDataAsync(CrossChainBlockData crossChainBlockData, 
-            CrossChainExtraData extraData, IBlock block)
+        private bool ValidateBlockExtraDataAsync(CrossChainBlockData crossChainBlockData, CrossChainExtraData extraData)
         {
             var txRootHashList = crossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMerkleTreeRoot).ToList();
             var calculatedSideChainTransactionsRoot = txRootHashList.ComputeBinaryMerkleTreeRootWithLeafNodes();
-            
-            // first check identity with the root in header
-            if (extraData != null && !calculatedSideChainTransactionsRoot.Equals(extraData.SideChainTransactionsRoot) ||
-                extraData == null && !calculatedSideChainTransactionsRoot.Equals(Hash.Empty))
-                return false;
-            
-            // check cache identity
-            var res = await ValidateCrossChainBlockDataAsync(crossChainBlockData, block.Header.PreviousBlockHash,
-                block.Header.Height - 1);
-            return res;
+
+            return calculatedSideChainTransactionsRoot.Equals(extraData.SideChainTransactionsRoot);
         }
 
         private CrossChainExtraData ExtractCrossChainExtraData(BlockHeader header)
