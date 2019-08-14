@@ -315,14 +315,14 @@ message CrossChainCreateTokenInput {
     int32 from_chain_id = 1;
     int64 parent_chain_height = 2;
     bytes transaction_bytes = 3;
-    repeated aelf.Hash merkle_path = 4;
+    aelf.MerklePath merkle_path = 4;
 }
 
 message RegisterCrossChainTokenContractAddressInput{
     int32 from_chain_id = 1;
     int64 parent_chain_height = 2;
     bytes transaction_bytes = 3;
-    repeated aelf.Hash merkle_path = 4;
+    aelf.MerklePath merkle_path = 4;
     aelf.Address token_contract_address = 5;
 }
 

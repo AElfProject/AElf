@@ -97,15 +97,15 @@ namespace AElf.Contracts.MultiToken
             return State.CrossChainContract;
         }
         
-        private void CrossChainVerify(Hash transactionId, long parentChainHeight, int chainId, IEnumerable<Hash> merklePath)
+        private void CrossChainVerify(Hash transactionId, long parentChainHeight, int chainId, MerklePath merklePath)
         {
             var verificationInput = new VerifyTransactionInput
             {
                 TransactionId = transactionId,
                 ParentChainHeight = parentChainHeight,
-                VerifiedChainId = chainId
+                VerifiedChainId = chainId,
+                Path = merklePath
             };
-            verificationInput.Path.AddRange(merklePath);
             var verificationResult = GetValidCrossChainContractReferenceState().VerifyTransaction.Call(verificationInput);
             Assert(verificationResult.Value, "Cross chain verification failed.");
         }
