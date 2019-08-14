@@ -11,7 +11,7 @@ namespace AElf.Contracts.TestContract.Performance
             
             return new ReadOutput
             {
-                Content = State.Content[input].Value
+                Content = State.Content[input]
             };
         }
 
