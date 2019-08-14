@@ -173,9 +173,8 @@ namespace AElf.Contracts.CrossChain
         /// <param name="parentChainBlockData"></param>
         private IndexedParentChainBlockData IndexParentChainBlockData(IList<ParentChainBlockData> parentChainBlockData)
         {
-            var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value; 
-            Assert(isCurrentMiner,"Not authorized to do this.");
-            
+            // only miner can do this.
+            //Api.IsMiner("Not authorized to do this.");
 //            Assert(parentChainBlockData.Length <= 256, "Beyond maximal capacity for once indexing.");
             var parentChainId = State.ParentChainId.Value;
             var currentHeight = State.CurrentParentChainHeight.Value;
@@ -227,8 +226,8 @@ namespace AElf.Contracts.CrossChain
         /// <returns>Valid side chain block data which are indexed.</returns>
         private IndexedSideChainBlockData IndexSideChainBlockData(IList<SideChainBlockData> sideChainBlockData)
         {
-            var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value; 
-            Assert(isCurrentMiner,"Not authorized to do this.");
+            // only miner can do this.
+//            Api.IsMiner("Not authorized to do this.");
 
             var indexedSideChainBlockData = new IndexedSideChainBlockData();
             foreach (var blockInfo in sideChainBlockData)

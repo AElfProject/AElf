@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
     <PropertyGroup>
+        <OutputType>Exe</OutputType>
         <TargetFramework>netcoreapp2.2</TargetFramework>
-        <IsPackable>false</IsPackable>
-        <AssemblyName>AElf.Contracts.CrossChain.Tests</AssemblyName>
         <RootNamespace>AElf.Contracts.CrossChain.Tests</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
@@ -14,21 +14,15 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
-      <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
-      <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
-      <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Contracts.TestKit.AEDPoSExtension\AElf.Contracts.TestKit.AEDPoSExtension.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
+        <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
     </ItemGroup>
+    <Import Project="..\AllContracts.props" />
 
     <ItemGroup>
-        <ContractStub Include="..\..\protobuf\acs3.proto">
-            <Link>Protobuf\Proto\acs3.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\acs7.proto">
-            <Link>Protobuf\Proto\acs7.proto</Link>
-        </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf\Proto\token_contract.proto</Link>
+            <Link>Protobuf/Proto/token_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\cross_chain_contract.proto</Link>
@@ -36,7 +30,26 @@
         <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
             <Link>Protobuf\Proto\parliament_auth_contract.proto</Link>
         </ContractStub>
+
+        <ContractStub Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\acs3.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs7.proto">
+            <Link>Protobuf\Proto\acs7.proto</Link>
+        </ContractStub>
+        <ContractMessage Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf\Proto\acs4.proto</Link>
+        </ContractMessage>
+        <ContractMessage Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
+            <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
+        </ContractStub>
+
+        <ContractStub Include="..\..\protobuf\test_basic_function_contract.proto">
+            <Link>Protobuf\Proto\test_basic_function_contract.proto</Link>
+        </ContractStub>
     </ItemGroup>
 
-    <Import Project="..\..\test\AllContracts.props" />
 </Project>

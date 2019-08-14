@@ -1,15 +1,17 @@
-using System.Collections.Generic;
-using AElf.Contracts.TestBase;
-using AElf.Kernel.Blockchain.Application;
-using AElf.Modularity;
+using AElf.Contracts.TestKet.AEDPoSExtension;
+using AElf.Kernel.SmartContract;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
-namespace AElf.Contract.CrossChain.Tests
+namespace AElf.Contracts.CrossChain.Tests
 {
-    [DependsOn(typeof(ContractTestAElfModule))]
-    public class CrossChainContractTestAElfModule : ContractTestAElfModule
+    [DependsOn(typeof(ContractTestAEDPoSExtensionModule))]
+    public class CrossChainContractTestAElfModule : ContractTestAEDPoSExtensionModule
     {
-
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.AddAssemblyOf<CrossChainContractTestAElfModule>();
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+        }
     }
 }
