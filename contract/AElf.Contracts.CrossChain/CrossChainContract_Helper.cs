@@ -117,6 +117,12 @@ namespace AElf.Contracts.CrossChain
             State.TokenContract.TransferFrom.Send(input);
         }
 
+        private TokenInfo GetNativeTokenInfo()
+        {
+            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            return State.TokenContract.GetNativeTokenInfo.Call(new Empty());
+        }
+
         private MinerListWithRoundNumber GetCurrentMiners()
         {
             ValidateContractState(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);

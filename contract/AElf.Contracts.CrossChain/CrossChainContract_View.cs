@@ -165,6 +165,10 @@ namespace AElf.Contracts.CrossChain
             };
             ByteString consensusInformation = State.SideChainInitialConsensusInfo[chainId.Value].Value;
             res.ExtraInformation.Add(consensusInformation);
+
+            ByteString nativeTokenInformation = GetNativeTokenInfo().ToByteString();
+            res.ExtraInformation.Add(nativeTokenInformation);
+
             return res;
         }
     }

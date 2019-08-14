@@ -60,6 +60,8 @@ namespace AElf
 
         Address GetZeroSmartContractAddress();
 
+        Address GetZeroSmartContractAddress(int chainId);
+
         Address GetContractAddressByName(Hash hash);
 
         IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping();
