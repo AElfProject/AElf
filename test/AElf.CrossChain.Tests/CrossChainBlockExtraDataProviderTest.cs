@@ -159,10 +159,9 @@ namespace AElf.CrossChain
 
             var sideChainTxMerkleTreeRoot =
                 await _crossChainBlockExtraDataProvider.GetExtraDataForFillingBlockHeaderAsync(header);
-            var merkleTreeRoot = new BinaryMerkleTree()
-                .AddNodes(fakeSideChainBlockDataList.Select(sideChainBlockData =>
-                    sideChainBlockData.TransactionMerkleTreeRoot))
-                .ComputeRootHash();
+            var merkleTreeRoot = BinaryMerkleTree
+                .FromLeafNodes(fakeSideChainBlockDataList.Select(sideChainBlockData =>
+                    sideChainBlockData.TransactionMerkleTreeRoot)).Root;
             var expected = new CrossChainExtraData {SideChainTransactionsRoot = merkleTreeRoot}.ToByteString();
             Assert.Equal(expected, sideChainTxMerkleTreeRoot);
         }
