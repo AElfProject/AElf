@@ -89,7 +89,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             }
             catch (SmartContractFindRegistrationException e)
             {
-                Logger.LogError("SmartContractFindRegistrationException", e);
+                Logger.LogError(e, "SmartContractFindRegistrationException");
                 return new TransactionResourceInfo
                 {
                     TransactionId = transaction.GetHash(),
