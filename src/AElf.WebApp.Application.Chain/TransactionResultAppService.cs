@@ -90,9 +90,11 @@ namespace AElf.WebApp.Application.Chain
             var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
                 _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
 
-            output.Transaction.Params = JsonFormatter.ToDiagnosticString(
-                methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
-
+            if (methodDescriptor != null)
+            {
+                output.Transaction.Params = JsonFormatter.ToDiagnosticString(
+                    methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
+            }
             return output;
         }
 
