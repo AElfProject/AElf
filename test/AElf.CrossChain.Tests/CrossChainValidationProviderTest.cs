@@ -194,9 +194,9 @@ namespace AElf.CrossChain
 
         private Hash ComputeRootHash(IEnumerable<SideChainBlockData> blockInfo)
         {
-            return new BinaryMerkleTree()
-                .AddNodes(blockInfo.Select(sideChainBlockData => sideChainBlockData.TransactionMerkleTreeRoot))
-                .ComputeRootHash();
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(blockInfo.Select(sideChainBlockData =>
+                sideChainBlockData.TransactionMerkleTreeRoot));
+            return binaryMerkleTree.Root;
         }
 
         private void CreateFakeCacheAndStateData(int fakeSideChainId, SideChainBlockData fakeSideChainBlockData,
