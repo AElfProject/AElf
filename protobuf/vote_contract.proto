@@ -193,7 +193,6 @@ message VotingItemRegistered {
     bool is_lock_token = 3;
     sint64 current_snapshot_number = 4;
     sint64 total_snapshot_number = 5;
-    repeated string options = 6;
     google.protobuf.Timestamp register_timestamp = 7;
     google.protobuf.Timestamp start_timestamp = 8;
     google.protobuf.Timestamp end_timestamp = 9;

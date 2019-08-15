@@ -114,11 +114,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 minerInRound.PreviousInValue = input.PreviousInValue;
             }
 
-            if (!TryToUpdateRoundInformation(round))
-            {
-                Assert(false, "Failed to update round information.");
-            }
-
             var irreversibleBlockHeight = CalculateLastIrreversibleBlockHeight();
             if (irreversibleBlockHeight != 0)
             {
@@ -126,6 +121,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     IrreversibleBlockHeight = irreversibleBlockHeight
                 });
+                round.ConfirmedIrreversibleBlockHeight = irreversibleBlockHeight;
+                round.ConfirmedIrreversibleBlockRoundNumber = round.RoundNumber.Sub(1);
+            }
+
+            if (!TryToUpdateRoundInformation(round))
+            {
+                Assert(false, "Failed to update round information.");
             }
 
             return new Empty();

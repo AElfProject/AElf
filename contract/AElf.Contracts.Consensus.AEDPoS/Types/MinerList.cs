@@ -40,8 +40,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 round.RealTimeMinersInformation.Add(sortedMiners[i], minerInRound);
             }
 
-            round.RoundNumber = currentRoundNumber + 1;
-            round.TermNumber = currentTermNumber + 1;
+            round.RoundNumber = currentRoundNumber.Add(1);
+            round.TermNumber = currentTermNumber.Add(1);
 
             return round;
         }

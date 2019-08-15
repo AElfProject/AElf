@@ -133,6 +133,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     round.RoundNumber, termNumber);
             }
 
+            if (TryToGetPreviousRoundInformation(out var previousRound))
+            {
+                round.ConfirmedIrreversibleBlockHeight = previousRound.ConfirmedIrreversibleBlockHeight;
+                round.ConfirmedIrreversibleBlockRoundNumber = previousRound.ConfirmedIrreversibleBlockRoundNumber;
+            }
+
             round.BlockchainAge = GetBlockchainAge();
 
             if (round.RealTimeMinersInformation.ContainsKey(senderPublicKey))
@@ -172,18 +178,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool GenerateNextRoundInformation(Round currentRound, Timestamp currentBlockTime, out Round nextRound)
         {
-            if (!State.IsMainChain.Value && IsMainChainMinerListChanged(currentRound))
+            if (TryToGetPreviousRoundInformation(out var previousRound) && !State.IsMainChain.Value &&
+                IsMainChainMinerListChanged(currentRound))
             {
                 Context.LogDebug(() => "About to change miners.");
                 nextRound = State.MainChainCurrentMinerList.Value.GenerateFirstRoundOfNewTerm(
                     currentRound.GetMiningInterval(), currentBlockTime, currentRound.RoundNumber);
+                nextRound.ConfirmedIrreversibleBlockHeight = previousRound.ConfirmedIrreversibleBlockHeight;
+                nextRound.ConfirmedIrreversibleBlockRoundNumber = previousRound.ConfirmedIrreversibleBlockRoundNumber;
                 Context.LogDebug(() => "Round of new miners generated.");
                 return true;
             }
 
             TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
-            if (TryToGetPreviousRoundInformation(out var previousRound) &&
-                previousRound.TermNumber + 1 != currentRound.TermNumber)
+            if (previousRound.TermNumber + 1 != currentRound.TermNumber)
             {
                 var evilMinersPublicKey = GetEvilMinersPublicKey(currentRound, previousRound);
                 var evilMinersCount = evilMinersPublicKey.Count;

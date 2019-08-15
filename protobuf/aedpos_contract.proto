@@ -130,6 +130,8 @@ message Round {
     sint64 blockchain_age = 4;
     string extra_block_producer_of_previous_round = 7;
     sint64 term_number = 8;
+    sint64 confirmed_irreversible_block_height = 9;
+    sint64 confirmed_irreversible_block_round_number = 10;
 }
 
 // The information of a miner in a specific round.
