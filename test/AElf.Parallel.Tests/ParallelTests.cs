@@ -2,11 +2,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Contracts.TestContract.BasicFunctionWithParallel;
+using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
@@ -17,6 +20,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
+using SampleAddress = AElf.Kernel.SampleAddress;
 
 namespace AElf.Parallel.Tests
 {
@@ -31,6 +35,7 @@ namespace AElf.Parallel.Tests
         private readonly ITxHub _txHub;
         private readonly IBlockAttachService _blockAttachService;
         private readonly IAccountService _accountService;
+        private readonly IResourceExtractionService _resourceExtractionService;
         private readonly ParallelTestHelper _parallelTestHelper;
         
         private int _groupCount = 10;
@@ -47,6 +52,7 @@ namespace AElf.Parallel.Tests
             _txHub = GetRequiredService<ITxHub>();
             _blockAttachService = GetRequiredService<IBlockAttachService>();
             _accountService = GetRequiredService<IAccountService>();
+            _resourceExtractionService = GetRequiredService<IResourceExtractionService>();
             _parallelTestHelper = GetRequiredService<ParallelTestHelper>();
         }
         
@@ -261,6 +267,86 @@ namespace AElf.Parallel.Tests
                     block.Header.GetPreMiningHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("Invalid contract address");
+        }
+
+        [Fact]
+        public async Task Get_ResourceInfo_With_Contract_Deployment_Fork_Test()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var startBlockHeight = chain.BestChainHeight;
+            var startBlockHash = chain.BestChainHash;
+
+            Transaction transactionWithResourceCache;
+            Address contractAddress;
+            
+            //branch one
+            {
+                contractAddress = await _parallelTestHelper.DeployContract<BasicFunctionWithParallelContract>();
+            
+                chain = await _blockchainService.GetChainAsync();
+                var betLimitInput = new BetLimitInput
+                {
+                    MinValue = 50,
+                    MaxValue = 100
+                }.ToByteString();
+                
+                var transaction = _parallelTestHelper.CreateTransaction(SampleECKeyPairs.KeyPairs[0], contractAddress,
+                    "UpdateBetLimit", betLimitInput, chain.BestChainHeight, chain.BestChainHash);
+                await _parallelTestHelper.BroadcastTransactions(new List<Transaction>{transaction});
+                var block = await _parallelTestHelper.ExecuteAsync(transaction, chain.BestChainHeight,
+                    chain.BestChainHash);
+                await _blockAttachService.AttachBlockAsync(block);
+                
+                transaction=_parallelTestHelper.CreateTransaction(SampleECKeyPairs.KeyPairs[1], contractAddress,
+                    "UpdateBetLimit", betLimitInput, block.Height, block.GetHash());
+                await _parallelTestHelper.BroadcastTransactions(new List<Transaction>{transaction});
+                block = await _parallelTestHelper.ExecuteAsync(transaction, block.Height, block.GetHash());
+                await _blockAttachService.AttachBlockAsync(block);
+                transactionWithResourceCache = _parallelTestHelper.CreateTransaction(SampleECKeyPairs.KeyPairs[2], contractAddress,
+                    "UpdateBetLimit", betLimitInput, block.Height, block.GetHash());
+                await _parallelTestHelper.BroadcastTransactions(new List<Transaction>{transactionWithResourceCache});
+                
+                var resourceInfo = await _resourceExtractionService.GetResourcesAsync(new ChainContext
+                {
+                    BlockHash = chain.BestChainHash,
+                    BlockHeight = chain.BestChainHeight
+                }, new List<Transaction> {transaction}, CancellationToken.None);
+                resourceInfo.First().Item2.Type.ShouldBe(TransactionResourceInfoType.NonParallelizable);
+            }
+
+            //branch two
+            {
+                var resourceInfo = await _resourceExtractionService.GetResourcesAsync(new ChainContext
+                {
+                    BlockHash = startBlockHash,
+                    BlockHeight = startBlockHeight
+                }, new List<Transaction> {transactionWithResourceCache}, CancellationToken.None);
+                resourceInfo.First().Item2.Type.ShouldBe(TransactionResourceInfoType.NonParallelizable);
+
+                var betLimitInput = new BetLimitInput
+                {
+                    MinValue = 50,
+                    MaxValue = 100
+                }.ToByteString();
+                var transaction = _parallelTestHelper.CreateTransaction(SampleECKeyPairs.KeyPairs[3], contractAddress,
+                    "UpdateBetLimit", betLimitInput, startBlockHeight, startBlockHash);
+                await _parallelTestHelper.BroadcastTransactions(new List<Transaction>{transaction});
+                var block = await _parallelTestHelper.ExecuteAsync(transaction, startBlockHeight, startBlockHash);
+                await _blockAttachService.AttachBlockAsync(block);
+                
+                transaction = _parallelTestHelper.CreateTransaction(SampleECKeyPairs.KeyPairs[4], contractAddress,
+                    "UpdateBetLimit", betLimitInput, block.Height, block.GetHash());
+                block = await _parallelTestHelper.ExecuteAsync(transaction, block.Height, block.GetHash());
+                await _blockAttachService.AttachBlockAsync(block);
+                chain = await _blockchainService.GetChainAsync();
+                await _blockchainService.SetIrreversibleBlockAsync(chain, block.Height, block.GetHash());
+                resourceInfo = await _resourceExtractionService.GetResourcesAsync(new ChainContext
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Height
+                }, new List<Transaction> {transactionWithResourceCache}, CancellationToken.None);
+                resourceInfo.First().Item2.Type.ShouldBe(TransactionResourceInfoType.NonParallelizable);
+            }
         }
     }
 }
