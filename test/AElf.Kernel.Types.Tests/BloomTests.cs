@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Shouldly;
 using Xunit;
 
 namespace AElf.Kernel.Types.Tests
@@ -14,6 +15,13 @@ namespace AElf.Kernel.Types.Tests
         {
             var bloom = new Bloom();
             Assert.Equal(256, bloom.Data.Length);
+            
+            var bloomData = Guid.NewGuid().ToByteArray();
+            Should.Throw<InvalidOperationException>(
+                () =>
+                {
+                    new Bloom(bloomData);
+                });
         }
 
         [Fact]

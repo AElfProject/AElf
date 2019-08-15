@@ -11,6 +11,7 @@
     <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
     <ProjectReference Include="..\AElf.Kernel.SmartContract.Sdk.Abstracts\AElf.Kernel.SmartContract.Sdk.Abstracts.csproj" />
+    <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ContractMessage Include="..\..\protobuf\acs0.proto">

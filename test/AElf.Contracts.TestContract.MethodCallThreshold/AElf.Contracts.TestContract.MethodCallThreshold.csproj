@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Contracts.TestContract.MethodCallThreshold</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <RootNamespace>AElf.Contracts.TestContract.MethodCallThreshold</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs5.proto">
+            <Link>Protobuf\Proto\reference\acs5.proto</Link>
+        </ContractBase>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\treasury_contract.proto">
+            <Link>Protobuf\Proto\reference\treasury_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\test_method_call_threshold_contract.proto">
+            <Link>Protobuf\Proto\test_method_call_threshold_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+
+</Project>
+

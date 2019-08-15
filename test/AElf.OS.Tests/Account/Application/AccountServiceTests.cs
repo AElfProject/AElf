@@ -81,5 +81,14 @@ namespace AElf.OS.Account.Application
 
             decryptMessage.ShouldBe(plainMessage);
         }
+
+        [Fact]
+        public async Task GetAccountAsync_WithParameterIsNull()
+        {
+            _accountOptions.NodeAccount = string.Empty;
+            var account = await _accountService.GetAccountAsync();
+
+            Assert.NotEqual(account.GetFormatted(), _accountOptions.NodeAccount);
+        }
     }
 }

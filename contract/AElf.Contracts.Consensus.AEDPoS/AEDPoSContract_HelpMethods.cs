@@ -1,3 +1,5 @@
+using System.Linq;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -65,7 +67,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             From = Context.Sender,
             To = Context.Self,
             MethodName = methodName,
-            Params = parameter.ToByteString()
+            Params = parameter.ToByteString(),
+            RefBlockNumber = Context.CurrentHeight,
+            RefBlockPrefix = ByteString.CopyFrom(Context.PreviousBlockHash.Value.Take(4).ToArray())
         };
 
         private void SetBlockchainStartTimestamp(Timestamp timestamp)
@@ -95,6 +99,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             State.Rounds[round.RoundNumber] = round;
+
+            if (round.RoundNumber > AEDPoSContractConstants.KeepRounds)
+            {
+                // TODO: Set to null.
+                State.Rounds[round.RoundNumber.Sub(AEDPoSContractConstants.KeepRounds)] = new Round();
+            }
+
             return true;
         }
 

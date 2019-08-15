@@ -1,0 +1,142 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <IsPackable>true</IsPackable>
+    </PropertyGroup>
+    <PropertyGroup>
+        <NoWarn>0436</NoWarn>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
+        <PackageReference Include="Shouldly" Version="3.0.2" />
+        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.console" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Election\AElf.Contracts.Election.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Treasury\AElf.Contracts.Treasury.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Economic\AElf.Contracts.Economic.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForAcs1\AElf.Kernel.SmartContract.ExecutionPluginForAcs1.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForAcs5\AElf.Kernel.SmartContract.ExecutionPluginForAcs5.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForAcs8\AElf.Kernel.SmartContract.ExecutionPluginForAcs8.csproj" />
+        <ProjectReference Include="..\..\test\AElf.Contracts.TestContract.TransactionFeeCharging\AElf.Contracts.TestContract.TransactionFeeCharging.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\test\AElf.Contracts.TestContract.MethodCallThreshold\AElf.Contracts.TestContract.MethodCallThreshold.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
+        <ProjectReference Include="..\..\test\AElf.Contracts.Economic.TestBase\AElf.Contracts.Economic.TestBase.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf/Proto/acs1.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf/Proto/acs3.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf/Proto/acs4.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs5.proto">
+            <Link>Protobuf/Proto/acs5.proto</Link>
+        </ContractBase>
+        <ContractBase Include="..\..\protobuf\acs8.proto">
+            <Link>Protobuf/Proto/acs8.proto</Link>
+        </ContractBase>
+        <ContractStub Include="..\..\protobuf\kernel.proto">
+            <Link>Protobuf/Proto/kernel.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\vote_contract.proto">
+            <Link>Protobuf/Proto/vote_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\profit_contract.proto">
+            <Link>Protobuf/Proto/profit_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf/Proto/token_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\token_converter_contract.proto">
+            <Link>Protobuf/Proto/token_converter_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
+            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\election_contract.proto">
+            <Link>Protobuf/Proto/election_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
+            <Link>Protobuf/Proto/aedpos_contract_impl.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\treasury_contract.proto">
+            <Link>Protobuf/Proto/treasury_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\test_transaction_fee_charging_contract.proto">
+            <Link>Protobuf/Proto/test_transaction_fee_charging_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\test_method_call_threshold_contract.proto">
+            <Link>Protobuf/Proto/test_method_call_threshold_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\economic_contract.proto">
+            <Link>Protobuf/Proto/economic_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
+            <Link>Protobuf/Proto/parliament_auth_contract.proto</Link>
+        </ContractStub>
+    </ItemGroup>
+
+    <Import Project="..\..\test\AllContracts.props" />
+</Project>

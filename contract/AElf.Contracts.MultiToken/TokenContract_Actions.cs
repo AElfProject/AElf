@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Approved = AElf.Contracts.MultiToken.Messages.Approved;
 
@@ -13,14 +15,15 @@ namespace AElf.Contracts.MultiToken
     public partial class TokenContract : TokenContractImplContainer.TokenContractImplBase
     {
         /// <summary>
-        /// Register the TokenInfo into TokenContract add set true in the TokenContractState.LockWhiteLists;
+        /// Register the TokenInfo into TokenContract add initial TokenContractState.LockWhiteLists;
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
         public override Empty Create(CreateInput input)
         {
             var existing = State.TokenInfos[input.Symbol];
-            Assert(existing == null || existing == new TokenInfo(), "Token already exists.");
+            Assert(existing == null && !string.IsNullOrEmpty(input.Symbol),
+                $"Token already exists. Symbol: {input.Symbol}");
             RegisterTokenInfo(new TokenInfo
             {
                 Symbol = input.Symbol,
@@ -28,8 +31,14 @@ namespace AElf.Contracts.MultiToken
                 TotalSupply = input.TotalSupply,
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
-                IsBurnable = input.IsBurnable
+                IsBurnable = input.IsBurnable,
+                IsTransferDisabled = input.IsTransferDisabled
             });
+
+            if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
+            {
+                State.NativeTokenSymbol.Value = input.Symbol;
+            }
 
             var systemContractAddresses = Context.GetSystemContractNameToAddressMapping().Select(m => m.Value);
             var isSystemContractAddress = input.LockWhiteList.All(l => systemContractAddresses.Contains(l));
@@ -39,35 +48,13 @@ namespace AElf.Contracts.MultiToken
                 State.LockWhiteLists[input.Symbol][address] = true;
             }
 
+            Context.LogDebug(() => $"Token created: {input.Symbol}");
+
             return new Empty();
         }
 
-        public override Empty CreateNativeToken(CreateNativeTokenInput input)
-        {
-            Assert(string.IsNullOrEmpty(State.NativeTokenSymbol.Value), "Native token already created.");
-            State.NativeTokenSymbol.Value = input.Symbol;
-            var whiteList = new List<Address>();
-            foreach (var systemContractName in input.LockWhiteSystemContractNameList)
-            {
-                var address = Context.GetContractAddressByName(systemContractName);
-                whiteList.Add(address);
-            }
-
-            var createInput = new CreateInput
-            {
-                Symbol = input.Symbol,
-                TokenName = input.TokenName,
-                TotalSupply = input.TotalSupply,
-                Issuer = input.Issuer,
-                Decimals = input.Decimals,
-                IsBurnable = true,
-                LockWhiteList = {whiteList}
-            };
-            return Create(createInput);
-        }
-
         /// <summary>
-        /// Issue the token of corresponding contract
+        /// Issue the token to issuer,then issuer will occupy the amount of token the issued.
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -80,27 +67,8 @@ namespace AElf.Contracts.MultiToken
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
             Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
-            State.Balances[input.To][input.Symbol] = input.Amount;
+            State.Balances[input.To][input.Symbol] = State.Balances[input.To][input.Symbol].Add(input.Amount);
             return new Empty();
-        }
-
-        /// <summary>
-        /// Issue the token to the system contract
-        /// </summary>
-        /// <param name="input"></param>
-        /// <returns></returns>
-        public override Empty IssueNativeToken(IssueNativeTokenInput input)
-        {
-            Assert(input.ToSystemContractName != null, "To address not filled.");
-            Assert(input.Symbol == State.NativeTokenSymbol.Value, "Invalid native token symbol.");
-            var issueInput = new IssueInput
-            {
-                Symbol = input.Symbol,
-                Amount = input.Amount,
-                Memo = input.Memo,
-                To = Context.GetContractAddressByName(input.ToSystemContractName)
-            };
-            return Issue(issueInput);
         }
 
         public override Empty Transfer(TransferInput input)
@@ -112,6 +80,7 @@ namespace AElf.Contracts.MultiToken
 
         /// <summary>
         /// Transfer token form a chain to another chain
+        /// burn the tokens at the current chain
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -126,7 +95,6 @@ namespace AElf.Contracts.MultiToken
             Burn(burnInput);
             return new Empty();
         }
-
 
         /// <summary>
         /// Receive the token from another chain
@@ -154,21 +122,21 @@ namespace AElf.Contracts.MultiToken
 
             Assert(transferSender.Equals(Context.Sender) && targetChainId == Context.ChainId,
                 "Unable to claim cross chain token.");
-            if (State.CrossChainContractReferenceState.Value == null)
-                State.CrossChainContractReferenceState.Value =
+            if (State.CrossChainContract.Value == null)
+                State.CrossChainContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
             var verificationInput = new VerifyTransactionInput
             {
                 TransactionId = transferTransactionId,
                 ParentChainHeight = input.ParentChainHeight,
-                VerifiedChainId = input.FromChainId
+                VerifiedChainId = input.FromChainId,
+                Path = input.MerklePath
             };
-            verificationInput.Path.AddRange(input.MerklePath);
-            if (State.CrossChainContractReferenceState.Value == null)
-                State.CrossChainContractReferenceState.Value =
+            if (State.CrossChainContract.Value == null)
+                State.CrossChainContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
             var verificationResult =
-                State.CrossChainContractReferenceState.VerifyTransaction.Call(verificationInput);
+                State.CrossChainContract.VerifyTransaction.Call(verificationInput);
             Assert(verificationResult.Value, "Verification failed.");
 
             // Create token if it doesnt exist.
@@ -224,7 +192,7 @@ namespace AElf.Contracts.MultiToken
                     return new Empty();
                 }
 
-                Assert(false, "Insufficient allowance.");
+                Assert(false, $"Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}");
             }
 
             DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
@@ -234,7 +202,8 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Approve(ApproveInput input)
         {
-            AssertValidToken(input.Symbol, input.Amount);
+            var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
+            Assert(!tokenInfo.IsTransferDisabled, "Token can't transfer.");
             State.Allowances[Context.Sender][input.Spender][input.Symbol] =
                 State.Allowances[Context.Sender][input.Spender][input.Symbol].Add(input.Amount);
             Context.Fire(new Approved()
@@ -271,7 +240,7 @@ namespace AElf.Contracts.MultiToken
             Assert(existingBalance >= input.Amount, "Burner doesn't own enough balance.");
             State.Balances[Context.Sender][input.Symbol] = existingBalance.Sub(input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
-            Context.Fire(new Burned()
+            Context.Fire(new Burned
             {
                 Burner = Context.Sender,
                 Symbol = input.Symbol,
@@ -287,87 +256,368 @@ namespace AElf.Contracts.MultiToken
                 return new Empty();
             }
 
-            var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
-            Assert(tokenInfo.Symbol == State.NativeTokenSymbol.Value, "The paid fee is not in native token.");
+            ChargeFirstSufficientToken(input.SymbolToAmount, out var symbol,
+                out var amount, out var existingBalance);
+
+            if (State.PreviousBlockTransactionFeeTokenSymbolList.Value == null)
+            {
+                State.PreviousBlockTransactionFeeTokenSymbolList.Value = new TokenSymbolList();
+            }
+
+            if (!State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Contains(symbol))
+            {
+                State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Add(symbol);
+            }
+
             var fromAddress = Context.Sender;
-            var existingBalance = State.Balances[fromAddress][input.Symbol];
-            Assert(existingBalance >= input.Amount, "Insufficient balance.");
-            State.Balances[fromAddress][input.Symbol] = existingBalance.Sub(input.Amount);
-            State.ChargedFees[fromAddress][input.Symbol] =
-                State.ChargedFees[fromAddress][input.Symbol].Add(input.Amount);
+            State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
+            State.ChargedFees[fromAddress][symbol] = State.ChargedFees[fromAddress][symbol].Add(amount);
             return new Empty();
         }
 
-        public override Empty ClaimTransactionFees(ClaimTransactionFeesInput input)
+        public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
         {
-            Assert(input.Symbol == State.NativeTokenSymbol.Value, "The specified token is not the native token.");
-            var feePoolAddressNotSet =
-                State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
-            Assert(!feePoolAddressNotSet, "Fee pool address is not set.");
-
-            var transactions = Context.GetPreviousBlockTransactions();
-            var senders = transactions.Select(t => t.From).ToList();
-            var feePool = State.FeePoolAddress.Value;
-            foreach (var sender in senders)
+            if (input.Equals(new ChargeResourceTokenInput()))
             {
-                var fee = State.ChargedFees[sender][input.Symbol];
-                State.ChargedFees[sender][input.Symbol] = 0;
-                State.Balances[feePool][input.Symbol] = State.Balances[feePool][input.Symbol].Add(fee);
+                return new Empty();
+            }
+
+            var symbolToAmount = new Dictionary<string, long>
+            {
+                {"CPU", State.CpuUnitPrice.Value.Mul(input.ReadsCount)},
+                {"NET", State.NetUnitPrice.Value.Mul(input.TransactionSize)},
+                {"STO", State.StoUnitPrice.Value.Mul(input.WritesCount)}
+            };
+            foreach (var pair in symbolToAmount)
+            {
+                var existingBalance = State.Balances[Context.Sender][pair.Key];
+                Assert(existingBalance >= pair.Value,
+                    $"Insufficient resource. {pair.Key}: {existingBalance} / {pair.Value}");
+                State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key] =
+                    State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key].Add(pair.Value);
             }
 
             return new Empty();
         }
 
-        public override Empty SetFeePoolAddress(Hash feePoolContractSystemName)
+        private void ChargeFirstSufficientToken(MapField<string, long> symbolToAmountMap, out string symbol,
+            out long amount, out long existingBalance)
         {
-            var feePoolAddress = Context.GetContractAddressByName(feePoolContractSystemName);
-            var notSet = State.FeePoolAddress.Value == null || State.FeePoolAddress.Value == new Address();
-            Assert(notSet, "Fee pool address already set.");
-            State.FeePoolAddress.Value = feePoolAddress;
+            symbol = Context.Variables.NativeSymbol;
+            amount = 0L;
+            existingBalance = 0L;
+            var fromAddress = Context.Sender;
+
+            // Traverse available token symbols, check balance one by one
+            // until there's balance of one certain token is enough to pay the fee.
+            foreach (var symbolToAmount in symbolToAmountMap)
+            {
+                existingBalance = State.Balances[fromAddress][symbolToAmount.Key];
+                symbol = symbolToAmount.Key;
+                amount = symbolToAmount.Value;
+
+                Assert(amount > 0, $"Invalid transaction fee amount of token {symbolToAmount.Key}.");
+
+                if (existingBalance >= amount)
+                {
+                    break;
+                }
+            }
+
+            // Traversed all available tokens, can't find balance of any token enough to pay transaction fee.
+            Assert(existingBalance >= amount, "Insufficient balance to pay transaction fee.");
+        }
+
+        public override Empty ClaimTransactionFees(Empty input)
+        {
+            if (State.TreasuryContract.Value == null)
+            {
+                var treasuryContractAddress =
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+                if (treasuryContractAddress == null)
+                {
+                    // Which means Treasury Contract didn't deployed yet. Ignore this method.
+                    return new Empty();
+                }
+
+                State.TreasuryContract.Value = treasuryContractAddress;
+            }
+
+            if (State.PreviousBlockTransactionFeeTokenSymbolList.Value == null ||
+                !State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Any())
+            {
+                return new Empty();
+            }
+
+            var transactions = Context.GetPreviousBlockTransactions();
+            var senders = transactions.Select(t => t.From).ToList();
+            foreach (var symbol in State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList)
+            {
+                var totalFee = 0L;
+                foreach (var sender in senders)
+                {
+                    totalFee = totalFee.Add(State.ChargedFees[sender][symbol]);
+                    State.ChargedFees[sender][symbol] = 0;
+                }
+
+                State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalFee);
+
+                if (totalFee > 0)
+                {
+                    TransferTransactionFeesToFeeReceiver(symbol, totalFee);
+                }
+            }
+
+            State.PreviousBlockTransactionFeeTokenSymbolList.Value = new TokenSymbolList();
+
             return new Empty();
         }
 
-        #region ForTests
-
-        /*
-        public void Create2(string symbol, int decimals, bool isBurnable, Address issuer, string tokenName,
-            long totalSupply, Address whiteAddress)
+        private void TransferTransactionFeesToFeeReceiver(string symbol, long totalFee)
         {
-            Create(new CreateInput()
+            if (State.TreasuryContract.Donate != null)
             {
-                Symbol = symbol,
-                Decimals = decimals,
-                IsBurnable = isBurnable,
-                Issuer = issuer,
-                TokenName = tokenName,
-                TotalSupply = totalSupply,
-                LockWhiteList = { whiteAddress}
-            });
+                State.TreasuryContract.Donate.Send(new DonateInput
+                {
+                    Symbol = symbol,
+                    Amount = totalFee
+                });
+            }
+            else
+            {
+                Assert(State.FeeReceiver.Value != null, "Fee receiver not set.");
+                Transfer(new TransferInput
+                {
+                    To = State.FeeReceiver.Value,
+                    Symbol = symbol,
+                    Amount = totalFee,
+                });
+            }
         }
 
-        public void Issue2(string symbol, long amount, Address to, string memo)
+        public override Empty SetFeeReceiver(Address input)
         {
-            Issue(new IssueInput() {Symbol = symbol, Amount = amount, To = to, Memo = memo});
+            Assert(State.FeeReceiver.Value != null, "Fee receiver already set.");
+            State.FeeReceiver.Value = input;
+            return new Empty();
         }
 
-        public void Transfer2(string symbol, long amount, Address to, string memo)
+        public override Empty DonateResourceToken(Empty input)
         {
-            Transfer(new TransferInput() {Symbol = symbol, Amount = amount, To = to, Memo = memo});
+            if (State.TreasuryContract.Value == null)
+            {
+                var treasuryContractAddress =
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+                if (treasuryContractAddress == null)
+                {
+                    // Which means Treasury Contract didn't deployed yet. Ignore this method.
+                    return new Empty();
+                }
+
+                State.TreasuryContract.Value = treasuryContractAddress;
+            }
+
+            var transactions = Context.GetPreviousBlockTransactions();
+            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"RAM"}))
+            {
+                var totalAmount = 0L;
+                foreach (var transaction in transactions)
+                {
+                    var caller = transaction.From;
+                    var contractAddress = transaction.To;
+                    var amount = State.ChargedResourceTokens[caller][contractAddress][symbol];
+                    if (amount > 0)
+                    {
+                        State.Balances[contractAddress][symbol] = State.Balances[contractAddress][symbol].Sub(amount);
+                        totalAmount = totalAmount.Add(amount);
+                        State.ChargedResourceTokens[caller][contractAddress][symbol] = 0;
+                    }
+                }
+
+                if (totalAmount > 0)
+                {
+                    State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalAmount);
+                    State.TreasuryContract.Donate.Send(new DonateInput
+                    {
+                        Symbol = symbol,
+                        Amount = totalAmount
+                    });
+                }
+            }
+
+            return new Empty();
         }
 
-        public void Approve2(string symbol, long amount, Address spender)
+        public override Empty CheckThreshold(CheckThresholdInput input)
         {
-            Approve(new ApproveInput() {Symbol = symbol, Amount = amount, Spender = spender});
+            var meetThreshold = false;
+            var meetBalanceSymbolList = new List<string>();
+            foreach (var symbolToThreshold in input.SymbolToThreshold)
+            {
+                if (State.Balances[input.Sender][symbolToThreshold.Key] < symbolToThreshold.Value)
+                    continue;
+                meetBalanceSymbolList.Add(symbolToThreshold.Key);
+            }
+
+            if (meetBalanceSymbolList.Count > 0)
+            {
+                if (input.IsCheckAllowance)
+                {
+                    foreach (var symbol in meetBalanceSymbolList)
+                    {
+                        if (State.Allowances[input.Sender][Context.Sender][symbol] <
+                            input.SymbolToThreshold[symbol]) continue;
+                        meetThreshold = true;
+                        break;
+                    }
+                }
+                else
+                {
+                    meetThreshold = true;
+                }
+            }
+
+            if (input.SymbolToThreshold.Count == 0)
+            {
+                meetThreshold = true;
+            }
+
+            Assert(meetThreshold, "Cannot meet the calling threshold.");
+            return new Empty();
         }
 
-        public void UnApprove2(string symbol, long amount, Address spender)
+        public override Empty CheckResourceToken(Empty input)
         {
-            UnApprove(new UnApproveInput() {Symbol = symbol, Amount = amount, Spender = spender});
+            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"RAM"}))
+            {
+                var balance = State.Balances[Context.Sender][symbol];
+                Assert(balance > 0, $"Contract balance of {symbol} token is not enough.");
+            }
+
+            return new Empty();
         }
 
+        public override Empty SetProfitReceivingInformation(ProfitReceivingInformation input)
+        {
+            if (State.ZeroContract.Value == null)
+            {
+                State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
+            }
 
-        */
+            var contractOwner = State.ZeroContract.GetContractAuthor.Call(input.ContractAddress);
+            Assert(contractOwner == Context.Sender || input.ContractAddress == Context.Sender,
+                "Either contract owner or contract itself can set profit receiving information.");
 
-        #endregion
+            Assert(0 < input.DonationPartsPerHundred && input.DonationPartsPerHundred < 100, "Invalid donation ratio.");
+
+            State.ProfitReceivingInfos[input.ContractAddress] = input;
+            return new Empty();
+        }
+
+        public override Empty ReceiveProfits(ReceiveProfitsInput input)
+        {
+            var profitReceivingInformation = State.ProfitReceivingInfos[input.ContractAddress];
+            Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
+                "Only profit Beneficiary can perform this action.");
+            foreach (var symbol in input.Symbols.Except(TokenContractConstants.ResourceTokenSymbols))
+            {
+                var profits = State.Balances[input.ContractAddress][symbol];
+                State.Balances[input.ContractAddress][symbol] = 0;
+                var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
+                State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(donates);
+                State.TreasuryContract.Donate.Send(new DonateInput
+                {
+                    Symbol = symbol,
+                    Amount = donates
+                });
+                State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol] =
+                    State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol].Add(profits.Sub(donates));
+            }
+
+            return new Empty();
+        }
+
+        /// <summary>
+        /// Transfer from Context.Origin to Context.Sender.
+        /// Used for contract developers to receive / share profits.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        public override Empty TransferToContract(TransferToContractInput input)
+        {
+            AssertValidToken(input.Symbol, input.Amount);
+
+            // First check allowance.
+            var allowance = State.Allowances[Context.Origin][Context.Sender][input.Symbol];
+            if (allowance < input.Amount)
+            {
+                if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value)
+                {
+                    DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
+                    return new Empty();
+                }
+
+                Assert(false, $"Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}");
+            }
+
+            DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
+            State.Allowances[Context.Origin][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
+            return new Empty();
+        }
+
+        public override Empty SetResourceTokenUnitPrice(SetResourceTokenUnitPriceInput input)
+        {
+            if (State.ZeroContract.Value == null)
+            {
+                State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
+            }
+
+            if (State.ParliamentAuthContract.Value == null)
+            {
+                State.ParliamentAuthContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+            }
+
+            var contractOwner = State.ZeroContract.GetContractAuthor.Call(Context.Self);
+
+            Assert(
+                contractOwner == Context.Sender ||
+                Context.Sender == State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty()) ||
+                Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
+                "No permission to set resource token unit price.");
+
+            State.CpuUnitPrice.Value = input.CpuUnitPrice;
+            State.NetUnitPrice.Value = input.NetUnitPrice;
+            State.StoUnitPrice.Value = input.StoUnitPrice;
+            return new Empty();
+        }
+
+        public override Empty AdvanceResourceToken(AdvanceResourceTokenInput input)
+        {
+            Assert(TokenContractConstants.ResourceTokenSymbols.Contains(input.ResourceTokenSymbol),
+                "Invalid resource token symbol.");
+            State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
+                State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol]
+                    .Add(input.Amount);
+            State.Balances[input.ContractAddress][input.ResourceTokenSymbol] =
+                State.Balances[input.ContractAddress][input.ResourceTokenSymbol].Add(input.Amount);
+            State.Balances[Context.Sender][input.ResourceTokenSymbol] =
+                State.Balances[Context.Sender][input.ResourceTokenSymbol].Sub(input.Amount);
+            return new Empty();
+        }
+
+        public override Empty TakeResourceTokenBack(TakeResourceTokenBackInput input)
+        {
+            var advancedAmount =
+                State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol];
+            Assert(advancedAmount >= input.Amount, "Can't take back that more.");
+            State.Balances[input.ContractAddress][input.ResourceTokenSymbol] =
+                State.Balances[input.ContractAddress][input.ResourceTokenSymbol].Sub(input.Amount);
+            State.Balances[Context.Sender][input.ResourceTokenSymbol] =
+                State.Balances[Context.Sender][input.ResourceTokenSymbol].Add(input.Amount);
+            State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
+                advancedAmount.Sub(input.Amount);
+            return new Empty();
+        }
     }
 }

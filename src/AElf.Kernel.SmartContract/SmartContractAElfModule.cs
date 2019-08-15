@@ -1,4 +1,6 @@
-﻿using AElf.Kernel.SmartContract.Application;
+using System.Runtime.CompilerServices;
+using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +8,7 @@ using Volo.Abp;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
+[assembly: InternalsVisibleTo("AElf.Kernel.SmartContract.Tests")]
 namespace AElf.Kernel.SmartContract
 {
     [DependsOn(typeof(CoreKernelAElfModule))]

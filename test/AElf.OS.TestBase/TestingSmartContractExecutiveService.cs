@@ -14,6 +14,5 @@ namespace AElf.OS
             hostSmartContractBridgeContextService)
         {
         }
-
     }
 }

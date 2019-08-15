@@ -32,6 +32,11 @@ namespace AElf.Kernel
                 {
                     o.AddRange(trace.FlattenedLogs);
                 }
+                
+                foreach (var trace in PostTraces)
+                {
+                    o.AddRange(trace.FlattenedLogs);
+                }
 
                 return o;
             }
@@ -59,6 +64,14 @@ namespace AElf.Kernel
                     yield return kv;
                 }
             }
+            
+            foreach (var trace in PostTraces)
+            {
+                foreach (var kv in trace.GetFlattenedWrites())
+                {
+                    yield return kv;
+                }
+            }
         }
 
         public IEnumerable<KeyValuePair<string, bool>> GetFlattenedReads()
@@ -77,6 +90,14 @@ namespace AElf.Kernel
             }
 
             foreach (var trace in InlineTraces)
+            {
+                foreach (var kv in trace.GetFlattenedReads())
+                {
+                    yield return kv;
+                }
+            }
+            
+            foreach (var trace in PostTraces)
             {
                 foreach (var kv in trace.GetFlattenedReads())
                 {
