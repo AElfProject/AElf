@@ -6,7 +6,7 @@ namespace AElf.Contracts.TestContract.Performance
     {
         public override ReadOutput QueryReadInfo(Address input)
         {
-            if(State.Content[input] != null)
+            if(State.Content[input] == null)
                 return new ReadOutput();
             
             return new ReadOutput
