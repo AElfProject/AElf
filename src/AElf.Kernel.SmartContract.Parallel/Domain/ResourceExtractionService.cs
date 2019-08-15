@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -51,7 +52,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             IChainContext chainContext,
             Transaction transaction, CancellationToken ct)
         {
-            if (ct.IsCancellationRequested)
+            if (ct.IsCancellationRequested || _smartContractExecutiveService.IsContractDeployOrUpdating(transaction.To))
                 return (transaction, new TransactionResourceInfo()
                 {
                     TransactionId = transaction.GetHash(),
@@ -110,13 +111,19 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             _resourceCache.TryAdd(transaction.GetHash(),
                 new TransactionResourceCache(transaction.RefBlockNumber,
-                    await GetResourcesForOneAsync(chainContext, transaction, CancellationToken.None)));
+                    await GetResourcesForOneAsync(chainContext, transaction, CancellationToken.None), transaction.To));
         }
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            ClearResourceCache(_resourceCache.Where(c => c.Value.RefBlockNumber <= eventData.BlockHeight)
-                .Select(c => c.Key));
+            var contractInfoCache = _smartContractExecutiveService.GetContractInfoCache();
+            var addresses = contractInfoCache.Where(c => c.Value <= eventData.BlockHeight).Select(c => c.Key).ToArray();
+            var transactionIds = _resourceCache.Where(c => c.Value.Address.IsIn(addresses) && !c.Value.ResourceInfo.NonParallelizable).Select(c => c.Key);
+
+            ClearResourceCache(transactionIds.Concat(_resourceCache
+                .Where(c => c.Value.RefBlockNumber <= eventData.BlockHeight)
+                .Select(c => c.Key)).Distinct());
+            _smartContractExecutiveService.ClearContractInfoCache(eventData.BlockHeight);
 
             await Task.CompletedTask;
         }
@@ -170,11 +177,13 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         public readonly long RefBlockNumber;
         public readonly TransactionResourceInfo ResourceInfo;
+        public readonly Address Address;
 
-        public TransactionResourceCache(long refBlockNumber, TransactionResourceInfo resourceInfo)
+        public TransactionResourceCache(long refBlockNumber, TransactionResourceInfo resourceInfo,Address address)
         {
             RefBlockNumber = refBlockNumber;
             ResourceInfo = resourceInfo;
+            Address = address;
         }
     }
 }

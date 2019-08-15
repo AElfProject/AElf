@@ -398,6 +398,9 @@ namespace AElf.Contract.TestContract
                 var branchTwoBlock = await ExecuteAsync(transaction, startBlockHeight, startBlockHash);
                 await _blockAttachService.AttachBlockAsync(branchTwoBlock);
                 
+                var basicFunctionContractStub = GetTestBasicFunctionContractStub(DefaultSenderKeyPair);
+                await basicFunctionContractStub.QueryWinMoney.CallAsync(new Empty());
+                
                 _smartContractExecutiveService.ClearContractInfoCache(100);
 
                 var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput

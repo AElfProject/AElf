@@ -125,6 +125,7 @@ namespace AElf.Parallel.Tests
         public async Task WrongParallelTest()
         {
             var chain = await _blockchainService.GetChainAsync();
+            await _blockchainService.SetIrreversibleBlockAsync(chain, chain.BestChainHeight, chain.BestChainHash);
             var transactions =
                 _parallelTestHelper.GenerateBasicFunctionWithParallelTransactions(_groupCount, _transactionCount);
             await _parallelTestHelper.BroadcastTransactions(transactions);
