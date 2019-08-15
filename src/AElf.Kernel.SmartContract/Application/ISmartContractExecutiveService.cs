@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
@@ -18,5 +19,9 @@ namespace AElf.Kernel.SmartContract.Application
         void ClearContractInfoCache(long blockHeight);
 
         Task InitContractInfoCacheAsync();
+
+        IReadOnlyDictionary<Address, long> GetContractInfoCache();
+
+        bool IsContractDeployOrUpdating(Address address);
     }
 }

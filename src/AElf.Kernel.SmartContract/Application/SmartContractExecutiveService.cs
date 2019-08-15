@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Kernel.Infrastructure;
@@ -31,6 +32,8 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ConcurrentDictionary<Address, long> _contractInfoCache =
             new ConcurrentDictionary<Address, long>();
 
+        private readonly IReadOnlyDictionary<Address, long> _readOnlyContractInfoCache;
+
         public SmartContractExecutiveService(
             ISmartContractRunnerContainer smartContractRunnerContainer, IBlockchainStateManager blockchainStateManager,
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
@@ -40,6 +43,7 @@ namespace AElf.Kernel.SmartContract.Application
             _blockchainStateManager = blockchainStateManager;
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
             _hostSmartContractBridgeContextService = hostSmartContractBridgeContextService;
+            _readOnlyContractInfoCache = new ReadOnlyDictionary<Address, long>(_contractInfoCache);
         }
 
         private ConcurrentBag<IExecutive> GetPool(Address address)
@@ -122,6 +126,8 @@ namespace AElf.Kernel.SmartContract.Application
 
         public async Task SetContractInfoAsync(Address address, long blockHeight)
         {
+            _executivePools.TryRemove(address, out _);
+            _addressSmartContractRegistrationMappingCache.TryRemove(address, out _);
             if (!_contractInfoCache.TryGetValue(address, out var height) || blockHeight > height)
             {
                 _contractInfoCache[address] = blockHeight;
@@ -154,6 +160,16 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 _contractInfoCache[AddressHelper.Base58StringToAddress(key)] = chainContractInfo.ContractInfos[key];
             }
+        }
+
+        public bool IsContractDeployOrUpdating(Address address)
+        {
+            return _contractInfoCache.TryGetValue(address, out _);
+        }
+
+        public IReadOnlyDictionary<Address, long> GetContractInfoCache()
+        {
+            return _readOnlyContractInfoCache;
         }
 
         #region private methods
@@ -278,7 +294,7 @@ namespace AElf.Kernel.SmartContract.Application
                         Parts = { "ContractInfos",address.ToString()}
                     }
                 };
-                if(!chainContext.StateCache.TryGetValue(path, out var byteArray))
+                if(chainContext.StateCache == null || !chainContext.StateCache.TryGetValue(path, out var byteArray))
                     throw new SmartContractFindRegistrationException("failed to find registration from zero contract");
                 byteString = ByteString.CopyFrom(byteArray);
             }
