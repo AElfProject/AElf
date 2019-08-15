@@ -109,21 +109,7 @@ namespace AElf.Contract.CrossChain.Tests
             await Tester.MineAsync(new List<Transaction> {crossChainInitializationTransaction});
         }
 
-        protected async Task<int> InitAndCreateSideChainAsync(long parentChainHeightOfCreation = 0,
-            int parentChainId = 0, long lockedTokenAmount = 10)
-        {
-            await InitializeCrossChainContractAsync(parentChainHeightOfCreation, parentChainId);
-            await ApproveBalanceAsync(lockedTokenAmount);
-            var proposalId = await CreateSideChainProposalAsync(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test"));
-            await ApproveWithMinersAsync(proposalId);
-
-            var transactionResult = await ReleaseProposalAsync(proposalId);
-            var chainId = CreationRequested.Parser.ParseFrom(transactionResult.Logs[0].NonIndexed).ChainId;
-
-            return chainId;
-        }
-        
-        internal async Task<int> InitAndCreateSideChainWithResourceTypeAsync(long parentChainHeightOfCreation = 0,
+        internal async Task<int> InitAndCreateSideChainAsync(long parentChainHeightOfCreation = 0,
             int parentChainId = 0, long lockedTokenAmount = 10,IEnumerable<ResourceTypeBalancePair> resourceTypeBalancePairs = null)
         {
             await InitializeCrossChainContractAsync(parentChainHeightOfCreation, parentChainId);
@@ -186,7 +172,7 @@ namespace AElf.Contract.CrossChain.Tests
             };
             if (resourceTypeBalancePairs != null)
             {
-                res.ResourceTypeBalancePairList.AddRange(resourceTypeBalancePairs.Select(x =>
+                res.ResourceTypeBalancePairs.AddRange(resourceTypeBalancePairs.Select(x =>
                     ResourceTypeBalancePair.Parser.ParseFrom(x.ToByteString())));
             }
 

@@ -70,16 +70,18 @@ namespace AElf.Contracts.CrossChain
             State.IndexingBalance[chainId] = sideChainCreationRequest.LockedTokenAmount;
             
             // enable resource
-            if (!sideChainCreationRequest.ResourceTypeBalancePairList.Any()) return;
-            foreach (var resource in sideChainCreationRequest.ResourceTypeBalancePairList)
+            var resourceTypeBalancePairs = sideChainCreationRequest.ResourceTypeBalancePairs;
+            
+            if (!resourceTypeBalancePairs.Any()) return;
+            foreach (var resourcePair in resourceTypeBalancePairs)
             {
                 LockResource(new LockInput
                 {
                     Address = Context.Origin,
                     LockId = chainId.ToHash(),
-                    Symbol = resource.Type.ToString().ToUpper(),
+                    Symbol = resourcePair.Type.ToUpper(),
                     Usage = "lock resource.",
-                    Amount = resource.Amount
+                    Amount = resourcePair.Amount
                 });
             }
         }
@@ -99,15 +101,14 @@ namespace AElf.Contracts.CrossChain
                 });
             State.IndexingBalance[chainId] = 0;
 
-            var resourceTypeBalancePairList = sideChainInfo.SideChainCreationRequest.ResourceTypeBalancePairList;
-            if(!resourceTypeBalancePairList.Any()) return;
-            foreach (var resourceType in resourceTypeBalancePairList)
+            var resourceTypeBalancePairs = sideChainInfo.SideChainCreationRequest.ResourceTypeBalancePairs;
+            foreach (var resourcePair in resourceTypeBalancePairs)
             {
                 UnLockResource(new UnlockInput
                 {
                     Address = sideChainInfo.Proposer,
-                    Symbol = resourceType.Type.ToString().ToUpper(),
-                    Amount = resourceType.Amount,
+                    Symbol = resourcePair.Type.ToUpper(),
+                    Amount = resourcePair.Amount,
                     LockId = chainId.ToHash(),
                     Usage = "unlock resource."
                 });

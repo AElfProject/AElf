@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using Acs3;
 using Acs7;
 using AElf.Contracts.CrossChain;
+using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -22,7 +23,7 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContractAsync();
             long lockedTokenAmount = 10;
             await ApproveBalanceAsync(lockedTokenAmount);
-
+            
             // Create proposal and approve
             var proposalId = await CreateSideChainProposalAsync(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test"));
             await ApproveWithMinersAsync(proposalId);
@@ -45,20 +46,21 @@ namespace AElf.Contract.CrossChain.Tests
             await InitializeCrossChainContractAsync();
             const long lockedAmount = 10;
             await ApproveBalanceAsync(lockedAmount);
-            await CreateAndIssueTokenAsync("CPU", "NET","RAM");
+            await CreateAndIssueTokenAsync("CPU", "NET","RAM","STO");
 
-            var resourceTypeBalanceList = new RepeatedField<ResourceTypeBalancePair>
+            var resourceTypeBalancePairs = new RepeatedField<ResourceTypeBalancePair>
             {
-                new ResourceTypeBalancePair {Type = ResourceType.Cpu, Amount = 4},
-                new ResourceTypeBalancePair {Type = ResourceType.Net, Amount = 9},
-                new ResourceTypeBalancePair {Type = ResourceType.Ram, Amount = 20}
+                new ResourceTypeBalancePair {Type = "CPU", Amount = 4},
+                new ResourceTypeBalancePair {Type = "NET", Amount = 9},
+                new ResourceTypeBalancePair {Type = "RAM", Amount = 20},
+                new ResourceTypeBalancePair {Type = "STO", Amount = 30}
             };
 
             var proposalId = await CreateSideChainProposalAsync(
                 1,
                 lockedAmount,
                 ByteString.CopyFromUtf8("Test"),
-                resourceTypeBalanceList);
+                resourceTypeBalancePairs);
             await ApproveWithMinersAsync(proposalId);
 
             // release proposal
@@ -77,12 +79,14 @@ namespace AElf.Contract.CrossChain.Tests
                 new SInt32Value {Value = chainId}));
             var list = lockedResource.ResourcePairList;
             
-            Assert.True(list[0].Type == ResourceType.Cpu);
-            Assert.True(list[1].Type == ResourceType.Net);
-            Assert.True(list[2].Type == ResourceType.Ram);
+            Assert.True(list[0].Type == "CPU");
+            Assert.True(list[1].Type == "NET");
+            Assert.True(list[2].Type == "RAM");
+            Assert.True(list[3].Type == "STO");
             Assert.Equal(4, list[0].Amount);
             Assert.Equal(9, list[1].Amount);
             Assert.Equal(20, list[2].Amount);
+            Assert.Equal(30, list[3].Amount);
         }
 
         [Fact]
@@ -95,9 +99,9 @@ namespace AElf.Contract.CrossChain.Tests
 
             var resourceTypeBalanceList = new RepeatedField<ResourceTypeBalancePair>
             {
-                new ResourceTypeBalancePair {Type = ResourceType.Cpu, Amount = 4},
-                new ResourceTypeBalancePair {Type = ResourceType.Net, Amount = 9},
-                new ResourceTypeBalancePair {Type = ResourceType.Ram, Amount = 20}
+                new ResourceTypeBalancePair {Type = "CPU", Amount = 4},
+                new ResourceTypeBalancePair {Type = "NET", Amount = 9},
+                new ResourceTypeBalancePair {Type = "STO", Amount = 20}
             };
 
             var proposalId = await CreateSideChainProposalAsync(
@@ -280,10 +284,10 @@ namespace AElf.Contract.CrossChain.Tests
             
             var resourceTypeBalance = new RepeatedField<ResourceTypeBalancePair>
             {
-                new ResourceTypeBalancePair {Type = ResourceType.Cpu, Amount = 4},
-                new ResourceTypeBalancePair {Type = ResourceType.Net, Amount = 2}
+                new ResourceTypeBalancePair {Type = "CPU", Amount = 4},
+                new ResourceTypeBalancePair {Type = "NET", Amount = 2}
             };
-            var chainId = await InitAndCreateSideChainWithResourceTypeAsync(resourceTypeBalancePairs:resourceTypeBalance);
+            var chainId = await InitAndCreateSideChainAsync(resourceTypeBalancePairs:resourceTypeBalance);
             var proposalId = await DisposalSideChainProposalAsync(new SInt32Value
             {
                 Value = chainId

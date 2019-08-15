@@ -108,16 +108,8 @@ message ChainInitializationData {
     bool chain_creator_privilege_preserved = 6;
 }
 
-enum ResourceType
-{
-    UNDEFINED_RESOURCE_TYPE = 0;
-    RAM = 1;
-    CPU = 2;
-    NET = 3;
-}
-
 message ResourceTypeBalancePair {
-    ResourceType type = 1;
+    string type = 1;
     int64 amount = 2;
 }
 
@@ -140,7 +132,7 @@ message SideChainCreationRequest {
     int64 locked_token_amount = 2;
     bytes contract_code = 3;
     bool is_privilege_preserved = 4;
-    repeated ResourceTypeBalancePair resource_type_balance_pair_list = 5;
+    repeated ResourceTypeBalancePair resource_type_balance_pairs = 5;
 }
 
 message RequestChainCreationOutput {

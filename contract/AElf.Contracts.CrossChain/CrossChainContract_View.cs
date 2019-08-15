@@ -156,9 +156,9 @@ namespace AElf.Contracts.CrossChain
             Assert(info != null, "Not existed side chain.");
             Assert(info.SideChainStatus != SideChainStatus.Terminated, "Disposed side chain.");
             var request = info.SideChainCreationRequest;
-            var resourceTypeBalancePairList = new ResourceTypeBalancePairList();
-            resourceTypeBalancePairList.ResourcePairList.AddRange(request.ResourceTypeBalancePairList);
-            return resourceTypeBalancePairList;
+            var list = new ResourceTypeBalancePairList();
+            list.ResourcePairList.AddRange(request.ResourceTypeBalancePairs);
+            return list;
         }
 
         public override ChainInitializationData GetChainInitializationData(SInt32Value chainId)
