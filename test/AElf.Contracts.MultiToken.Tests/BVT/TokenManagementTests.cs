@@ -1,7 +1,5 @@
 using System.Threading.Tasks;
 using Acs2;
-using AElf.Contracts.Consensus.DPoS;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestKit;
@@ -10,7 +8,6 @@ using AElf.Contracts.Treasury;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Acs2;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 

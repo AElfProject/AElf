@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Types;
 using Volo.Abp.Threading;

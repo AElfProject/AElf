@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
@@ -14,8 +13,6 @@ using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
 using InitializeInput = AElf.Contracts.ParliamentAuth.InitializeInput;
 
