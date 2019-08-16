@@ -5,6 +5,7 @@ using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Miner.Application;
 using AElf.Types;
+using AElf.Contracts.Configuration;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -14,7 +15,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
     public class BlockTransactionLimitTests : ContractTestBase<BlockTransactionLimitTestModule>
     {
         private Address ConfigurationContractAddress { get; set; }
-        private Configuration.ConfigurationContainer.ConfigurationStub ConfigurationStub;
+        private ConfigurationContainer.ConfigurationStub ConfigurationStub;
         private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
 
@@ -25,7 +26,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
             ConfigurationContractAddress = await DeploySystemSmartContract(category, code,
                 ConfigurationSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
             ConfigurationStub =
-                GetTester<Configuration.ConfigurationContainer.ConfigurationStub>(ConfigurationContractAddress,
+                GetTester<ConfigurationContainer.ConfigurationStub>(ConfigurationContractAddress,
                     DefaultSenderKeyPair);
         }
 

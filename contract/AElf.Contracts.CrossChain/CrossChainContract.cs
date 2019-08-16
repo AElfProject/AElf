@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Acs7;
