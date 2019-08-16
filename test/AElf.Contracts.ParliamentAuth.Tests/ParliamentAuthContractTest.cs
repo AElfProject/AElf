@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Acs3;
+using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
@@ -48,7 +49,6 @@ namespace AElf.Contracts.ParliamentAuth
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }
-
 
         [Fact]
         public async Task Get_Organization()
@@ -259,7 +259,6 @@ namespace AElf.Contracts.ParliamentAuth
             transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             transactionResult1.Output.Value.ShouldBe(true);
 
-            Thread.Sleep(100);
             var transactionResult2 =
                 await ParliamentAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
             transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -276,7 +275,7 @@ namespace AElf.Contracts.ParliamentAuth
 
             ParliamentAuthContractStub = GetParliamentAuthContractTester(DefaultSenderKeyPair);
             var result = await ParliamentAuthContractStub.Release.SendAsync(proposalId);
-            //Reviewer weight < ReleaseThreshold, release failed
+            //Reviewer Shares < ReleaseThreshold, release failed
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("Not approved.").ShouldBeTrue();
         }
@@ -331,6 +330,27 @@ namespace AElf.Contracts.ParliamentAuth
                 Owner = Tester
             }).Result.Balance;
             getBalance.ShouldBe(100);
+        }
+
+        [Fact]
+        public async Task Change_GenesisContractOwner()
+        {
+            var contractOwner = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
+            contractOwner.ShouldBe(new Address());
+            
+            var initializeParliament = await ParliamentAuthContractStub.Initialize.SendAsync(new InitializeInput
+            {
+                GenesisOwnerReleaseThreshold = 1,
+                ProposerAuthorityRequired = false
+            });
+            initializeParliament.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            contractOwner = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
+            contractOwner.ShouldNotBe(new Address());
+            
+            //no permission
+            var transactionResult = await BasicContractStub.ChangeGenesisOwner.SendAsync(Tester);
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.TransactionResult.Error.ShouldContain("Unauthorized behavior");
         }
 
         private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair, Address organizationAddress)

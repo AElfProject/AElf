@@ -12,7 +12,7 @@ using Xunit;
 
 namespace AElf.Kernel.SmartContract.Parallel.Tests
 {
-    public class ResourceExtractionServiceTest : AbpIntegratedTest<TestModule>
+    public class ResourceExtractionServiceTest : AbpIntegratedTest<ParallelMockTestModule>
     {
         private IResourceExtractionService Service =>
             Application.ServiceProvider.GetRequiredService<IResourceExtractionService>();

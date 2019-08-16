@@ -24,11 +24,13 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public LocalParallelTransactionExecutingService(ITransactionGrouper grouper,
             ITransactionResultService transactionResultService,
-            ISmartContractExecutiveService smartContractExecutiveService, IEnumerable<IExecutionPlugin> plugins)
+            ISmartContractExecutiveService smartContractExecutiveService, IEnumerable<IPreExecutionPlugin> prePlugins,
+            IEnumerable<IPostExecutionPlugin> postPlugins)
         {
             _grouper = grouper;
             _plainExecutingService =
-                new TransactionExecutingService(transactionResultService, smartContractExecutiveService, plugins);
+                new TransactionExecutingService(transactionResultService, smartContractExecutiveService, postPlugins,prePlugins
+                    );
             _transactionResultService = transactionResultService;
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<LocalParallelTransactionExecutingService>.Instance;

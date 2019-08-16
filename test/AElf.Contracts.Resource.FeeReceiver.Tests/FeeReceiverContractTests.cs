@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
-using AElf.Contracts.MultiToken;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
+using AElf.Contracts.TestKit;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -14,7 +13,7 @@ using Xunit;
 
 namespace AElf.Contracts.Resource.FeeReceiver
 {
-    public class FeeReceiverContractTests : ContractTestBase<FeeReceiverContractTestAElfModule>
+    public class FeeReceiverContractTests : TestBase.ContractTestBase<FeeReceiverContractTestAElfModule>
     {
         private ECKeyPair FeeKeyPair;
         private ECKeyPair FoundationKeyPair; 
@@ -96,7 +95,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         [Fact]
-        public async Task FeeReceiver_WithDraw_all()
+        public async Task FeeReceiver_WithDraw_All()
         {
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
             var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
@@ -154,7 +153,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
 
         private async Task InitFeeReceiverContract()
         {
-            //init fee receiver contract
+            //init fee Beneficiary contract
             var foundationAddress = Tester.GetAddress(FoundationKeyPair);
             var feeReceiverResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
                 nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Initialize),

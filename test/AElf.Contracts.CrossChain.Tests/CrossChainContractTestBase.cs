@@ -7,12 +7,9 @@ using Acs7;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
-using AElf.Contracts.TestBase;
 using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -25,25 +22,23 @@ using InitializeInput = AElf.Contracts.CrossChain.InitializeInput;
 
 namespace AElf.Contract.CrossChain.Tests
 {
-    public class CrossChainContractTestBase : ContractTestBase<CrossChainContractTestAElfModule>
+    public class CrossChainContractTestBase : Contracts.TestBase.ContractTestBase<CrossChainContractTestAElfModule>
     {
         protected Address CrossChainContractAddress;
         protected Address TokenContractAddress;
-        protected Address ConsensusContractAddress;
         protected Address ParliamentAddress;
 
-        protected long _totalSupply;
-        protected long _balanceOfStarter;
+        protected long TotalSupply;
+        protected long BalanceOfStarter;
 
         public CrossChainContractTestBase()
         {
             AsyncHelper.RunSync(() =>
-                Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out _totalSupply,
+                Tester.InitialChainAsync(Tester.GetDefaultContractTypes(Tester.GetCallOwnerAddress(), out TotalSupply,
                     out _,
-                    out _balanceOfStarter)));
+                    out BalanceOfStarter)));
             CrossChainContractAddress = Tester.GetContractAddress(CrossChainSmartContractAddressNameProvider.Name);
             TokenContractAddress = Tester.GetContractAddress(TokenSmartContractAddressNameProvider.Name);
-            ConsensusContractAddress = Tester.GetContractAddress(ConsensusSmartContractAddressNameProvider.Name);
             ParliamentAddress = Tester.GetContractAddress(ParliamentAuthSmartContractAddressNameProvider.Name);
         }
 
@@ -55,7 +50,7 @@ namespace AElf.Contract.CrossChain.Tests
                 nameof(TokenContractContainer.TokenContractStub.Approve), new ApproveInput
                 {
                     Spender = CrossChainContractAddress,
-                    Symbol = "ELF",
+                    Symbol = "ELF", 
                     Amount = amount
                 });
             approveResult.Status.ShouldBe(TransactionResultStatus.Mined);
