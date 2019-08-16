@@ -45,7 +45,7 @@ namespace AElf.Blockchains.SideChain
 
             l.AddGenesisSmartContract(
                 _codes.Single(kv=>kv.Key.Contains("MultiToken")).Value,
-                TokenSmartContractAddressNameProvider.Name);
+                TokenSmartContractAddressNameProvider.Name, GenerateTokenInitializationCallList(chainInitializationData));
 
             l.AddGenesisSmartContract(
                 _codes.Single(kv=>kv.Key.Contains("CrossChain")).Value,
