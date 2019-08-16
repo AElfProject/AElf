@@ -11,9 +11,5 @@ namespace AElf.WebApp.Application.Chain.Dto
         public long BlockHeight { get; set; }
         
         public Dictionary<string,string > Changes { get; set; }
-        
-        public string WorldStateMerkleTreeRoot { get; set; }
-        
-        public string BlockState { get; set; }
     }
 }
