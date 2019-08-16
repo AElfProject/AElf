@@ -1,30 +1,30 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.Miner.Application
 {
     public class MinerService : IMinerService
     {
         public ILogger<MinerService> Logger { get; set; }
-        private ITxHub _txHub;
+        private readonly ITxHub _txHub;
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
-        private IMiningService _miningService;
+        private readonly IIsPackageNormalTransactionProvider _isPackageNormalTransactionProvider;
+        private readonly IMiningService _miningService;
 
         public MinerService(IMiningService miningService, ITxHub txHub,
-            IBlockTransactionLimitProvider blockTransactionLimitProvider)
+            IBlockTransactionLimitProvider blockTransactionLimitProvider,
+            IIsPackageNormalTransactionProvider isPackageNormalTransactionProvider)
         {
             _miningService = miningService;
             _txHub = txHub;
             _blockTransactionLimitProvider = blockTransactionLimitProvider;
+            _isPackageNormalTransactionProvider = isPackageNormalTransactionProvider;
 
             Logger = NullLogger<MinerService>.Instance;
         }
@@ -38,7 +38,9 @@ namespace AElf.Kernel.Miner.Application
             Duration blockExecutionTime)
         {
             var executableTransactionSet =
-                await _txHub.GetExecutableTransactionSetAsync(_blockTransactionLimitProvider.Limit);
+                await _txHub.GetExecutableTransactionSetAsync(_isPackageNormalTransactionProvider.IsPackage
+                    ? _blockTransactionLimitProvider.Limit
+                    : 0);
             var pending = new List<Transaction>();
             if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
             {

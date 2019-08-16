@@ -153,7 +153,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             //If R > RLIB + 10 || H > HLIB + Y, CB goes to 1, and CT goes to 0
             if (currentRound.RoundNumber > libRoundNumber.Add(10) || currentHeight > libBlockHeight.Add(10))
             {
-                
+                Context.Fire(new IrreversibleBlockHeightUnacceptable
+                {
+                    DistanceToIrreversibleBlockHeight = currentHeight.Sub(libBlockHeight)
+                });
                 return 1;
             }
 
