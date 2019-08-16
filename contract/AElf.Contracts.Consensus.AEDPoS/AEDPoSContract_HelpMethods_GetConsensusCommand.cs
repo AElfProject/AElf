@@ -133,7 +133,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var currentHeight = Context.CurrentHeight;// Stands for H
             var currentRoundNumber = currentRound.RoundNumber;// Stands for R
             const int cachedBlocksCount = 1024;//Stands for Y
-            
+
+            if (libRoundNumber == 0)
+            {
+                return AEDPoSContractConstants.MaximumTinyBlocksCount;
+            }
+
             // f RLIB + 2 < R < RLIB + 10 & H <= HLIB + Y, CB goes to Min(L2/(R-RLIB), CB0), while CT stays same as before.
             if (libRoundNumber.Add(2) < currentRoundNumber && currentRoundNumber < libRoundNumber.Add(10))
             {
@@ -143,16 +148,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     {
                         var minersOfLastTwoRounds = previousRound.GetMinedMiners()
                             .Union(previousPreviousRound.GetMinedMiners()).Count();
-                        var count = minersOfLastTwoRounds.Div((int) currentRound.RoundNumber.Sub(libRoundNumber))
-                            .Add(1);
-                        return Math.Min(AEDPoSContractConstants.MaximumTinyBlocksCount, count);
+                        var count = Math.Min(AEDPoSContractConstants.MaximumTinyBlocksCount, minersOfLastTwoRounds
+                            .Div((int) currentRound.RoundNumber.Sub(libRoundNumber))
+                            .Add(1));
+                        Context.LogDebug(() => $"Enter stage 2. blocks count: {count}");
+                        return count;
                     }
                 }
             }
-            
+
             //If R > RLIB + 10 || H > HLIB + Y, CB goes to 1, and CT goes to 0
-            if (currentRound.RoundNumber > libRoundNumber.Add(10) || currentHeight > libBlockHeight.Add(10))
+            if (currentRound.RoundNumber > libRoundNumber.Add(10) || currentHeight > libBlockHeight.Add(cachedBlocksCount))
             {
+                Context.LogDebug(() => "Enter stage 3.");
                 Context.Fire(new IrreversibleBlockHeightUnacceptable
                 {
                     DistanceToIrreversibleBlockHeight = currentHeight.Sub(libBlockHeight)
