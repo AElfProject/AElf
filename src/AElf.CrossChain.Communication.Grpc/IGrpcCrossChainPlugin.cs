@@ -8,12 +8,12 @@ namespace AElf.CrossChain.Communication.Grpc
         Task ShutdownAsync();
     }
 
-//    public interface IGrpcClientPlugin : IGrpcCrossChainPlugin
-//    {
-//        Task CreateClientAsync(CrossChainClientDto grpcCrossChainClientDto);
-//    }
-//
-//    public interface IGrpcServePlugin : IGrpcCrossChainPlugin
-//    {
-//    }
+    public interface IGrpcClientPlugin : IGrpcCrossChainPlugin
+    {
+        Task CreateClientAsync(CrossChainClientDto grpcCrossChainClientDto);
+    }
+
+    public interface IGrpcServePlugin : IGrpcCrossChainPlugin
+    {
+    }
 }

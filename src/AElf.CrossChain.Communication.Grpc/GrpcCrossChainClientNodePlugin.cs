@@ -7,7 +7,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    public class GrpcCrossChainClientNodePlugin : IGrpcCrossChainPlugin, ILocalEventHandler<NewChainConnectionEvent>, ISingletonDependency
+    public class GrpcCrossChainClientNodePlugin : IGrpcClientPlugin
     {
         private readonly ICrossChainClientService _crossChainClientService;
         private readonly CrossChainConfigOptions _crossChainConfigOptions;
@@ -42,24 +42,14 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             await _crossChainClientService.CloseClientsAsync();
         }
-
-        public Task HandleEventAsync(NewChainConnectionEvent eventData)
-        {
-            return CreateClientAsync(new CrossChainClientDto
-            {
-                RemoteChainId = eventData.RemoteChainId,
-                RemoteServerHost = eventData.RemoteServerHost,
-                RemoteServerPort = eventData.RemoteServerPort
-            });
-        }
         
-        private async Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
+        public async Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
         {
             Logger.LogTrace(
                 $"Handle cross chain request received event from chain {ChainHelper.ConvertChainIdToBase58(crossChainClientDto.RemoteChainId)}.");
 
             crossChainClientDto.LocalChainId = _localChainId;
-            _ = _crossChainClientService.CreateClientAsync(crossChainClientDto);
+            await _crossChainClientService.CreateClientAsync(crossChainClientDto);
         }
     }
 }

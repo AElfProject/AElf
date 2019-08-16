@@ -17,16 +17,19 @@ namespace AElf.CrossChain
         private readonly IReaderFactory _readerFactory;
         private readonly IBlockCacheEntityConsumer _blockCacheEntityConsumer;
         private readonly IIndexedCrossChainBlockDataProvider _indexedCrossChainBlockDataProvider;
+        private readonly IIrreversibleBlockStateProvider _irreversibleBlockStateProvider;
+
         public ILogger<CrossChainIndexingDataService> Logger { get; set; }
 
         public IOptionsSnapshot<CrossChainConfigOptions> CrossChainOptions { get; set; }
         
         public CrossChainIndexingDataService(IReaderFactory readerFactory, IBlockCacheEntityConsumer blockCacheEntityConsumer, 
-            IIndexedCrossChainBlockDataProvider indexedCrossChainBlockDataProvider)
+            IIndexedCrossChainBlockDataProvider indexedCrossChainBlockDataProvider, IIrreversibleBlockStateProvider irreversibleBlockStateProvider)
         {
             _readerFactory = readerFactory;
             _blockCacheEntityConsumer = blockCacheEntityConsumer;
             _indexedCrossChainBlockDataProvider = indexedCrossChainBlockDataProvider;
+            _irreversibleBlockStateProvider = irreversibleBlockStateProvider;
         }
 
         private async Task<List<SideChainBlockData>> GetNonIndexedSideChainBlockDataAsync(Hash blockHash, long blockHeight)
@@ -36,13 +39,37 @@ namespace AElf.CrossChain
                 .GetSideChainIndexingInformationList.CallAsync(new Empty());
             foreach (var sideChainIndexingInformation in sideChainIndexingInformationList.IndexingInformationList)
             {
-                var targetHeight = sideChainIndexingInformation.IndexedHeight + 1;
-                var toBeIndexedCount = Math.Min(CrossChainOptions.Value.MaximalCountForIndexingSideChainBlock,
-                    sideChainIndexingInformation.ToBeIndexedCount);
+                var libDto = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
+                var sideChainId = sideChainIndexingInformation.ChainId;
+                var sideChainHeightInLibValue = await _readerFactory.Create(libDto.BlockHash, libDto.BlockHeight)
+                    .GetSideChainHeight.CallAsync(new SInt32Value {Value = sideChainId});
 
-                Logger.LogTrace(
-                    $"Target height {targetHeight} of side chain " +
-                    $"{ChainHelper.ConvertChainIdToBase58(sideChainIndexingInformation.ChainId)}.");
+                long toBeIndexedCount;
+                long targetHeight;
+                var sideChainHeightInLib = sideChainHeightInLibValue?.Value ?? 0;
+                if (sideChainHeightInLib > 0)
+                {
+                    targetHeight = sideChainIndexingInformation.IndexedHeight + 1;
+                    toBeIndexedCount = Math.Min(CrossChainOptions.Value.MaximalCountForIndexingSideChainBlock,
+                        sideChainIndexingInformation.ToBeIndexedCount);
+                    Logger.LogTrace(
+                        $"Target height {targetHeight} of side chain " +
+                        $"{ChainHelper.ConvertChainIdToBase58(sideChainId)}.");
+                }
+                else if (sideChainIndexingInformation.IndexedHeight > 0)
+                {
+                    toBeIndexedCount = 0;
+                    targetHeight = sideChainIndexingInformation.IndexedHeight + 1;
+                }
+                else
+                {
+                    toBeIndexedCount = 1;
+                    targetHeight = 1;
+                    Logger.LogTrace(
+                        $"Target height {targetHeight} of side chain " +
+                        $"{ChainHelper.ConvertChainIdToBase58(sideChainId)}.");
+                }
+
                 var sideChainBlockDataFromCache = new List<SideChainBlockData>();  
                 
                 var i = 0;
@@ -190,12 +217,18 @@ namespace AElf.CrossChain
 
         public async Task<CrossChainBlockData> GetIndexedCrossChainBlockDataAsync(Hash blockHash, long blockHeight)
         {
-            var crossChainBlockData = await _readerFactory.Create(blockHash,
-                    blockHeight).GetIndexedCrossChainBlockDataByHeight
-                .CallAsync(new SInt64Value() {Value = blockHeight});
+            var crossChainBlockData = await _readerFactory.Create(blockHash, blockHeight)
+                .GetIndexedCrossChainBlockDataByHeight.CallAsync(new SInt64Value {Value = blockHeight});
             return crossChainBlockData;
         }
         
+        public async Task<IndexedSideChainBlockData> GetIndexedSideChainBlockDataAsync(Hash blockHash, long blockHeight)
+        {
+            var indexedSideChainBlockData = await _readerFactory.Create(blockHash, blockHeight)
+                .GetIndexedSideChainBlockDataByHeight.CallAsync(new SInt64Value {Value = blockHeight});
+            return indexedSideChainBlockData;
+        }
+
         /// <summary>
         /// This method returns cross chain data.
         /// </summary>

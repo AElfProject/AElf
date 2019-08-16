@@ -11,8 +11,8 @@ namespace AElf.CrossChain.Communication.Grpc
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddSingleton<IGrpcCrossChainPlugin, GrpcCrossChainClientNodePlugin>();
-            services.AddTransient<IGrpcCrossChainPlugin, GrpcCrossChainServerNodePlugin>();
+            services.AddSingleton<IGrpcClientPlugin, GrpcCrossChainClientNodePlugin>();
+            services.AddSingleton<IGrpcServePlugin, GrpcCrossChainServerNodePlugin>();
             services.AddSingleton<IGrpcCrossChainServer, GrpcCrossChainServer>();
             context.Services.AddTransient<INodePlugin, GrpcNodePlugin>();
             var grpcCrossChainConfiguration = services.GetConfiguration().GetSection("CrossChain");

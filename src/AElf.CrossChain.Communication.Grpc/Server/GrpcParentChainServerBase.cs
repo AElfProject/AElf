@@ -30,6 +30,14 @@ namespace AElf.CrossChain.Communication.Grpc
                     await _crossChainResponseService.ResponseParentChainBlockDataAsync(requestedHeight, remoteChainId);
                 if (parentChainBlockData == null)
                     break;
+                if (context.Status.StatusCode != Status.DefaultSuccess.StatusCode)
+                {
+                    Logger.LogTrace(
+                        $"Disconnected with side chain {ChainHelper.ConvertChainIdToBase58(crossChainRequest.FromChainId)} node.");
+                    return;
+                }
+                
+                Logger.LogTrace($"Response parent chain data {parentChainBlockData.Height}");
                 await responseStream.WriteAsync(parentChainBlockData);
                 requestedHeight++;
             }

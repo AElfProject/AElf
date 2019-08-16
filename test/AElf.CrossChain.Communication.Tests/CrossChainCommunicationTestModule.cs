@@ -118,6 +118,23 @@ namespace AElf.CrossChain.Communication
                         };
                         return Task.FromResult(crossChainBlockData);
                     });
+                mockCrossChainIndexingDataService
+                    .Setup(m => m.GetIndexedSideChainBlockDataAsync(It.IsAny<Hash>(), It.IsAny<long>())).Returns(
+                        () =>
+                        {
+                            var indexedSideChainBlockData = new IndexedSideChainBlockData
+                            {
+                                SideChainBlockData =
+                                {
+                                    new SideChainBlockData
+                                    {
+                                        ChainId = 123, Height = 1,
+                                        TransactionMerkleTreeRoot = Hash.FromString("fakeTransactionMerkleTree")
+                                    }
+                                }
+                            };
+                            return Task.FromResult(indexedSideChainBlockData);
+                        });
                 return mockCrossChainIndexingDataService.Object;
             });
             

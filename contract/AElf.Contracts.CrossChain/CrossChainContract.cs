@@ -133,21 +133,7 @@ namespace AElf.Contracts.CrossChain
         #endregion Side chain lifetime actions
 
         #region Cross chain actions
-
-        public override CrossChainBlockData GetIndexedCrossChainBlockDataByHeight(SInt64Value input)
-        {
-            var crossChainBlockData = new CrossChainBlockData();
-            var indexedParentChainBlockData = State.LastIndexedParentChainBlockData.Value;
-            if (indexedParentChainBlockData != null && indexedParentChainBlockData.LocalChainHeight == input.Value)
-                crossChainBlockData.ParentChainBlockData.AddRange(indexedParentChainBlockData.ParentChainBlockData);
-            
-            var indexedSideChainBlockData = State.IndexedSideChainBlockData[input.Value];
-            Assert(indexedSideChainBlockData != null, "Side chain block data should not be null.");
-            crossChainBlockData.SideChainBlockData.AddRange(indexedSideChainBlockData.SideChainBlockData);
-            
-            return crossChainBlockData;
-        }
-
+        
         public override Empty RecordCrossChainData(CrossChainBlockData crossChainBlockData)
         {
             //Assert(IsMiner(), "Not authorized to do this.");
@@ -155,10 +141,12 @@ namespace AElf.Contracts.CrossChain
             Assert(indexedCrossChainData == null); // This should not fail.
 
             var indexedParentChainBlockData = IndexParentChainBlockData(crossChainBlockData.ParentChainBlockData);
-            
-            State.LastIndexedParentChainBlockData.Value = indexedParentChainBlockData;
+
             if (indexedParentChainBlockData.ParentChainBlockData.Count > 0)
+            {
+                State.LastIndexedParentChainBlockData.Value = indexedParentChainBlockData;
                 Context.Fire(new ParentChainBlockDataIndexed());
+            }
             
             var indexedSideChainBlockData = IndexSideChainBlockData(crossChainBlockData.SideChainBlockData);
             State.IndexedSideChainBlockData[Context.CurrentHeight] = indexedSideChainBlockData;

@@ -5,13 +5,13 @@ namespace AElf.CrossChain.Communication.Grpc
 {
     public sealed class GrpcCrossChainServerNodePluginTests : GrpcCrossChainServerTestBase
     {
-        private readonly GrpcCrossChainServerNodePlugin _grpcCrossChainServerNodePlugin;
+        private readonly IGrpcServePlugin _grpcCrossChainServerNodePlugin;
         private readonly IGrpcCrossChainServer _grpcCrossChainServer;
 
         public GrpcCrossChainServerNodePluginTests()
         {
             _grpcCrossChainServer = GetRequiredService<IGrpcCrossChainServer>();
-            _grpcCrossChainServerNodePlugin = GetRequiredService<GrpcCrossChainServerNodePlugin>();
+            _grpcCrossChainServerNodePlugin = GetRequiredService<IGrpcServePlugin>();
         }
 
         [Fact]

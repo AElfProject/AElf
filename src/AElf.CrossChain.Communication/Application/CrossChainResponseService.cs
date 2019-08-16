@@ -88,9 +88,9 @@ namespace AElf.CrossChain.Communication.Application
         
         private async Task<List<SideChainBlockData>> GetIndexedSideChainBlockDataResultAsync(Block block)
         {
-            var crossChainBlockData =
-                await _crossChainIndexingDataService.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
-            return crossChainBlockData.SideChainBlockData.ToList();
+            var indexedSideChainBlockData =
+                await _crossChainIndexingDataService.GetIndexedSideChainBlockDataAsync(block.GetHash(), block.Height);
+            return indexedSideChainBlockData.SideChainBlockData.ToList();
         }
         
         private Dictionary<long, MerklePath> GetEnumerableMerklePath(IList<SideChainBlockData> indexedSideChainBlockDataResult, 
