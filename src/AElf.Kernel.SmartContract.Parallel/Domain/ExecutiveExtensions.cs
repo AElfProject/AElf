@@ -56,16 +56,23 @@ namespace AElf.Kernel.SmartContract.Parallel
                 return NotParallelizable(txId);
             }
 
-            var resourceInfo = ResourceInfo.Parser.ParseFrom(trace.ReturnValue);
-            return new TransactionResourceInfo
+            try
             {
-                TransactionId = txId,
-                Paths =
+                var resourceInfo = ResourceInfo.Parser.ParseFrom(trace.ReturnValue);
+                return new TransactionResourceInfo
                 {
-                    resourceInfo.Paths
-                },
-                NonParallelizable = resourceInfo.NonParallelizable
-            };
+                    TransactionId = txId,
+                    Paths =
+                    {
+                        resourceInfo.Paths
+                    },
+                    NonParallelizable = resourceInfo.NonParallelizable
+                };
+            }
+            catch (Exception)
+            {
+                return NotParallelizable(txId);
+            }
         }
 
         private static bool IsParallelizable(this IExecutive executive)
