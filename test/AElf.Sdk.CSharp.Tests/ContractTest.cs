@@ -9,16 +9,17 @@ using Xunit;
 using Shouldly;
 using AElf.Sdk.CSharp.Tests.TestContract;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Sdk.CSharp.Tests
 {
     public sealed class ContractTest : SdkCSharpTestBase
     {
-        private List<Address> AddressList { get; } = new[] {"a", "b", "c", "d"}.Select(Address.FromString).ToList();
+        private List<Address> AddressList { get; } = SampleAddress.AddressList.ToList();
         private TokenContract Contract { get; } = new TokenContract();
         private IStateProvider StateProvider { get; }
         private IHostSmartContractBridgeContext BridgeContext { get; }
-
+        
         public ContractTest()
         {
             StateProvider = GetRequiredService<IStateProviderFactory>().CreateStateProvider();
@@ -218,6 +219,7 @@ namespace AElf.Sdk.CSharp.Tests
             var address2 = Contract.GetVirtualAddress(100);
             address2.ShouldNotBe(address);
         }
+
         private void SwitchOwner(Address address)
         {
             var transactionContext = new TransactionContext()

@@ -64,7 +64,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             State.MainChainCurrentMinerList.Value = minerList;
 
-            SetMinerListOfCurrentTerm(minerList);
+            SetMinerList(minerList, 1);
 
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
 
@@ -95,6 +95,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             minerInRound.OutValue = input.OutValue;
             minerInRound.SupposedOrderOfNextRound = input.SupposedOrderOfNextRound;
             minerInRound.FinalOrderOfNextRound = input.SupposedOrderOfNextRound;
+            minerInRound.ImpliedIrreversibleBlockHeight = input.ImpliedIrreversibleBlockHeight;
 
             PerformSecretSharing(input, minerInRound, round, publicKey);
 
@@ -110,13 +111,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 minerInRound.PreviousInValue = input.PreviousInValue;
             }
-            
+
             if (!TryToUpdateRoundInformation(round))
             {
                 Assert(false, "Failed to update round information.");
             }
 
-            TryToFindLastIrreversibleBlock();
+            var irreversibleBlockHeight = CalculateLastIrreversibleBlockHeight();
+            if (irreversibleBlockHeight != 0)
+            {
+                Context.Fire(new IrreversibleBlockFound
+                {
+                    IrreversibleBlockHeight = irreversibleBlockHeight
+                });
+            }
             
             return new Empty();
         }
@@ -163,10 +171,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Empty UpdateTinyBlockInformation(TinyBlockInput input)
         {
             Assert(TryToGetCurrentRoundInformation(out var round), "Round information not found.");
-            if (input.RoundId != round.RoundId)
-            {
-                Context.LogDebug(() => "Round Id not matched.");
-            }
             Assert(input.RoundId == round.RoundId, "Round Id not matched.");
 
             var publicKey = Context.RecoverPublicKey().ToHex();
@@ -216,7 +220,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
-            TryToFindLastIrreversibleBlock();
 
             ClearExpiredRandomNumberTokens();
 

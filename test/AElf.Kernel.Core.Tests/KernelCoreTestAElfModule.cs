@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Modularity;
@@ -21,7 +22,8 @@ namespace AElf.Kernel
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddTransient<BlockValidationProvider>(); 
+            services.AddTransient<BlockValidationProvider>();
+            services.AddSingleton(p => Mock.Of<IAccountService>());
         }
     }
     
@@ -34,15 +36,14 @@ namespace AElf.Kernel
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddTransient<BlockValidationProvider>();
             
             //For system transaction generator testing
             services.AddTransient(provider =>
             {
                 var transactionList = new List<Transaction>
                 {
-                    new Transaction() {From = Address.Zero, To = Address.Generate(), MethodName = "InValue"},
-                    new Transaction() {From = Address.Zero, To = Address.Generate(), MethodName = "OutValue"},
+                    new Transaction() {From = SampleAddress.AddressList[0], To = SampleAddress.AddressList[2], MethodName = "InValue"},
+                    new Transaction() {From = SampleAddress.AddressList[1], To = SampleAddress.AddressList[3], MethodName = "OutValue"},
                 };
                 var consensusTransactionGenerator = new Mock<ISystemTransactionGenerator>();
                 consensusTransactionGenerator.Setup(m => m.GenerateTransactions(It.IsAny<Address>(), It.IsAny<long>(),

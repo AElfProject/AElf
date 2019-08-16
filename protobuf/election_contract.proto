@@ -30,6 +30,8 @@ service ElectionContract {
     }
     rpc UpdateCandidateInformation (UpdateCandidateInformationInput) returns (google.protobuf.Empty) {
     }
+    rpc UpdateMultipleCandidateInformation (UpdateMultipleCandidateInformationInput) returns (google.protobuf.Empty) {
+    }
     rpc UpdateMinersCount (UpdateMinersCountInput) returns (google.protobuf.Empty) {
     }
     rpc SetTreasurySchemeIds (SetTreasurySchemeIdsInput) returns (google.protobuf.Empty) {
@@ -87,13 +89,13 @@ service ElectionContract {
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentWelfareReward (StringInput) returns (aelf.SInt64Value) {
-        option (aelf.is_view) = true;
-    }
     rpc GetPageableCandidateInformation (PageInformation) returns (GetPageableCandidateInformationOutput) {
         option (aelf.is_view) = true;
     }
     rpc GetMinerElectionVotingItemId (google.protobuf.Empty) returns (aelf.Hash) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetDataCenterRankingList (google.protobuf.Empty) returns (DataCenterRankingList) {
         option (aelf.is_view) = true;
     }
 }
@@ -115,6 +117,10 @@ message UpdateCandidateInformationInput {
     sint64 recently_produced_blocks = 2;
     sint64 recently_missed_time_slots = 3;
     bool is_evil_node = 4;
+}
+
+message UpdateMultipleCandidateInformationInput {
+    repeated UpdateCandidateInformationInput value = 1;
 }
 
 message TakeElectionSnapshotInput {
@@ -237,4 +243,9 @@ message SetTreasurySchemeIdsInput {
     aelf.Hash subsidy_hash = 3;
     aelf.Hash votes_reward_hash = 4;
     aelf.Hash re_election_reward_hash = 5;
+}
+
+message DataCenterRankingList {
+    map<string, sint64> data_centers = 1;
+    sint64 minimum_votes = 2;
 }

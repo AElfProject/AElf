@@ -47,9 +47,9 @@ namespace AElf.Contracts.Profit
             return State.ProfitDetailsMap[input.SchemeId][input.Beneficiary];
         }
 
-        private Address GetDistributedPeriodProfitsVirtualAddress(Address schemeVirtualAddress, long period)
+        private Address GetDistributedPeriodProfitsVirtualAddress(Address profitId, long period)
         {
-            return Address.FromPublicKey(period.ToString().CalculateHash().Concat(schemeVirtualAddress.Value).ToArray());
+            return Address.FromPublicKey(period.ToString().ComputeHash().Concat(profitId.Value).ToArray());
         }
 
         public override SInt64Value GetProfitAmount(ClaimProfitsInput input)

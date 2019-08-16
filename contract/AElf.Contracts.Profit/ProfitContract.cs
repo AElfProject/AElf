@@ -101,7 +101,7 @@ namespace AElf.Contracts.Profit
         /// <summary>
         /// Add a child to a existed scheme.
         /// </summary>
-        /// <param name="input">RemoveSubSchemeInput</param>
+        /// <param name="input">AddSubSchemeInput</param>
         /// <returns></returns>
         public override Empty AddSubScheme(AddSubSchemeInput input)
         {
@@ -117,6 +117,7 @@ namespace AElf.Contracts.Profit
             Assert(subScheme != null, "Sub scheme not found.");
 
             var subItemVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeId);
+            // Add profit details and total shares of the father scheme.
             AddBeneficiary(new AddBeneficiaryInput
             {
                 SchemeId = input.SchemeId,
@@ -134,7 +135,6 @@ namespace AElf.Contracts.Profit
                 SchemeId = input.SubSchemeId,
                 Shares = input.SubSchemeShares
             });
-            scheme.TotalShares = scheme.TotalShares.Add(input.SubSchemeShares);
             State.SchemeInfos[input.SchemeId] = scheme;
 
             return new Empty();
@@ -156,13 +156,12 @@ namespace AElf.Contracts.Profit
             if (subScheme == null) return new Empty();
 
             var subSchemeVirtualAddress = Context.ConvertVirtualAddressToContractAddress(subSchemeId);
-            RemoveBeneficiary(new RemoveBeneficiaryInput
-            {
-                SchemeId = input.SchemeId,
-                Beneficiary = subSchemeVirtualAddress
-            });
+            // Remove profit details
+            State.ProfitDetailsMap[input.SchemeId][subSchemeVirtualAddress] = new ProfitDetails();
 
-            scheme.SubSchemes.Remove(scheme.SubSchemes.Single(d => d.SchemeId == input.SubSchemeId));
+            var shares = scheme.SubSchemes.Single(d => d.SchemeId == input.SubSchemeId);
+            scheme.SubSchemes.Remove(shares);
+            scheme.TotalShares = scheme.TotalShares.Sub(shares.Shares);
             State.SchemeInfos[input.SchemeId] = scheme;
 
             return new Empty();
@@ -200,7 +199,7 @@ namespace AElf.Contracts.Profit
 
             var profitDetail = new ProfitDetail
             {
-                StartPeriod = scheme.CurrentPeriod,
+                StartPeriod = scheme.CurrentPeriod.Add(scheme.DelayDistributePeriodCount),
                 EndPeriod = input.EndPeriod,
                 Shares = input.BeneficiaryShare.Shares,
             };
@@ -276,7 +275,7 @@ namespace AElf.Contracts.Profit
 //                State.ProfitDetailsMap[input.SchemeId][input.Beneficiary] = null;
 //            }
 
-            scheme.TotalShares -= shares;
+            scheme.TotalShares = scheme.TotalShares.Sub(shares);
             State.SchemeInfos[input.SchemeId] = scheme;
 
             return new Empty();
@@ -343,12 +342,6 @@ namespace AElf.Contracts.Profit
             if (scheme.IsReleaseAllBalanceEveryTimeByDefault && input.Amount == 0)
             {
                 // Distribute all from general ledger.
-                if (State.TokenContract.Value == null)
-                {
-                    State.TokenContract.Value =
-                        Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-                }
-
                 Context.LogDebug(() =>
                     $"Update distributing amount to {balance} because IsReleaseAllBalanceEveryTimeByDefault == true.");
                 input.Amount = balance;
@@ -392,7 +385,7 @@ namespace AElf.Contracts.Profit
                 $"total Shares {distributedProfitInformation.TotalShares}, total amount {distributedProfitInformation.ProfitsAmount} {input.Symbol}s");
 
             PerformDistributeProfits(input, scheme, totalShares, profitsReceivingVirtualAddress);
-            
+
             scheme.CurrentPeriod = input.Period.Add(1);
             scheme.UndistributedProfits[input.Symbol] = balance.Sub(input.Amount);
 
@@ -406,12 +399,6 @@ namespace AElf.Contracts.Profit
         {
             Context.LogDebug(() => "Entered BurnProfits.");
             scheme.CurrentPeriod = input.Period > 0 ? input.Period.Add(1) : scheme.CurrentPeriod;
-
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
 
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
@@ -473,12 +460,6 @@ namespace AElf.Contracts.Profit
         private DistributedProfitsInfo UpdateDistributedProfits(DistributeProfitsInput input,
             Address profitsReceivingVirtualAddress, long totalShares)
         {
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
-
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
                 Owner = profitsReceivingVirtualAddress,
@@ -549,7 +530,7 @@ namespace AElf.Contracts.Profit
                     });
                 }
 
-                remainAmount -= amount;
+                remainAmount = remainAmount.Sub(amount);
 
                 UpdateSubSchemeInformation(input, subScheme, amount);
 
@@ -694,20 +675,19 @@ namespace AElf.Contracts.Profit
 
             var profitVirtualAddress = Context.ConvertVirtualAddressToContractAddress(input.SchemeId);
 
-            var availableDetails = profitDetails.Details.Where(d =>
-                d.LastProfitPeriod < scheme.CurrentPeriod && d.EndPeriod >= d.LastProfitPeriod
-            ).ToList();
+            var availableDetails = profitDetails.Details.Where(d => d.EndPeriod >= d.LastProfitPeriod).ToList();
+            var profitableDetails = availableDetails.Where(d => d.LastProfitPeriod < scheme.CurrentPeriod).ToList();
 
             Context.LogDebug(() =>
-                $"Available details: {availableDetails.Aggregate("\n", (profit1, profit2) => profit1.ToString() + "\n" + profit2.ToString())}");
+                $"Profitable details: {profitableDetails.Aggregate("\n", (profit1, profit2) => profit1.ToString() + "\n" + profit2.ToString())}");
 
             // Only can get profit from last profit period to actual last period (profit.CurrentPeriod - 1),
             // because current period not released yet.
             for (var i = 0;
-                i < Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, availableDetails.Count);
+                i < Math.Min(ProfitContractConstants.ProfitReceivingLimitForEachTime, profitableDetails.Count);
                 i++)
             {
-                var profitDetail = availableDetails[i];
+                var profitDetail = profitableDetails[i];
                 if (profitDetail.LastProfitPeriod == 0)
                 {
                     // This detail never performed profit before.
@@ -754,6 +734,7 @@ namespace AElf.Contracts.Profit
                         $"Sender's Shares: {detailToPrint.Shares}, total Shares: {distributedProfitsInformation.TotalShares}");
                     if (distributedProfitsInformation.IsReleased && amount > 0)
                     {
+                        // TODO: Optimize.
                         State.TokenContract.TransferFrom.Send(new TransferFromInput
                         {
                             From = distributedPeriodProfitsVirtualAddress,

@@ -1,60 +1,128 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Network.Application
 {
+    /// <summary>
+    /// Exposes networking functionality to the application handlers.
+    /// </summary>
     public class NetworkService : INetworkService, ISingletonDependency
     {
         private readonly IPeerPool _peerPool;
         private readonly ITaskQueueManager _taskQueueManager;
+        private readonly IAElfNetworkServer _networkServer;
+        private readonly IKnownBlockCacheProvider _knownBlockCacheProvider;
 
         public ILogger<NetworkService> Logger { get; set; }
 
-        public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager)
+        public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager, IAElfNetworkServer networkServer, 
+            IKnownBlockCacheProvider knownBlockCacheProvider)
         {
             _peerPool = peerPool;
             _taskQueueManager = taskQueueManager;
+            _networkServer = networkServer;
+            _knownBlockCacheProvider = knownBlockCacheProvider;
 
             Logger = NullLogger<NetworkService>.Instance;
         }
 
         public async Task<bool> AddPeerAsync(string address)
         {
-            return await _peerPool.AddPeerAsync(address);
+            return await _networkServer.ConnectAsync(address);
         }
 
         public async Task<bool> RemovePeerAsync(string address)
         {
-            return await _peerPool.RemovePeerByAddressAsync(address);
+            var peer = _peerPool.FindPeerByAddress(address);
+            if (peer == null)
+            {
+                Logger.LogWarning($"Could not find peer at address {address}");
+                return false;
+            }
+
+            await _networkServer.DisconnectAsync(peer);
+            return true;
         }
 
         public List<IPeer> GetPeers()
         {
-            return _peerPool.GetPeers(true).ToList(); 
+            return _peerPool.GetPeers(true).ToList();
+        }
+
+        private bool IsOldBlock(BlockHeader header)
+        {
+            var limit = TimestampHelper.GetUtcNow() 
+                        - TimestampHelper.DurationFromMinutes(NetworkConstants.DefaultMaxBlockAgeToBroadcastInMinutes);
+            
+            if (header.Time < limit)
+                return true;
+
+            return false;
+        }
+        
+        /// <summary>
+        /// returns false if the block was unknown, false if already known.
+        /// </summary>
+        private bool TryAddKnownBlock(BlockHeader blockHeader)
+        {
+            var blockHash = blockHeader.GetHash();
+            if (_knownBlockCacheProvider.TryGetBlockByHeight(blockHeader.Height, out var recentBlockHash) &&
+                recentBlockHash == blockHash)
+            {
+                Logger.LogDebug($"BlockHeight: {blockHeader.Height}, BlockHash: {blockHash} has been broadcast.");
+                return false;
+            }
+            
+            _knownBlockCacheProvider.AddKnownBlock(blockHeader.Height, blockHash, false);
+
+            return true;
+        }
+        
+        public Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
+        {
+            if (!TryAddKnownBlock(blockWithTransactions.Header))
+                return Task.CompletedTask;
+            
+            if (IsOldBlock(blockWithTransactions.Header))
+                return Task.CompletedTask;
+            
+            _taskQueueManager.Enqueue(async () =>
+            {
+                foreach (var peer in _peerPool.GetPeers())
+                {
+                    try
+                    {
+                        await peer.SendBlockAsync(blockWithTransactions);
+                    }
+                    catch (NetworkException ex)
+                    {
+                        Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
+                        await HandleNetworkException(peer, ex);
+                    }
+                }
+                
+            }, NetworkConstants.BlockBroadcastQueueName);
+            
+            return Task.CompletedTask;
         }
 
         public Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
         {
             var blockHash = blockHeader.GetHash();
             
-            if (_peerPool.RecentBlockHeightAndHashMappings.TryGetValue(blockHeader.Height, out var recentBlockHash) &&
-                recentBlockHash == blockHash)
-            {
-                Logger.LogDebug($"BlockHeight: {blockHeader.Height}, BlockHash: {blockHash} has been broadcast.");
+            if (!TryAddKnownBlock(blockHeader))
                 return Task.CompletedTask;
-            }
             
-            _peerPool.AddRecentBlockHeightAndHash(blockHeader.Height, blockHash, hasFork);
+            if (IsOldBlock(blockHeader))
+                return Task.CompletedTask;
             
             var announce = new BlockAnnouncement
             {
@@ -137,7 +205,7 @@ namespace AElf.OS.Network.Application
 
             return blocks;
         }
-        
+
         private List<IPeer> SelectPeers(string peerPubKey)
         {
             List<IPeer> peers = new List<IPeer>();
@@ -151,7 +219,7 @@ namespace AElf.OS.Network.Application
                 peers.Add(suggestedPeer);
             
             // Get our best peer
-            IPeer bestPeer = _peerPool.GetBestPeer();
+            IPeer bestPeer = _peerPool.GetPeers().FirstOrDefault(p => p.IsBest);
             
             if (bestPeer == null)
                 Logger.LogWarning("No best peer.");
@@ -203,7 +271,7 @@ namespace AElf.OS.Network.Application
         {
             if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
             {
-                await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false);
+                await _networkServer.DisconnectAsync(peer);
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
             {
@@ -220,7 +288,7 @@ namespace AElf.OS.Network.Application
             var success = await peer.TryRecoverAsync();
 
             if (!success)
-                await _peerPool.RemovePeerAsync(peer.Info.Pubkey, false);
+                await _networkServer.DisconnectAsync(peer);
         }
         
         private void QueueNetworkTask(Func<Task> task)

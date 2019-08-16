@@ -59,7 +59,7 @@ namespace AElf.WebApp.Application.Chain
         {
             try
             {
-                var byteArray = ByteArrayHelper.FromHexString(input.RawTransaction);
+                var byteArray = ByteArrayHelper.HexStringToByteArray(input.RawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(byteArray);
                 if (!transaction.VerifySignature())
                 {
@@ -81,9 +81,9 @@ namespace AElf.WebApp.Application.Chain
         {
             try
             {
-                var byteArray = ByteArrayHelper.FromHexString(input.RawTransaction);
+                var byteArray = ByteArrayHelper.HexStringToByteArray(input.RawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(byteArray);
-                transaction.Signature = ByteString.CopyFrom(ByteArrayHelper.FromHexString(input.Signature));
+                transaction.Signature = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.Signature));
                 if (!transaction.VerifySignature())
                 {
                     throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
@@ -109,13 +109,13 @@ namespace AElf.WebApp.Application.Chain
         {
             var transaction = new Transaction
             {
-                From = Address.Parse(input.From),
-                To = Address.Parse(input.To),
+                From = AddressHelper.Base58StringToAddress(input.From),
+                To = AddressHelper.Base58StringToAddress(input.To),
                 RefBlockNumber = input.RefBlockNumber,
-                RefBlockPrefix = ByteString.CopyFrom(Hash.LoadHex(input.RefBlockHash).Value.Take(4).ToArray()),
+                RefBlockPrefix = ByteString.CopyFrom(HashHelper.HexStringToHash(input.RefBlockHash).Value.Take(4).ToArray()),
                 MethodName = input.MethodName
             };
-            var methodDescriptor = await GetContractMethodDescriptorAsync(Address.Parse(input.To), input.MethodName);
+            var methodDescriptor = await GetContractMethodDescriptorAsync(AddressHelper.Base58StringToAddress(input.To), input.MethodName);
             if (methodDescriptor == null)
                 throw new UserFriendlyException(Error.Message[Error.NoMatchMethodInContractAddress],
                     Error.NoMatchMethodInContractAddress.ToString());
@@ -144,8 +144,8 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<SendRawTransactionOutput> SendRawTransactionAsync(SendRawTransactionInput input)
         {
-            var transaction = Transaction.Parser.ParseFrom(ByteArrayHelper.FromHexString(input.Transaction));
-            transaction.Signature = ByteString.CopyFrom(ByteArrayHelper.FromHexString(input.Signature));
+            var transaction = Transaction.Parser.ParseFrom(ByteArrayHelper.HexStringToByteArray(input.Transaction));
+            transaction.Signature = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(input.Signature));
             var txIds = await PublishTransactionsAsync(new[] { transaction.ToByteArray().ToHex() });
 
             var output = new SendRawTransactionOutput
@@ -200,7 +200,7 @@ namespace AElf.WebApp.Application.Chain
                 Transaction transaction;
                 try
                 {
-                    var hexString = ByteArrayHelper.FromHexString(rawTransactions[i]);
+                    var hexString = ByteArrayHelper.HexStringToByteArray(rawTransactions[i]);
                     transaction = Transaction.Parser.ParseFrom(hexString);
                 }
                 catch

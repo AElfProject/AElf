@@ -10,32 +10,32 @@ namespace AElf.Contracts.Consensus.AEDPoS
     public partial class AEDPoSTest
     {
         [Fact]
-        public async Task Query_RoundInformation()
+        public async Task Query_RoundInformation_Test()
         {
             //first round
-            var roundNumber = await BootMiner.GetCurrentRoundNumber.CallAsync(new Empty());
+            var roundNumber = await AEDPoSContractStub.GetCurrentRoundNumber.CallAsync(new Empty());
             
-            var roundInfo = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
+            var roundInfo = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             roundInfo.TermNumber.ShouldBe(roundNumber.Value);
             
             //second round            
-            var nextTermInformation = (await BootMiner.GetInformationToUpdateConsensus.CallAsync(
+            var nextTermInformation = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.NextRound,
                     Pubkey = ByteString.CopyFrom(BootMinerKeyPair.PublicKey)
                 }.ToBytesValue())).ToConsensusHeaderInformation();
-
-            var transactionResult = await BootMiner.NextRound.SendAsync(nextTermInformation.Round);
+            
+            var transactionResult = await AEDPoSContractStub.NextRound.SendAsync(nextTermInformation.Round);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
-            roundNumber = await BootMiner.GetCurrentRoundNumber.CallAsync(new Empty());
+            roundNumber = await AEDPoSContractStub.GetCurrentRoundNumber.CallAsync(new Empty());
             roundNumber.Value.ShouldBe(2);
             
-            roundInfo = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
+            roundInfo = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             roundInfo.RoundNumber.ShouldBe(2);
 
-            var roundInformation = await BootMiner.GetRoundInformation.CallAsync(new SInt64Value
+            var roundInformation = await AEDPoSContractStub.GetRoundInformation.CallAsync(new SInt64Value
             {
                 Value = 2
             });
@@ -43,7 +43,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             roundInformation.TermNumber.ShouldBe(1);
             
             //get term number
-            var termNumber = await BootMiner.GetCurrentTermNumber.CallAsync(new Empty());
+            var termNumber = await AEDPoSContractStub.GetCurrentTermNumber.CallAsync(new Empty());
             termNumber.Value.ShouldBe(1);
         }
     }

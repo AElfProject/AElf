@@ -46,7 +46,7 @@ namespace AElf.OS
                 o.MinerIncreaseInterval = 31536000;
             });
 
-            context.Services.AddTransient<IAccountService>(o =>
+            context.Services.AddTransient(o =>
             {
                 var mockService = new Mock<IAccountService>();
                 mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>

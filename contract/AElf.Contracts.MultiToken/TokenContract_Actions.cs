@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Acs8;
-using AElf.Contracts.CrossChain;
+using Acs0;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
@@ -22,9 +21,6 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty Create(CreateInput input)
         {
-            var existing = State.TokenInfos[input.Symbol];
-            Assert(existing == null && !string.IsNullOrEmpty(input.Symbol),
-                $"Token already exists. Symbol: {input.Symbol}");
             RegisterTokenInfo(new TokenInfo
             {
                 Symbol = input.Symbol,
@@ -33,7 +29,8 @@ namespace AElf.Contracts.MultiToken
                 Decimals = input.Decimals,
                 Issuer = input.Issuer,
                 IsBurnable = input.IsBurnable,
-                IsTransferDisabled = input.IsTransferDisabled
+                IsTransferDisabled = input.IsTransferDisabled,
+                IssueChainId = Context.ChainId
             });
 
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
@@ -51,6 +48,26 @@ namespace AElf.Contracts.MultiToken
 
             Context.LogDebug(() => $"Token created: {input.Symbol}");
 
+            return new Empty();
+        }
+
+        public override Empty RegisterNativeTokenInfo(RegisterNativeTokenInfoInput input)
+        {
+            Assert(string.IsNullOrEmpty(State.NativeTokenSymbol.Value), "Native token already registered.");
+            State.NativeTokenSymbol.Value = input.Symbol;
+            
+            var tokenInfo = new TokenInfo
+            {
+                Symbol = input.Symbol,
+                TokenName = input.TokenName,
+                TotalSupply = input.TotalSupply,
+                Issuer = input.Issuer,
+                Decimals = input.Decimals,
+                IsBurnable = true,
+                IssueChainId = input.IssueChainId
+            };
+
+            RegisterTokenInfo(tokenInfo);
             return new Empty();
         }
 
@@ -74,9 +91,57 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty Transfer(TransferInput input)
         {
-            var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
-            Assert(!tokenInfo.IsTransferDisabled, "Token can't transfer.");
+            AssertValidSymbolAndAmount(input.Symbol, input.Amount);
             DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
+            return new Empty();
+        }
+
+        #region Cross chain
+
+        public override Empty CrossChainCreateToken(CrossChainCreateTokenInput input)
+        {
+            var parentChainId = GetValidCrossChainContractReferenceState().GetParentChainId.Call(new Empty()).Value;
+            var tokenContractAddress = State.CrossChainTransferWhiteList[parentChainId];
+            Assert(tokenContractAddress != null, "Token contract address of parent chain not found.");
+            
+            var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
+
+            AssertCrossChainTransaction(originalTransaction, tokenContractAddress, nameof(Create));
+            
+            var originalTransactionId = originalTransaction.GetHash();
+            CrossChainVerify(originalTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
+
+            CreateInput creationInput = CreateInput.Parser.ParseFrom(originalTransaction.Params);
+
+            RegisterTokenInfo(new TokenInfo
+            {
+                Symbol = creationInput.Symbol,
+                TokenName = creationInput.TokenName,
+                TotalSupply = creationInput.TotalSupply,
+                Decimals = creationInput.Decimals,
+                Issuer = creationInput.Issuer,
+                IsBurnable = creationInput.IsBurnable,
+                IssueChainId = parentChainId
+            });
+            return new Empty();
+        }
+
+        public override Empty RegisterCrossChainTokenContractAddress(RegisterCrossChainTokenContractAddressInput input)
+        {
+            var owner = GetOwnerAddress();
+            Assert(Context.Sender == owner, "No permission.");
+            
+            var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
+            AssertCrossChainTransaction(originalTransaction, Context.GetZeroSmartContractAddress(input.FromChainId),
+                nameof(ACS0Container.ACS0ReferenceState.ValidateSystemContractAddress));
+            
+            var validAddress = ExtractTokenContractAddress(originalTransaction.Params);
+            
+            var originalTransactionId = originalTransaction.GetHash();
+            CrossChainVerify(originalTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
+
+            State.CrossChainTransferWhiteList[input.FromChainId] = validAddress;
+            
             return new Empty();
         }
 
@@ -88,11 +153,14 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty CrossChainTransfer(CrossChainTransferInput input)
         {
-            AssertValidToken(input.TokenInfo.Symbol, input.Amount);
+            AssertValidToken(input.Symbol, input.Amount);
+            int issueChainId = GetIssueChainId(input.Symbol);
+            Assert(issueChainId == input.IssueChainId, "Incorrect issue chain id.");
+            Assert(State.CrossChainTransferWhiteList[input.ToChainId] != null, "Invalid transfer target chain.");
             var burnInput = new BurnInput
             {
                 Amount = input.Amount,
-                Symbol = input.TokenInfo.Symbol
+                Symbol = input.Symbol
             };
             Burn(burnInput);
             return new Empty();
@@ -106,52 +174,43 @@ namespace AElf.Contracts.MultiToken
         public override Empty CrossChainReceiveToken(CrossChainReceiveTokenInput input)
         {
             var transferTransaction = Transaction.Parser.ParseFrom(input.TransferTransactionBytes);
-            var transferTransactionHash = transferTransaction.GetHash();
+            var transferTransactionId = transferTransaction.GetHash();
 
-            Context.LogDebug(() => $"transferTransactionHash == {transferTransactionHash}");
-            Assert(State.VerifiedCrossChainTransferTransaction[transferTransactionHash] == null,
+            Assert(State.VerifiedCrossChainTransferTransaction[transferTransactionId] == null,
                 "Token already claimed.");
 
-            var crossChainTransferInput =
+            var crossChainTransferInput = 
                 CrossChainTransferInput.Parser.ParseFrom(transferTransaction.Params.ToByteArray());
-            var symbol = crossChainTransferInput.TokenInfo.Symbol;
+            var symbol = crossChainTransferInput.Symbol;
             var amount = crossChainTransferInput.Amount;
             var receivingAddress = crossChainTransferInput.To;
             var targetChainId = crossChainTransferInput.ToChainId;
             var transferSender = transferTransaction.From;
+
+            var tokenInfo = AssertValidToken(symbol, amount);
+            int issueChainId = GetIssueChainId(symbol);
+            Assert(issueChainId == crossChainTransferInput.IssueChainId, "Incorrect issue chain id.");
+            Assert(transferSender.Equals(Context.Sender) && targetChainId == Context.ChainId,
+                "Unable to claim cross chain token.");
+            var registeredTokenContractAddress = State.CrossChainTransferWhiteList[input.FromChainId];
+            AssertCrossChainTransaction(transferTransaction, registeredTokenContractAddress,
+                nameof(CrossChainTransfer));
             Context.LogDebug(() =>
                 $"symbol == {symbol}, amount == {amount}, receivingAddress == {receivingAddress}, targetChainId == {targetChainId}");
 
-            Assert(transferSender.Equals(Context.Sender) && targetChainId == Context.ChainId,
-                "Unable to claim cross chain token.");
-            if (State.CrossChainContract.Value == null)
-                State.CrossChainContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
-            var verificationInput = new VerifyTransactionInput
-            {
-                TransactionId = transferTransactionHash,
-                ParentChainHeight = input.ParentChainHeight,
-                VerifiedChainId = input.FromChainId
-            };
-            verificationInput.Path.AddRange(input.MerklePath);
-            if (State.CrossChainContract.Value == null)
-                State.CrossChainContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.CrossChainContractSystemName);
-            var verificationResult =
-                State.CrossChainContract.VerifyTransaction.Call(verificationInput);
-            Assert(verificationResult.Value, "Verification failed.");
+            CrossChainVerify(transferTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
 
-            // Create token if it doesnt exist.
-            var existing = State.TokenInfos[symbol];
-            if (existing == null)
-                RegisterTokenInfo(crossChainTransferInput.TokenInfo);
-
-            State.VerifiedCrossChainTransferTransaction[transferTransactionHash] = input;
+            State.VerifiedCrossChainTransferTransaction[transferTransactionId] = input;
+            tokenInfo.Supply = tokenInfo.Supply.Add(amount);
+            Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
+            State.TokenInfos[symbol] = tokenInfo;
             var balanceOfReceiver = State.Balances[receivingAddress][symbol];
             State.Balances[receivingAddress][symbol] = balanceOfReceiver.Add(amount);
             return new Empty();
         }
-
+        
+        #endregion
+        
         public override Empty Lock(LockInput input)
         {
             AssertLockAddress(input.Symbol);
@@ -182,8 +241,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty TransferFrom(TransferFromInput input)
         {
-            var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
-            Assert(tokenInfo.Issuer == input.To || !tokenInfo.IsTransferDisabled, "Token can't transfer.");
+            AssertValidSymbolAndAmount(input.Symbol, input.Amount);
 
             // First check allowance.
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
@@ -303,63 +361,6 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        private bool TryToBuyMoreResourceTokenForSender(Address contractAddress)
-        {
-            var preferences = Context.Call<ResourceTokenBuyingPreferences>(contractAddress,
-                nameof(State.ResourceConsumptionContract.GetResourceTokenBuyingPreferences), new Empty());
-            var isNeedToBuy = false;
-
-            if (preferences.CpuThreshold > 0)
-            {
-                var cpuBalance = State.Balances[contractAddress]["CPU"];
-                if (cpuBalance <= preferences.CpuThreshold)
-                {
-                    isNeedToBuy = true;
-                    Context.SendInline(contractAddress, nameof(State.ResourceConsumptionContract.BuyResourceToken),
-                        new BuyResourceTokenInput
-                        {
-                            Symbol = "CPU",
-                            Amount = preferences.CpuAmount,
-                            PayLimit = preferences.PayLimit
-                        });
-                }
-            }
-
-            if (preferences.StoAmount > 0)
-            {
-                var stoBalance = State.Balances[contractAddress]["STO"];
-                if (stoBalance <= preferences.StoThreshold)
-                {
-                    isNeedToBuy = true;
-                    Context.SendInline(contractAddress, nameof(State.ResourceConsumptionContract.BuyResourceToken),
-                        new BuyResourceTokenInput
-                        {
-                            Symbol = "STO",
-                            Amount = preferences.StoAmount,
-                            PayLimit = preferences.PayLimit
-                        });
-                }
-            }
-
-            if (preferences.NetThreshold > 0)
-            {
-                var netBalance = State.Balances[contractAddress]["NET"];
-                if (netBalance <= preferences.NetThreshold)
-                {
-                    isNeedToBuy = true;
-                    Context.SendInline(contractAddress, nameof(State.ResourceConsumptionContract.BuyResourceToken),
-                        new BuyResourceTokenInput
-                        {
-                            Symbol = "NET",
-                            Amount = preferences.NetAmount,
-                            PayLimit = preferences.PayLimit
-                        });
-                }
-            }
-
-            return isNeedToBuy;
-        }
-
         private void ChargeFirstSufficientToken(MapField<string, long> symbolToAmountMap, out string symbol,
             out long amount, out long existingBalance)
         {
@@ -422,15 +423,43 @@ namespace AElf.Contracts.MultiToken
 
                 State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalFee);
 
+                if (totalFee > 0)
+                {
+                    TransferTransactionFeesToFeeReceiver(symbol, totalFee);
+                }
+            }
+
+            State.PreviousBlockTransactionFeeTokenSymbolList.Value = new TokenSymbolList();
+
+            return new Empty();
+        }
+
+        private void TransferTransactionFeesToFeeReceiver(string symbol, long totalFee)
+        {
+            if (State.TreasuryContract.Donate != null)
+            {
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,
                     Amount = totalFee
                 });
             }
+            else
+            {
+                Assert(State.FeeReceiver.Value != null, "Fee receiver not set.");
+                Transfer(new TransferInput
+                {
+                    To = State.FeeReceiver.Value,
+                    Symbol = symbol,
+                    Amount = totalFee,
+                });
+            }
+        }
 
-            State.PreviousBlockTransactionFeeTokenSymbolList.Value = new TokenSymbolList();
-
+        public override Empty SetFeeReceiver(Address input)
+        {
+            Assert(State.FeeReceiver.Value != null, "Fee receiver already set.");
+            State.FeeReceiver.Value = input;
             return new Empty();
         }
 
@@ -450,7 +479,6 @@ namespace AElf.Contracts.MultiToken
             }
 
             var transactions = Context.GetPreviousBlockTransactions();
-            var alreadyTriedToBuyResourceTokenContractAddresses = new List<Address>();
             foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"RAM"}))
             {
                 var totalAmount = 0L;
@@ -461,13 +489,6 @@ namespace AElf.Contracts.MultiToken
                     var amount = State.ChargedResourceTokens[caller][contractAddress][symbol];
                     if (amount > 0)
                     {
-                        // TODO: Reconsider. It matters if BuyResourceToken failed. Maybe developer need to buy resource tokens on his own method.
-//                        if (!alreadyTriedToBuyResourceTokenContractAddresses.Contains(contractAddress) &&
-//                            TryToBuyMoreResourceTokenForSender(contractAddress))
-//                        {
-//                            alreadyTriedToBuyResourceTokenContractAddresses.Add(contractAddress);
-//                        }
-
                         State.Balances[contractAddress][symbol] = State.Balances[contractAddress][symbol].Sub(amount);
                         totalAmount = totalAmount.Add(amount);
                         State.ChargedResourceTokens[caller][contractAddress][symbol] = 0;

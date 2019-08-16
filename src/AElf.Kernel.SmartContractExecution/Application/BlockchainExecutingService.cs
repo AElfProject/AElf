@@ -44,7 +44,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             if (blockState != null)
                 return true;
 
-            var transactions = await _blockchainService.GetTransactionsAsync(block.TransactionHashList);
+            var transactions = await _blockchainService.GetTransactionsAsync(block.TransactionIds);
             var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
 
             return executedBlock.GetHashWithoutCache().Equals(blockHash);
@@ -78,6 +78,22 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
 
             return true;
+        }
+
+        private async Task SetBestChainAsync(List<ChainBlockLink> successLinks, Chain chain)
+        {
+            if (successLinks.Count == 0)
+                return;
+
+            Logger.LogTrace($"Set best chain for block height {string.Join(",", successLinks.Select(l => l.Height))}");
+            var blockLink = successLinks.Last();
+            await _blockchainService.SetBestChainAsync(chain, blockLink.Height, blockLink.BlockHash);
+            await LocalEventBus.PublishAsync(new BestChainFoundEventData
+            {
+                BlockHash = chain.BestChainHash,
+                BlockHeight = chain.BestChainHeight,
+                ExecutedBlocks = successLinks.Select(p => p.BlockHash).ToList()
+            });
         }
         
         public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain,
@@ -117,6 +133,16 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     });
                 }
             }
+            catch (BlockValidationException ex)
+            {
+                if (!(ex.InnerException is ValidateNextTimeBlockValidationException))
+                {
+                    await _chainManager.RemoveLongestBranchAsync(chain);
+                    throw;
+                }
+                
+                Logger.LogWarning($"Block validation failed: {ex.Message}.");
+            }
             catch (Exception ex)
             {
                 await _chainManager.RemoveLongestBranchAsync(chain);
@@ -124,18 +150,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 throw;
             }
 
-            if (successLinks.Count > 0)
+            if (successLinks.Count == 0)
             {
-                var blockLink = successLinks.Last();
-                await _blockchainService.SetBestChainAsync(chain, blockLink.Height, blockLink.BlockHash);
-                await LocalEventBus.PublishAsync(new BestChainFoundEventData
-                {
-                    BlockHash = chain.BestChainHash,
-                    BlockHeight = chain.BestChainHeight,
-                    ExecutedBlocks = successLinks.Select(p => p.BlockHash).ToList()
-                });
+                Logger.LogWarning("No block execution succeed in this branch.");
+                await _chainManager.RemoveLongestBranchAsync(chain);
+                return null;
             }
-
+            
+            await SetBestChainAsync(successLinks, chain);
+            
             Logger.LogInformation(
                 $"Attach blocks to best chain, status: {status}, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");
 

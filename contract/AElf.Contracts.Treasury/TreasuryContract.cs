@@ -59,7 +59,6 @@ namespace AElf.Contracts.Treasury
                     IsReleaseAllBalanceEveryTimeByDefault = true,
                     // Distribution of Citizen Welfare will delay one period.
                     DelayDistributePeriodCount = i == 3 ? 1 : 0,
-                    //Manager = i == 2 || i == 3 ? electionContractAddress : Context.Self
                 });
             }
 
@@ -84,7 +83,7 @@ namespace AElf.Contracts.Treasury
             State.BasicRewardHash.Value = managingSchemeIds[4];
             State.VotesWeightRewardHash.Value = managingSchemeIds[5];
             State.ReElectionRewardHash.Value = managingSchemeIds[6];
-            
+
             var electionContractAddress =
                 Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
             if (electionContractAddress != null)
@@ -104,7 +103,7 @@ namespace AElf.Contracts.Treasury
             BuildTreasury();
 
             var treasuryVirtualAddress = Address.FromPublicKey(State.ProfitContract.Value.Value.Concat(
-                managingSchemeIds[0].Value.ToByteArray().CalculateHash()).ToArray());
+                managingSchemeIds[0].Value.ToByteArray().ComputeHash()).ToArray());
             State.TreasuryVirtualAddress.Value = treasuryVirtualAddress;
 
             return new Empty();
@@ -131,7 +130,7 @@ namespace AElf.Contracts.Treasury
             });
 
             ReleaseTreasurySubProfitItems(releasingPeriodNumber);
-            UpdateTreasurySubItemsWeights(input.TermNumber);
+            UpdateTreasurySubItemsShares(input.TermNumber);
 
             Context.LogDebug(() => "Leaving Release.");
             return new Empty();
@@ -139,6 +138,7 @@ namespace AElf.Contracts.Treasury
 
         public override Empty Donate(DonateInput input)
         {
+            Assert(input.Amount > 0, "Invalid amount of donating.");
             if (State.TokenContract.Value == null)
             {
                 State.TokenContract.Value =
@@ -212,12 +212,12 @@ namespace AElf.Contracts.Treasury
 
         private void BuildTreasury()
         {
-            // Register `CitizenWelfare` to `Treasury`
+            // Register `MinerReward` to `Treasury`
             State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
             {
                 SchemeId = State.TreasuryHash.Value,
-                SubSchemeId = State.WelfareHash.Value,
-                SubSchemeShares = TreasuryContractConstants.CitizenWelfareWeight
+                SubSchemeId = State.RewardHash.Value,
+                SubSchemeShares = TreasuryContractConstants.MinerRewardWeight
             });
 
             // Register `BackupSubsidy` to `Treasury`
@@ -228,12 +228,12 @@ namespace AElf.Contracts.Treasury
                 SubSchemeShares = TreasuryContractConstants.BackupSubsidyWeight
             });
 
-            // Register `MinerReward` to `Treasury`
+            // Register `CitizenWelfare` to `Treasury`
             State.ProfitContract.AddSubScheme.Send(new AddSubSchemeInput
             {
                 SchemeId = State.TreasuryHash.Value,
-                SubSchemeId = State.RewardHash.Value,
-                SubSchemeShares = TreasuryContractConstants.MinerRewardWeight
+                SubSchemeId = State.WelfareHash.Value,
+                SubSchemeShares = TreasuryContractConstants.CitizenWelfareWeight
             });
 
             // Register `MinerBasicReward` to `MinerReward`
@@ -292,7 +292,7 @@ namespace AElf.Contracts.Treasury
             });
         }
 
-        private void UpdateTreasurySubItemsWeights(long termNumber)
+        private void UpdateTreasurySubItemsShares(long termNumber)
         {
             var endPeriod = termNumber.Add(1);
 
@@ -305,18 +305,25 @@ namespace AElf.Contracts.Treasury
             var victories = State.ElectionContract.GetVictories.Call(new Empty()).Value.Select(bs => bs.ToHex())
                 .ToList();
 
-            var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
-                .RealTimeMinersInformation.Keys.ToList();
-            var previousMinerAddress =
-                previousMiners.Select(m => Address.FromPublicKey(ByteArrayHelper.FromHexString(m))).ToList();
+            var previousMiners = State.AEDPoSContract.GetPreviousMinerList.Call(new Empty()).Pubkeys.ToList();
+            var previousMinerAddress = previousMiners.Select(k => Address.FromPublicKey(k.ToByteArray())).ToList();
 
             UpdateBasicMinerRewardWeights(endPeriod, victories, previousMinerAddress);
 
-            UpdateReElectionRewardWeights(endPeriod, previousMiners, previousMinerAddress, victories);
+            UpdateReElectionRewardWeights(endPeriod, previousMiners.Select(m => m.ToHex()).ToList(),
+                previousMinerAddress, victories);
 
             UpdateVotesWeightRewardWeights(endPeriod, victories, previousMinerAddress);
         }
-        
+
+        /// <summary>
+        /// Remove current total shares of Basic Reward,
+        /// Add new shares for miners of next term.
+        /// 1 share for each miner.
+        /// </summary>
+        /// <param name="endPeriod"></param>
+        /// <param name="victories"></param>
+        /// <param name="previousMinerAddresses"></param>
         private void UpdateBasicMinerRewardWeights(long endPeriod, IEnumerable<string> victories,
             IEnumerable<Address> previousMinerAddresses)
         {
@@ -341,8 +348,16 @@ namespace AElf.Contracts.Treasury
             State.ProfitContract.AddBeneficiaries.Send(basicRewardProfitAddBeneficiaries);
         }
 
-        private void UpdateReElectionRewardWeights(long endPeriod, IEnumerable<string> previousMiners,
-            IEnumerable<Address> previousMinerAddresses, List<string> victories)
+        /// <summary>
+        /// Remove current total shares of Re-Election Reward,
+        /// Add shares to re-elected miners based on their continual appointment count.
+        /// </summary>
+        /// <param name="endPeriod"></param>
+        /// <param name="previousMiners"></param>
+        /// <param name="previousMinerAddresses"></param>
+        /// <param name="victories"></param>
+        private void UpdateReElectionRewardWeights(long endPeriod, ICollection<string> previousMiners,
+            IEnumerable<Address> previousMinerAddresses, ICollection<string> victories)
         {
             var reElectionRewardProfitSubBeneficiaries = new RemoveBeneficiariesInput
             {
@@ -351,25 +366,49 @@ namespace AElf.Contracts.Treasury
             };
             State.ProfitContract.RemoveBeneficiaries.Send(reElectionRewardProfitSubBeneficiaries);
 
+            var minerReElectionInformation = State.MinerReElectionInformation.Value ??
+                                             InitialMinerReElectionInformation(previousMiners);
+
+            AddBeneficiariesForReElectionScheme(endPeriod, victories, minerReElectionInformation);
+
+            var recordedMiners = minerReElectionInformation.Clone().ContinualAppointmentTimes.Keys;
+            foreach (var miner in recordedMiners)
+            {
+                if (!victories.Contains(miner))
+                {
+                    minerReElectionInformation.ContinualAppointmentTimes.Remove(miner);
+                }
+            }
+
+            State.MinerReElectionInformation.Value = minerReElectionInformation;
+        }
+
+        private void AddBeneficiariesForReElectionScheme(long endPeriod, IEnumerable<string> victories,
+            MinerReElectionInformation minerReElectionInformation)
+        {
             var reElectionProfitAddBeneficiaries = new AddBeneficiariesInput
             {
                 SchemeId = State.ReElectionRewardHash.Value,
                 EndPeriod = endPeriod
             };
-            foreach (var previousMiner in previousMiners)
+
+            foreach (var victory in victories)
             {
-                var continualAppointmentCount =
-                    State.ElectionContract.GetCandidateInformation.Call(new StringInput {Value = previousMiner})
-                        .ContinualAppointmentCount;
-                continualAppointmentCount = victories.Contains(previousMiner) ? continualAppointmentCount.Add(1) : 0;
-                var minerAddress = Address.FromPublicKey(ByteArrayHelper.FromHexString(previousMiner));
-                if (continualAppointmentCount > 0)
+                if (minerReElectionInformation.ContinualAppointmentTimes.ContainsKey(victory))
                 {
+                    var minerAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(victory));
+                    var continualAppointmentCount =
+                        minerReElectionInformation.ContinualAppointmentTimes[victory].Add(1);
+                    minerReElectionInformation.ContinualAppointmentTimes[victory] = continualAppointmentCount;
                     reElectionProfitAddBeneficiaries.BeneficiaryShares.Add(new BeneficiaryShare
                     {
                         Beneficiary = minerAddress,
                         Shares = continualAppointmentCount
                     });
+                }
+                else
+                {
+                    minerReElectionInformation.ContinualAppointmentTimes.Add(victory, 0);
                 }
             }
 
@@ -379,6 +418,24 @@ namespace AElf.Contracts.Treasury
             }
         }
 
+        private MinerReElectionInformation InitialMinerReElectionInformation(ICollection<string> previousMiners)
+        {
+            var information = new MinerReElectionInformation();
+            foreach (var previousMiner in previousMiners)
+            {
+                information.ContinualAppointmentTimes.Add(previousMiner, 0);
+            }
+
+            return information;
+        }
+
+        /// <summary>
+        /// Remove current total shares of Votes Weight Reward,
+        /// Add shares to current miners based on votes they obtained.
+        /// </summary>
+        /// <param name="endPeriod"></param>
+        /// <param name="victories"></param>
+        /// <param name="previousMinerAddresses"></param>
         private void UpdateVotesWeightRewardWeights(long endPeriod, IEnumerable<string> victories,
             IEnumerable<Address> previousMinerAddresses)
         {
@@ -395,12 +452,17 @@ namespace AElf.Contracts.Treasury
                 EndPeriod = endPeriod
             };
 
+            var dataCenterRankingList = State.ElectionContract.GetDataCenterRankingList.Call(new Empty());
+
             foreach (var victory in victories)
             {
-                var obtainedVotes =
-                    State.ElectionContract.GetCandidateVote.Call(new StringInput {Value = victory})
-                        .ObtainedActiveVotedVotesAmount;
-                var minerAddress = Address.FromPublicKey(ByteArrayHelper.FromHexString(victory));
+                var obtainedVotes = 0L;
+                if (dataCenterRankingList.DataCenters.ContainsKey(victory))
+                {
+                    obtainedVotes = dataCenterRankingList.DataCenters[victory];
+                }
+
+                var minerAddress = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(victory));
                 if (obtainedVotes > 0)
                 {
                     votesWeightRewardProfitAddBeneficiaries.BeneficiaryShares.Add(new BeneficiaryShare
@@ -437,6 +499,7 @@ namespace AElf.Contracts.Treasury
             {
                 return new GetWelfareRewardAmountSampleOutput();
             }
+
             var totalAmount = releasedInformation.ProfitsAmount;
             foreach (var lockTime in input.Value)
             {
@@ -445,20 +508,6 @@ namespace AElf.Contracts.Treasury
             }
 
             return output;
-        }
-
-        //TODO: Remove, will implement in AEDPoS contract
-        public override SInt64Value GetCurrentWelfareReward(Empty input)
-        {
-            var welfareVirtualAddress = Context.ConvertVirtualAddressToContractAddress(State.WelfareHash.Value);
-            return new SInt64Value
-            {
-                Value = State.TokenContract.GetBalance.Call(new GetBalanceInput
-                {
-                    Owner = welfareVirtualAddress,
-                    Symbol = Context.Variables.NativeSymbol
-                }).Balance
-            };
         }
 
         public override SInt64Value GetCurrentTreasuryBalance(Empty input)
@@ -471,6 +520,11 @@ namespace AElf.Contracts.Treasury
                     Symbol = Context.Variables.NativeSymbol
                 }).Balance
             };
+        }
+
+        public override Hash GetTreasurySchemeId(Empty input)
+        {
+            return State.TreasuryHash.Value ?? Hash.Empty;
         }
 
         private long GetVotesWeight(long votesAmount, long lockTime)

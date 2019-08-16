@@ -11,7 +11,7 @@ namespace AElf.Contracts.Election
     public partial class ElectionContractTests : ElectionContractTestBase
     {
         [Fact]
-        public async Task UserVote_And_GetProfitAmount()
+        public async Task UserVote_And_GetProfitAmount_Test()
         {
             ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
 

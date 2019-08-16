@@ -32,7 +32,11 @@ namespace AElf.Contracts.Election
 
             AddCandidateAsOption(publicKey);
 
-            RegisterCandidateToSubsidyProfitScheme();
+            if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
+            {
+                State.DataCentersRankingList.Value.DataCenters.Add(publicKey, 0);
+                RegisterCandidateToSubsidyProfitScheme();
+            }
 
             return new Empty();
         }
@@ -50,7 +54,7 @@ namespace AElf.Contracts.Election
             if (candidateInformation != null)
             {
                 Assert(!candidateInformation.IsCurrentCandidate,
-                    "This public key already announced election.");
+                    $"This public key already announced election. {publicKey}");
                 candidateInformation.AnnouncementTransactionId = Context.TransactionId;
                 candidateInformation.IsCurrentCandidate = true;
                 // In this way we can keep history of current candidate, like terms, missed time slots, etc.
@@ -189,6 +193,7 @@ namespace AElf.Contracts.Election
                 "Current miners cannot quit election.");
 
             State.Candidates.Value.Value.Remove(publicKeyByteString);
+            State.DataCentersRankingList.Value.DataCenters.Remove(recoveredPublicKey.ToHex());
         }
 
         #endregion

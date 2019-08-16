@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+import "aelf/core.proto";
+import "kernel.proto";
+import "google/protobuf/timestamp.proto";
+import "acs7.proto";
+
+option csharp_namespace = "AElf.CrossChain";
+
+message CrossChainRequest {
+    int32 from_chain_id = 1; // own chain id
+    int64 next_height = 2;
+    int32 listening_port = 3;
+}
+
+message CrossChainExtraData {
+    aelf.Hash side_chain_block_headers_root = 1; // Merkle tree root of side chain block headers
+    aelf.Hash side_chain_transactions_root = 2; // Merkle tree root of side chain block transaction roots
+}
+
+message HandShake {
+    int32 listening_port = 1;
+    int32 from_chain_id = 2;
+    string host = 3;
+}
+
+message HandShakeReply {
+    bool success = 1;
+}
+
+message SideChainInitializationRequest{
+    int32 chain_id = 1;
+}
+
+service ParentChainRpc {
+    rpc RequestIndexingFromParentChain (CrossChainRequest) returns (stream acs7.ParentChainBlockData) {}
+    rpc RequestChainInitializationDataFromParentChain (SideChainInitializationRequest) returns (acs7.ChainInitializationData) {}
+}
+
+service SideChainRpc{
+    rpc RequestIndexingFromSideChain (CrossChainRequest) returns (stream acs7.SideChainBlockData) {}
+}
+
+service BasicCrossChainRpc{
+    rpc CrossChainHandShake (HandShake) returns (HandShakeReply) {}
+}
+
+

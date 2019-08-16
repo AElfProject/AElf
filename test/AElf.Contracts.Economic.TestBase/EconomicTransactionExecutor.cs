@@ -17,12 +17,10 @@ namespace AElf.Contracts.Economic.TestBase
     public class EconomicTransactionExecutor : ITransactionExecutor
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly IBlockchainService _blockchainService;
 
-        public EconomicTransactionExecutor(IServiceProvider serviceProvider, IBlockchainService blockchainService)
+        public EconomicTransactionExecutor(IServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
-            _blockchainService = blockchainService;
         }
 
         public async Task ExecuteAsync(Transaction transaction)
@@ -41,7 +39,7 @@ namespace AElf.Contracts.Economic.TestBase
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
                 blockTimeProvider.GetBlockTime(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
 
-            await _blockchainService.AddBlockAsync(block);
+            await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
         }
 

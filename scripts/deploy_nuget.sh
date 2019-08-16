@@ -10,7 +10,7 @@ cd src/
 for name in `ls -lh | grep ^d | grep AElf | grep -v Tests | awk '{print $NF}'`;
 do
     if [[ -f ${name}/${name}.csproj ]] && [[ 1 -eq $(grep -c "GeneratePackageOnBuild"  ${name}/${name}.csproj) ]];then
-        dotnet build ${name}/${name}.csproj --configuration Release -P:Version=${VERSION} -P:Authors=AElf -o ../
+        dotnet build /clp:ErrorsOnly ${name}/${name}.csproj --configuration Release -P:Version=${VERSION} -P:Authors=AElf -o ../
     fi
 done
 

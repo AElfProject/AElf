@@ -1,7 +1,9 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Application;
+using AElf.OS.BlockSync.Domain;
 using AElf.OS.BlockSync.Dto;
+using AElf.OS.BlockSync.Infrastructure;
+using AElf.OS.Network;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -9,24 +11,26 @@ namespace AElf.OS.BlockSync.Application
 {
     public class BlockSyncService : IBlockSyncService
     {
-        private readonly IBlockchainService _blockchainService;
         private readonly IBlockFetchService _blockFetchService;
-        private readonly IBlockDownloadService _blockDownloadService;
+        private readonly IBlockSyncAttachService _blockSyncAttachService;
         private readonly IBlockSyncQueueService _blockSyncQueueService;
-
+        private readonly IBlockDownloadJobManager _blockDownloadJobManager;
+        private readonly IAnnouncementCacheProvider _announcementCacheProvider;
+        
         public ILogger<BlockSyncService> Logger { get; set; }
 
-        public BlockSyncService(IBlockchainService blockchainService,
-            IBlockFetchService blockFetchService,
-            IBlockDownloadService blockDownloadService,
-            IBlockSyncQueueService blockSyncQueueService)
+        public BlockSyncService(IBlockFetchService blockFetchService,
+            IBlockSyncAttachService blockSyncAttachService,
+            IBlockSyncQueueService blockSyncQueueService,
+            IBlockDownloadJobManager blockDownloadJobManager, IAnnouncementCacheProvider announcementCacheProvider)
         {
             Logger = NullLogger<BlockSyncService>.Instance;
 
-            _blockchainService = blockchainService;
             _blockFetchService = blockFetchService;
-            _blockDownloadService = blockDownloadService;
+            _blockSyncAttachService = blockSyncAttachService;
             _blockSyncQueueService = blockSyncQueueService;
+            _blockDownloadJobManager = blockDownloadJobManager;
+            _announcementCacheProvider = announcementCacheProvider;
         }
 
         public async Task SyncByAnnouncementAsync(Chain chain, SyncAnnouncementDto syncAnnouncementDto)
@@ -44,13 +48,23 @@ namespace AElf.OS.BlockSync.Application
             }
             else
             {
-                if(!_blockSyncQueueService.ValidateQueueAvailability(OSConstants.BlockDownloadQueueName))
-                {
-                    Logger.LogWarning("Block sync download queue is too busy.");
-                    return;
-                }
-                
-                EnqueueDownloadBlocksJob(syncAnnouncementDto);
+                await _blockDownloadJobManager.EnqueueAsync(syncAnnouncementDto.SyncBlockHash, syncAnnouncementDto
+                .SyncBlockHeight,
+                    syncAnnouncementDto.BatchRequestBlockCount, syncAnnouncementDto.SuggestedPeerPubkey);
+            }
+        }
+        
+        public async Task SyncByBlockAsync(Chain chain, SyncBlockDto syncBlockDto)
+        {
+            if (syncBlockDto.BlockWithTransactions.Height <=
+                chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset)
+            {
+                EnqueueSyncBlockJob(syncBlockDto.BlockWithTransactions);
+            }
+            else
+            {
+                await _blockDownloadJobManager.EnqueueAsync(syncBlockDto.BlockWithTransactions.GetHash(), syncBlockDto.BlockWithTransactions.Height,
+                    syncBlockDto.BatchRequestBlockCount, syncBlockDto.SuggestedPeerPubkey);
             }
         }
 
@@ -65,56 +79,30 @@ namespace AElf.OS.BlockSync.Application
                 if (ValidateQueueAvailability())
                 {
                     fetchResult = await _blockFetchService.FetchBlockAsync(syncAnnouncementDto.SyncBlockHash,
-                        syncAnnouncementDto.SyncBlockHeight, syncAnnouncementDto.SuggestedPeerPubKey);
+                        syncAnnouncementDto.SyncBlockHeight, syncAnnouncementDto.SuggestedPeerPubkey);
                 }
 
-                if (!fetchResult && retryTimes > 1)
+                if (fetchResult)
+                    return;
+                if (retryTimes > 1)
                 {
                     EnqueueFetchBlockJob(syncAnnouncementDto, retryTimes - 1);
+                }
+                else if (_announcementCacheProvider.TryGetAnnouncementNextSender(syncAnnouncementDto.SyncBlockHash, out var senderPubKey))
+                {
+                    syncAnnouncementDto.SuggestedPeerPubkey = senderPubKey;
+                    EnqueueFetchBlockJob(syncAnnouncementDto, BlockSyncConstants.FetchBlockRetryTimes);
                 }
             }, OSConstants.BlockFetchQueueName);
         }
 
-        private void EnqueueDownloadBlocksJob(SyncAnnouncementDto syncAnnouncementDto)
+        private void EnqueueSyncBlockJob(BlockWithTransactions blockWithTransactions)
         {
             _blockSyncQueueService.Enqueue(async () =>
             {
-                Logger.LogTrace(
-                    $"Block sync: Download blocks, block height: {syncAnnouncementDto.SyncBlockHeight}, block hash: {syncAnnouncementDto.SyncBlockHash}.");
-
-                if (ValidateQueueAvailability())
-                {
-                    var chain = await _blockchainService.GetChainAsync();
-
-                    if (syncAnnouncementDto.SyncBlockHeight <= chain.LastIrreversibleBlockHeight)
-                    {
-                        Logger.LogWarning(
-                            $"Receive lower header {{ hash: {syncAnnouncementDto.SyncBlockHash}, height: {syncAnnouncementDto.SyncBlockHeight} }}.");
-                        return;
-                    }
-
-                    var syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.LongestChainHash,
-                        chain.LongestChainHeight, syncAnnouncementDto.BatchRequestBlockCount,
-                        syncAnnouncementDto.SuggestedPeerPubKey);
-
-                    if (syncBlockCount == 0)
-                    {
-                        syncBlockCount = await _blockDownloadService.DownloadBlocksAsync(chain.BestChainHash,
-                            chain.BestChainHeight, syncAnnouncementDto.BatchRequestBlockCount,
-                            syncAnnouncementDto.SuggestedPeerPubKey);
-                    }
-
-                    if (syncBlockCount == 0 && syncAnnouncementDto.SyncBlockHeight >
-                        chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset)
-                    {
-                        Logger.LogDebug(
-                            $"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
-                        await _blockDownloadService.DownloadBlocksAsync(
-                            chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight,
-                            syncAnnouncementDto.BatchRequestBlockCount, syncAnnouncementDto.SuggestedPeerPubKey);
-                    }
-                }
-            }, OSConstants.BlockDownloadQueueName);
+                Logger.LogTrace($"Block sync: sync block, block: {blockWithTransactions}.");
+                await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions);
+            }, OSConstants.BlockSyncAttachQueueName);
         }
 
         private bool ValidateQueueAvailability()

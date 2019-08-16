@@ -20,7 +20,6 @@ namespace AElf.Kernel.SmartContractExecution
         {
             var services = context.Services;
 
-            services.AddAssemblyOf<SmartContractExecutionAElfModule>();
             services.AddTransient<IBlockchainExecutingService, FullBlockchainExecutingService>();
         }
 

@@ -1,3 +1,4 @@
+using System.Linq;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
@@ -40,7 +41,7 @@ namespace AElf.Contracts.Election
 
             UpdateElectorInformation(recoveredPublicKey, input.Amount);
 
-            UpdateCandidateInformation(input.CandidatePubkey, input.Amount);
+            var candidateVotesAmount = UpdateCandidateInformation(input.CandidatePubkey, input.Amount);
 
             State.TokenContract.Lock.Send(new LockInput
             {
@@ -68,18 +69,71 @@ namespace AElf.Contracts.Election
                 VoteId = Context.TransactionId
             });
 
+            var votesWeight = GetVotesWeight(input.Amount, lockSeconds);
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {
                 SchemeId = State.WelfareHash.Value,
                 BeneficiaryShare = new BeneficiaryShare
                 {
                     Beneficiary = Context.Sender,
-                    Shares = GetVotesWeight(input.Amount, lockSeconds)
+                    Shares = votesWeight
                 },
-                EndPeriod = GetEndPeriod(lockSeconds) + 1
+                EndPeriod = GetEndPeriod(lockSeconds)
             });
 
+            var rankingList = State.DataCentersRankingList.Value;
+            if (State.DataCentersRankingList.Value.DataCenters.ContainsKey(input.CandidatePubkey))
+            {
+                rankingList.DataCenters[input.CandidatePubkey] =
+                    rankingList.DataCenters[input.CandidatePubkey].Add(input.Amount);
+                State.DataCentersRankingList.Value = rankingList;
+            }
+
+            if (State.Candidates.Value.Value.Count > GetValidationDataCenterCount() &&
+                !State.DataCentersRankingList.Value.DataCenters.ContainsKey(input.CandidatePubkey))
+            {
+                TryToBecomeAValidationDataCenter(input, candidateVotesAmount, rankingList);
+            }
+
             return new Empty();
+        }
+
+        private void TryToBecomeAValidationDataCenter(VoteMinerInput input, long candidateVotesAmount,
+            DataCenterRankingList rankingList)
+        {
+            var minimumVotes = candidateVotesAmount;
+            var minimumVotesCandidate = input.CandidatePubkey;
+            bool replaceWillHappen = false;
+            foreach (var pubkeyToVotesAmount in rankingList.DataCenters.Reverse())
+            {
+                if (pubkeyToVotesAmount.Value < minimumVotes)
+                {
+                    replaceWillHappen = true;
+                    minimumVotesCandidate = pubkeyToVotesAmount.Key;
+                    break;
+                }
+            }
+
+            if (replaceWillHappen)
+            {
+                State.DataCentersRankingList.Value.DataCenters.Remove(minimumVotesCandidate);
+                State.DataCentersRankingList.Value.DataCenters.Add(input.CandidatePubkey,
+                    candidateVotesAmount);
+                State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+                {
+                    SchemeId = State.SubsidyHash.Value,
+                    Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(minimumVotesCandidate))
+                });
+                State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+                {
+                    SchemeId = State.SubsidyHash.Value,
+                    BeneficiaryShare = new BeneficiaryShare
+                    {
+                        Beneficiary = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.CandidatePubkey)),
+                        Shares = 1
+                    }
+                });
+            }
         }
 
         /// <summary>
@@ -117,7 +171,7 @@ namespace AElf.Contracts.Election
         /// </summary>
         /// <param name="candidatePublicKey"></param>
         /// <param name="amount"></param>
-        private void UpdateCandidateInformation(string candidatePublicKey, long amount)
+        private long UpdateCandidateInformation(string candidatePublicKey, long amount)
         {
             var candidateVotes = State.CandidateVotes[candidatePublicKey];
             if (candidateVotes == null)
@@ -140,8 +194,11 @@ namespace AElf.Contracts.Election
             }
 
             State.CandidateVotes[candidatePublicKey] = candidateVotes;
+
+            return candidateVotes.ObtainedActiveVotedVotesAmount;
         }
 
+        // TODO: Tune the votes weight calculation.
         private long GetVotesWeight(long votesAmount, long lockTime)
         {
             return lockTime.Mul(1_0000).Div(86400).Div(270).Mul(votesAmount).Add(votesAmount.Mul(2).Div(3));
@@ -216,6 +273,15 @@ namespace AElf.Contracts.Election
                 SchemeId = State.WelfareHash.Value,
                 Beneficiary = Context.Sender
             });
+
+            var rankingList = State.DataCentersRankingList.Value;
+            if (State.DataCentersRankingList.Value.DataCenters.ContainsKey(votingRecord.Option))
+            {
+                rankingList.DataCenters[votingRecord.Option] =
+                    rankingList.DataCenters[votingRecord.Option].Sub(votingRecord.Amount);
+                State.DataCentersRankingList.Value = rankingList;
+            }
+
 
             return new Empty();
         }

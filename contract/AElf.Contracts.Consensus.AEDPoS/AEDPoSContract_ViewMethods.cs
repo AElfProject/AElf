@@ -43,10 +43,75 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Round GetPreviousRoundInformation(Empty input) =>
             TryToGetPreviousRoundInformation(out var previousRound) ? previousRound : new Round();
 
-        private bool TryToGetMiningInterval(out int miningInterval)
+        public override MinerList GetMinerList(GetMinerListInput input) =>
+            State.MinerListMap[input.TermNumber] ?? new MinerList();
+
+        public override SInt64Value GetMinedBlocksOfPreviousTerm(Empty input)
         {
-            miningInterval = State.MiningInterval.Value;
-            return true;
+            if (TryToGetTermNumber(out var termNumber))
+            {
+                var targetRound = State.FirstRoundNumberOfEachTerm[termNumber].Sub(1);
+                if (TryToGetRoundInformation(targetRound, out var round))
+                {
+                    return new SInt64Value {Value = round.GetMinedBlocks()};
+                }
+            }
+
+            return new SInt64Value();
+        }
+
+        public override MinerList GetPreviousMinerList(Empty input)
+        {
+            if (TryToGetTermNumber(out var termNumber) && termNumber > 1)
+            {
+                return State.MinerListMap[termNumber.Sub(1)] ?? new MinerList();
+            }
+
+            return new MinerList();
+        }
+
+        public override StringValue GetNextMinerPubkey(Empty input)
+        {
+            if (TryToGetCurrentRoundInformation(out var round))
+            {
+                return new StringValue
+                {
+                    Value = round.RealTimeMinersInformation.Values
+                                .FirstOrDefault(m => m.ExpectedMiningTime > Context.CurrentBlockTime)?.Pubkey ??
+                            round.RealTimeMinersInformation.Values.First(m => m.IsExtraBlockProducer).Pubkey
+                };
+            }
+
+            return new StringValue();
+        }
+
+        public override StringValue GetCurrentMinerPubkey(Empty input)
+        {
+            if (TryToGetCurrentRoundInformation(out var round))
+            {
+                var currentMinerPubkey = round.GetCurrentMinerPubkey(Context.CurrentBlockTime);
+                if (currentMinerPubkey != null)
+                {
+                    return new StringValue {Value = currentMinerPubkey};
+                }
+            }
+
+            return new StringValue();
+        }
+
+        public override BoolValue IsCurrentMiner(Address input)
+        {
+            var currentMinerPubkey = GetCurrentMinerPubkey(new Empty());
+            if (currentMinerPubkey.Value.Any())
+            {
+                return new BoolValue
+                {
+                    Value = input == Address.FromPublicKey(
+                                ByteArrayHelper.HexStringToByteArray(currentMinerPubkey.Value))
+                };
+            }
+
+            return new BoolValue {Value = false};
         }
 
         private Round GenerateFirstRoundOfNextTerm(string senderPublicKey, int miningInterval)
@@ -246,11 +311,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             if (!TryToGetRoundInformation(1, out _)) return 0;
             // TODO: the configuration about the minercountinterval should become a const when online;
-            return input.RealTimeMinersInformation.Count < AEDPoSContractConstants.MinMinersCount
-                ? AEDPoSContractConstants.MinMinersCount
-                : AEDPoSContractConstants.MinMinersCount.Add(
+            return input.RealTimeMinersInformation.Count < AEDPoSContractConstants.InitialMinersCount
+                ? AEDPoSContractConstants.InitialMinersCount
+                : AEDPoSContractConstants.InitialMinersCount.Add(
                     (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
                     .Div(State.MinerIncreaseInterval.Value).Mul(2));
+        }
+
+        public override SInt64Value GetCurrentWelfareReward(Empty input)
+        {
+            if (TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                return new SInt64Value
+                    {Value = currentRound.GetMinedBlocks().Mul(GetMiningRewardPerBlock())};
+            }
+
+            return new SInt64Value {Value = 0};
         }
     }
 }

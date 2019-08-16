@@ -15,7 +15,7 @@ namespace AElf.Kernel
 {
     public class KernelTestHelper
     {
-        private ECKeyPair _keyPair = CryptoHelper.GenerateKeyPair();
+        public ECKeyPair KeyPair = CryptoHelper.GenerateKeyPair();
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultService _transactionResultService;
         private readonly IChainManager _chainManager;
@@ -105,17 +105,17 @@ namespace AElf.Kernel
         {
             var transaction = new Transaction
             {
-                From = Address.FromPublicKey(_keyPair.PublicKey),
-                To = Address.Zero,
+                From = Address.FromPublicKey(KeyPair.PublicKey),
+                To = SampleAddress.AddressList[0],
                 MethodName = Guid.NewGuid().ToString(),
                 Params = ByteString.Empty,
                 RefBlockNumber = refBlockNumber,
                 RefBlockPrefix = refBlockHash == null
                     ? ByteString.Empty
-                    : ByteString.CopyFrom(refBlockHash.DumpByteArray().Take(4).ToArray())
+                    : ByteString.CopyFrom(refBlockHash.ToByteArray().Take(4).ToArray())
             };
 
-            var signature = CryptoHelper.SignWithPrivateKey(_keyPair.PrivateKey, transaction.GetHash().DumpByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(KeyPair.PrivateKey, transaction.GetHash().ToByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
             return transaction;
         }
@@ -137,8 +137,9 @@ namespace AElf.Kernel
             return transactionResult;
         }
 
-        public Block GenerateBlock(long previousBlockHeight, Hash previousBlockHash, List<Transaction> transactions = null)
+        public Block GenerateBlock(long previousBlockHeight, Hash previousBlockHash, List<Transaction> transactions = null, ByteString extraData = null)
         {
+            
             var newBlock = new Block
             {
                 Header = new BlockHeader
@@ -149,8 +150,8 @@ namespace AElf.Kernel
                     MerkleTreeRootOfWorldState = Hash.Empty,
                     MerkleTreeRootOfTransactionStatus = Hash.Empty,
                     MerkleTreeRootOfTransactions = Hash.Empty,
-                    ExtraData = { ByteString.Empty },
-                    SignerPubkey = ByteString.CopyFrom(_keyPair.PublicKey)
+                    ExtraData = { extraData==null? ByteString.Empty : extraData },
+                    SignerPubkey = ByteString.CopyFrom(KeyPair.PublicKey)
                 },
                 Body = new BlockBody()
             };
@@ -166,7 +167,7 @@ namespace AElf.Kernel
 
             return newBlock;
         }
-
+        
         public async Task<Block> AttachBlock(long previousBlockHeight, Hash previousBlockHash,
             List<Transaction> transactions = null, List<TransactionResult> transactionResults = null)
         {

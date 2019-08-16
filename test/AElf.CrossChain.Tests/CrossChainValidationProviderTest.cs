@@ -82,7 +82,7 @@ namespace AElf.CrossChain
             fakeIndexedCrossChainData.SideChainBlockData.Add(sideChainBlockData);
             _crossChainTestHelper.AddFakeIndexedCrossChainBlockData(2, fakeIndexedCrossChainData);
            
-            await Assert.ThrowsAsync<ValidateNextTimeBlockValidationException>(() =>
+            await Assert.ThrowsAsync<BlockValidationException>(() =>
                 _crossChainBlockValidationProvider.ValidateBlockAfterExecuteAsync(block));
         }
         
@@ -144,9 +144,9 @@ namespace AElf.CrossChain
 
         private Hash ComputeRootHash(IEnumerable<SideChainBlockData> blockInfo)
         {
-            return new BinaryMerkleTree()
-                .AddNodes(blockInfo.Select(sideChainBlockData => sideChainBlockData.TransactionMerkleTreeRoot))
-                .ComputeRootHash();
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(blockInfo.Select(sideChainBlockData =>
+                sideChainBlockData.TransactionMerkleTreeRoot));
+            return binaryMerkleTree.Root;
         }
 
         private void CreateFakeCacheAndStateData(int fakeSideChainId, SideChainBlockData fakeSideChainBlockData, long height = 1)

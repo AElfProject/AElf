@@ -4,6 +4,7 @@ using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
+using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp.State;
 
 namespace AElf.Contracts.Economic

@@ -30,7 +30,7 @@ service TreasuryContract {
     rpc GetWelfareRewardAmountSample (GetWelfareRewardAmountSampleInput) returns (GetWelfareRewardAmountSampleOutput) {
         option (aelf.is_view) = true;
     }
-    rpc GetCurrentWelfareReward (google.protobuf.Empty) returns (aelf.SInt64Value) {
+    rpc GetTreasurySchemeId (google.protobuf.Empty) returns (aelf.Hash) {
         option (aelf.is_view) = true;
     }
 }
@@ -66,4 +66,8 @@ message DonateAllInput {
 
 message ReleaseMiningRewardInput {
     sint64 mined_blocks_count = 1;
+}
+
+message MinerReElectionInformation {
+    map<string, sint64> continual_appointment_times = 1;
 }

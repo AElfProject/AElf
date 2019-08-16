@@ -159,7 +159,7 @@ namespace AElf.Contracts.Election
         {
             var votes = GetElectorVoteWithRecords(input);
 
-            if (!votes.WithdrawnVotesRecords.Any())
+            if (!votes.WithdrawnVotingRecordIds.Any())
             {
                 return votes;
             }
@@ -256,7 +256,7 @@ namespace AElf.Contracts.Election
         {
             var votes = GetCandidateVoteWithRecords(input);
 
-            if (!votes.ObtainedWithdrawnVotesRecords.Any())
+            if (!votes.ObtainedActiveVotingRecordIds.Any())
             {
                 return votes;
             }
@@ -273,6 +273,11 @@ namespace AElf.Contracts.Election
             }
 
             return votes;
+        }
+
+        public override DataCenterRankingList GetDataCenterRankingList(Empty input)
+        {
+            return State.DataCentersRankingList.Value;
         }
 
         private ElectionVotingRecord TransferVotingRecordToElectionVotingRecord(VotingRecord votingRecord, Hash voteId)
@@ -292,6 +297,11 @@ namespace AElf.Contracts.Election
                 IsWithdrawn = votingRecord.IsWithdrawn,
                 Weight = GetVotesWeight(votingRecord.Amount, lockSeconds)
             };
+        }
+
+        private int GetValidationDataCenterCount()
+        {
+            return GetMinersCount(new Empty()).Value.Mul(5);
         }
     }
 }

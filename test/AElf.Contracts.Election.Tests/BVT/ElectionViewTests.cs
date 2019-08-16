@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Cryptography.ECDSA;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -14,18 +15,18 @@ namespace AElf.Contracts.Election
     public partial class ElectionContractTests : ElectionContractTestBase
     {
         [Fact]
-        public async Task GetMinersCount()
+        public async Task GetMinersCount_Test()
         {
-            await ElectionContract_AnnounceElection();
+            await ElectionContract_AnnounceElection_Test();
 
             var minersCount = await ElectionContractStub.GetMinersCount.CallAsync(new Empty());
             minersCount.Value.ShouldBe(EconomicContractsTestConstants.InitialCoreDataCenterCount);
         }
 
         [Fact]
-        public async Task GetElectionResult()
+        public async Task GetElectionResult_Test()
         {
-            await ElectionContract_Vote();
+            await ElectionContract_Vote_Test();
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
 
             //verify term 1
@@ -39,9 +40,9 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task GetElectorVoteWithRecords_NotExist()
+        public async Task GetElectorVoteWithRecords_NotExist_Test()
         {
-            await ElectionContract_Vote();
+            await ElectionContract_Vote_Test();
 
             var voteRecords = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringInput
             {
@@ -55,7 +56,7 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task GetElectorVoteWithAllRecords()
+        public async Task GetElectorVoteWithAllRecords_Test()
         {
             var voters = await UserVotesCandidate(2, 500, 100);
             var voterKeyPair = voters[0];
@@ -69,7 +70,7 @@ namespace AElf.Contracts.Election
 
             //withdraw
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
-            BlockTimeProvider.SetBlockTime(StartTimestamp.ToDateTime().AddSeconds(100 * 60 * 60 * 24 + 1));
+            BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(100 * 60 * 60 * 24 + 1));
             var voteId =
                 (await ElectionContractStub.GetElectorVote.CallAsync(new StringInput
                     {Value = voterKeyPair.PublicKey.ToHex()})).ActiveVotingRecordIds.First();
@@ -84,7 +85,7 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task GetVotersCount()
+        public async Task GetVotersCount_Test()
         {
             await UserVotesCandidate(5, 1000, 120);
 
@@ -93,7 +94,7 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task GetVotesAmount()
+        public async Task GetVotesAmount_Test()
         {
             await UserVotesCandidate(2, 200, 120);
 
@@ -104,7 +105,7 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task GetTermSnapshot_Test()
         {
-            //first round
+            //first term
             {
                 await ProduceBlocks(InitialCoreDataCenterKeyPairs[0], 5);
                 await ProduceBlocks(InitialCoreDataCenterKeyPairs[1], 10);
@@ -119,7 +120,7 @@ namespace AElf.Contracts.Election
                 snapshot.ElectionResult.Count.ShouldBe(0);
             }
 
-            //second round
+            //second term
             {
                 ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
 
@@ -147,7 +148,7 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task GetPageableCandidateInformation()
+        public async Task GetPageableCandidateInformation_Test()
         {
             ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
 
@@ -182,7 +183,7 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task GetCurrentMiningReward()
+        public async Task GetCurrentMiningReward_Test()
         {
             await NextTerm(BootMinerKeyPair);
 
@@ -211,7 +212,7 @@ namespace AElf.Contracts.Election
         {
             var lockTime = lockDays * 60 * 60 * 24;
 
-            var candidatesKeyPairs = await ElectionContract_AnnounceElection();
+            var candidatesKeyPairs = await ElectionContract_AnnounceElection_Test();
 
             var votersKeyPairs = VoterKeyPairs.Take(voterCount).ToList();
             var voterKeyPair = votersKeyPairs[0];

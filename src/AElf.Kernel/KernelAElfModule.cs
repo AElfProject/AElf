@@ -21,7 +21,7 @@ namespace AElf.Kernel
         typeof(SmartContractExecutionAElfModule),
         typeof(TransactionPoolAElfModule)
     )]
-    public class KernelAElfModule : AElfModule<KernelAElfModule>
+    public class KernelAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
@@ -34,8 +34,6 @@ namespace AElf.Kernel
             taskQueueManager.CreateQueue(KernelConstants.MergeBlockStateQueueName);
             taskQueueManager.CreateQueue(KernelConstants.ConsensusRequestMiningQueueName);
             taskQueueManager.CreateQueue(KernelConstants.UpdateChainQueueName);
-
-
         }
     }
 }

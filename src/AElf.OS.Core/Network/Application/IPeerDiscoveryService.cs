@@ -6,5 +6,6 @@ namespace AElf.OS.Network.Application
     {
         Task<NodeList> DiscoverNodesAsync();
         Task<NodeList> GetNodesAsync(int maxCount);
+        Task AddNodeAsync(NodeInfo nodeInfo);
     }
 }

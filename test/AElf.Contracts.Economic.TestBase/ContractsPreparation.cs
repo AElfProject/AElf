@@ -27,6 +27,7 @@ using InitializeInput = AElf.Contracts.ParliamentAuth.InitializeInput;
 
 namespace AElf.Contracts.Economic.TestBase
 {
+    // ReSharper disable InconsistentNaming
     public partial class EconomicContractsTestBase
     {
         #region Private Preperties
@@ -40,7 +41,7 @@ namespace AElf.Contracts.Economic.TestBase
         protected Dictionary<ProfitType, Hash> ProfitItemsIds { get; set; }
 
         private Address _zeroAddress;
-        protected Address ContractZeroAddress => GetZeroContract();
+        protected new Address ContractZeroAddress => GetZeroContract();
 
         private Address _tokenAddress;
         protected Address TokenContractAddress => GetOrDeployContract(Contracts.MultiToken, ref _tokenAddress);
@@ -58,6 +59,7 @@ namespace AElf.Contracts.Economic.TestBase
         protected Address ConsensusContractAddress => GetOrDeployContract(Contracts.AEDPoS, ref _consensusAddress);
 
         private Address _tokenConverterAddress;
+
         protected Address TokenConverterContractAddress =>
             GetOrDeployContract(Contracts.TokenConverter, ref _tokenConverterAddress);
 
@@ -65,10 +67,12 @@ namespace AElf.Contracts.Economic.TestBase
         protected Address TreasuryContractAddress => GetOrDeployContract(Contracts.Treasury, ref _treasuryAddress);
 
         private Address _feeChargingAddress;
+
         protected Address TransactionFeeChargingContractAddress =>
             GetOrDeployContract(Contracts.TransactionFee, ref _feeChargingAddress);
 
         private Address _methodCallThresholdAddress;
+
         protected Address MethodCallThresholdContractAddress =>
             GetOrDeployContract(TestContracts.MethodCallThreshold, ref _methodCallThresholdAddress);
 
@@ -76,6 +80,7 @@ namespace AElf.Contracts.Economic.TestBase
         protected Address EconomicContractAddress => GetOrDeployContract(Contracts.Economic, ref _economicAddress);
 
         private Address _parliamentAddress;
+
         protected Address ParliamentAuthContractAddress =>
             GetOrDeployContract(Contracts.ParliamentAuth, ref _parliamentAddress);
 
@@ -100,7 +105,7 @@ namespace AElf.Contracts.Economic.TestBase
         internal ElectionContractContainer.ElectionContractStub ElectionContractStub =>
             GetElectionContractTester(BootMinerKeyPair);
 
-        internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub =>
+        internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub =>
             GetConsensusContractTester(BootMinerKeyPair);
 
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub =>
@@ -154,9 +159,9 @@ namespace AElf.Contracts.Economic.TestBase
             return GetTester<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress, keyPair);
         }
 
-        internal AEDPoSContractContainer.AEDPoSContractStub GetConsensusContractTester(ECKeyPair keyPair)
+        internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetConsensusContractTester(ECKeyPair keyPair)
         {
-            return GetTester<AEDPoSContractContainer.AEDPoSContractStub>(ConsensusContractAddress, keyPair);
+            return GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(ConsensusContractAddress, keyPair);
         }
 
         internal TreasuryContractContainer.TreasuryContractStub GetTreasuryContractTester(ECKeyPair keyPair)
@@ -327,7 +332,7 @@ namespace AElf.Contracts.Economic.TestBase
                 MaximumLockTime = 1080 * 86400,
                 MinimumLockTime = 90 * 86400,
                 TimeEachTerm = EconomicContractsTestConstants.TimeEachTerm,
-                MinerList = { minerList },
+                MinerList = {minerList},
                 MinerIncreaseInterval = EconomicContractsTestConstants.MinerIncreaseInterval
             });
             CheckResult(result.TransactionResult);
@@ -367,10 +372,17 @@ namespace AElf.Contracts.Economic.TestBase
                 var issueResult = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
                 {
                     Amount = 1000_000_00000000L,
-                    To = Address.FromPublicKey(BootMinerKeyPair.PublicKey),
+                    To = BootMinerAddress,
                     Memo = "Used to transfer other testers"
                 });
                 CheckResult(issueResult.TransactionResult);
+
+                var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = BootMinerAddress,
+                    Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                });
+                balance.Balance.ShouldBe(1000_000_00000000L);
             }
 
             foreach (var coreDataCenterKeyPair in CoreDataCenterKeyPairs)
@@ -527,12 +539,16 @@ namespace AElf.Contracts.Economic.TestBase
             CheckResult(createResult.TransactionResult);
 
             var proposalHash = Hash.FromMessage(proposal);
-            var approveResult = await ParliamentAuthContractStub.Approve.SendAsync(new Acs3.ApproveInput
+            foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
-                ProposalId = proposalHash,
-            });
-            CheckResult(approveResult.TransactionResult);
-            
+                var tester = GetParliamentAuthContractTester(bp);
+                var approveResult = await tester.Approve.SendAsync(new Acs3.ApproveInput
+                {
+                    ProposalId = proposalHash,
+                });
+                CheckResult(approveResult.TransactionResult);
+            }
+
             var releaseResult = await ParliamentAuthContractStub.Release.SendAsync(proposalHash);
             CheckResult(releaseResult.TransactionResult);
         }

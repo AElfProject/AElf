@@ -70,7 +70,7 @@ namespace AElf.OS.Rpc.ChainController
             byte[] response;
             try
             {
-                var hexString = ByteArrayHelper.FromHexString(rawTransaction);
+                var hexString = ByteArrayHelper.HexStringToByteArray(rawTransaction);
                 var transaction = Transaction.Parser.ParseFrom(hexString);
                 response = await this.CallReadOnly(transaction);
             }
@@ -87,7 +87,7 @@ namespace AElf.OS.Rpc.ChainController
         {
             try
             {
-                return await this.GetFileDescriptorSetAsync(Address.Parse(address));
+                return await this.GetFileDescriptorSetAsync(AddressHelper.Base58StringToAddress(address));
             }
             catch(Exception)
             {
@@ -114,17 +114,17 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("GetTransactionResult", "transactionId")]
         public async Task<JObject> GetTransactionResult(string transactionId)
         {
-            Hash transactionHash;
+            Hash transactionIdHash;
             try
             {
-                transactionHash = Hash.LoadHex(transactionId);
+                transactionIdHash = HashHelper.HexStringToHash(transactionId);
             }
             catch
             {
                 throw new JsonRpcServiceException(Error.InvalidTransactionId, Error.Message[Error.InvalidTransactionId]);
             }
 
-            var transactionResult = await this.GetTransactionResult(transactionHash);
+            var transactionResult = await this.GetTransactionResult(transactionIdHash);
             if (transactionResult.Status == TransactionResultStatus.NotExisted)
                 return new JObject
                 {
@@ -168,7 +168,7 @@ namespace AElf.OS.Rpc.ChainController
             Hash realBlockHash;
             try
             {
-                realBlockHash = Hash.LoadHex(blockHash);
+                realBlockHash = HashHelper.HexStringToHash(blockHash);
             }
             catch
             {
@@ -182,11 +182,11 @@ namespace AElf.OS.Rpc.ChainController
             }
 
             var response = new JArray();
-            if (offset <= block.Body.Transactions.Count - 1)
+            if (offset <= block.Body.TransactionIds.Count - 1)
             {
-                limit = Math.Min(limit, block.Body.Transactions.Count - offset);
-                var transactionHashes = block.Body.Transactions.ToList().GetRange(offset, limit);
-                foreach (var hash in transactionHashes)
+                limit = Math.Min(limit, block.Body.TransactionIds.Count - offset);
+                var transactionIds = block.Body.TransactionIds.ToList().GetRange(offset, limit);
+                foreach (var hash in transactionIds)
                 {
                     var transactionResult = await this.GetTransactionResult(hash);
                     var jObjectResult = (JObject) JsonConvert.DeserializeObject(transactionResult.ToString());
@@ -243,11 +243,11 @@ namespace AElf.OS.Rpc.ChainController
 
             if (includeTransactions)
             {
-                var transactions = blockInfo.Body.Transactions;
+                var transactions = blockInfo.Body.TransactionIds;
                 var txs = new List<string>();
-                foreach (var txHash in transactions)
+                foreach (var transactionId in transactions)
                 {
-                    txs.Add(txHash.ToHex());
+                    txs.Add(transactionId.ToHex());
                 }
 
                 response["Body"]["Transactions"] = JArray.FromObject(txs);
@@ -271,7 +271,7 @@ namespace AElf.OS.Rpc.ChainController
 
             foreach (var notLinkedBlock in chain.NotLinkedBlocks)
             {
-                var block = await this.GetBlock(Hash.LoadBase64(notLinkedBlock.Value));
+                var block = await this.GetBlock(HashHelper.Base64ToHash(notLinkedBlock.Value));
                 formattedNotLinkedBlocks.Add(new JObject
                     {
                         ["BlockHash"] = block.GetHash().ToHex(),
@@ -298,7 +298,7 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("GetBlockState", "blockHash")]
         public async Task<JObject> GetBlockState(string blockHash)
         {
-            var stateStorageKey = Hash.LoadHex(blockHash).ToStorageKey();
+            var stateStorageKey = HashHelper.HexStringToHash(blockHash).ToStorageKey();
             var blockState = await BlockStateSets.GetAsync(stateStorageKey);
             
             if (blockState == null)
@@ -362,17 +362,17 @@ namespace AElf.OS.Rpc.ChainController
         [JsonRpcMethod("GetTransactionMerklePath", "transactionId")]
         public async Task<JObject> GetTransactionMerklePath(string transactionId)
         {
-            Hash transactionHash;
+            Hash transactionId;
             try
             {
-                transactionHash = Hash.LoadHex(transactionId);
+                transactionId = Hash.LoadHex(transactionId);
             }
             catch
             {
                 throw new JsonRpcServiceException(Error.InvalidTransactionId, Error.Message[Error.InvalidTransactionId]);
             }
 
-            var transactionResult = await this.GetTransactionResult(transactionHash);
+            var transactionResult = await this.GetTransactionResult(transactionId);
             if (transactionResult == null)
             {
                 throw new JsonRpcServiceException(Error.NotFound, Error.Message[Error.NotFound]);

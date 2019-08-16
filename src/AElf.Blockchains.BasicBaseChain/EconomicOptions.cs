@@ -10,6 +10,5 @@ namespace AElf.Blockchains.BasicBaseChain
         public double DividendPoolRatio { get; set; } = 0.2;
         public long MaximumLockTime { get; set; } = 1080 * 86400;
         public long MinimumLockTime { get; set; } = 90 * 86400;
-
     }
 }

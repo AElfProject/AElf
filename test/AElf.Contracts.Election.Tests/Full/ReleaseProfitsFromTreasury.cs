@@ -13,7 +13,7 @@ namespace AElf.Contracts.Election
     public partial class ElectionContractTests : ElectionContractTestBase
     {
         [Fact]
-        public async Task CheckTreasuryProfitsDistribution()
+        public async Task CheckTreasuryProfitsDistribution_Test()
         {
             const long txFee = 1_00000000L;
             long rewardAmount;
@@ -80,7 +80,8 @@ namespace AElf.Contracts.Election
                 {
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.BackupSubsidy, currentPeriod);
-                    releasedInformation.TotalShares.ShouldBe(ValidationDataCenterKeyPairs.Count);
+                    releasedInformation.TotalShares.ShouldBe(
+                        EconomicContractsTestConstants.InitialCoreDataCenterCount * 5);
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
                         .ShouldBe(rewardAmount / 5);
                 }
@@ -88,7 +89,8 @@ namespace AElf.Contracts.Election
                 // Amount of backup subsidy.
                 {
                     var amount = await GetProfitAmount(ProfitType.BackupSubsidy);
-                    updatedBackupSubsidy += rewardAmount / 5 / ValidationDataCenterKeyPairs.Count;
+                    updatedBackupSubsidy +=
+                        rewardAmount / 5 / (EconomicContractsTestConstants.InitialCoreDataCenterCount * 5);
                     amount.ShouldBe(updatedBackupSubsidy);
                 }
 
@@ -178,7 +180,8 @@ namespace AElf.Contracts.Election
                 {
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.BackupSubsidy, currentPeriod);
-                    releasedInformation.TotalShares.ShouldBe(ValidationDataCenterKeyPairs.Count);
+                    releasedInformation.TotalShares.ShouldBe(
+                        EconomicContractsTestConstants.InitialCoreDataCenterCount * 5);
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
                         .ShouldBe(rewardAmount / 5);
                 }
@@ -186,7 +189,8 @@ namespace AElf.Contracts.Election
                 // Amount of backup subsidy.
                 {
                     var amount = await GetProfitAmount(ProfitType.BackupSubsidy);
-                    updatedBackupSubsidy += rewardAmount / 5 / ValidationDataCenterKeyPairs.Count;
+                    updatedBackupSubsidy +=
+                        rewardAmount / 5 / (EconomicContractsTestConstants.InitialCoreDataCenterCount * 5);
                     amount.ShouldBe(updatedBackupSubsidy);
                 }
 
@@ -278,7 +282,7 @@ namespace AElf.Contracts.Election
                 {
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.BackupSubsidy, currentPeriod);
-                    releasedInformation.TotalShares.ShouldBe(ValidationDataCenterKeyPairs.Count);
+                    releasedInformation.TotalShares.ShouldBe(EconomicContractsTestConstants.InitialCoreDataCenterCount * 5);
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
                         .ShouldBe(rewardAmount / 5);
                 }
@@ -287,7 +291,7 @@ namespace AElf.Contracts.Election
                 {
                     var amount = await GetProfitAmount(ProfitType.BackupSubsidy);
                     updatedBackupSubsidy +=
-                        rewardAmount / 5 / ValidationDataCenterKeyPairs.Count;
+                        rewardAmount / 5 / (EconomicContractsTestConstants.InitialCoreDataCenterCount * 5);
                     amount.ShouldBe(updatedBackupSubsidy);
                 }
 
@@ -475,7 +479,7 @@ namespace AElf.Contracts.Election
                                         reElectionBalance + backupBalance - txFee * 4);
                 }
             }
-            
+
             await GenerateMiningReward(6);
 
             //query and profit miner profit
@@ -530,6 +534,15 @@ namespace AElf.Contracts.Election
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     profitBasicResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                    
+                    {
+                        var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                        {
+                            Owner = Address.FromPublicKey(miner.PublicKey),
+                            Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                        })).Balance;
+                        balance.ShouldBe(beforeToken + basicMinerRewardAmount - txFee);
+                    }
 
                     var voteResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
@@ -537,6 +550,15 @@ namespace AElf.Contracts.Election
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     voteResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                    
+                    {
+                        var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                        {
+                            Owner = Address.FromPublicKey(miner.PublicKey),
+                            Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                        })).Balance;
+                        balance.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount - txFee * 2);
+                    }
 
                     var reElectionResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
@@ -544,6 +566,16 @@ namespace AElf.Contracts.Election
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     reElectionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                    
+                    {
+                        var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                        {
+                            Owner = Address.FromPublicKey(miner.PublicKey),
+                            Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                        })).Balance;
+                        balance.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount +
+                                         reElectionBalance - txFee * 3);
+                    }
 
                     var backupResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
@@ -551,15 +583,16 @@ namespace AElf.Contracts.Election
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
                     backupResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-                    var afterToken = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                    
                     {
-                        Owner = Address.FromPublicKey(miner.PublicKey),
-                        Symbol = EconomicContractsTestConstants.NativeTokenSymbol
-                    })).Balance;
-
-                    afterToken.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount +
-                                        reElectionBalance + backupBalance - txFee * 4);
+                        var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                        {
+                            Owner = Address.FromPublicKey(miner.PublicKey),
+                            Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                        })).Balance;
+                        balance.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount +
+                                         reElectionBalance + backupBalance - txFee * 4);
+                    }
                 }
             }
         }

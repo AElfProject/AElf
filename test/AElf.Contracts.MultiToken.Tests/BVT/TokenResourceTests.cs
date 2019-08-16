@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Acs2;
 using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.TestKit;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
@@ -13,66 +14,66 @@ namespace AElf.Contracts.MultiToken
     public partial class MultiTokenContractTests
     {
         [Fact]
-        public async Task ACS2_GetResourceInfo_Transfer()
+        public async Task ACS2_GetResourceInfo_Transfer_Test()
         {
-            var transaction = GenerateTokenTransaction(Address.Generate(), nameof(TokenContractStub.Transfer),
+            var transaction = GenerateTokenTransaction(SampleAddress.AddressList[0], nameof(TokenContractStub.Transfer),
                 new TransferInput
                 {
                     Amount = 100,
                     Symbol = "ELF",
-                    To = Address.Generate(),
+                    To = SampleAddress.AddressList[1],
                     Memo = "Test get resource"
                 });
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
             result.NonParallelizable.ShouldBeFalse();
-            result.Reources.Count.ShouldBeGreaterThan(0);
+            result.Paths.Count.ShouldBeGreaterThan(0);
         }
         
         [Fact]
-        public async Task ACS2_GetResourceInfo_TransferFrom()
+        public async Task ACS2_GetResourceInfo_TransferFrom_Test()
         {
-            var transaction = GenerateTokenTransaction(Address.Generate(), nameof(TokenContractStub.TransferFrom),
+            var transaction = GenerateTokenTransaction(SampleAddress.AddressList[0], nameof(TokenContractStub.TransferFrom),
                 new TransferFromInput
                 {
                     Amount = 100,
                     Symbol = "ELF",
-                    From = Address.Generate(),
-                    To = Address.Generate(),
+                    From = SampleAddress.AddressList[1],
+                    To = SampleAddress.AddressList[2],
                     Memo = "Test get resource"
                 });
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
             result.NonParallelizable.ShouldBeFalse();
-            result.Reources.Count.ShouldBeGreaterThan(0);
+            result.Paths.Count.ShouldBeGreaterThan(0);
         }
         
         [Fact]
-        public async Task ACS2_GetResourceInfo_DonateResourceToken()
+        public async Task ACS2_GetResourceInfo_DonateResourceToken_Test()
         {
-            var transaction = GenerateTokenTransaction(Address.Generate(), nameof(TokenContractStub.DonateResourceToken),
+            var transaction = GenerateTokenTransaction(SampleAddress.AddressList[0], nameof(TokenContractStub.DonateResourceToken),
                 new Empty());
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
             result.NonParallelizable.ShouldBeFalse();
-            result.Reources.Count.ShouldBeGreaterThan(0);
+            result.Paths.Count.ShouldBeGreaterThan(0);
         }
         
         [Fact]
-        public async Task ACS2_GetResourceInfo_ClaimTransactionFees()
+        public async Task ACS2_GetResourceInfo_ClaimTransactionFees_Test()
         {
-            var transaction = GenerateTokenTransaction(Address.Generate(), nameof(TokenContractStub.ClaimTransactionFees),
+            var transaction = GenerateTokenTransaction(SampleAddress.AddressList[0], nameof(TokenContractStub.ClaimTransactionFees),
                 new Empty());
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
             result.NonParallelizable.ShouldBeFalse();
-            result.Reources.Count.ShouldBeGreaterThan(0);
+            result.Paths.Count.ShouldBeGreaterThan(0);
         }
         
         [Fact]
-        public async Task ACS2_GetResourceInfo_UnsupportedMethod()
+        public async Task ACS2_GetResourceInfo_UnsupportedMethod_Test()
         {
-            var transaction = GenerateTokenTransaction(Address.Generate(), "TestMethod",
+            var transaction = GenerateTokenTransaction(SampleAddress.AddressList[0], "TestMethod",
                 new Empty());
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);

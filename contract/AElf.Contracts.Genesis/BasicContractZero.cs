@@ -55,6 +55,13 @@ namespace AElf.Contracts.Genesis
             return State.SmartContractRegistrations[info.CodeHash];
         }
 
+        public override Empty ValidateSystemContractAddress(ValidateSystemContractAddressInput input)
+        {
+            var actualAddress = GetContractAddressByName(input.SystemContractHashName); 
+            Assert(actualAddress == input.Address, "Address not expected.");
+            return new Empty();
+        }
+
         #endregion Views
 
         #region Actions
@@ -68,9 +75,12 @@ namespace AElf.Contracts.Genesis
             var transactionMethodCallList = input.TransactionMethodCallList;
             var address = PrivateDeploySystemSmartContract(name, category, code);
 
-            foreach (var methodCall in transactionMethodCallList.Value)
+            if (transactionMethodCallList != null)
             {
-                Context.SendInline(address, methodCall.MethodName, methodCall.Params);
+                foreach (var methodCall in transactionMethodCallList.Value)
+                {
+                    Context.SendInline(address, methodCall.MethodName, methodCall.Params);
+                }
             }
 
             return address;
@@ -257,7 +267,7 @@ namespace AElf.Contracts.Genesis
         public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
         {
             var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
-            return Address.FromBytes(hash.DumpByteArray());
+            return Address.FromBytes(hash.ToByteArray());
         }
 
         public static Address BuildContractAddress(int chainId, ulong serialNumber)

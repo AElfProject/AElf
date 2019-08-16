@@ -32,9 +32,6 @@ namespace AElf.OS.BlockSync.Application
                 case OSConstants.BlockFetchQueueName:
                     isAvailable = CheckAgeLimit(enqueueTime, BlockSyncConstants.BlockSyncFetchBlockAgeLimit);
                     break;
-                case OSConstants.BlockDownloadQueueName:
-                    isAvailable = CheckAgeLimit(enqueueTime, BlockSyncConstants.BlockSyncDownloadBlockAgeLimit);
-                    break;
                 case OSConstants.BlockSyncAttachQueueName:
                     isAvailable = CheckAgeLimit(enqueueTime, BlockSyncConstants.BlockSyncAttachBlockAgeLimit);
                     break;

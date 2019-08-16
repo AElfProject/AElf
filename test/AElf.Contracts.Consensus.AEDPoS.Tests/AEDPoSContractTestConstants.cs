@@ -17,6 +17,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
         internal const int MiningInterval = 4000;
 
         internal const string Symbol = "ELF";
+        
+        internal const int Decimals = 8;
+        
+        internal const bool IsBurnable = true;
 
         internal const long TotalSupply = 1000_000_000_00000000;
 

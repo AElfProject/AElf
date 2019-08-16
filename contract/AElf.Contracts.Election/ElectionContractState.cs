@@ -7,7 +7,7 @@ namespace AElf.Contracts.Election
     {
         public BoolState Initialized { get; set; }
         public BoolState VotingEventRegistered { get; set; }
-        
+
         public SingletonState<Hash> TreasuryHash { get; set; }
         public SingletonState<Hash> WelfareHash { get; set; }
         public SingletonState<Hash> SubsidyHash { get; set; }
@@ -20,9 +20,11 @@ namespace AElf.Contracts.Election
 
         public MappedState<string, CandidateInformation> CandidateInformationMap { get; set; }
 
-        public SingletonState<long> CurrentTermNumber { get; set; }
+        public Int64State CurrentTermNumber { get; set; }
 
         public SingletonState<PubkeyList> Candidates { get; set; }
+
+        public SingletonState<DataCenterRankingList> DataCentersRankingList { get; set; }
 
         public SingletonState<PubkeyList> InitialMiners { get; set; }
 
@@ -35,23 +37,22 @@ namespace AElf.Contracts.Election
 
         public MappedState<long, TermSnapshot> Snapshots { get; set; }
 
-        public SingletonState<int> MinersCount { get; set; }
+        public Int32State MinersCount { get; set; }
 
         /// <summary>
         /// Time unit: seconds
         /// </summary>
-        public SingletonState<long> MinimumLockTime { get; set; }
+        public Int64State MinimumLockTime { get; set; }
 
         /// <summary>
         /// Time unit: seconds
         /// </summary>
-        public SingletonState<long> MaximumLockTime { get; set; }
+        public Int64State MaximumLockTime { get; set; }
 
-        public SingletonState<long> TimeEachTerm { get; set; }
+        public Int64State TimeEachTerm { get; set; }
 
-        public SingletonState<long> MinerIncreaseInterval { get; set; }
+        public Int64State MinerIncreaseInterval { get; set; }
 
         public SingletonState<Hash> MinerElectionVotingItemId { get; set; }
-        
     }
 }

@@ -26,7 +26,6 @@ namespace AElf.Kernel
 {
     [DependsOn(
         typeof(KernelAElfModule),
-        typeof(KernelCoreTestAElfModule),
         typeof(SmartContractTestAElfModule),
         typeof(SmartContractExecutionTestAElfModule),
         typeof(TransactionPoolTestAElfModule),
@@ -44,19 +43,12 @@ namespace AElf.Kernel
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddTransient(builder =>
-            {
-                var acc = new Mock<IAccountService>();
-
-                return acc.Object;
-            });
-
             var transactionList = new List<Transaction>
             {
                 new Transaction
                 {
-                    From = Address.Generate(),
-                    To = Address.Generate(),
+                    From = SampleAddress.AddressList[0],
+                    To = SampleAddress.AddressList[1],
                     MethodName = "GenerateConsensusTransactions"
                 }
             };
@@ -96,11 +88,6 @@ namespace AElf.Kernel
 
                     return dataProvider.Object;
                 });
-
-
-//            services.AddTransient<IConsensusService, ConsensusService>();
-//            
-//            services.AddTransient<ISystemTransactionGenerator, ConsensusTransactionGenerator>();
         }
     }
 }

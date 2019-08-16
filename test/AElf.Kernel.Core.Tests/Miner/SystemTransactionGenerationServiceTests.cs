@@ -20,7 +20,7 @@ namespace AElf.Kernel.Miner
         public void Generate_SystemTransactions()
         {
             var transactions = new List<Transaction>();
-            _systemTransactionGenerator.GenerateTransactions(Address.Zero, 0L, Hash.Empty, ref transactions);
+            _systemTransactionGenerator.GenerateTransactions(SampleAddress.AddressList[0], 0L, Hash.Empty, ref transactions);
             transactions.Count.ShouldBe(2);
         }
         
@@ -28,7 +28,7 @@ namespace AElf.Kernel.Miner
         public void Generate_SystemTransactionsTest()
         {
             var transactionList = _systemTransactionGenerationService.GenerateSystemTransactions(
-                Address.Generate(), 1L, Hash.Generate());
+                SampleAddress.AddressList[0], 1L, Hash.FromString("hash"));
             transactionList.ShouldNotBeNull();
             transactionList.Count.ShouldBe(2);
         }

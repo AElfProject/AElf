@@ -95,6 +95,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var updatedRound = currentRound.ApplyNormalConsensusData(publicKey, previousInValue,
                 outValue, signature);
 
+            updatedRound.RealTimeMinersInformation[publicKey].ImpliedIrreversibleBlockHeight = Context.CurrentHeight;
+
             ShareInValueOfCurrentRound(updatedRound, previousRound, inValue, publicKey);
 
             // To publish Out Value.
@@ -164,8 +166,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private AElfConsensusHeaderInformation GetInformationToUpdateConsensusForNextTerm(string publicKey,
             AElfConsensusTriggerInformation triggerInformation)
         {
-            Assert(TryToGetMiningInterval(out var miningInterval), "Failed to get mining interval.");
-            var firstRoundOfNextTerm = GenerateFirstRoundOfNextTerm(publicKey, miningInterval);
+            var firstRoundOfNextTerm = GenerateFirstRoundOfNextTerm(publicKey, State.MiningInterval.Value);
             Assert(firstRoundOfNextTerm.RoundId != 0, "Failed to generate new round information.");
             return new AElfConsensusHeaderInformation
             {

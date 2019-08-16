@@ -42,34 +42,35 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             var tokenHash = await AEDPoSContract_RequestRandomNumber();
 
-            var currentRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
+            var currentRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
             var randomHashes = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount)
-                .Select(_ => Hash.Generate()).ToList();
+                .Select(_ => Hash.FromString("random")).ToList();
             var triggers = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(i =>
                 new AElfConsensusTriggerInformation
                 {
-                    Pubkey = ByteString.CopyFrom(InitialMinersKeyPairs[i].PublicKey),
+                    Pubkey = ByteString.CopyFrom(InitialCoreDataCenterKeyPairs[i].PublicKey),
                     RandomHash = randomHashes[i]
                 }).ToDictionary(t => t.Pubkey.ToHex(), t => t);
 
             // Exactly one round except extra block time slot.
             foreach (var minerInRound in currentRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
             {
-                var currentKeyPair = InitialMinersKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.Pubkey);
+                var currentKeyPair =
+                    InitialCoreDataCenterKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.Pubkey);
 
                 KeyPairProvider.SetKeyPair(currentKeyPair);
 
                 BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime);
 
-                var tester = GetAEDPoSContractStub(currentKeyPair);
+                var stub = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation =
-                    (await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
+                    (await stub.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
                         .ToBytesValue())).ToConsensusHeaderInformation();
 
                 // Update consensus information.
                 var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.Pubkey);
-                await tester.UpdateValue.SendAsync(toUpdate);
+                await stub.UpdateValue.SendAsync(toUpdate);
 
                 // Not enough.
                 if (minerInRound.Order < 8)
@@ -83,7 +84,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 for (var i = 0; i < 7; i++)
                 {
-                    await tester.UpdateTinyBlockInformation.SendAsync(new TinyBlockInput
+                    await stub.UpdateTinyBlockInformation.SendAsync(new TinyBlockInput
                     {
                         ActualMiningTime = TimestampHelper.GetUtcNow(),
                         RoundId = currentRound.RoundId
@@ -93,7 +94,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             currentRound.GenerateNextRoundInformation(TimestampHelper.GetUtcNow(), BlockchainStartTimestamp,
                 out var nextRound);
-            await BootMiner.NextRound.SendAsync(nextRound);
+            await AEDPoSContractStub.NextRound.SendAsync(nextRound);
 
             // Now it's enough.
             {
@@ -129,20 +130,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             for (var count = 0; count < roundsCount; count++)
             {
-                var currentRound = await BootMiner.GetCurrentRoundInformation.CallAsync(new Empty());
+                var currentRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
                 var randomHashes = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount)
-                    .Select(_ => Hash.Generate()).ToList();
+                    .Select(_ => Hash.FromString($"random{count}")).ToList();
                 var triggers = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(i =>
                     new AElfConsensusTriggerInformation
                     {
-                        Pubkey = ByteString.CopyFrom(InitialMinersKeyPairs[i].PublicKey),
+                        Pubkey = ByteString.CopyFrom(InitialCoreDataCenterKeyPairs[i].PublicKey),
                         RandomHash = randomHashes[i]
                     }).ToDictionary(t => t.Pubkey.ToHex(), t => t);
 
                 // Exactly one round except extra block time slot.
                 foreach (var minerInRound in currentRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order))
                 {
-                    var currentKeyPair = InitialMinersKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.Pubkey);
+                    var currentKeyPair =
+                        InitialCoreDataCenterKeyPairs.First(p => p.PublicKey.ToHex() == minerInRound.Pubkey);
 
                     KeyPairProvider.SetKeyPair(currentKeyPair);
 
@@ -169,10 +171,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 currentRound.GenerateNextRoundInformation(TimestampHelper.GetUtcNow(), BlockchainStartTimestamp,
                     out var nextRound);
-                await BootMiner.NextRound.SendAsync(nextRound);
+                await AEDPoSContractStub.NextRound.SendAsync(nextRound);
                 for (var i = 0; i < 8; i++)
                 {
-                    await BootMiner.UpdateTinyBlockInformation.SendAsync(new TinyBlockInput
+                    await AEDPoSContractStub.UpdateTinyBlockInformation.SendAsync(new TinyBlockInput
                     {
                         ActualMiningTime = TimestampHelper.GetUtcNow(),
                         RoundId = currentRound.RoundId

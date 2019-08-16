@@ -43,6 +43,8 @@ namespace AElf.Contracts.Election
 
             State.CurrentTermNumber.Value = 1;
 
+            State.DataCentersRankingList.Value = new DataCenterRankingList();
+
             State.Initialized.Value = true;
             return new Empty();
         }
@@ -98,20 +100,20 @@ namespace AElf.Contracts.Election
             {
                 UpdateCandidateInformation(publicKey, input.TermNumber, previousMiners);
             }
-            
+
             if (State.ProfitContract.Value == null)
             {
                 State.ProfitContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName);
             }
-            
+
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.SubsidyHash.Value,
                 Period = input.TermNumber,
                 Symbol = Context.Variables.NativeSymbol
             });
-            
+
             State.ProfitContract.DistributeProfits.Send(new DistributeProfitsInput
             {
                 SchemeId = State.WelfareHash.Value,
@@ -179,7 +181,7 @@ namespace AElf.Contracts.Election
 
             if (input.IsEvilNode)
             {
-                var publicKeyByte = ByteArrayHelper.FromHexString(input.Pubkey);
+                var publicKeyByte = ByteArrayHelper.HexStringToByteArray(input.Pubkey);
                 State.BlackList.Value.Value.Add(ByteString.CopyFrom(publicKeyByte));
                 State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
                 {
@@ -199,6 +201,16 @@ namespace AElf.Contracts.Election
             candidateInformation.MissedTimeSlots =
                 candidateInformation.MissedTimeSlots.Add(input.RecentlyMissedTimeSlots);
             State.CandidateInformationMap[input.Pubkey] = candidateInformation;
+            return new Empty();
+        }
+
+        public override Empty UpdateMultipleCandidateInformation(UpdateMultipleCandidateInformationInput input)
+        {
+            foreach (var updateCandidateInformationInput in input.Value)
+            {
+                UpdateCandidateInformation(updateCandidateInformationInput);
+            }
+
             return new Empty();
         }
 

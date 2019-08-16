@@ -20,7 +20,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task EconomistSystem_CheckBasicInformation()
+        public async Task EconomistSystem_CheckBasicInformation_Test()
         {
             // Treasury contract created Treasury Profit Item and set Profit Id to Profit Contract.
             var treasuryProfit = await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
@@ -38,7 +38,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task EconomistSystem_SetMethodTransactionFee()
+        public async Task EconomistSystem_SetMethodTransactionFee_Test()
         {
             const long feeAmount = 10L;
             await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new TokenAmounts
@@ -63,9 +63,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task EconomistSystem_ChargeMethodTransactionFee()
+        public async Task EconomistSystem_ChargeMethodTransactionFee_Test()
         {
-            await EconomistSystem_SetMethodTransactionFee();
+            await EconomistSystem_SetMethodTransactionFee_Test();
 
             var chosenOneKeyPair = CoreDataCenterKeyPairs.First();
             var chosenOneAddress = Address.FromPublicKey(chosenOneKeyPair.PublicKey);
@@ -85,7 +85,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task<long> EconomistSystem_SetMethodTransactionFee_MultipleSymbol()
+        public async Task<long> EconomistSystem_SetMethodTransactionFee_MultipleSymbol_Test()
         {
             const long feeAmount = 10L;
 
@@ -121,9 +121,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task EconomicSystem_ChangeMethodTransactionFee_MultipleSymbol()
+        public async Task EconomicSystem_ChargeMethodTransactionFee_MultipleSymbol_Test()
         {
-            var feeAmount = await EconomistSystem_SetMethodTransactionFee_MultipleSymbol();
+            var feeAmount = await EconomistSystem_SetMethodTransactionFee_MultipleSymbol_Test();
 
             var chosenOneKeyPair = CoreDataCenterKeyPairs.First();
             var chosenOneAddress = Address.FromPublicKey(chosenOneKeyPair.PublicKey);
@@ -178,7 +178,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
         
         [Fact]
-        public async Task EconomistSystem_SetMethodProfitFee()
+        public async Task EconomistSystem_SetMethodCallThreshold_Test()
         {
             const long feeAmount = 100L;
             var setMethodResult = await MethodCallThresholdContractStub.SetMethodCallingThreshold.SendAsync(new SetMethodCallingThresholdInput

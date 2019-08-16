@@ -55,8 +55,13 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             var txLookup = groups.SelectMany(x => x).ToDictionary(x => x.Transaction.Params, x => x.Resource);
             var allTxns = groups.SelectMany(x => x).Select(x => x.Transaction).OrderBy(x => Guid.NewGuid()).ToList();
 
-            var grouped = await Grouper.GroupAsync(allTxns);
-            var groupedResources = grouped.Item1.Select(g => g.Select(t => txLookup[t.Params]).ToList()).ToList();
+            var chainContext = new ChainContext
+            {
+                BlockHeight = 10,
+                BlockHash = Hash.FromString("blockHash")
+            };
+            var grouped = await Grouper.GroupAsync(chainContext, allTxns);
+            var groupedResources = grouped.Parallelizables.Select(g => g.Select(t => txLookup[t.Params]).ToList()).ToList();
             var expected = groups.Select(g => g.Select(x => x.Resource).ToList()).Select(StringRepresentation)
                 .OrderBy(x => x);
             var actual = groupedResources.Select(StringRepresentation).OrderBy(x => x);
@@ -70,7 +75,10 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 MethodName = methodName,
                 Params = new TransactionResourceInfo
                 {
-                    Resources = {from, to}
+                    Paths =
+                    {
+                        GetPath(from), GetPath(to)
+                    }
                 }.ToByteString()
             };
             return tx;
@@ -79,6 +87,17 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         private string StringRepresentation(List<(int, int)> resources)
         {
             return string.Join(" ", resources.Select(r => r.ToString()).OrderBy(x => x));
+        }
+
+        private ScopedStatePath GetPath(int value)
+        {
+            return new ScopedStatePath
+            {
+                Path = new StatePath
+                {
+                    Parts = {value.ToString()}
+                }
+            };
         }
     }
 }

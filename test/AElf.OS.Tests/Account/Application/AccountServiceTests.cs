@@ -39,7 +39,7 @@ namespace AElf.OS.Account.Application
         [Fact]
         public async Task SignAndVerifyPassTest()
         {
-            var data = Hash.FromString("test").DumpByteArray();
+            var data = Hash.FromString("test").ToByteArray();
 
             var signature = await _accountService.SignAsync(data);
             var publicKey = await _accountService.GetPublicKeyAsync();
@@ -53,8 +53,8 @@ namespace AElf.OS.Account.Application
         [Fact]
         public async Task SignAndVerifyNotPassTest()
         {
-            var data1 = Hash.FromString("test1").DumpByteArray();
-            var data2 = Hash.FromString("test2").DumpByteArray();
+            var data1 = Hash.FromString("test1").ToByteArray();
+            var data2 = Hash.FromString("test2").ToByteArray();
 
             var signature = await _accountService.SignAsync(data1);
             var publicKey = await _accountService.GetPublicKeyAsync();
@@ -80,6 +80,15 @@ namespace AElf.OS.Account.Application
             var decryptMessage = await _accountService.DecryptMessageAsync(pubicKey, encryptMessage);
 
             decryptMessage.ShouldBe(plainMessage);
+        }
+
+        [Fact]
+        public async Task GetAccountAsync_WithParameterIsNull()
+        {
+            _accountOptions.NodeAccount = string.Empty;
+            var account = await _accountService.GetAccountAsync();
+
+            Assert.NotEqual(account.GetFormatted(), _accountOptions.NodeAccount);
         }
     }
 }
