@@ -55,6 +55,13 @@ namespace AElf.Contracts.Genesis
             return State.SmartContractRegistrations[info.CodeHash];
         }
 
+        public override Empty ValidateSystemContractAddress(ValidateSystemContractAddressInput input)
+        {
+            var actualAddress = GetContractAddressByName(input.SystemContractHashName); 
+            Assert(actualAddress == input.Address, "Address not expected.");
+            return new Empty();
+        }
+
         public override AddressList GetDeployedContractAddressList(Empty input)
         {
             return State.DeployedContractAddressList.Value;

@@ -1,6 +1,5 @@
 using AElf.Kernel.SmartContract.Application;
-using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 
 namespace AElf.Kernel.TransactionPool.Application
 {

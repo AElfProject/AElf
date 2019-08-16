@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.DPoS;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Sdk.CSharp;
 using AElf.Types;

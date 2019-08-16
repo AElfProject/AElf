@@ -1,12 +1,9 @@
 using System.Threading.Tasks;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Token;
-using AElf.Kernel.TransactionPool.Application;
-using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
