@@ -1,7 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Acs7;
-using AElf.CrossChain.Communication.Application;
+using AElf.CrossChain.Cache;
 using AElf.CrossChain.Communication.Grpc;
 using AElf.CrossChain.Communication.Infrastructure;
 using AElf.Kernel;
@@ -12,7 +13,6 @@ using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using NSubstitute;
 using Volo.Abp.Modularity;
 
 namespace AElf.CrossChain.Communication
@@ -153,7 +153,7 @@ namespace AElf.CrossChain.Communication
                             };
                             return Task.FromResult(chainInitialization);
                         });
-                        mockCrossChainClient.Setup(m => m.RequestCrossChainDataAsync(It.IsAny<long>())).Returns(() =>
+                        mockCrossChainClient.Setup(m => m.RequestCrossChainDataAsync(It.IsAny<long>(), It.IsAny<Func<IBlockCacheEntity, bool>>())).Returns(() =>
                         {
                             var chainInitialization = new ChainInitializationData
                             {

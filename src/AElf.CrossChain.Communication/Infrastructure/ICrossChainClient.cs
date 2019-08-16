@@ -9,11 +9,8 @@ namespace AElf.CrossChain.Communication.Infrastructure
     {
         int RemoteChainId { get; }
         string TargetUriString { get; }
-        
         bool IsConnected { get; }
-
-        void SetCrossChainBlockDataEntityHandler(Func<IBlockCacheEntity, bool> crossChainBlockDataEntityHandler);
-        Task RequestCrossChainDataAsync(long targetHeight);
+        Task RequestCrossChainDataAsync(long targetHeight, Func<IBlockCacheEntity, bool> crossChainBlockDataEntityHandler);
         Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId);
         Task ConnectAsync();
         Task CloseAsync();

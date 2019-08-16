@@ -32,7 +32,6 @@ namespace AElf.CrossChain.Communication.Grpc
         private readonly int _localListeningPort;
         private readonly BasicCrossChainRpc.BasicCrossChainRpcClient _basicGrpcClient;
         private readonly string _host;
-        private Func<IBlockCacheEntity, bool> _crossChainBlockDataEntityHandler;
         
         public string TargetUriString => Channel.Target;
         public bool IsConnected { get; private set; }
@@ -92,17 +91,13 @@ namespace AElf.CrossChain.Communication.Grpc
             await Channel.ShutdownAsync();
         }
 
-        public void SetCrossChainBlockDataEntityHandler(Func<IBlockCacheEntity, bool> crossChainBlockDataEntityHandler)
-        {
-            _crossChainBlockDataEntityHandler = crossChainBlockDataEntityHandler;
-        }
-
         /// <summary>
         /// Request target chain for cross chain data from target height. 
         /// </summary>
         /// <param name="targetHeight"></param>
+        /// <param name="crossChainBlockDataEntityHandler"></param>
         /// <returns></returns>
-        public Task RequestCrossChainDataAsync(long targetHeight)
+        public Task RequestCrossChainDataAsync(long targetHeight, Func<IBlockCacheEntity, bool> crossChainBlockDataEntityHandler)
         {
             var requestData = new CrossChainRequest
             {
@@ -110,7 +105,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 NextHeight = targetHeight
             };
 
-            return RequestAsync(() => RequestCrossChainDataAsync(requestData));
+            return RequestAsync(() => RequestCrossChainDataAsync(requestData, crossChainBlockDataEntityHandler));
         }
         
         /// <summary>
@@ -140,7 +135,8 @@ namespace AElf.CrossChain.Communication.Grpc
             return new CallOptions().WithDeadline(TimestampHelper.GetUtcNow().ToDateTime().AddMilliseconds(DialTimeout));
         }
 
-        private async Task RequestCrossChainDataAsync(CrossChainRequest crossChainRequest)
+        private async Task RequestCrossChainDataAsync(CrossChainRequest crossChainRequest, 
+            Func<IBlockCacheEntity, bool> crossChainBlockDataEntityHandler)
         {
             using (var serverStream = RequestIndexing(crossChainRequest))
             {
@@ -149,7 +145,7 @@ namespace AElf.CrossChain.Communication.Grpc
                     var response = serverStream.ResponseStream.Current;
 
                     // requestCrossChain failed or useless response
-                    if (!_crossChainBlockDataEntityHandler(response))
+                    if (!crossChainBlockDataEntityHandler(response))
                     {
                         break;
                     }

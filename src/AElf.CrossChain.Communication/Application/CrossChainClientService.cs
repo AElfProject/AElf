@@ -39,14 +39,13 @@ namespace AElf.CrossChain.Communication.Application
             await ConnectAsync(client);
             if (!client.IsConnected)
                 return;
-            await client.RequestCrossChainDataAsync(targetHeight);
+            await client.RequestCrossChainDataAsync(targetHeight,
+                b => _blockCacheEntityProducer.TryAddBlockCacheEntity(b));
         }
 
         public async Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
         {
             var crossChainClient = _crossChainClientProvider.AddOrUpdateClient(crossChainClientDto);
-            crossChainClient.SetCrossChainBlockDataEntityHandler(b =>
-                _blockCacheEntityProducer.TryAddBlockCacheEntity(b));
             _ = ConnectAsync(crossChainClient);
         }
 

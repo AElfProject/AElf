@@ -70,10 +70,9 @@ namespace AElf.CrossChain.Communication.Grpc
                 UriStr = string.Concat(Host, ":", port)
             };
             var client = new ClientForSideChain(grpcClientInitializationContext);
-            client.SetCrossChainBlockDataEntityHandler(b => _blockCacheEntityProducer.TryAddBlockCacheEntity(b));
             _grpcCrossChainCommunicationTestHelper.GrpcCrossChainClients.TryAdd(remoteChainId, client);
             _grpcCrossChainCommunicationTestHelper.FakeSideChainBlockDataEntityCacheOnServerSide(height);
-            await client.RequestCrossChainDataAsync(height);
+            await client.RequestCrossChainDataAsync(height, b => _blockCacheEntityProducer.TryAddBlockCacheEntity(b));
             
             var clientBlockDataEntityCache = GrpcCrossChainCommunicationTestHelper.ClientBlockDataEntityCache;
             var sideChainBlockData = new SideChainBlockData {Height = height};
