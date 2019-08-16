@@ -28,6 +28,8 @@ namespace AElf.Kernel.SmartContract.Application
         IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping();
 
         Address GetZeroSmartContractAddress();
+        
+        Address GetZeroSmartContractAddress(int chainId);
 
         Task<ByteString> GetStateAsync(Address contractAddress, string key, long blockHeight, Hash blockHash);
     }
@@ -96,6 +98,11 @@ namespace AElf.Kernel.SmartContract.Application
         public Address GetZeroSmartContractAddress()
         {
             return _smartContractAddressService.GetZeroSmartContractAddress();
+        }
+
+        public Address GetZeroSmartContractAddress(int chainId)
+        {
+            return _smartContractAddressService.GetZeroSmartContractAddress(chainId);
         }
 
         public Task<ByteString> GetStateAsync(Address contractAddress, string key, long blockHeight, Hash blockHash)

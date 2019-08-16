@@ -83,8 +83,9 @@ namespace AElf.Kernel.Types.Tests
             block.Header.Height = height;
             var transactionItems = GenerateFakeTransactions(3);
             block.Body.TransactionIds.AddRange(transactionItems.Item2);
-            
-            block.Header.MerkleTreeRootOfTransactions = block.Body.TransactionIds.ComputeBinaryMerkleTreeRootWithLeafNodes();
+
+            block.Header.MerkleTreeRootOfTransactions =
+                BinaryMerkleTree.FromLeafNodes(block.Body.TransactionIds).Root;
             block.Header.MerkleTreeRootOfWorldState = Hash.Empty;
             block.Header.MerkleTreeRootOfTransactionStatus = Hash.Empty;
             block.Header.SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey");

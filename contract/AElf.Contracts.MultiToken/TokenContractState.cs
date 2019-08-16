@@ -34,10 +34,14 @@ namespace AElf.Contracts.MultiToken
         public MappedState<Address, ProfitReceivingInformation> ProfitReceivingInfos { get; set; }
         public SingletonState<TokenSymbolList> PreviousBlockTransactionFeeTokenSymbolList { get; set; }
 
+        public SingletonState<Address> Owner { get; set; }
+        
         /// <summary>
         /// symbol -> address -> is in white list.
         /// </summary>
         public MappedState<string, Address, bool> LockWhiteLists { get; set; }
+        
+        public MappedState<int, Address> CrossChainTransferWhiteList { get; set; }
 
         public MappedState<Hash, CrossChainReceiveTokenInput> VerifiedCrossChainTransferTransaction { get; set; }
         internal CrossChainContractContainer.CrossChainContractReferenceState CrossChainContract { get; set; }

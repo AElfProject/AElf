@@ -49,7 +49,6 @@ namespace AElf.Contracts.ParliamentAuth
             result.TransactionResult.Error.Contains("Already initialized.").ShouldBeTrue();
         }
 
-
         [Fact]
         public async Task Get_Organization()
         {
