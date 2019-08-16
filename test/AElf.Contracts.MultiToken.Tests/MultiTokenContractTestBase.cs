@@ -19,12 +19,10 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.TokenConverter;
-using AElf.Contracts.Treasury;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
-using ApproveInput = AElf.Contracts.MultiToken.Messages.ApproveInput;
 using InitializeInput = AElf.Contracts.CrossChain.InitializeInput;
 using SampleAddress = AElf.Contracts.TestKit.SampleAddress;
 
