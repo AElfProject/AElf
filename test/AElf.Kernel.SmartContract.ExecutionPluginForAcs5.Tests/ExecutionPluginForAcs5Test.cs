@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Acs5;
 using System.Threading.Tasks;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
