@@ -13,7 +13,7 @@ namespace AElf.Contracts.Genesis
 
         public override UInt64Value CurrentContractSerialNumber(Empty input)
         {
-            return new UInt64Value {Value = State.ContractSerialNumber.Value};
+            return new UInt64Value() {Value = State.ContractSerialNumber.Value};
         }
 
         public override ContractInfo GetContractInfo(Address input)
@@ -53,6 +53,13 @@ namespace AElf.Contracts.Genesis
             }
 
             return State.SmartContractRegistrations[info.CodeHash];
+        }
+
+        public override Empty ValidateSystemContractAddress(ValidateSystemContractAddressInput input)
+        {
+            var actualAddress = GetContractAddressByName(input.SystemContractHashName); 
+            Assert(actualAddress == input.Address, "Address not expected.");
+            return new Empty();
         }
 
         public override AddressList GetDeployedContractAddressList(Empty input)

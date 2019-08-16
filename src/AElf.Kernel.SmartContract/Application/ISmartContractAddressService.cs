@@ -15,6 +15,8 @@ namespace AElf.Kernel.SmartContract.Application
 
         Address GetZeroSmartContractAddress();
 
+        Address GetZeroSmartContractAddress(int chainId);
+
         IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping();
     }
 
@@ -45,6 +47,11 @@ namespace AElf.Kernel.SmartContract.Application
         public Address GetZeroSmartContractAddress()
         {
             return _defaultContractZeroCodeProvider.ContractZeroAddress;
+        }
+
+        public Address GetZeroSmartContractAddress(int chainId)
+        {
+            return _defaultContractZeroCodeProvider.GetZeroSmartContractAddress(chainId);
         }
 
         public IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping()
