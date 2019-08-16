@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Acs4;
 using AElf.Sdk.CSharp;
@@ -112,6 +113,51 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Hint = new AElfConsensusHint {Behaviour = behaviour}.ToByteString()
                 };
             }
+        }
+
+        /// <summary>
+        /// Implemented GitHub PR #1952.
+        /// Adjust (basically reduce) the count of tiny blocks produced by a miner each time to avoid too many forks.
+        /// </summary>
+        /// <param name="currentRound"></param>
+        /// <param name="previousRound"></param>
+        /// <returns></returns>
+        private int GetTinyBlocksCount(Round currentRound, Round previousRound = null)
+        {
+            if (previousRound == null)
+            {
+                TryToGetPreviousRoundInformation(out previousRound);
+            }
+            var libRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber; // Stands for RLIB
+            var libBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight; // Stands for HLIB
+            var currentHeight = Context.CurrentHeight;// Stands for H
+            var currentRoundNumber = currentRound.RoundNumber;// Stands for R
+            const int cachedBlocksCount = 1024;//Stands for Y
+            
+            // f RLIB + 2 < R < RLIB + 10 & H <= HLIB + Y, CB goes to Min(L2/(R-RLIB), CB0), while CT stays same as before.
+            if (libRoundNumber.Add(2) < currentRoundNumber && currentRoundNumber < libRoundNumber.Add(10))
+            {
+                if (currentHeight <= libBlockHeight.Add(cachedBlocksCount))
+                {
+                    if (TryToGetRoundInformation(previousRound.RoundNumber, out var previousPreviousRound))
+                    {
+                        var minersOfLastTwoRounds = previousRound.GetMinedMiners()
+                            .Union(previousPreviousRound.GetMinedMiners()).Count();
+                        var count = minersOfLastTwoRounds.Div((int) currentRound.RoundNumber.Sub(libRoundNumber))
+                            .Add(1);
+                        return Math.Min(AEDPoSContractConstants.MaximumTinyBlocksCount, count);
+                    }
+                }
+            }
+            
+            //If R > RLIB + 10 || H > HLIB + Y, CB goes to 1, and CT goes to 0
+            if (currentRound.RoundNumber > libRoundNumber.Add(10) || currentHeight > libBlockHeight.Add(10))
+            {
+                
+                return 1;
+            }
+
+            return AEDPoSContractConstants.MaximumTinyBlocksCount;
         }
 
         #region Get next block mining left milliseconds
@@ -248,9 +294,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var producedTinyBlocksForPreviousRound =
                 minerInRound.ActualMiningTimes.Count(t => t < currentRoundStartTime);
 
-            if (minerInRound.ProducedTinyBlocks == AEDPoSContractConstants.TinyBlocksNumber ||
-                minerInRound.ProducedTinyBlocks ==
-                AEDPoSContractConstants.TinyBlocksNumber.Add(producedTinyBlocksForPreviousRound))
+            var blocksCount = GetTinyBlocksCount(currentRound);
+            if (minerInRound.ProducedTinyBlocks == blocksCount ||
+                minerInRound.ProducedTinyBlocks == blocksCount.Add(producedTinyBlocksForPreviousRound))
             {
                 limitMillisecondsOfMiningBlock = limitMillisecondsOfMiningBlock.Div(2);
             }

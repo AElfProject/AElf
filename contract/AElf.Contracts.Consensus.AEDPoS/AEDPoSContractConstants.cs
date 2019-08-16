@@ -3,8 +3,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public static class AEDPoSContractConstants
     {
-        public const int TinyBlocksNumber = 8;
-        public const int TotalTinySlots = TinyBlocksNumber;
+        public const int MaximumTinyBlocksCount = 8;
+        public const int TotalTinySlots = MaximumTinyBlocksCount;
         public const int LimitBlockExecutionTimeTotalShares = 5;
         public const int LimitBlockExecutionTimeWeight = 3;
         public const int MinimumIntervalOfProducingBlocks = 100;

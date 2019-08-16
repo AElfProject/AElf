@@ -37,14 +37,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
             else if (!isTimeSlotPassed)
             {
-                if (minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber)
+                var blocksCount = GetTinyBlocksCount(currentRound);
+                if (minerInRound.ProducedTinyBlocks < blocksCount)
                 {
                     return AElfConsensusBehaviour.TinyBlock;
                 }
 
                 if (currentRound.ExtraBlockProducerOfPreviousRound == publicKey &&
                     !isFirstRoundOfCurrentTerm &&
-                    minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber.Mul(2))
+                    minerInRound.ProducedTinyBlocks < blocksCount.Mul(2))
                 {
                     return AElfConsensusBehaviour.TinyBlock;
                 }
@@ -78,7 +79,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (currentRound.ExtraBlockProducerOfPreviousRound == publicKey && // If this miner is extra block producer of previous round,
                 Context.CurrentBlockTime < currentRound.GetStartTime() && // and currently the time is ahead of current round,
-                minerInRound.ProducedTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber // make this miner produce some tiny blocks.
+                minerInRound.ProducedTinyBlocks < GetTinyBlocksCount(currentRound) // make this miner produce some tiny blocks.
             )
             {
                 return AElfConsensusBehaviour.TinyBlock;

@@ -78,12 +78,6 @@ service AEDPoSContract {
     }
 }
 
-// Events
-message IrreversibleBlockFound {
-    option (aelf.is_event) = true;
-    sint64 irreversible_block_height = 1;
-}
-
 message InitialAElfConsensusContractInput {
     bool is_term_stay_one = 1;
     bool is_side_chain = 2;
@@ -208,4 +202,15 @@ message ConsensusInformation {
 
 message GetMinerListInput {
     sint64 term_number = 1;
+}
+
+// Events
+message IrreversibleBlockFound {
+    option (aelf.is_event) = true;
+    sint64 irreversible_block_height = 1;
+}
+
+message IrreversibleBlockHeightUnacceptable {
+    option (aelf.is_event) = true;
+    sint64 distance_to_irreversible_block_height = 1;
 }
