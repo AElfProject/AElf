@@ -1,3 +1,4 @@
+using AElf.Contracts.TestBase;
 using AElf.Contracts.TestKit;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
@@ -16,5 +17,10 @@ namespace AElf.Contracts.MultiToken
             context.Services.AddSingleton<ISystemTransactionGenerator>(instance);
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
+    }
+    
+    [DependsOn(typeof(ContractTestAElfModule))]
+    public class MultiTokenContractCrossChainTestAElfModule : ContractTestAElfModule
+    {
     }
 }

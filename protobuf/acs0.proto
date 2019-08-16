@@ -42,6 +42,9 @@ service ACS0 {
     rpc GetSmartContractRegistrationByAddress (aelf.Address) returns (aelf.SmartContractRegistration) {
         option (aelf.is_view) = true;
     }
+    rpc ValidateSystemContractAddress(ValidateSystemContractAddressInput) returns (google.protobuf.Empty){
+        option (aelf.is_view) = true;
+    }
 }
 
 // Messages
@@ -110,4 +113,9 @@ message AuthorChanged
     aelf.Address address = 1 [(aelf.is_indexed) = true];
     aelf.Address old_author = 2;
     aelf.Address new_author = 3;
+}
+
+message ValidateSystemContractAddressInput{
+    aelf.Hash system_contract_hash_name = 1;
+    aelf.Address address = 2;
 }

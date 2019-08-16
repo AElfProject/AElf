@@ -36,7 +36,7 @@ namespace AElf.Contracts.TestBase
             context.Services.AddSingleton(o => Mock.Of<IConsensusService>());
             context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
             
-            Configure<ChainOptions>(o => { o.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
+//            Configure<ChainOptions>(o => { o.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
 
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
 

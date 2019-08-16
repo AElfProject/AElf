@@ -204,6 +204,11 @@ namespace AElf.Kernel.SmartContract
         {
             return _smartContractBridgeService.GetZeroSmartContractAddress();
         }
+        
+        public Address GetZeroSmartContractAddress(int chainId)
+        {
+            return _smartContractBridgeService.GetZeroSmartContractAddress(chainId);
+        }
 
         public List<Transaction> GetPreviousBlockTransactions()
         {

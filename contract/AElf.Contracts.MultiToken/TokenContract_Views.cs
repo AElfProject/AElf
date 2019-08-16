@@ -14,6 +14,11 @@ namespace AElf.Contracts.MultiToken
             return State.TokenInfos[input.Symbol];
         }
 
+        public override TokenInfo GetNativeTokenInfo(Empty input)
+        {
+            return State.TokenInfos[State.NativeTokenSymbol.Value];
+        }
+
         [View]
         public override GetBalanceOutput GetBalance(GetBalanceInput input)
         {
