@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Acs6;
+using AElf.Contracts.Economic.TestBase;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -44,9 +45,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var currentRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
-            var randomHashes = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount)
+            var randomHashes = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount)
                 .Select(_ => Hash.FromString("random")).ToList();
-            var triggers = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(i =>
+            var triggers = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount).Select(i =>
                 new AElfConsensusTriggerInformation
                 {
                     Pubkey = ByteString.CopyFrom(InitialCoreDataCenterKeyPairs[i].PublicKey),
@@ -131,9 +132,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             for (var count = 0; count < roundsCount; count++)
             {
                 var currentRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
-                var randomHashes = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount)
+                var randomHashes = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount)
                     .Select(_ => Hash.FromString($"random{count}")).ToList();
-                var triggers = Enumerable.Range(0, AEDPoSContractTestConstants.InitialMinersCount).Select(i =>
+                var triggers = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount).Select(i =>
                     new AElfConsensusTriggerInformation
                     {
                         Pubkey = ByteString.CopyFrom(InitialCoreDataCenterKeyPairs[i].PublicKey),
