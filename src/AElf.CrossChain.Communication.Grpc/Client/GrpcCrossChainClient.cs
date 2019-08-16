@@ -207,12 +207,19 @@ namespace AElf.CrossChain.Communication.Grpc
 
         public override async Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId)
         {
-            var sideChainInitializationResponse = await GrpcClient.RequestChainInitializationDataFromParentChainAsync(
-                new SideChainInitializationRequest
-                {
-                    ChainId = chainId
-                }, CreateOption());
-            return sideChainInitializationResponse;
+            try
+            {
+                var sideChainInitializationResponse = await GrpcClient.RequestChainInitializationDataFromParentChainAsync(
+                    new SideChainInitializationRequest
+                    {
+                        ChainId = chainId
+                    }, CreateOption());
+                return sideChainInitializationResponse;
+            }
+            catch (RpcException)
+            {
+                return null;
+            }
         }
     }
 }
