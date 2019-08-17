@@ -1,7 +1,6 @@
 using Acs0;
 using Acs1;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp.State;

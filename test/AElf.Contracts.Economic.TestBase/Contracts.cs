@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using AElf.Kernel.Consensus;
-using AElf.Types;
-
 namespace AElf.Contracts.Economic.TestBase
 {
     public enum Contracts

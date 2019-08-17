@@ -9,7 +9,7 @@ namespace AElf.Contracts.Profit.BVT
     public partial class ProfitContractTests
     {
         [Fact]
-        public async Task ProfitContract_SetMethodFee_WithoutPermission()
+        public async Task ProfitContract_SetMethodFee_WithoutPermission_Test()
         {
             //no permission
             var transactionResult = await ProfitContractStub.SetMethodFee.SendAsync(new TokenAmounts

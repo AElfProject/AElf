@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Types;
 using Shouldly;
@@ -13,7 +13,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         private const string ResourceTokenSymbol = "NET";
 
         [Fact]
-        public async Task<Address> TokenContract_AdvanceResourceToken()
+        public async Task<Address> TokenContract_AdvanceResourceToken_Test()
         {
             var contractAddress = SampleAddress.AddressList[0];
             var developerAddress = BootMinerAddress;
@@ -55,9 +55,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task TokenContract_TakeResourceTokenBack()
+        public async Task TokenContract_TakeResourceTokenBack_Test()
         {
-            var contractAddress = await TokenContract_AdvanceResourceToken();
+            var contractAddress = await TokenContract_AdvanceResourceToken_Test();
             var developerAddress = BootMinerAddress;
 
             var balanceBeforeTakingBack = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -95,9 +95,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task TokenContract_TakeResourceTokenBack_NotAll()
+        public async Task TokenContract_TakeResourceTokenBack_NotAll_Test()
         {
-            var contractAddress = await TokenContract_AdvanceResourceToken();
+            var contractAddress = await TokenContract_AdvanceResourceToken_Test();
             var developerAddress = BootMinerAddress;
             const long takeBackAmount = Amount / 2;
 
@@ -136,9 +136,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task TokenContract_TakeResourceTokenBack_Exceed()
+        public async Task TokenContract_TakeResourceTokenBack_Exceed_Test()
         {
-            var contractAddress = await TokenContract_AdvanceResourceToken();
+            var contractAddress = await TokenContract_AdvanceResourceToken_Test();
             const long takeBackAmount = Amount * 2;
 
             var result = await TokenContractStub.TakeResourceTokenBack.SendAsync(new TakeResourceTokenBackInput

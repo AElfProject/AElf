@@ -120,6 +120,8 @@ namespace AElf.Sdk.CSharp.Tests
 
             // Get changes
             var changes = state.GetChanges();
+            changes.Reads.Count.ShouldBeGreaterThan(0);
+            changes.Writes.Count.ShouldBeGreaterThan(0);
 
             // Clear values
             state.Clear();

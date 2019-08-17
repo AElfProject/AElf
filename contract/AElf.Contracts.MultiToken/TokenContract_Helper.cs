@@ -1,8 +1,6 @@
-using System.Collections.Generic;
 using System.Linq;
 using Acs0;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Sdk.CSharp;
 using AElf.Types;
