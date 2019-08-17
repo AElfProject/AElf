@@ -170,6 +170,12 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             await _testDataProvider.ResetAsync();
         }
 
+        public void SkipTimeToBlock(int seconds)
+        {
+            var timestamp = _testDataProvider.GetBlockTime();
+            _testDataProvider.SetBlockTime(timestamp.AddSeconds(seconds));
+        }
+
         private async Task MineAsync(AEDPoSContractImplContainer.AEDPoSContractImplStub contractStub,
             Transaction transaction)
         {
