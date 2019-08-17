@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.LuckGame";
+
+service LuckGameContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.LuckGame.LuckGameContractState";
+    //Actions
+    rpc InitializeLuckGame (InitializeLuckGameInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc SetBetBalanceLimit (BalanceLimitInput) returns (google.protobuf.Empty) {
+    }
+
+    rpc UserPlayBet (PlayBetInput) returns (BetRecord) {
+    }
+
+    //View
+    rpc GetBetLotteryNumber (GetLotteryInput) returns (int64) {
+    }
+
+    rpc GetAllBetRecords (google.protobuf.Empty) returns (BetRecordList) {
+    }
+
+    rpc GetBetRecords (aelf.Address) returns (BetRecordList) {
+    }
+}
+
+//Input
+message MarginToken {
+    string token_symbol = 1;
+    int64 balance = 2;
+}
+
+message InitializeLuckGameInput {
+    int64 min_value = 1;
+    int64 max_value = 2;
+    
+    repeated MarginToken token_symbol = 3;
+}
+
+message BalanceLimitInput {
+    int64 min_value = 1;
+    int64 max_value = 2;
+}
+
+message PlayBetInput {
+    string symbol = 1;
+    int64 amount = 2;
+    BetType Bet = 3;
+    int64 BetNumber = 4;
+}
+
+message GetLotteryInput {
+    int64 bet_number = 1;
+    BetType bet = 2;
+}
+
+//Output
+message BetRecord {
+    google.protobuf.Timestamp bet_time = 1;
+    aelf.Address bet_owner = 2;
+    BetType bet = 3;
+    int64 bet_number = 4;
+    int64 luck_number = 5;
+    bool bet_result = 6;
+    int64 bet_reward = 7;
+}
+
+message BetRecordList {
+    repeated BetRecord record_list = 1;
+}
+
+enum BetType {
+    NotSet = 0;
+    Small = 1;
+    Big = 2;
+}
+
