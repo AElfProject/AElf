@@ -1,5 +1,5 @@
 using AElf.Contracts.Election;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.Treasury;
 
 namespace AElf.Contracts.Consensus.AEDPoS

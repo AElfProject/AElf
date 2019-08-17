@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Deployer;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestBase;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;

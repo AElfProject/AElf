@@ -3,7 +3,7 @@ using System.Linq;
 using Acs3;
 using Acs7;
 using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp.State;
 using AElf.CSharp.Core.Utils;
 using AElf.Types;
@@ -117,6 +117,12 @@ namespace AElf.Contracts.CrossChain
             State.TokenContract.TransferFrom.Send(input);
         }
 
+        private TokenInfo GetNativeTokenInfo()
+        {
+            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            return State.TokenContract.GetNativeTokenInfo.Call(new Empty());
+        }
+        
         private long GetBalance(GetBalanceInput input)
         {
             ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);

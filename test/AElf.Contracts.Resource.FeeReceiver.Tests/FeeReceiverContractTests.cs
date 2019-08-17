@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
+using AElf.Contracts.TestKit;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Token;
@@ -12,7 +13,7 @@ using Xunit;
 
 namespace AElf.Contracts.Resource.FeeReceiver
 {
-    public class FeeReceiverContractTests : ContractTestBase<FeeReceiverContractTestAElfModule>
+    public class FeeReceiverContractTests : TestBase.ContractTestBase<FeeReceiverContractTestAElfModule>
     {
         private ECKeyPair FeeKeyPair;
         private ECKeyPair FoundationKeyPair; 

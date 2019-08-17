@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;

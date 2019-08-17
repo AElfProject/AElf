@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Economic;
 using AElf.Contracts.Economic.TestBase;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
