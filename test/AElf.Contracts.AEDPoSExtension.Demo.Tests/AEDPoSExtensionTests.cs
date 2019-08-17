@@ -14,7 +14,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
     // ReSharper disable once InconsistentNaming
     public class AEDPoSExtensionTests : AEDPoSExtensionDemoTestBase
     {
-        [Fact]
+        [Fact(Skip = "Skip for saving time")]
         public async Task Demo_Test()
         {
             // Check round information after initialization.
