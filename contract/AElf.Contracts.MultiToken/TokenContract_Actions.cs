@@ -2,13 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs0;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
-using Approved = AElf.Contracts.MultiToken.Messages.Approved;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -491,6 +489,8 @@ namespace AElf.Contracts.MultiToken
 
                 State.TreasuryContract.Value = treasuryContractAddress;
             }
+            
+            // TODO: Adapter side chain.
 
             var transactions = Context.GetPreviousBlockTransactions();
             foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"RAM"}))
@@ -593,13 +593,14 @@ namespace AElf.Contracts.MultiToken
         {
             var profitReceivingInformation = State.ProfitReceivingInfos[input.ContractAddress];
             Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
-                "Only profit Beneficiary can perform this action.");
+                "Only profit receiver can perform this action.");
             foreach (var symbol in input.Symbols.Except(TokenContractConstants.ResourceTokenSymbols))
             {
                 var profits = State.Balances[input.ContractAddress][symbol];
                 State.Balances[input.ContractAddress][symbol] = 0;
                 var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
                 State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(donates);
+                // TODO: Adapter side chain.
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,

@@ -1,10 +1,7 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Economic;
 using AElf.Contracts.Economic.TestBase;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -12,7 +9,6 @@ using Xunit;
 using AElf.Contracts.Election;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
-using Google.Protobuf;
 using Volo.Abp.Threading;
 
 namespace AElf.Contracts.EconomicSystem.Tests.BVT

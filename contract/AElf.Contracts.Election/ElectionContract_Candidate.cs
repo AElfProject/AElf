@@ -1,4 +1,4 @@
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.Sdk.CSharp;

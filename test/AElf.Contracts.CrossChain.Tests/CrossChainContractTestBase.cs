@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Acs3;
 using Acs7;
 using AElf.Contracts.CrossChain;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.ParliamentAuth;
 using AElf.CrossChain;
 using AElf.Cryptography.ECDSA;
@@ -17,7 +17,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
-using ApproveInput = AElf.Contracts.MultiToken.Messages.ApproveInput;
+using ApproveInput = AElf.Contracts.MultiToken.ApproveInput;
 using InitializeInput = AElf.Contracts.CrossChain.InitializeInput;
 
 namespace AElf.Contract.CrossChain.Tests
