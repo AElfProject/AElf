@@ -57,7 +57,6 @@ namespace AElf.Contracts.ReferendumAuth
                         TransactionMethodCallList = GenerateTokenInitializationCallList()
                     })).Output;
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
-            
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)

@@ -1,8 +1,5 @@
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Genesis;
-using AElf.Contracts.TestContract;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestContract.BasicUpdate;
 using AElf.Contracts.TestContract.BasicSecurity;
@@ -10,7 +7,6 @@ using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Types;
-using Google.Protobuf;
 using Volo.Abp.Threading;
 
 namespace AElf.Contract.TestContract
@@ -25,7 +21,7 @@ namespace AElf.Contract.TestContract
 
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
+        protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address BasicFunctionContractAddress { get; set; }
         protected Address BasicSecurityContractAddress { get; set; }
 

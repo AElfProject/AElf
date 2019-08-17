@@ -15,7 +15,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
     public class AEDPoSExtensionTests : AEDPoSExtensionDemoTestBase
     {
         [Fact]
-        public async Task DemoTest()
+        public async Task Demo_Test()
         {
             // Check round information after initialization.
             {
@@ -35,7 +35,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             // We can use this method process testing.
             // Basically this will produce one block with no transaction.
             await BlockMiningService.MineBlockAsync();
-
+            
             // And this will produce one block with one transaction.
             // This transaction will call Create method of Token Contract.
             await BlockMiningService.MineBlockAsync(new List<Transaction>
@@ -50,7 +50,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                     TotalSupply = 1_000_000_000_00000000
                 })
             });
-
+            
             // Check whether previous Create transaction successfully executed.
             {
                 var tokenInfo = await TokenStub.GetTokenInfo.CallAsync(new GetTokenInfoInput {Symbol = "ELF"});
