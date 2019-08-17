@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -10,7 +10,7 @@ using Xunit;
 
 namespace AElf.Contracts.Election
 {
-    public partial class ElectionContractTests : ElectionContractTestBase
+    public partial class ElectionContractTests
     {
         [Fact]
         public async Task CheckTreasuryProfitsDistribution_Test()

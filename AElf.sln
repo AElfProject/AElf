@@ -315,6 +315,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Parallel.Tests", "test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.BasicFunctionWithParallel", "test\AElf.Contracts.TestContract.BasicFunctionWithParallel\AElf.Contracts.TestContract.BasicFunctionWithParallel.csproj", "{D62A334F-6237-4B83-B195-09ED1F25E344}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.Performance", "test\AElf.Contracts.TestContract.Performance\AElf.Contracts.TestContract.Performance.csproj", "{215B8624-528C-47BE-BF5B-650B41098129}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -897,6 +899,10 @@ Global
 		{D62A334F-6237-4B83-B195-09ED1F25E344}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D62A334F-6237-4B83-B195-09ED1F25E344}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D62A334F-6237-4B83-B195-09ED1F25E344}.Release|Any CPU.Build.0 = Release|Any CPU
+		{215B8624-528C-47BE-BF5B-650B41098129}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{215B8624-528C-47BE-BF5B-650B41098129}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{215B8624-528C-47BE-BF5B-650B41098129}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{215B8624-528C-47BE-BF5B-650B41098129}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1056,5 +1062,6 @@ Global
 		{A33DF532-A418-400F-B803-89AC4C669490} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{51D379F2-B146-4266-BC1A-C98EBF5C69EC} = {4E54480A-D155-43ED-9736-1A5BE7957211}
 		{D62A334F-6237-4B83-B195-09ED1F25E344} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{215B8624-528C-47BE-BF5B-650B41098129} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 	EndGlobalSection
 EndGlobal

@@ -4,9 +4,6 @@
         <RootNamespace>AElf.OS</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
-      <!--<ProjectReference Include="..\AElf.Contracts.Consensus.AEDPoS.Tests\AElf.Contracts.Consensus.AEDPoS.Tests.csproj" />-->
-      <!--<ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />-->
-      <!--<ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />-->
       <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
       <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />

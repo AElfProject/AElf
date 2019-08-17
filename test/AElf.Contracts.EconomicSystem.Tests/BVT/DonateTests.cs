@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
@@ -14,7 +14,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
     public partial class EconomicSystemTest
     {
         [Fact]
-        public async Task Donate_FewELF_Success()
+        public async Task Donate_FewELF_Success_Test()
         {
             var keyPair = SampleECKeyPairs.KeyPairs[1];
             await TransferToken(keyPair, EconomicSystemTestConstants.NativeTokenSymbol, 100);
@@ -39,7 +39,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task Donate_AllELF_Success()
+        public async Task Donate_AllELF_Success_Test()
         {
             var keyPair = SampleECKeyPairs.KeyPairs[1];
             await TransferToken(keyPair, EconomicSystemTestConstants.NativeTokenSymbol, 100);
@@ -63,7 +63,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task Donate_ELF_LessThan_Owned()
+        public async Task Donate_ELF_LessThan_Owned_Test()
         {
             var keyPair = SampleECKeyPairs.KeyPairs[1];
 
@@ -85,7 +85,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task Donate_FewOtherToken_Success()
+        public async Task Donate_FewOtherToken_Success_Test()
         {
             var keyPair = CoreDataCenterKeyPairs[0];
 
@@ -107,7 +107,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task Donate_AllOtherToken_Success()
+        public async Task Donate_AllOtherToken_Success_Test()
         {
             var keyPair = CoreDataCenterKeyPairs[0];
 
@@ -128,7 +128,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
 
         [Fact]
-        public async Task Donate_OtherToken_LessThan_Owned()
+        public async Task Donate_OtherToken_LessThan_Owned_Test()
         {
             var keyPair = CoreDataCenterKeyPairs[0];
 

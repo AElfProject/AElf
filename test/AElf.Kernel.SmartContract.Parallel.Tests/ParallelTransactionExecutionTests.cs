@@ -1,10 +1,9 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
-using AElf.Types;
 using Shouldly;
 using Xunit;
 

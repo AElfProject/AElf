@@ -19,7 +19,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
         }
 
         [Fact]
-        public async Task GetTriggerInformationForBlockHeaderExtraDataAsync_NullConsensusCommand()
+        public async Task GetTriggerInformationForBlockHeaderExtraDataAsync_NullConsensusCommand_Test()
         {
             var result = await _triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraDataAsync(null);
             var triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(result.Value);
@@ -27,7 +27,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
         }
 
         [Fact]
-        public async Task GetTriggerInformationForConsensusTransactionsAsync_NullConsensusCommand()
+        public async Task GetTriggerInformationForConsensusTransactionsAsync_NullConsensusCommand_Test()
         {
             var result = await _triggerInformationProvider.GetTriggerInformationForConsensusTransactionsAsync(null);
             var triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(result.Value);

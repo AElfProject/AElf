@@ -6,7 +6,7 @@ namespace AElf.Kernel.Types.Tests
     public class ChainHelperTests
     {
         [Fact]
-        public void GetChainId_By_SerialNumber()
+        public void GetChainId_By_SerialNumber_Test()
         {
             // Have tested all the conditions (195112UL ~ 11316496UL), To save time, just do some random test
             //var base58HashSet = new HashSet<string>();

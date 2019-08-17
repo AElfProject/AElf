@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using Acs8;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.CSharp.Core;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract;
 using AElf.Types;
@@ -20,6 +20,30 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         public ExecutionPluginForAcs8Test()
         {
             AsyncHelper.RunSync(InitializeContracts);
+        }
+
+        [Fact]
+        public async Task BuyResourceToken_Test()
+        {
+            var beforeElf = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = DefaultSender,
+                Symbol = "ELF"
+            })).Balance;
+            
+            var approveResult = await TokenContractStub.Approve.SendAsync(new ApproveInput
+            {
+                Symbol = "ELF",
+                Amount = beforeElf,
+                Spender = TokenConverterAddress
+            });
+            approveResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput
+            {
+                Symbol = "CPU",
+                Amount = 100_00000000,
+            });
         }
 
         [Fact]

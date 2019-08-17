@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Economic;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Election;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
@@ -21,7 +21,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public class AEDPoSContractTestBase : EconomicContractsTestBase
     {
-        private void DeployAllContracts()
+        private new void DeployAllContracts()
         {
             _ = TokenContractAddress;
             _ = VoteContractAddress;
