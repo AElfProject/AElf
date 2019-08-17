@@ -9,12 +9,19 @@ namespace AElf.Kernel.Consensus.Application
     {
         private readonly IConsensusService _consensusService;
         private readonly IBlockExtraDataService _blockExtraDataService;
+        private readonly IIsPackageNormalTransactionProvider _isPackageNormalTransactionProvider;
+        private readonly IBlockchainService _blockchainService;
         public ILogger<ConsensusValidationProvider> Logger { get; set; }
 
-        public ConsensusValidationProvider(IConsensusService consensusService, IBlockExtraDataService blockExtraDataService)
+        public ConsensusValidationProvider(IConsensusService consensusService,
+            IBlockExtraDataService blockExtraDataService,
+            IIsPackageNormalTransactionProvider isPackageNormalTransactionProvider,
+            IBlockchainService blockchainService)
         {
             _consensusService = consensusService;
             _blockExtraDataService = blockExtraDataService;
+            _isPackageNormalTransactionProvider = isPackageNormalTransactionProvider;
+            _blockchainService = blockchainService;
             Logger = NullLogger<ConsensusValidationProvider>.Instance;
         }
 
@@ -33,6 +40,15 @@ namespace AElf.Kernel.Consensus.Application
             if (consensusExtraData == null || consensusExtraData.IsEmpty)
             {
                 Logger.LogWarning($"Consensus extra data is empty {block}");
+                return false;
+            }
+
+            if (_isPackageNormalTransactionProvider.IsPackage) return true;
+
+            var chain = await _blockchainService.GetChainAsync();
+            if (chain.BestChainHash == block.Header.PreviousBlockHash && block.Body.TransactionsCount > 4)
+            {
+                Logger.LogWarning("Cannot package normal transaction.");
                 return false;
             }
 
@@ -56,8 +72,18 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHash = block.Header.PreviousBlockHash,
                 BlockHeight = block.Header.Height - 1
             }, consensusExtraData.ToByteArray());
+            if (!isValid) return false;
 
-            return isValid;
+            if (_isPackageNormalTransactionProvider.IsPackage) return true;
+
+            var chain = await _blockchainService.GetChainAsync();
+            if (chain.BestChainHash == block.Header.PreviousBlockHash && block.Body.TransactionsCount > 4)
+            {
+                Logger.LogWarning("Cannot package normal transaction.");
+                return false;
+            }
+
+            return true;
         }
 
         public async Task<bool> ValidateBlockAfterExecuteAsync(IBlock block)
