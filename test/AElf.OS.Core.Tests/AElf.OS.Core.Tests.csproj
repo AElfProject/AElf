@@ -4,11 +4,8 @@
         <RootNamespace>AElf.OS</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
-      <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
+      <ProjectReference Include="..\AElf.Contracts.Consensus.AEDPoS.Tests\AElf.Contracts.Consensus.AEDPoS.Tests.csproj" />
       <ProjectReference Include="..\AElf.OS.TestBase\AElf.OS.TestBase.csproj" />
-      <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
     </ItemGroup>
     <ItemGroup>
       <PackageReference Include="coverlet.msbuild" Version="2.5.1" />

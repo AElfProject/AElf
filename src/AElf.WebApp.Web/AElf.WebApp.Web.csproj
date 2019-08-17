@@ -9,7 +9,6 @@
     <ItemGroup>
       <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
       <ProjectReference Include="..\AElf.WebApp.Application.Chain\AElf.WebApp.Application.Chain.csproj" />
-      <ProjectReference Include="..\AElf.WebApp.Application.Core\AElf.WebApp.Application.Core.csproj" />
       <ProjectReference Include="..\AElf.WebApp.Application.Net\AElf.WebApp.Application.Net.csproj" />
     </ItemGroup>
 
