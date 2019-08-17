@@ -12,7 +12,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     /// TODO: add unit test
     /// Discover LIB from consensus contract then set LIB.
     /// </summary>
-    public class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>, ITransientDependency
+    public class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>
     {
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IIrreversibleBlockDiscoveryService _irreversibleBlockDiscoveryService;

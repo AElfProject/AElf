@@ -26,8 +26,6 @@ namespace AElf.OS
         {
             var configuration = context.Services.GetConfiguration();
 
-            context.Services.AddSingleton<PeerDiscoveryWorker>();
-
             Configure<AccountOptions>(configuration.GetSection("Account"));
         }
         
