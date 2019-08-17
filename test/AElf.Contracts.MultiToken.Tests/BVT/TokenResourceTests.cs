@@ -1,8 +1,6 @@
 using System.Threading.Tasks;
 using Acs2;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
-using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;

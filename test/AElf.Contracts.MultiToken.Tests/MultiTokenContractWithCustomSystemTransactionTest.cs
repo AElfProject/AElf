@@ -1,8 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Acs2;
-using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
@@ -10,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
+using SampleAddress = AElf.Contracts.TestKit.SampleAddress;
 
 namespace AElf.Contracts.MultiToken
 {
