@@ -7,8 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\configuration.proto">
-            <Link>Protobuf/Proto/configuration.proto</Link>
+        <ContractCode Include="..\..\protobuf\configuration_contract.proto">
+            <Link>Protobuf/Proto/configuration_contract.proto</Link>
         </ContractCode>
     </ItemGroup>
 </Project>

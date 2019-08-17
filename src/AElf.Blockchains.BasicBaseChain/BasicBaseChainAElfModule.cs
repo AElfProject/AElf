@@ -60,7 +60,7 @@ namespace AElf.Blockchains.BasicBaseChain
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
-            Configure<TokenInitialOptions>(configuration.GetSection("TokenInitial"));
+            Configure<EconomicOptions>(configuration.GetSection("Economic"));
             Configure<ChainOptions>(option =>
             {
                 option.ChainId =

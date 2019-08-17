@@ -5,8 +5,6 @@
     </PropertyGroup>
     <ItemGroup>
       <ProjectReference Include="..\AElf.Contracts.Consensus.AEDPoS.Tests\AElf.Contracts.Consensus.AEDPoS.Tests.csproj" />
-<!--      <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />-->
-<!--      <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />-->
       <ProjectReference Include="..\AElf.OS.TestBase\AElf.OS.TestBase.csproj" />
     </ItemGroup>
     <ItemGroup>

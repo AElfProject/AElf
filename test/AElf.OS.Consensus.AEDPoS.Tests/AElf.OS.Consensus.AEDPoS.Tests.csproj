@@ -20,6 +20,8 @@
       <ProjectReference Include="..\..\src\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
       <ProjectReference Include="..\..\src\AElf.OS\AElf.OS.csproj" />
       <ProjectReference Include="..\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
+      <ProjectReference Include="..\AElf.OS.TestBase\AElf.OS.TestBase.csproj" />
+      <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
     </ItemGroup>
 
     <Import Project="..\AllContracts.props" />

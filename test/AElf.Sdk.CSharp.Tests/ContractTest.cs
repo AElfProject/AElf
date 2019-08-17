@@ -9,6 +9,7 @@ using Xunit;
 using Shouldly;
 using AElf.Sdk.CSharp.Tests.TestContract;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Sdk.CSharp.Tests
 {
@@ -18,7 +19,7 @@ namespace AElf.Sdk.CSharp.Tests
         private TokenContract Contract { get; } = new TokenContract();
         private IStateProvider StateProvider { get; }
         private IHostSmartContractBridgeContext BridgeContext { get; }
-
+        
         public ContractTest()
         {
             StateProvider = GetRequiredService<IStateProviderFactory>().CreateStateProvider();
@@ -49,16 +50,6 @@ namespace AElf.Sdk.CSharp.Tests
             Contract.Decimals().ShouldBe(9U);
             var balance = Contract.BalanceOf(AddressList[1]);
             balance.ShouldBe(1000000UL);
-        }
-
-        [Fact(Skip = "Symbol name format should be checked.")]
-        public void Init_Invalid_Symbol_Test()
-        {
-            Contract.Initialize("eLf Symbol", "elf test token", 1000000, 9);
-            Contract.Symbol().ShouldBe("eLf Symbol");
-            Contract.TokenName().ShouldBe("elf test token");
-            Contract.TotalSupply().ShouldBe(1000000UL);
-            Contract.Decimals().ShouldBe(9U);
         }
 
         [Fact]
@@ -218,6 +209,7 @@ namespace AElf.Sdk.CSharp.Tests
             var address2 = Contract.GetVirtualAddress(100);
             address2.ShouldNotBe(address);
         }
+
         private void SwitchOwner(Address address)
         {
             var transactionContext = new TransactionContext()

@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.Economic.TestBase;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -13,10 +13,10 @@ using Xunit;
 
 namespace AElf.Contracts.Election
 {
-    public partial class ElectionContractTests : ElectionContractTestBase
+    public partial class ElectionContractTests
     {
         [Fact]
-        public async Task ElectionContract_InitializeTwice()
+        public async Task ElectionContract_InitializeTwice_Test()
         {
             var transactionResult = (await ElectionContractStub.InitialElectionContract.SendAsync(
                 new InitialElectionContractInput())).TransactionResult;
@@ -28,18 +28,32 @@ namespace AElf.Contracts.Election
         #region AnnounceElection
 
         [Fact]
-        public async Task ElectionContract_AnnounceElection_TokenNotEnough()
+        public async Task ElectionContract_AnnounceElection_TokenNotEnough_Test()
         {
-            var candidateKeyPair = VotersKeyPairs[0];
+            var candidateKeyPair = VoterKeyPairs[0];
+            var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = Address.FromPublicKey(candidateKeyPair.PublicKey),
+                Symbol = ElectionContractTestConstants.NativeTokenSymbol
+            })).Balance;
+            var tokenTester = GetTokenContractTester(candidateKeyPair);
+            await tokenTester.Transfer.SendAsync(new TransferInput
+            {
+                Symbol = ElectionContractTestConstants.NativeTokenSymbol,
+                Amount = balance - 100,
+                To = Address.FromPublicKey(VoterKeyPairs[1].PublicKey),
+                Memo = "transfer token to other"
+            });
+            
             var transactionResult = await AnnounceElectionAsync(candidateKeyPair);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.Contains("Insufficient balance").ShouldBeTrue();
         }
 
         [Fact]
-        public async Task ElectionContract_AnnounceElection_Twice()
+        public async Task ElectionContract_AnnounceElection_Twice_Test()
         {
-            var candidateKeyPair = (await ElectionContract_AnnounceElection())[0];
+            var candidateKeyPair = (await ElectionContract_AnnounceElection_Test())[0];
             var transactionResult = await AnnounceElectionAsync(candidateKeyPair);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("This public key already announced election.");
@@ -50,7 +64,7 @@ namespace AElf.Contracts.Election
         #region QuitElection
 
         [Fact]
-        public async Task ElectionContract_QuitElection_NotCandidate()
+        public async Task ElectionContract_QuitElection_NotCandidate_Test()
         {
             var userKeyPair = SampleECKeyPairs.KeyPairs[2];
 
@@ -64,10 +78,10 @@ namespace AElf.Contracts.Election
         #region Vote
 
         [Fact]
-        public async Task ElectionContract_Vote_Failed()
+        public async Task ElectionContract_Vote_Failed_Test()
         {
-            var candidateKeyPair = FullNodesKeyPairs[0];
-            var voterKeyPair = VotersKeyPairs[0];
+            var candidateKeyPair = ValidationDataCenterKeyPairs[0];
+            var voterKeyPair = VoterKeyPairs[0];
 
             // candidateKeyPair not announced election yet.
             {
@@ -82,8 +96,13 @@ namespace AElf.Contracts.Election
 
             // Voter token not enough
             {
+                var voterBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                {
+                    Owner = Address.FromPublicKey(voterKeyPair.PublicKey),
+                    Symbol = "ELF"
+                })).Balance;
                 var transactionResult =
-                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400, 100_000);
+                    await VoteToCandidate(voterKeyPair, candidateKeyPair.PublicKey.ToHex(), 120 * 86400, voterBalance/100000000 + 10);
 
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.Error.ShouldContain("Insufficient balance");
@@ -104,7 +123,7 @@ namespace AElf.Contracts.Election
         #region GetVictories
 
         [Fact]
-        public async Task ElectionContract_GetVictories_NoCandidate()
+        public async Task ElectionContract_GetVictories_NoCandidate_Test()
         {
             // To get previous round information.
             await NextRound(BootMinerKeyPair);
@@ -113,78 +132,78 @@ namespace AElf.Contracts.Election
                 .Select(p => p.ToHex()).ToList();
 
             // Same as initial miners.
-            victories.Count.ShouldBe(InitialMinersCount);
-            foreach (var initialMiner in InitialMinersKeyPairs.Select(kp => kp.PublicKey.ToHex()))
+            victories.Count.ShouldBe(EconomicContractsTestConstants.InitialCoreDataCenterCount);
+            foreach (var initialMiner in InitialCoreDataCenterKeyPairs.Select(kp => kp.PublicKey.ToHex()))
             {
                 victories.ShouldContain(initialMiner);
             }
         }
 
         [Fact]
-        public async Task ElectionContract_GetVictories_CandidatesNotEnough()
+        public async Task ElectionContract_GetVictories_CandidatesNotEnough_Test()
         {
             // To get previous round information.
             await NextRound(BootMinerKeyPair);
 
-            FullNodesKeyPairs.Take(InitialMinersCount - 1).ToList()
+            ValidationDataCenterKeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount - 1).ToList()
                 .ForEach(async kp => await AnnounceElectionAsync(kp));
 
             var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
                 .Select(p => p.ToHex()).ToList();
 
             // Same as initial miners.
-            victories.Count.ShouldBe(InitialMinersCount);
-            foreach (var initialMiner in InitialMinersKeyPairs.Select(kp => kp.PublicKey.ToHex()))
+            victories.Count.ShouldBe(EconomicContractsTestConstants.InitialCoreDataCenterCount);
+            foreach (var initialMiner in InitialCoreDataCenterKeyPairs.Select(kp => kp.PublicKey.ToHex()))
             {
                 victories.ShouldContain(initialMiner);
             }
         }
 
         [Fact]
-        public async Task ElectionContract_GetVictories_NoValidCandidate()
+        public async Task ElectionContract_GetVictories_NoValidCandidate_Test()
         {
             await NextRound(BootMinerKeyPair);
 
-            FullNodesKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+            ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
 
             var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
                 .Select(p => p.ToHex()).ToList();
 
             // Same as initial miners.
-            victories.Count.ShouldBe(InitialMinersCount);
-            foreach (var initialMiner in InitialMinersKeyPairs.Select(kp => kp.PublicKey.ToHex()))
+            victories.Count.ShouldBe(EconomicContractsTestConstants.InitialCoreDataCenterCount);
+            foreach (var initialMiner in InitialCoreDataCenterKeyPairs.Select(kp => kp.PublicKey.ToHex()))
             {
                 victories.ShouldContain(initialMiner);
             }
         }
 
         [Fact]
-        public async Task<List<string>> ElectionContract_GetVictories_ValidCandidatesNotEnough()
+        public async Task<List<string>> ElectionContract_GetVictories_ValidCandidatesNotEnough_Test()
         {
             const int amount = 100;
 
             await NextRound(BootMinerKeyPair);
 
-            FullNodesKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+            ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
 
             var candidates = (await ElectionContractStub.GetCandidates.CallAsync(new Empty())).Value;
-            foreach (var fullNodesKeyPair in FullNodesKeyPairs)
+            foreach (var fullNodesKeyPair in ValidationDataCenterKeyPairs)
             {
                 candidates.ShouldContain(ByteString.CopyFrom(fullNodesKeyPair.PublicKey));
             }
 
-            var validCandidates = FullNodesKeyPairs.Take(InitialMinersCount - 1).ToList();
+            var validCandidates = ValidationDataCenterKeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount - 1).ToList();
             validCandidates.ForEach(async kp =>
-                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, amount));
+                await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, amount));
 
-            foreach (var votedFullNodeKeyPair in FullNodesKeyPairs.Take(InitialMinersCount - 1))
+            foreach (var votedFullNodeKeyPair in ValidationDataCenterKeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount - 1))
             {
                 var votes = await ElectionContractStub.GetCandidateVote.CallAsync(new StringInput
                     {Value = votedFullNodeKeyPair.PublicKey.ToHex()});
                 votes.ObtainedActiveVotedVotesAmount.ShouldBe(amount);
             }
 
-            foreach (var votedFullNodeKeyPair in FullNodesKeyPairs.Skip(InitialMinersCount - 1))
+            foreach (var votedFullNodeKeyPair in ValidationDataCenterKeyPairs.Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount - 1))
             {
                 var votes = await ElectionContractStub.GetCandidateVote.CallAsync(new StringInput
                     {Value = votedFullNodeKeyPair.PublicKey.ToHex()});
@@ -195,7 +214,6 @@ namespace AElf.Contracts.Election
                 .Select(p => p.ToHex()).ToList();
 
             // Victories should contain all valid candidates.
-            victories.Count.ShouldBe(InitialMinersCount);
             foreach (var validCandidate in validCandidates)
             {
                 victories.ShouldContain(validCandidate.PublicKey.ToHex());
@@ -205,20 +223,19 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task<List<ECKeyPair>> ElectionContract_GetVictories_NotAllCandidatesGetVotes()
+        public async Task<List<ECKeyPair>> ElectionContract_GetVictories_NotAllCandidatesGetVotes_Test()
         {
             await NextRound(BootMinerKeyPair);
 
-            FullNodesKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+            ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
 
-            var validCandidates = FullNodesKeyPairs.Take(InitialMinersCount).ToList();
+            var validCandidates = ValidationDataCenterKeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
             validCandidates.ForEach(async kp =>
-                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 100));
+                await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 100));
 
             var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
                 .Select(p => p.ToHex()).ToList();
 
-            victories.Count.ShouldBe(InitialMinersCount);
             foreach (var validCandidate in validCandidates)
             {
                 victories.ShouldContain(validCandidate.PublicKey.ToHex());
@@ -228,27 +245,23 @@ namespace AElf.Contracts.Election
         }
 
         [Fact]
-        public async Task<List<string>> ElectionContract_GetVictories_ValidCandidatesEnough()
+        public async Task<List<string>> ElectionContract_GetVictories_ValidCandidatesEnough_Test()
         {
             await NextRound(BootMinerKeyPair);
 
-            FullNodesKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+            ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
 
-            var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-                {Owner = ElectionContractAddress, Symbol = "VOTE"});
-
-            var moreVotesCandidates = FullNodesKeyPairs.Take(InitialMinersCount).ToList();
+            var moreVotesCandidates = ValidationDataCenterKeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
             moreVotesCandidates.ForEach(async kp =>
-                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 2));
+                await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 2));
 
-            var lessVotesCandidates = FullNodesKeyPairs.Skip(InitialMinersCount).Take(InitialMinersCount).ToList();
+            var lessVotesCandidates = ValidationDataCenterKeyPairs.Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount).Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
             lessVotesCandidates.ForEach(async kp =>
-                await VoteToCandidate(VotersKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 1));
+                await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 1));
 
             var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
                 .Select(p => p.ToHex()).ToList();
 
-            victories.Count.ShouldBe(InitialMinersCount);
             foreach (var validCandidate in moreVotesCandidates)
             {
                 victories.ShouldContain(validCandidate.PublicKey.ToHex());

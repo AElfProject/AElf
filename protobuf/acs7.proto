@@ -55,7 +55,7 @@ message ParentChainBlockData {
     aelf.Hash transaction_status_merkle_root = 4;
 
     // Indexed block height from side chain and merkle path for this side chain block
-    map<int64, MerklePath> indexed_merkle_path = 5;
+    map<int64, aelf.MerklePath> indexed_merkle_path = 5;
     map<string, bytes> extra_data = 6;
 }
 
@@ -96,7 +96,7 @@ message CrossChainBlockData {
 
 message CrossChainMerkleProofContext {
     int64 bound_parent_chain_height = 1;
-    MerklePath merkle_path_for_parent_chain_root = 2;
+    aelf.MerklePath merkle_path_for_parent_chain_root = 2;
 }
 
 message ChainInitializationData {
@@ -141,8 +141,4 @@ message SideChainCreationRequest {
 message RequestChainCreationOutput {
     int32 chain_id = 1;
     aelf.Hash proposal_id = 2;
-}
-
-message MerklePath {
-    repeated aelf.Hash path = 1;
 }
