@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
