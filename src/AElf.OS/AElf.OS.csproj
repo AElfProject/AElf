@@ -12,4 +12,8 @@
         <ProjectReference Include="..\AElf.OS.Network.Grpc\AElf.OS.Network.Grpc.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Nethereum.KeyStore" Version="3.4.0" />
+    </ItemGroup>
+
 </Project>
