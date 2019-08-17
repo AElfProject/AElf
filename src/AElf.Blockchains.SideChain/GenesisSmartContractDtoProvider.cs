@@ -9,6 +9,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
@@ -22,6 +23,8 @@ namespace AElf.Blockchains.SideChain
         private readonly ContractOptions _contractOptions;
         private readonly ConsensusOptions _consensusOptions;
         private readonly ISideChainInitializationDataProvider _sideChainInitializationDataProvider;
+
+        public ILogger<GenesisSmartContractDtoProvider> Logger { get; set; }
 
         public GenesisSmartContractDtoProvider(IOptionsSnapshot<ConsensusOptions> consensusOptions, 
             IOptionsSnapshot<ContractOptions> contractOptions, ISideChainInitializationDataProvider sideChainInitializationDataProvider)
@@ -38,8 +41,11 @@ namespace AElf.Blockchains.SideChain
             var chainInitializationData = AsyncHelper.RunSync(async () =>
                 await _sideChainInitializationDataProvider.GetChainInitializationDataAsync());
 
-            if (chainInitializationData == null) 
+            if (chainInitializationData == null)
+            {
+                Logger.LogWarning("Chain initialization data is null.");
                 return genesisSmartContractDtoList;
+            }
             
             // chainInitializationData cannot be null if it is first time side chain startup. 
             genesisSmartContractDtoList.AddGenesisSmartContract(
