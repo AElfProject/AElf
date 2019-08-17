@@ -15,7 +15,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     public partial class AEDPoSTest
     {
         [Fact]
-        internal async Task<Hash> AEDPoSContract_RequestRandomNumber()
+        internal async Task<Hash> AEDPoSContract_RequestRandomNumber_Test()
         {
             var randomNumberOrder =
                 (await AEDPoSContractStub.RequestRandomNumber.SendAsync(new RequestRandomNumberInput())).Output;
@@ -26,7 +26,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         [Fact]
-        internal async Task<Hash> AEDPoSContract_RequestRandomNumber_FillMinimumBlockHeight()
+        internal async Task<Hash> AEDPoSContract_RequestRandomNumber_FillMinimumBlockHeight_Test()
         {
             const long minimumBlockHeight = 1000;
             var randomNumberOrder = (await AEDPoSContractStub.RequestRandomNumber.SendAsync(new RequestRandomNumberInput
@@ -39,9 +39,23 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         [Fact]
-        internal async Task<Hash> AEDPoSContract_GetRandomNumber()
+        public async Task AEDPoSContract_RequestRandomNumber_FillMinimumBlockHeight_MultipleTimes_Test()
         {
-            var tokenHash = await AEDPoSContract_RequestRandomNumber();
+            var hash = await AEDPoSContract_RequestRandomNumber_FillMinimumBlockHeight_Test();
+
+            const long minimumBlockHeight = 1000;
+            var randomNumberOrder = (await AEDPoSContractStub.RequestRandomNumber.SendAsync(new RequestRandomNumberInput
+            {
+                MinimumBlockHeight = minimumBlockHeight
+            })).Output;
+            var hash1 = randomNumberOrder.TokenHash;
+            hash1.ShouldNotBe(hash);
+        }
+
+        [Fact]
+        internal async Task<Hash> AEDPoSContract_GetRandomNumber_Test()
+        {
+            var tokenHash = await AEDPoSContract_RequestRandomNumber_Test();
 
             var currentRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
@@ -113,9 +127,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         [Fact]
-        internal async Task AEDPoSContract_GetRandomNumber_AfterSixRounds()
+        internal async Task AEDPoSContract_GetRandomNumber_AfterSixRounds_Test()
         {
-            var tokenHash = await AEDPoSContract_GetRandomNumber();
+            var tokenHash = await AEDPoSContract_GetRandomNumber_Test();
 
             // Run 6 rounds
             await RunMiningProcess(6);

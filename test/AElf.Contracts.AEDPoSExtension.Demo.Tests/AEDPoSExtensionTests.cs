@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs6;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
@@ -125,6 +126,37 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
                 round.RoundNumber.ShouldBe(3);
             }
+        }
+        
+        [Fact]
+        public async Task<Hash> RequestRandomNumber_Test()
+        {
+            const long minimumBlockHeight = 40;
+
+            await BlockMiningService.MineBlockAsync();
+            var randomNumberOrder = (await ConsensusStub.RequestRandomNumber.SendAsync(new RequestRandomNumberInput
+            {
+                MinimumBlockHeight = minimumBlockHeight
+            })).Output;
+            randomNumberOrder.TokenHash.ShouldNotBeNull();
+            randomNumberOrder.BlockHeight.ShouldBe(minimumBlockHeight);
+
+            return randomNumberOrder.TokenHash;
+        }
+
+        [Fact]
+        public async Task GetRandomNumber_WithNotEnoughParticipators_Test()
+        {
+            var hash = await RequestRandomNumber_Test();
+
+            BlockMiningService.SkipTimeToBlock(4);
+            for (var i = 0; i < 40; i++)
+            {
+                await BlockMiningService.MineBlockAsync();
+            }
+
+            var result = await ConsensusStub.GetRandomNumber.CallAsync(hash);
+            result.ShouldBeEmpty();
         }
     }
 }

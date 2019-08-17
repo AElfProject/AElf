@@ -8,5 +8,6 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
     {
         Task<Dictionary<Hash, Address>> DeploySystemContractsAsync(Dictionary<Hash, byte[]> nameToCode);
         Task MineBlockAsync(List<Transaction> transactions = null);
+        void SkipTimeToBlock(int seconds);
     }
 }
