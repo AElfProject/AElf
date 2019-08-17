@@ -27,6 +27,8 @@ namespace AElf.CrossChain
                 {2, Hash.FromString("2")},
                 {3, Hash.FromString("3")}
             };
+            
+            Configure<ChainOptions>(option => { option.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
 
             //context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
             context.Services.AddSingleton<CrossChainTestHelper>();

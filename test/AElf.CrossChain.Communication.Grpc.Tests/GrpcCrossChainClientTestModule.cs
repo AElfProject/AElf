@@ -20,6 +20,7 @@ namespace AElf.CrossChain.Communication.Grpc
             var services = context.Services;
             services.AddSingleton<IGrpcCrossChainServer, GrpcCrossChainServer>();
             services.AddSingleton<GrpcCrossChainCommunicationTestHelper>();
+            Configure<ChainOptions>(option => { option.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
 
             services.AddTransient(o =>
             {

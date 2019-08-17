@@ -24,7 +24,6 @@ namespace AElf.Kernel
         {
             var services = context.Services;
             services.AddTransient<BlockValidationProvider>();
-            Configure<ChainOptions>(option => { option.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
             services.AddSingleton(p => Mock.Of<IAccountService>());
         }
     }
