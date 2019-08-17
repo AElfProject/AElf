@@ -15,7 +15,7 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
 
-    <Import Project="..\AllContracts.props"/>
+    <Import Project="..\AllContracts.props" />
     
     <ItemGroup>
       <ProjectReference Include="..\AElf.WebApp.Application.TestBase\AElf.WebApp.Application.TestBase.csproj" />

@@ -3,11 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Deployer;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Cryptography;
-using AElf.Kernel;
 using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
@@ -30,7 +28,7 @@ namespace AElf.Contracts.TestBase.Tests
         private int DefaultCategory { get; } = SmartContractTestConstants.TestRunnerCategory;
 
         [Fact]
-        public async Task InitialChainTest()
+        public async Task InitialChain_Test()
         {
             var tester = new ContractTester<ContractTestAElfModule>();
             await tester.InitialChainAsync();
@@ -42,7 +40,7 @@ namespace AElf.Contracts.TestBase.Tests
         }
 
         [Fact]
-        public async Task MineTest()
+        public async Task Mine_Test()
         {
             var tester = new ContractTester<ContractTestAElfModule>();
             await tester.InitialChainAsync();
@@ -72,7 +70,7 @@ namespace AElf.Contracts.TestBase.Tests
         }
 
         [Fact]
-        public async Task MultipleNodesTest()
+        public async Task MultipleNodes_Test()
         {
             var tester1 = new ContractTester<ContractTestAElfModule>();
             await tester1.InitialChainAsync();
@@ -100,9 +98,8 @@ namespace AElf.Contracts.TestBase.Tests
             Assert.Equal(1, chain2.BestChainHeight);
         }
 
-        // TODO: Think about another way to test `CallContractMethodAsync`.
         [Fact]
-        public async Task CallContractTest()
+        public async Task CallContract_Test()
         {
             var callerKeyPair = CryptoHelper.GenerateKeyPair();
             var tester = new ContractTester<ContractTestAElfModule>(ChainId, callerKeyPair);
@@ -132,7 +129,7 @@ namespace AElf.Contracts.TestBase.Tests
         }
 
         [Fact]
-        public async Task GetTransactionResultTest()
+        public async Task GetTransactionResult_Test()
         {
             var tester = new ContractTester<ContractTestAElfModule>();
             await tester.InitialChainAsync();
@@ -154,7 +151,7 @@ namespace AElf.Contracts.TestBase.Tests
         }
 
         [Fact]
-        public async Task CreateContractTesterTest()
+        public async Task CreateContractTester_Test()
         {
             var tester = new ContractTester<ContractTestAElfModule>();
             await tester.InitialChainAsync();

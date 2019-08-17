@@ -14,7 +14,9 @@ using Volo.Abp.Modularity;
 
 namespace AElf.OS.Network
 {
-    [DependsOn(typeof(OSCoreWithChainTestAElfModule), typeof(GrpcNetworkModule))]
+    [DependsOn(
+        typeof(OSCoreWithChainTestAElfModule),
+        typeof(GrpcNetworkModule))]
     public class GrpcNetworkTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

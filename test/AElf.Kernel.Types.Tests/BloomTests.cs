@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Shouldly;
 using Xunit;
 
 namespace AElf.Kernel.Types.Tests
@@ -10,14 +11,21 @@ namespace AElf.Kernel.Types.Tests
     public class BloomTests
     {
         [Fact]
-        public void LengthTest()
+        public void Length_Test()
         {
             var bloom = new Bloom();
             Assert.Equal(256, bloom.Data.Length);
+            
+            var bloomData = Guid.NewGuid().ToByteArray();
+            Should.Throw<InvalidOperationException>(
+                () =>
+                {
+                    new Bloom(bloomData);
+                });
         }
 
         [Fact]
-        public void AddHashAddValueTest()
+        public void AddHashAddValue_Test()
         {
             var empty = BytesValue.Parser.ParseFrom(ByteString.Empty);
             var elf = new StringValue()
@@ -77,7 +85,7 @@ namespace AElf.Kernel.Types.Tests
         }
 
         [Fact]
-        public void MultiMergeTest()
+        public void MultiMerge_Test()
         {
             var a = ByteArrayHelper.HexStringToByteArray(string.Concat(
                 "1000000000000000000000000000000000000000000000000000000000000000",
@@ -117,7 +125,7 @@ namespace AElf.Kernel.Types.Tests
         }
 
         [Fact]
-        public void IsInTest()
+        public void IsIn_Test()
         {
             var target = new Bloom(ByteArrayHelper.HexStringToByteArray(string.Concat(
                 "1000000000000000000000000000000000000000000000000000000000000000",

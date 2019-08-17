@@ -9,7 +9,7 @@ namespace AElf.Cryptography.Tests.ECDSA
     public class BlockSignatureTest
     {
         [Fact]
-        public void SignAndVerifyTransaction()
+        public void SignAndVerifyTransaction_Test()
         {
             ECKeyPair keyPair1 = CryptoHelper.GenerateKeyPair();
             Transaction tx = new Transaction();

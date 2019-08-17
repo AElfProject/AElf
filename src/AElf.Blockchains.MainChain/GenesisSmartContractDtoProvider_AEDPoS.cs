@@ -13,12 +13,12 @@ namespace AElf.Blockchains.MainChain
 {
     public partial class GenesisSmartContractDtoProvider
     {
-        public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForConsensus(Address zeroContractAddress)
+        public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForConsensus()
         {
             var l = new List<GenesisSmartContractDto>();
 
             l.AddGenesisSmartContract(
-                _codes.Single(kv=>kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value,
+                _codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Consensus.AEDPoS")).Value,
                 ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList());
             return l;
@@ -40,7 +40,7 @@ namespace AElf.Blockchains.MainChain
                 {
                     Pubkeys =
                     {
-                        _consensusOptions.InitialMiners.Select(p => p.ToByteString())
+                        _consensusOptions.InitialMinerList.Select(p => p.ToByteString())
                     }
                 }.GenerateFirstRoundOfNewTerm(_consensusOptions.MiningInterval,
                     _consensusOptions.StartTimestamp.ToDateTime()));

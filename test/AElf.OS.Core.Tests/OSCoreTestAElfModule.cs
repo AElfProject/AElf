@@ -40,13 +40,13 @@ namespace AElf.OS
                     miners.Add(CryptoHelper.GenerateKeyPair().PublicKey.ToHex());
                 }
 
-                o.InitialMiners = miners;
+                o.InitialMinerList = miners;
                 o.MiningInterval = 4000;
                 o.TimeEachTerm = 604800;
                 o.MinerIncreaseInterval = 31536000;
             });
 
-            context.Services.AddTransient<IAccountService>(o =>
+            context.Services.AddTransient(o =>
             {
                 var mockService = new Mock<IAccountService>();
                 mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>

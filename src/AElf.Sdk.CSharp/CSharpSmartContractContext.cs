@@ -98,6 +98,11 @@ namespace AElf.Sdk.CSharp
             return _smartContractBridgeContextImplementation.GetZeroSmartContractAddress();
         }
 
+        public Address GetZeroSmartContractAddress(int chainId)
+        {
+            return _smartContractBridgeContextImplementation.GetZeroSmartContractAddress(chainId);
+        }
+
         public Address GetContractAddressByName(Hash hash)
         {
             return _smartContractBridgeContextImplementation.GetContractAddressByName(hash);

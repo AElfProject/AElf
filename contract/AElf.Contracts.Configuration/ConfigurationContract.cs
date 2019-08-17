@@ -1,7 +1,7 @@
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
-namespace Configuration
+namespace AElf.Contracts.Configuration
 {
     public class ConfigurationContract : ConfigurationContainer.ConfigurationBase
     {

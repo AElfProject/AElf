@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Deployer;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestBase;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
@@ -26,7 +26,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         public static async Task InitialChainAndTokenAsync(this ContractTester<FeeReceiverContractTestAElfModule> starter)
         {
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.CreateNativeToken), new CreateNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
             {
                 Symbol = "ELF",
                 Decimals = 2,
@@ -48,10 +48,6 @@ namespace AElf.Contracts.Resource.FeeReceiver
             await starter.InitialChainAsync(
                 list =>
                 {
-                    // Dividends contract must be deployed before token contract.
-//                    list.AddGenesisSmartContract(
-//                        DividendContractCode,
-//                        DividendSmartContractAddressNameProvider.Name);
                     list.AddGenesisSmartContract(
                         TokenContractCode,
                         TokenSmartContractAddressNameProvider.Name,

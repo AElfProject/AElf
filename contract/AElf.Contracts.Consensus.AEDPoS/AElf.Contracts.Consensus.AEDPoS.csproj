@@ -14,6 +14,12 @@
         <ContractReference Include="..\..\protobuf\election_contract.proto">
             <Link>Protobuf\Proto\reference\election_contract.proto</Link>
         </ContractReference>
+        <ContractReference Include="..\..\protobuf\treasury_contract.proto">
+            <Link>Protobuf\Proto\reference\treasury_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractReference>
     </ItemGroup>
 
     <ItemGroup>
