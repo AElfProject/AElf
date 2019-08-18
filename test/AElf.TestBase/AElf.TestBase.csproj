@@ -12,7 +12,7 @@
         <PackageReference Include="MartinCostello.Logging.XUnit" Version="0.1.0"/>
         <PackageReference Include="Moq" Version="4.10.1"/>
         <PackageReference Include="Volo.Abp.Autofac" Version="0.15.0"/>
-        <PackageReference Include="Volo.Abp.TestBase" Version="0.15.0"/>
+        <PackageReference Include="Volo.Abp.TestBase" Version="0.19.0"/>
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0"/>
         <PackageReference Include="NSubstitute" Version="4.0.0"/>
         <PackageReference Include="Shouldly" Version="3.0.2"/>
