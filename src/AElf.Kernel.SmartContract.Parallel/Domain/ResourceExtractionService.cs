@@ -55,7 +55,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 return (transaction, new TransactionResourceInfo()
                 {
                     TransactionId = transaction.GetHash(),
-                    Type = TransactionResourceInfoType.NonParallelizable
+                    ParallelType = ParallelType.NonParallelizable
                 });
 
             if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache))
@@ -79,7 +79,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     return new TransactionResourceInfo
                     {
                         TransactionId = transaction.GetHash(),
-                        Type = TransactionResourceInfoType.NonParallelizable
+                        ParallelType = ParallelType.NonParallelizable
                     };
                 }
 
@@ -92,7 +92,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 return new TransactionResourceInfo
                 {
                     TransactionId = transaction.GetHash(),
-                    Type = TransactionResourceInfoType.InvalidContractAddress
+                    ParallelType = ParallelType.InvalidContractAddress
                 };
             }
             finally

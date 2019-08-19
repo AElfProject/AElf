@@ -18,7 +18,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             Application.ServiceProvider.GetRequiredService<IResourceExtractionService>();
 
         [Fact]
-        public async Task GetResourcesAsync_NonAcs2()
+        public async Task GetResourcesAsync_NonAcs2_Test()
         {
             var txn = GetNonAcs2Transaction(new ResourceInfo());
             var resourceInfos =
@@ -29,12 +29,12 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
             {
                 TransactionId = txn.GetHash(),
-                Type = TransactionResourceInfoType.NonParallelizable
+                ParallelType = ParallelType.NonParallelizable
             });
         }
 
         [Fact]
-        public async Task GetResourcesAsync_Acs2_Parallelizable()
+        public async Task GetResourcesAsync_Acs2_Parallelizable_Test()
         {
             var txn = GetAcs2Transaction(new ResourceInfo
             {
@@ -59,7 +59,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         }
 
         [Fact]
-        public async Task GetResourcesAsync_Acs2_CancellationRequested()
+        public async Task GetResourcesAsync_Acs2_CancellationRequested_Test()
         {
             var cancelTokenSource = new CancellationTokenSource();
             cancelTokenSource.Cancel();
@@ -77,12 +77,12 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
             {
                 TransactionId = txn.GetHash(),
-                NonParallelizable = true
+                ParallelType = ParallelType.NonParallelizable
             });
         }
 
         [Fact]
-        public async Task GetResourcesAsync_Acs2_MarkedNonParallelizable()
+        public async Task GetResourcesAsync_Acs2_MarkedNonParallelizable_Test()
         {
             var txn = GetAcs2Transaction(new ResourceInfo
             {
@@ -100,12 +100,12 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
             {
                 TransactionId = txn.GetHash(),
-                Type = TransactionResourceInfoType.NonParallelizable
+                ParallelType = ParallelType.NonParallelizable
             });
         }
 
         [Fact]
-        public async Task GetResourcesAsync_Acs2_NonParallelizable()
+        public async Task GetResourcesAsync_Acs2_NonParallelizable_Test()
         {
             var txn = GetAcs2Transaction(new ResourceInfo
             {
@@ -119,7 +119,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
             {
                 TransactionId = txn.GetHash(),
-                Type = TransactionResourceInfoType.NonParallelizable
+                ParallelType = ParallelType.NonParallelizable
             });
         }
 
