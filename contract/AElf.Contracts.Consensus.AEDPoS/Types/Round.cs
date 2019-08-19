@@ -62,6 +62,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return Hash.FromRawBytes(GetCheckableRound(isContainPreviousInValue));
         }
 
+        public string GetCurrentMinerPubkey(Timestamp currentBlockTime)
+        {
+            return RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m =>
+                m.ExpectedMiningTime <= currentBlockTime &&
+                currentBlockTime < m.ExpectedMiningTime.AddMilliseconds(GetMiningInterval()))?.Pubkey;
+        }
+
         /// <summary>
         /// This method is only available when the miners of this round is more than 1.
         /// </summary>
@@ -170,7 +177,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             return RealTimeMinersInformation.ContainsKey(publicKey)
                 ? RealTimeMinersInformation[publicKey].ExpectedMiningTime
-                : new Timestamp {Seconds = long.MaxValue};;
+                : new Timestamp {Seconds = long.MaxValue};
+            ;
         }
 
         public int GetMiningOrder(string publicKey)

@@ -1,8 +1,6 @@
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -22,11 +20,9 @@ namespace AElf.Contracts.TokenConverter
         
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        protected ECKeyPair FeeReceiverKeyPair { get; } = SampleECKeyPairs.KeyPairs[10];
         protected Address FeeReceiverAddress => Address.FromPublicKey(ManagerKeyPair.PublicKey);
         protected ECKeyPair ManagerKeyPair { get; } = SampleECKeyPairs.KeyPairs[11];
         protected Address ManagerAddress => Address.FromPublicKey(ManagerKeyPair.PublicKey);
-        protected ECKeyPair FoundationKeyPair { get; } = SampleECKeyPairs.KeyPairs[12];
         
         protected async Task DeployContractsAsync()
         {

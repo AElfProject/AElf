@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Contracts.TestContract.ResourceSpender</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <RootNamespace>AElf.Contracts.TestContract.ResourceSpender</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs8.proto">
+            <Link>Protobuf\Proto\reference\acs8.proto</Link>
+        </ContractBase>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\treasury_contract.proto">
+            <Link>Protobuf\Proto\reference\treasury_contract.proto</Link>
+        </ContractReference>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\test_resource_spender_contract.proto">
+            <Link>Protobuf\Proto\test_resource_spender_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+
+</Project>
+

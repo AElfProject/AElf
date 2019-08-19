@@ -1,7 +1,7 @@
 ﻿using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
-namespace Configuration
+namespace AElf.Contracts.Configuration
 {
     public partial class ConfigurationState : ContractState
     {

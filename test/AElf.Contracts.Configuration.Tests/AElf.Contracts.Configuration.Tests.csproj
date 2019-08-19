@@ -26,7 +26,7 @@
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\configuration.proto">
+        <ContractStub Include="..\..\protobuf\configuration_contract.proto">
             <Link>Protobuf\Proto\configuration.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">

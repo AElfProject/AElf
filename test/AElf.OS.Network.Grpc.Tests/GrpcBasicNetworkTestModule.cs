@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
-using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;

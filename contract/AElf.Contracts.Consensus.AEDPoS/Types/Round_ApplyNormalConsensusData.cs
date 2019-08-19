@@ -33,7 +33,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             foreach (var orderConflictedMiner in conflicts)
             {
-                // Though multiple conflicts should be wrong, we can still arrange their orders of next round.
+                // Multiple conflicts is unlikely.
 
                 for (var i = supposedOrderOfNextRound + 1; i < minersCount * 2; i++)
                 {

@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Types;
-using Configuration;
+using AElf.Contracts.Configuration;
 using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using Xunit.Abstractions;

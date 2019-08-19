@@ -12,7 +12,7 @@ using Xunit;
 
 namespace AElf.Kernel.SmartContract.Parallel.Tests
 {
-    public class ResourceExtractionServiceTest : AbpIntegratedTest<TestModule>
+    public class ResourceExtractionServiceTest : AbpIntegratedTest<ParallelMockTestModule>
     {
         private IResourceExtractionService Service =>
             Application.ServiceProvider.GetRequiredService<IResourceExtractionService>();
@@ -55,6 +55,29 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 {
                     GetPath(12345)
                 }
+            });
+        }
+
+        [Fact]
+        public async Task GetResourcesAsync_Acs2_CancellationRequested()
+        {
+            var cancelTokenSource = new CancellationTokenSource();
+            cancelTokenSource.Cancel();
+            var txn = GetAcs2Transaction(new ResourceInfo
+            {
+                Paths =
+                {
+                    GetPath(12345)
+                }
+            });
+            var resourceInfos =
+                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, cancelTokenSource.Token))
+                .ToList();
+            resourceInfos.Count.ShouldBe(1);
+            resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
+            {
+                TransactionId = txn.GetHash(),
+                NonParallelizable = true
             });
         }
 

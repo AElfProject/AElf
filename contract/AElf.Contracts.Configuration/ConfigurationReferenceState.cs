@@ -1,6 +1,6 @@
 using AElf.Contracts.ParliamentAuth;
 
-namespace Configuration
+namespace AElf.Contracts.Configuration
 {
     public partial class ConfigurationState
     {

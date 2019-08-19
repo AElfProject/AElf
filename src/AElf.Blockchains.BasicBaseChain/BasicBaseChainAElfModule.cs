@@ -12,8 +12,6 @@ using AElf.OS;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
-using AElf.OS.Rpc.ChainController;
-using AElf.OS.Rpc.Net;
 using AElf.Runtime.CSharp;
 using AElf.RuntimeSetup;
 using AElf.WebApp.Web;
@@ -35,10 +33,7 @@ namespace AElf.Blockchains.BasicBaseChain
         typeof(AbpAspNetCoreModule),
         typeof(CSharpRuntimeAElfModule),
         typeof(GrpcNetworkModule),
-
-        //TODO: should move to OSAElfModule
-        typeof(ChainControllerRpcModule),
-        typeof(NetRpcAElfModule),
+        
         typeof(RuntimeSetupAElfModule),
         typeof(GrpcCrossChainAElfModule),
 
@@ -65,7 +60,7 @@ namespace AElf.Blockchains.BasicBaseChain
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
-            Configure<TokenInitialOptions>(configuration.GetSection("TokenInitial"));
+            Configure<EconomicOptions>(configuration.GetSection("Economic"));
             Configure<ChainOptions>(option =>
             {
                 option.ChainId =

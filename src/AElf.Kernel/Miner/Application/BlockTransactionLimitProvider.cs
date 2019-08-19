@@ -5,7 +5,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using Volo.Abp.DependencyInjection;
 using AElf.Types;
-using Configuration;
+using AElf.Contracts.Configuration;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;

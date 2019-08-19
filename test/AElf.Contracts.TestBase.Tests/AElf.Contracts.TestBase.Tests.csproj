@@ -31,5 +31,5 @@
         </ContractStub>
     </ItemGroup>
 
-    <Import Project="..\AllContracts.props"/>
+    <Import Project="..\AllContracts.props" />
 </Project>

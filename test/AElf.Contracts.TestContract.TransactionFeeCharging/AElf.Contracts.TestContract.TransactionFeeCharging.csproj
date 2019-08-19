@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Contracts.TestContract.TransactionFeeCharging</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <RootNamespace>AElf.Contracts.TestContract.TransactionFeeCharging</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf\Proto\reference\acs1.proto</Link>
+        </ContractBase>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
+        </ContractReference>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\test_transaction_fee_charging_contract.proto">
+            <Link>Protobuf\Proto\test_transaction_fee_charging_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+
+</Project>
+

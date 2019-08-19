@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Kernel;
+using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
@@ -12,7 +13,7 @@ namespace AElf.Contracts.Genesis
     public class GenesisContractAuthTest : BasicContractZeroTestBase
     {
         [Fact]
-        public async Task Initialize_AlreadyExist()
+        public async Task Initialize_AlreadyExist_Test()
         {
             var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(ACS0Container.ACS0Stub.ChangeGenesisOwner), SampleAddress.AddressList[0]);
@@ -22,7 +23,7 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task DeploySmartContracts()
+        public async Task DeploySmartContracts_Test()
         {
             var contractDeploymentInput = new ContractDeploymentInput
             {
@@ -46,7 +47,7 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task UpdateSmartContract()
+        public async Task UpdateSmartContract_Test()
         {
             var code = Codes.Single(kv => kv.Key.Contains("Consensus")).Value;
             var contractUpdateInput = new ContractUpdateInput
@@ -54,13 +55,13 @@ namespace AElf.Contracts.Genesis
                 Address = TokenContractAddress,
                 Code = ByteString.CopyFrom(code)
             };
-            string methodName = "UpdateSmartContract";
+            const string methodName = nameof(BasicContractZero.UpdateSmartContract);
             var proposalId = await CreateProposalAsync(methodName, contractUpdateInput);
             var txResult1 = await ApproveWithMinersAsync(proposalId);
             txResult1.Status.ShouldBe(TransactionResultStatus.Mined);
             var txResult2 = await ReleaseProposalAsync(proposalId);
             txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             var contractAddress = CodeUpdated.Parser.ParseFrom(txResult2.Logs[0].Indexed[0]).Address;
             contractAddress.ShouldBe(TokenContractAddress);
             var codeHash = Hash.FromRawBytes(code);
@@ -69,7 +70,7 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task ChangeContractZeroOwner()
+        public async Task ChangeContractZeroOwner_Test()
         {
             var address = Tester.GetCallOwnerAddress();
             var methodName = "ChangeGenesisOwner";
@@ -78,24 +79,24 @@ namespace AElf.Contracts.Genesis
             txResult1.Status.ShouldBe(TransactionResultStatus.Mined);
             var txResult2 = await ReleaseProposalAsync(proposalId);
             txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             //check the address
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(ACS0Container.ACS0Stub.DeploySmartContract), (new ContractDeploymentInput()
                 {
-                    Category = KernelConstants.DefaultRunnerCategory, 
+                    Category = KernelConstants.DefaultRunnerCategory,
                     Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
                 }));
             result.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         [Fact]
-        public async Task DeploySmartContracts_WithoutAuth()
+        public async Task DeploySmartContracts_WithoutAuth_Test()
         {
             var txResult = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(ACS0Container.ACS0Stub.DeploySmartContract), (new ContractDeploymentInput()
                 {
-                    Category = KernelConstants.DefaultRunnerCategory, 
+                    Category = KernelConstants.DefaultRunnerCategory,
                     Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
                 }));
             txResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -103,7 +104,7 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task UpdateSmartContract_WithoutAuth()
+        public async Task UpdateSmartContract_WithoutAuth_Test()
         {
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(ACS0Container.ACS0Stub.UpdateSmartContract), (
@@ -117,12 +118,37 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task ChangeContractZeroOwner_WithoutAuth()
+        public async Task ChangeContractZeroOwner_WithoutAuth_Test()
         {
             var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
                 nameof(ACS0Container.ACS0Stub.ChangeGenesisOwner), Tester.GetCallOwnerAddress());
             result.Status.ShouldBe(TransactionResultStatus.Failed);
             result.Error.Contains("Unauthorized behavior.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task ValidateSystemContractAddress_Test()
+        {
+            var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(ACS0Container.ACS0Stub.ValidateSystemContractAddress), new ValidateSystemContractAddressInput
+                {
+                    Address = TokenContractAddress,
+                    SystemContractHashName = TokenSmartContractAddressNameProvider.Name
+                });
+            result.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+
+        [Fact]
+        public async Task ValidateSystemContractAddress_WrongAddress_Test()
+        {
+            var result = await Tester.ExecuteContractWithMiningAsync(BasicContractZeroAddress,
+                nameof(ACS0Container.ACS0Stub.ValidateSystemContractAddress), new ValidateSystemContractAddressInput
+                {
+                    Address = ParliamentAddress,
+                    SystemContractHashName = TokenSmartContractAddressNameProvider.Name
+                });
+            result.Status.ShouldBe(TransactionResultStatus.Failed);
+            result.Error.Contains("Address not expected.").ShouldBeTrue();
         }
     }
 }

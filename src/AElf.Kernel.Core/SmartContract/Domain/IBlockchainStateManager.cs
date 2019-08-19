@@ -96,6 +96,8 @@ namespace AElf.Kernel.SmartContract.Domain
                         {
                             //not found value in block state sets. for example, best chain is 100, blockHeight is 105,
                             //it will find 105 ~ 101 block state set. so the value could only be the best chain state value.
+                            // retry versioned state in case conflict of get state during merging  
+                            bestChainState = await _versionedStates.GetAsync(key);
                             value = bestChainState.Value;
                         }
                     }
@@ -124,6 +126,13 @@ namespace AElf.Kernel.SmartContract.Domain
                     {
                         blockStateSet = null;
                     }
+                }
+                
+                if (value == null)
+                {
+                    // retry versioned state in case conflict of get state during merging  
+                    bestChainState = await _versionedStates.GetAsync(key);
+                    value = bestChainState?.Value;
                 }
             }
 

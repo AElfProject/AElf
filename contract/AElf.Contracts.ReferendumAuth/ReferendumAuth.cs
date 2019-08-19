@@ -1,6 +1,5 @@
-using System;
 using Acs3;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using ApproveInput = Acs3.ApproveInput;
