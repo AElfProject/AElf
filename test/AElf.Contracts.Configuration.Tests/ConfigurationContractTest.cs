@@ -68,7 +68,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         }
 
         [Fact]
-        public async Task Change_Transaction_Owner_Address_Authorized()
+        public async Task Change_Owner_Address_Authorized()
         {
             var address1 = SampleAddress.AddressList[0];
             _testOutputHelper.WriteLine(address1.GetFormatted());
@@ -79,7 +79,7 @@ namespace AElf.Contracts.ConfigurationContract.Tests
 
             var transactionResult2 =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.GetTransactionOwnerAddress),
+                    nameof(ConfigurationContainer.ConfigurationStub.GetOwnerAddress),
                     new Empty());
             var address2 = Address.Parser.ParseFrom(transactionResult2.ReturnValue);
             _testOutputHelper.WriteLine(address2.GetFormatted());
@@ -87,11 +87,11 @@ namespace AElf.Contracts.ConfigurationContract.Tests
         }
 
         [Fact]
-        public async Task Change_Transaction_Owner_Address_NotAuthorized()
+        public async Task Change_Owner_Address_NotAuthorized()
         {
             var transactionResult =
                 await ExecuteContractWithMiningAsync(ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.SetTransactionOwnerAddress),
+                    nameof(ConfigurationContainer.ConfigurationStub.ChangeOwnerAddress),
                     SampleAddress.AddressList[0]);
             var status = transactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);

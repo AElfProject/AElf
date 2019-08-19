@@ -19,7 +19,7 @@
 
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\configuration_contract.proto">
-            <Link>Protobuf\Proto\configuration.proto</Link>
+            <Link>Protobuf\Proto\configuration_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 

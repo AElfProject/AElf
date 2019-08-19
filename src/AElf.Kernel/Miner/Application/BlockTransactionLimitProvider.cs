@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -71,32 +70,22 @@ namespace AElf.Kernel.Miner.Application
         private async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,
             IMessage input)
         {
-            var tx = await GenerateTransactionAsync(contractAddress, methodName, input);
-            var preBlock = await _blockchainService.GetBestChainLastBlockHeaderAsync();
-            var transactionTrace = await _transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
-            {
-                BlockHash = preBlock.GetHash(),
-                BlockHeight = preBlock.Height
-            }, tx, DateTime.UtcNow.ToTimestamp());
-
-            return transactionTrace.ReturnValue;
-        }
-
-        private async Task<Transaction> GenerateTransactionAsync(Address contractAddress, string methodName,
-            IMessage input)
-        {
-            var refBlock = await _blockchainService.GetBestChainLastBlockHeaderAsync();
             var tx = new Transaction
             {
                 From = FromAddress,
                 To = contractAddress,
                 MethodName = methodName,
                 Params = input.ToByteString(),
-                RefBlockNumber = refBlock.Height,
-                RefBlockPrefix = ByteString.CopyFrom(refBlock.GetHash().Value.Take(4).ToArray())
+                Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
             };
+            var preBlock = await _blockchainService.GetBestChainLastBlockHeaderAsync();
+            var transactionTrace = await _transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
+            {
+                BlockHash = preBlock.GetHash(),
+                BlockHeight = preBlock.Height
+            }, tx, TimestampHelper.GetUtcNow());
 
-            return tx;
+            return transactionTrace.ReturnValue;
         }
 
         #endregion
