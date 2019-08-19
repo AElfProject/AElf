@@ -16,7 +16,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
     </ItemGroup>
 
 </Project>

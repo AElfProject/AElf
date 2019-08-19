@@ -15,11 +15,10 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
       <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
-      <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj"/>
-      <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj"/>
+      <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
+      <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
     </ItemGroup>
 
 <!--    <Target Name="IdentifyProjectReferences" AfterTargets="ResolveProjectReferences">-->
