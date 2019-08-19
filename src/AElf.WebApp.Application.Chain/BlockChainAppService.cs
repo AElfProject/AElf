@@ -30,6 +30,8 @@ namespace AElf.WebApp.Application.Chain
         Task<BlockStateDto> GetBlockStateAsync(string blockHash);
 
         Task<RoundDto> GetCurrentRoundInformationAsync();
+
+        Task<MerklePath> GetMerklePathByTransactionIdAsync(string transactionId);
     }
 
     public class BlockChainAppService : IBlockChainAppService
@@ -38,6 +40,7 @@ namespace AElf.WebApp.Application.Chain
         private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly ITxHub _txHub;
         private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly ITransactionResultAppService _transactionResultAppService;
 
         public ILogger<BlockChainAppService> Logger { get; set; }
 
@@ -46,12 +49,14 @@ namespace AElf.WebApp.Application.Chain
         public BlockChainAppService(IBlockchainService blockchainService,
             IBlockExtraDataService blockExtraDataService,
             ITxHub txHub,
-            IBlockchainStateManager blockchainStateManager)
+            IBlockchainStateManager blockchainStateManager,
+            ITransactionResultAppService transactionResultAppService)
         {
             _blockchainService = blockchainService;
             _blockExtraDataService = blockExtraDataService;
             _txHub = txHub;
             _blockchainStateManager = blockchainStateManager;
+            _transactionResultAppService = transactionResultAppService;
 
             Logger = NullLogger<BlockChainAppService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
@@ -251,6 +256,28 @@ namespace AElf.WebApp.Application.Chain
         private async Task<Block> GetBlockAtHeightAsync(long height)
         {
             return await _blockchainService.GetBlockByHeightInBestChainBranchAsync(height);
+        }
+        
+        public async Task<MerklePath> GetMerklePathByTransactionIdAsync(string transactionId)
+        {
+            var input = HashHelper.HexStringToHash(transactionId);
+            var transactionResultDto = await _transactionResultAppService.GetTransactionResultAsync(transactionId);
+            var blockId = HashHelper.HexStringToHash(transactionResultDto.BlockHash);
+            var blockInfo = await _blockchainService.GetBlockByHashAsync(blockId);
+            var transactionIds = blockInfo.Body.TransactionIds;
+            var index = transactionIds.IndexOf(input);
+            if (index == -1)
+            {
+                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+            }
+            var tree = BinaryMerkleTree.FromLeafNodes(transactionIds);
+            var path = tree.GenerateMerklePath(index);
+            var merklePath = new MerklePathDto()
+            {
+
+            };
+            
+            return path;
         }
     }
 }

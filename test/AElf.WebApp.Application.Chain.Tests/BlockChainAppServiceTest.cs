@@ -551,7 +551,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         public async Task Get_Failed_TransactionResult_Success_Test()
         {
             // Generate a transaction and broadcast
-            var transactionList = await GenerateTwoInitializeTransaction();
+            var transactionList = await GenerateInitializeTransactions(2);
             await _osTestHelper.BroadcastTransactions(transactionList);
 
             await _osTestHelper.MinedOneBlock();
@@ -1241,13 +1241,40 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.RoundId.ShouldBeGreaterThan(0);
             response.RealTimeMinerInformation.Count.ShouldBeGreaterThan(0);
         }
+        
+        [Fact]
+        private async Task<MerklePath> GetMerklePathByTransactionId_Test()
+        {
+            var transaction0 = await _osTestHelper.GenerateTransferTransaction();
+            var transaction1 = await _osTestHelper.GenerateTransferTransaction();
+            var transaction2 = await _osTestHelper.GenerateTransferTransaction();
+            var transactionHex = transaction0.GetHash().ToHex();
+            await _osTestHelper.BroadcastTransactions(new List<Transaction> {transaction0, transaction1, transaction2});
 
-        private Task<List<Transaction>> GenerateTwoInitializeTransaction()
+            // Before mined
+//            var response = await GetResponseAsObjectAsync<TransactionResultDto>(
+//                $"/api/blockChain/merklePathByTransactionId?transactionId={transactionHex}");
+//
+//            response.TransactionId.ShouldBe(transactionHex);
+//            response.Status.ShouldBe(TransactionResultStatus.Pending.ToString().ToUpper());
+
+            await _osTestHelper.MinedOneBlock();
+
+            // After mined
+            var response = await GetResponseAsObjectAsync<MerklePathDto>(
+                $"/api/blockChain/merklePathByTransactionId?transactionId={transactionHex}");
+
+            response.MerklePathNodes.Count.ShouldBe(7);
+            //response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
+            return null;
+        }
+
+        private Task<List<Transaction>> GenerateInitializeTransactions(int count)
         {
             var transactionList = new List<Transaction>();
             var newUserKeyPair = CryptoHelper.GenerateKeyPair();
 
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < count; i++)
             {
                 var transaction = _osTestHelper.GenerateTransaction(Address.FromPublicKey(newUserKeyPair.PublicKey),
                     _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
