@@ -96,7 +96,6 @@ namespace AElf.Contracts.MultiToken
 
         private ScopedStatePath GetPath(params string[] parts)
         {
-            // TODO: Use more sophisticated algorithm than GetHashCode
             return new ScopedStatePath
             {
                 Address = Context.Self,
