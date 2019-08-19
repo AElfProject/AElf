@@ -7,16 +7,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
-      <ProjectReference Include="..\AElf.WebApp.Application.Chain\AElf.WebApp.Application.Chain.csproj" />
-      <ProjectReference Include="..\AElf.WebApp.Application.Net\AElf.WebApp.Application.Net.csproj" />
+        <ProjectReference Include="..\AElf.Core\AElf.Core.csproj"/>
+        <ProjectReference Include="..\AElf.WebApp.Application.Chain\AElf.WebApp.Application.Chain.csproj"/>
+        <ProjectReference Include="..\AElf.WebApp.Application.Net\AElf.WebApp.Application.Net.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="3.2.0" />
-      <PackageReference Include="Microsoft.Extensions.Primitives" Version="2.2.0" />
-      <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
-      <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="0.15.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="3.2.0"/>
+        <PackageReference Include="Microsoft.Extensions.Primitives" Version="2.2.0"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1"/>
+        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="0.19.0"/>
     </ItemGroup>
 
 </Project>
