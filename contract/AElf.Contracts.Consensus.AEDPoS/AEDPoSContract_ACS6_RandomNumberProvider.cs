@@ -114,6 +114,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var information = new RandomNumberRequestHandler(currentRound, Context.CurrentHeight)
                     .GetRandomNumberRequestInformation();
+                information.ExpectedBlockHeight = Math.Max(input.MinimumBlockHeight, information.ExpectedBlockHeight);
                 State.RandomNumberInformationMap[tokenHash] = information;
 
                 // For clear usage.
