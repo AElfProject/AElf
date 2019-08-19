@@ -11,9 +11,9 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
     public partial class EconomicTests : EconomicTestBase
     {
         [Fact(Skip = "Skip for saving time.")]
-        public async Task TreasuryCollectionTest_FirstTerm()
+        public async Task TreasuryCollection_FirstTerm_Test()
         {
-            var distributedAmount = await TreasuryDistributionTest_FirstTerm();
+            var distributedAmount = await TreasuryDistribution_FirstTerm_Test();
 
             // First 5 core data centers can profit from backup subsidy
             var firstFiveCoreDataCenters = MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(5).ToList();
@@ -29,10 +29,10 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         }
 
         [Fact(Skip = "Skip for saving time.")]
-        public async Task TreasuryCollectionTest_SecondTerm()
+        public async Task TreasuryCollection_SecondTerm_Test()
         {
-            var distributedAmountOfFirstTerm = await TreasuryDistributionTest_FirstTerm();
-            var distributionInformationOfSecondTerm = await TreasuryDistributionTest_SecondTerm();
+            var distributedAmountOfFirstTerm = await TreasuryDistribution_FirstTerm_Test();
+            var distributionInformationOfSecondTerm = await TreasuryDistribution_SecondTerm_Test();
 
             // First 5 core data centers can profit from backup subsidy of term 1 and term 2.
             var firstFiveCoreDataCenters = MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(5).ToList();
@@ -101,11 +101,11 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         }
 
         [Fact]
-        public async Task TreasuryCollectionTest_ThirdTerm()
+        public async Task TreasuryCollection_ThirdTerm_Test()
         {
-            var distributedAmountOfFirstTerm = await TreasuryDistributionTest_FirstTerm();
-            var distributionInformationOfSecondTerm = await TreasuryDistributionTest_SecondTerm();
-            var distributionInformationOfThirdTerm = await TreasuryDistributionTest_ThirdTerm();
+            var distributedAmountOfFirstTerm = await TreasuryDistribution_FirstTerm_Test();
+            var distributionInformationOfSecondTerm = await TreasuryDistribution_SecondTerm_Test();
+            var distributionInformationOfThirdTerm = await TreasuryDistribution_ThirdTerm_Test();
 
             var subsidyInformationOfSecondTerm = distributionInformationOfSecondTerm[SchemeType.BackupSubsidy];
             var subsidyInformationOfThirdTerm = distributionInformationOfThirdTerm[SchemeType.BackupSubsidy];

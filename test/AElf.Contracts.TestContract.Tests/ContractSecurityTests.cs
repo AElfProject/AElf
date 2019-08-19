@@ -17,7 +17,7 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task Int32_OverFlow_UpperLimit()
+        public async Task Int32_OverFlow_UpperLimit_Test()
         {
             var transactionResult = (await TestBasicSecurityContractStub.TestInt32State.SendAsync(
                 new Int32Input
@@ -44,7 +44,7 @@ namespace AElf.Contract.TestContract
         }
         
         [Fact]
-        public async Task Int32_OverFlow_LowerLimit()
+        public async Task Int32_OverFlow_LowerLimit_Test()
         {
             var transactionResult = (await TestBasicSecurityContractStub.TestInt32State.SendAsync(
                 new Int32Input
@@ -71,7 +71,7 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task Int64_OverFlow_UpperLimit()
+        public async Task Int64_OverFlow_UpperLimit_Test()
         {
             var transactionResult = (await TestBasicSecurityContractStub.TestInt64State.SendAsync(
                 new Int64Input()
@@ -98,7 +98,7 @@ namespace AElf.Contract.TestContract
         }
         
         [Fact]
-        public async Task Int64_OverFlow_LowerLimit()
+        public async Task Int64_OverFlow_LowerLimit_Test()
         {
             var transactionResult = (await TestBasicSecurityContractStub.TestInt64State.SendAsync(
                 new Int64Input()

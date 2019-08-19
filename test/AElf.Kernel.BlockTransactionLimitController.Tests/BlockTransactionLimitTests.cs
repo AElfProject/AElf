@@ -17,7 +17,6 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
         private Address ConfigurationContractAddress { get; set; }
         private ConfigurationContainer.ConfigurationStub ConfigurationStub;
         private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
-        protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
 
         private async Task DeployContractsAsync()
         {
@@ -31,7 +30,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
         }
 
         [Fact]
-        public async Task LimitCanBeSetByExecutingContract()
+        public async Task LimitCanBeSetByExecutingContract_Test()
         {
             await DeployContractsAsync();
             OptionalLogEventListeningService.Enabled = true;

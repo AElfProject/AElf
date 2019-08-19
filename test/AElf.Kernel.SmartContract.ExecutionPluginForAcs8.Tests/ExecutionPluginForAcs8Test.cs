@@ -23,6 +23,30 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         }
 
         [Fact]
+        public async Task BuyResourceToken_Test()
+        {
+            var beforeElf = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = DefaultSender,
+                Symbol = "ELF"
+            })).Balance;
+            
+            var approveResult = await TokenContractStub.Approve.SendAsync(new ApproveInput
+            {
+                Symbol = "ELF",
+                Amount = beforeElf,
+                Spender = TokenConverterAddress
+            });
+            approveResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput
+            {
+                Symbol = "CPU",
+                Amount = 100_00000000,
+            });
+        }
+
+        [Fact]
         public async Task AdvanceResourceToken()
         {
             const long amount = 10_000_00000000;

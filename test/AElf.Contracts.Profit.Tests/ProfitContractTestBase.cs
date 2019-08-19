@@ -85,11 +85,6 @@ namespace AElf.Contracts.Profit
             ParliamentContractStub = GetParliamentContractTester(StarterKeyPair);
         }
 
-        protected async Task CreateTreasury()
-        {
-
-        }
-
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
         {
             return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);

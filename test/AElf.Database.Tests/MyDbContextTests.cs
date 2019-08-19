@@ -7,7 +7,7 @@ namespace AElf.Database.Tests
     public class MyDbContextTests: KeyValueDbContextTestBase<MyContext>
     {
         [Fact]
-        public void CheckDbType()
+        public void CheckDbType_Test()
         {
             var type = this._context.Database.GetType().GetGenericTypeDefinition();
             typeof(InMemoryDatabase<>).IsAssignableFrom(type).ShouldBe(true);

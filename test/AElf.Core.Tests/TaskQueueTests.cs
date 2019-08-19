@@ -18,14 +18,14 @@ namespace AElf
         }
 
         [Fact]
-        public void StartQueueTest_Twice()
+        public void StartQueueTest_Twice_Test()
         {
             _taskQueue.Start();
             Should.Throw<InvalidOperationException>(() => _taskQueue.Start());
         }
 
         [Fact]
-        public void EnqueueTest()
+        public void Enqueue_Test()
         {
             _taskQueue.Start();
             _taskQueue.Enqueue(ProcessTask);
@@ -38,7 +38,7 @@ namespace AElf
         }
 
         [Fact]
-        public void Enqueue_MultipleTimes()
+        public void Enqueue_MultipleTimes_Test()
         {
             _taskQueue.Start();
             for (var i = 0; i < 10; i++)
@@ -49,7 +49,7 @@ namespace AElf
         }
 
         [Fact]
-        public void Dispose_QueueTest()
+        public void Dispose_Queue_Test()
         {
             _taskQueue.Start();
             _taskQueue.Dispose();
@@ -58,7 +58,7 @@ namespace AElf
         }
 
         [Fact]
-        public void Stop_QueueTest()
+        public void Stop_Queue_Test()
         {
             _taskQueue.Start();
             _taskQueue.Dispose();
