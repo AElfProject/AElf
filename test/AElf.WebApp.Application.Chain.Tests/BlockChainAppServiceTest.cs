@@ -1243,30 +1243,20 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
         
         [Fact]
-        private async Task<MerklePath> GetMerklePathByTransactionId_Test()
+        private async Task GetMerklePathByTransactionId_Test()
         {
             var transaction0 = await _osTestHelper.GenerateTransferTransaction();
             var transaction1 = await _osTestHelper.GenerateTransferTransaction();
             var transaction2 = await _osTestHelper.GenerateTransferTransaction();
             var transactionHex = transaction0.GetHash().ToHex();
             await _osTestHelper.BroadcastTransactions(new List<Transaction> {transaction0, transaction1, transaction2});
-
-            // Before mined
-//            var response = await GetResponseAsObjectAsync<TransactionResultDto>(
-//                $"/api/blockChain/merklePathByTransactionId?transactionId={transactionHex}");
-//
-//            response.TransactionId.ShouldBe(transactionHex);
-//            response.Status.ShouldBe(TransactionResultStatus.Pending.ToString().ToUpper());
-
             await _osTestHelper.MinedOneBlock();
 
             // After mined
             var response = await GetResponseAsObjectAsync<MerklePathDto>(
                 $"/api/blockChain/merklePathByTransactionId?transactionId={transactionHex}");
 
-            response.MerklePathNodes.Count.ShouldBe(7);
-            //response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
-            return null;
+            response.MerklePathNodes.Count.ShouldBe(2);
         }
 
         private Task<List<Transaction>> GenerateInitializeTransactions(int count)

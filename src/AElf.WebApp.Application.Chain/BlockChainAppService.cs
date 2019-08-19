@@ -31,7 +31,7 @@ namespace AElf.WebApp.Application.Chain
 
         Task<RoundDto> GetCurrentRoundInformationAsync();
 
-        Task<MerklePath> GetMerklePathByTransactionIdAsync(string transactionId);
+        Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId);
     }
 
     public class BlockChainAppService : IBlockChainAppService
@@ -258,7 +258,7 @@ namespace AElf.WebApp.Application.Chain
             return await _blockchainService.GetBlockByHeightInBestChainBranchAsync(height);
         }
         
-        public async Task<MerklePath> GetMerklePathByTransactionIdAsync(string transactionId)
+        public async Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId)
         {
             var input = HashHelper.HexStringToHash(transactionId);
             var transactionResultDto = await _transactionResultAppService.GetTransactionResultAsync(transactionId);
@@ -272,12 +272,13 @@ namespace AElf.WebApp.Application.Chain
             }
             var tree = BinaryMerkleTree.FromLeafNodes(transactionIds);
             var path = tree.GenerateMerklePath(index);
-            var merklePath = new MerklePathDto()
+            var merklePath = new MerklePathDto{MerklePathNodes = new List<MerklePathNodeDto>()};
+            foreach (var node in path.MerklePathNodes)
             {
+                merklePath.MerklePathNodes.Add(new MerklePathNodeDto {Hash = node.Hash.ToHex(), IsLeftChildNode = node.IsLeftChildNode});
+            }
 
-            };
-            
-            return path;
+            return merklePath;
         }
     }
 }

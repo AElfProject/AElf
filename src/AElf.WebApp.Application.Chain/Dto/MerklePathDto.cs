@@ -4,10 +4,10 @@ namespace AElf.WebApp.Application.Chain.Dto
 {
     public class MerklePathDto
     {
-        public List<MerklePathNode> MerklePathNodes;
+        public List<MerklePathNodeDto> MerklePathNodes;
     }
 
-    public class MerklePathNode
+    public class MerklePathNodeDto
     {
         public string Hash { get; set; }
         public bool IsLeftChildNode { get; set; }
