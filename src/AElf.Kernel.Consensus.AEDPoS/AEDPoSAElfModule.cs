@@ -7,6 +7,7 @@ using AElf.Modularity;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
@@ -16,6 +17,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
         typeof(RxNetSchedulerAElfModule),
         typeof(ConsensusAElfModule)
     )]
+    [Dependency(ServiceLifetime.Singleton, TryRegister = true)]
     // ReSharper disable once InconsistentNaming
     public class AEDPoSAElfModule : AElfModule
     {

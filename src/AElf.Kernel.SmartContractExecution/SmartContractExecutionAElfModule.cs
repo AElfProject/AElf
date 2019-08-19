@@ -6,6 +6,7 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.SmartContractExecution
@@ -14,6 +15,7 @@ namespace AElf.Kernel.SmartContractExecution
         typeof(ExecutionPluginForAcs8Module),
         typeof(ExecutionPluginForAcs5Module),
         typeof(ExecutionPluginForAcs1Module))]
+    [Dependency(ServiceLifetime.Singleton, TryRegister = true)]
     public class SmartContractExecutionAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

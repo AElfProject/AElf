@@ -3,11 +3,13 @@ using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.Runtime.CSharp
 {
     [DependsOn(typeof(SmartContractAElfModule))]
+    [Dependency(ServiceLifetime.Singleton, TryRegister = true)]
     public class CSharpRuntimeAElfModule : AElfModule
     {
         public override void PreConfigureServices(ServiceConfigurationContext context)

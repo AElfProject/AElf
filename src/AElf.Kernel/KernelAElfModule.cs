@@ -8,6 +8,7 @@ using Volo.Abp;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Modularity;
 using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.DependencyInjection;
 
 
 namespace AElf.Kernel
@@ -21,6 +22,7 @@ namespace AElf.Kernel
         typeof(SmartContractExecutionAElfModule),
         typeof(TransactionPoolAElfModule)
     )]
+    [Dependency(ServiceLifetime.Singleton, TryRegister = true)]
     public class KernelAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
