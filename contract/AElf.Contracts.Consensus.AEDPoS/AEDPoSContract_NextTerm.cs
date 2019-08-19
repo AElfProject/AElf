@@ -1,6 +1,5 @@
 using System.Linq;
 using AElf.Contracts.Election;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;

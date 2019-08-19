@@ -8,10 +8,10 @@ using Xunit;
 
 namespace AElf.Contracts.Vote
 {
-    public partial class VoteTests : VoteContractTestBase
+    public partial class VoteTests
     {
         [Fact]
-        public async Task MultipleUsers_Vote_Scenario()
+        public async Task MultipleUsers_Vote_Scenario_Test()
         {
             const long txFee = 1_00000000;
             

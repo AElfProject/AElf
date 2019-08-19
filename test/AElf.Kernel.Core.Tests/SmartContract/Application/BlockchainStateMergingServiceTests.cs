@@ -19,7 +19,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         [Fact]
-        public async Task BlockState_NoNeed_To_Merge()
+        public async Task BlockState_NoNeed_To_Merge_Test()
         {
             var lastIrreversibleBlockHeight = -2;
             var lastIrreversibleBlockHash = Hash.FromString("hash");
@@ -33,7 +33,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         [Fact]
-        public async Task BlockState_Merge_GotException()
+        public async Task BlockState_Merge_GotException_Test()
         {
             var lastIrreversibleBlockHeight = 1;
             var lastIrreversibleBlockHash = Hash.FromString("hash");
@@ -47,7 +47,7 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         [Fact]
-        public async Task BlockState_MergeBlock_Normal()
+        public async Task BlockState_MergeBlock_Normal_Test()
         {
             var blockStateSet1 = new BlockStateSet()
             {
