@@ -1,22 +1,22 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>AElf.Kernel</RootNamespace>
-    <LangVersion>latest</LangVersion>
-    <PackageId>AElf.Kernel.Core</PackageId>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;DEBUG;NETSTANDARD2_0</DefineConstants>
-    <Optimize>true</Optimize>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
-    <PackageReference Include="Volo.Abp.EventBus" Version="0.19.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
-    <ProjectReference Include="..\AElf.Database\AElf.Database.csproj" />
-    <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <RootNamespace>AElf.Kernel</RootNamespace>
+        <LangVersion>latest</LangVersion>
+        <PackageId>AElf.Kernel.Core</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <DefineConstants>TRACE;DEBUG;NETSTANDARD2_0;DEBUG;NETSTANDARD2_0</DefineConstants>
+        <Optimize>true</Optimize>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Newtonsoft.Json" Version="12.0.2"/>
+        <PackageReference Include="Volo.Abp.EventBus" Version="0.19.0"/>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj"/>
+        <ProjectReference Include="..\AElf.Database\AElf.Database.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj"/>
+    </ItemGroup>
 </Project>
