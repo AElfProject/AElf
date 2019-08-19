@@ -15,14 +15,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
     public partial class AEDPoSTest
     {
         [Fact]
-        internal async Task<Hash> AEDPoSContract_RequestRandomNumber_Test()
+        internal async Task<RandomNumberOrder> AEDPoSContract_RequestRandomNumber_Test()
         {
             var randomNumberOrder =
                 (await AEDPoSContractStub.RequestRandomNumber.SendAsync(new RequestRandomNumberInput())).Output;
             randomNumberOrder.TokenHash.ShouldNotBeNull();
             randomNumberOrder.BlockHeight.ShouldBeGreaterThan(
                 AEDPoSContractTestConstants.InitialMinersCount.Mul(AEDPoSContractTestConstants.TinySlots));
-            return randomNumberOrder.TokenHash;
+            return randomNumberOrder;
         }
 
         [Fact]
@@ -55,12 +55,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
         [Fact]
         internal async Task<Hash> AEDPoSContract_GetRandomNumber_Test()
         {
-            var tokenHash = await AEDPoSContract_RequestRandomNumber_Test();
+            var order = await AEDPoSContract_RequestRandomNumber_Test();
 
             var currentRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
 
             var randomHashes = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount)
-                .Select(_ => Hash.FromString("random")).ToList();
+                .Select(i => Hash.FromString($"random{i}")).ToList();
             var triggers = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount).Select(i =>
                 new AElfConsensusTriggerInformation
                 {
@@ -87,11 +87,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.Pubkey);
                 await stub.UpdateValue.SendAsync(toUpdate);
 
-                // Not enough.
-                if (minerInRound.Order < 8)
                 {
+                    var chain = await BlockchainService.GetChainAsync();
+                    if (chain.BestChainHeight < order.BlockHeight)
                     {
-                        var transactionResult = (await AEDPoSContractStub.GetRandomNumber.SendAsync(tokenHash))
+                        // Not enough.
+                        var transactionResult = (await AEDPoSContractStub.GetRandomNumber.SendAsync(order.TokenHash))
                             .TransactionResult;
                         transactionResult.Error.ShouldContain("Still preparing random number.");
                     }
@@ -107,23 +108,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            currentRound.GenerateNextRoundInformation(TimestampHelper.GetUtcNow(), BlockchainStartTimestamp,
-                out var nextRound);
-            await AEDPoSContractStub.NextRound.SendAsync(nextRound);
-
             // Now it's enough.
             {
-                var randomNumber = (await AEDPoSContractStub.GetRandomNumber.SendAsync(tokenHash)).Output;
+                var randomNumber = (await AEDPoSContractStub.GetRandomNumber.SendAsync(order.TokenHash)).Output;
                 randomNumber.Value.ShouldNotBeEmpty();
             }
 
             // Now we can get this random number again.
             {
-                var randomNumber = (await AEDPoSContractStub.GetRandomNumber.SendAsync(tokenHash)).Output;
+                var randomNumber = (await AEDPoSContractStub.GetRandomNumber.SendAsync(order.TokenHash)).Output;
                 randomNumber.Value.ShouldNotBeEmpty();
             }
 
-            return tokenHash;
+            return order.TokenHash;
         }
 
         [Fact]
@@ -148,12 +145,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var currentRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
                 var randomHashes = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount)
                     .Select(_ => Hash.FromString($"random{count}")).ToList();
-                var triggers = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount).Select(i =>
-                    new AElfConsensusTriggerInformation
-                    {
-                        Pubkey = ByteString.CopyFrom(InitialCoreDataCenterKeyPairs[i].PublicKey),
-                        RandomHash = randomHashes[i]
-                    }).ToDictionary(t => t.Pubkey.ToHex(), t => t);
+                var triggers = Enumerable.Range(0, EconomicContractsTestConstants.InitialCoreDataCenterCount).Select(
+                    i =>
+                        new AElfConsensusTriggerInformation
+                        {
+                            Pubkey = ByteString.CopyFrom(InitialCoreDataCenterKeyPairs[i].PublicKey),
+                            RandomHash = randomHashes[i]
+                        }).ToDictionary(t => t.Pubkey.ToHex(), t => t);
 
                 // Exactly one round except extra block time slot.
                 foreach (var minerInRound in currentRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order))

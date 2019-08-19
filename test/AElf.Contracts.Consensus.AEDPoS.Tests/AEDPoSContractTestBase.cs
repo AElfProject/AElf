@@ -9,6 +9,7 @@ using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account.Infrastructure;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -52,6 +53,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         protected ITriggerInformationProvider TriggerInformationProvider =>
             Application.ServiceProvider.GetRequiredService<ITriggerInformationProvider>();
         protected Timestamp BlockchainStartTimestamp => new Timestamp {Seconds = 0};
+
+        protected IBlockchainService BlockchainService =>
+            Application.ServiceProvider.GetRequiredService<IBlockchainService>();
 
         internal TokenContractContainer.TokenContractStub TokenContractStub => GetTokenContractTester(BootMinerKeyPair);
 
