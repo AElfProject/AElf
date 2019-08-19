@@ -141,7 +141,12 @@ namespace AElf.OS.Network.Grpc.Connection
 
             var grpcPeer = await _peerDialer.DialBackPeerAsync(peerAddress, handshake);
 
-            // If auth ok -> add it to our peers
+            var removedPeer = _peerPool.RemovePeer(grpcPeer.Info.Pubkey);
+            if (removedPeer != null)
+            {
+                await removedPeer.DisconnectAsync(false);
+            }
+
             if (!_peerPool.TryAddPeer(grpcPeer))
             {
                 Logger.LogWarning($"Stopping connection, peer already in the pool {grpcPeer.Info.Pubkey}.");
