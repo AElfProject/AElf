@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Acs6;
 using AElf.Sdk.CSharp;
@@ -8,6 +9,99 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSContract
     {
+        internal class RandomNumberRequestHandler
+        {
+            private readonly Round _currentRound;
+            private readonly long _currentHeight;
+            private readonly int _minersCount;
+            private readonly int _minimumRequestMinersCount;
+
+            /// <summary>
+            /// To response to a request for random number, we need to:
+            /// 1. return a token for getting that random number later,
+            /// 2. record current round number
+            /// </summary>
+            public RandomNumberRequestHandler(Round currentRound, long currentHeight)
+            {
+                _currentRound = currentRound;
+                _currentHeight = currentHeight;
+                _minersCount = currentRound.RealTimeMinersInformation.Count;
+                _minimumRequestMinersCount = _minersCount.Mul(2).Div(3).Add(1);
+            }
+
+            public RandomNumberRequestInformation GetRandomNumberRequestInformation()
+            {
+                var lastMinedMinerInformation = _currentRound.RealTimeMinersInformation.Values.OrderBy(i => i.Order)
+                    .LastOrDefault(i => i.OutValue != null);
+                var minedMinersCount = lastMinedMinerInformation?.Order ?? 0;
+                var leftMinersCount = _minersCount.Sub(minedMinersCount);
+
+                if (leftMinersCount >= _minimumRequestMinersCount)
+                {
+                    // It's possible for user to get random number in current round.
+                    return new RandomNumberRequestInformation
+                    {
+                        TargetRoundNumber = _currentRound.RoundNumber,
+                        ExpectedBlockHeight =
+                            _currentHeight.Add(
+                                _minimumRequestMinersCount.Mul(AEDPoSContractConstants.TinyBlocksNumber)),
+                        Order = minedMinersCount
+                    };
+                }
+
+                var leftTinyBlocks = lastMinedMinerInformation == null
+                    ? 0
+                    : AEDPoSContractConstants.TinyBlocksNumber.Sub(lastMinedMinerInformation.ActualMiningTimes.Count);
+                var leftBlocksCount = _currentHeight.Add(leftMinersCount.Mul(AEDPoSContractConstants.TinyBlocksNumber))
+                    .Add(leftTinyBlocks);
+                return new RandomNumberRequestInformation
+                {
+                    TargetRoundNumber = _currentRound.RoundNumber.Add(1),
+                    ExpectedBlockHeight = _currentHeight.Add(leftBlocksCount),
+                    Order = minedMinersCount
+                };
+            }
+        }
+
+        internal class RandomNumberProvider
+        {
+            private readonly RandomNumberRequestInformation _requestInformation;
+
+            /// <summary>
+            /// The generation of random number (hash) depends on RandomNumberRequestInformation
+            /// </summary>
+            public RandomNumberProvider(RandomNumberRequestInformation requestInformation)
+            {
+                _requestInformation = requestInformation;
+            }
+
+            public Hash GetRandomNumber(Round round)
+            {
+                var minimumRequestMinersCount = round.RealTimeMinersInformation.Count.Mul(2).Div(3).Add(1);
+                List<MinerInRound> participators;
+                if (round.RoundNumber == _requestInformation.TargetRoundNumber)
+                {
+                    participators = round.RealTimeMinersInformation.Values.Where(i =>
+                        i.Order > _requestInformation.Order && i.PreviousInValue != null).ToList();
+                }
+                else
+                {
+                    participators = round.RealTimeMinersInformation.Values.Where(i => i.PreviousInValue != null)
+                        .ToList();
+                }
+
+                if (participators.Count >= minimumRequestMinersCount)
+                {
+                    var inValues = participators.Select(i => i.PreviousInValue).ToList();
+                    var randomHash = inValues.First();
+                    randomHash = inValues.Skip(1).Aggregate(randomHash, Hash.FromTwoHashes);
+                    return randomHash;
+                }
+
+                return Hash.Empty;
+            }
+        }
+
         /// <summary>
         /// In AEDPoS, we calculate next several continual previous_in_values to provide random hash.
         /// </summary>
@@ -18,37 +112,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var tokenHash = Context.TransactionId;
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
-                var lastMinedBlockMinerInformation = currentRound.RealTimeMinersInformation.Values.OrderBy(i => i.Order)
-                    .LastOrDefault(i => i.OutValue != null);
+                var information = new RandomNumberRequestHandler(currentRound, Context.CurrentHeight)
+                    .GetRandomNumberRequestInformation();
+                State.RandomNumberInformationMap[tokenHash] = information;
 
-                var lastMinedBlockSlotOrder = lastMinedBlockMinerInformation?.Order ?? 0;
-
-                var minersCount = currentRound.RealTimeMinersInformation.Count;
-                // At most need to wait one round.
-                var waitingBlocks = minersCount.Sub(lastMinedBlockSlotOrder).Mul(AEDPoSContractConstants.TinyBlocksNumber);
-                var tinyBlockOffset = 0L;
-
-                if (lastMinedBlockSlotOrder > 0)
-                {
-                    var currentMinerInformation = currentRound.RealTimeMinersInformation.Values
-                        .First(i => i.Order == lastMinedBlockSlotOrder);
-                    var currentMinerTinyBlocks = currentMinerInformation.ActualMiningTimes.Count;
-                    tinyBlockOffset = currentRound.GetStartTime() > Context.CurrentBlockTime
-                        ? AEDPoSContractConstants.TinyBlocksNumber.Sub(currentMinerTinyBlocks)
-                        : -currentMinerTinyBlocks;
-                    if (tinyBlockOffset < -AEDPoSContractConstants.TinyBlocksNumber)
-                    {
-                        tinyBlockOffset = tinyBlockOffset.Add(AEDPoSContractConstants.TinyBlocksNumber);
-                    }
-                }
-
-                var expectedBlockHeight = Context.CurrentHeight.Add(waitingBlocks).Add(tinyBlockOffset).Add(1);
-                State.RandomNumberInformationMap[tokenHash] = new RandomNumberRequestInformation
-                {
-                    RoundNumber = currentRound.RoundNumber,
-                    Order = lastMinedBlockSlotOrder,
-                    ExpectedBlockHeight = expectedBlockHeight
-                };
+                // For clear usage.
                 if (State.RandomNumberTokenMap[currentRound.RoundNumber] == null)
                 {
                     State.RandomNumberTokenMap[currentRound.RoundNumber] = new HashList {Values = {tokenHash}};
@@ -57,16 +125,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     State.RandomNumberTokenMap[currentRound.RoundNumber].Values.Add(tokenHash);
                 }
+
                 return new RandomNumberOrder
                 {
-                    BlockHeight = Math.Max(input.MinimumBlockHeight, expectedBlockHeight),
+                    BlockHeight = information.ExpectedBlockHeight,
                     TokenHash = tokenHash
                 };
             }
 
+            // Not possible.
             Assert(false, "Failed to get current round information");
 
-            // Won't reach here.
+            // Won't reach here anyway.
             return new RandomNumberOrder
             {
                 BlockHeight = long.MaxValue
@@ -75,50 +145,38 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override Hash GetRandomNumber(Hash input)
         {
-            var roundNumberRequestInformation = State.RandomNumberInformationMap[input];
-            if (roundNumberRequestInformation == null || roundNumberRequestInformation.RoundNumber == 0)
+            var randomNumberRequestInformation = State.RandomNumberInformationMap[input];
+            if (randomNumberRequestInformation == null || randomNumberRequestInformation.TargetRoundNumber == 0)
             {
                 Assert(false, "Random number token not found.");
                 // Won't reach here.
                 return Hash.Empty;
             }
 
-            if (roundNumberRequestInformation.ExpectedBlockHeight > Context.CurrentHeight)
+            if (randomNumberRequestInformation.ExpectedBlockHeight > Context.CurrentHeight)
             {
                 Assert(false, "Still preparing random number.");
             }
 
-            var targetRoundNumber = roundNumberRequestInformation.RoundNumber;
-            if (TryToGetRoundInformation(targetRoundNumber, out var targetRound))
+            var roundNumber = randomNumberRequestInformation.TargetRoundNumber;
+            TryToGetRoundNumber(out var currentRoundNumber);
+            var provider = new RandomNumberProvider(randomNumberRequestInformation);
+            while (roundNumber <= currentRoundNumber)
             {
-                var neededParticipatorCount = Math.Min(AEDPoSContractConstants.RandomNumberRequestMinersCount,
-                    targetRound.RealTimeMinersInformation.Count);
-                var participators = targetRound.RealTimeMinersInformation.Values.Where(i =>
-                    i.Order > roundNumberRequestInformation.Order && i.PreviousInValue != null).ToList();
-                var roundNumber = targetRoundNumber;
-                TryToGetRoundNumber(out var currentRoundNumber);
-                while (participators.Count < neededParticipatorCount && roundNumber <= currentRoundNumber)
+                if (TryToGetRoundInformation(roundNumber, out var round))
                 {
-                    roundNumber++;
-                    if (TryToGetRoundInformation(roundNumber, out var round))
+                    var randomHash = provider.GetRandomNumber(round);
+                    if (randomHash != Hash.Empty)
                     {
-                        var newParticipators = round.RealTimeMinersInformation.Values.OrderBy(i => i.Order)
-                            .Where(i => i.PreviousInValue != null).ToList();
-                        var stillNeed = neededParticipatorCount - participators.Count;
-                        participators.AddRange(newParticipators.Count > stillNeed
-                            ? newParticipators.Take(stillNeed)
-                            : newParticipators);
+                        return randomHash;
                     }
-                    else
-                    {
-                        Assert(false, "Still preparing random number, try later.");
-                    }
+
+                    roundNumber = roundNumber.Add(1);
                 }
-                
-                var inValues = participators.Select(i => i.PreviousInValue).ToList();
-                var randomHash = inValues.First();
-                randomHash = inValues.Skip(1).Aggregate(randomHash, Hash.FromTwoHashes);
-                return randomHash;
+                else
+                {
+                    Assert(false, "Still preparing random number, try later.");
+                }
             }
 
             Assert(false, "Still preparing random number, try later.");

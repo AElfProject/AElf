@@ -149,14 +149,21 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         {
             var hash = await RequestRandomNumber_Test();
 
-            BlockMiningService.SkipTimeToBlock(4);
-            for (var i = 0; i < 40; i++)
+            // Can't get random number.
             {
-                await BlockMiningService.MineBlockAsync();
+                var randomHash = await ConsensusStub.GetRandomNumber.CallAsync(hash);
+                randomHash.Value.Count().ShouldBe(0);
             }
 
-            var result = await ConsensusStub.GetRandomNumber.CallAsync(hash);
-            result.ShouldBeEmpty();
+            //BlockMiningService.SkipTime(4);
+
+            await BlockMiningService.MineBlockAsync(40);
+
+            // Can't get random number.
+            {
+                var randomHash = await ConsensusStub.GetRandomNumber.CallAsync(hash);
+                randomHash.Value.Count().ShouldBe(0);
+            }
         }
     }
 }

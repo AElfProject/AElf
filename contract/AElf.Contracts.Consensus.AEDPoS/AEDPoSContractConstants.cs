@@ -10,7 +10,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public const int TimeForNetwork = 100;
         public const long MiningRewardPerBlock = 12500000;
         public const int MinMinersCount = 9;
-        public const int RandomNumberRequestMinersCount = 5;
         public const int RandomNumberDueRoundCount = 5;
         public const int MinimumIntervalOfProducingBlocks = 100;
         public const long InitialMiningRewardPerBlock = 12500000;

@@ -153,8 +153,8 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             {
                 Behaviour = hint.Behaviour,
                 // It doesn't matter for testing.
-                RandomHash = Hash.FromString("RandomHash"),
-                PreviousRandomHash = Hash.Empty,
+                RandomHash = Hash.FromString($"RandomHashOf{pubkey}"),
+                PreviousRandomHash = Hash.FromString($"RandomHashOf{pubkey}"),
                 Pubkey = pubkey.Value
             };
             var consensusTransaction = await contractStub.GenerateConsensusTransactions.CallAsync(new BytesValue
@@ -169,8 +169,40 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 
             await _testDataProvider.ResetAsync();
         }
-        
-        public void SkipTimeToBlock(int seconds)
+
+        public async Task MineBlockToNextRoundAsync()
+        {
+            var consensusStub = _contractTesterFactory.Create<AEDPoSContractImplContainer.AEDPoSContractImplStub>(
+                _consensusContractAddress, MissionedECKeyPairs.InitialKeyPairs.First());
+            var startRoundNumber = (await consensusStub.GetCurrentRoundNumber.CallAsync(new Empty())).Value;
+            var currentRoundNumber = startRoundNumber;
+            while (currentRoundNumber == startRoundNumber)
+            {
+                await MineBlockAsync();
+                currentRoundNumber = (await consensusStub.GetCurrentRoundNumber.CallAsync(new Empty())).Value;
+            }
+        }
+
+        public async Task MineBlockAsync(long targetHeight)
+        {
+            var startHeight = await _testDataProvider.GetCurrentBlockHeight();
+            if (targetHeight <= startHeight)
+            {
+                return;
+            }
+            var currentHeight = startHeight;
+            while (currentHeight <= targetHeight)
+            {
+                await MineBlockAsync();
+                currentHeight = await _testDataProvider.GetCurrentBlockHeight();
+            }
+        }
+
+        /// <summary>
+        /// Skip a certain time for missing some blocks deliberately.
+        /// </summary>
+        /// <param name="seconds"></param>
+        public void SkipTime(int seconds)
         {
             var timestamp = _testDataProvider.GetBlockTime();
             _testDataProvider.SetBlockTime(timestamp.AddSeconds(seconds));
