@@ -22,7 +22,7 @@ namespace AElf.Contract.TestContract
 
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
+        protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address BasicFunctionContractAddress { get; set; }
         protected Address BasicSecurityContractAddress { get; set; }
 

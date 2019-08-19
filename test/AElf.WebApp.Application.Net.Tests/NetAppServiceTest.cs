@@ -22,7 +22,7 @@ namespace AElf.WebApp.Application.Net.Tests
         }
 
         [Fact]
-        public async Task AddPeerTest()
+        public async Task AddPeer_Test()
         { 
             var parameters = new Dictionary<string, string>
             {
@@ -52,7 +52,7 @@ namespace AElf.WebApp.Application.Net.Tests
         }
         
         [Fact]
-        public async Task GetPeersTest()
+        public async Task GetPeers_Test()
         {
             var connectionTime = TimestampHelper.GetUtcNow().Seconds;
             var ipAddressOne = "192.168.1.1:1680";
@@ -79,7 +79,7 @@ namespace AElf.WebApp.Application.Net.Tests
         }
         
         [Fact]
-        public async Task RemovePeerTest()
+        public async Task RemovePeer_Test()
         {
             var connectionTime = TimestampHelper.GetUtcNow().Seconds;
             var ipAddressOne = "192.168.1.1:1680";
@@ -103,7 +103,7 @@ namespace AElf.WebApp.Application.Net.Tests
         }
 
         [Fact]
-        public async Task GetNetWorkInfoTest()
+        public async Task GetNetWorkInfo_Test()
         {
             var connectionTime = TimestampHelper.GetUtcNow().Seconds;
             var ipAddressOne = "192.168.1.1:1680";

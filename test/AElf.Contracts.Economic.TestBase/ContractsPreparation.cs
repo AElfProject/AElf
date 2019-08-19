@@ -6,7 +6,7 @@ using Acs3;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Election;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestContract.MethodCallThreshold;
@@ -22,7 +22,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
-using ApproveInput = AElf.Contracts.MultiToken.Messages.ApproveInput;
+using ApproveInput = AElf.Contracts.MultiToken.ApproveInput;
 using InitializeInput = AElf.Contracts.ParliamentAuth.InitializeInput;
 
 namespace AElf.Contracts.Economic.TestBase

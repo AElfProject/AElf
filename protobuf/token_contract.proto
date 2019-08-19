@@ -7,8 +7,7 @@ import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
-// TODO: Simplify or remove this namespace
-option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
+option csharp_namespace = "AElf.Contracts.MultiToken";
 
 service TokenContract {
     // Actions
