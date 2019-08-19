@@ -42,5 +42,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// Used for deleting due token hashes.
         /// </summary>
         public MappedState<long, HashList> RandomNumberTokenMap { get; set; }
+
+        public SInt64Value LastIrreversibleBlockHeight { get; set; }
     }
 }
