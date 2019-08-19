@@ -140,7 +140,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
                 {
                     Symbol = "ELF",
-                    Decimals = 2,
+                    Decimals = 8,
                     IsBurnable = true,
                     TokenName = "elf token",
                     TotalSupply = totalSupply,

@@ -203,6 +203,10 @@ namespace AElf.Sdk.CSharp.Tests
             output.Collection[0].BoolValue.ShouldBeFalse();            
             output.Collection[0].Int64Value.ShouldBe(100);
             output.Collection[0].StringValue.ShouldBe("test");
+
+            input.ProtobufValue.Int64Value = 200;
+            output = Contract.TestMappedState(input);
+            output.Collection[0].Int64Value.ShouldBe(200);
         }
         
         [Fact]

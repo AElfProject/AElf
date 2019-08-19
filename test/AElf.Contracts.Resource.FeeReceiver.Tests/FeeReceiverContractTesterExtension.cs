@@ -48,10 +48,6 @@ namespace AElf.Contracts.Resource.FeeReceiver
             await starter.InitialChainAsync(
                 list =>
                 {
-                    // Dividends contract must be deployed before token contract.
-//                    list.AddGenesisSmartContract(
-//                        DividendContractCode,
-//                        DividendSmartContractAddressNameProvider.Name);
                     list.AddGenesisSmartContract(
                         TokenContractCode,
                         TokenSmartContractAddressNameProvider.Name,

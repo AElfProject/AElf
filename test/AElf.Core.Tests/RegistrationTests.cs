@@ -16,7 +16,7 @@ namespace AElf
         }
 
         [Fact]
-        public void IocRegistrationTest()
+        public void IocRegistration_Test()
         {
             var count = _testProviders.Count();
             count.ShouldBeGreaterThan(0);

@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.Economic;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Election;
 using AElf.Contracts.Profit;

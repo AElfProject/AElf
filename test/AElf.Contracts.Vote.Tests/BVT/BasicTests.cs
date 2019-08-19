@@ -11,7 +11,7 @@ namespace AElf.Contracts.Vote
     public partial class VoteTests : VoteContractTestBase
     {
         [Fact]
-        public async Task VoteContract_Register()
+        public async Task VoteContract_Register_Test()
         {
             var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 10);
 
@@ -41,7 +41,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_Vote()
+        public async Task VoteContract_Vote_Test()
         {
             //voting item not exist
             {
@@ -89,7 +89,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_Withdraw()
+        public async Task VoteContract_Withdraw_Test()
         {
             const long txFee = 1_00000000;
             //without vote
@@ -144,7 +144,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_AddOption()
+        public async Task VoteContract_AddOption_Test()
         {
             //add without permission
             {
@@ -192,7 +192,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_RemoveOption()
+        public async Task VoteContract_RemoveOption_Test()
         {
             //remove without permission
             {
@@ -240,7 +240,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_AddOptions()
+        public async Task VoteContract_AddOptions_Test()
         {
             //without permission
             {
@@ -298,7 +298,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_RemoveOptions()
+        public async Task VoteContract_RemoveOptions_Test()
         {
             //without permission
             {
@@ -356,7 +356,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_GetVotingResult()
+        public async Task VoteContract_GetVotingResult_Test()
         {
             var voteUser = SampleECKeyPairs.KeyPairs[2];
             var votingItem = await RegisterVotingItemAsync(10, 3, true, DefaultSender, 2);
@@ -374,7 +374,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_VotesAndGetVotedItems()
+        public async Task VoteContract_VotesAndGetVotedItems_Test()
         {
             var voteUser = SampleECKeyPairs.KeyPairs[2];
             var votingItem = await RegisterVotingItemAsync(10, 3, true, DefaultSender, 2);
@@ -387,7 +387,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_GetLatestVotingResult()
+        public async Task VoteContract_GetLatestVotingResult_Test()
         {
             var voteUser1 = SampleECKeyPairs.KeyPairs[2];
             var voteUser2 = SampleECKeyPairs.KeyPairs[3];

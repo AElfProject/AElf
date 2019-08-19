@@ -59,6 +59,29 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         }
 
         [Fact]
+        public async Task GetResourcesAsync_Acs2_CancellationRequested()
+        {
+            var cancelTokenSource = new CancellationTokenSource();
+            cancelTokenSource.Cancel();
+            var txn = GetAcs2Transaction(new ResourceInfo
+            {
+                Paths =
+                {
+                    GetPath(12345)
+                }
+            });
+            var resourceInfos =
+                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, cancelTokenSource.Token))
+                .ToList();
+            resourceInfos.Count.ShouldBe(1);
+            resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
+            {
+                TransactionId = txn.GetHash(),
+                NonParallelizable = true
+            });
+        }
+
+        [Fact]
         public async Task GetResourcesAsync_Acs2_MarkedNonParallelizable()
         {
             var txn = GetAcs2Transaction(new ResourceInfo

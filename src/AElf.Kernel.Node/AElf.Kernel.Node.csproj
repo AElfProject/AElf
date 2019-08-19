@@ -9,7 +9,6 @@
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
       <ProjectReference Include="..\AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj" />
     </ItemGroup>
 
