@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Metrics;
@@ -12,7 +13,7 @@ namespace AElf.OS.Network.Infrastructure
         bool IsReady { get; }
         
         long LastKnownLibHeight { get; }
-        string IpAddress { get; }
+        IPEndPoint RemoteEndpoint { get; }
 
         PeerInfo Info { get; }
 

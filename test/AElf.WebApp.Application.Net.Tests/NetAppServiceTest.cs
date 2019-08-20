@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Metrics;
 using AElf.WebApp.Application.Net.Dto;
@@ -45,7 +46,7 @@ namespace AElf.WebApp.Application.Net.Tests
             
             var peerMock = new Mock<IPeer>();
             peerMock.SetupGet(p => p.Info).Returns(connectionInfo);
-            peerMock.SetupGet(p => p.IpAddress).Returns(ipAddress);
+            peerMock.SetupGet(p => p.RemoteEndpoint).Returns(IpEndpointHelper.Parse(ipAddress));
             peerMock.Setup(p => p.GetRequestMetrics()).Returns(new Dictionary<string, List<RequestMetric>>());
 
             return peerMock.Object;
