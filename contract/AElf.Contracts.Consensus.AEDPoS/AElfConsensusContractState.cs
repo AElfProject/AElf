@@ -1,4 +1,5 @@
 using AElf.Sdk.CSharp.State;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
@@ -33,6 +34,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public BoolState IsMainChain { get; set; }
 
         public Int64State MinerIncreaseInterval { get; set; }
+
+        public MappedState<Hash, RandomNumberRequestInformation> RandomNumberInformationMap { get; set; }
+
+        /// <summary>
+        /// Round Number -> Random Number Token Hashes.
+        /// Used for deleting due token hashes.
+        /// </summary>
+        public MappedState<long, HashList> RandomNumberTokenMap { get; set; }
+
+        public Int64State LastIrreversibleBlockHeight { get; set; }
 
         public Int32State MaximumMinersCount { get; set; }
     }

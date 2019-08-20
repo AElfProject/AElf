@@ -61,7 +61,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime);
 
-                var tester = GetAEDPoSContractTester(currentKeyPair);
+                var tester = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation =
                     (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
                         .ToBytesValue())).ToConsensusHeaderInformation();

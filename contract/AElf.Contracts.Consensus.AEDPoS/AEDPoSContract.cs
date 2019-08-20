@@ -39,6 +39,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             State.MaximumMinersCount.Value = int.MaxValue;
 
+            State.LastIrreversibleBlockHeight.Value = 0;
+
             return new Empty();
         }
 
@@ -235,6 +237,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
+
+            ClearExpiredRandomNumberTokens();
 
             return new Empty();
         }

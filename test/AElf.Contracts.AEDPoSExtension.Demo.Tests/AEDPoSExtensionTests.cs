@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs6;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
@@ -150,6 +151,46 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             {
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
                 round.RoundNumber.ShouldBe(3);
+            }
+        }
+        
+        [Fact(Skip = "Redo this later.")]
+        public async Task<Hash> RequestRandomNumber_Test()
+        {
+            const long minimumBlockHeight = 40;
+
+            var transaction = ConsensusStub.RequestRandomNumber.GetTransaction(new RequestRandomNumberInput
+            {
+                MinimumBlockHeight = minimumBlockHeight
+            });
+            await BlockMiningService.MineBlockAsync(new List<Transaction>
+            {
+                transaction
+            });
+
+            // TODO: Need to query result of transaction, this feature implemented in another PR.
+            return Hash.Empty;
+        }
+
+        [Fact(Skip = "Redo this later.")]
+        public async Task GetRandomNumber_WithNotEnoughParticipators_Test()
+        {
+            var hash = await RequestRandomNumber_Test();
+
+            // Can't get random number.
+            {
+                var randomHash = await ConsensusStub.GetRandomNumber.CallAsync(hash);
+                randomHash.Value.Count().ShouldBe(0);
+            }
+
+            BlockMiningService.SkipTime(4);
+
+            await BlockMiningService.MineBlockAsync(40);
+
+            // Can't get random number.
+            {
+                var randomHash = await ConsensusStub.GetRandomNumber.CallAsync(hash);
+                randomHash.Value.Count().ShouldBe(0);
             }
         }
     }
