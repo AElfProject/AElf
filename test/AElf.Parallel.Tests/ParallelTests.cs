@@ -311,7 +311,7 @@ namespace AElf.Parallel.Tests
                     BlockHash = chain.BestChainHash,
                     BlockHeight = chain.BestChainHeight
                 }, new List<Transaction> {transaction}, CancellationToken.None);
-                resourceInfo.First().Item2.Type.ShouldBe(TransactionResourceInfoType.NonParallelizable);
+                resourceInfo.First().Item2.ParallelType.ShouldBe(ParallelType.NonParallelizable);
             }
 
             //branch two
@@ -321,7 +321,7 @@ namespace AElf.Parallel.Tests
                     BlockHash = startBlockHash,
                     BlockHeight = startBlockHeight
                 }, new List<Transaction> {transactionWithResourceCache}, CancellationToken.None);
-                resourceInfo.First().Item2.Type.ShouldBe(TransactionResourceInfoType.NonParallelizable);
+                resourceInfo.First().Item2.ParallelType.ShouldBe(ParallelType.NonParallelizable);
 
                 var betLimitInput = new BetLimitInput
                 {
@@ -345,7 +345,7 @@ namespace AElf.Parallel.Tests
                     BlockHash = block.GetHash(),
                     BlockHeight = block.Height
                 }, new List<Transaction> {transactionWithResourceCache}, CancellationToken.None);
-                resourceInfo.First().Item2.Type.ShouldBe(TransactionResourceInfoType.NonParallelizable);
+                resourceInfo.First().Item2.ParallelType.ShouldBe(ParallelType.NonParallelizable);
             }
         }
     }
