@@ -1,5 +1,3 @@
-using System;
-
 namespace AElf.Contracts.Economic.TestBase
 {
     public class EconomicContractsTestConstants

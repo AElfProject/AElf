@@ -55,6 +55,11 @@ namespace AElf.Types.Tests
             (address1 < null).ShouldBeFalse();
             (null < address2).ShouldBeTrue();
             (address1 > address2).ShouldBe(address1.CompareTo(address2) > 0);
+
+            Address addressA = null;
+            Address addressB = null;
+            var value = addressA > addressB;
+            value.ShouldBeFalse();
         }
 
         [Fact]

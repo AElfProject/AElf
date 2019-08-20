@@ -19,7 +19,7 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class MultiTokenContractTests : MultiTokenContractTestBase
     {
-        private const long Total_Supply = 1000_000_000_00000000;
+        private const long TotalSupply = 1000_000_000_00000000;
         /// <summary>
         /// Burnable & Transferable
         /// </summary>
@@ -27,7 +27,7 @@ namespace AElf.Contracts.MultiToken
         {
             Symbol = "ALICE",
             TokenName = "For testing multi-token contract",
-            TotalSupply = 1_000_000_000_00000000,
+            TotalSupply = TotalSupply,
             Decimals = 8,
             IsBurnable = true,
             Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),

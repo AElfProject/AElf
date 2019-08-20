@@ -22,7 +22,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public class AEDPoSContractTestBase : EconomicContractsTestBase
     {
-        private void DeployAllContracts()
+        private new void DeployAllContracts()
         {
             _ = TokenContractAddress;
             _ = VoteContractAddress;

@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Acs4;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.SecretSharing;

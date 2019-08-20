@@ -37,7 +37,7 @@ namespace AElf.Contracts.TokenConverter
         #region Views Test
 
         [Fact]
-        public async Task ViewTest()
+        public async Task View_Test()
         {
             await DeployContractsAsync();
             await InitializeTokenConverterContract();
@@ -71,7 +71,7 @@ namespace AElf.Contracts.TokenConverter
         #region Action Test
 
         [Fact]
-        public async Task Initialize_Failed()
+        public async Task Initialize_Failed_Test()
         {
             await DeployContractsAsync();
             //init token converter
@@ -85,21 +85,6 @@ namespace AElf.Contracts.TokenConverter
                 Connectors = {RamConnector}
             };
 
-/*            //token address is null
-            {
-                input.TokenContractAddress = null;
-                var result = (await DefaultStub.Initialize.SendAsync(input)).TransactionResult;
-                result.Status.ShouldBe(TransactionResultStatus.Failed);
-                result.Error.Contains("Token contract address required.").ShouldBeTrue();
-            }
-            //fee address is null
-            {
-                input.TokenContractAddress = TokenContractAddress;
-                input.FeeReceiverAddress = null;
-                var result = (await DefaultStub.Initialize.SendAsync(input)).TransactionResult;
-                result.Status.ShouldBe(TransactionResultStatus.Failed);
-                result.Error.Contains("Fee receiver address required.").ShouldBeTrue();
-            }*/
             //Base token symbol is invalid.
             {
                 input.FeeReceiverAddress = FeeReceiverAddress;
@@ -108,14 +93,7 @@ namespace AElf.Contracts.TokenConverter
                 result.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.Error.Contains("Base token symbol is invalid.").ShouldBeTrue();
             }
-            //Invalid MaxWeight
-//            {
-//                input.BaseTokenSymbol = "ELF";
-//                input.MaxWeight = 0;
-//                var result = (await DefaultStub.Initialize.SendAsync(input)).TransactionResult;
-//                result.Status.ShouldBe(TransactionResultStatus.Failed);
-//                result.Error.Contains("Invalid MaxWeight.").ShouldBeTrue();
-//            }
+
             //Invalid symbol
             {
                 input.BaseTokenSymbol = "ELF";
@@ -124,6 +102,7 @@ namespace AElf.Contracts.TokenConverter
                 result.Status.ShouldBe(TransactionResultStatus.Failed);
                 result.Error.Contains("Invalid symbol.").ShouldBeTrue();
             }
+            
             //Already initialized
             {
                 RamConnector.Symbol = "RAM";
@@ -135,7 +114,7 @@ namespace AElf.Contracts.TokenConverter
         }
 
         [Fact]
-        public async Task Set_Connector_Success()
+        public async Task Set_Connector_Success_Test()
         {
             await DeployContractsAsync();
             await InitializeTokenConverterContract();
@@ -175,7 +154,7 @@ namespace AElf.Contracts.TokenConverter
         }
 
         [Fact]
-        public async Task Set_Connector_Failed()
+        public async Task Set_Connector_Failed_Test()
         {
             await DeployContractsAsync();
             await InitializeTokenConverterContract();
@@ -192,7 +171,7 @@ namespace AElf.Contracts.TokenConverter
         }
 
         [Fact]
-        public async Task Buy_Success()
+        public async Task Buy_Success_Test()
         {
             await DeployContractsAsync();
             await CreateRamToken();
@@ -236,7 +215,7 @@ namespace AElf.Contracts.TokenConverter
         }
 
         [Fact]
-        public async Task Buy_Failed()
+        public async Task Buy_Failed_Test()
         {
             await DeployContractsAsync();
             await CreateRamToken();
@@ -275,7 +254,7 @@ namespace AElf.Contracts.TokenConverter
         }
 
         [Fact]
-        public async Task Sell_Success()
+        public async Task Sell_Success_Test()
         {
             await DeployContractsAsync();
             await CreateRamToken();
@@ -331,7 +310,7 @@ namespace AElf.Contracts.TokenConverter
         }
 
         [Fact]
-        public async Task Sell_Failed()
+        public async Task Sell_Failed_Test()
         {
             await DeployContractsAsync();
             await CreateRamToken();
@@ -379,7 +358,7 @@ namespace AElf.Contracts.TokenConverter
         }
 
         [Fact]
-        public async Task SetFeeRate_Success()
+        public async Task SetFeeRate_Success_Test()
         {
             await DeployContractsAsync();
             await CreateRamToken();
@@ -438,7 +417,7 @@ namespace AElf.Contracts.TokenConverter
         }
 
         [Fact]
-        public async Task SetManagerAddress_Success()
+        public async Task SetManagerAddress_Success_Test()
         {
             await DeployContractsAsync();
             await CreateRamToken();

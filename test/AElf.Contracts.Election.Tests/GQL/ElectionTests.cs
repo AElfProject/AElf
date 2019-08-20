@@ -13,7 +13,7 @@ using Xunit;
 
 namespace AElf.Contracts.Election
 {
-    public partial class ElectionContractTests : ElectionContractTestBase
+    public partial class ElectionContractTests
     {
         [Fact]
         public async Task ElectionContract_InitializeTwice_Test()
