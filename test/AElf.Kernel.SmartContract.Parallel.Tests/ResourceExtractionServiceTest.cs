@@ -77,7 +77,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
             {
                 TransactionId = txn.GetHash(),
-                NonParallelizable = true
+                Type = TransactionResourceInfoType.NonParallelizable
             });
         }
 
