@@ -46,10 +46,11 @@ namespace AElf.Kernel.Miner.Application
             // Call ConfigurationContract GetBlockTransactionLimit()
             try
             {
-                _limit = Int32Value.Parser.ParseFrom(await CallContractMethodAsync(
+                var result = await CallContractMethodAsync(
                     ConfigurationContractAddress,
                     nameof(ConfigurationContainer.ConfigurationStub.GetBlockTransactionLimit),
-                    new Empty())).Value;
+                    new Empty());
+                _limit = Int32Value.Parser.ParseFrom(result).Value;
                 Logger.LogInformation($"Get blockTransactionLimit: {_limit} by ConfigurationStub");
                 return _limit;
             }
