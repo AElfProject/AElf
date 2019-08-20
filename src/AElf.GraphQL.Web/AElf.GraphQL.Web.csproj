@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
+      <ProjectReference Include="..\AElf.GraphQL.Application.Chain\AElf.GraphQL.Application.Chain.csproj" />
+      <ProjectReference Include="..\AElf.GraphQL.Application.Core\AElf.GraphQL.Application.Core.csproj" />
+    </ItemGroup>
+
+</Project>
