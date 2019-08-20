@@ -14,6 +14,8 @@ using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.EventBus.Local;
+using System;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.WebApp.Application.Chain
 {
@@ -40,8 +42,8 @@ namespace AElf.WebApp.Application.Chain
         private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly ITxHub _txHub;
         private readonly IBlockchainStateManager _blockchainStateManager;
-        private readonly ITransactionResultAppService _transactionResultAppService;
-
+        private readonly IServiceProvider _serviceProvider;
+        
         public ILogger<BlockChainAppService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
@@ -50,13 +52,13 @@ namespace AElf.WebApp.Application.Chain
             IBlockExtraDataService blockExtraDataService,
             ITxHub txHub,
             IBlockchainStateManager blockchainStateManager,
-            ITransactionResultAppService transactionResultAppService)
+            IServiceProvider serviceProvider)
         {
             _blockchainService = blockchainService;
             _blockExtraDataService = blockExtraDataService;
             _txHub = txHub;
             _blockchainStateManager = blockchainStateManager;
-            _transactionResultAppService = transactionResultAppService;
+            _serviceProvider = serviceProvider;
 
             Logger = NullLogger<BlockChainAppService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
@@ -258,10 +260,21 @@ namespace AElf.WebApp.Application.Chain
             return await _blockchainService.GetBlockByHeightInBestChainBranchAsync(height);
         }
         
+        /// <summary>
+        /// Get the merkle path of a transaction.
+        /// </summary>
+        /// <param name="transactionId"></param>
+        /// <returns></returns>
         public async Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId)
         {
+            TransactionResultDto transactionResultDto;
             var input = HashHelper.HexStringToHash(transactionId);
-            var transactionResultDto = await _transactionResultAppService.GetTransactionResultAsync(transactionId);
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var transactionResultAppService = scope.ServiceProvider.GetService<ITransactionResultAppService>();
+                transactionResultDto = await transactionResultAppService.GetTransactionResultAsync(transactionId);
+            }
+            
             if (transactionResultDto.BlockHash == null)
             {
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
