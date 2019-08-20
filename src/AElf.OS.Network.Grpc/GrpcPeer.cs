@@ -220,8 +220,9 @@ namespace AElf.OS.Network.Grpc
 
             if (_bufferedTransactionsCount > NetworkConstants.DefaultMaxBufferedTransactionCount)
             {
-                throw new NetworkException($"Dropping transaction, peer has reached max capacity {_bufferedTransactionsCount} - {this}.",
-                    NetworkExceptionType.FullBuffer);
+                return;
+//                throw new NetworkException($"Dropping transaction, peer has reached max capacity {_bufferedTransactionsCount} - {this}.",
+//                    NetworkExceptionType.FullBuffer);
             }
 
             bool enqueueSuccess = _streamJobs.Post(new StreamJob { Transaction = transaction, SendCallback = sendCallback });
