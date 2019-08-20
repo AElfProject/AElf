@@ -277,34 +277,11 @@ namespace AElf.Kernel.SmartContract.Application
         private async Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address,
             IExecutive executive)
         {
-            if (!_contractInfoCache.TryGetValue(address, out _) || chainContext.BlockHeight == 0) return executive;
+            if (!_contractInfoCache.TryGetValue(address, out var height) || height == 1) return executive;
 
-            var key = string.Join("/",
-                _defaultContractZeroCodeProvider.ContractZeroAddress.GetFormatted(),
-                "ContractInfos", address.ToString());
-            var byteString =
-                await _blockchainStateManager.GetStateAsync(key, chainContext.BlockHeight, chainContext.BlockHash);
-            if (byteString == null)
-            {
-                var path = new ScopedStatePath
-                {
-                    Address = _defaultContractZeroCodeProvider.ContractZeroAddress,
-                    Path = new StatePath
-                    {
-                        Parts = { "ContractInfos",address.ToString()}
-                    }
-                };
-                if(chainContext.StateCache == null || !chainContext.StateCache.TryGetValue(path, out var byteArray))
-                    throw new InvalidOperationException("failed to find registration from zero contract");
-                byteString = ByteString.CopyFrom(byteArray);
-            }
-                
-            var codeHash = ContractInfo.Parser.ParseFrom(byteString).CodeHash;
-            if (codeHash == executive.ContractHash) return executive;
-            var smartContractRegistration =
-                await GetGetSmartContractRegistrationWithoutCacheAsync(chainContext, address);
+            var smartContractRegistration = await GetGetSmartContractRegistrationWithoutCacheAsync(chainContext, address);
+            if (smartContractRegistration.CodeHash == executive.ContractHash) return executive;
             executive = await GetExecutiveAsync(address, smartContractRegistration);
-
             return executive;
         }
 
