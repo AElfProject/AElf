@@ -8,6 +8,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel.SmartContract
 {
     [DependsOn(typeof(CoreKernelAElfModule))]
+    [Volo.Abp.DependencyInjection.Dependency(ServiceLifetime.Singleton, TryRegister = true)]
     public class SmartContractAElfModule: AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

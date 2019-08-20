@@ -1,12 +1,15 @@
 using System;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Volo.Abp.AspNetCore.Mvc;
 using Volo.Abp.AspNetCore.Mvc.Conventions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.WebApp.Web
 {
+    [Dependency(ServiceLifetime.Transient, ReplaceServices = true)]
     public class WebAppAbpServiceConvention : AbpServiceConvention
     {
         public WebAppAbpServiceConvention(IOptions<AbpAspNetCoreMvcOptions> options) : base(options)
