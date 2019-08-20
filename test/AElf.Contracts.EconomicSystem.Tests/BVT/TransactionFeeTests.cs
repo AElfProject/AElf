@@ -2,7 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using Acs3;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.Vote;

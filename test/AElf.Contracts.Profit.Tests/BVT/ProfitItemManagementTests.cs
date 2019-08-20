@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Shouldly;
 using Xunit;
@@ -20,7 +19,7 @@ namespace AElf.Contracts.Profit.BVT
         }
 
         [Fact]
-        public async Task ProfitContract_CreateScheme()
+        public async Task ProfitContract_CreateScheme_Test()
         {
             var creator = Creators[0];
             var creatorAddress = Address.FromPublicKey(CreatorKeyPair[0].PublicKey);
@@ -69,7 +68,7 @@ namespace AElf.Contracts.Profit.BVT
         }
 
         [Fact]
-        public async Task ProfitContract_DelayDistribution()
+        public async Task ProfitContract_DelayDistribution_Test()
         {
             const int delayDistributePeriodCount = 3;
             const int contributeAmountEachTime = 100_000;

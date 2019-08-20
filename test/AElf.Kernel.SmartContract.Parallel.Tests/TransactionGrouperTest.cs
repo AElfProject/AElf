@@ -7,6 +7,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Shouldly;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 using Xunit;
@@ -17,6 +18,11 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            Configure<GrouperOptions>(o =>
+            {
+                o.GroupingTimeOut = 200;
+                o.MaxTransactions = 10;
+            });
             context.Services.AddSingleton<ITransactionGrouper, TransactionGrouper>();
             context.Services.AddSingleton<IBlockchainService>(
                 _ =>
@@ -66,6 +72,41 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 .OrderBy(x => x);
             var actual = groupedResources.Select(StringRepresentation).OrderBy(x => x);
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public async Task Group_With_OverMaxTransactions_Test()
+        {
+            var group1Resources = new[] {(0, 1), (2, 1), (2, 4), (3, 2), (4, 5)};
+            var group1 =
+                group1Resources.Select(r => new {Resource = r, Transaction = GetTransaction("g1", r.Item1, r.Item2)})
+                    .ToList();
+            var group2Resources = new[] {(6, 7), (8, 7)};
+            var group2 =
+                group2Resources.Select(r => new {Resource = r, Transaction = GetTransaction("g2", r.Item1, r.Item2)})
+                    .ToList();
+            var group3Resources = new[] {(9, 10), (10, 11)};
+            var group3 =
+                group3Resources.Select(r => new {Resource = r, Transaction = GetTransaction("g3", r.Item1, r.Item2)})
+                    .ToList();
+            var group4Resources = new[] {(12, 13), (13, 15)};
+            var group4 =
+                group4Resources.Select(r => new {Resource = r, Transaction = GetTransaction("g4", r.Item1, r.Item2)})
+                    .ToList();
+            
+            var groups = new[] {group1, group2, group3, group4};
+            var allTxns = groups.SelectMany(x => x).Select(x => x.Transaction).OrderBy(x => Guid.NewGuid()).ToList();
+            allTxns.Count.ShouldBeGreaterThan(10);
+
+            var chainContext = new ChainContext
+            {
+                BlockHeight = 10,
+                BlockHash = Hash.FromString("blockHash")
+            };
+            var grouped = await Grouper.GroupAsync(chainContext, allTxns);
+            
+            grouped.Parallelizables.Count.ShouldBeGreaterThanOrEqualTo(4);
+            grouped.NonParallelizables.Count.ShouldBe(1);
         }
 
         private Transaction GetTransaction(string methodName, int from, int to)

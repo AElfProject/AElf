@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Acs2;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 
@@ -96,7 +95,6 @@ namespace AElf.Contracts.MultiToken
 
         private ScopedStatePath GetPath(params string[] parts)
         {
-            // TODO: Use more sophisticated algorithm than GetHashCode
             return new ScopedStatePath
             {
                 Address = Context.Self,

@@ -1,6 +1,6 @@
 using Acs0;
 using Acs7;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.OS.Node.Application;
 
 namespace AElf.Blockchains.SideChain

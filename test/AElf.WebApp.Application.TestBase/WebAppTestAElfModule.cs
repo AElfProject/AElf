@@ -1,11 +1,16 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
+using AElf.Sdk.CSharp;
 using AElf.WebApp.Web;
+using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
@@ -38,6 +43,40 @@ namespace AElf.WebApp.Application
                 
                 return serverMock.Object;
             }));
+
+            context.Services.AddSingleton(provider =>
+            {
+                var mockService = new Mock<IBlockExtraDataService>();
+                mockService.Setup(m => m.GetExtraDataFromBlockHeader(It.IsAny<string>(), It.IsAny<BlockHeader>()))
+                    .Returns(ByteString.CopyFrom(new AElfConsensusHeaderInformation
+                    {
+                        Behaviour = AElfConsensusBehaviour.NextRound,
+                        Round = new Round
+                        {
+                            RoundNumber = 12,
+                            TermNumber = 1,
+                            BlockchainAge = 3,
+                            ExtraBlockProducerOfPreviousRound = "bp2-pubkey",
+                            MainChainMinersRoundNumber = 3,
+                            RealTimeMinersInformation =
+                            {
+                                {
+                                    "bp1-pubkey", new MinerInRound
+                                    {
+                                        Order = 2,
+                                        ProducedBlocks = 3,
+                                        ExpectedMiningTime = TimestampHelper.GetUtcNow().AddSeconds(3),
+                                        ActualMiningTimes = { },
+                                        MissedTimeSlots = 1
+                                    }
+                                }
+                            }
+                        },
+                        SenderPubkey = ByteString.CopyFromUtf8("pubkey")
+                    }.ToByteArray()));
+
+                return mockService.Object;
+            });
         }
     }
 }

@@ -222,7 +222,7 @@ namespace AElf.WebApp.Web
     /// together.  The default Netwtonsoft.Json Deserialize method will
     /// not correctly deserialize proto messages.
     /// </summary>
-    class ProtoMessageConverter : JsonConverter
+    public class ProtoMessageConverter : JsonConverter
     {
         /// <summary>
         /// Called by NewtonSoft.Json's method to ask if this object can serialize

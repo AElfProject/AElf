@@ -20,6 +20,7 @@ using AElf.Runtime.CSharp.Validators.Method;
 using AElf.Runtime.CSharp.Validators.Whitelist;
 using Google.Protobuf.WellKnownTypes;
 using Mono.Cecil;
+using Moq;
 using Org.BouncyCastle.Pkix;
 using Shouldly;
 using Xunit;
@@ -106,7 +107,7 @@ namespace AElf.Runtime.CSharp
                 new SecondPolicy(),
                 new ThirdPolicy()
             });
-            
+
             multiplePolicies.Whitelist.NameSpaces.ShouldNotBeNull();
             multiplePolicies.MethodValidators.Count.ShouldBe(6);
         }
@@ -118,7 +119,7 @@ namespace AElf.Runtime.CSharp
             var validateResult1 = ValidateContractCode(_badContractCode, validator);
             validateResult1.Count.ShouldBeGreaterThan(0);
             validateResult1.First().Message.ShouldContain("Array size is too large");
-            
+
             var validateResult2 = ValidateContractCode(_systemContractCode, validator);
             validateResult2.Count.ShouldBe(0);
         }
@@ -130,7 +131,7 @@ namespace AElf.Runtime.CSharp
             var validateResult1 = ValidateContractCode(_badContractCode, validator);
             validateResult1.Count.ShouldBeGreaterThan(0);
             validateResult1.First().Message.ShouldContain("contains ldc.r8 float OpCode");
-            
+
             var validateResult2 = ValidateContractCode(_systemContractCode, validator);
             validateResult2.Count.ShouldBe(0);
         }
@@ -141,7 +142,7 @@ namespace AElf.Runtime.CSharp
             var validator = new GenericParamValidator();
             var validateResult1 = ValidateContractCode(_badContractCode, validator);
             validateResult1.Count.ShouldBe(0); //no error sample
-            
+
             var validateResult2 = ValidateContractCode(_systemContractCode, validator);
             validateResult2.Count.ShouldBe(0);
         }
@@ -152,7 +153,7 @@ namespace AElf.Runtime.CSharp
             var validator = new MultiDimArrayValidator();
             var validateResult1 = ValidateContractCode(_badContractCode, validator);
             validateResult1.Count.ShouldBe(0); //no error sample
-            
+
             var validateResult2 = ValidateContractCode(_systemContractCode, validator);
             validateResult2.Count.ShouldBe(0);
         }
@@ -188,12 +189,12 @@ namespace AElf.Runtime.CSharp
                 "System.Random",
                 "System.DateTime"
             };
-            
+
             _auditor = new ContractAuditor(whiteList, blackList);
-            
-            Should.Throw<InvalidCodeException>(()=>_auditor.Audit(_badContractCode, true));
-        }    
-        
+
+            Should.Throw<InvalidCodeException>(() => _auditor.Audit(_badContractCode, true));
+        }
+
         private static List<ValidationResult> ValidateContractCode(byte[] code, IValidator<MethodDefinition> validator)
         {
             var modDef = ModuleDefinition.ReadModule(new MemoryStream(code));
@@ -211,7 +212,7 @@ namespace AElf.Runtime.CSharp
 
             return validateList;
         }
-        
+
         private static byte[] ReadCode(string path)
         {
             return File.ReadAllBytes(path);
