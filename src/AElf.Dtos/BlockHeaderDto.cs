@@ -1,6 +1,6 @@
 using System;
 
-namespace AElf.WebApp.Application.Chain.Dto
+namespace AElf.Dtos
 {
     public class BlockHeaderDto
     {

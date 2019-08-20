@@ -1,4 +1,4 @@
-namespace AElf.WebApp.Application.Chain.Dto
+namespace AElf.Dtos
 {
     public class SendRawTransactionInput
     {

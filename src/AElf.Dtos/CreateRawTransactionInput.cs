@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using AElf.Types;
 
-namespace AElf.WebApp.Application.Chain.Dto
+namespace AElf.Dtos
 {
     [Display]
     public class CreateRawTransactionInput : IValidatableObject

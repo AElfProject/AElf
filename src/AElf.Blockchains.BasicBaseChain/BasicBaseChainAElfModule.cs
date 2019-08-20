@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain.Communication.Grpc;
+using AElf.GraphQL.Web;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
@@ -39,6 +40,9 @@ namespace AElf.Blockchains.BasicBaseChain
 
         //web api module
         typeof(WebWebAppAElfModule),
+        
+        // graphql module
+        typeof(GraphQLAElfModule),
 
         typeof(ParallelExecutionModule)
     )]

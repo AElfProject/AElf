@@ -6,6 +6,7 @@ using Google.Protobuf.Reflection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Dtos;
 using Volo.Abp;
 
 namespace AElf.WebApp.Application.Chain

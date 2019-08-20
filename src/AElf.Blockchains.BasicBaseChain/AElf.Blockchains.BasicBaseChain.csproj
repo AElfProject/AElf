@@ -9,6 +9,7 @@
     <ItemGroup>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Genesis\AElf.Contracts.Genesis.csproj" />
         <ProjectReference Include="..\AElf.CrossChain.Communication.Grpc\AElf.CrossChain.Communication.Grpc.csproj" />
+        <ProjectReference Include="..\AElf.GraphQL.Web\AElf.GraphQL.Web.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
         <ProjectReference Include="..\AElf.Kernel.SmartContract.Parallel\AElf.Kernel.SmartContract.Parallel.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />

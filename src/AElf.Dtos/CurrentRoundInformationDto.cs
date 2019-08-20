@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace AElf.WebApp.Application.Chain.Dto
+namespace AElf.Dtos
 {
     public class RoundDto
     {
