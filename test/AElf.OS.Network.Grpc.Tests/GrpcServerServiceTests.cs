@@ -1,8 +1,11 @@
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Helper;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
@@ -221,32 +224,7 @@ namespace AElf.OS.Network
                 peer.IsReady.ShouldBeFalse();
             }
         }
-        
-        [Fact]
-        public void GrpcUrl_Parse_Test()
-        {
-            //wrong format
-            {
-                string address = "127.0.0.1:8000";
-                var grpcUrl = GrpcUrl.Parse(address);
 
-                grpcUrl.ShouldBeNull();
-            }
-            
-            //correct format
-            {
-                string address = "ipv4:127.0.0.1:8000";
-                var grpcUrl = GrpcUrl.Parse(address);
-                
-                grpcUrl.IpVersion.ShouldBe("ipv4");
-                grpcUrl.IpAddress.ShouldBe("127.0.0.1");
-                grpcUrl.Port.ShouldBe(8000);
-
-                var ipPortFormat = grpcUrl.ToIpPortFormat();
-                ipPortFormat.ShouldBe("127.0.0.1:8000");
-            }
-        }
-        
         [Fact]
         public async Task Auth_UnaryServerHandler_Success_Test()
         {
