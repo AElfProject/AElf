@@ -4,6 +4,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using AElf.Dtos;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 

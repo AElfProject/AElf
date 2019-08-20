@@ -1,10 +1,9 @@
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Types;
-using AElf.WebApp.Application.Chain.Dto;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using System.Threading.Tasks;
+using AElf.Dtos;
 using Volo.Abp.Application.Services;
 
 namespace AElf.WebApp.Application.Chain

@@ -3,13 +3,14 @@ using System.Linq;
 using AElf.Blockchains.BasicBaseChain;
 using AElf.Blockchains.MainChain;
 using AElf.Blockchains.SideChain;
-using AElf.Kernel;
+using AElf.GraphQL.Application.Chain;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;
+using ChainType = AElf.Kernel.ChainType;
 
 namespace AElf.Launcher
 {
@@ -56,6 +57,8 @@ namespace AElf.Launcher
                 .AllowAnyMethod()
                 .AllowCredentials()
             );
+
+            app.UseMiddleware<AElfGraphQLMiddleware>();
 
             app.InitializeApplication();
         }
