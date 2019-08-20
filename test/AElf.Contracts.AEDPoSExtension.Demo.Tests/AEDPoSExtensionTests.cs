@@ -133,15 +133,17 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         {
             const long minimumBlockHeight = 40;
 
-            await BlockMiningService.MineBlockAsync();
-            var randomNumberOrder = (await ConsensusStub.RequestRandomNumber.SendAsync(new RequestRandomNumberInput
+            var transaction = ConsensusStub.RequestRandomNumber.GetTransaction(new RequestRandomNumberInput
             {
                 MinimumBlockHeight = minimumBlockHeight
-            })).Output;
-            randomNumberOrder.TokenHash.ShouldNotBeNull();
-            randomNumberOrder.BlockHeight.ShouldBe(minimumBlockHeight);
+            });
+            await BlockMiningService.MineBlockAsync(new List<Transaction>
+            {
+                transaction
+            });
 
-            return randomNumberOrder.TokenHash;
+            // TODO: Need to query result of transaction, this feature implemented in another PR.
+            return Hash.Empty;
         }
 
         [Fact(Skip = "Redo this later.")]

@@ -43,6 +43,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         public MappedState<long, HashList> RandomNumberTokenMap { get; set; }
 
-        public SInt64Value LastIrreversibleBlockHeight { get; set; }
+        public Int64State LastIrreversibleBlockHeight { get; set; }
     }
 }

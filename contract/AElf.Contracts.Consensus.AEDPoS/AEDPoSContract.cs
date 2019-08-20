@@ -37,6 +37,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
 
+            State.LastIrreversibleBlockHeight.Value = 0;
+
             return new Empty();
         }
 
