@@ -56,7 +56,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 return (transaction, new TransactionResourceInfo()
                 {
                     TransactionId = transaction.GetHash(),
-                    Type = TransactionResourceInfoType.NonParallelizable
+                    ParallelType = ParallelType.NonParallelizable
                 });
 
             if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache))
@@ -80,7 +80,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     return new TransactionResourceInfo
                     {
                         TransactionId = transaction.GetHash(),
-                        Type = TransactionResourceInfoType.NonParallelizable
+                        ParallelType = ParallelType.NonParallelizable
                     };
                 }
 
@@ -94,7 +94,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 return new TransactionResourceInfo
                 {
                     TransactionId = transaction.GetHash(),
-                    Type = TransactionResourceInfoType.InvalidContractAddress
+                    ParallelType = ParallelType.InvalidContractAddress
                 };
             }
             finally
@@ -129,7 +129,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             var addresses = contractInfoCache.Where(c => c.Value <= eventData.BlockHeight).Select(c => c.Key).ToArray();
             var transactionIds = _resourceCache.Where(c =>
                 c.Value.Address.IsIn(addresses) &&
-                c.Value.ResourceInfo.Type != TransactionResourceInfoType.NonParallelizable).Select(c => c.Key);
+                c.Value.ResourceInfo.ParallelType != ParallelType.NonParallelizable).Select(c => c.Key);
 
             ClearResourceCache(transactionIds.Concat(_resourceCache
                 .Where(c => c.Value.RefBlockNumber <= eventData.BlockHeight)

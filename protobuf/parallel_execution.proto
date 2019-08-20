@@ -6,11 +6,11 @@ option csharp_namespace = "AElf.Kernel.SmartContract";
 
 message TransactionResourceInfo {
     repeated aelf.ScopedStatePath paths = 1;
-    TransactionResourceInfoType type = 2;
+    ParallelType parallel_type = 2;
     aelf.Hash transaction_id = 3;
 }
 
-enum TransactionResourceInfoType {
+enum ParallelType {
     PARALLELIZABLE = 0;
     NON_PARALLELIZABLE = 1;
     INVALID_CONTRACT_ADDRESS = 2;
