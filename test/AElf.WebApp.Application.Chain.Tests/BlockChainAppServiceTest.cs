@@ -551,7 +551,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         public async Task Get_Failed_TransactionResult_Success_Test()
         {
             // Generate a transaction and broadcast
-            var transactionList = await GenerateInitializeTransactions(2);
+            var transactionList = await GenerateTwoInitializeTransaction();
             await _osTestHelper.BroadcastTransactions(transactionList);
 
             await _osTestHelper.MinedOneBlock();
@@ -1241,30 +1241,57 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.RoundId.ShouldBeGreaterThan(0);
             response.RealTimeMinerInformation.Count.ShouldBeGreaterThan(0);
         }
-        
+
         [Fact]
-        private async Task GetMerklePathByTransactionId_Test()
+        private async Task GetMerklePathByTransactionId_Success_Test()
         {
-            var transaction0 = await _osTestHelper.GenerateTransferTransaction();
-            var transaction1 = await _osTestHelper.GenerateTransferTransaction();
-            var transaction2 = await _osTestHelper.GenerateTransferTransaction();
-            var transactionHex = transaction0.GetHash().ToHex();
-            await _osTestHelper.BroadcastTransactions(new List<Transaction> {transaction0, transaction1, transaction2});
-            await _osTestHelper.MinedOneBlock();
+            var transactionList = new List<Transaction>();
+            for (var i = 0; i < 3; i++)
+            {
+                var transaction = await _osTestHelper.GenerateTransferTransaction();
+                transactionList.Add(transaction);
+            }
+
+            await _osTestHelper.BroadcastTransactions(transactionList);
+            var block = await _osTestHelper.MinedOneBlock();
+
+            var transactionIds = block.Body.TransactionIds;
+            var tx0Hex = transactionIds[0].ToHex();
+            var tx1Hex = transactionIds[1].ToHex();
+
+            var nodeHash = transactionIds[2].Concat(transactionIds[2]).ToHex();
 
             // After mined
             var response = await GetResponseAsObjectAsync<MerklePathDto>(
-                $"/api/blockChain/merklePathByTransactionId?transactionId={transactionHex}");
+                $"/api/blockChain/merklePathByTransactionId?transactionId={tx0Hex}");
 
-            response.MerklePathNodes.Count.ShouldBe(2);
+            var merklePathNodes = response.MerklePathNodes;
+            merklePathNodes.Count.ShouldBe(2);
+            Assert.True(merklePathNodes[0].Hash == tx1Hex);
+            Assert.True(merklePathNodes[0].IsLeftChildNode == false);
+
+            Assert.True(merklePathNodes[1].Hash == nodeHash);
+            Assert.True(merklePathNodes[1].IsLeftChildNode == false);
         }
 
-        private Task<List<Transaction>> GenerateInitializeTransactions(int count)
+        [Fact]
+        private async Task GetMerklePathByTransactionId_Failed_Test()
+        {
+            string hex = "5a7d71da020cae179a0dfe82bd3c967e1573377578f4cc87bc21f74f2556c0ef";
+
+            var errorResponse = await GetResponseAsObjectAsync<WebAppErrorResponse>(
+                $"/api/blockChain/merklePathByTransactionId?transactionId={hex}",
+                expectedStatusCode: HttpStatusCode.Forbidden);
+            errorResponse.Error.Code.ShouldBe(Error.NotFound.ToString());
+            errorResponse.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
+        }
+
+        private Task<List<Transaction>> GenerateTwoInitializeTransaction()
         {
             var transactionList = new List<Transaction>();
             var newUserKeyPair = CryptoHelper.GenerateKeyPair();
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < 2; i++)
             {
                 var transaction = _osTestHelper.GenerateTransaction(Address.FromPublicKey(newUserKeyPair.PublicKey),
                     _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),

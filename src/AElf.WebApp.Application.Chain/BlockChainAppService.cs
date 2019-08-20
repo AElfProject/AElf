@@ -262,6 +262,10 @@ namespace AElf.WebApp.Application.Chain
         {
             var input = HashHelper.HexStringToHash(transactionId);
             var transactionResultDto = await _transactionResultAppService.GetTransactionResultAsync(transactionId);
+            if (transactionResultDto.BlockHash == null)
+            {
+                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+            }
             var blockId = HashHelper.HexStringToHash(transactionResultDto.BlockHash);
             var blockInfo = await _blockchainService.GetBlockByHashAsync(blockId);
             var transactionIds = blockInfo.Body.TransactionIds;
@@ -275,7 +279,10 @@ namespace AElf.WebApp.Application.Chain
             var merklePath = new MerklePathDto{MerklePathNodes = new List<MerklePathNodeDto>()};
             foreach (var node in path.MerklePathNodes)
             {
-                merklePath.MerklePathNodes.Add(new MerklePathNodeDto {Hash = node.Hash.ToHex(), IsLeftChildNode = node.IsLeftChildNode});
+                merklePath.MerklePathNodes.Add(new MerklePathNodeDto
+                    {
+                        Hash = node.Hash.ToHex(), IsLeftChildNode = node.IsLeftChildNode
+                    });
             }
 
             return merklePath;
