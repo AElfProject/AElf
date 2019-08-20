@@ -45,8 +45,8 @@ Description
 Description
 
 ACS6 is aiming at providing two standard interfaces of requesting and getting random numbers. It implies using commit-reveal schema during random number generation and verification, though other solutions can also expose their services via these two interfaces.
-In the commit-reveal schema, the user needs to call `RequestRandomNumberInput ` on his initiative as well as provide a block height number as the minimum height to enable the query of random number. Then the contract implemented ACS6 need to return a hash value as the token for querying random number, and a negotiated block height to enable related query. When the block height reaches, the user can use that token, which is a hash value, call `GetRandomNumber` to query the random number.
-The implementation of ACS6 in `AEDPoS Contract` shows how commit-reveal schema works.
+In the commit-reveal schema, the user needs to call `RequestRandomNumberInput` on his initiative as well as provide a block height number as the minimum height to enable the query of random number. Then the contract implemented ACS6 needs to return 1) a hash value as the token for querying random number and 2) a negotiated block height to enable related query. When the block height reaches, the user can use that token, which is a hash value, call `GetRandomNumber` to query the random number.
+The implementation of ACS6 in the `AEDPoS Contract` shows how commit-reveal schema works.
 
 ## ACS7
 
