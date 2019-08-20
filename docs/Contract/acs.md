@@ -1,4 +1,4 @@
-# AELF Contract Standard(ACS
+# AElf Contract Standard(ACS)
 
 Description
 
@@ -43,6 +43,10 @@ Description
 [standard code link](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs6.proto)
 
 Description
+
+ACS6 is aiming at providing two standard interfaces of requesting and getting random numbers. It implies using commit-reveal schema during random number generation and verification, though other solutions can also expose their services via these two interfaces.
+In the commit-reveal schema, the user needs to call `RequestRandomNumberInput ` on his initiative as well as provide a block height number as the minimum height to enable the query of random number. Then the contract implemented ACS6 need to return a hash value as the token for querying random number, and a negotiated block height to enable related query. When the block height reaches, the user can use that token, which is a hash value, call `GetRandomNumber` to query the random number.
+The implementation of ACS6 in `AEDPoS Contract` shows how commit-reveal schema works.
 
 ## ACS7
 
