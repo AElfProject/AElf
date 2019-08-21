@@ -163,7 +163,7 @@ namespace AElf.WebApp.Application.Chain
 
             return output;
         }
-        
+
         /// <summary>
         /// Get the merkle path of a transaction.
         /// </summary>
@@ -205,9 +205,10 @@ namespace AElf.WebApp.Application.Chain
             {
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
+
             var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(transactionIds);
             var path = binaryMerkleTree.GenerateMerklePath(index);
-            var merklePath = new MerklePathDto{MerklePathNodes = new List<MerklePathNodeDto>()};
+            var merklePath = new MerklePathDto {MerklePathNodes = new List<MerklePathNodeDto>()};
             foreach (var node in path.MerklePathNodes)
             {
                 merklePath.MerklePathNodes.Add(new MerklePathNodeDto
