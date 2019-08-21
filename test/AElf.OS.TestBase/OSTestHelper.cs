@@ -380,6 +380,12 @@ namespace AElf.OS
             return Address.Parser.ParseFrom(txResult.ReturnValue);
         }
 
+        public async Task<TransactionResult> GetTransactionResultsAsync(Hash transactionId)
+        {
+            var res = await _transactionResultService.GetTransactionResultAsync(transactionId);
+            return res;
+        }
+
         #region private methods
 
         private async Task StartNodeAsync()

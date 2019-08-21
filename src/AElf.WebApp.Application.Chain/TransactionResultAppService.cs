@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
@@ -205,8 +206,22 @@ namespace AElf.WebApp.Application.Chain
             {
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
+            
+            var transactionResultList = new List<TransactionResult>();
+            foreach (var item in blockInfo.TransactionIds)
+            {
+                var result = await GetTransactionResultAsync(item);
+                transactionResultList.Add(result);
+            }
+            
+            var transactionResultSet = transactionResultList.Select(txResult => (txResult.TransactionId, txResult.Status));
+            var leafNodes = new List<Hash>();
+            foreach (var (txId, status) in transactionResultSet)
+            {
+                leafNodes.Add(GetHashCombiningTransactionAndStatus(txId, status));
+            }
 
-            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(transactionIds);
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(leafNodes);
             var path = binaryMerkleTree.GenerateMerklePath(index);
             var merklePath = new MerklePathDto {MerklePathNodes = new List<MerklePathNodeDto>()};
             foreach (var node in path.MerklePathNodes)
@@ -246,6 +261,15 @@ namespace AElf.WebApp.Application.Chain
                 TransactionId = transactionId,
                 Status = TransactionResultStatus.NotExisted
             };
+        }
+        
+        private Hash GetHashCombiningTransactionAndStatus(Hash txId,
+            TransactionResultStatus executionReturnStatus)
+        {
+            // combine tx result status
+            var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
+                .ToArray();
+            return Hash.FromRawBytes(rawBytes);
         }
     }
 }

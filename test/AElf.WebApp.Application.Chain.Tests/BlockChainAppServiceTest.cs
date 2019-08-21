@@ -21,6 +21,7 @@ using AElf.Runtime.CSharp;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Utilities.Encoders;
 using Shouldly;
@@ -1254,24 +1255,31 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             await _osTestHelper.BroadcastTransactions(transactionList);
             var block = await _osTestHelper.MinedOneBlock();
-
-            var transactionIds = block.Body.TransactionIds;
-            var tx0Hex = transactionIds[0].ToHex();
-            var tx1Hex = transactionIds[1].ToHex();
-
-            var nodeHash = transactionIds[2].Concat(transactionIds[2]).ToHex();
-
             // After mined
+            var merkleTreeRoot = block.Header.MerkleTreeRootOfTransactionStatus;
+            var txHex = block.Body.TransactionIds[0].ToHex();
+
             var response = await GetResponseAsObjectAsync<MerklePathDto>(
-                $"/api/blockChain/merklePathByTransactionId?transactionId={tx0Hex}");
+                $"/api/blockChain/merklePathByTransactionId?transactionId={txHex}");
+            var merklePath = new MerklePath();
+            foreach (var res in response.MerklePathNodes)
+            {
+                merklePath.MerklePathNodes.Add(new MerklePathNode
+                {
+                    Hash = HashHelper.HexStringToHash(res.Hash), IsLeftChildNode = res.IsLeftChildNode
+                });
+            }
+
+            var transactionResult = await _osTestHelper.GetTransactionResultsAsync(block.Body.TransactionIds[0]);
+            var calculatedRoot = merklePath.ComputeRootWithLeafNode(
+                GetHashCombiningTransactionAndStatus(transactionResult.TransactionId, transactionResult.Status));
 
             var merklePathNodes = response.MerklePathNodes;
             merklePathNodes.Count.ShouldBe(2);
-            Assert.True(merklePathNodes[0].Hash == tx1Hex);
-            Assert.True(merklePathNodes[0].IsLeftChildNode == false);
 
-            Assert.True(merklePathNodes[1].Hash == nodeHash);
+            Assert.True(merklePathNodes[0].IsLeftChildNode == false);
             Assert.True(merklePathNodes[1].IsLeftChildNode == false);
+            Assert.True(merkleTreeRoot == calculatedRoot);
         }
 
         [Fact]
@@ -1328,6 +1336,15 @@ namespace AElf.WebApp.Application.Chain.Tests
             transaction.Signature = ByteString.CopyFrom(signature);
 
             return Task.FromResult(transaction);
+        }
+        
+        private Hash GetHashCombiningTransactionAndStatus(Hash txId,
+            TransactionResultStatus executionReturnStatus)
+        {
+            // combine tx result status
+            var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
+                .ToArray();
+            return Hash.FromRawBytes(rawBytes);
         }
     }
 }
