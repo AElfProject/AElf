@@ -246,7 +246,7 @@ namespace AElf.Kernel.SmartContract.Application
                 return SmartContractRegistration.Parser.ParseFrom(returnBytes);
             }
 
-            throw new InvalidOperationException(
+            throw new SmartContractFindRegistrationException(
                 $"failed to find registration from zero contract {txCtxt.Trace.Error}");
         }
         
