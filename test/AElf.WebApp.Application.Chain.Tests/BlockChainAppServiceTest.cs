@@ -21,7 +21,6 @@ using AElf.Runtime.CSharp;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
 using Google.Protobuf;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Org.BouncyCastle.Utilities.Encoders;
 using Shouldly;
