@@ -197,8 +197,8 @@ namespace AElf.WebApp.Application.Chain
                     throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
 
-            var blockId = transactionResult.BlockHash;
-            var blockInfo = await _blockchainService.GetBlockByHashAsync(blockId);
+            var blockHash = transactionResult.BlockHash;
+            var blockInfo = await _blockchainService.GetBlockByHashAsync(blockHash);
             var transactionIds = blockInfo.Body.TransactionIds;
             var index = transactionIds.IndexOf(transactionIdHash);
             if (index == -1)
