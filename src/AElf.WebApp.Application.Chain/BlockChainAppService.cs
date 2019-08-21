@@ -14,8 +14,6 @@ using System.Threading.Tasks;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.EventBus.Local;
-using System;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.WebApp.Application.Chain
 {
@@ -32,8 +30,6 @@ namespace AElf.WebApp.Application.Chain
         Task<BlockStateDto> GetBlockStateAsync(string blockHash);
 
         Task<RoundDto> GetCurrentRoundInformationAsync();
-
-        Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId);
     }
 
     public class BlockChainAppService : IBlockChainAppService
@@ -42,8 +38,7 @@ namespace AElf.WebApp.Application.Chain
         private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly ITxHub _txHub;
         private readonly IBlockchainStateManager _blockchainStateManager;
-        private readonly IServiceProvider _serviceProvider;
-        
+
         public ILogger<BlockChainAppService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
@@ -51,14 +46,12 @@ namespace AElf.WebApp.Application.Chain
         public BlockChainAppService(IBlockchainService blockchainService,
             IBlockExtraDataService blockExtraDataService,
             ITxHub txHub,
-            IBlockchainStateManager blockchainStateManager,
-            IServiceProvider serviceProvider)
+            IBlockchainStateManager blockchainStateManager)
         {
             _blockchainService = blockchainService;
             _blockExtraDataService = blockExtraDataService;
             _txHub = txHub;
             _blockchainStateManager = blockchainStateManager;
-            _serviceProvider = serviceProvider;
 
             Logger = NullLogger<BlockChainAppService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
@@ -258,47 +251,6 @@ namespace AElf.WebApp.Application.Chain
         private async Task<Block> GetBlockAtHeightAsync(long height)
         {
             return await _blockchainService.GetBlockByHeightInBestChainBranchAsync(height);
-        }
-        
-        /// <summary>
-        /// Get the merkle path of a transaction.
-        /// </summary>
-        /// <param name="transactionId"></param>
-        /// <returns></returns>
-        public async Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId)
-        {
-            TransactionResultDto transactionResultDto;
-            var input = HashHelper.HexStringToHash(transactionId);
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                var transactionResultAppService = scope.ServiceProvider.GetService<ITransactionResultAppService>();
-                transactionResultDto = await transactionResultAppService.GetTransactionResultAsync(transactionId);
-            }
-            
-            if (transactionResultDto.BlockHash == null)
-            {
-                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-            }
-            var blockId = HashHelper.HexStringToHash(transactionResultDto.BlockHash);
-            var blockInfo = await _blockchainService.GetBlockByHashAsync(blockId);
-            var transactionIds = blockInfo.Body.TransactionIds;
-            var index = transactionIds.IndexOf(input);
-            if (index == -1)
-            {
-                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-            }
-            var tree = BinaryMerkleTree.FromLeafNodes(transactionIds);
-            var path = tree.GenerateMerklePath(index);
-            var merklePath = new MerklePathDto{MerklePathNodes = new List<MerklePathNodeDto>()};
-            foreach (var node in path.MerklePathNodes)
-            {
-                merklePath.MerklePathNodes.Add(new MerklePathNodeDto
-                    {
-                        Hash = node.Hash.ToHex(), IsLeftChildNode = node.IsLeftChildNode
-                    });
-            }
-
-            return merklePath;
         }
     }
 }
