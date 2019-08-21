@@ -9,7 +9,8 @@ namespace AElf.Kernel.TransactionPool.Application
     {
         private readonly IEnumerable<ITransactionValidationProvider> _transactionValidationProviders;
 
-        public TransactionValidationForTxHubService(IEnumerable<ITransactionValidationProvider> transactionValidationProviders)
+        public TransactionValidationForTxHubService(
+            IEnumerable<ITransactionValidationProvider> transactionValidationProviders)
         {
             _transactionValidationProviders = transactionValidationProviders;
         }
@@ -20,7 +21,7 @@ namespace AElf.Kernel.TransactionPool.Application
             {
                 if (!await provider.ValidateTransactionAsync(transaction))
                 {
-                    throw new Exception($"Invalid tx. {provider.GetType().FullName} {transaction}");
+                    return false;
                 }
             }
 

@@ -549,8 +549,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Status.ShouldBe(TransactionResultStatus.Mined.ToString().ToUpper());
         }
 
-        // TODO: Need balance.
-        [Fact(Skip = "Balance empty")]
+        [Fact]
         public async Task Get_Failed_TransactionResult_Success_Test()
         {
             // Generate a transaction and broadcast

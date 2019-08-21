@@ -4,6 +4,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         internal class BlocksCountProvider
         {
+            public BlocksCountProvider()
+            {
+                
+            }
         }
     }
 }

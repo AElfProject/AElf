@@ -122,7 +122,7 @@ namespace AElf.Parallel.Tests
         }
 
         // TODO: Tx from address need some tokens.
-        [Fact(Skip = "Cannot pass tx validation.")]
+        [Fact]
         public async Task WrongParallelTest()
         {
             var chain = await _blockchainService.GetChainAsync();

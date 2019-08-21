@@ -46,5 +46,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public Int64State LastIrreversibleBlockHeight { get; set; }
 
         public Int32State MaximumMinersCount { get; set; }
+
+        public SingletonState<LatestProviderToTinyBlocksCount> LatestProviderToTinyBlocksCount { get; set; }
     }
 }
