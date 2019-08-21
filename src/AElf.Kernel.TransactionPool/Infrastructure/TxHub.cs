@@ -66,7 +66,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 PreviousBlockHeight = _bestChainHeight
             };
 
-            if (transactionCount == 0)
+            if (transactionCount == -1)
             {
                 return output;
             }
