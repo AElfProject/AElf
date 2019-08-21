@@ -1,4 +1,4 @@
-namespace AElf.Kernel.Consensus.Application
+namespace AElf.Kernel.TransactionPool.Application
 {
     public interface IIsPackageNormalTransactionProvider
     {

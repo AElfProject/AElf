@@ -41,7 +41,13 @@ namespace AElf.Kernel.TransactionPool.Application
             async Task<TOutput> CallAsync(TInput input)
             {
                 var chainContext = _chainContext;
-                var transaction = new Transaction()
+                if (TokenContractAddress == null)
+                {
+                    // Which means token contract hasn't deployed yet.
+                    return default;
+                }
+
+                var transaction = new Transaction
                 {
                     From = FromAddress,
                     To = TokenContractAddress,

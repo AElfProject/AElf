@@ -95,7 +95,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 ExecutedBlocks = successLinks.Select(p => p.BlockHash).ToList()
             });
         }
-        
+
         public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain,
             BlockAttachOperationStatus status)
         {

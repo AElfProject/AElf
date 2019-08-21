@@ -20,8 +20,12 @@ namespace AElf.Contracts.MultiToken
                     Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
             }
 
-            var genesisOwnerAddress = State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty());
-            Assert(Context.Sender == genesisOwnerAddress, "No permission to set method fee.");
+            // Parliament Auth Contract maybe not deployed.
+            if (State.ParliamentAuthContract.Value != null)
+            {
+                var genesisOwnerAddress = State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty());
+                Assert(Context.Sender == genesisOwnerAddress, "No permission to set method fee.");
+            }
 
             foreach (var symbolToAmount in input.Amounts)
             {

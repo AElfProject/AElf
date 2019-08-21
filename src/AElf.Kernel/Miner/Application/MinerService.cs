@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Google.Protobuf.WellKnownTypes;
 using AElf.Types;
@@ -40,7 +41,7 @@ namespace AElf.Kernel.Miner.Application
             var executableTransactionSet =
                 await _txHub.GetExecutableTransactionSetAsync(_isPackageNormalTransactionProvider.IsPackage
                     ? _blockTransactionLimitProvider.Limit
-                    : 0);
+                    : -1);
             var pending = new List<Transaction>();
             if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
             {

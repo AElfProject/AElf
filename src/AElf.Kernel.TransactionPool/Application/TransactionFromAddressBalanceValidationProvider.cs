@@ -41,16 +41,25 @@ namespace AElf.Kernel.TransactionPool.Application
             }
 
             var chain = await _blockchainService.GetChainAsync();
-            var balance = (await _tokenContractReaderFactory.Create(new ChainContext
+
+            // Skip this validation at the very beginning of current chain.
+            if (chain.LastIrreversibleBlockHeight == Constants.GenesisBlockHeight)
+            {
+                return true;
+            }
+
+            var tokenStub = _tokenContractReaderFactory.Create(new ChainContext
             {
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight
-            }).GetBalance.CallAsync(new GetBalanceInput
+            });
+            var balance = (await tokenStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = transaction.From,
                 Symbol = _nativeTokenSymbolProvider.GetNativeTokenSymbol()
-            })).Balance;
-            if (balance > 0) return true;
+            }))?.Balance;
+            // balance == null means token contract hasn't deployed.
+            if (balance == null || balance > 0) return true;
 
             Logger.LogError($"Empty balance of tx from address: {transaction}");
             return false;

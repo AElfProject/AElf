@@ -1,3 +1,4 @@
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
@@ -14,9 +15,11 @@ namespace AElf.Kernel.TransactionPool
             var services = context.Services;
             services.AddSingleton<ITxHub, TxHub>();
             services.AddSingleton<ITransactionValidationService, TransactionValidationForTxHubService>();
+            services.AddSingleton<ITransactionValidationProvider, BasicTransactionValidationProvider>();
             services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
             services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
             services.AddSingleton<IDeployedContractAddressProvider, DeployedContractAddressProvider>();
+            services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
 
             context.Services.AddSingleton<IContractDeployDiscoveryService, ContractDeployDiscoveryService>();
             context.Services.AddSingleton<BestChainFoundEventHandler>();

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Types;
@@ -18,7 +19,9 @@ namespace AElf.Kernel.TransactionPool.Application
             foreach (var provider in _transactionValidationProviders)
             {
                 if (!await provider.ValidateTransactionAsync(transaction))
-                    return false;
+                {
+                    throw new Exception($"Invalid tx. {provider.GetType().FullName} {transaction}");
+                }
             }
 
             return true;

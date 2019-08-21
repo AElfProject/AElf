@@ -32,8 +32,7 @@ namespace AElf.Kernel.TransactionPool.Application
                 {
                     BlockHash = chain.BestChainHash,
                     BlockHeight = chain.BestChainHeight
-                }).GetDeployedContractAddressList
-                .CallAsync(new Empty());
+                }).GetDeployedContractAddressList.CallAsync(new Empty());
             return _addressList;
         }
 
