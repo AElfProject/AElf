@@ -14,5 +14,6 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         public List<List<Transaction>> Parallelizables = new List<List<Transaction>>();
         public List<Transaction> NonParallelizables = new List<Transaction>();
+        public List<Transaction> TransactionsWithoutContract = new List<Transaction>();
     }
 }

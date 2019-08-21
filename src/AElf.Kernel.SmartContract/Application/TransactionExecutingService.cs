@@ -144,10 +144,21 @@ namespace AElf.Kernel.SmartContract.Application
 
             var internalStateCache = new TieredStateCache(chainContext.StateCache);
             var internalChainContext = new ChainContextWithTieredStateCache(chainContext, internalStateCache);
-            var executive = await _smartContractExecutiveService.GetExecutiveAsync(
-                internalChainContext,
-                transaction.To);
 
+            IExecutive executive;
+            try
+            {
+                executive = await _smartContractExecutiveService.GetExecutiveAsync(
+                    internalChainContext,
+                    transaction.To);
+            }
+            catch (SmartContractFindRegistrationException e)
+            {
+                txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+                txCtxt.Trace.Error += "Invalid contract address.\n";
+                return trace;
+            }
+            
             try
             {
                 #region PreTransaction

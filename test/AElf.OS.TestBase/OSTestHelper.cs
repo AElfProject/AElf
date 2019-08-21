@@ -310,7 +310,7 @@ namespace AElf.OS
             return block;
         }
 
-        public Block GenerateBlock(Hash preBlockHash, long preBlockHeight, IEnumerable<Transaction> transactions = null)
+        public virtual Block GenerateBlock(Hash preBlockHash, long preBlockHeight, IEnumerable<Transaction> transactions = null)
         {
             var block = new Block
             {
