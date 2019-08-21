@@ -5,7 +5,6 @@ using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -197,7 +196,7 @@ namespace AElf.Kernel.SmartContract.Application
                 return SmartContractRegistration.Parser.ParseFrom(returnBytes);
             }
 
-            throw new InvalidOperationException(
+            throw new SmartContractFindRegistrationException(
                 $"failed to find registration from zero contract {txCtxt.Trace.Error}");
         }
 
