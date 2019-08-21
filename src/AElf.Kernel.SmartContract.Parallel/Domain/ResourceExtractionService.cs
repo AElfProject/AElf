@@ -126,7 +126,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             var contractInfoCache = _smartContractExecutiveService.GetContractInfoCache();
             var addresses = contractInfoCache.Where(c => c.Value <= eventData.BlockHeight).Select(c => c.Key).ToArray();
-            var transactionIds = _resourceCache.Where(c => c.Value.Address.IsIn(addresses) && !c.Value.ResourceInfo.NonParallelizable).Select(c => c.Key);
+            var transactionIds = _resourceCache.Where(c => c.Value.Address.IsIn(addresses) && c.Value.ResourceInfo.ParallelType != ParallelType.NonParallelizable).Select(c => c.Key);
 
             ClearResourceCache(transactionIds.Concat(_resourceCache
                 .Where(c => c.Value.RefBlockNumber <= eventData.BlockHeight)

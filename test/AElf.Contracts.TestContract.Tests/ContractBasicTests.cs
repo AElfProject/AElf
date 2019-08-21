@@ -60,7 +60,7 @@ namespace AElf.Contract.TestContract
             var startBlockHeight = blockHeader.Height;
             var startBlockHash = blockHeader.GetHash();
 
-            Address contractAddress;
+             Address contractAddress;
             //branch one
             {
                 var t = (await BasicContractZeroStub.DeploySmartContract.SendAsync(
@@ -74,8 +74,8 @@ namespace AElf.Contract.TestContract
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 contractAddress = Address.Parser.ParseFrom(transactionResult.ReturnValue);
                 blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
-            
-                var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
+
+                 var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
                 {
                     First = SampleAddress.AddressList[0],
                     Second = SampleAddress.AddressList[1]
@@ -85,8 +85,8 @@ namespace AElf.Contract.TestContract
                 var branchOneBlock = await ExecuteAsync(queryTwoUserWinMoneyTransaction, blockHeader.Height,
                     blockHeader.GetHash());
                 await _blockAttachService.AttachBlockAsync(branchOneBlock);
-            
-                var queryTwoUserWinMoneyTransactionResult =
+
+                 var queryTwoUserWinMoneyTransactionResult =
                     await _transactionResultManager.GetTransactionResultAsync(queryTwoUserWinMoneyTransaction
                         .GetHash(),branchOneBlock.Header.GetPreMiningHash());
                 queryTwoUserWinMoneyTransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -99,30 +99,35 @@ namespace AElf.Contract.TestContract
                     startBlockHash);
                 var branchTwoBlock = await ExecuteAsync(transaction, startBlockHeight, startBlockHash);
                 await _blockAttachService.AttachBlockAsync(branchTwoBlock);
-            
-                transaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
+
+                 transaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
                     nameof(TestBasicFunctionContractStub.QueryWinMoney), new Empty().ToByteString(), branchTwoBlock.Height,
                     branchTwoBlock.GetHash());
                 branchTwoBlock = await ExecuteAsync(transaction, branchTwoBlock.Height, branchTwoBlock.GetHash());
                 await _blockAttachService.AttachBlockAsync(branchTwoBlock);
-            
-                transaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
+
+                 transaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
                     nameof(TestBasicFunctionContractStub.QueryWinMoney), new Empty().ToByteString(), branchTwoBlock.Height,
                     branchTwoBlock.GetHash());
                 branchTwoBlock = await ExecuteAsync(transaction, branchTwoBlock.Height, branchTwoBlock.GetHash());
                 await _blockAttachService.AttachBlockAsync(branchTwoBlock);
-            
-                var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
+
+                 var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
                 {
                     First = SampleAddress.AddressList[0],
                     Second = SampleAddress.AddressList[1]
                 }.ToByteString();
                 var queryTwoUserWinMoneyTransaction = CreateTransaction(DefaultSender, contractAddress,
                     "QueryTwoUserWinMoney", queryTwoUserWinMoneyInput, branchTwoBlock.Height, branchTwoBlock.GetHash());
-                
-                await ExecuteAsync(queryTwoUserWinMoneyTransaction, branchTwoBlock.Height,
-                        branchTwoBlock.GetHash())
-                    .ShouldThrowAsync<InvalidOperationException>("failed to find registration from zero contract");
+
+                 branchTwoBlock = await ExecuteAsync(queryTwoUserWinMoneyTransaction, branchTwoBlock.Height,
+                    branchTwoBlock.GetHash());
+                await _blockAttachService.AttachBlockAsync(branchTwoBlock);
+                var queryTwoUserWinMoneyTransactionResult =
+                    await _transactionResultManager.GetTransactionResultAsync(queryTwoUserWinMoneyTransaction.GetHash(),
+                        branchTwoBlock.Header.GetPreMiningHash());
+                queryTwoUserWinMoneyTransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                queryTwoUserWinMoneyTransactionResult.Error.ShouldContain("Invalid contract address");
             }
         }
 
