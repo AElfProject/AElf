@@ -40,8 +40,7 @@ namespace AElf.Sdk.CSharp.Tests
             //StateProvider.TransactionContext = transactionContext;
         }
 
-        [Fact]
-        public void Init_Test()
+        private void Init_Test()
         {
             Contract.Initialize("ELF", "elf test token", 1000000, 9);
             Contract.Symbol().ShouldBe("ELF");

@@ -148,8 +148,7 @@ namespace AElf.Contracts.MultiToken
             }
         }
 
-        [Fact(DisplayName = "[MultiToken] Create token test.")]
-        public async Task MultiTokenContract_Create_Test()
+        private async Task MultiTokenContract_Create_Test()
         {
             // Check token information before creating.
             {
@@ -292,8 +291,7 @@ namespace AElf.Contracts.MultiToken
             transactionResult.Error.ShouldContain("Addresses in lock white list should be system contract addresses");
         }
 
-        [Fact(DisplayName = "[MultiToken] Issue token test")]
-        public async Task MultiTokenContract_Issue_Test()
+        private async Task MultiTokenContract_Issue_Test()
         {
             await MultiTokenContract_Create_Test();
             //issue AliceToken amount of 1000_00L to DefaultAddress 

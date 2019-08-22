@@ -37,8 +37,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             tokenInformation.TotalSupply.ShouldBe(EconomicSystemTestConstants.TotalSupply);
         }
 
-        [Fact]
-        public async Task EconomistSystem_SetMethodTransactionFee_Test()
+        private async Task EconomistSystem_SetMethodTransactionFee_Test()
         {
             const long feeAmount = 10L;
             await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new TokenAmounts
@@ -84,8 +83,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             balanceAfter.Balance.ShouldBeLessThan(balanceBefore.Balance);
         }
 
-        [Fact]
-        public async Task<long> EconomistSystem_SetMethodTransactionFee_MultipleSymbol_Test()
+        private async Task<long> EconomistSystem_SetMethodTransactionFee_MultipleSymbol_Test()
         {
             const long feeAmount = 10L;
 
