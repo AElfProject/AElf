@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Application
 {
@@ -13,11 +12,9 @@ namespace AElf.Kernel.SmartContract.Application
         /// <param name="registration">The contract registration info.</param>
         /// <param name="isPrivileged">Whether the contract is a privileged (system) one.</param>
         /// <returns></returns>
-        Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration, bool isPrivileged,
-            Hash name = null);
+        Task DeployContractAsync(ContractDto contractDto);
 
-        Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration, bool isPrivileged,
-            Hash name = null);
+        Task UpdateContractAsync(ContractDto contractDto);
 
 
 //        Task<IExecutive> GetExecutiveAsync(Address contractAddress, );
