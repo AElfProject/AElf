@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
@@ -13,6 +14,14 @@ namespace AElf.Kernel.SmartContract.Application
 
         Task PutExecutiveAsync(Address address, IExecutive executive);
 
-        void ClearExecutivePool(Address address);
+        Task SetContractInfoAsync(Address address,long blockHeight);
+
+        void ClearContractInfoCache(long blockHeight);
+
+        Task InitContractInfoCacheAsync();
+
+        IReadOnlyDictionary<Address, long> GetContractInfoCache();
+
+        bool IsContractDeployOrUpdating(Address address);
     }
 }
