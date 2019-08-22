@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Types;
 
-namespace AElf.Kernel.TransactionPool.Application
+namespace AElf.Kernel.SmartContractExecution.Application
 {
     public interface ITransactionValidationProvider
     {

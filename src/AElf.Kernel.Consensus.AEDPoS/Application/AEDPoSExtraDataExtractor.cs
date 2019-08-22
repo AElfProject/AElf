@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;

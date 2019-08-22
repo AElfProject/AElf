@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
