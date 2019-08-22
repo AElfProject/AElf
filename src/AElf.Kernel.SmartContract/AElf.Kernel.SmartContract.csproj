@@ -13,4 +13,9 @@
     <ProjectReference Include="..\AElf.Kernel.SmartContract.Sdk.Abstracts\AElf.Kernel.SmartContract.Sdk.Abstracts.csproj" />
     <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <ContractMessage Include="..\..\protobuf\acs0.proto">
+      <Link>Protobuf\Proto\acs0.proto</Link>
+    </ContractMessage>
+  </ItemGroup>
 </Project>
