@@ -564,8 +564,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 $"/api/blockChain/transactionResult?transactionId={transactionHex}");
 
             response.TransactionId.ShouldBe(transactionHex);
-            response.Status.ShouldBe(TransactionResultStatus.Failed.ToString().ToUpper());
-            response.Error.Contains("Token already exists.").ShouldBeTrue();
+            response.Status.ShouldBe(TransactionResultStatus.NotExisted.ToString());
         }
 
         [Fact]
