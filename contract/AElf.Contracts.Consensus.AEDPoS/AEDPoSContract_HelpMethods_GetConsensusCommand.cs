@@ -28,13 +28,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 if (currentRound.RealTimeMinersInformation.Count > 1 && behaviour == AElfConsensusBehaviour.TinyBlock)
                 {
                     // Not single node.
-                    
+
                     // If only this node mined during previous round, stop mining.
                     if (TryToGetPreviousRoundInformation(out var previousRound))
                     {
                         var minedMiners = previousRound.GetMinedMiners();
                         isAlone = minedMiners.Count == 1 &&
-                               minedMiners.Select(m => m.Pubkey).Contains(publicKey);
+                                  minedMiners.Select(m => m.Pubkey).Contains(publicKey);
                         if (isAlone)
                         {
                             behaviour = AElfConsensusBehaviour.Nothing;
@@ -117,46 +117,49 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         /// <summary>
         /// Implemented GitHub PR #1952.
-        /// Adjust (basically reduce) the count of tiny blocks produced by a miner each time to avoid too many forks.
+        /// Adjust (mainly reduce) the count of tiny blocks produced by a miner each time to avoid too many forks.
         /// </summary>
         /// <returns></returns>
         private int GetTinyBlocksCount()
         {
             TryToGetCurrentRoundInformation(out var currentRound, true);
-            TryToGetPreviousRoundInformation(out var previousRound, true);
-            var libRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber; // Stands for RLIB
-            var libBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight; // Stands for HLIB
-            var currentHeight = Context.CurrentHeight;// Stands for H
-            var currentRoundNumber = currentRound.RoundNumber;// Stands for R
-            const int cachedBlocksCount = 1024;//Stands for Y
+            var libRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber;
+            var libBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;
+            var currentHeight = Context.CurrentHeight;
+            var currentRoundNumber = currentRound.RoundNumber;
 
             if (libRoundNumber == 0)
             {
                 return AEDPoSContractConstants.MaximumTinyBlocksCount;
             }
 
-            // f RLIB + 2 < R < RLIB + 10 & H <= HLIB + Y, CB goes to Min(L2/(R-RLIB), CB0), while CT stays same as before.
-            if (libRoundNumber.Add(2) < currentRoundNumber && currentRoundNumber < libRoundNumber.Add(10))
+            var (blockchainMiningStatus) =
+                new BlockchainMiningStatusEvaluator(
+                    libRoundNumber,
+                    libBlockHeight,
+                    currentRoundNumber,
+                    currentHeight);
+
+            Context.LogDebug(() => $"Current blockchain mining status: {blockchainMiningStatus.ToString()}");
+
+            // If R_LIB + 2 < R < R_LIB + 10 & H <= H_LIB + Y, CB goes to Min(L2/(R-R_LIB), CB0), while CT stays same as before.
+            if (blockchainMiningStatus == BlockchainMiningStatus.Abnormal)
             {
-                if (currentHeight <= libBlockHeight.Add(cachedBlocksCount))
-                {
-                    if (TryToGetRoundInformation(previousRound.RoundNumber, out var previousPreviousRound))
-                    {
-                        var minersOfLastTwoRounds = previousRound.GetMinedMiners()
-                            .Union(previousPreviousRound.GetMinedMiners()).Count();
-                        var count = Math.Min(AEDPoSContractConstants.MaximumTinyBlocksCount, minersOfLastTwoRounds
-                            .Div((int) currentRound.RoundNumber.Sub(libRoundNumber))
-                            .Add(1));
-                        Context.LogDebug(() => $"Enter stage 2. blocks count: {count}");
-                        return count;
-                    }
-                }
+                var previousRoundMinedMinerList = State.MinedMinerListMap[currentRoundNumber.Sub(1)].Pubkeys;
+                var previousPreviousRoundMinedMinerList = State.MinedMinerListMap[currentRoundNumber.Sub(2)].Pubkeys;
+                var minersOfLastTwoRounds = previousRoundMinedMinerList
+                    .Intersect(previousPreviousRoundMinedMinerList).Count();
+                var count = Math.Min(AEDPoSContractConstants.MaximumTinyBlocksCount, minersOfLastTwoRounds
+                    .Div((int) currentRound.RoundNumber.Sub(libRoundNumber))
+                    .Add(1));
+                Context.LogDebug(() => $"Maximum blocks count tune to {count}");
+                return count;
             }
 
-            //If R > RLIB + 10 || H > HLIB + Y, CB goes to 1, and CT goes to 0
-            if (currentRound.RoundNumber > libRoundNumber.Add(10) || currentHeight > libBlockHeight.Add(cachedBlocksCount))
+            //If R > R_LIB + 10 || H > H_LIB + Y, CB goes to 1, and CT goes to 0
+            if (blockchainMiningStatus == BlockchainMiningStatus.Severe)
             {
-                Context.LogDebug(() => "Enter stage 3.");
+                // Fire an event to notify miner not package normal transaction.
                 Context.Fire(new IrreversibleBlockHeightUnacceptable
                 {
                     DistanceToIrreversibleBlockHeight = currentHeight.Sub(libBlockHeight)

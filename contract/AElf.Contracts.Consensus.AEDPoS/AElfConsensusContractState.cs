@@ -48,5 +48,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public Int32State MaximumMinersCount { get; set; }
 
         public SingletonState<LatestProviderToTinyBlocksCount> LatestProviderToTinyBlocksCount { get; set; }
+
+        public MappedState<long, MinerList> MinedMinerListMap { get; set; }
     }
 }

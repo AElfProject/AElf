@@ -38,6 +38,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void ProcessNextRound(Round nextRound)
         {
+            RecordMinedMinerListOfCurrentRound();
+
             TryToGetCurrentRoundInformation(out var currentRound, true);
 
             // Do some other stuff during the first time to change round.
@@ -83,6 +85,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void ProcessNextTerm(Round nextRound)
         {
+            RecordMinedMinerListOfCurrentRound();
+
             // Count missed time slot of current round.
             CountMissedTimeSlots();
 
@@ -141,6 +145,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             });
 
             Context.LogDebug(() => $"Changing term number to {nextRound.TermNumber}");
+        }
+
+        private void RecordMinedMinerListOfCurrentRound()
+        {
+            TryToGetCurrentRoundInformation(out var currentRound, true);
+            State.MinedMinerListMap[currentRound.RoundNumber] = new MinerList
+            {
+                Pubkeys = {currentRound.GetMinedMiners().Select(m => m.Pubkey.ToByteString())}
+            };
         }
 
         private void ProcessUpdateValue(UpdateValueInput updateValueInput)
@@ -254,7 +267,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 State.LatestProviderToTinyBlocksCount.Value = new LatestProviderToTinyBlocksCount
                 {
                     Pubkey = _processingBlockMinerPubkey,
-                    BlocksCount = GetTinyBlocksCount()
+                    BlocksCount = GetTinyBlocksCount().Sub(1)
                 };
             }
         }

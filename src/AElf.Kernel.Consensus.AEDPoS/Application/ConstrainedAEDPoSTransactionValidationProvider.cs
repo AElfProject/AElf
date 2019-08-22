@@ -25,6 +25,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var constrainedTransaction = new Lazy<List<string>>(() =>
                 new List<string>
                 {
+                    nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
                     nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
                     nameof(AEDPoSContractContainer.AEDPoSContractStub.NextRound),
                     nameof(AEDPoSContractContainer.AEDPoSContractStub.NextTerm),
