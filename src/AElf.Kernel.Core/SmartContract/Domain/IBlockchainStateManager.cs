@@ -18,6 +18,8 @@ namespace AElf.Kernel.SmartContract.Domain
         Task MergeBlockStateAsync(ChainStateInfo chainStateInfo, Hash blockStateHash);
         Task<ChainStateInfo> GetChainStateInfoAsync();
         Task<BlockStateSet> GetBlockStateSetAsync(Hash blockHash);
+        Task<ChainContractInfo> GetChainContractInfoAsync();
+        Task SetChainContractInfoAsync(ChainContractInfo chainContractInfo);
     }
 
     public class BlockchainStateManager : IBlockchainStateManager, ITransientDependency
@@ -25,17 +27,20 @@ namespace AElf.Kernel.SmartContract.Domain
         private readonly IStateStore<VersionedState> _versionedStates;
         private readonly INotModifiedCachedStateStore<BlockStateSet> _blockStateSets;
         private readonly IStateStore<ChainStateInfo> _chainStateInfoCollection;
+        private readonly IStateStore<ChainContractInfo> _chainContractInfoCollection; 
 
         private readonly int _chainId;
 
         public BlockchainStateManager(IStateStore<VersionedState> versionedStates,
             INotModifiedCachedStateStore<BlockStateSet> blockStateSets,
             IStateStore<ChainStateInfo> chainStateInfoCollection,
+            IStateStore<ChainContractInfo> chainContractInfoCollection,
             IOptionsSnapshot<ChainOptions> options)
         {
             _versionedStates = versionedStates;
             _blockStateSets = blockStateSets;
             _chainStateInfoCollection = chainStateInfoCollection;
+            _chainContractInfoCollection = chainContractInfoCollection;
             _chainId = options.Value.ChainId;
         }
 
@@ -209,6 +214,16 @@ namespace AElf.Kernel.SmartContract.Domain
             return await _blockStateSets.GetAsync(blockHash.ToStorageKey());
         }
 
+        public async Task<ChainContractInfo> GetChainContractInfoAsync()
+        {
+            var chainContractInfo = await _chainContractInfoCollection.GetAsync(_chainId.ToStorageKey());
+            return chainContractInfo ?? new ChainContractInfo {ChainId = _chainId};
+        }
+
+        public async Task SetChainContractInfoAsync(ChainContractInfo chainContractInfo)
+        {
+            await _chainContractInfoCollection.SetAsync(chainContractInfo.ChainId.ToStorageKey(), chainContractInfo);
+        }
 
         private string GetKey(BlockStateSet blockStateSet)
         {
