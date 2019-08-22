@@ -7,7 +7,7 @@ namespace AElf.Contracts.Deployer
 {
     public static class ContractsDeployer
     {
-        public static IReadOnlyDictionary<string, byte[]> GetContractCodes<T>()
+        public static IReadOnlyDictionary<string, byte[]> GetContractCodes<T>(string contractDir = null)
         {
             var contractNames = GetContractNames(typeof(T).Assembly).ToList();
             if (contractNames.Count == 0)
@@ -15,12 +15,15 @@ namespace AElf.Contracts.Deployer
                 throw new NoContractDllFoundInManifestException();
             }
 
-            return contractNames.Select(n => (n, GetCode(n))).ToDictionary(x => x.Item1, x => x.Item2);
+            return contractNames.Select(n => (n, GetCode(n, contractDir))).ToDictionary(x => x.Item1, x => x.Item2);
         }
 
-        private static byte[] GetCode(string dllName)
+        private static byte[] GetCode(string dllName,string contractDir)
         {
-            return File.ReadAllBytes(Assembly.Load(dllName).Location);
+            var dllPath = contractDir != null
+                ? Path.Combine(contractDir, $"{dllName}.dll")
+                : Assembly.Load(dllName).Location;
+            return File.ReadAllBytes(dllPath);
         }
 
         private static IEnumerable<string> GetContractNames(Assembly assembly)
