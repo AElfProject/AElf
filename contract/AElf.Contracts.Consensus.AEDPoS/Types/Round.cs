@@ -154,6 +154,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return RealTimeMinersInformation.Values.Sum(minerInRound => minerInRound.ProducedBlocks);
         }
 
+        public MinerList GetMinerList()
+        {
+            return new MinerList
+            {
+                Pubkeys = {RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}
+            };
+        }
+
+        public bool IsInMinerList(string pubkey)
+        {
+            return RealTimeMinersInformation.Keys.Contains(pubkey);
+        }
+
         public bool IsTimeToChangeTerm(Round previousRound, Timestamp blockchainStartTimestamp,
             long termNumber, long timeEachTerm)
         {

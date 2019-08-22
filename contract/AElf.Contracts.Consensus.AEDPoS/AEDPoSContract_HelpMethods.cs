@@ -29,36 +29,67 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return termNumber != 0;
         }
 
-        private bool TryToGetRoundNumber(out long roundNumber)
+        private bool TryToGetRoundNumber(out long roundNumber, bool useCache = false)
         {
-            roundNumber = State.CurrentRoundNumber.Value;
+            if (useCache && _currentRoundNumber != 0)
+            {
+                roundNumber = _currentRoundNumber;
+            }
+            else
+            {
+                roundNumber = State.CurrentRoundNumber.Value;
+            }
+
             return roundNumber != 0;
         }
 
-        private bool TryToGetCurrentRoundInformation(out Round round)
+        private bool TryToGetCurrentRoundInformation(out Round round, bool useCache = false)
         {
             round = null;
-            if (!TryToGetRoundNumber(out var roundNumber))
+            if (!TryToGetRoundNumber(out var roundNumber, useCache)) return false;
+
+            if (useCache && _rounds.ContainsKey(roundNumber))
             {
-                Context.LogDebug(() => "Failed to get current round number.");
-                return false;
+                round = _rounds[roundNumber];
             }
-            round = State.Rounds[roundNumber];
+            else
+            {
+                round = State.Rounds[roundNumber];
+            }
+
             return !round.IsEmpty;
         }
 
-        private bool TryToGetPreviousRoundInformation(out Round previousRound)
+        private bool TryToGetPreviousRoundInformation(out Round previousRound, bool useCache = false)
         {
             previousRound = new Round();
-            if (!TryToGetRoundNumber(out var roundNumber)) return false;
+            if (!TryToGetRoundNumber(out var roundNumber, useCache)) return false;
             if (roundNumber < 2) return false;
-            previousRound = State.Rounds[roundNumber - 1];
+            var targetRoundNumber = roundNumber.Sub(1);
+            if (useCache && _rounds.ContainsKey(targetRoundNumber))
+            {
+                previousRound = _rounds[targetRoundNumber];
+            }
+            else
+            {
+                previousRound = State.Rounds[targetRoundNumber];
+            }
+
             return !previousRound.IsEmpty;
         }
 
-        private bool TryToGetRoundInformation(long roundNumber, out Round round)
+        private bool TryToGetRoundInformation(long roundNumber, out Round round, bool useCache = false)
         {
-            round = State.Rounds[roundNumber];
+            if (useCache && _rounds.ContainsKey(roundNumber))
+            {
+                round = _rounds[roundNumber];
+            }
+            else
+            {
+                round = State.Rounds[roundNumber];
+                _rounds[roundNumber] = round;
+            }
+
             return !round.IsEmpty;
         }
 

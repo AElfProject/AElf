@@ -119,15 +119,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// Implemented GitHub PR #1952.
         /// Adjust (basically reduce) the count of tiny blocks produced by a miner each time to avoid too many forks.
         /// </summary>
-        /// <param name="currentRound"></param>
-        /// <param name="previousRound"></param>
         /// <returns></returns>
-        private int GetTinyBlocksCount(Round currentRound, Round previousRound = null)
+        private int GetTinyBlocksCount()
         {
-            if (previousRound == null)
-            {
-                TryToGetPreviousRoundInformation(out previousRound);
-            }
+            TryToGetCurrentRoundInformation(out var currentRound, true);
+            TryToGetPreviousRoundInformation(out var previousRound, true);
             var libRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber; // Stands for RLIB
             var libBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight; // Stands for HLIB
             var currentHeight = Context.CurrentHeight;// Stands for H
@@ -305,7 +301,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var producedTinyBlocksForPreviousRound =
                 minerInRound.ActualMiningTimes.Count(t => t < currentRoundStartTime);
 
-            var blocksCount = GetTinyBlocksCount(currentRound);
+            var blocksCount = GetTinyBlocksCount();
             if (minerInRound.ProducedTinyBlocks == blocksCount ||
                 minerInRound.ProducedTinyBlocks == blocksCount.Add(producedTinyBlocksForPreviousRound))
             {

@@ -1,6 +1,10 @@
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.TransactionPool.Application;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -9,20 +13,19 @@ namespace AElf.Kernel.Consensus.Application
     public class ConsensusValidationProvider : IBlockValidationProvider
     {
         private readonly IConsensusService _consensusService;
-        private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly IIsPackageNormalTransactionProvider _isPackageNormalTransactionProvider;
         private readonly IBlockchainService _blockchainService;
+        private readonly IConsensusExtraDataExtractor _consensusExtraDataExtractor;
+        private readonly int _systemTransactionCount;
         public ILogger<ConsensusValidationProvider> Logger { get; set; }
 
-        public ConsensusValidationProvider(IConsensusService consensusService,
-            IBlockExtraDataService blockExtraDataService,
-            IIsPackageNormalTransactionProvider isPackageNormalTransactionProvider,
-            IBlockchainService blockchainService)
+        public ConsensusValidationProvider(IServiceProvider serviceProvider)
         {
-            _consensusService = consensusService;
-            _blockExtraDataService = blockExtraDataService;
-            _isPackageNormalTransactionProvider = isPackageNormalTransactionProvider;
-            _blockchainService = blockchainService;
+            _consensusService = serviceProvider.GetService<IConsensusService>();
+            _isPackageNormalTransactionProvider = serviceProvider.GetService<IIsPackageNormalTransactionProvider>();
+            _blockchainService = serviceProvider.GetService<IBlockchainService>();
+            _consensusExtraDataExtractor = serviceProvider.GetService<IConsensusExtraDataExtractor>();
+            _systemTransactionCount = serviceProvider.GetServices<ISystemTransactionGenerator>().Count();
             Logger = NullLogger<ConsensusValidationProvider>.Instance;
         }
 
@@ -37,23 +40,14 @@ namespace AElf.Kernel.Consensus.Application
                 return false;
             }
 
-            var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", block.Header);
+            var consensusExtraData = _consensusExtraDataExtractor.ExtractConsensusExtraData(block.Header);
             if (consensusExtraData == null || consensusExtraData.IsEmpty)
             {
-                Logger.LogWarning($"Consensus extra data is empty {block}");
+                Logger.LogWarning($"Invalid consensus extra data {block}");
                 return false;
             }
 
-            if (_isPackageNormalTransactionProvider.IsPackage) return true;
-
-            var chain = await _blockchainService.GetChainAsync();
-            if (chain.BestChainHash == block.Header.PreviousBlockHash && block.Body.TransactionsCount > 4)
-            {
-                Logger.LogWarning("Cannot package normal transaction.");
-                return false;
-            }
-
-            return true;
+            return await ValidateTransactionCount(block);
         }
 
         public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
@@ -61,10 +55,10 @@ namespace AElf.Kernel.Consensus.Application
             if (block.Header.Height == Constants.GenesisBlockHeight)
                 return true;
 
-            var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", block.Header);
+            var consensusExtraData = _consensusExtraDataExtractor.ExtractConsensusExtraData(block.Header);
             if (consensusExtraData == null || consensusExtraData.IsEmpty)
             {
-                Logger.LogWarning($"Consensus extra data is empty {block}");
+                Logger.LogWarning($"Invalid consensus extra data {block}");
                 return false;
             }
 
@@ -75,10 +69,16 @@ namespace AElf.Kernel.Consensus.Application
             }, consensusExtraData.ToByteArray());
             if (!isValid) return false;
 
+            return await ValidateTransactionCount(block);
+        }
+
+        private async Task<bool> ValidateTransactionCount(IBlock block)
+        {
             if (_isPackageNormalTransactionProvider.IsPackage) return true;
 
             var chain = await _blockchainService.GetChainAsync();
-            if (chain.BestChainHash == block.Header.PreviousBlockHash && block.Body.TransactionsCount > 4)
+            if (chain.BestChainHash == block.Header.PreviousBlockHash &&
+                block.Body.TransactionsCount > _systemTransactionCount)
             {
                 Logger.LogWarning("Cannot package normal transaction.");
                 return false;
@@ -92,9 +92,13 @@ namespace AElf.Kernel.Consensus.Application
             if (block.Header.Height == Constants.GenesisBlockHeight)
                 return true;
 
-            var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", block.Header);
+            var consensusExtraData = _consensusExtraDataExtractor.ExtractConsensusExtraData(block.Header);
             if (consensusExtraData == null || consensusExtraData.IsEmpty)
+            {
+                Logger.LogWarning($"Invalid consensus extra data {block}");
                 return false;
+            }
+
             var isValid = await _consensusService.ValidateConsensusAfterExecutionAsync(new ChainContext
             {
                 BlockHash = block.GetHash(),

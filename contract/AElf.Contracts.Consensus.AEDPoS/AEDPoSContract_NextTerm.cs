@@ -10,6 +10,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         public override Empty NextTerm(Round input)
         {
+            ProcessConsensusInformation(input);
+
             // Count missed time slot of current round.
             CountMissedTimeSlots();
 
@@ -121,12 +123,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
+        /// <summary>
+        /// Only Main Chain can perform this action.
+        /// </summary>
+        /// <param name="minerList"></param>
+        /// <param name="termNumber"></param>
+        /// <param name="gonnaReplaceSomeone"></param>
+        /// <returns></returns>
         private bool SetMinerList(MinerList minerList, long termNumber, bool gonnaReplaceSomeone = false)
         {
             // Miners for one specific term should only update once.
             var minerListFromState = State.MinerListMap[termNumber];
             if (gonnaReplaceSomeone || minerListFromState == null)
             {
+                State.MainChainCurrentMinerList.Value = minerList;
                 State.MinerListMap[termNumber] = minerList;
                 return true;
             }
