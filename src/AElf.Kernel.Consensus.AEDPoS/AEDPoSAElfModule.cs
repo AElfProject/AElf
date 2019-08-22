@@ -3,6 +3,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +31,8 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services.AddSingleton<Application.BestChainFoundEventHandler>();
             context.Services.AddSingleton<ConsensusValidationFailedEventHandler>();
             context.Services.AddSingleton<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
+            context.Services
+                .AddSingleton<ITransactionValidationProvider, ConstrainedAEDPoSTransactionValidationProvider>();
 
             var configuration = context.Services.GetConfiguration();
 

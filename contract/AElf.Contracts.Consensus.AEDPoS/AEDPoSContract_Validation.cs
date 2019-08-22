@@ -51,7 +51,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
             else
             {
-                // Is sender abide by his time slot?
+                // Is sender respect his time slot?
                 // It is maybe failing due to using too much time producing previous tiny blocks.
                 if (!CheckMinerTimeSlot(providedRound, pubkey))
                 {
@@ -60,7 +60,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
             
-            // Is sender's order correct?
+            // Is sender's order of next round correct?
             // Miners that have determined the order of the next round should be equal to
             // miners that mined blocks during current round.
             if (providedRound.RealTimeMinersInformation.Values.Where(m => m.FinalOrderOfNextRound > 0).Distinct()
@@ -76,6 +76,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     return ValidationForUpdateValue(extraData);
                 case AElfConsensusBehaviour.NextRound:
                     return ValidationForNextRound(extraData);
+                case AElfConsensusBehaviour.NextTerm:
+                    return ValidationForNextTerm(extraData);
             }
 
             return new ValidationResult {Success = true};
@@ -126,12 +128,35 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private ValidationResult ValidationForNextRound(AElfConsensusHeaderInformation extraData)
         {
-            // None of in values should be filled.
+            // Is next round information correct?
+            if (TryToGetCurrentRoundInformation(out var currentRound, true) &&
+                currentRound.RoundNumber.Add(1) != extraData.Round.RoundNumber)
+            {
+                return new ValidationResult {Message = "Incorrect round number for next round."};
+            }
             if (extraData.Round.RealTimeMinersInformation.Values.Any(m => m.InValue != null))
             {
-                return new ValidationResult {Message = "Incorrect in values."};
+                return new ValidationResult {Message = "Incorrect next round information."};
             }
 
+
+            return new ValidationResult {Success = true};
+        }
+
+        private ValidationResult ValidationForNextTerm(AElfConsensusHeaderInformation extraData)
+        {
+            // Is next round information correct?
+            var validationResult = ValidationForNextRound(extraData);
+            if (!validationResult.Success)
+            {
+                return validationResult;
+            }
+            if (TryToGetCurrentRoundInformation(out var currentRound, true) &&
+                currentRound.TermNumber.Add(1) != extraData.Round.TermNumber)
+            {
+                return new ValidationResult {Message = "Incorrect term number for next round."};
+            }
+            
             return new ValidationResult {Success = true};
         }
 

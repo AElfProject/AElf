@@ -11,66 +11,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Empty NextTerm(Round input)
         {
             ProcessConsensusInformation(input);
-
-            // Count missed time slot of current round.
-            CountMissedTimeSlots();
-
-            Assert(TryToGetTermNumber(out var termNumber), "Term number not found.");
-
-            // Update current term number and current round number.
-            Assert(TryToUpdateTermNumber(input.TermNumber), "Failed to update term number.");
-            Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
-
-            UpdateMinersCountToElectionContract(input);
-
-            // Reset some fields of first two rounds of next term.
-            foreach (var minerInRound in input.RealTimeMinersInformation.Values)
-            {
-                minerInRound.MissedTimeSlots = 0;
-                minerInRound.ProducedBlocks = 0;
-            }
-
-            UpdateProducedBlocksNumberOfSender(input);
-
-            // Update miners list.
-            var miners = new MinerList();
-            miners.Pubkeys.AddRange(input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
-            if (!SetMinerList(miners, input.TermNumber))
-            {
-                Assert(false, "Failed to update miner list.");
-            }
-
-            // Update term number lookup. (Using term number to get first round number of related term.)
-            State.FirstRoundNumberOfEachTerm[input.TermNumber] = input.RoundNumber;
-
-            // Update rounds information of next two rounds.
-            Assert(TryToAddRoundInformation(input), "Failed to add round information.");
-
-            if (!TryToGetPreviousRoundInformation(out var previousRound))
-            {
-                Assert(false, "Failed to get previous round information.");
-            }
-
-            UpdateCurrentMinerInformationToElectionContract(previousRound);
-
-            DonateMiningReward(previousRound);
-
-            State.TreasuryContract.Release.Send(new ReleaseInput
-            {
-                TermNumber = termNumber
-            });
-
-            Context.LogDebug(() => $"Released treasury profit for term {termNumber}");
-
-            State.ElectionContract.TakeSnapshot.Send(new TakeElectionSnapshotInput
-            {
-                MinedBlocks = previousRound.GetMinedBlocks(),
-                TermNumber = termNumber,
-                RoundNumber = previousRound.RoundNumber
-            });
-
-            Context.LogDebug(() => $"Changing term number to {input.TermNumber}");
-
             return new Empty();
         }
 
