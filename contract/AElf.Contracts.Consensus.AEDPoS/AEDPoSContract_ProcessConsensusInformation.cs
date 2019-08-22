@@ -267,7 +267,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 State.LatestProviderToTinyBlocksCount.Value = new LatestProviderToTinyBlocksCount
                 {
                     Pubkey = _processingBlockMinerPubkey,
-                    BlocksCount = GetTinyBlocksCount().Sub(1)
+                    BlocksCount = GetMinimumBlocksCount().Sub(1)
                 };
             }
         }
