@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -134,33 +133,26 @@ namespace AElf.Contracts.CrossChain
         #endregion Side chain lifetime actions
 
         #region Cross chain actions
-
-        public override CrossChainBlockData GetIndexedCrossChainBlockDataByHeight(SInt64Value input)
-        {
-            var crossChainBlockData = new CrossChainBlockData();
-            var indexedParentChainBlockData = State.LastIndexedParentChainBlockData.Value;
-            if (indexedParentChainBlockData != null && indexedParentChainBlockData.LocalChainHeight == input.Value)
-                crossChainBlockData.ParentChainBlockData.AddRange(indexedParentChainBlockData.ParentChainBlockData);
-            
-            var indexedSideChainBlockData = State.IndexedSideChainBlockData[input.Value];
-            Assert(indexedSideChainBlockData != null, "Side chain block data should not be null.");
-            crossChainBlockData.SideChainBlockData.AddRange(indexedSideChainBlockData.SideChainBlockData);
-            
-            return crossChainBlockData;
-        }
-
+        
         public override Empty RecordCrossChainData(CrossChainBlockData crossChainBlockData)
         {
             //Assert(IsMiner(), "Not authorized to do this.");
             var indexedCrossChainData = State.IndexedSideChainBlockData[Context.CurrentHeight];
             Assert(indexedCrossChainData == null); // This should not fail.
-            
+
             var indexedParentChainBlockData = IndexParentChainBlockData(crossChainBlockData.ParentChainBlockData);
+
             if (indexedParentChainBlockData.ParentChainBlockData.Count > 0)
+            {
                 State.LastIndexedParentChainBlockData.Value = indexedParentChainBlockData;
+                Context.Fire(new ParentChainBlockDataIndexed());
+            }
             
             var indexedSideChainBlockData = IndexSideChainBlockData(crossChainBlockData.SideChainBlockData);
             State.IndexedSideChainBlockData[Context.CurrentHeight] = indexedSideChainBlockData;
+            
+            if (indexedSideChainBlockData.SideChainBlockData.Count > 0)
+                Context.Fire(new SideChainBlockDataIndexed());
             
             return new Empty();
         }

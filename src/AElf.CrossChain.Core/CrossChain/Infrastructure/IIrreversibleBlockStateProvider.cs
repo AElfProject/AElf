@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Types;
 
 namespace AElf.CrossChain
 {
