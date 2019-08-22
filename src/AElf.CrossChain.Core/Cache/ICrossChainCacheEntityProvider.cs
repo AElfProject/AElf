@@ -11,7 +11,6 @@ namespace AElf.CrossChain.Cache
         void AddChainCacheEntity(int remoteChainId, long initialTargetHeight);
         BlockCacheEntityProvider GetChainCacheEntity(int remoteChainId);
 
-        bool ContainsChain(int remoteChainId);
         int Size { get; }
         List<int> GetCachedChainIds();
     }
@@ -21,11 +20,6 @@ namespace AElf.CrossChain.Cache
         private readonly ConcurrentDictionary<int, BlockCacheEntityProvider> _chainCacheEntities =
             new ConcurrentDictionary<int, BlockCacheEntityProvider>();
         
-        public bool ContainsChain(int remoteChainId)
-        {
-            return _chainCacheEntities.ContainsKey(remoteChainId);
-        }
-
         public int Size => _chainCacheEntities.Count;
         
         public List<int> GetCachedChainIds()

@@ -9,6 +9,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
@@ -23,6 +24,8 @@ namespace AElf.Blockchains.SideChain
         private readonly ConsensusOptions _consensusOptions;
         private readonly ISideChainInitializationDataProvider _sideChainInitializationDataProvider;
 
+        public ILogger<GenesisSmartContractDtoProvider> Logger { get; set; }
+
         public GenesisSmartContractDtoProvider(IOptionsSnapshot<ConsensusOptions> consensusOptions, 
             IOptionsSnapshot<ContractOptions> contractOptions, ISideChainInitializationDataProvider sideChainInitializationDataProvider)
         {
@@ -33,31 +36,38 @@ namespace AElf.Blockchains.SideChain
 
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress)
         {
-            var l = new List<GenesisSmartContractDto>();
+            var genesisSmartContractDtoList = new List<GenesisSmartContractDto>();
 
             var chainInitializationData = AsyncHelper.RunSync(async () =>
                 await _sideChainInitializationDataProvider.GetChainInitializationDataAsync());
 
-            l.AddGenesisSmartContract(
+            if (chainInitializationData == null)
+            {
+                Logger.LogWarning("Chain initialization data is null.");
+                return genesisSmartContractDtoList;
+            }
+            
+            // chainInitializationData cannot be null if it is first time side chain startup. 
+            genesisSmartContractDtoList.AddGenesisSmartContract(
                 _codes.Single(kv=>kv.Key.Contains("Consensus.AEDPoS")).Value,
                 ConsensusSmartContractAddressNameProvider.Name,
                 GenerateConsensusInitializationCallList(chainInitializationData));
 
-            l.AddGenesisSmartContract(
+            genesisSmartContractDtoList.AddGenesisSmartContract(
                 _codes.Single(kv=>kv.Key.Contains("MultiToken")).Value,
                 TokenSmartContractAddressNameProvider.Name, GenerateTokenInitializationCallList(chainInitializationData));
 
-            l.AddGenesisSmartContract(
+            genesisSmartContractDtoList.AddGenesisSmartContract(
                 _codes.Single(kv=>kv.Key.Contains("CrossChain")).Value,
                 CrossChainSmartContractAddressNameProvider.Name,
                 GenerateCrossChainInitializationCallList(chainInitializationData));
 
-            l.AddGenesisSmartContract(
+            genesisSmartContractDtoList.AddGenesisSmartContract(
                 _codes.Single(kv=>kv.Key.Contains("ParliamentAuth")).Value,
                 ParliamentAuthSmartContractAddressNameProvider.Name,
                 GenerateParliamentInitializationCallList(chainInitializationData));
-            
-            return l;
+
+            return genesisSmartContractDtoList;
         }
     }
 }

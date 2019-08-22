@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using AElf.TestBase;
 using AElf.Types;

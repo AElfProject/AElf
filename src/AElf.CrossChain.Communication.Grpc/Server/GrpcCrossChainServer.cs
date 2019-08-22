@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
@@ -38,16 +37,14 @@ namespace AElf.CrossChain.Communication.Grpc
                     BasicCrossChainRpc.BindService(_grpcBasicServerBase)
                 }
             };
-//            foreach (var serverBase in _serverBases)
-//            {
-//                var serviceDefinition = CrossChainRpc.BindService(serverBase);
-//                _server.Services.Add(serviceDefinition);
-//            }
-        
+            
             await Task.Run(() => _server.Start());
             
             Logger.LogDebug($"Grpc cross chain server started, listening at {localServerPort}");
+            IsStarted = true;
         }
+
+        public bool IsStarted { get; private set; }
 
         public void Dispose()
         {
@@ -55,6 +52,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 return;
             AsyncHelper.RunSync(() =>_server.ShutdownAsync());
             _server = null;
+            IsStarted = false;
         }
     }
 }
