@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
 using AElf.CSharp.Core.Utils;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -431,14 +430,13 @@ namespace AElf.Contracts.CrossChain.Tests
             var sideChainId =
                 await InitAndCreateSideChainAsync(parentChainHeightOfCreation, parentChainId, lockedToken);
             var transactionId = Hash.FromString("sideChainBlockHash");
-            var binaryMerkleTree = new BinaryMerkleTree();
+            
             var fakeHash1 = Hash.FromString("fake1");
             var fakeHash2 = Hash.FromString("fake2");
 
-            binaryMerkleTree.AddNodes(new[] {transactionId, fakeHash1, fakeHash2});
-            var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
-            var merklePath = new MerklePath();
-            merklePath.Path.AddRange(binaryMerkleTree.GenerateMerklePath(0));
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(new[] {transactionId, fakeHash1, fakeHash2});
+            var merkleTreeRoot = binaryMerkleTree.Root;
+            var merklePath = binaryMerkleTree.GenerateMerklePath(0);
             Hash fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
             var parentChainBlockData = CreateParentChainBlockData(parentChainHeightOfCreation, parentChainId,
                 fakeTransactionStatusMerkleRoot);
@@ -460,8 +458,8 @@ namespace AElf.Contracts.CrossChain.Tests
                     {Value = sideChainHeight});
             Assert.Equal(merklePath.ToByteString(),
                 crossChainMerkleProofContext.MerklePathForParentChainRoot.ToByteString());
-            var calculatedRoot = crossChainMerkleProofContext.MerklePathForParentChainRoot.Path
-                .ComputeBinaryMerkleTreeRootWithPathAndLeafNode(transactionId);
+            var calculatedRoot = crossChainMerkleProofContext.MerklePathForParentChainRoot
+                .ComputeRootWithLeafNode(transactionId);
             Assert.Equal(merkleTreeRoot, calculatedRoot);
         }
 
@@ -474,7 +472,7 @@ namespace AElf.Contracts.CrossChain.Tests
             var sideChainId =
                 await InitAndCreateSideChainAsync(parentChainHeightOfCreation, parentChainId, lockedToken);
             var txId = Hash.FromString("sideChainBlockHash");
-            var binaryMerkleTree = new BinaryMerkleTree();
+            
             var fakeHash1 = Hash.FromString("fake1");
             var fakeHash2 = Hash.FromString("fake2");
 
@@ -483,10 +481,9 @@ namespace AElf.Contracts.CrossChain.Tests
                 .ToArray();
             var hash = Hash.FromRawBytes(rawBytes);
 
-            binaryMerkleTree.AddNodes(new[] {hash, fakeHash1, fakeHash2});
-            var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
-            var merklePath = new MerklePath();
-            merklePath.Path.AddRange(binaryMerkleTree.GenerateMerklePath(0));
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(new[] {hash, fakeHash1, fakeHash2});
+            var merkleTreeRoot = binaryMerkleTree.Root;
+            var merklePath = binaryMerkleTree.GenerateMerklePath(0);
             Hash fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
             var parentChainBlockData = CreateParentChainBlockData(parentChainHeightOfCreation, parentChainId,
                 fakeTransactionStatusMerkleRoot);
@@ -507,9 +504,9 @@ namespace AElf.Contracts.CrossChain.Tests
             var verificationInput = new VerifyTransactionInput()
             {
                 TransactionId = txId,
-                ParentChainHeight = parentChainHeightOfCreation
+                ParentChainHeight = parentChainHeightOfCreation,
+                Path = merklePath
             };
-            verificationInput.Path.AddRange(merklePath.Path);
 
             var txRes = await CrossChainContractStub.VerifyTransaction.SendAsync(verificationInput);
             var verified = BoolValue.Parser.ParseFrom(txRes.TransactionResult.ReturnValue).Value;

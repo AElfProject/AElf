@@ -3,7 +3,7 @@ using System.Linq;
 using Acs3;
 using Acs7;
 using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp.State;
 using AElf.CSharp.Core.Utils;
 using AElf.Types;
@@ -29,17 +29,17 @@ namespace AElf.Contracts.CrossChain
             State.ChildHeightToParentChainHeight[childHeight] = parentHeight;
         }
 
-        private Hash ComputeRootWithTransactionStatusMerklePath(Hash txId, IEnumerable<Hash> path)
+        private Hash ComputeRootWithTransactionStatusMerklePath(Hash txId, MerklePath path)
         {
             var txResultStatusRawBytes =
                 EncodingHelper.GetBytesFromUtf8String(TransactionResultStatus.Mined.ToString());
-            return new MerklePath().AddRange(path).ComputeRootWith(
-                Hash.FromRawBytes(txId.ToByteArray().Concat(txResultStatusRawBytes).ToArray()));
+            var hash = Hash.FromRawBytes(txId.ToByteArray().Concat(txResultStatusRawBytes).ToArray());
+            return path.ComputeRootWithLeafNode(hash);
         }
 
         private Hash ComputeRootWithMultiHash(IEnumerable<Hash> nodes)
         {
-            return nodes.ComputeBinaryMerkleTreeRootWithLeafNodes();
+            return BinaryMerkleTree.FromLeafNodes(nodes).Root;
         }
         
         /// <summary>

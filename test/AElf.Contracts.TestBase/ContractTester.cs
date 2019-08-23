@@ -6,7 +6,7 @@ using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.CrossChain;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
@@ -33,7 +33,7 @@ using Moq;
 using Volo.Abp;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
-using TokenContract = AElf.Contracts.MultiToken.Messages.TokenContractContainer.TokenContractStub;
+using TokenContract = AElf.Contracts.MultiToken.TokenContractContainer.TokenContractStub;
 using ParliamentAuthContract = AElf.Contracts.ParliamentAuth.ParliamentAuthContractContainer.ParliamentAuthContractStub;
 using ResourceContract = AElf.Contracts.Resource.ResourceContractContainer.ResourceContractStub;
 using CrossChainContract = AElf.Contracts.CrossChain.CrossChainContractContainer.CrossChainContractStub;
@@ -69,6 +69,9 @@ namespace AElf.Contracts.TestBase
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("CrossChain")).Value;
         public byte[] ParliamentAuthContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("ParliamentAuth")).Value;
+        public byte[] ConfigurationContractCode =>
+            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Configuration")).Value;
+
         
         private IAbpApplicationWithInternalServiceProvider Application { get; }
 
@@ -682,6 +685,7 @@ namespace AElf.Contracts.TestBase
                 list.AddGenesisSmartContract(CrossChainContractCode, CrossChainSmartContractAddressNameProvider.Name);
                 list.AddGenesisSmartContract(ParliamentAuthContractCode, ParliamentAuthSmartContractAddressNameProvider.Name,
                     parliamentContractCallList);
+                list.AddGenesisSmartContract(ConfigurationContractCode,ConfigurationSmartContractAddressNameProvider.Name);
             };
         }
         

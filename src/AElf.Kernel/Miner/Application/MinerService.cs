@@ -37,8 +37,9 @@ namespace AElf.Kernel.Miner.Application
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime,
             Duration blockExecutionTime)
         {
+            var limit = await _blockTransactionLimitProvider.GetLimitAsync();
             var executableTransactionSet =
-                await _txHub.GetExecutableTransactionSetAsync(_blockTransactionLimitProvider.Limit);
+                await _txHub.GetExecutableTransactionSetAsync(limit);
             var pending = new List<Transaction>();
             if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
             {

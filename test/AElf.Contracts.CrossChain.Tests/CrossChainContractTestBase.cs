@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Acs3;
 using Acs7;
 using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
@@ -168,7 +168,7 @@ namespace AElf.Contracts.CrossChain.Tests
         {
             await BlockMiningService.MineBlockAsync(new List<Transaction>
             {
-                TokenContractStub.Approve.GetTransaction(new MultiToken.Messages.ApproveInput
+                TokenContractStub.Approve.GetTransaction(new MultiToken.ApproveInput
                 {
                     Spender = CrossChainContractAddress,
                     Symbol = "ELF",

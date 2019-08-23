@@ -1,6 +1,5 @@
 using AElf.Contracts.TestKit;
 using AElf.Kernel.SmartContract;
-using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.Contracts.ReferendumAuth

@@ -8,16 +8,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Mono.Cecil" Version="0.10.3" />
+      <PackageReference Include="Mono.Cecil" Version="0.11.0" />
       <PackageReference Include="Hyperion" Version="0.9.8" />
       <PackageReference Include="Unofficial.CoreRT.ILVerify" Version="0.0.1" />
 
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
       <ProjectReference Include="..\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
     </ItemGroup>
     
 </Project>

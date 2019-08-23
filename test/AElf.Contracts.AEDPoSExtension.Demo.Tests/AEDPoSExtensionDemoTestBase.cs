@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
 using AElf.Kernel.Consensus;

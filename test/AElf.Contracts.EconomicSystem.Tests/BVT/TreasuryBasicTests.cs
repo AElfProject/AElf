@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Acs1;
 using Acs5;
 using AElf.Contracts.Economic.TestBase;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenConverter;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;

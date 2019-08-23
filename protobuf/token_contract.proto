@@ -7,8 +7,7 @@ import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
-// TODO: Simplify or remove this namespace
-option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
+option csharp_namespace = "AElf.Contracts.MultiToken";
 
 service TokenContract {
     // Actions
@@ -238,7 +237,7 @@ message CrossChainReceiveTokenInput {
     int32 from_chain_id = 1;
     int64 parent_chain_height = 2;
     bytes transfer_transaction_bytes = 3;
-    repeated aelf.Hash merkle_path = 4;
+    aelf.MerklePath merkle_path = 4;
 }
 
 message IsInWhiteListInput {
@@ -315,14 +314,14 @@ message CrossChainCreateTokenInput {
     int32 from_chain_id = 1;
     int64 parent_chain_height = 2;
     bytes transaction_bytes = 3;
-    repeated aelf.Hash merkle_path = 4;
+    aelf.MerklePath merkle_path = 4;
 }
 
 message RegisterCrossChainTokenContractAddressInput{
     int32 from_chain_id = 1;
     int64 parent_chain_height = 2;
     bytes transaction_bytes = 3;
-    repeated aelf.Hash merkle_path = 4;
+    aelf.MerklePath merkle_path = 4;
     aelf.Address token_contract_address = 5;
 }
 

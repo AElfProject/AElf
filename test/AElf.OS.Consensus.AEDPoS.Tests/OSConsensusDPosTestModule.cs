@@ -4,6 +4,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -38,8 +39,7 @@ namespace AElf.OS.Consensus.DPos
                     ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                     IsInbound = true
                 };
-
-                peerList.Add(new GrpcPeer(new GrpcClient(null, null), $"127.0.0.1:68{i + 1}0", connectionInfo));
+                peerList.Add(new GrpcPeer(new GrpcClient(null, null), IpEndpointHelper.Parse($"127.0.0.1:68{i + 1}0"), connectionInfo));
             }
 
             services.AddTransient(o =>
