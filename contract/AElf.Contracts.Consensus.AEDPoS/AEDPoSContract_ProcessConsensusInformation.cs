@@ -187,7 +187,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (TryToGetPreviousRoundInformation(out var previousRound))
             {
-                // C# 7.0 Feature: Class Deconstruct
                 new LastIrreversibleBlockHeightCalculator(currentRound, previousRound).Deconstruct(
                     out var libHeight);
                 // LIB height can't be available if it is lower than last time.
