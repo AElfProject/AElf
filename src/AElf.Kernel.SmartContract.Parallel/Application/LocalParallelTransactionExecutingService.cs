@@ -70,8 +70,15 @@ namespace AElf.Kernel.SmartContract.Parallel
             var returnSetCollection = new ReturnSetCollection(returnSets);
 
             var updatedPartialBlockStateSet = returnSetCollection.ToBlockStateSet();
-            updatedPartialBlockStateSet.MergeFrom(transactionExecutingDto.PartialBlockStateSet?.Clone() ??
-                                                  new BlockStateSet());
+            if (transactionExecutingDto.PartialBlockStateSet != null)
+            {
+                var partialBlockStateSet = transactionExecutingDto.PartialBlockStateSet.Clone();
+                foreach ( var change in partialBlockStateSet.Changes)
+                {
+                    if (updatedPartialBlockStateSet.Changes.TryGetValue(change.Key, out _)) continue;
+                    updatedPartialBlockStateSet.Changes[change.Key] = change.Value;
+                }
+            }
 
             Logger.LogTrace("Merged results from parallelizables.");
 
