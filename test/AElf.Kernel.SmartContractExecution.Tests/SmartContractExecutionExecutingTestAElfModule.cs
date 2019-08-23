@@ -5,8 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
+using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,41 +28,40 @@ namespace AElf.Kernel.SmartContractExecution
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            // TODO: No need mock ITransactionExecutingService, just mock Executive.
-            services.AddTransient<ITransactionExecutingService>(p =>
+            services.AddTransient(p =>
             {
                 var mockService = new Mock<ITransactionExecutingService>();
-                mockService.Setup(m => m.ExecuteAsync(It.IsAny<BlockHeader>(), It.IsAny<List<Transaction>>(),
+                mockService.Setup(m => m.ExecuteAsync(It.IsAny<TransactionExecutingDto>(),
                         It.IsAny<CancellationToken>(), It.IsAny<bool>()))
-                    .Returns<BlockHeader, List<Transaction>,
-                        CancellationToken,bool>((blockHeader, transactions, cancellationToken, throwException) =>
-                    {
-                        var returnSets = new List<ExecutionReturnSet>();
-
-                        var count = 0;
-                        foreach (var tx in transactions)
+                    .Returns<TransactionExecutingDto, CancellationToken, bool>(
+                        (transactionExecutingDto, cancellationToken, throwException) =>
                         {
-                            if (cancellationToken.IsCancellationRequested && count >= 3)
+                            var returnSets = new List<ExecutionReturnSet>();
+
+                            var count = 0;
+                            foreach (var tx in transactionExecutingDto.Transactions)
                             {
-                                break;
+                                if (cancellationToken.IsCancellationRequested && count >= 3)
+                                {
+                                    break;
+                                }
+
+                                var returnSet = new ExecutionReturnSet
+                                {
+                                    TransactionId = tx.GetHash()
+                                };
+                                returnSet.StateChanges.Add(tx.GetHash().ToHex(), tx.ToByteString());
+                                returnSets.Add(returnSet);
+                                count++;
                             }
 
-                            var returnSet = new ExecutionReturnSet
-                            {
-                                TransactionId = tx.GetHash()
-                            };
-                            returnSet.StateChanges.Add(tx.GetHash().ToHex(), tx.ToByteString());
-                            returnSets.Add(returnSet);
-                            count++;
-                        }
-
-                        return Task.FromResult(returnSets);
-                    });
+                            return Task.FromResult(returnSets);
+                        });
 
                 return mockService.Object;
             });
 
-            services.AddTransient<IBlockExecutingService>(p =>
+            services.AddTransient(p =>
             {
                 var mockService = new Mock<IBlockExecutingService>();
                 mockService.Setup(m => m.ExecuteBlockAsync(It.IsAny<BlockHeader>(), It.IsAny<IEnumerable<Transaction>>()))
@@ -100,8 +101,6 @@ namespace AElf.Kernel.SmartContractExecution
             services.AddTransient<IBlockValidationService>(p =>
             {
                 var mockProvider = new Mock<IBlockValidationService>();
-                mockProvider.Setup(m => m.ValidateBlockBeforeExecuteAsync(It.IsAny<IBlock>()))
-                    .ReturnsAsync(true);
 
                 mockProvider.Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>()))
                     .ReturnsAsync(true);
@@ -117,14 +116,14 @@ namespace AElf.Kernel.SmartContractExecution
                     .Returns<BlockHeader, IEnumerable<Transaction>>((blockHeader, transactions) =>
                     {
                         Block result;
-                        if (blockHeader.Height == KernelConstants.GenesisBlockHeight)
+                        if (blockHeader.Height == Constants.GenesisBlockHeight)
                         {
                             result = new Block {Header = blockHeader};
                         }
                         else
                         {
                             result = new Block
-                                {Header = new BlockHeader {Time = Timestamp.FromDateTime(DateTime.UtcNow)}};
+                                {Header = new BlockHeader {Time = TimestampHelper.GetUtcNow()}};
                         }
 
                         return Task.FromResult(result);
@@ -148,10 +147,8 @@ namespace AElf.Kernel.SmartContractExecution
             services.AddTransient<IBlockValidationService>(p =>
             {
                 var mockProvider = new Mock<IBlockValidationService>();
-                mockProvider.Setup(m => m.ValidateBlockBeforeExecuteAsync(It.IsAny<IBlock>()))
-                    .ReturnsAsync(true);
                 mockProvider.Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>()))
-                    .Returns<IBlock>((block) => Task.FromResult(block.Height == KernelConstants.GenesisBlockHeight));
+                    .Returns<IBlock>((block) => Task.FromResult(block.Header.Height == Constants.GenesisBlockHeight));
 
                 return mockProvider.Object;
             });

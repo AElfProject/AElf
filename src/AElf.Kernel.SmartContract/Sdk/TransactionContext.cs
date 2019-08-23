@@ -1,4 +1,6 @@
 ﻿using System;
+using Google.Protobuf.WellKnownTypes;
+using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Sdk
 {
@@ -19,7 +21,7 @@ namespace AElf.Kernel.SmartContract.Sdk
         public Address Miner { get; set; }
         public Hash PreviousBlockHash { get; set; }
         public long BlockHeight { get; set; }
-        public DateTime CurrentBlockTime { get; set; }
+        public Timestamp CurrentBlockTime { get; set; }
         public int CallDepth { get; set; }
         public int MaxCallDepth { get; set; }
         public Transaction Transaction { get; set; }

@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using AElf.Kernel.Blockchain.Infrastructure;
+using AElf.Types;
 using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
@@ -13,6 +14,8 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         Address ContractZeroAddress { get; }
 
         void SetDefaultContractZeroRegistrationByType(Type defaultZero);
+        
+        Address GetZeroSmartContractAddress(int chainId);
     }
 
     public class DefaultContractZeroCodeProvider : IDefaultContractZeroCodeProvider, ISingletonDependency
@@ -36,6 +39,11 @@ namespace AElf.Kernel.SmartContract.Infrastructure
                 Code = ByteString.CopyFrom(code),
                 CodeHash = Hash.FromRawBytes(code)
             };
+        }
+
+        public Address GetZeroSmartContractAddress(int chainId)
+        {
+            return _staticChainInformationProvider.GetZeroSmartContractAddress(chainId);
         }
     }
 }

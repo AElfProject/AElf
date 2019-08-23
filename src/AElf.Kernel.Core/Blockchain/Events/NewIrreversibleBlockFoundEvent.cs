@@ -1,3 +1,5 @@
+using AElf.Types;
+
 namespace AElf.Kernel.Blockchain.Events
 {
     public class NewIrreversibleBlockFoundEvent

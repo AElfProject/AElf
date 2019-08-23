@@ -28,7 +28,7 @@ namespace AElf.WebApp.Web
     [DependsOn(
         typeof(ChainApplicationWebAppAElfModule),
         typeof(NetApplicationWebAppAElfModule),
-        typeof(AbpAspNetCoreMvcModule))]
+        typeof(WebAppAbpAspNetCoreMvcModule))]
     public class WebWebAppAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -76,9 +76,9 @@ namespace AElf.WebApp.Web
         {
             Configure<AbpAspNetCoreMvcOptions>(options =>
             {
-                options.ConventionalControllers.Create(typeof(ChainApplicationWebAppAElfModule).Assembly);
+                options.ConventionalControllers.Create(typeof(ChainApplicationWebAppAElfModule).Assembly,setting => setting.UrlControllerNameNormalizer=context => "blockChain");
 
-                options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly);
+                options.ConventionalControllers.Create(typeof(NetApplicationWebAppAElfModule).Assembly,setting => setting.UrlControllerNameNormalizer=context => "net");
             });
         }
 
@@ -222,7 +222,7 @@ namespace AElf.WebApp.Web
     /// together.  The default Netwtonsoft.Json Deserialize method will
     /// not correctly deserialize proto messages.
     /// </summary>
-    class ProtoMessageConverter : JsonConverter
+    public class ProtoMessageConverter : JsonConverter
     {
         /// <summary>
         /// Called by NewtonSoft.Json's method to ask if this object can serialize

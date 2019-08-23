@@ -1,14 +1,16 @@
 using System.IO;
 using System.Threading.Tasks;
+using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
 
@@ -55,7 +57,6 @@ namespace AElf.Contracts.ReferendumAuth
                         TransactionMethodCallList = GenerateTokenInitializationCallList()
                     })).Output;
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
-            
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
@@ -76,10 +77,7 @@ namespace AElf.Contracts.ReferendumAuth
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateReferendumAuthInitializationCallList()
         {
             var referendumAuthContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            referendumAuthContractCallList.Add(nameof(ReferendumAuthContract.Initialize), new ReferendumAuthContractInitializationInput
-            {
-                TokenContractSystemName = TokenSmartContractAddressNameProvider.Name
-            });
+            referendumAuthContractCallList.Add(nameof(ReferendumAuthContract.Initialize), new Empty());
             return referendumAuthContractCallList;
         }
         
@@ -88,7 +86,7 @@ namespace AElf.Contracts.ReferendumAuth
             const string symbol = "ELF";
             const long totalSupply = 100_000_000;
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContract.Create), new CreateInput
             {
                 Symbol = symbol,
                 Decimals = 2,
@@ -96,9 +94,9 @@ namespace AElf.Contracts.ReferendumAuth
                 TokenName = "elf token",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
-                LockWhiteSystemContractNameList =
+                LockWhiteList =
                 {
-                    Hash.FromString("AElf.ContractNames.ReferendumAuth")
+                    ReferendumAuthContractAddress
                 }
             });
 

@@ -1,39 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using Google.Protobuf;
 
 namespace AElf.Kernel
 {
     public class Bloom
     {
-        private static byte[] GetNewEmptyBytes()
-        {
-            var bytes = new byte[256];
-            for (int i = 0; i < 256; i++)
-            {
-                bytes[i] = 0x00;
-            }
-
-            return bytes;
-        }
-
+        private const int Length = 256;
         public static byte[] AndMultipleBloomBytes(IEnumerable<byte[]> multipleBytes)
         {
-            var res = GetNewEmptyBytes();
+            var res = new byte[Length];
             foreach (var bytes in multipleBytes)
             {
-                if (bytes.Length != 256)
-                {
-                    throw new InvalidOperationException("Bloom data has to be 256 bytes long.");
-                }
-
-                for (int i = 0; i < 256; i++)
+                for (var i = 0; i < Length; i++)
                 {
                     res[i] |= bytes[i];
                 }
             }
-
             return res;
         }
 
@@ -44,14 +27,14 @@ namespace AElf.Kernel
 
         public Bloom()
         {
-            _data = GetNewEmptyBytes();
+            _data = new byte[Length];
         }
 
         public Bloom(byte[] data)
         {
-            if (data.Length != 256)
+            if (data.Length != Length)
             {
-                throw new InvalidOperationException("Bloom data has to be 256 bytes long.");
+                throw new InvalidOperationException($"Bloom data has to be {Length} bytes long.");
             }
 
             _data = (byte[]) data.Clone();
@@ -63,8 +46,7 @@ namespace AElf.Kernel
 
         public void AddValue(byte[] bytes)
         {
-            var hash = SHA256.Create().ComputeHash(bytes);
-            AddSha256Hash(hash);
+            AddSha256Hash(bytes.ComputeHash());
         }
 
         public void AddValue(IMessage message)
@@ -96,7 +78,7 @@ namespace AElf.Kernel
         {
             foreach (var bloom in blooms)
             {
-                for (int i = 0; i < 256; i++)
+                for (var i = 0; i < Length; i++)
                 {
                     _data[i] |= bloom.Data[i];
                 }
@@ -110,7 +92,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public bool IsIn(Bloom bloom)
         {
-            for (int i = 0; i < 256; i++)
+            for (var i = 0; i < Length; i++)
             {
                 var curByte = _data[i];
                 if ((curByte & bloom.Data[i]) != curByte)

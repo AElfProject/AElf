@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Miner;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Contracts.TestKit
@@ -24,12 +28,21 @@ namespace AElf.Contracts.TestKit
         {
             var blockchainService = _serviceProvider.GetRequiredService<IBlockchainService>();
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
-            var minerService = _serviceProvider.GetRequiredService<IMiningService>();
+            var miningService = _serviceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
-            var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                new List<Transaction> {transaction},
-                DateTime.UtcNow, TimeSpan.FromMilliseconds(int.MaxValue));
+            var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
 
+            var block = await miningService.MineAsync(
+                new RequestMiningDto
+                {
+                    PreviousBlockHash = preBlock.GetHash(), PreviousBlockHeight = preBlock.Height,
+                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue)
+                },
+                new List<Transaction> {transaction},
+                blockTimeProvider.GetBlockTime());
+
+            await blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
+            await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
         }
 

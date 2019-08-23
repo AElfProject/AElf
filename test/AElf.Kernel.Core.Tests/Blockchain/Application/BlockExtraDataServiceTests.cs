@@ -7,13 +7,11 @@ namespace AElf.Kernel.Blockchain.Application
 {
     public class BlockExtraDataServiceTests: AElfMinerTestBase
     {
-        private IBlockExtraDataProvider _blockExtraDataProvider;
-        private IBlockExtraDataService _blockExtraDataService;
+        private readonly IBlockExtraDataService _blockExtraDataService;
 
         public BlockExtraDataServiceTests()
         {
-            _blockExtraDataProvider = GetRequiredService<IBlockExtraDataProvider>();
-            _blockExtraDataService = new BlockExtraDataService(new[]{_blockExtraDataProvider});
+            _blockExtraDataService = GetRequiredService<IBlockExtraDataService>();
         }
 
         [Fact]
@@ -22,10 +20,10 @@ namespace AElf.Kernel.Blockchain.Application
             var blockHeader = new BlockHeader()
             {
                 Height = 2, // no extra data in genesis block
-                BlockExtraDatas = { ByteString.CopyFromUtf8("test1") }
+                ExtraData = { ByteString.CopyFromUtf8("test1") }
             };
             var queryResult = _blockExtraDataService.GetExtraDataFromBlockHeader("IBlockExtraDataProvider", blockHeader);
-            queryResult.ShouldBe(blockHeader.BlockExtraDatas[0]);
+            queryResult.ShouldBe(blockHeader.ExtraData[0]);
             
             var queryResult1 = _blockExtraDataService.GetExtraDataFromBlockHeader("ConsensusExtraDataProvider", blockHeader);
             queryResult1.ShouldBeNull();
@@ -39,11 +37,11 @@ namespace AElf.Kernel.Blockchain.Application
                 Height = 100,
             };
             await _blockExtraDataService.FillBlockExtraData(blockHeader);
-            blockHeader.BlockExtraDatas.Count.ShouldBe(0);
+            blockHeader.ExtraData.Count.ShouldBe(0);
 
             blockHeader.Height = 1;
             await _blockExtraDataService.FillBlockExtraData(blockHeader);
-            blockHeader.BlockExtraDatas.Count.ShouldBe(1);
+            blockHeader.ExtraData.Count.ShouldBe(1);
         }
     }
 }

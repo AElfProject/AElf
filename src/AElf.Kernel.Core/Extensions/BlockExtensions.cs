@@ -1,4 +1,5 @@
 using AElf.Cryptography;
+using AElf.Types;
 
 namespace AElf.Kernel
 {
@@ -12,29 +13,19 @@ namespace AElf.Kernel
         /// <param name="tx">the transactions hash</param>
         public static void AddTransaction(this IBlock block, Transaction tx)
         {
-            if (block.Body == null)
-                block.Body = new BlockBody();
-
             block.Body.AddTransaction(tx);
-        }
-
-        public static bool VerifyFormat(this IBlock block)
-        {
-            if (block.Header.Signature.IsEmpty || block.Header.SignerPubkey.IsEmpty)
-                return false;
-            if (block.Body.Transactions.Count == 0)
-                return false;
-
-            return true;
         }
 
         public static bool VerifySignature(this IBlock block)
         {
-            if (!block.VerifyFormat())
+            if (!block.Header.VerifyFields() || !block.Body.VerifyFields())
                 return false;
 
-            var recovered = CryptoHelpers.RecoverPublicKey(block.Header.Signature.ToByteArray(),
-                                        block.GetHash().DumpByteArray(), out var publicKey);
+            if (block.Header.Signature.IsEmpty)
+                return false;
+
+            var recovered = CryptoHelper.RecoverPublicKey(block.Header.Signature.ToByteArray(),
+                                        block.GetHash().ToByteArray(), out var publicKey);
             if (!recovered)
                 return false;
 

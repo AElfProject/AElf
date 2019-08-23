@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+package aelf;
+
+option csharp_namespace = "AElf.Types";
+
+message Transaction {
+    Address from = 1;
+    Address to = 2;
+    int64 ref_block_number = 3;
+    bytes ref_block_prefix = 4;
+    string method_name = 5;
+    bytes params = 6;
+    bytes signature = 10000;
+}
+
+message StatePath {
+    repeated string parts = 1;
+}
+
+message ScopedStatePath {
+    Address address = 1;
+    StatePath path = 2;
+}
+
+
+enum TransactionResultStatus {
+    NOT_EXISTED = 0;
+    PENDING = 1;
+    FAILED = 2;
+    MINED = 3;
+    UNEXECUTABLE = 4;
+}
+
+message TransactionResult {
+    Hash transaction_id = 1;
+    TransactionResultStatus status = 2;
+    repeated LogEvent logs = 3;
+    bytes bloom = 4;
+    bytes return_value = 5;
+    int64 block_number = 6;
+    Hash block_hash = 7;
+    int32 index = 8;
+    Hash state_hash = 9;
+    // Merkle proof path for this transaction
+    string Error = 10;
+    string ReadableReturnValue = 11;
+}
+ 
+
+message LogEvent {
+    Address address = 1;
+    string name = 2;
+    repeated bytes indexed = 3;
+    bytes non_indexed = 4;
+}
+
+message SmartContractRegistration {
+    int32 category = 1;
+    bytes code = 2;
+    Hash code_hash = 3;
+}
+
+message TransactionExecutingStateSet {
+    map<string, bytes> writes = 1;
+    map<string, bool> reads = 2;
+}
+
+// Common
+
+message Address
+{
+    bytes value = 1;
+}
+
+message Hash
+{
+    bytes value = 1;
+}
+
+message SInt32Value
+{
+    sint32 value = 1;
+}
+
+message SInt64Value
+{
+    sint64 value = 1;
+}
+
+message MerklePath {
+    repeated MerklePathNode merklePathNodes = 1;
+}
+
+message MerklePathNode{
+    Hash hash = 1;
+    bool isLeftChildNode = 2;
+}
+
+message BinaryMerkleTree {
+    repeated Hash nodes = 1;
+    Hash root = 2;
+    int32 leaf_count = 3;
+}

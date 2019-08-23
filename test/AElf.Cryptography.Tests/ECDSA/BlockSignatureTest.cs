@@ -1,5 +1,6 @@
 ﻿using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Types;
 using Xunit;
 using Google.Protobuf;
 
@@ -7,17 +8,15 @@ namespace AElf.Cryptography.Tests.ECDSA
 {
     public class BlockSignatureTest
     {
-        // The length of an AElf address
-        // todo : modify this constant when we reach an agreement on the length
-        private const int ADR_LENGTH = 42;
-        
         [Fact]
-        public void SignAndVerifyTransaction()
+        public void SignAndVerifyTransaction_Test()
         {
-            ECKeyPair keyPair = CryptoHelpers.GenerateKeyPair();
+            ECKeyPair keyPair1 = CryptoHelper.GenerateKeyPair();
             Transaction tx = new Transaction();
-            tx.From = Address.FromPublicKey(keyPair.PublicKey);
-            tx.To = Address.Generate();
+            tx.From = Address.FromPublicKey(keyPair1.PublicKey);
+            
+            ECKeyPair keyPair2 = CryptoHelper.GenerateKeyPair();
+            tx.To = Address.FromPublicKey(keyPair2.PublicKey);
             tx.Params = ByteString.CopyFrom(new byte[0]);
             tx.MethodName = "TestMethod";
             tx.Params = ByteString.Empty;
@@ -28,7 +27,7 @@ namespace AElf.Cryptography.Tests.ECDSA
             Hash hash = tx.GetHash();
 
             // Sign the hash
-            var signature = CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, hash.DumpByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(keyPair1.PrivateKey, hash.ToByteArray());
             tx.Signature = ByteString.CopyFrom(signature);
             Assert.True(tx.VerifySignature());
         }

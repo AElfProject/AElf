@@ -5,6 +5,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Infrastructure;
+using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp;
@@ -22,16 +23,6 @@ namespace AElf.OS
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<IPeerPool>(o =>
-            {
-                Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
-                peerPoolMock.Setup(p => p.FindPeerByAddress(It.IsAny<string>()))
-                    .Returns<string>((adr) => null);
-                peerPoolMock.Setup(p => p.GetPeers(It.IsAny<bool>()))
-                    .Returns(new List<IPeer>());
-                return peerPoolMock.Object;
-            });
-
             context.Services.AddTransient<ISystemTransactionGenerationService>(o =>
             {
                 var mockService = new Mock<ISystemTransactionGenerationService>();
@@ -53,11 +44,11 @@ namespace AElf.OS
             {
                 var mockService = new Mock<IBlockValidationService>();
                 mockService.Setup(s =>
-                    s.ValidateBlockBeforeAttachAsync(It.IsAny<Block>())).Returns(Task.FromResult(true));
+                    s.ValidateBlockBeforeAttachAsync(It.IsAny<IBlock>())).Returns(Task.FromResult(true));
                 mockService.Setup(s =>
-                    s.ValidateBlockBeforeExecuteAsync(It.IsAny<Block>())).Returns(Task.FromResult(true));
+                    s.ValidateBlockBeforeExecuteAsync(It.IsAny<IBlock>())).Returns(Task.FromResult(true));
                 mockService.Setup(s =>
-                    s.ValidateBlockAfterExecuteAsync(It.IsAny<Block>())).Returns(Task.FromResult(true));
+                    s.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>())).Returns(Task.FromResult(true));
                 return mockService.Object;
             });
 
@@ -66,7 +57,7 @@ namespace AElf.OS
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             _osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
-            AsyncHelper.RunSync(() => _osTestHelper.MockChain());
+            AsyncHelper.RunSync(() => _osTestHelper.MockChainAsync());
         }
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)

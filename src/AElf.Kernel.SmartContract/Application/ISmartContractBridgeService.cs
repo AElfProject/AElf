@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -12,18 +14,20 @@ namespace AElf.Kernel.SmartContract.Application
     {
         void LogDebug(Func<string> func);
 
-        Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged, Hash name);
+        Task DeployContractAsync(ContractDto contractDto);
 
-        Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged, Hash name);
+        Task UpdateContractAsync(ContractDto contractDto);
 
-        Task<Block> GetBlockByHashAsync(Hash blockId);
+        Task<List<Transaction>> GetBlockTransactions(Hash blockHash);
         int GetChainId();
 
         Address GetAddressByContractName(Hash contractName);
 
+        IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping();
+
         Address GetZeroSmartContractAddress();
+        
+        Address GetZeroSmartContractAddress(int chainId);
 
         Task<ByteString> GetStateAsync(Address contractAddress, string key, long blockHeight, Hash blockHash);
     }
@@ -56,21 +60,20 @@ namespace AElf.Kernel.SmartContract.Application
 #endif
         }
 
-        public async Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged, Hash name)
+        public async Task DeployContractAsync(ContractDto contractDto)
         {
-            await _smartContractService.DeployContractAsync(contractAddress, registration, isPrivileged, name);
+            await _smartContractService.DeployContractAsync(contractDto);
         }
 
-        public async Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged, Hash name)
+        public async Task UpdateContractAsync(ContractDto contractDto)
         {
-            await _smartContractService.UpdateContractAsync(contractAddress, registration, isPrivileged, name);
+            await _smartContractService.UpdateContractAsync(contractDto);
         }
 
-        public async Task<Block> GetBlockByHashAsync(Hash blockId)
+        public async Task<List<Transaction>> GetBlockTransactions(Hash blockHash)
         {
-            return await _blockchainService.GetBlockByHashAsync(blockId);
+            var block = await _blockchainService.GetBlockByHashAsync(blockHash);
+            return await _blockchainService.GetTransactionsAsync(block.Body.TransactionIds);
         }
 
         public int GetChainId()
@@ -82,10 +85,20 @@ namespace AElf.Kernel.SmartContract.Application
         {
             return _smartContractAddressService.GetAddressByContractName(contractName);
         }
+        
+        public IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping()
+        {
+            return _smartContractAddressService.GetSystemContractNameToAddressMapping();
+        }
 
         public Address GetZeroSmartContractAddress()
         {
             return _smartContractAddressService.GetZeroSmartContractAddress();
+        }
+
+        public Address GetZeroSmartContractAddress(int chainId)
+        {
+            return _smartContractAddressService.GetZeroSmartContractAddress(chainId);
         }
 
         public Task<ByteString> GetStateAsync(Address contractAddress, string key, long blockHeight, Hash blockHash)

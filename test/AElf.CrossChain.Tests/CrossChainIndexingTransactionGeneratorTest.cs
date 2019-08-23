@@ -1,9 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs7;
+using AElf.CrossChain.Cache;
 using AElf.Kernel;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
@@ -13,7 +16,7 @@ namespace AElf.CrossChain
     public sealed class CrossChainIndexingTransactionGeneratorTest : CrossChainWithChainTestBase
     {
         private readonly ISystemTransactionGenerator _crossChainIndexingTransactionGenerator;
-        private readonly ICrossChainDataProvider _crossChainDataProvider;
+        private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly KernelTestHelper _kernelTestHelper;
         private readonly CrossChainTestHelper _crossChainTestHelper;
@@ -21,7 +24,7 @@ namespace AElf.CrossChain
         public CrossChainIndexingTransactionGeneratorTest()
         {
             _crossChainIndexingTransactionGenerator = GetRequiredService<ISystemTransactionGenerator>();
-            _crossChainDataProvider = GetRequiredService<ICrossChainDataProvider>();
+            _crossChainIndexingDataService = GetRequiredService<ICrossChainIndexingDataService>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
             _crossChainTestHelper = GetRequiredService<CrossChainTestHelper>();
@@ -31,7 +34,7 @@ namespace AElf.CrossChain
         public async Task GenerateTransactions_Test()
         {
             var transactions = new List<Transaction>();
-            _crossChainIndexingTransactionGenerator.GenerateTransactions(Address.Zero,0,Hash.Empty, ref transactions);
+            _crossChainIndexingTransactionGenerator.GenerateTransactions(SampleAddress.AddressList[0],0,Hash.Empty, ref transactions);
             transactions.Count.ShouldBe(0);
 
             var chainId = _kernelTestHelper.BestBranchBlockList[0].Header.ChainId;
@@ -40,31 +43,32 @@ namespace AElf.CrossChain
             
             _crossChainTestHelper.AddFakeSideChainIdHeight(chainId, previousBlockHeight);
             
-            var blockInfoCache = new List<IBlockInfo>();
-            var cachingCount = CrossChainConstants.MaximalCountForIndexingSideChainBlock;
+            var blockInfoCache = new List<IBlockCacheEntity>();
+            var cachingCount = CrossChainConstants.MinimalBlockCacheEntityCount + 1;
             for (var i = 1; i <= cachingCount; i++)
             {
-                blockInfoCache.Add(new SideChainBlockData
+                var sideChainBlockData = new SideChainBlockData
                 {
-                    SideChainHeight = previousBlockHeight + i,
-                    SideChainId = chainId
-                });
+                    ChainId = chainId,
+                    Height = previousBlockHeight + i,
+                };
+                blockInfoCache.Add(sideChainBlockData);
             }
 
-            var fakeCache = new Dictionary<int, List<IBlockInfo>> {{chainId, blockInfoCache}};
+            var fakeCache = new Dictionary<int, List<IBlockCacheEntity>> {{chainId, blockInfoCache}};
             AddFakeCacheData(fakeCache);
 
-            var smartContractAddress = Address.FromString("CrossChainContract");
+            var smartContractAddress = SampleAddress.AddressList[0];
 
             _smartContractAddressService.SetAddress(CrossChainSmartContractAddressNameProvider.Name,
                 smartContractAddress);
 
-            await _crossChainDataProvider.GetCrossChainBlockDataForNextMiningAsync(previousBlockHash, previousBlockHeight);
+            await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(previousBlockHash, previousBlockHeight);
             
-            _crossChainIndexingTransactionGenerator.GenerateTransactions(Address.Zero,previousBlockHeight,previousBlockHash, ref transactions);
+            _crossChainIndexingTransactionGenerator.GenerateTransactions(SampleAddress.AddressList[0],previousBlockHeight,previousBlockHash, ref transactions);
             
             transactions.Count.ShouldBe(1);
-            transactions[0].From.ShouldBe(Address.Zero);
+            transactions[0].From.ShouldBe(SampleAddress.AddressList[0]);
             transactions[0].To.ShouldBe(smartContractAddress);
             transactions[0].RefBlockNumber.ShouldBe(previousBlockHeight);
             transactions[0].RefBlockPrefix.ShouldBe(ByteString.CopyFrom(previousBlockHash.Value.Take(4).ToArray()));
@@ -74,10 +78,9 @@ namespace AElf.CrossChain
             crossChainBlockData.PreviousBlockHeight.ShouldBe(previousBlockHeight);
             crossChainBlockData.ParentChainBlockData.Count.ShouldBe(0);
             crossChainBlockData.SideChainBlockData.Count.ShouldBe(
-                CrossChainConstants.MaximalCountForIndexingSideChainBlock -
-                CrossChainConstants.MinimalBlockInfoCacheThreshold);
-            crossChainBlockData.SideChainBlockData[0].SideChainId.ShouldBe(chainId);
-            crossChainBlockData.SideChainBlockData[0].SideChainHeight.ShouldBe(previousBlockHeight + 1);
+                cachingCount - CrossChainConstants.MinimalBlockCacheEntityCount);
+            crossChainBlockData.SideChainBlockData[0].ChainId.ShouldBe(chainId);
+            crossChainBlockData.SideChainBlockData[0].Height.ShouldBe(previousBlockHeight + 1);
         }
     }
 }

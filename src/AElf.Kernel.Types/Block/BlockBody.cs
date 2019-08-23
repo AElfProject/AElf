@@ -1,34 +1,39 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
+using AElf.Types;
+using Google.Protobuf;
+using Google.Protobuf.Collections;
 
 namespace AElf.Kernel
 {
     public partial class BlockBody : IBlockBody
     {
-        public int TransactionsCount => Transactions.Count;
+        public int TransactionsCount => TransactionIds.Count;
         private Hash _blockBodyHash;
-        public BinaryMerkleTree BinaryMerkleTree { get; } = new BinaryMerkleTree();
 
         private Hash CalculateBodyHash()
         {
-            _blockBodyHash = new List<Hash>()
-            {
-                BlockHeader,
-                BinaryMerkleTree.Root
-            }.Aggregate(Hash.FromTwoHashes);
+            // TODO: BlockHeader is useless.
+            if (!VerifyFields())
+                throw new InvalidOperationException($"Invalid block body.");
+
+            _blockBodyHash = Hash.FromRawBytes(this.ToByteArray());
             return _blockBodyHash;
         }
 
-        /// <inheritdoc/>
+        public bool VerifyFields()
+        {
+            if (TransactionIds.Count == 0)
+                return false;
+
+            if (BlockHeader == null)
+                return false;
+
+            return true;
+        }
+
         public Hash GetHash()
         {
             return _blockBodyHash ?? CalculateBodyHash();
-        }
-
-        public Hash GetHashWithoutCache()
-        {
-            _blockBodyHash = null;
-            return GetHash();
         }
     }
 }

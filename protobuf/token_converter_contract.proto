@@ -1,14 +1,16 @@
 syntax = "proto3";
 
-import "common.proto";
-import "aelf_options.proto";
+import "aelf/core.proto";
+import "aelf/options.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/empty.proto";
 
 option csharp_namespace = "AElf.Contracts.TokenConverter";
 
 service TokenConverterContract {
+    
     option (aelf.csharp_state) = "AElf.Contracts.TokenConverter.TokenConverterContractState";
+    
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
@@ -20,18 +22,17 @@ service TokenConverterContract {
     }
     rpc SetFeeRate (google.protobuf.StringValue) returns (google.protobuf.Empty) {
     }
-    rpc SetFeeReceiverAddress (Address) returns (google.protobuf.Empty) {
+    rpc SetManagerAddress (aelf.Address) returns (google.protobuf.Empty) {
     }
-    rpc SetManagerAddress (Address) returns (google.protobuf.Empty) {
-    }
+
     // Views
-    rpc GetTokenContractAddress (google.protobuf.Empty) returns (Address) {
+    rpc GetTokenContractAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
-    rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (Address) {
+    rpc GetFeeReceiverAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
-    rpc GetManagerAddress (google.protobuf.Empty) returns (Address) {
+    rpc GetManagerAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
     rpc GetConnector (TokenSymbol) returns (Connector) {
@@ -61,9 +62,9 @@ message InitializeInput {
     string base_token_symbol = 1;
     string fee_rate = 2;
     repeated Connector connectors = 3;
-    Address token_contract_address = 4;
-    Address fee_receiver_address = 5;
-    Address manager_address = 6;
+    aelf.Address token_contract_address = 4;
+    aelf.Address fee_receiver_address = 5;
+    aelf.Address manager_address = 6;
 }
 
 message BuyInput {
@@ -76,6 +77,20 @@ message SellInput {
     string symbol = 1;
     sint64 amount = 2;
     sint64 receive_limit = 3; // No sell if receiving less than this, 0 if no limit
+}
+
+message GetExchangeRateInput {
+    string from_symbol = 1;
+    string to_symbol = 2;
+}
+
+message SellWithInlineActionInput {
+    string symbol = 1;
+    sint64 amount = 2;
+    sint64 receive_limit = 3; // No sell if receiving less than this, 0 if no limit
+    aelf.Address contract_address = 4;
+    string method_name = 5;
+    bytes params = 6;
 }
 
 // Events

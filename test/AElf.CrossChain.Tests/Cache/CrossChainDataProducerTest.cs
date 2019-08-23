@@ -1,33 +1,33 @@
 using System;
 using System.Collections.Generic;
-using AElf.CrossChain.Cache.Exception;
+using Acs7;
+using AElf.CrossChain.Cache.Application;
 using Xunit;
 
 namespace AElf.CrossChain.Cache
 {
     public class CrossChainDataProducerTest : CrossChainTestBase
     {
-        private readonly ICrossChainDataProducer _crossChainDataProducer;
+        private readonly IBlockCacheEntityProducer _blockCacheEntityProducer;
 
         public CrossChainDataProducerTest()
         {
-            _crossChainDataProducer = GetRequiredService<ICrossChainDataProducer>();
+            _blockCacheEntityProducer = GetRequiredService<IBlockCacheEntityProducer>();
         }
         
         [Fact]
         public void TryAdd_Null()
         {
-            var res = _crossChainDataProducer.AddNewBlockInfo(null);
-            Assert.False(res);
+            Assert.Throws<ArgumentNullException>(() => _blockCacheEntityProducer.TryAddBlockCacheEntity(null));
         }
 
         [Fact]
         public void TryAdd_NotExistChain()
         {
             int chainId = 123;
-            var res = _crossChainDataProducer.AddNewBlockInfo(new SideChainBlockData
+            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new SideChainBlockData
             {
-                SideChainId = chainId
+                ChainId = chainId
             });
             Assert.False(res);
         }
@@ -36,17 +36,17 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_ExistChain_WrongIndex()
         {
             int chainId = 123;
-            var dict = new Dictionary<int, BlockInfoCache>
+            var dict = new Dictionary<int, BlockCacheEntityProvider>
             {
                 {
-                    chainId, new BlockInfoCache(1)
+                    chainId, new BlockCacheEntityProvider(1)
                 }
             };
             CreateFakeCache(dict);
-            var res = _crossChainDataProducer.AddNewBlockInfo(new SideChainBlockData
+            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new SideChainBlockData
             {
-                SideChainId = chainId,
-                SideChainHeight = 2
+                ChainId = chainId,
+                Height = 2
             });
             Assert.False(res);
         }
@@ -55,17 +55,17 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_ExistChain_CorrectIndex()
         {
             int chainId = 123;
-            var dict = new Dictionary<int, BlockInfoCache>
+            var dict = new Dictionary<int, BlockCacheEntityProvider>
             {
                 {
-                    chainId, new BlockInfoCache(1)
+                    chainId, new BlockCacheEntityProvider(1)
                 }
             };
             CreateFakeCache(dict);
-            var res = _crossChainDataProducer.AddNewBlockInfo(new SideChainBlockData
+            var res = _blockCacheEntityProducer.TryAddBlockCacheEntity(new SideChainBlockData
             {
-                SideChainId = chainId,
-                SideChainHeight = 1
+                ChainId = chainId,
+                Height = 1
             });
             Assert.True(res);
         }

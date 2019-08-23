@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel
@@ -25,27 +26,19 @@ namespace AElf.Kernel
             Body = new BlockBody();
         }
 
-        public long Height
-        {
-            get => Header?.Height ?? 0;
-            set { }
-        }
+        public IEnumerable<Hash> TransactionIds => Body.TransactionIds;
+
+        public long Height => Header?.Height ?? 0;
+
 
         public Hash GetHash()
         {
             return Header.GetHash();
         }
 
-        public byte[] GetHashBytes()
+        public Hash GetHashWithoutCache()
         {
-            return Header.GetHashBytes();
+            return Header.GetHashWithoutCache();
         }
-
-        public byte[] Serialize()
-        {
-            return this.ToByteArray();
-        }
-
-        public IEnumerable<Transaction> TransactionList => Body.TransactionList;
     }
 }

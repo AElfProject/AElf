@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Types;
 using Shouldly;
 using Xunit;
 
@@ -18,10 +19,8 @@ namespace AElf.Kernel.ChainController.Application
         }
 
         [Fact]
-        public async Task Create_NewChain_Success()
+        public async Task Create_NewChain_Success_Test()
         {
-            var chainId = 1;
-
             var chain = await _blockchainService.GetChainAsync();
             chain.ShouldBeNull();
 
@@ -30,7 +29,7 @@ namespace AElf.Kernel.ChainController.Application
             chain.ShouldNotBeNull();
 
             var block = await _blockchainService.GetBlockByHashAsync(chain.BestChainHash);
-            block.Header.Height.ShouldBe(KernelConstants.GenesisBlockHeight);
+            block.Header.Height.ShouldBe(Constants.GenesisBlockHeight);
             block.Header.PreviousBlockHash.ShouldBe(Hash.Empty);
             block.Header.ChainId.ShouldBe(chain.Id);
         }

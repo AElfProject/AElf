@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using AElf.BenchBase;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS;
 using NBench;
@@ -39,10 +41,11 @@ namespace AElf.Kernel.SmartContractExecution.Benches
             AsyncHelper.RunSync(async () =>
             {
                 var chain = await _blockchainService.GetChainAsync();
-
                 var transactions = await _osTestHelper.GenerateTransferTransactions(1000);
 
                 _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+                await _blockchainService.AddTransactionsAsync(transactions);
+                await _blockchainService.AddBlockAsync(_block);
             });
         }
         

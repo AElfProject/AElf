@@ -1,7 +1,8 @@
 using System.Collections.Generic;
+using System.Linq;
+using Acs0;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.DPoS;
 using AElf.OS.Node.Application;
 
 namespace AElf.Blockchains.MainChain
@@ -11,7 +12,9 @@ namespace AElf.Blockchains.MainChain
         private IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtosForParliament()
         {
             var l = new List<GenesisSmartContractDto>();
-            l.AddGenesisSmartContract<ParliamentAuthContract>(ParliamentAuthContractAddressNameProvider.Name,
+            l.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Contains("ParliamentAuth")).Value,
+                ParliamentAuthSmartContractAddressNameProvider.Name,
                 GenerateParliamentInitializationCallList());
 
             return l;
@@ -21,10 +24,11 @@ namespace AElf.Blockchains.MainChain
             GenerateParliamentInitializationCallList()
         {
             var parliamentInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            parliamentInitializationCallList.Add(nameof(ParliamentAuthContract.Initialize),
-                new ParliamentAuthInitializationInput
+            parliamentInitializationCallList.Add(
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Initialize),
+                new Contracts.ParliamentAuth.InitializeInput
                 {
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name
+                    GenesisOwnerReleaseThreshold = _contractOptions.GenesisOwnerReleaseThreshold
                 });
             return parliamentInitializationCallList;
         }

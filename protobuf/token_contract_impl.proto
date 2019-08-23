@@ -2,12 +2,12 @@ syntax = "proto3";
 
 package tokenimpl;
 
-import "aelf_options.proto";
+import "aelf/options.proto";
 import "acs1.proto";
 import "acs2.proto";
 import "token_contract.proto";
 
-option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
+option csharp_namespace = "AElf.Contracts.MultiToken";
 
 service TokenContractImpl {
     option (aelf.csharp_state) = "AElf.Contracts.MultiToken.TokenContractState";

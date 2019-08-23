@@ -6,13 +6,12 @@ namespace AElf.Types.Tests
 {
     public class HashTests
     {
-
         [Fact]
-        public void Generate_Hash()
+        public void Generate_Hash_Test()
         {
             //Generate randomly
-            var hash1 = Hash.Generate();
-            var hash2 = Hash.Generate();
+            var hash1 = Hash.FromString("hash1");
+            var hash2 = Hash.FromString("hash2");
             hash1.ShouldNotBe(hash2);
 
             //Generate from string
@@ -29,22 +28,22 @@ namespace AElf.Types.Tests
             hash5.ShouldNotBe(null);
             
             //Generate from xor
-            var hash6 = Hash.Xor(hash1, hash2);
+            var hash6 = HashHelper.Xor(hash1, hash2);
             hash6.ShouldNotBe(null);
         }
 
         [Fact]
-        public void Get_Hash_Info()
+        public void Get_Hash_Info_Test()
         {
-            var hash = Hash.Generate();
-            var byteArray = hash.DumpByteArray();
+            var hash = Hash.FromString("hash");
+            var byteArray = hash.ToByteArray();
             var hexString = hash.ToHex();
             byteArray.Length.ShouldBe(32);
             hexString.ShouldNotBe(string.Empty);
         }
 
         [Fact]
-        public void EqualTest()
+        public void Equal_Test()
         {
             var hash1 = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
             var hash2 = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
@@ -54,7 +53,7 @@ namespace AElf.Types.Tests
         }
 
         [Fact]
-        public void CompareTest()
+        public void Compare_Test()
         {
             var hash1 = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});
             var hash2 = Hash.FromRawBytes(new byte[] {15, 1, 14, 10});
@@ -64,10 +63,15 @@ namespace AElf.Types.Tests
             (hash1 < null).ShouldBeFalse();
             (null < hash2).ShouldBeTrue();
             (hash1 > hash2).ShouldBe(hash1.CompareTo(hash2)>0);
+
+            Hash hashA = null;
+            Hash hashB = null;
+            var value = hashA > hashB;
+            value.ShouldBeFalse();
         }
 
         [Fact]
-        public void DictionaryTest()
+        public void Dictionary_Test()
         {
             var dict = new Dictionary<Hash, string>();
             var hash = Hash.FromRawBytes(new byte[] {10, 14, 1, 15});

@@ -1,12 +1,12 @@
-using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.EventMessages;
-using AElf.Kernel.Miner.Application;
 using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.Consensus.Application
 {
+    /// <summary>
+    /// Trigger consensus to update mining scheduler.
+    /// </summary>
     public class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>
     {
         private readonly IConsensusService _consensusService;

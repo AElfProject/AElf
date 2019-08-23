@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Types;
 using Shouldly;
 using Xunit;
 
@@ -18,10 +19,10 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         [Fact]
-        public async Task BlockState_NoNeed_To_Merge()
+        public async Task BlockState_NoNeed_To_Merge_Test()
         {
             var lastIrreversibleBlockHeight = -2;
-            var lastIrreversibleBlockHash = Hash.Generate();
+            var lastIrreversibleBlockHash = Hash.FromString("hash");
 
             await _blockchainStateMergingService.MergeBlockStateAsync(lastIrreversibleBlockHeight,
                 lastIrreversibleBlockHash);
@@ -32,10 +33,10 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         [Fact]
-        public async Task BlockState_Merge_GotException()
+        public async Task BlockState_Merge_GotException_Test()
         {
             var lastIrreversibleBlockHeight = 1;
-            var lastIrreversibleBlockHash = Hash.Generate();
+            var lastIrreversibleBlockHash = Hash.FromString("hash");
 
             await Should.ThrowAsync<InvalidOperationException>(()=>_blockchainStateMergingService.MergeBlockStateAsync(lastIrreversibleBlockHeight,
                 lastIrreversibleBlockHash));
@@ -46,24 +47,24 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         [Fact]
-        public async Task BlockState_MergeBlock_Normal()
+        public async Task BlockState_MergeBlock_Normal_Test()
         {
             var blockStateSet1 = new BlockStateSet()
             {
                 BlockHeight = 1,
-                BlockHash = Hash.Generate(),
+                BlockHash = Hash.FromString("hash"),
                 PreviousHash = Hash.Empty
             };
             var blockStateSet2 = new BlockStateSet()
             {
                 BlockHeight = 2,
-                BlockHash = Hash.Generate(),
+                BlockHash = Hash.FromString("hash2"),
                 PreviousHash = blockStateSet1.BlockHash
             };
             var blockStateSet3 = new BlockStateSet()
             {
                 BlockHeight = 3,
-                BlockHash = Hash.Generate(),
+                BlockHash = Hash.FromString("hash3"),
                 PreviousHash = blockStateSet2.BlockHash
             };
 

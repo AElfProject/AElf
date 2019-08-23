@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Types;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -13,7 +15,9 @@ namespace AElf.Kernel.SmartContract.Application
 
         Address GetZeroSmartContractAddress();
 
-        ReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping();
+        Address GetZeroSmartContractAddress(int chainId);
+
+        IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping();
     }
 
     public class SmartContractAddressService : ISmartContractAddressService, ISingletonDependency
@@ -45,7 +49,12 @@ namespace AElf.Kernel.SmartContract.Application
             return _defaultContractZeroCodeProvider.ContractZeroAddress;
         }
 
-        public ReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping()
+        public Address GetZeroSmartContractAddress(int chainId)
+        {
+            return _defaultContractZeroCodeProvider.GetZeroSmartContractAddress(chainId);
+        }
+
+        public IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping()
         {
             return new ReadOnlyDictionary<Hash, Address>(_hashToAddressMap);
         }

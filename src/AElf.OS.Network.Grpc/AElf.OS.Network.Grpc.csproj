@@ -7,26 +7,25 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Grpc" Version="1.19.0" />
-      <PackageReference Include="Grpc.Tools" Version="1.19.0" />
-      <PackageReference Include="Volo.Abp.EventBus" Version="0.15.0" />
+      <PackageReference Include="Grpc" Version="1.21.0" />
+      <PackageReference Include="Grpc.Tools" Version="1.21.0" />
+      <PackageReference Include="Volo.Abp.EventBus" Version="0.19.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Common\AElf.Common.csproj" />
-      <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
       <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\..\protobuf\peer_service.proto">
+      <None Include="..\..\protobuf\peer_service.proto">
         <Link>Protobuf/peer_service.proto</Link>
-      </Content>
+      </None>
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Helpers" />
       <Folder Include="Protobuf" />
+      <Folder Include="Protobuf\Generated" />
     </ItemGroup>
 
     <Target Name="Gen_proto" BeforeTargets="BeforeBuild">

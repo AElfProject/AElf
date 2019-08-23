@@ -267,7 +267,7 @@ namespace AElf.Database.RedisProtocol
         {
             try
             {
-                // workaround for a .net bug: http://support.microsoft.com/kb/821625
+                // workaround for a .net http://support.microsoft.com/kb/821625
                 Bstream?.Close();
                 socket?.Close();
             }

@@ -1,41 +1,82 @@
-using System.IO;
-using System.Threading.Tasks;
+using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.Economic;
+using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
-using AElf.Contracts.TestKit;
+using AElf.Contracts.ParliamentAuth;
+using AElf.Contracts.Profit;
+using AElf.Contracts.TokenConverter;
+using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
-using AElf.OS.Node.Application;
-using Google.Protobuf;
+using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
-using Vote;
 
 namespace AElf.Contracts.Election
 {
-    public class ElectionContractTestBase : ContractTestBase<ElectionContractTestModule>
+    public class ElectionContractTestBase : EconomicContractsTestBase
     {
-        protected readonly Hash TokenContractSystemName = Hash.FromString("AElf.ContractNames.Token");
-        protected readonly Hash VoteContractSystemName = Hash.FromString("AElf.ContractNames.Vote");
-        protected readonly Hash ElectionContractSystemName = Hash.FromString("AElf.ContractNames.Election");
-        
-        protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
-        protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
-        protected Address TokenContractAddress { get; set; }
-        protected Address VoteContractAddress { get; set; }
-        protected Address ElectionContractAddress { get; set; }
+        private new void DeployAllContracts()
+        {
+            _ = TokenContractAddress;
+            _ = VoteContractAddress;
+            _ = ProfitContractAddress;
+            _ = EconomicContractAddress;
+            _ = ElectionContractAddress;
+            _ = TreasuryContractAddress;
+            _ = TransactionFeeChargingContractAddress;
+            _ = ParliamentAuthContractAddress;
+            _ = TokenConverterContractAddress;
+            _ = ConsensusContractAddress;
+        }
 
-        internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub { get; set; }
+        protected void InitializeContracts()
+        {
+            DeployAllContracts();
 
-        internal TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
+            AsyncHelper.RunSync(InitializeTreasuryConverter);
+            AsyncHelper.RunSync(InitializeElection);
+            AsyncHelper.RunSync(InitializeParliamentContract);
+            AsyncHelper.RunSync(InitializeEconomicContract);
+            AsyncHelper.RunSync(InitializeToken);
+            AsyncHelper.RunSync(InitializeAElfConsensus);
 
-        internal VoteContractContainer.VoteContractStub VoteContractStub { get; set; }
+            MinerElectionVotingItemId = AsyncHelper.RunSync(() =>
+                ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty()));
+        }
 
-        internal ElectionContractContainer.ElectionContractStub ElectionContractStub { get; set; }
+        protected Hash MinerElectionVotingItemId;
 
-        internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
+        internal BasicContractZeroContainer.BasicContractZeroStub BasicContractZeroStub =>
+            GetBasicContractTester(BootMinerKeyPair);
+
+        internal TokenContractContainer.TokenContractStub TokenContractStub => GetTokenContractTester(BootMinerKeyPair);
+
+        internal TokenConverterContractContainer.TokenConverterContractStub TokenConverterContractStub =>
+            GetTokenConverterContractTester(BootMinerKeyPair);
+
+        internal VoteContractContainer.VoteContractStub VoteContractStub => GetVoteContractTester(BootMinerKeyPair);
+
+        internal ProfitContractContainer.ProfitContractStub ProfitContractStub =>
+            GetProfitContractTester(BootMinerKeyPair);
+
+        internal ElectionContractContainer.ElectionContractStub ElectionContractStub =>
+            GetElectionContractTester(BootMinerKeyPair);
+
+        internal AEDPoSContractContainer.AEDPoSContractStub AEDPoSContractStub =>
+            GetAEDPoSContractTester(BootMinerKeyPair);
+
+        internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub =>
+            GetTreasuryContractTester(BootMinerKeyPair);
+
+        internal ParliamentAuthContractContainer.ParliamentAuthContractStub ParliamentAuthContractStub =>
+            GetParliamentAuthContractTester(BootMinerKeyPair);
+
+        internal EconomicContractContainer.EconomicContractStub EconomicContractStub =>
+            GetEconomicContractTester(BootMinerKeyPair);
+
+        internal BasicContractZeroContainer.BasicContractZeroStub GetBasicContractTester(ECKeyPair keyPair)
         {
             return GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, keyPair);
         }
@@ -45,9 +86,21 @@ namespace AElf.Contracts.Election
             return GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, keyPair);
         }
 
+        internal TokenConverterContractContainer.TokenConverterContractStub GetTokenConverterContractTester(
+            ECKeyPair keyPair)
+        {
+            return GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+                keyPair);
+        }
+
         internal VoteContractContainer.VoteContractStub GetVoteContractTester(ECKeyPair keyPair)
         {
             return GetTester<VoteContractContainer.VoteContractStub>(VoteContractAddress, keyPair);
+        }
+
+        internal ProfitContractContainer.ProfitContractStub GetProfitContractTester(ECKeyPair keyPair)
+        {
+            return GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress, keyPair);
         }
 
         internal ElectionContractContainer.ElectionContractStub GetElectionContractTester(ECKeyPair keyPair)
@@ -55,138 +108,26 @@ namespace AElf.Contracts.Election
             return GetTester<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress, keyPair);
         }
 
-        protected void InitializeContracts()
+        internal AEDPoSContractContainer.AEDPoSContractStub GetAEDPoSContractTester(ECKeyPair keyPair)
         {
-            BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
-
-            //deploy vote contract
-            VoteContractAddress = AsyncHelper.RunSync(() =>
-                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(VoteContract).Assembly.Location)),
-                        Name = VoteContractSystemName,
-                        TransactionMethodCallList = GenerateVoteInitializationCallList()
-                    })).Output;
-            VoteContractStub = GetVoteContractTester(DefaultSenderKeyPair);
-
-            //deploy token contract
-            TokenContractAddress = AsyncHelper.RunSync(() =>
-                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location)),
-                        Name = TokenContractSystemName,
-                        TransactionMethodCallList = GenerateTokenInitializationCallList()
-                    })).Output;
-            TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
-
-            //deploy election contract
-            ElectionContractAddress = AsyncHelper.RunSync(() =>
-                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ElectionContract).Assembly.Location)),
-                        Name = ElectionContractSystemName,
-                        TransactionMethodCallList = GenerateElectionInitializationCallList()
-                    })).Output;
-            ElectionContractStub = GetElectionContractTester(DefaultSenderKeyPair);
+            return GetTester<AEDPoSContractContainer.AEDPoSContractStub>(ConsensusContractAddress, keyPair);
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateVoteInitializationCallList()
+        internal TreasuryContractContainer.TreasuryContractStub GetTreasuryContractTester(ECKeyPair keyPair)
         {
-            var voteMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            voteMethodCallList.Add(nameof(VoteContract.InitialVoteContract),
-                new InitialVoteContractInput
-                {
-                    TokenContractSystemName = TokenContractSystemName,
-                });
-
-            return voteMethodCallList;
+            return GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress, keyPair);
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
+        internal ParliamentAuthContractContainer.ParliamentAuthContractStub GetParliamentAuthContractTester(
+            ECKeyPair keyPair)
         {
-            const string symbol = "ELF";
-            const long totalSupply = 100_000_000;
-            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
-            {
-                Symbol = symbol,
-                Decimals = 2,
-                IsBurnable = true,
-                TokenName = "elf token",
-                TotalSupply = totalSupply,
-                Issuer = DefaultSender,
-                LockWhiteSystemContractNameList =
-                {
-                    Hash.FromString("AElf.ContractNames.Vote")
-                }
-            });
-
-            //issue default user
-            tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
-            {
-                Symbol = symbol,
-                Amount = totalSupply - 3500_000L,
-                To = DefaultSender,
-                Memo = "Issue token to default user for vote.",
-            });
-
-            //issue some amount for bp announcement and user vote
-            for (int i = 1; i <= 50; i++)
-            {
-                if (i <= 10)
-                {
-                    tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
-                    {
-                        Symbol = symbol,
-                        Amount = 150_000L,
-                        To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
-                        Memo = "set voters few amount for voting."
-                    });
-                }
-                else
-                {
-                    tokenContractCallList.Add(nameof(TokenContract.Issue), new IssueInput
-                    {
-                        Symbol = symbol,
-                        Amount = 50_000L,
-                        To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
-                        Memo = "set voters few amount for voting."
-                    });
-                }
-                
-            }
-
-            return tokenContractCallList;
+            return GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(ParliamentAuthContractAddress,
+                keyPair);
         }
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateElectionInitializationCallList()
+        internal EconomicContractContainer.EconomicContractStub GetEconomicContractTester(ECKeyPair keyPair)
         {
-            var electionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            electionMethodCallList.Add(nameof(ElectionContract.InitialElectionContract),
-                new InitialElectionContractInput
-                {
-                    VoteContractSystemName = VoteContractSystemName,
-                    TokenContractSystemName = TokenContractSystemName
-                });
-
-            return electionMethodCallList;
-        }
-        
-        internal async Task<long> GetUserBalance(byte[] publicKey)
-        {
-            var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Symbol = "ELF",
-                Owner = Address.FromPublicKey(publicKey)
-            })).Balance;
-
-            return balance;
+            return GetTester<EconomicContractContainer.EconomicContractStub>(EconomicContractAddress, keyPair);
         }
     }
 }

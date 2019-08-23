@@ -1,7 +1,8 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
 using AElf.Kernel;
+using AElf.OS.Network.Infrastructure;
+using AElf.Types;
 
 namespace AElf.OS.Network.Application
 {
@@ -9,12 +10,11 @@ namespace AElf.OS.Network.Application
     {
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
-        List<string> GetPeerIpList();
-        Task<Block> GetBlockByHashAsync(Hash hash, string peer = null, bool tryOthersIfFail = false);
-        Task<int> BroadcastAnnounceAsync(BlockHeader blockHeader);
-        Task<int> BroadcastTransactionAsync(Transaction tx);
-        Task<List<Block>> GetBlocksAsync(Hash previousBlock, long previousHeight, int count, string peerPubKey = null, bool tryOthersIfFail = false);
-        Task<long> GetBestChainHeightAsync(string peerPubKey = null);
-        
+        List<IPeer> GetPeers();
+        Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash, string peer = null);
+        Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, string peerPubKey = null);
+        Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork);
+        Task BroadcastTransactionAsync(Transaction transaction);
+        Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions);
     }
 }

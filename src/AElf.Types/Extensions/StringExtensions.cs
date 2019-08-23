@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Google.Protobuf;
 
 namespace AElf
 {
@@ -19,14 +20,19 @@ namespace AElf
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static byte[] CalculateHash(this string obj)
+        public static byte[] ComputeHash(this string obj)
         {
-            return Encoding.UTF8.GetBytes(obj).CalculateHash();
+            return Encoding.UTF8.GetBytes(obj).ComputeHash();
         }
 
         public static byte[] DecodeBase58(this string value)
         {
             return Base58CheckEncoding.DecodePlain(value);
+        }
+        
+        public static byte[] GetBytes(this string value)
+        {
+            return Encoding.UTF8.GetBytes(value);
         }
     }
 }

@@ -1,5 +1,5 @@
+using AElf.OS.BlockSync;
 using AElf.TestBase;
-using Volo.Abp.Modularity;
 
 namespace AElf.OS
 {
@@ -8,13 +8,23 @@ namespace AElf.OS
     {
         
     }
-    
-    public class NetWorkTestBase : AElfIntegratedTest<NetTestAElfModule>
+
+    public class BlockSyncTestBase : AElfIntegratedTest<BlockSyncTestAElfModule>
     {
         
     }
-    
-    public class SyncTestBase : AElfIntegratedTest<SyncTestModule>
+
+    public class BlockSyncForkedTestBase : AElfIntegratedTest<BlockSyncForkedTestAElfModule>
+    {
+        
+    }
+
+    public class KeyStoreTestBase : AElfIntegratedTest<KeyStoreTestAElfModule>
+    {
+        
+    }
+
+    public class BlockSyncManyJobsTestBase : AElfIntegratedTest<BlockDownloadWorkerTestAElfModule>
     {
         
     }

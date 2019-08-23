@@ -1,4 +1,5 @@
-﻿using Google.Protobuf;
+﻿using AElf.Types;
+using Google.Protobuf;
 
 namespace AElf.Kernel.TransactionPool
 {
@@ -8,8 +9,8 @@ namespace AElf.Kernel.TransactionPool
         {
             var transaction = new Transaction()
             {
-                From = Address.Generate(),
-                To = Address.Generate(),
+                From = SampleAddress.AddressList[0],
+                To = SampleAddress.AddressList[1],
                 MethodName = "test",
                 Params = ByteString.CopyFromUtf8("test")
             };

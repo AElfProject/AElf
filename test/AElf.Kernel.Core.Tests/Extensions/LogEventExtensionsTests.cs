@@ -1,3 +1,4 @@
+using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
@@ -9,7 +10,7 @@ namespace AElf.Kernel.Extensions
         [Fact]
         public void LogEvent_GetBloomAndCompare()
         {
-            var address = Address.Generate();
+            var address = SampleAddress.AddressList[0];
             var logEvent = new LogEvent()
             {
                 Address = address,

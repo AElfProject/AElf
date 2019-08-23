@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Types;
 using Google.Protobuf;
 using Moq;
 using Xunit;
@@ -26,7 +27,7 @@ namespace AElf.Kernel.SmartContract.Application
             };
 
             var mockExecutive = new Mock<IExecutive>();
-            await _smartContractExecutiveService.PutExecutiveAsync(Address.Genesis, mockExecutive.Object);
+            await _smartContractExecutiveService.PutExecutiveAsync(SampleAddress.AddressList[7], mockExecutive.Object);
         }
 
     }

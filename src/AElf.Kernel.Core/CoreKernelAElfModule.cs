@@ -4,6 +4,7 @@ using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
+using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -14,23 +15,27 @@ namespace AElf.Kernel
     [DependsOn(typeof(DatabaseAElfModule), typeof(CoreAElfModule))]
     public class CoreKernelAElfModule : AElfModule
     {
-        public override void PreConfigureServices(ServiceConfigurationContext context)
-        {
-            context.Services.AddConventionalRegistrar(new AElfKernelConventionalRegistrar());
-        }
-
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
 
-            services.AddAssemblyOf<CoreKernelAElfModule>();
             services.AddTransient<ITransactionResultQueryService, TransactionResultService>();
 
             services.AddTransient(typeof(IStoreKeyPrefixProvider<>), typeof(StoreKeyPrefixProvider<>));
 
-            services.AddStoreKeyPrefixProvide<BlockBody>("b");
-            services.AddStoreKeyPrefixProvide<BlockHeader>("h");
-            services.AddStoreKeyPrefixProvide<Chain>("c");
+            services.AddStoreKeyPrefixProvide<BlockBody>("bb");
+            services.AddStoreKeyPrefixProvide<BlockHeader>("bh");
+            services.AddStoreKeyPrefixProvide<BlockStateSet>("bs");
+            services.AddStoreKeyPrefixProvide<Chain>("ch");
+            services.AddStoreKeyPrefixProvide<ChainBlockLink>("cl");
+            services.AddStoreKeyPrefixProvide<ChainBlockIndex>("ci");
+            services.AddStoreKeyPrefixProvide<ChainStateInfo>("cs");
+            services.AddStoreKeyPrefixProvide<Transaction>("tx");
+            services.AddStoreKeyPrefixProvide<TransactionBlockIndex>("ti");
+            services.AddStoreKeyPrefixProvide<TransactionResult>("tr");
+            services.AddStoreKeyPrefixProvide<TransactionReceipt>("tc");
+            services.AddStoreKeyPrefixProvide<VersionedState>("vs");
+            
 
             services.AddTransient(typeof(IStateStore<>), typeof(StateStore<>));
             services.AddSingleton(typeof(INotModifiedCachedStateStore<>), typeof(NotModifiedCachedStateStore<>));
@@ -38,8 +43,6 @@ namespace AElf.Kernel
 
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
-
-            services.AddTransient<IBlockValidationProvider, BlockValidationProvider>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

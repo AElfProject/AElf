@@ -1,3 +1,4 @@
+using AElf.Types;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
@@ -9,6 +10,8 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         Address ZeroSmartContractAddress { get; }
 
         Address GetSystemContractAddressInGenesisBlock(ulong i);
+        
+        Address GetZeroSmartContractAddress(int chainId);
     }
 
     public class StaticChainInformationProvider : IStaticChainInformationProvider, ISingletonDependency
@@ -19,6 +22,11 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         public Address GetSystemContractAddressInGenesisBlock(ulong i)
         {
             return BuildContractAddress(ChainId, i);
+        }
+
+        public Address GetZeroSmartContractAddress(int chainId)
+        {
+            return BuildContractAddress(chainId, 0);
         }
 
         public StaticChainInformationProvider(IOptionsSnapshot<ChainOptions> chainOptions)
@@ -36,12 +44,12 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
         {
             var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
-            return Address.FromBytes(hash.DumpByteArray());
+            return Address.FromBytes(hash.ToByteArray());
         }
 
         public static Address BuildContractAddress(int chainId, ulong serialNumber)
         {
-            return BuildContractAddress(chainId.ComputeHash(), serialNumber);
+            return BuildContractAddress(chainId.ToHash(), serialNumber);
         }
     }
 }

@@ -3,8 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AElf.Cryptography;
+using AElf.Kernel;
+using AElf.Kernel.Account.Application;
+using AElf.OS.Network.Application;
+using AElf.OS.Network.Events;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
-using AElf.OS.Node.Application;
+using AElf.Types;
+using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
@@ -15,27 +22,28 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc
 {
+    /// <summary>
+    /// Implements and manages the lifecycle of the network layer.
+    /// </summary>
     public class GrpcNetworkServer : IAElfNetworkServer, ISingletonDependency
     {
-        private readonly IPeerPool _peerPool;
-        
-        private readonly NetworkOptions _networkOptions;
+        private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
+        public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
 
         private readonly PeerService.PeerServiceBase _serverService;
+        private readonly IConnectionService _connectionService;
         private readonly AuthInterceptor _authInterceptor;
-
-        private Server _server;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcNetworkServer> Logger { get; set; }
+        
+        private Server _server;
 
-        public GrpcNetworkServer(IOptionsSnapshot<NetworkOptions> options, PeerService.PeerServiceBase serverService,
-            IPeerPool peerPool, AuthInterceptor authInterceptor)
+        public GrpcNetworkServer(PeerService.PeerServiceBase serverService, IConnectionService connectionService, AuthInterceptor authInterceptor)
         {
             _serverService = serverService;
+            _connectionService = connectionService;
             _authInterceptor = authInterceptor;
-            _peerPool = peerPool;
-            _networkOptions = options.Value;
 
             Logger = NullLogger<GrpcNetworkServer>.Instance;
             EventBus = NullLocalEventBus.Instance;
@@ -43,65 +51,88 @@ namespace AElf.OS.Network.Grpc
 
         public async Task StartAsync()
         {
+            await StartListeningAsync();
+            await DialBootNodesAsync();
+
+            await EventBus.PublishAsync(new NetworkInitializedEvent());
+        }
+        
+        /// <summary>
+        /// Starts gRPC's server by binding the peer services, sets options and adds interceptors.
+        /// </summary>
+        internal Task StartListeningAsync()
+        {
             ServerServiceDefinition serviceDefinition = PeerService.BindService(_serverService);
 
             if (_authInterceptor != null)
                 serviceDefinition = serviceDefinition.Intercept(_authInterceptor);
-            
-            _server = new Server
+
+            _server = new Server(new List<ChannelOption>
             {
-                Services = { serviceDefinition },
+                new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
+                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
+            })
+            {
+                Services = {serviceDefinition},
                 Ports =
                 {
-                    new ServerPort(IPAddress.Any.ToString(), _networkOptions.ListeningPort, ServerCredentials.Insecure)
+                    new ServerPort(IPAddress.Any.ToString(), NetworkOptions.ListeningPort, ServerCredentials.Insecure)
                 }
             };
+            
+            return Task.Run(() => _server.Start());
+        }
 
-            await Task.Run(() => _server.Start());
-
-            // Add the provided boot nodes
-            if (_networkOptions.BootNodes != null && _networkOptions.BootNodes.Any())
-            {
-                List<Task<bool>> taskList = _networkOptions.BootNodes.Select(_peerPool.AddPeerAsync).ToList();
-                await Task.WhenAll(taskList.ToArray<Task>());
-            }
-            else
+        /// <summary>
+        /// Connects to the boot nodes provided in the network options.
+        /// </summary>
+        private async Task DialBootNodesAsync()
+        {
+            if (NetworkOptions.BootNodes == null || !NetworkOptions.BootNodes.Any())
             {
                 Logger.LogWarning("Boot nodes list is empty.");
+                return;
             }
+
+            var taskList = NetworkOptions.BootNodes
+                .Select(async node =>
+                {
+                    if (!IpEndpointHelper.TryParse(node, out IPEndPoint endpoint))
+                        return false;
+                    
+                    return await ConnectAsync(endpoint);
+                }).ToList();
+            
+            await Task.WhenAll(taskList.ToArray<Task>());
+        }
+
+        /// <summary>
+        /// Connects to a node with the given ip address and adds it to the node's peer pool.
+        /// </summary>
+        /// <param name="endpoint">the ip address of the distant node</param>
+        /// <returns>True if the connection was successful, false otherwise</returns>
+        public async Task<bool> ConnectAsync(IPEndPoint endpoint)
+        {
+            return await _connectionService.ConnectAsync(endpoint);
+        }
+
+        public async Task DisconnectAsync(IPeer peer, bool sendDisconnect = false)
+        {
+            await _connectionService.DisconnectAsync(peer, sendDisconnect);
         }
 
         public async Task StopAsync(bool gracefulDisconnect = true)
         {
             try
             {
-                await _server.KillAsync();
+                await _server.ShutdownAsync();
             }
             catch (InvalidOperationException)
             {
                 // if server already shutdown, we continue and clear the channels.
             }
 
-            foreach (var peer in _peerPool.GetPeers(true))
-            {
-                if (gracefulDisconnect)
-                {
-                    try
-                    {
-                        await peer.SendDisconnectAsync();
-                    }
-                    catch (RpcException e)
-                    {
-                        Logger.LogError(e, $"Error sending disconnect {peer}.");
-                    }
-                }
-
-                await peer.StopAsync();
-            }
-        }
-
-        public void Dispose()
-        {
+            await _connectionService.DisconnectPeersAsync(gracefulDisconnect);
         }
     }
 }

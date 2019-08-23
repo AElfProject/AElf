@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
@@ -26,12 +27,13 @@ namespace AElf.Kernel.Blockchain.Domain
         Task RemoveChainBlockLinkAsync(Hash blockHash);
         Task<ChainBlockIndex> GetChainBlockIndexAsync(long blockHeight);
         Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, ChainBlockLink chainBlockLink);
-        Task SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash);
+        Task<bool> SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash);
         Task<List<ChainBlockLink>> GetNotExecutedBlocks(Hash blockHash);
         Task SetChainBlockLinkExecutionStatus(ChainBlockLink blockLink, ChainBlockLinkExecutionStatus status);
         Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
         int GetChainId();
         Task<List<Hash>> CleanBranchesAsync(Chain chain, Hash irreversibleBlockHash, long irreversibleBlockHeight);
+        Task RemoveLongestBranchAsync(Chain chain);
     }
 
     public class ChainManager : IChainManager, ISingletonDependency
@@ -66,29 +68,29 @@ namespace AElf.Kernel.Blockchain.Domain
             chain = new Chain()
             {
                 Id = ChainId,
-                LongestChainHeight = KernelConstants.GenesisBlockHeight,
+                LongestChainHeight = Constants.GenesisBlockHeight,
                 LongestChainHash = genesisBlock,
-                BestChainHeight = KernelConstants.GenesisBlockHeight,
+                BestChainHeight = Constants.GenesisBlockHeight,
                 BestChainHash = genesisBlock,
                 GenesisBlockHash = genesisBlock,
                 LastIrreversibleBlockHash = genesisBlock,
-                LastIrreversibleBlockHeight = KernelConstants.GenesisBlockHeight,
+                LastIrreversibleBlockHeight = Constants.GenesisBlockHeight,
                 Branches =
                 {
-                    {genesisBlock.ToStorageKey(), KernelConstants.GenesisBlockHeight}
+                    {genesisBlock.ToStorageKey(), Constants.GenesisBlockHeight}
                 }
             };
 
             await SetChainBlockLinkAsync(new ChainBlockLink()
             {
                 BlockHash = genesisBlock,
-                Height = KernelConstants.GenesisBlockHeight,
+                Height = Constants.GenesisBlockHeight,
                 PreviousBlockHash = Hash.Empty,
                 IsLinked = true,
                 IsIrreversibleBlock = true
             });
 
-            await SetChainBlockIndexAsync(KernelConstants.GenesisBlockHeight, genesisBlock);
+            await SetChainBlockIndexAsync(Constants.GenesisBlockHeight, genesisBlock);
 
             await _chains.SetAsync(ChainId.ToStorageKey(), chain);
 
@@ -108,28 +110,28 @@ namespace AElf.Kernel.Blockchain.Domain
 
         protected async Task<ChainBlockLink> GetChainBlockLinkAsync(string blockHash)
         {
-            return await _chainBlockLinks.GetAsync(ChainId.ToStorageKey() + KernelConsts.StorageKeySeparator + blockHash);
+            return await _chainBlockLinks.GetAsync(ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator + blockHash);
         }
 
         public async Task SetChainBlockLinkAsync(ChainBlockLink chainBlockLink)
         {
-            await _chainBlockLinks.SetAsync(ChainId.ToStorageKey() + KernelConsts.StorageKeySeparator + chainBlockLink.BlockHash.ToStorageKey(), chainBlockLink);
+            await _chainBlockLinks.SetAsync(ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator + chainBlockLink.BlockHash.ToStorageKey(), chainBlockLink);
         }
 
         private async Task SetChainBlockIndexAsync(long blockHeight, Hash blockHash)
         {
-            await _chainBlockIndexes.SetAsync(ChainId.ToStorageKey() + KernelConsts.StorageKeySeparator + blockHeight.ToStorageKey(),
+            await _chainBlockIndexes.SetAsync(ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator + blockHeight.ToStorageKey(),
                 new ChainBlockIndex() {BlockHash = blockHash});
         }
 
         public async Task RemoveChainBlockLinkAsync(Hash blockHash)
         {
-            await _chainBlockLinks.RemoveAsync(ChainId.ToStorageKey() + KernelConsts.StorageKeySeparator +  blockHash.ToStorageKey());
+            await _chainBlockLinks.RemoveAsync(ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator +  blockHash.ToStorageKey());
         }
 
         public async Task<ChainBlockIndex> GetChainBlockIndexAsync(long blockHeight)
         {
-            return await _chainBlockIndexes.GetAsync(ChainId.ToStorageKey() + KernelConsts.StorageKeySeparator + blockHeight.ToStorageKey());
+            return await _chainBlockIndexes.GetAsync(ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator + blockHeight.ToStorageKey());
         }
 
         public async Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, ChainBlockLink chainBlockLink)
@@ -174,15 +176,12 @@ namespace AElf.Kernel.Blockchain.Domain
                 }
                 else
                 {
-                    if (chainBlockLink.Height <= chain.LongestChainHeight)
+                    //check database to ensure whether it can be a branch
+                    var previousChainBlockLink = await this.GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
+                    if (previousChainBlockLink != null && previousChainBlockLink.IsLinked)
                     {
-                        //check database to ensure whether it can be a branch
-                        var previousChainBlockLink = await this.GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
-                        if (previousChainBlockLink != null && previousChainBlockLink.IsLinked)
-                        {
-                            chain.Branches[previousChainBlockLink.BlockHash.ToStorageKey()] = previousChainBlockLink.Height;
-                            continue;
-                        }
+                        chain.Branches[previousChainBlockLink.BlockHash.ToStorageKey()] = previousChainBlockLink.Height;
+                        continue;
                     }
 
                     chain.NotLinkedBlocks[previousHash] = blockHash;
@@ -205,7 +204,7 @@ namespace AElf.Kernel.Blockchain.Domain
             return status;
         }
 
-        public async Task SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash)
+        public async Task<bool> SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash)
         {
             Stack<ChainBlockLink> links = new Stack<ChainBlockLink>();
 
@@ -217,7 +216,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 if (chainBlockLink == null || chainBlockLink.IsIrreversibleBlock)
                     break;
                 if (!chainBlockLink.IsLinked)
-                    throw new InvalidOperationException("should not set an unlinked block as irreversible block");
+                    throw new InvalidOperationException($"should not set an unlinked block as irreversible block, height: {chainBlockLink.Height}, hash: {chainBlockLink.BlockHash}");
                 chainBlockLink.IsIrreversibleBlock = true;
                 links.Push(chainBlockLink);
                 irreversibleBlockHash = chainBlockLink.PreviousBlockHash;
@@ -226,6 +225,7 @@ namespace AElf.Kernel.Blockchain.Domain
             while (links.Count > 0)
             {
                 var chainBlockLink = links.Pop();
+                if (chainBlockLink.Height <= chain.LastIrreversibleBlockHeight) return false;
                 await SetChainBlockIndexAsync(chainBlockLink.Height, chainBlockLink.BlockHash);
                 await SetChainBlockLinkAsync(chainBlockLink);
                 chain.LastIrreversibleBlockHash = chainBlockLink.BlockHash;
@@ -235,6 +235,8 @@ namespace AElf.Kernel.Blockchain.Domain
 
                 await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
             }
+
+            return true;
         }
 
         public async Task<List<ChainBlockLink>> GetNotExecutedBlocks(Hash blockHash)
@@ -407,6 +409,19 @@ namespace AElf.Kernel.Blockchain.Domain
             {
                 chain.NotLinkedBlocks.Remove(key);
             }
+
+            await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+        }
+
+        public async Task RemoveLongestBranchAsync(Chain chain)
+        {
+            chain.Branches.Remove(chain.LongestChainHash.ToStorageKey());
+            chain.Branches[chain.BestChainHash.ToStorageKey()] = chain.BestChainHeight;
+
+            chain.LongestChainHash = chain.BestChainHash;
+            chain.LongestChainHeight = chain.BestChainHeight;
+            Logger.LogWarning(
+                $"Switch Longest chain to height: {chain.LongestChainHeight}, hash: {chain.LongestChainHash}.");
 
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
         }

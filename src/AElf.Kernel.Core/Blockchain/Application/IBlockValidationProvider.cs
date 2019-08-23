@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
-using AElf.Kernel.Account.Application;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Blockchain.Application
@@ -94,7 +94,7 @@ namespace AElf.Kernel.Blockchain.Application
         {
             if (block?.Header == null || block.Body == null)
             {
-                Logger.LogWarning($"Block header or body is null {block}");
+                Logger.LogWarning($"Block header or body is null.");
                 return false;
             }
 
@@ -110,20 +110,20 @@ namespace AElf.Kernel.Blockchain.Application
                 return false;
             }
 
-            if (block.Height != KernelConstants.GenesisBlockHeight && !block.VerifySignature())
+            if (block.Header.Height != Constants.GenesisBlockHeight && !block.VerifySignature())
             {
-                Logger.LogWarning($"Block verify signature failed. {block}");
+                Logger.LogWarning($"Block verify signature failed.");
                 return false;
             }
 
-            if (block.Body.CalculateMerkleTreeRoots() != block.Header.MerkleTreeRootOfTransactions)
+            if (block.Body.CalculateMerkleTreeRoot() != block.Header.MerkleTreeRootOfTransactions)
             {
-                Logger.LogWarning($"Block merkle tree root mismatch {block}");
+                Logger.LogWarning($"Block merkle tree root mismatch.");
                 return false;
             }
 
-            if (block.Height != KernelConstants.GenesisBlockHeight &&
-                block.Header.Time.ToDateTime() - DateTime.UtcNow > KernelConsts.AllowedFutureBlockTimeSpan)
+            if (block.Header.Height != Constants.GenesisBlockHeight &&
+                block.Header.Time.ToDateTime() - TimestampHelper.GetUtcNow().ToDateTime() > KernelConstants.AllowedFutureBlockTimeSpan.ToTimeSpan())
             {
                 Logger.LogWarning($"Future block received {block}, {block.Header.Time.ToDateTime()}");
                 return false;
@@ -131,7 +131,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             return true;
         }
-
+        
         public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
             if (block?.Header == null || block.Body == null)

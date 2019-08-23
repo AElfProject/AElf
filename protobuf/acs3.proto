@@ -1,8 +1,9 @@
 syntax = "proto3";
 
 package acs3;
-import "common.proto";
-import "aelf_options.proto";
+
+import "aelf/core.proto";
+import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
@@ -10,34 +11,37 @@ import "google/protobuf/wrappers.proto";
 option (aelf.identity) = "acs3";
 
 service AuthorizationContract {
-    rpc CreateProposal (CreateProposalInput) returns (Hash) {
+    rpc CreateProposal (CreateProposalInput) returns (aelf.Hash) {
     }
     rpc Approve (ApproveInput) returns (google.protobuf.BoolValue) {
     }
-    rpc GetProposal(Hash) returns (ProposalOutput) {
+    rpc Release(aelf.Hash) returns (google.protobuf.Empty){
+    }
+    rpc GetProposal(aelf.Hash) returns (ProposalOutput) {
         option (aelf.is_view) = true;
     }
 }
 
 message ApproveInput {
-    Hash proposalId = 1;
+    aelf.Hash proposal_id = 1;
     sint64 quantity= 2;
 }
 
-message CreateProposalInput{
-    string contractMethodName = 2;
-    Address toAddress = 3;
+message CreateProposalInput {
+    string contract_method_name = 2;
+    aelf.Address to_address = 3;
     bytes params = 4;
-    google.protobuf.Timestamp expiredTime = 5;
-    Address organizationAddress = 6;
+    google.protobuf.Timestamp expired_time = 5;
+    aelf.Address organization_address = 6;
 }
 
-message ProposalOutput{
-    Hash proposalId = 1;
-    string contractMethodName = 2;
-    Address toAddress = 3;
+message ProposalOutput {
+    aelf.Hash proposal_id = 1;
+    string contract_method_name = 2;
+    aelf.Address to_address = 3;
     bytes params = 4;
-    google.protobuf.Timestamp expiredTime = 5;
-    Address organizationAddress = 6;
-    Address proposer = 7;
+    google.protobuf.Timestamp expired_time = 5;
+    aelf.Address organization_address = 6;
+    aelf.Address proposer = 7;
+    bool to_be_released = 8;
 }

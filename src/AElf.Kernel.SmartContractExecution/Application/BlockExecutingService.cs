@@ -4,8 +4,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.EventMessages;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContract.Domain;
+using AElf.Types;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
@@ -17,6 +20,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly IBlockManager _blockManager;
         private readonly IBlockGenerationService _blockGenerationService;
         public ILocalEventBus EventBus { get; set; }
+        public ILogger<BlockExecutingService> Logger { get; set; }
+
         public BlockExecutingService(ITransactionExecutingService executingService, IBlockManager blockManager,
             IBlockGenerationService blockGenerationService)
         {
@@ -37,38 +42,48 @@ namespace AElf.Kernel.SmartContractExecution.Application
             IEnumerable<Transaction> nonCancellableTransactions, IEnumerable<Transaction> cancellableTransactions,
             CancellationToken cancellationToken)
         {
+            Logger.LogTrace("Entered ExecuteBlockAsync");
             var nonCancellable = nonCancellableTransactions.ToList();
             var cancellable = cancellableTransactions.ToList();
 
             var nonCancellableReturnSets =
-                await _executingService.ExecuteAsync(blockHeader, nonCancellable, CancellationToken.None, true);
-            var cancellableReturnSets =
-                await _executingService.ExecuteAsync(blockHeader, cancellable, cancellationToken, false);
-            var blockReturnSet = new List<ExecutionReturnSet>();
-            var unexecutable = new List<Hash>();
-            foreach (var returnSet in nonCancellableReturnSets.Concat(cancellableReturnSets))
+                await _executingService.ExecuteAsync(
+                    new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = nonCancellable},
+                    CancellationToken.None, true);
+            Logger.LogTrace("Executed non-cancellable txs");
+
+            var returnSetCollection = new ReturnSetCollection(nonCancellableReturnSets);
+            List<ExecutionReturnSet> cancellableReturnSets = new List<ExecutionReturnSet>();
+            if (cancellable.Count > 0)
             {
-                if (returnSet.Status == TransactionResultStatus.Mined ||
-                    returnSet.Status == TransactionResultStatus.Failed)
-                {
-                    blockReturnSet.Add(returnSet);
-                }else if (returnSet.Status == TransactionResultStatus.Unexecutable)
-                {
-                    unexecutable.Add(returnSet.TransactionId);
-                }
+                cancellableReturnSets = await _executingService.ExecuteAsync(
+                    new TransactionExecutingDto
+                    {
+                        BlockHeader = blockHeader,
+                        Transactions = cancellable,
+                        PartialBlockStateSet = returnSetCollection.ToBlockStateSet()
+                    },
+                    cancellationToken, false);
+                returnSetCollection.AddRange(cancellableReturnSets);
             }
 
-            if (unexecutable.Count > 0)
+            Logger.LogTrace("Executed cancellable txs");
+
+            Logger.LogTrace("Handled return set");
+
+            if (returnSetCollection.Unexecutable.Count > 0)
             {
-                await EventBus.PublishAsync(new UnexecutableTransactionsFoundEvent(blockHeader, unexecutable));
+                await EventBus.PublishAsync(
+                    new UnexecutableTransactionsFoundEvent(blockHeader, returnSetCollection.Unexecutable));
             }
-            // TODO: Insert deferredTransactions to TxPool
 
             var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
             var allExecutedTransactions =
                 nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
             var block = await _blockGenerationService.FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
-                blockReturnSet);
+                returnSetCollection.Executed);
+
+            Logger.LogTrace("Filled block");
 
             return block;
         }

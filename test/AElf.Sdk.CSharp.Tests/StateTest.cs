@@ -2,6 +2,7 @@ using System;
 using AElf.Kernel;
 using AElf.Sdk.CSharp.State;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Types;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -39,7 +40,7 @@ namespace AElf.Sdk.CSharp.Tests
 
             if (typeof(T) == typeof(byte[]))
             {
-                return (T) (object) ByteArrayHelpers.FromHexString("302010");
+                return (T) (object) ByteArrayHelper.HexStringToByteArray("302010");
             }
 
             if (typeof(T) == typeof(string))
@@ -49,7 +50,7 @@ namespace AElf.Sdk.CSharp.Tests
 
             if (typeof(T) == typeof(Address))
             {
-                return (T) (object) Address.FromString("a");
+                return (T) (object) SampleAddress.AddressList[0];
             }
 
             throw new Exception("Not supported type.");
@@ -102,7 +103,7 @@ namespace AElf.Sdk.CSharp.Tests
             var mockProvider = new Mock<IStateProvider>();
             var mockContext = new Mock<ISmartContractBridgeContext>();
             mockContext.SetupGet(o => o.StateProvider).Returns(mockProvider.Object);
-            mockContext.SetupGet(o => o.Self).Returns(Address.Zero);
+            mockContext.SetupGet(o => o.Self).Returns(SampleAddress.AddressList[0]);
 
             var state = new MockContractState
             {
@@ -119,6 +120,8 @@ namespace AElf.Sdk.CSharp.Tests
 
             // Get changes
             var changes = state.GetChanges();
+            changes.Reads.Count.ShouldBeGreaterThan(0);
+            changes.Writes.Count.ShouldBeGreaterThan(0);
 
             // Clear values
             state.Clear();

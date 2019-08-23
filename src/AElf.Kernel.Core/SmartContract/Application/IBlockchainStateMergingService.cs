@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -31,7 +32,7 @@ namespace AElf.Kernel.SmartContract.Application
         {
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
             var firstHeightToMerge = chainStateInfo.BlockHeight == 0L
-                ? KernelConstants.GenesisBlockHeight
+                ? Constants.GenesisBlockHeight
                 : chainStateInfo.BlockHeight + 1;
             var mergeCount = lastIrreversibleBlockHeight - firstHeightToMerge;
             if (mergeCount < 0)

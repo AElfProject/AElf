@@ -2,40 +2,21 @@ syntax = "proto3";
 
 package acs2;
 
-import "aelf_options.proto";
+import "aelf/core.proto";
+import "aelf/options.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/any.proto";
 
 option (aelf.identity) = "acs2";
 
-service MetadataProvidingContract {
-    // Actions
-    rpc SetMetadata (SetMetadataInput) returns (google.protobuf.Empty) {
-    }
+service ACS2Base {
     // Views
-    rpc GetMetadata (GetMetadataInput) returns (GetMetadataOutput) {
+    rpc GetResourceInfo (aelf.Transaction) returns (ResourceInfo) {
         option (aelf.is_view) = true;
     }
-
 }
 
-message GetMetadataInput {
-    string method = 1;
-}
-
-message GetMetadataOutput {
-    string method = 1;
-    string metadata = 2;
-}
-
-message SetMetadataInput {
-    string method = 1;
-    string metadata = 2;
-}
-
-// Events
-message MetadataSet {
-    option (aelf.is_event) = true;
-    string method = 1;
-    string oldMetadata = 2;
-    string newMetadata = 3;
+message ResourceInfo {
+    repeated aelf.ScopedStatePath paths = 1;
+    bool non_parallelizable = 2;
 }

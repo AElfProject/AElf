@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <AssemblyName>AElf.Runtime.CSharp.Tests.BadContract</AssemblyName>
+        <RootNamespace>AElf.Runtime.CSharp.Tests.BadContract</RootNamespace>
+        <IsContract>true</IsContract>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+        <ContractCode Include="..\..\protobuf\bad_contract.proto">
+            <Link>Protobuf\Proto\bad_contract.proto</Link>
+        </ContractCode>
+    </ItemGroup>
+</Project>

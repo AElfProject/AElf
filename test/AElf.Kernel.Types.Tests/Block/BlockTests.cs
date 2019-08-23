@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Xunit;
 using Shouldly;
 
@@ -13,41 +14,80 @@ namespace AElf.Kernel.Types.Tests
         [Fact]
         public void BlockHeader_Test()
         {
-            var blockHeader = new BlockHeader()
-            {
-                PreviousBlockHash = Hash.Generate(),
-                ChainId = 1234,
-                Height = 3,
-            };
+            var blockHeader = GenerateBlockHeader();
             var hash = blockHeader.GetHash();
             hash.ShouldNotBe(null);
 
             var hashByte = blockHeader.GetHashBytes();
             hashByte.ShouldNotBe(null);
+
+            //exception cases
+            blockHeader = GenerateBlockHeader();
+            blockHeader.ChainId = -12;
+            Should.Throw<InvalidOperationException>(() => { blockHeader.GetHash(); });
+
+            blockHeader = GenerateBlockHeader();
+            blockHeader.SignerPubkey = ByteString.Empty;
+            Should.Throw<InvalidOperationException>(() => { blockHeader.GetHash(); });
+            
+            blockHeader = GenerateBlockHeader();
+            blockHeader.PreviousBlockHash = null;
+            Should.Throw<InvalidOperationException>(() => { blockHeader.GetHash(); });
+            
+            blockHeader = GenerateBlockHeader();
+            blockHeader.MerkleTreeRootOfTransactionStatus = null;
+            Should.Throw<InvalidOperationException>(() => { blockHeader.GetHash(); });
+            
+            blockHeader = GenerateBlockHeader();
+            blockHeader.Time = null;
+            Should.Throw<InvalidOperationException>(() => { blockHeader.GetHash(); });
         }
 
         [Fact]
         public void BlockBody_Test()
         {
-            var blockHeader = new BlockHeader()
-            {
-                PreviousBlockHash = Hash.Generate(),
-                ChainId = 1234,
-                Height = 1,
-            };
+            var blockHeader = GenerateBlockHeader();
             var transactionItems = GenerateFakeTransactions(3);
             var blockBody = new BlockBody()
             {
                 BlockHeader = blockHeader.GetHash(),
-                TransactionList = { transactionItems.Item1},
-                Transactions = { transactionItems.Item2},
-                BinaryMerkleTree = {
-                    Nodes = { Hash.Generate(), Hash.Generate() },
-                    LeafCount = 2
-                }
+                TransactionIds = {transactionItems.Item2}
             };
             blockBody.TransactionsCount.ShouldBe(3);
-            blockBody.BinaryMerkleTree.ShouldNotBe(null);
+        }
+
+        [Fact]
+        public void CalculateBodyHash_Test()
+        {
+            //transaction count == 0
+            var blockBody = new BlockBody
+            {
+                BlockHeader = Hash.FromString("header")
+            };
+            Should.Throw<InvalidOperationException>(() => blockBody.GetHash());
+
+            //block header == null
+            blockBody = new BlockBody
+            {
+                TransactionIds = {Hash.FromString("tx1")},
+            };
+            Should.Throw<InvalidOperationException>(() => blockBody.GetHash());
+
+            blockBody = new BlockBody
+            {
+                BlockHeader = Hash.FromString("header"),
+                TransactionIds =
+                {
+                    new[]
+                    {
+                        Hash.FromString("tx1"),
+                        Hash.FromString("tx2"),
+                        Hash.FromString("tx3"),
+                    }
+                }
+            };
+            var hash = blockBody.GetHash();
+            hash.ShouldNotBeNull();
         }
 
         [Fact]
@@ -56,107 +96,98 @@ namespace AElf.Kernel.Types.Tests
             var blockIndex = new BlockIndex();
             blockIndex.Hash = Hash.Empty;
             blockIndex.Height = 1L;
-            
+
             var blockIndex1 = new BlockIndex(Hash.Empty, 1L);
-            
+
             blockIndex.ToString().ShouldBe(blockIndex1.ToString());
             blockIndex.ToString().Contains(Hash.Empty.ToString()).ShouldBeTrue();
             blockIndex.ToString().Contains("1").ShouldBeTrue();
         }
 
         [Fact]
-        public void BlockBody_Hash_Test()
+        public void Block_Test()
         {
-            var block = CreateBlock(Hash.Generate(), 0, 10);
-            var hash = block.Body.GetHashWithoutCache();
-            hash.ShouldNotBeNull();
-
-            var hash1 = block.Body.GetHashWithoutCache();
-            hash.ShouldNotBeNull();
-            hash.ShouldBe(hash1);
-        }
-        
-        [Fact]
-        public void BlockTest()
-        {
-            var block = CreateBlock(Hash.Generate(), 1234, 10);
+            var block = CreateBlock(Hash.FromString("hash"), 1234, 10);
             block.Height.ShouldBe(10u);
 
             var hash = block.GetHash();
             hash.ShouldNotBe(null);
-
-            var hashBytes = block.GetHashBytes();
-            hashBytes.ShouldNotBe(null);
-            hashBytes.Length.ShouldBe(32);
-
-            var serializeData = block.Serialize();
-            serializeData.ShouldNotBe(null);
         }
 
         [Fact]
-        public void Get_BlockHash()
+        public void Get_BlockHash_Test()
         {
-            var blockHeader = new BlockHeader
-            {
-                ChainId = 2111,
-                Height = 10,
-                PreviousBlockHash = Hash.Generate(),
-                MerkleTreeRootOfTransactions = Hash.Generate(),
-                MerkleTreeRootOfWorldState = Hash.Generate(),
-                Bloom = ByteString.Empty,
-                BlockExtraDatas = { ByteString.CopyFromUtf8("test")}
-            };
+            var blockHeader = GenerateBlockHeader();
             var hash = blockHeader.GetHash();
-            hash.ShouldNotBeNull();   
-            
+            hash.ShouldNotBeNull();
+
             var hashBytes = blockHeader.GetHashBytes();
             hashBytes.Length.ShouldBe(32);
 
-            var hash1 = Hash.LoadByteArray(hashBytes);
+            var hash1 = Hash.FromByteArray(hashBytes);
             hash.ShouldBe(hash1);
         }
-        
+
         private Block CreateBlock(Hash preBlockHash, int chainId, long height)
         {
             Interlocked.CompareExchange(ref preBlockHash, Hash.Empty, null);
 
-            var block = new Block(Hash.Generate());
+            var block = new Block(Hash.FromString("hash1"));
 
             block.Header.PreviousBlockHash = preBlockHash;
             block.Header.ChainId = chainId;
-            block.Header.Time = Timestamp.FromDateTime(DateTime.UtcNow);
+            block.Header.Time = TimestampHelper.GetUtcNow();
             block.Header.Height = height;
-            block.Header.MerkleTreeRootOfWorldState = Hash.Empty;
-
-            block.Body.BlockHeader = block.Header.GetHash();
-            block.Body.BinaryMerkleTree.Root = Hash.Empty;
             var transactionItems = GenerateFakeTransactions(3);
-            block.Body.TransactionList.AddRange(transactionItems.Item1);
-            block.Body.Transactions.AddRange(transactionItems.Item2);
+            block.Body.TransactionIds.AddRange(transactionItems.Item2);
+
+            block.Header.MerkleTreeRootOfTransactions =
+                BinaryMerkleTree.FromLeafNodes(block.Body.TransactionIds).Root;
+            block.Header.MerkleTreeRootOfWorldState = Hash.Empty;
+            block.Header.MerkleTreeRootOfTransactionStatus = Hash.Empty;
+            block.Header.SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey");
+            block.Header.ExtraData.Add(ByteString.Empty);
+            block.Body.BlockHeader = block.Header.GetHash();           
 
             return block;
         }
 
-        private (List<Kernel.Transaction>, List<Hash>) GenerateFakeTransactions(int count)
+        private (List<Transaction>, List<Hash>) GenerateFakeTransactions(int count)
         {
-            var transactions = new List<Kernel.Transaction>();
-            var transactionHashes = new List<Hash>();
+            var transactions = new List<Transaction>();
+            var transactionIds = new List<Hash>();
             for (int i = 0; i < count; i++)
             {
-               var transaction = new Kernel.Transaction()
-               {
-                   From = Address.Generate(),
-                   To = Address.Generate(),
-                   MethodName = $"Test{i}",
-                   Params = ByteString.Empty
-               };
-               var hash = transaction.GetHash();
+                var transaction = new Transaction()
+                {
+                    From = AddressHelper.Base58StringToAddress("z1NVbziJbekvcza3Zr4Gt4eAvoPBZThB68LHRQftrVFwjtGVM"),
+                    To = AddressHelper.Base58StringToAddress("2vNDCj1WjNLAXm3VnEeGGRMw3Aab4amVSEaYmCyxQKjNhLhfL7"),
+                    MethodName = $"Test{i}",
+                    Params = ByteString.Empty
+                };
+                var hash = transaction.GetHash();
 
-               transactions.Add(transaction);
-               transactionHashes.Add(hash);
+                transactions.Add(transaction);
+                transactionIds.Add(hash);
             }
 
-            return (transactions, transactionHashes);
+            return (transactions, transactionIds);
+        }
+
+        private BlockHeader GenerateBlockHeader()
+        {
+            return new BlockHeader
+            {
+                ChainId = 1234,
+                Height = 10,
+                PreviousBlockHash = Hash.FromString("hash3"),
+                MerkleTreeRootOfTransactions = Hash.Empty,
+                MerkleTreeRootOfWorldState = Hash.Empty,
+                ExtraData = {ByteString.Empty},
+                Time = TimestampHelper.GetUtcNow(),
+                MerkleTreeRootOfTransactionStatus = Hash.Empty,
+                SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey")
+            };
         }
     }
 }

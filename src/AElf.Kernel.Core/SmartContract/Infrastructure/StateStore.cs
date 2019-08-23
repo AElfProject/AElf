@@ -39,9 +39,9 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             await _stateStoreImplementation.SetAsync(key, value);
         }
 
-        public async Task PipelineSetAsync(Dictionary<string, T> pipelineSet)
+        public async Task SetAllAsync(Dictionary<string, T> pipelineSet)
         {
-            await _stateStoreImplementation.PipelineSetAsync(pipelineSet);
+            await _stateStoreImplementation.SetAllAsync(pipelineSet);
         }
 
         public async Task<T> GetAsync(string key)
@@ -55,7 +55,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             if (state != null)
             {
                 _toBeCleanedKeys.Enqueue(key);
-                while (_toBeCleanedKeys.Count > 100)
+                while (_toBeCleanedKeys.Count > 1024)
                 {
                     try
                     {

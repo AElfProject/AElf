@@ -1,13 +1,13 @@
-using System.Collections.Generic;
 using System.IO;
+using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
@@ -27,7 +27,7 @@ namespace AElf.Contracts.AssociationAuth
         
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
-        protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
+        protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address TokenContractAddress { get; set; }
         protected Address AssociationAuthContractAddress { get; set; }
         
@@ -45,7 +45,7 @@ namespace AElf.Contracts.AssociationAuth
                     new ContractDeploymentInput()
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AssociationAuthContract).Assembly.Location)),  
+                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AssociationAuthContract).Assembly.Location))
                     })).Output;
             AssociationAuthContractStub = GetAssociationAuthContractTester(DefaultSenderKeyPair);
             
@@ -82,7 +82,7 @@ namespace AElf.Contracts.AssociationAuth
             const string symbol = "ELF";
             const long totalSupply = 100_000_000;
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContract.Create), new CreateInput
             {
                 Symbol = symbol,
                 Decimals = 2,

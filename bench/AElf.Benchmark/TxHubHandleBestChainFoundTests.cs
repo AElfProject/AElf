@@ -56,7 +56,7 @@ namespace AElf.Benchmark
             _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
             await _blockchainService.AddBlockAsync(_block);
             await _chainBlockLinks.SetAsync(
-                chain.Id.ToStorageKey() + KernelConsts.StorageKeySeparator + _block.GetHash().ToStorageKey(),
+                chain.Id.ToStorageKey() + KernelConstants.StorageKeySeparator + _block.GetHash().ToStorageKey(),
                 new ChainBlockLink()
                 {
                     BlockHash = _block.GetHash(),
@@ -91,10 +91,11 @@ namespace AElf.Benchmark
                 BlockHeight = _chain.BestChainHeight
             });
             
-            foreach (var tx in _block.Body.Transactions)
+            foreach (var transactionId in _block.Body.TransactionIds)
             {
-                _transactionManager.RemoveTransaction(tx);
+                await _transactionManager.RemoveTransaction(transactionId);
             }
+            
             await _chainManager.RemoveChainBlockLinkAsync(_block.GetHash());
             await _blockManager.RemoveBlockAsync(_block.GetHash());
             await _chains.SetAsync(_chain.Id.ToStorageKey(), _chain);

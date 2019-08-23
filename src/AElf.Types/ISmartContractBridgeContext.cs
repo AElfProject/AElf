@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf
 {
@@ -33,28 +34,18 @@ namespace AElf
 
         Address Self { get; }
 
-        // TODO: Remove genesis
-        Address Genesis { get; }
+        Address Origin { get; }
+
         long CurrentHeight { get; }
 
-        DateTime CurrentBlockTime { get; }
+        Timestamp CurrentBlockTime { get; }
         Hash PreviousBlockHash { get; }
-
-        // TODO: Remove RecoverPublicKey(byte[] signature, byte[] hash)
-        byte[] RecoverPublicKey(byte[] signature, byte[] hash);
 
         byte[] RecoverPublicKey();
 
-        // TODO: Remove GetBlockByHeight
-        IBlockBase GetPreviousBlock();
+        List<Transaction> GetPreviousBlockTransactions();
 
         bool VerifySignature(Transaction tx);
-
-        /// <summary>
-        /// Generate txn not executed before next block. 
-        /// </summary>
-        /// <param name="deferredTxn"></param>
-        void SendDeferredTransaction(Transaction deferredTxn);
 
         void DeployContract(Address address, SmartContractRegistration registration, Hash name);
 
@@ -68,6 +59,12 @@ namespace AElf
         Address ConvertVirtualAddressToContractAddress(Hash virtualAddress);
 
         Address GetZeroSmartContractAddress();
+
+        Address GetZeroSmartContractAddress(int chainId);
+
+        Address GetContractAddressByName(Hash hash);
+
+        IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping();
 
         IStateProvider StateProvider { get; }
 

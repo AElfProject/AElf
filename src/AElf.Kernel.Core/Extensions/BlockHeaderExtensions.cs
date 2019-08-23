@@ -1,3 +1,6 @@
+using AElf.Types;
+using Google.Protobuf;
+
 namespace AElf.Kernel
 {
     public static class BlockHeaderExtensions
@@ -9,11 +12,11 @@ namespace AElf.Kernel
 
         public static Hash GetPreMiningHash(this BlockHeader blockHeader)
         {
-            return new BlockHeader()
+            return Hash.FromRawBytes(new BlockHeader()
             {
                 PreviousBlockHash = blockHeader.PreviousBlockHash,
                 Height = blockHeader.Height
-            }.GetHash();
+            }.ToByteArray());
         }
     }
 }

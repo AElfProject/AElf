@@ -1,4 +1,3 @@
-using System.Net.Sockets;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,14 +6,14 @@ using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel
 {
     public class KernelTestHelper
     {
-        private ECKeyPair _keyPair = CryptoHelpers.GenerateKeyPair();
+        public ECKeyPair KeyPair = CryptoHelper.GenerateKeyPair();
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultService _transactionResultService;
         private readonly IChainManager _chainManager;
@@ -68,7 +67,7 @@ namespace AElf.Kernel
         ///        Fork Branch:                    (e)-> q -> r -> s -> t -> u
         ///    Unlinked Branch:                                              v  -> w  -> x  -> y  -> z
         /// </returns>
-        public async Task<Chain> MockChain()
+        public async Task<Chain> MockChainAsync()
         {
             var chain = await CreateChain();
 
@@ -104,17 +103,17 @@ namespace AElf.Kernel
         {
             var transaction = new Transaction
             {
-                From = Address.FromPublicKey(_keyPair.PublicKey),
-                To = Address.Zero,
+                From = Address.FromPublicKey(KeyPair.PublicKey),
+                To = SampleAddress.AddressList[0],
                 MethodName = Guid.NewGuid().ToString(),
                 Params = ByteString.Empty,
                 RefBlockNumber = refBlockNumber,
                 RefBlockPrefix = refBlockHash == null
                     ? ByteString.Empty
-                    : ByteString.CopyFrom(refBlockHash.DumpByteArray().Take(4).ToArray())
+                    : ByteString.CopyFrom(refBlockHash.ToByteArray().Take(4).ToArray())
             };
 
-            var signature = CryptoHelpers.SignWithPrivateKey(_keyPair.PrivateKey, transaction.GetHash().DumpByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(KeyPair.PrivateKey, transaction.GetHash().ToByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
             return transaction;
         }
@@ -136,28 +135,37 @@ namespace AElf.Kernel
             return transactionResult;
         }
 
-        public Block GenerateBlock(long previousBlockHeight, Hash previousBlockHash, List<Transaction> transactions)
+        public Block GenerateBlock(long previousBlockHeight, Hash previousBlockHash, List<Transaction> transactions = null, ByteString extraData = null)
         {
+            
             var newBlock = new Block
             {
                 Header = new BlockHeader
                 {
                     Height = previousBlockHeight + 1,
                     PreviousBlockHash = previousBlockHash,
-                    Time = Timestamp.FromDateTime(DateTime.UtcNow)
+                    Time = TimestampHelper.GetUtcNow(),
+                    MerkleTreeRootOfWorldState = Hash.Empty,
+                    MerkleTreeRootOfTransactionStatus = Hash.Empty,
+                    MerkleTreeRootOfTransactions = Hash.Empty,
+                    ExtraData = { extraData==null? ByteString.Empty : extraData },
+                    SignerPubkey = ByteString.CopyFrom(KeyPair.PublicKey)
                 },
                 Body = new BlockBody()
             };
-            foreach (var transaction in transactions)
-            {
-                newBlock.AddTransaction(transaction);
-            }
 
-            newBlock.Header.MerkleTreeRootOfTransactions = newBlock.Body.CalculateMerkleTreeRoots();
+            if (transactions != null)
+            {
+                foreach (var transaction in transactions)
+                {
+                    newBlock.AddTransaction(transaction);
+                }
+                newBlock.Header.MerkleTreeRootOfTransactions = newBlock.Body.CalculateMerkleTreeRoot();
+            }
 
             return newBlock;
         }
-
+        
         public async Task<Block> AttachBlock(long previousBlockHeight, Hash previousBlockHash,
             List<Transaction> transactions = null, List<TransactionResult> transactionResults = null)
         {
@@ -204,6 +212,7 @@ namespace AElf.Kernel
             }
 
             await _blockchainService.AddBlockAsync(newBlock);
+            await _blockchainService.AddTransactionsAsync(transactions);
             var chain = await _blockchainService.GetChainAsync();
             await _blockchainService.AttachBlockToChainAsync(chain, newBlock);
 
@@ -230,16 +239,10 @@ namespace AElf.Kernel
 
         private async Task<Chain> CreateChain()
         {
-            var genesisBlock = new Block
-            {
-                Header = new BlockHeader
-                {
-                    Height = KernelConstants.GenesisBlockHeight,
-                    PreviousBlockHash = Hash.Empty
-                },
-                Body = new BlockBody()
-            };
-            var chain = await _blockchainService.CreateChainAsync(genesisBlock);
+            var genesisBlock = GenerateBlock(0, Hash.Empty, new List<Transaction>());
+            
+            var chain = await _blockchainService.CreateChainAsync(genesisBlock, new List<Transaction>());
+            
             return chain;
         }
         

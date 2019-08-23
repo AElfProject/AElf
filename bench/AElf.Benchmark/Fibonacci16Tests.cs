@@ -1,20 +1,11 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Infrastructure;
-using AElf.Kernel.KernelAccount;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS;
+using AElf.Types;
 using BenchmarkDotNet.Attributes;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Benchmark
@@ -48,7 +39,7 @@ namespace AElf.Benchmark
         [IterationSetup]
         public async Task IterationSetup()
         {
-            _transaction = _osTestHelper.GenerateTransaction(Address.Generate(), _contractAddress,
+            _transaction = _osTestHelper.GenerateTransaction(SampleAddress.AddressList[0], _contractAddress,
                 nameof(PerformanceTestContract.PerformanceTestContract.Fibonacci), new UInt64Value
                 {
                     Value = 16
@@ -64,7 +55,7 @@ namespace AElf.Benchmark
                     BlockHeight = _chain.BestChainHeight
                 },
                 _transaction,
-                DateTime.UtcNow);
+                TimestampHelper.GetUtcNow());
         }
 
         [IterationCleanup]

@@ -1,134 +1,101 @@
 syntax = "proto3";
 
-import "common.proto";
-import "aelf_options.proto";
-import "crosschain.proto";
+import "aelf/core.proto";
+import "aelf/options.proto";
+import "acs7.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/timestamp.proto";
-import "resource.proto";
 
 option csharp_namespace = "AElf.Contracts.CrossChain";
 
 service CrossChainContract {
+    
     option (aelf.csharp_state) = "AElf.Contracts.CrossChain.CrossChainContractState";
+    option (aelf.base) = "acs7.proto";
+    
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
-    rpc RequestChainCreation (SideChainCreationRequest) returns (RequestChainCreationOutput) {
-    }
-    rpc WithdrawRequest (SInt32Value) returns (google.protobuf.Empty) {
-    }
-    rpc CreateSideChain (SInt32Value) returns (SInt32Value) {
-    }
+    
+//    rpc WithdrawRequest (aelf.SInt32Value) returns (google.protobuf.Empty) {
+//    }
     rpc Recharge (RechargeInput) returns (google.protobuf.Empty) {
     }
-    rpc RequestChainDisposal (SInt32Value) returns (Hash) {
+    rpc RequestChainDisposal (aelf.SInt32Value) returns (aelf.Hash) {
     }
-    rpc DisposeSideChain (SInt32Value) returns (SInt64Value) {
+    rpc DisposeSideChain (aelf.SInt32Value) returns (aelf.SInt64Value) {
     }
-    rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) {
-    }
-    
-    rpc ChangOwnerAddress(Address) returns (google.protobuf.Empty) {
+    rpc ChangOwnerAddress(aelf.Address) returns (google.protobuf.Empty) {
     }
 
     // Views
     rpc VerifyTransaction (VerifyTransactionInput) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
-    } 
-    rpc CurrentSideChainSerialNumber (google.protobuf.Empty) returns (SInt64Value) {
+    }
+    rpc CurrentSideChainSerialNumber (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc LockedToken (SInt32Value) returns (SInt64Value) {
+    rpc LockedToken (aelf.SInt32Value) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc LockedAddress (SInt32Value) returns (Address) {
+    rpc LockedAddress (aelf.SInt32Value) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
-    rpc GetChainStatus (SInt32Value) returns (SInt32Value) {
+    rpc GetChainStatus (aelf.SInt32Value) returns (aelf.SInt32Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetSideChainHeight (SInt32Value) returns (SInt64Value) {
+    rpc GetSideChainHeight (aelf.SInt32Value) returns (aelf.SInt64Value) {
+        option (aelf.is_view) = true;
+    }   
+    rpc GetParentChainHeight (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetParentChainHeight (google.protobuf.Empty) returns (SInt64Value) {
+    rpc GetParentChainId (google.protobuf.Empty) returns (aelf.SInt32Value) {
         option (aelf.is_view) = true;
     }
-    rpc GetParentChainId (google.protobuf.Empty) returns (SInt32Value) {
-        option (aelf.is_view) = true;
-    }
-    rpc LockedBalance (SInt32Value) returns (SInt64Value) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetAllChainsIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetIndexedCrossChainBlockDataByHeight (SInt64Value) returns (CrossChainBlockData) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetBoundParentChainHeightAndMerklePathByHeight (SInt64Value) returns (CrossChainMerkleProofContext) {
-        option (aelf.is_view) = true;
-    }
-    rpc GetChainInitializationContext(SInt32Value) returns (ChainInitializationContext){
+    rpc LockedBalance (aelf.SInt32Value) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
 }
 
 message InitializeInput {
-    Hash tokenContractSystemName = 1;
-    Hash consensusContractSystemName = 2;
-    Hash parliamentContractSystemName = 3;
-    int32 parentChainId = 4;
+    int32 parent_chain_id = 1;
+    int64 creation_height_on_parent_chain = 2;
 }
 
 message RechargeInput {
-    int32 chainId = 1;
+    int32 chain_id = 1;
     sint64 amount = 2;
 }
 
-message RequestChainCreationOutput{
-    int32 chainId =1;
-    Hash proposalId = 2;
+message VerifyTransactionInput {
+    aelf.Hash transaction_id = 1;
+    aelf.MerklePath path = 2;
+    sint64 parent_chain_height = 3;
+    int32 verified_chain_id = 4;
 }
 
-message VerifyTransactionInput {
-    Hash transactionId = 1;
-    repeated Hash path = 2;
-    sint64 parentChainHeight = 3;
-    int32 verifiedChainId = 4; 
+message IndexedChainHeightDict{
+    map<int32, int64> indexed_chain_heights = 1;
 }
 
 // Events
-message CreationRequested
-{
+message CreationRequested {
     option (aelf.is_event) = true;
-    Address creator = 1;
+    aelf.Address creator = 1;
     int32 chainId = 2;
 }
 
-message Disposed
-{
+message Disposed {
     option (aelf.is_event) = true;
-    int32 chainId = 1;
+    int32 chain_id = 1;
 }
 
-message SideChainCreationRequest {
-    int64 indexingPrice = 1;
-    int64 lockedTokenAmount = 2;
-    repeated ResourceTypeBalancePair resourceBalances = 3;
-    bytes contractCode = 4;
+message ParentChainBlockDataIndexed{
+    option (aelf.is_event) = true;
 }
 
-message SideChainInfo {
-    SideChainCreationRequest sideChainCreationRequest = 1;
-    Address Proposer = 2;
-    SideChainStatus SideChainStatus = 3;
-    int32 SideChainId = 4;
-    Hash ProposalHash = 5;
-    google.protobuf.Timestamp CreatedTime = 6;
-    int64 ParentChainHeightOfCreation = 7;
+message SideChainBlockDataIndexed{
+    option (aelf.is_event) = true;
 }

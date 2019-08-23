@@ -5,7 +5,8 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.EventMessages;
+using AElf.Types;
+using AElf.Kernel.SmartContractExecution.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -28,16 +29,16 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private ConcurrentDictionary<Hash, TransactionReceipt> _validated = new ConcurrentDictionary<Hash, TransactionReceipt>();
 
-        private ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>> _invalidatedByBlock =
-            new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
+        private ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>> _invalidatedByBlock =
+            new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
 
-        private ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>> _expiredByExpiryBlock =
-            new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
+        private ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>> _expiredByExpiryBlock =
+            new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
 
-        private ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>> _futureByBlock =
-            new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
+        private ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>> _futureByBlock =
+            new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
 
-        private long _bestChainHeight = KernelConstants.GenesisBlockHeight - 1;
+        private long _bestChainHeight = Constants.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Empty;
 
         public ILocalEventBus LocalEventBus { get; set; }
@@ -52,7 +53,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _transactionOptions = transactionOptions.Value;
         }
 
-        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync()
+        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount=0)
         {
             var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash != _bestChainHash)
@@ -70,7 +71,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 PreviousBlockHash = _bestChainHash,
                 PreviousBlockHeight = _bestChainHeight
             };
-            output.Transactions.AddRange(_validated.Values.Select(x => x.Transaction));
+            output.Transactions.AddRange(_validated.Values
+                .Where((x, i) => transactionCount <= 0 || i < transactionCount).Select(x => x.Transaction));
 
             return output;
         }
@@ -85,16 +87,16 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         #region Private Static Methods
 
-        private static void AddToCollection(ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>> collection,
+        private static void AddToCollection(ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>> collection,
             TransactionReceipt receipt)
         {
             if (!collection.TryGetValue(receipt.Transaction.RefBlockNumber, out var receipts))
             {
-                receipts = new Dictionary<Hash, TransactionReceipt>();
+                receipts = new ConcurrentDictionary<Hash, TransactionReceipt>();
                 collection.TryAdd(receipt.Transaction.RefBlockNumber, receipts);
             }
 
-            receipts.Add(receipt.TransactionId, receipt);
+            receipts.TryAdd(receipt.TransactionId, receipt);
         }
 
         private static void CheckPrefixForOne(TransactionReceipt receipt, ByteString prefix, long bestChainHeight)
@@ -125,7 +127,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private async Task<ByteString> GetPrefixByHeightAsync(Chain chain, long height, Hash bestChainHash)
         {
             var hash = await _blockchainService.GetBlockHashByHeightAsync(chain, height, bestChainHash);
-            return hash == null ? null : ByteString.CopyFrom(hash.DumpByteArray().Take(4).ToArray());
+            return hash == null ? null : ByteString.CopyFrom(hash.ToByteArray().Take(4).ToArray());
         }
 
         private async Task<ByteString> GetPrefixByHeightAsync(long height, Hash bestChainHash)
@@ -149,9 +151,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private void ResetCurrentCollections()
         {
-            _expiredByExpiryBlock = new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
-            _invalidatedByBlock = new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
-            _futureByBlock = new ConcurrentDictionary<long, Dictionary<Hash, TransactionReceipt>>();
+            _expiredByExpiryBlock = new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
+            _invalidatedByBlock = new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
+            _futureByBlock = new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
             _validated = new ConcurrentDictionary<Hash, TransactionReceipt>();
         }
 
@@ -174,21 +176,43 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
         }
 
+        private void CleanTransactions(ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>
+            collection, long blockHeight)
+        {
+            foreach (var txIds in collection.Where(kv => kv.Key <= blockHeight))
+            {
+                CleanTransactions(txIds.Value.Keys.ToList());
+            }
+        }
+
+        private void CleanTransactions(IEnumerable<Hash> transactionIds)
+        {
+            foreach (var transactionId in transactionIds)
+            {
+                _allTransactions.TryRemove(transactionId, out _);
+            }
+        }
+
         #endregion
 
         #region Event Handler Methods
 
         public async Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData)
         {
+            var executableTransactions = new List<Transaction>();
             foreach (var transaction in eventData.Transactions)
             {
                 if (!transaction.VerifySignature())
                     continue;
 
-                var receipt = new TransactionReceipt(transaction);
+                var receipt = new TransactionReceipt
+                {
+                    TransactionId = transaction.GetHash(),
+                    Transaction = transaction
+                };
                 if (_allTransactions.ContainsKey(receipt.TransactionId))
                 {
-                    Logger.LogWarning($"Transaction already exists in TxStore");
+                    //Logger.LogWarning($"Transaction already exists in TxStore");
                     continue;
                 }
 
@@ -207,7 +231,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 var txn = await _transactionManager.GetTransaction(receipt.TransactionId);
                 if (txn != null)
                 {
-                    Logger.LogWarning($"Transaction already exists in TxStore");
+                    //Logger.LogWarning($"Transaction already exists in TxStore");
                     continue;
                 }
 
@@ -218,6 +242,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 }
 
                 await _transactionManager.AddTransactionAsync(transaction);
+                executableTransactions.Add(transaction);
 
                 if (_bestChainHash == Hash.Empty)
                 {
@@ -240,14 +265,13 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
-            foreach (var txId in block.Body.Transactions)
-            {
-                _allTransactions.TryRemove(txId, out _);
-            }
+            CleanTransactions(block.Body.TransactionIds.ToList());
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
         {
+            Logger.LogDebug($"Handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
+            
             var heights = _allTransactions.Select(kv => kv.Value.Transaction.RefBlockNumber).Distinct();
             var prefixes = await GetPrefixesByHeightAsync(heights, eventData.BlockHash);
             ResetCurrentCollections();
@@ -260,27 +284,22 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             _bestChainHash = eventData.BlockHash;
             _bestChainHeight = eventData.BlockHeight;
+            
+            Logger.LogDebug($"Finish handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
         }
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            foreach (var txIds in _expiredByExpiryBlock.Where(kv => kv.Key <= eventData.BlockHeight))
-            {
-                foreach (var txId in txIds.Value.Keys)
-                {
-                    _allTransactions.TryRemove(txId, out _);
-                }
-            }
+            CleanTransactions(_expiredByExpiryBlock, eventData.BlockHeight);
+            CleanTransactions(_invalidatedByBlock, eventData.BlockHeight);
 
             await Task.CompletedTask;
         }
 
         public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
         {
-            foreach (var txId in eventData.Transactions)
-            {
-                _allTransactions.TryRemove(txId, out _);
-            }
+            CleanTransactions(eventData.Transactions);
+
             await Task.CompletedTask;
         }
         #endregion

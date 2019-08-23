@@ -1,4 +1,5 @@
-﻿using Google.Protobuf;
+﻿using AElf.Types;
+using Google.Protobuf;
 
 namespace AElf.Kernel
 {
@@ -8,11 +9,6 @@ namespace AElf.Kernel
         {
             Id = chainId;
             GenesisBlockHash = genesisBlockHash;
-        }
-
-        public byte[] Serialize()
-        {
-            return this.ToByteArray();
         }
     }
 }

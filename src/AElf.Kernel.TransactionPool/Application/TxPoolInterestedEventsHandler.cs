@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.EventMessages;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
@@ -20,7 +20,6 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             _txHub = txHub;
         }
-
 
         public async Task HandleEventAsync(TransactionsReceivedEvent eventData)
         {

@@ -5,7 +5,7 @@ using Volo.Abp.Modularity;
 namespace AElf.WebApp.Application.Chain
 {
     [DependsOn(typeof(CoreKernelAElfModule), typeof(CoreApplicationWebAppAElfModule))]
-    public class ChainApplicationWebAppAElfModule : AElfModule<ChainApplicationWebAppAElfModule>
+    public class ChainApplicationWebAppAElfModule : AElfModule
     {
     }
 }

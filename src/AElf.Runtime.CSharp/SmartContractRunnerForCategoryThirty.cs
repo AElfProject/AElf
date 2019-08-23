@@ -7,6 +7,7 @@ using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Types;
 
 namespace AElf.Runtime.CSharp
 {
@@ -58,6 +59,8 @@ namespace AElf.Runtime.CSharp
             }
 
             var executive = new Executive(assembly, _executivePlugins);
+            
+            executive.ContractHash = reg.CodeHash;
 
             return await Task.FromResult(executive);
         }

@@ -4,6 +4,7 @@ using AElf.Kernel;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Types;
 using Google.Protobuf;
 using Shouldly;
 using Xunit;
@@ -13,7 +14,6 @@ namespace AElf.Sdk.CSharp.Tests
 {
     public class TestContractTests : SdkCSharpTestBase
     {
-        private List<Address> AddressList { get; } = new[] {"a", "b", "c", "d"}.Select(Address.FromString).ToList();
         private CustomContract.TestContract Contract = new CustomContract.TestContract();
         private IStateProvider StateProvider { get; }
         private IHostSmartContractBridgeContext BridgeContext { get; }
@@ -27,8 +27,8 @@ namespace AElf.Sdk.CSharp.Tests
             {
                 Transaction = new Transaction()
                 {
-                    From = AddressList[1],
-                    To = AddressList[0]
+                    From = SampleAddress.AddressList[0],
+                    To = SampleAddress.AddressList[1]
                 }
             };
 
@@ -133,7 +133,7 @@ namespace AElf.Sdk.CSharp.Tests
         {
             var input = new CustomContract.BytesInput
             {
-                BytesValue = Address.Generate().ToByteString()
+                BytesValue = SampleAddress.AddressList[0].ToByteString()
             };
 
             var output = Contract.TestBytesState(input);
@@ -203,6 +203,10 @@ namespace AElf.Sdk.CSharp.Tests
             output.Collection[0].BoolValue.ShouldBeFalse();            
             output.Collection[0].Int64Value.ShouldBe(100);
             output.Collection[0].StringValue.ShouldBe("test");
+
+            input.ProtobufValue.Int64Value = 200;
+            output = Contract.TestMappedState(input);
+            output.Collection[0].Int64Value.ShouldBe(200);
         }
         
         [Fact]
@@ -222,12 +226,10 @@ namespace AElf.Sdk.CSharp.Tests
             };
             
             var tradeMessage = Contract.TestMapped1State(input);
-            tradeMessage.Timestamp.ShouldNotBeNull();
             tradeMessage.FromAmount.ShouldBe(100);
             tradeMessage.ToAmount.ShouldBe(620);
             
             tradeMessage = Contract.TestMapped1State(input);
-            tradeMessage.Timestamp.ShouldNotBeNull();
             tradeMessage.FromAmount.ShouldBe(200);
             tradeMessage.ToAmount.ShouldBe(1240);
 
@@ -244,15 +246,14 @@ namespace AElf.Sdk.CSharp.Tests
                 }
             };
             tradeMessage = Contract.TestMapped1State(input);
-            tradeMessage.Timestamp.ShouldNotBeNull();
             tradeMessage.FromAmount.ShouldBe(100);
             tradeMessage.ToAmount.ShouldBe(758);
         }
-        
+
         [Fact]
         public void SendVirtualInline_Test()
         {
-            BridgeContext.SendVirtualInline(Hash.Generate(), Address.Generate(), "TestMethod", new CustomContract.StringInput
+            BridgeContext.SendVirtualInline(Hash.FromString("hash"), SampleAddress.AddressList[0], "TestMethod", new CustomContract.StringInput
             {
                 StringValue = "test send virtual inline"
             });
@@ -261,7 +262,7 @@ namespace AElf.Sdk.CSharp.Tests
         [Fact]
         public void SendInline_Test()
         {
-            BridgeContext.SendInline(Address.Generate(), "TestMethod", new CustomContract.StringInput
+            BridgeContext.SendInline(SampleAddress.AddressList[0], "TestMethod", new CustomContract.StringInput
             {
                 StringValue = "test send inline"
             });

@@ -2,15 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using AElf.Types;
 
 namespace AElf.Cryptography.SecretSharing
 {
     /// <summary>
-    /// Implementation of Shamir's Secret Sharing: https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing
+    ///     Implementation of Shamir's Secret Sharing: https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing
     /// </summary>
     public static class SecretSharingHelper
     {
-        public static List<string> EncodeSecret(string secretMessage, int threshold, int totalParts)
+        public static List<byte[]> EncodeSecret(byte[] secretMessage, int threshold, int totalParts)
         {
             // Polynomial construction.
             var coefficients = new BigInteger[threshold];
@@ -19,11 +20,11 @@ namespace AElf.Cryptography.SecretSharing
             for (var i = 1; i < threshold; i++)
             {
                 var foo = new byte[32];
-                Array.Copy(Hash.Generate().ToArray(), foo, 32);
+                Array.Copy(Hash.FromRawBytes(Guid.NewGuid().ToByteArray()).ToArray(), foo, 32);
                 coefficients[i] = BigInteger.Abs(new BigInteger(foo));
             }
 
-            var result = new List<string>();
+            var result = new List<byte[]>();
             for (var i = 1; i < totalParts + 1; i++)
             {
                 var secretBigInteger = coefficients[0];
@@ -33,27 +34,24 @@ namespace AElf.Cryptography.SecretSharing
                     secretBigInteger %= SecretSharingConsts.FieldPrime;
                 }
 
-                result.Add(Convert.ToBase64String(secretBigInteger.ToByteArray()));
+                result.Add(secretBigInteger.ToByteArray());
             }
 
             return result;
         }
 
         // The shared parts must be sent in order.
-        public static string DecodeSecret(List<string> sharedParts, List<int> orders, int threshold)
+        public static byte[] DecodeSecret(List<byte[]> sharedParts, List<int> orders, int threshold)
         {
             var result = BigInteger.Zero;
-            
+
             for (var i = 0; i < threshold; i++)
             {
-                var numerator = new BigInteger(Convert.FromBase64String(sharedParts[i]));
+                var numerator = new BigInteger(sharedParts[i]);
                 var denominator = BigInteger.One;
                 for (var j = 0; j < threshold; j++)
                 {
-                    if (i == j)
-                    {
-                        continue;
-                    }
+                    if (i == j) continue;
 
                     (numerator, denominator) =
                         MultiplyRational(numerator, denominator, orders[j], orders[j] - orders[i]);
@@ -63,7 +61,7 @@ namespace AElf.Cryptography.SecretSharing
                 result %= SecretSharingConsts.FieldPrime;
             }
 
-            return result.ConvertToString();
+            return result.ToBytesArray();
         }
 
         private static BigInteger RationalToWhole(BigInteger numerator, BigInteger denominator)
@@ -82,13 +80,11 @@ namespace AElf.Cryptography.SecretSharing
             }
         }
 
-        private static (BigInteger gcd, BigInteger invA, BigInteger invB) GetGreatestCommonDivisor2(BigInteger integer1, BigInteger integer2)
+        private static (BigInteger gcd, BigInteger invA, BigInteger invB) GetGreatestCommonDivisor2(BigInteger integer1,
+            BigInteger integer2)
         {
-            if (integer2 == 0)
-            {
-                return (integer1, 1, 0);
-            }
-            
+            if (integer2 == 0) return (integer1, 1, 0);
+
             var div = BigInteger.DivRem(integer1, integer2, out var rem);
             var (g, iA, iB) = GetGreatestCommonDivisor2(integer2, rem);
             return (g, iB, iA - iB * div);
@@ -98,12 +94,11 @@ namespace AElf.Cryptography.SecretSharing
         {
             return GetGreatestCommonDivisor2(SecretSharingConsts.FieldPrime, integer).invB.Abs();
         }
-        
+
         private static (BigInteger numerator, BigInteger denominator) MultiplyRational(
             BigInteger numeratorLhs, BigInteger denominatorLhs,
             BigInteger numeratorRhs, BigInteger denominatorRhs)
         {
-            denominatorRhs = denominatorRhs.Abs();
             var numerator = numeratorLhs * numeratorRhs % SecretSharingConsts.FieldPrime;
             var denominator = denominatorLhs * denominatorRhs % SecretSharingConsts.FieldPrime;
             var gcd = GetGreatestCommonDivisor(numerator, denominator);

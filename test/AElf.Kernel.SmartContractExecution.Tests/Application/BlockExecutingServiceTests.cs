@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract.Domain;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
@@ -14,50 +15,36 @@ namespace AElf.Kernel.SmartContractExecution.Application
     public class BlockExecutingServiceTests : SmartContractExecutionExecutingTestBase
     {
         private readonly BlockExecutingService _blockExecutingService;
-        private readonly IBlockManager _blockManager;
-        private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly KernelTestHelper _kernelTestHelper;
 
         public BlockExecutingServiceTests()
         {
             _blockExecutingService = GetRequiredService<BlockExecutingService>();
-            _blockManager = GetRequiredService<IBlockManager>();
-            _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
 
         [Fact]
         public async Task Execute_Block_NonCancellable()
         {
-            var blockHeader = new BlockHeader
-            {
-                Height = 2,
-                PreviousBlockHash = Hash.Empty,
-                Time = DateTime.UtcNow.ToTimestamp()
-            };
             var txs = BuildTransactions(5);
+            var blockHeader = _kernelTestHelper.GenerateBlock(1, Hash.Empty).Header;
 
             var block = await _blockExecutingService.ExecuteBlockAsync(blockHeader, txs);
             var allTxIds = txs.Select(x => x.GetHash()).ToList();
 
             block.Body.TransactionsCount.ShouldBe(txs.Count);
 
-            var binaryMerkleTree = new BinaryMerkleTree();
-            binaryMerkleTree.AddNodes(allTxIds);
-            var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(allTxIds);
+            var merkleTreeRoot = binaryMerkleTree.Root;
             block.Header.MerkleTreeRootOfTransactions.ShouldBe(merkleTreeRoot);
 
-            block.Body.Transactions.ShouldBe(allTxIds);
-            block.Body.TransactionList.ShouldBe(txs);
+            block.Body.TransactionIds.ShouldBe(allTxIds);
         }
 
         [Fact]
         public async Task Execute_Block_Cancellable()
         {
-            var blockHeader = new BlockHeader
-            {
-                Height = 2,
-                PreviousBlockHash = Hash.Empty,
-                Time = DateTime.UtcNow.ToTimestamp()
-            };
+            var blockHeader = _kernelTestHelper.GenerateBlock(1, Hash.Empty).Header;
             var nonCancellableTxs = BuildTransactions(5);
             var cancellableTxs = BuildTransactions(5);
             var cancelToken = new CancellationTokenSource();
@@ -79,24 +66,23 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             block.Body.TransactionsCount.ShouldBe(allTxs.Count);
 
-            var binaryMerkleTree = new BinaryMerkleTree();
-            binaryMerkleTree.AddNodes(allTxIds);
-            var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(allTxIds);
+            var merkleTreeRoot = binaryMerkleTree.Root;
             block.Header.MerkleTreeRootOfTransactions.ShouldBe(merkleTreeRoot);
 
-            block.Body.Transactions.ShouldBe(allTxIds);
-            block.Body.TransactionList.ShouldBe(allTxs);
+            block.Body.TransactionIds.ShouldBe(allTxIds);
         }
 
         private List<Transaction> BuildTransactions(int txCount)
         {
             var result = new List<Transaction>(txCount);
+            
             for (int i = 0; i < txCount; i++)
             {
                 result.Add(new Transaction
                 {
-                    From = Address.Zero,
-                    To = Address.Zero,
+                    From = SampleAddress.AddressList[0],
+                    To = SampleAddress.AddressList[1],
                     MethodName = Guid.NewGuid().ToString()
                 });
             }

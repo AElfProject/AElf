@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp.State
@@ -31,6 +32,7 @@ namespace AElf.Sdk.CSharp.State
                 if (!Cache.TryGetValue(key, out var valuePair))
                 {
                     valuePair = LoadKey(key);
+                    Cache[key] = valuePair;
                 }
 
                 return valuePair.Value;
@@ -57,11 +59,13 @@ namespace AElf.Sdk.CSharp.State
             var stateSet = new TransactionExecutingStateSet();
             foreach (var kv in Cache)
             {
+                var key = GetSubStatePath(kv.Key.ToString()).ToStateKey(Context.Self);
                 if (!Equals(kv.Value.OriginalValue, kv.Value.Value))
                 {
-                    var key = GetSubStatePath(kv.Key.ToString()).ToStateKey(Context.Self);
                     stateSet.Writes[key] = ByteString.CopyFrom(SerializationHelper.Serialize(kv.Value.Value));
                 }
+
+                stateSet.Reads[key] = true;
             }
 
             return stateSet;
@@ -72,10 +76,11 @@ namespace AElf.Sdk.CSharp.State
             var path = GetSubStatePath(key.ToString());
             var bytes = Provider.GetAsync(path).Result;
             var value = SerializationHelper.Deserialize<TEntity>(bytes);
+            var originalValue = SerializationHelper.Deserialize<TEntity>(bytes);
 
             return new ValuePair()
             {
-                OriginalValue = value,
+                OriginalValue = originalValue,
                 Value = value
             };
         }
@@ -122,9 +127,15 @@ namespace AElf.Sdk.CSharp.State
             var stateSet = new TransactionExecutingStateSet();
             foreach (var kv in Cache)
             {
-                foreach (var kv1 in kv.Value.GetChanges().Writes)
+                var changes = kv.Value.GetChanges();
+                foreach (var kv1 in changes.Writes)
                 {
                     stateSet.Writes[kv1.Key] = kv1.Value;
+                }
+
+                foreach (var kv1 in changes.Reads)
+                {
+                    stateSet.Reads[kv1.Key] = kv1.Value;
                 }
             }
 
@@ -173,9 +184,15 @@ namespace AElf.Sdk.CSharp.State
             var stateSet = new TransactionExecutingStateSet();
             foreach (var kv in Cache)
             {
-                foreach (var kv1 in kv.Value.GetChanges().Writes)
+                var changes = kv.Value.GetChanges();
+                foreach (var kv1 in changes.Writes)
                 {
                     stateSet.Writes[kv1.Key] = kv1.Value;
+                }
+
+                foreach (var kv1 in changes.Reads)
+                {
+                    stateSet.Reads[kv1.Key] = kv1.Value;
                 }
             }
 
@@ -224,9 +241,15 @@ namespace AElf.Sdk.CSharp.State
             var stateSet = new TransactionExecutingStateSet();
             foreach (var kv in Cache)
             {
-                foreach (var kv1 in kv.Value.GetChanges().Writes)
+                var changes = kv.Value.GetChanges();
+                foreach (var kv1 in changes.Writes)
                 {
                     stateSet.Writes[kv1.Key] = kv1.Value;
+                }
+
+                foreach (var kv1 in changes.Reads)
+                {
+                    stateSet.Reads[kv1.Key] = kv1.Value;
                 }
             }
 

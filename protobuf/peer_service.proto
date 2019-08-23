@@ -4,70 +4,29 @@ option csharp_namespace = "AElf.OS.Network.Grpc";
 
 import "kernel.proto";
 import "network_types.proto";
-import "common.proto";
-import "core.proto";
+import "aelf/core.proto";
 
 service PeerService {
+    
+    rpc Ping (PingRequest) returns (PongReply) {}
+    
     rpc RequestBlock (BlockRequest) returns (BlockReply) {}
     rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
-    
-    rpc Announce (PeerNewBlockAnnouncement) returns (VoidReply) {}
-    rpc SendTransaction (Transaction) returns (VoidReply) {}
 
-    rpc Connect (Handshake) returns (ConnectReply) {}
+    rpc SendAnnouncement (BlockAnnouncement) returns (VoidReply) {}
+    rpc SendTransaction (aelf.Transaction) returns (VoidReply) {}
+
+    rpc BlockBroadcastStream (stream BlockWithTransactions) returns (VoidReply) {}
     
+    rpc TransactionBroadcastStream (stream aelf.Transaction) returns (VoidReply) {}
+    rpc AnnouncementBroadcastStream (stream BlockAnnouncement) returns (VoidReply) {}
+
+    rpc GetNodes (NodesRequest) returns (NodeList) {}
+
+    rpc Connect (ConnectRequest) returns (ConnectReply) {}
+    rpc DoHandshake (HandshakeRequest) returns (HandshakeReply) {}
+
     rpc Disconnect (DisconnectReason) returns (VoidReply) {}
-    
-    rpc GetConnectedPeers(PeersRequest) returns (PeersResponse){}
-}
-
-// **** Connection *****
-
-message ConnectReply {
-    Handshake Handshake = 1;
-    AuthError Err = 2;
-}
-
-enum AuthError {
-    None = 0;
-    UnknownError = 1;
-    WrongSig = 2;
-    WrongAuth = 3;
-    InvalidHandshake = 4;
-    InvalidPeer = 5;
-    ChainMismatch = 6;
-    ProtocolMismatch = 7;
-}
-
-// **** Blocks *****
-
-message BlocksRequest {
-    Hash PreviousBlockHash = 1;
-    int32 Count = 2;
-}
-
-message BlockList {
-    repeated Block Blocks = 1;
-}
-
-message DisconnectReason {
-    Reason Why = 1;
-    enum Reason {
-        SHUTDOWN = 0;
-    }
-}
-
-message Announcement {
-    BlockHeader Header = 1;
-}
-
-message BlockRequest {
-    Hash Hash = 1;
-}
-
-message BlockReply {
-    string Error = 1;
-    Block Block = 2;
 }
 
 // **** No reply *****
@@ -75,12 +34,9 @@ message BlockReply {
 message VoidReply {
 }
 
-message PeersRequest{
-    
+message PingRequest {
 }
 
-message PeersResponse{
-    repeated string IpList = 1;
+message PongReply {
 }
-
 

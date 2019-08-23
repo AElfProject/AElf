@@ -2,46 +2,186 @@ syntax = "proto3";
 
 package vote;
 
-import "common.proto";
-import "vote.proto";
-import "aelf_options.proto";
+import "acs1.proto";
+import "aelf/core.proto";
+import "aelf/options.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.Vote";
 
 service VoteContract {
     option (aelf.csharp_state) = "AElf.Contracts.Vote.VoteContractState";
+    option (aelf.base) = "acs1.proto";
 
     // Action
-    rpc InitialVoteContract (InitialVoteContractInput) returns (google.protobuf.Empty) {
-    }
     rpc Register (VotingRegisterInput) returns (google.protobuf.Empty) {
     }
     rpc Vote (VoteInput) returns (google.protobuf.Empty) {
     }
     rpc Withdraw (WithdrawInput) returns (google.protobuf.Empty) {
     }
-    rpc UpdateEpochNumber (UpdateEpochNumberInput) returns (google.protobuf.Empty) {
+    rpc TakeSnapshot (TakeSnapshotInput) returns (google.protobuf.Empty) {
     }
     rpc AddOption (AddOptionInput) returns (google.protobuf.Empty) {
     }
     rpc RemoveOption (RemoveOptionInput) returns (google.protobuf.Empty) {
     }
+    rpc AddOptions (AddOptionsInput) returns (google.protobuf.Empty) {
+    }
+    rpc RemoveOptions (RemoveOptionsInput) returns (google.protobuf.Empty) {
+    }
     
     // View
-    rpc GetVotingEvent (GetVotingEventInput) returns (VotingEvent) {
+    rpc GetVotingItem (GetVotingItemInput) returns (VotingItem) {
         option (aelf.is_view) = true;
     }
     rpc GetVotingResult (GetVotingResultInput) returns (VotingResult) {
         option (aelf.is_view) = true;
     }
-    rpc GetVotingRecord (Hash) returns (VotingRecord) {
+    rpc GetLatestVotingResult (aelf.Hash) returns (VotingResult) {
         option (aelf.is_view) = true;
     }
-    rpc GetVotingHistories (Address) returns (VotingHistories) {
+    rpc GetVotingRecord (aelf.Hash) returns (VotingRecord) {
         option (aelf.is_view) = true;
     }
-    rpc GetVotingHistory (GetVotingHistoryInput) returns (VotingHistory) {
+    rpc GetVotingRecords (GetVotingRecordsInput) returns (VotingRecords) {
         option (aelf.is_view) = true;
     }
+    rpc GetVotedItems (aelf.Address) returns (VotedItems) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetVotingIds (GetVotingIdsInput) returns (VotedIds) {
+        option (aelf.is_view) = true;
+    }
+}
+
+// Events
+message Voted {
+    option (aelf.is_event) = true;
+    aelf.Hash voting_item_id = 1;
+    aelf.Address voter = 2;
+    sint64 snapshot_number = 3;
+    sint64 amount = 4;
+    google.protobuf.Timestamp vote_timestamp = 5;
+    string option = 6;
+    aelf.Hash vote_id = 7;
+}
+
+message Withdrawn {
+    option (aelf.is_event) = true;
+    aelf.Hash vote_id = 1;
+}
+
+// Messages
+message VotingRegisterInput {
+    google.protobuf.Timestamp start_timestamp = 1;
+    google.protobuf.Timestamp end_timestamp = 2;
+    string accepted_currency = 3;
+    bool is_lock_token = 4;
+    sint64 total_snapshot_number = 5;
+    repeated string options = 6;
+}
+
+message VotingItem {
+    aelf.Hash voting_item_id = 1;
+    string accepted_currency = 2;
+    bool is_lock_token = 3;
+    sint64 current_snapshot_number = 4;
+    sint64 total_snapshot_number = 5;
+    repeated string options = 6;
+    google.protobuf.Timestamp register_timestamp = 7;
+    google.protobuf.Timestamp start_timestamp = 8;
+    google.protobuf.Timestamp end_timestamp = 9;
+    google.protobuf.Timestamp current_snapshot_start_timestamp = 10;
+    aelf.Address sponsor = 11;
+}
+
+message VoteInput {
+    aelf.Hash voting_item_id = 1;
+    aelf.Address voter = 2;
+    sint64 amount = 3;
+    string option = 4;
+    aelf.Hash vote_id = 5;
+}
+
+message WithdrawInput {
+    aelf.Hash vote_id = 1;
+}
+
+message GetVotingResultInput {
+    aelf.Hash voting_item_id = 1;
+    sint64 snapshot_number = 2;
+}
+
+message VotingResult {
+    aelf.Hash voting_item_id = 1;
+    map<string, sint64> results = 2; // option -> amount
+    sint64 snapshot_number = 3;
+    sint64 voters_count = 4;
+    google.protobuf.Timestamp snapshot_start_timestamp = 5;
+    google.protobuf.Timestamp snapshot_end_timestamp = 6;
+    sint64 votes_amount = 7;
+}
+
+message TakeSnapshotInput {
+    aelf.Hash voting_item_id = 1;
+    sint64 snapshot_number = 2;
+}
+
+message VotingRecord {
+    aelf.Hash voting_item_id = 1;
+    aelf.Address voter = 2;
+    sint64 snapshot_number = 3;
+    sint64 amount = 4;
+    google.protobuf.Timestamp withdraw_timestamp = 5;
+    google.protobuf.Timestamp vote_timestamp = 6;
+    bool is_withdrawn = 7;
+    string option = 8;
+}
+
+message AddOptionInput {
+    aelf.Hash voting_item_id = 1;
+    string option = 2;
+}
+
+message RemoveOptionInput {
+    aelf.Hash voting_item_id = 1;
+    string option = 2;
+}
+
+message AddOptionsInput {
+    aelf.Hash voting_item_id = 1;
+    repeated string options = 2;
+}
+
+message RemoveOptionsInput {
+    aelf.Hash voting_item_id = 1;
+    repeated string options = 2;
+}
+
+message VotedItems {
+    map<string, VotedIds> voted_item_vote_ids = 1;
+}
+
+message VotedIds {
+    repeated aelf.Hash active_votes = 1;
+    repeated aelf.Hash withdrawn_votes = 2;
+}
+
+message GetVotingIdsInput {
+    aelf.Address voter = 1;
+    aelf.Hash voting_item_id = 2;
+}
+
+message GetVotingItemInput {
+    aelf.Hash voting_item_id = 1;
+}
+
+message GetVotingRecordsInput {
+    repeated aelf.Hash ids = 1;
+}
+
+message VotingRecords {
+    repeated VotingRecord records = 1;
 }

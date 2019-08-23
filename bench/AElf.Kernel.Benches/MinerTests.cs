@@ -8,6 +8,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
+using Google.Protobuf.WellKnownTypes;
 using NBench;
 using Pro.NBench.xUnit.XunitExtensions;
 using Volo.Abp.Threading;
@@ -62,7 +63,7 @@ namespace AElf.Kernel.Benches
             {
                 var chain = await _blockchainService.GetChainAsync();
                 _block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
-                    DateTime.UtcNow, TimeSpan.FromMilliseconds(4000));
+                    TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4));
             });
             _counter.Increment();
         }
@@ -72,6 +73,7 @@ namespace AElf.Kernel.Benches
         {
             AsyncHelper.RunSync(async () =>
             {
+                await _blockchainService.AddBlockAsync(_block);
                 await _blockAttachService.AttachBlockAsync(_block);
                 var chain = await _blockchainService.GetChainAsync();
                 await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData

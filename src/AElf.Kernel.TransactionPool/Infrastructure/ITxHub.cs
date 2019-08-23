@@ -1,7 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.EventMessages;
+using AElf.Types;
+using AElf.Kernel.SmartContractExecution.Application;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {
@@ -14,7 +15,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
     public interface ITxHub
     {
-        Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync();
+        Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount=0);
         Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData);
         Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData);
         Task HandleBestChainFoundAsync(BestChainFoundEventData eventData);

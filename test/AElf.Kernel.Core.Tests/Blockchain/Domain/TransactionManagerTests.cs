@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 using System.Threading.Tasks;
+using AElf.Types;
 using Xunit;
 using Shouldly;
 

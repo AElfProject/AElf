@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
+using AElf.Contracts.TestKit;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
 using AElf.Kernel.Token;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Volo.Abp.Threading;
@@ -13,7 +13,7 @@ using Xunit;
 
 namespace AElf.Contracts.Resource.FeeReceiver
 {
-    public class FeeReceiverContractTests : ContractTestBase<FeeReceiverContractTestAElfModule>
+    public class FeeReceiverContractTests : TestBase.ContractTestBase<FeeReceiverContractTestAElfModule>
     {
         private ECKeyPair FeeKeyPair;
         private ECKeyPair FoundationKeyPair; 
@@ -28,51 +28,51 @@ namespace AElf.Contracts.Resource.FeeReceiver
             FeeReceiverContractAddress =
                 Tester.GetContractAddress(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
 
-            FeeKeyPair = CryptoHelpers.GenerateKeyPair();
-            FoundationKeyPair = CryptoHelpers.GenerateKeyPair();
+            FeeKeyPair = CryptoHelper.GenerateKeyPair();
+            FoundationKeyPair = CryptoHelper.GenerateKeyPair();
 
-            AsyncHelper.RunSync(()=>InitFeeReceiverContract());
+            AsyncHelper.RunSync(InitFeeReceiverContract);
         }
         
           #region FeeReceiver Contract cases
 
         [Fact]
-        public async Task Query_FeeReceiver_Information()
+        public async Task Query_FeeReceiver_Information_Test()
         {
             {
                 var addressResult = await Tester.CallContractMethodAsync(FeeReceiverContractAddress,
-                    nameof(FeeReceiverContract.GetElfTokenAddress), new Empty());
+                    nameof(FeeReceiverContractContainer.FeeReceiverContractStub.GetElfTokenAddress), new Empty());
                 Address.Parser.ParseFrom(addressResult).ShouldBe(TokenContractAddress);
             }
 
             {
                 var foundationAddress = Tester.GetAddress(FoundationKeyPair);
                 var address1Result = await Tester.CallContractMethodAsync(FeeReceiverContractAddress,
-                    nameof(FeeReceiverContract.GetFoundationAddress), new Empty());
+                    nameof(FeeReceiverContractContainer.FeeReceiverContractStub.GetFoundationAddress), new Empty());
                 Address.Parser.ParseFrom(address1Result).ShouldBe(foundationAddress);
             }
             
             var balanceResult = await Tester.CallContractMethodAsync(FeeReceiverContractAddress,
-                nameof(FeeReceiverContract.GetOwedToFoundation), new Empty());
+                nameof(FeeReceiverContractContainer.FeeReceiverContractStub.GetOwedToFoundation), new Empty());
             SInt64Value.Parser.ParseFrom(balanceResult).Value.ShouldBe(0);
         }
 
         [Fact]
-        public async Task FeeReceiver_WithDraw_WithoutPermission()
+        public async Task FeeReceiver_WithDraw_WithoutPermission_Test()
         {
-            var anotherUser = Tester.CreateNewContractTester(CryptoHelpers.GenerateKeyPair());
+            var anotherUser = Tester.CreateNewContractTester(CryptoHelper.GenerateKeyPair());
             var withdrawResult = await anotherUser.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
-                nameof(FeeReceiverContract.Withdraw), new SInt32Value {Value = 100});
+                nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Withdraw), new SInt32Value {Value = 100});
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);
             withdrawResult.Error.Contains("Only foundation can withdraw token.").ShouldBeTrue();
         }
 
         [Fact]
-        public async Task FeeReceiver_WithDraw_OverToken()
+        public async Task FeeReceiver_WithDraw_OverToken_Test()
         {
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
             var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
-                nameof(FeeReceiverContract.Withdraw),
+                nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Withdraw),
                 new SInt64Value()
                 {
                     Value = 100
@@ -82,11 +82,11 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         [Fact]
-        public async Task FeeReceiver_WithDraw_NormalCase()
+        public async Task FeeReceiver_WithDraw_NormalCase_Test()
         {
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
             var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
-                nameof(FeeReceiverContract.Withdraw),
+                nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Withdraw),
                 new SInt64Value()
                 {
                     Value = 0
@@ -95,22 +95,22 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         [Fact]
-        public async Task FeeReceiver_WithDraw_all()
+        public async Task FeeReceiver_WithDraw_All_Test()
         {
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
             var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
-                nameof(FeeReceiverContract.WithdrawAll),
+                nameof(FeeReceiverContractContainer.FeeReceiverContractStub.WithdrawAll),
                 new Empty());
             withdrawResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }
 
         [Fact]
-        public async Task FeeReceiver_Burn()
+        public async Task FeeReceiver_Burn_Test()
         {
             //Give FeeReceiver address some token for burn operation
             var balance = 5;
             var transferResult = await Tester.ExecuteContractWithMiningAsync(TokenContractAddress,
-                nameof(TokenContract.Transfer),
+                nameof(TokenContractContainer.TokenContractStub.Transfer),
                 new TransferInput()
                 {
                     Symbol = "ELF",
@@ -123,7 +123,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
             //Check balance before burn
             var feeReceiverBalance =GetBalanceOutput.Parser.ParseFrom(
                 await Tester.CallContractMethodAsync(TokenContractAddress,
-                nameof(TokenContract.GetBalance), new GetBalanceInput
+                nameof(TokenContractContainer.TokenContractStub.GetBalance), new GetBalanceInput
                 {
                     Owner = FeeReceiverContractAddress,
                     Symbol = "ELF"
@@ -134,13 +134,13 @@ namespace AElf.Contracts.Resource.FeeReceiver
             //Action burn
             var burnResult =
                 await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
-                    nameof(FeeReceiverContract.Burn), new Empty());
+                    nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Burn), new Empty());
             burnResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             //Check burned balance.
             feeReceiverBalance = GetBalanceOutput.Parser.ParseFrom(
                 await Tester.CallContractMethodAsync(TokenContractAddress,
-                nameof(TokenContract.GetBalance), new GetBalanceInput
+                nameof(TokenContractContainer.TokenContractStub.GetBalance), new GetBalanceInput
                 {
                     Owner = FeeReceiverContractAddress,
                     Symbol = "ELF"
@@ -153,10 +153,10 @@ namespace AElf.Contracts.Resource.FeeReceiver
 
         private async Task InitFeeReceiverContract()
         {
-            //init fee receiver contract
+            //init fee Beneficiary contract
             var foundationAddress = Tester.GetAddress(FoundationKeyPair);
             var feeReceiverResult = await Tester.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
-                nameof(FeeReceiverContract.Initialize),
+                nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Initialize),
                 new InitializeInput()
                 {
                     ElfTokenAddress = TokenContractAddress,

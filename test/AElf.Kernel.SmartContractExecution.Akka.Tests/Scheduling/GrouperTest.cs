@@ -21,7 +21,7 @@ namespace AElf.Kernel.Tests.Concurrency.Scheduling
 
             for (int i = 0; i < 12; i++)
             {
-                _accountList.Add(Address.Generate());
+                _accountList.Add(SampleAddress.AddressList[0]);
             }
 
             GetTransactionReadyInList(txList, 0, 1);

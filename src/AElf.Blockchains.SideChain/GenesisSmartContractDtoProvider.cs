@@ -1,102 +1,73 @@
 using System.Collections.Generic;
-using AElf.Contracts.Consensus.DPoS.SideChain;
-using AElf.Contracts.CrossChain;
-using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
+using System.Linq;
+using AElf.Contracts.Deployer;
 using AElf.CrossChain;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.DPoS;
+using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.Token;
 using AElf.OS.Node.Application;
+using AElf.Types;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
 namespace AElf.Blockchains.SideChain
 {
-    // TODO: Split different contract and change this to plugin
-    public class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
+    public partial class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
-        private readonly ChainOptions _chainOptions;
-        private readonly DPoSOptions _dposOptions;
-        private readonly CrossChainConfigOption _crossChainConfigOptions;
-        private readonly IChainInitializationPlugin _chainInitializationPlugin;
+        private readonly IReadOnlyDictionary<string, byte[]> _codes =
+            ContractsDeployer.GetContractCodes<GenesisSmartContractDtoProvider>();
+        
+        private readonly ContractOptions _contractOptions;
+        private readonly ConsensusOptions _consensusOptions;
+        private readonly ISideChainInitializationDataProvider _sideChainInitializationDataProvider;
 
-        public GenesisSmartContractDtoProvider(IOptionsSnapshot<ChainOptions> chainOptions,
-            IOptionsSnapshot<DPoSOptions> dposOptions, IOptionsSnapshot<CrossChainConfigOption> crossChainConfigOptions,
-            IChainInitializationPlugin chainInitializationPlugin)
+        public ILogger<GenesisSmartContractDtoProvider> Logger { get; set; }
+
+        public GenesisSmartContractDtoProvider(IOptionsSnapshot<ConsensusOptions> consensusOptions, 
+            IOptionsSnapshot<ContractOptions> contractOptions, ISideChainInitializationDataProvider sideChainInitializationDataProvider)
         {
-            _chainOptions = chainOptions.Value;
-            _dposOptions = dposOptions.Value;
-            _crossChainConfigOptions = crossChainConfigOptions.Value;
-            _chainInitializationPlugin = chainInitializationPlugin;
+            _sideChainInitializationDataProvider = sideChainInitializationDataProvider;
+            _consensusOptions = consensusOptions.Value;
+            _contractOptions = contractOptions.Value;
         }
 
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress)
         {
-            var l = new List<GenesisSmartContractDto>();
+            var genesisSmartContractDtoList = new List<GenesisSmartContractDto>();
 
-            l.AddGenesisSmartContract<ConsensusContract>(
-                ConsensusSmartContractAddressNameProvider.Name,
-                GenerateConsensusInitializationCallList());
+            var chainInitializationData = AsyncHelper.RunSync(async () =>
+                await _sideChainInitializationDataProvider.GetChainInitializationDataAsync());
 
-            l.AddGenesisSmartContract<TokenContract>(
-                TokenSmartContractAddressNameProvider.Name,
-                GenerateTokenInitializationCallList());
-
-            l.AddGenesisSmartContract<CrossChainContract>(
-                CrossChainSmartContractAddressNameProvider.Name,
-                GenerateCrossChainInitializationCallList());
-
-            return l;
-        }
-
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateTokenInitializationCallList()
-        {
-            var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.InitializeTokenContract), new IntializeTokenContractInput
+            if (chainInitializationData == null)
             {
-                CrossChainContractSystemName = CrossChainSmartContractAddressNameProvider.Name
-            });
-            return tokenContractCallList;
-        }
+                Logger.LogWarning("Chain initialization data is null.");
+                return genesisSmartContractDtoList;
+            }
+            
+            // chainInitializationData cannot be null if it is first time side chain startup. 
+            genesisSmartContractDtoList.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Contains("Consensus.AEDPoS")).Value,
+                ConsensusSmartContractAddressNameProvider.Name,
+                GenerateConsensusInitializationCallList(chainInitializationData));
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateConsensusInitializationCallList()
-        {
-            var consensusMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            var chainInitializationContext = AsyncHelper.RunSync(async () =>
-                await _chainInitializationPlugin.RequestChainInitializationContextAsync(_chainOptions.ChainId));
+            genesisSmartContractDtoList.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Contains("MultiToken")).Value,
+                TokenSmartContractAddressNameProvider.Name, GenerateTokenInitializationCallList(chainInitializationData));
 
-            var miners = chainInitializationContext == null
-                ? _dposOptions.InitialMiners.ToMiners()
-                : MinerListWithRoundNumber.Parser.ParseFrom(chainInitializationContext.ExtraInformation[0]).MinerList;
-            var timestamp = chainInitializationContext?.CreatedTime.ToDateTime() ?? _dposOptions.StartTimestamp;
-            consensusMethodCallList.Add(nameof(ConsensusContract.InitialConsensus),
-                miners.GenerateFirstRoundOfNewTerm(_dposOptions.MiningInterval, timestamp.ToUniversalTime()));
-            consensusMethodCallList.Add(nameof(ConsensusContract.ConfigStrategy),
-                new DPoSStrategyInput
-                {
-                    IsBlockchainAgeSettable = _dposOptions.IsBlockchainAgeSettable,
-                    IsTimeSlotSkippable = _dposOptions.IsTimeSlotSkippable,
-                    IsVerbose = _dposOptions.Verbose
-                });
-            return consensusMethodCallList;
-        }
+            genesisSmartContractDtoList.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Contains("CrossChain")).Value,
+                CrossChainSmartContractAddressNameProvider.Name,
+                GenerateCrossChainInitializationCallList(chainInitializationData));
 
-        private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
-            GenerateCrossChainInitializationCallList()
-        {
-            var crossChainMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            crossChainMethodCallList.Add(nameof(CrossChainContract.Initialize),
-                new AElf.Contracts.CrossChain.InitializeInput
-                {
-                    ConsensusContractSystemName = ConsensusSmartContractAddressNameProvider.Name,
-                    TokenContractSystemName = TokenSmartContractAddressNameProvider.Name,
-                    ParentChainId = _crossChainConfigOptions.ParentChainId,
-                    ParliamentContractSystemName = ParliamentAuthContractAddressNameProvider.Name
-                });
-            return crossChainMethodCallList;
+            genesisSmartContractDtoList.AddGenesisSmartContract(
+                _codes.Single(kv=>kv.Key.Contains("ParliamentAuth")).Value,
+                ParliamentAuthSmartContractAddressNameProvider.Name,
+                GenerateParliamentInitializationCallList(chainInitializationData));
+
+            return genesisSmartContractDtoList;
         }
     }
 }

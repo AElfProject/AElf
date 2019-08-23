@@ -5,6 +5,7 @@ using AElf.BenchBase;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using NBench;
 using Pro.NBench.xUnit.XunitExtensions;
@@ -44,20 +45,8 @@ namespace AElf.Kernel.SmartContractExecution.Benches
             AsyncHelper.RunSync(async () =>
             {
                 var chain = await _blockchainService.GetChainAsync();
-            
-                _block = new Block
-                {
-                    Header = new BlockHeader
-                    {
-                        ChainId = chain.Id,
-                        Height = chain.BestChainHeight + 1,
-                        PreviousBlockHash = chain.BestChainHash,
-                        Time = Timestamp.FromDateTime(DateTime.UtcNow)
-                    },
-                    Body = new BlockBody()
-                };
-            
                 _transactions = await _osTestHelper.GenerateTransferTransactions(1000);
+                _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, _transactions);
             });
         }
 

@@ -6,14 +6,15 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.EventMessages;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
+using AElf.Types;
 using BenchmarkDotNet.Attributes;
+using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.Threading;
 
 namespace AElf.Benchmark
@@ -62,7 +63,7 @@ namespace AElf.Benchmark
         public async Task MineBlockTest()
         {
             _block = await _minerService.MineAsync(_chain.BestChainHash, _chain.BestChainHeight,
-                DateTime.UtcNow, TimeSpan.FromMilliseconds(4000));
+                TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4));
         }
 
         [IterationCleanup]
@@ -71,9 +72,9 @@ namespace AElf.Benchmark
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
             foreach (var transaction in _transactions)
             {
-                _transactionManager.RemoveTransaction(transaction.GetHash());
-                _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(), _block.GetHash());
-                _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(),
+                await _transactionManager.RemoveTransaction(transaction.GetHash());
+                await  _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(), _block.GetHash());
+                await _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(),
                     _block.Header.GetPreMiningHash());
             }
             

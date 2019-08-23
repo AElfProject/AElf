@@ -7,7 +7,9 @@ using AElf.Cryptography;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
@@ -69,6 +71,11 @@ namespace AElf.Kernel.SmartContract
         {
             return _smartContractBridgeService.GetAddressByContractName(hash);
         }
+        
+        public IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping()
+        {
+            return _smartContractBridgeService.GetSystemContractNameToAddressMapping();
+        }
 
         public void Initialize(ITransactionContext transactionContext)
         {
@@ -99,26 +106,26 @@ namespace AElf.Kernel.SmartContract
 
         public byte[] EncryptMessage(byte[] receiverPublicKey, byte[] plainMessage)
         {
-            return AsyncHelper.RunSync(() => _accountService.EncryptMessage(receiverPublicKey, plainMessage));
+            return AsyncHelper.RunSync(() => _accountService.EncryptMessageAsync(receiverPublicKey, plainMessage));
         }
 
         public byte[] DecryptMessage(byte[] senderPublicKey, byte[] cipherMessage)
         {
-            return AsyncHelper.RunSync(() => _accountService.DecryptMessage(senderPublicKey, cipherMessage));
+            return AsyncHelper.RunSync(() => _accountService.DecryptMessageAsync(senderPublicKey, cipherMessage));
         }
 
         public Transaction Transaction => TransactionContext.Transaction.Clone();
         public Hash TransactionId => TransactionContext.Transaction.GetHash();
         public Address Sender => TransactionContext.Transaction.From.Clone();
         public Address Self => TransactionContext.Transaction.To.Clone();
-        public Address Genesis => Address.Genesis;
+        public Address Origin => TransactionContext.Origin.Clone();
         public long CurrentHeight => TransactionContext.BlockHeight;
-        public DateTime CurrentBlockTime => TransactionContext.CurrentBlockTime;
+        public Timestamp CurrentBlockTime => TransactionContext.CurrentBlockTime;
         public Hash PreviousBlockHash => TransactionContext.PreviousBlockHash.Clone();
 
-        public byte[] RecoverPublicKey(byte[] signature, byte[] hash)
+        private byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
-            var cabBeRecovered = CryptoHelpers.RecoverPublicKey(signature, hash, out var publicKey);
+            var cabBeRecovered = CryptoHelper.RecoverPublicKey(signature, hash, out var publicKey);
             return !cabBeRecovered ? null : publicKey;
         }
 
@@ -129,7 +136,7 @@ namespace AElf.Kernel.SmartContract
         public byte[] RecoverPublicKey()
         {
             return RecoverPublicKey(TransactionContext.Transaction.Signature.ToByteArray(),
-                TransactionContext.Transaction.GetHash().DumpByteArray());
+                TransactionContext.Transaction.GetHash().ToByteArray());
         }
 
         public T Call<T>(Address address, string methodName, ByteString args) where T : IMessage<T>, new()
@@ -155,7 +162,7 @@ namespace AElf.Kernel.SmartContract
 
             if (!trace.IsSuccessful())
             {
-                throw new ContractCallException(trace.StdErr);
+                throw new ContractCallException(trace.Error);
             }
 
             var obj = new T();
@@ -190,18 +197,22 @@ namespace AElf.Kernel.SmartContract
         public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress)
         {
             return Address.FromPublicKey(Self.Value.Concat(
-                virtualAddress.Value.ToByteArray().CalculateHash()).ToArray());
+                virtualAddress.Value.ToByteArray().ComputeHash()).ToArray());
         }
 
         public Address GetZeroSmartContractAddress()
         {
             return _smartContractBridgeService.GetZeroSmartContractAddress();
         }
-
-
-        public IBlockBase GetPreviousBlock()
+        
+        public Address GetZeroSmartContractAddress(int chainId)
         {
-            return AsyncHelper.RunSync(() => _smartContractBridgeService.GetBlockByHashAsync(
+            return _smartContractBridgeService.GetZeroSmartContractAddress(chainId);
+        }
+
+        public List<Transaction> GetPreviousBlockTransactions()
+        {
+            return AsyncHelper.RunSync(() => _smartContractBridgeService.GetBlockTransactions(
                 TransactionContext.PreviousBlockHash));
         }
 
@@ -210,20 +221,23 @@ namespace AElf.Kernel.SmartContract
             return tx.VerifySignature();
         }
 
-        public void SendDeferredTransaction(Transaction deferredTxn)
-        {
-            TransactionContext.Trace.DeferredTransaction = deferredTxn.ToByteString();
-        }
-
         public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
         {
             if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress()))
             {
                 throw new NoPermissionException();
             }
+            
+            var contractDto = new ContractDto
+            {
+                BlockHeight = CurrentHeight,
+                ContractAddress = address,
+                SmartContractRegistration = registration,
+                ContractName = name,
+                IsPrivileged = false
+            };
 
-            AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(address, registration,
-                false, name));
+            AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(contractDto));
         }
 
         public void UpdateContract(Address address, SmartContractRegistration registration, Hash name)
@@ -233,8 +247,15 @@ namespace AElf.Kernel.SmartContract
                 throw new NoPermissionException();
             }
 
-            AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(address, registration,
-                false, null));
+            var contractDto = new ContractDto
+            {
+                BlockHeight = CurrentHeight,
+                ContractAddress = address,
+                SmartContractRegistration = registration,
+                ContractName = null,
+                IsPrivileged = false
+            };
+            AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(contractDto));
         }
     }
 }

@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using Acs7;
 using AElf.Kernel;
+using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.CrossChain
@@ -11,6 +13,7 @@ namespace AElf.CrossChain
         private readonly Dictionary<int, long> _parentChainIdHeight = new Dictionary<int, long>();
         public long FakeLibHeight { get; private set;}
         private readonly Dictionary<long, CrossChainBlockData> _indexedCrossChainBlockData = new Dictionary<long, CrossChainBlockData>();
+        
         public void AddFakeSideChainIdHeight(int sideChainId, long height)
         {
             _sideChainIdHeights.Add(sideChainId, height);
@@ -21,7 +24,7 @@ namespace AElf.CrossChain
             _parentChainIdHeight.Add(parentChainId, height);
         }
 
-        public void AddFakeIndexedCrossChainBlockData(long height, CrossChainBlockData crossChainBlockData)
+        internal void AddFakeIndexedCrossChainBlockData(long height, CrossChainBlockData crossChainBlockData)
         {
             _indexedCrossChainBlockData.Add(height, crossChainBlockData);
         }
@@ -92,11 +95,40 @@ namespace AElf.CrossChain
                 trace.ExecutionStatus = ExecutionStatus.ContractError;
                 return new CrossChainBlockData().ToByteArray();
             }
+
+            if (methodName == nameof(CrossChainContractMethodNames.GetSideChainIndexingInformationList))
+            {
+                var sideChainIndexingInformationList = new SideChainIndexingInformationList();
+                foreach (var kv in _sideChainIdHeights)
+                {
+                    sideChainIndexingInformationList.IndexingInformationList.Add(new SideChainIndexingInformation
+                    {
+                        ChainId = kv.Key,
+                        IndexedHeight = kv.Value,
+                        ToBeIndexedCount = long.MaxValue
+                    });
+                }
+                
+                return sideChainIndexingInformationList.ToByteArray();
+            }
+            
             return new byte[0];
         }
+        
         public void SetFakeLibHeight(long height)
         {
             FakeLibHeight = height;
+        }
+        
+        public enum CrossChainContractMethodNames
+        {
+            GetParentChainHeight,
+            GetSideChainHeight,
+            GetParentChainId,
+            GetSideChainIdAndHeight,
+            GetAllChainsIdAndHeight,
+            GetIndexedCrossChainBlockDataByHeight,
+            GetSideChainIndexingInformationList
         }
     }
 }

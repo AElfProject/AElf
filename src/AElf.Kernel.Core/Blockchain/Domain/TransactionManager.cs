@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -19,9 +20,9 @@ namespace AElf.Kernel.Blockchain.Domain
 
         public async Task<Hash> AddTransactionAsync(Transaction tx)
         {
-            var txHash = tx.GetHash();
-            await _transactionStore.SetAsync(GetStringKey(txHash), tx);
-            return txHash;
+            var transactionId = tx.GetHash();
+            await _transactionStore.SetAsync(GetStringKey(transactionId), tx);
+            return transactionId;
         }
 
         public async Task<Transaction> GetTransaction(Hash txId)

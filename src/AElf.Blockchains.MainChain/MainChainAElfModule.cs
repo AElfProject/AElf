@@ -1,27 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using AElf.Blockchains.BasicBaseChain;
-using AElf.CrossChain;
+﻿using AElf.Blockchains.BasicBaseChain;
 using AElf.Kernel;
-using AElf.Kernel.Consensus.DPoS;
-using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Swashbuckle.AspNetCore.Swagger;
 using Volo.Abp.Modularity;
 
 namespace AElf.Blockchains.MainChain
 {
     [DependsOn(
-        typeof(BasicBaseChainAElfModule)
+        typeof(BasicBaseChainAElfModule),
+        typeof(BlockTransactionLimitControllerModule)
     )]
-    public class MainChainAElfModule : AElfModule<MainChainAElfModule>
+    public class MainChainAElfModule : AElfModule
     {
         public ILogger<MainChainAElfModule> Logger { get; set; }
 

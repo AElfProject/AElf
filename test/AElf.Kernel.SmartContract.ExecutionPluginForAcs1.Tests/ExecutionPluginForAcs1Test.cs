@@ -1,16 +1,15 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.Token;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -22,7 +21,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
     {
         private TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         private Address TestContractAddress { get; set; }
-        private Address TokenContractAddress { get; set; }
+        private AElf.Types.Address TokenContractAddress { get; set; }
         private TestContract.ContractContainer.ContractStub DefaultTester { get; set; }
         private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         private Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
@@ -32,7 +31,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             {
                 // TokenContract
                 var category = KernelConstants.CodeCoverageRunnerCategory;
-                var code = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
+                var code = Codes.Single(kv => kv.Key.Contains("MultiToken")).Value;
                 TokenContractAddress = await DeploySystemSmartContract(category, code,
                     TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
                 TokenContractStub =
@@ -40,8 +39,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             }
             {
                 var category = KernelConstants.CodeCoverageRunnerCategory;
-                var code = File.ReadAllBytes(typeof(TestContract.Contract).Assembly.Location);
-                TestContractAddress = await DeployContractAsync(category, code, DefaultSenderKeyPair);
+                var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
+                TestContractAddress = await DeployContractAsync(category, code, Hash.FromString("TestContract"), DefaultSenderKeyPair);
                 DefaultTester =
                     GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);
             }
@@ -49,7 +48,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
 
         private async Task InitializeTokenAsync()
         {
-            await TokenContractStub.CreateNativeToken.SendAsync(new CreateNativeTokenInput()
+            await TokenContractStub.Create.SendAsync(new CreateInput
             {
                 Symbol = "ELF",
                 Decimals = 2,
@@ -72,16 +71,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
         public async Task GetPreTransactionsTest()
         {
             await DeployContractsAsync();
-            var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IExecutionPlugin>>()
+            await SetMethodFee_Successful(10);
+            var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IPreExecutionPlugin>>()
                 .ToLookup(p => p.GetType()).Select(coll => coll.First()); // One instance per type
-            var plugin = plugins.SingleOrDefault(p => p.GetType() == typeof(FeeChargeExecutionPlugin));
+            var plugin = plugins.SingleOrDefault(p => p.GetType() == typeof(FeeChargePreExecutionPlugin));
             plugin.ShouldNotBeNull();
             var bcs = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
             var chain = await bcs.GetChainAsync();
             var transactions = (await plugin.GetPreTransactionsAsync(TestContract.ContractContainer.Descriptors,
-                new TransactionContext()
+                new TransactionContext
                 {
-                    Transaction = new Transaction()
+                    Transaction = new Transaction
                     {
                         From = DefaultSender,
                         To = TestContractAddress,
@@ -98,17 +98,16 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
 
         private async Task SetMethodFee_Successful(long feeAmount)
         {
-            await DefaultTester.SetMethodFee.SendAsync(new SetMethodFeeInput()
+            await DefaultTester.SetMethodFee.SendAsync(new TokenAmounts
             {
                 Method = nameof(DefaultTester.DummyMethod),
-                Symbol = "ELF",
-                Amount = feeAmount
+                Amounts = {new TokenAmount {Symbol = "ELF", Amount = feeAmount}}
             });
-            var fee = await DefaultTester.GetMethodFee.CallAsync(new MethodName()
+            var fee = await DefaultTester.GetMethodFee.CallAsync(new MethodName
             {
                 Name = nameof(DefaultTester.DummyMethod)
             });
-            fee.Amount.ShouldBe(feeAmount);
+            fee.Amounts.First(a => a.Symbol == "ELF").Amount.ShouldBe(feeAmount);
         }
 
         [Fact]
@@ -139,7 +138,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
         }
 
         [Fact]
-        public async Task ChargeFee_Prefailed()
+        public async Task ChargeFee_PreFailed()
         {
             await DeployContractsAsync();
             await InitializeTokenAsync();

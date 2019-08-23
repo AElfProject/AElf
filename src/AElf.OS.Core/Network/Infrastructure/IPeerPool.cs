@@ -1,24 +1,22 @@
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
+using AElf.Types;
 
 namespace AElf.OS.Network.Infrastructure
 {
     public interface IPeerPool
     {
-        Task<bool> AddPeerAsync(string address);
-        Task<bool> RemovePeerByAddressAsync(string address);
-        List<IPeer> GetPeers(bool includeFailing = false);
+        int PeerCount { get; }
+
+        bool IsFull();
         
-        IPeer FindPeerByAddress(string peerIpAddress);
+        List<IPeer> GetPeers(bool includeFailing = false);
+
+        IPeer FindPeerByEndpoint(IPEndPoint peerEndpoint);
         IPeer FindPeerByPublicKey(string remotePubKey);
 
-        bool IsAuthenticatePeer(string remotePubKey);
-
-        bool AddPeer(IPeer peer);
-
-        Task<IPeer> RemovePeerAsync(string remotePubKey, bool sendDisconnect);
-
-        Task<Handshake> GetHandshakeAsync();
-
+        bool TryAddPeer(IPeer peer);
+        IPeer RemovePeer(string publicKey);
     }
 }
