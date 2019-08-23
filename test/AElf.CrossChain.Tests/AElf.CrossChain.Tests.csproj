@@ -20,5 +20,11 @@
         <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj"/>
         <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj"/>
     </ItemGroup>
-    <Import Project="..\AllContracts.props"/>
+
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
+            <Link>Protobuf/Proto/cross_chain_contract.proto</Link>
+        </ContractStub>
+    </ItemGroup>
+    <Import Project="..\AllContracts.props" />
 </Project>

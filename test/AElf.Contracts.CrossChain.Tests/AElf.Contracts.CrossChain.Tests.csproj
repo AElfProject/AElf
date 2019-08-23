@@ -15,8 +15,6 @@
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\src\AElf.Contracts.TestKit.AEDPoSExtension\AElf.Contracts.TestKit.AEDPoSExtension.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
-        <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
@@ -39,12 +37,15 @@
         <ContractStub Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf\Proto\acs3.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\acs7.proto">
-            <Link>Protobuf\Proto\acs7.proto</Link>
-        </ContractStub>
         <ContractMessage Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>
         </ContractMessage>
+        <ContractStub Include="..\..\protobuf\acs6.proto">
+            <Link>Protobuf/Proto/acs6.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs7.proto">
+            <Link>Protobuf\Proto\acs7.proto</Link>
+        </ContractStub>
         <ContractMessage Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractMessage>
