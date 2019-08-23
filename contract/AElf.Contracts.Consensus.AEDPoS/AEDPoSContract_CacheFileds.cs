@@ -7,6 +7,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private readonly Dictionary<long, Round> _rounds = new Dictionary<long, Round>();
         private readonly long _currentRoundNumber = 0;
         private string _processingBlockMinerPubkey;
-        private int _minimumBlocksCount = 0;
+        private int _minimumBlocksCount;
+        private bool? _isMainChain;
     }
 }

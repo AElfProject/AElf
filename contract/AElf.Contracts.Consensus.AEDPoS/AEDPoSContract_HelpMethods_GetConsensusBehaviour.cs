@@ -12,13 +12,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         private AElfConsensusBehaviour GetConsensusBehaviour(Round currentRound, string publicKey)
         {
-            if (!IsInCurrentMinerList(currentRound, publicKey)) return AElfConsensusBehaviour.Nothing;
+            //if (!IsInCurrentMinerList(currentRound, publicKey)) return AElfConsensusBehaviour.Nothing;
 
             var isFirstRoundOfCurrentTerm = IsFirstRoundOfCurrentTerm(out var termNumber);
             var isTimeSlotPassed = currentRound.IsTimeSlotPassed(publicKey, Context.CurrentBlockTime);
 
             var minerInRound = currentRound.RealTimeMinersInformation[publicKey];
-            if (!minerInRound.IsMinedBlockForCurrentRound())
+            if (!minerInRound.IsThisANewRoundForThisMiner())
             {
                 var behaviour =
                     GetBehaviourIfMinerDidNotMineBlockForCurrentRound(currentRound, publicKey,
@@ -26,7 +26,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 if (!isTimeSlotPassed && behaviour == AElfConsensusBehaviour.Nothing)
                 {
-                    Context.LogDebug(() => "Directly go to next round.");
                     behaviour = AElfConsensusBehaviour.UpdateValue;
                 }
 
@@ -37,7 +36,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
             else if (!isTimeSlotPassed)
             {
-                var blocksCount = GetMinimumBlocksCount();
+                var blocksCount = GetMaximumBlocksCount();
                 if (minerInRound.ProducedTinyBlocks < blocksCount)
                 {
                     return AElfConsensusBehaviour.TinyBlock;
@@ -79,7 +78,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (currentRound.ExtraBlockProducerOfPreviousRound == publicKey && // If this miner is extra block producer of previous round,
                 Context.CurrentBlockTime < currentRound.GetStartTime() && // and currently the time is ahead of current round,
-                minerInRound.ProducedTinyBlocks < GetMinimumBlocksCount() // make this miner produce some tiny blocks.
+                minerInRound.ProducedTinyBlocks < GetMaximumBlocksCount() // make this miner produce some tiny blocks.
             )
             {
                 return AElfConsensusBehaviour.TinyBlock;

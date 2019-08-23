@@ -8,6 +8,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSContract
     {
+        private bool IsMainChain
+        {
+            get
+            {
+                if (_isMainChain == null)
+                {
+                    _isMainChain = State.IsMainChain.Value;
+                    return (bool) _isMainChain;
+                }
+
+                return (bool) _isMainChain;
+            }
+        }
+
         private bool TryToGetBlockchainStartTimestamp(out Timestamp startTimestamp)
         {
             startTimestamp = State.BlockchainStartTimestamp.Value;

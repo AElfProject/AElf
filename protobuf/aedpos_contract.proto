@@ -126,6 +126,7 @@ message Round {
     sint64 term_number = 8;
     sint64 confirmed_irreversible_block_height = 9;
     sint64 confirmed_irreversible_block_round_number = 10;
+    bool is_miner_list_just_changed = 11;
 }
 
 // The information of a miner in a specific round.

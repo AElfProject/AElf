@@ -76,7 +76,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
             Assert(TryToAddRoundInformation(nextRound), "Failed to add round information.");
             Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
 
@@ -188,9 +187,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (TryToGetPreviousRoundInformation(out var previousRound))
             {
-                var calculator = new LastIrreversibleBlockHeightCalculator(currentRound, previousRound);
                 // C# 7.0 Feature: Class Deconstruct
-                var (libHeight) = calculator;
+                new LastIrreversibleBlockHeightCalculator(currentRound, previousRound).Deconstruct(
+                    out var libHeight);
                 // LIB height can't be available if it is lower than last time.
                 if (State.LastIrreversibleBlockHeight.Value < libHeight)
                 {
@@ -267,7 +266,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 State.LatestProviderToTinyBlocksCount.Value = new LatestProviderToTinyBlocksCount
                 {
                     Pubkey = _processingBlockMinerPubkey,
-                    BlocksCount = GetMinimumBlocksCount().Sub(1)
+                    BlocksCount = GetMaximumBlocksCount().Sub(1)
                 };
             }
         }

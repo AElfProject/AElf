@@ -156,7 +156,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var timeForEachBlock = miningInterval.Div(AEDPoSContractConstants.TotalTinySlots);
             expectedMiningTime = currentRound.GetExpectedMiningTime(publicKey);
 
-            if (minerInRound.IsMinedBlockForCurrentRound())
+            if (minerInRound.IsThisANewRoundForThisMiner())
             {
                 // After publishing out value (producing normal block)
                 expectedMiningTime = expectedMiningTime.AddMilliseconds(
@@ -173,7 +173,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             if (currentRound.RoundNumber == 1 ||
-                currentRound.RoundNumber == 2 && !minerInRound.IsMinedBlockForCurrentRound())
+                currentRound.RoundNumber == 2 && !minerInRound.IsThisANewRoundForThisMiner())
             {
                 nextBlockMiningLeftMilliseconds =
                     GetNextBlockMiningLeftMillisecondsForFirstRound(minerInRound, miningInterval);
@@ -249,7 +249,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var producedTinyBlocksForPreviousRound =
                 minerInRound.ActualMiningTimes.Count(t => t < currentRoundStartTime);
 
-            var blocksCount = GetMinimumBlocksCount();
+            var blocksCount = GetMaximumBlocksCount();
             if (minerInRound.ProducedTinyBlocks == blocksCount ||
                 minerInRound.ProducedTinyBlocks == blocksCount.Add(producedTinyBlocksForPreviousRound))
             {

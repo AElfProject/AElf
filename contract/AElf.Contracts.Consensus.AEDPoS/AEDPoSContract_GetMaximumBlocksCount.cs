@@ -11,7 +11,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// Adjust (mainly reduce) the count of tiny blocks produced by a miner each time to avoid too many forks.
         /// </summary>
         /// <returns></returns>
-        private int GetMinimumBlocksCount()
+        private int GetMaximumBlocksCount()
         {
             if (_minimumBlocksCount != 0)
             {
@@ -31,16 +31,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return AEDPoSContractConstants.MaximumTinyBlocksCount;
             }
 
-            var (blockchainMiningStatus) =
-                new BlockchainMiningStatusEvaluator(
-                    libRoundNumber,
-                    libBlockHeight,
-                    currentRoundNumber,
-                    currentHeight);
+            new BlockchainMiningStatusEvaluator(
+                libRoundNumber,
+                libBlockHeight,
+                currentRoundNumber,
+                currentHeight).Deconstruct(out var blockchainMiningStatus);
 
             Context.LogDebug(() => $"Current blockchain mining status: {blockchainMiningStatus.ToString()}");
 
-            // If R_LIB + 2 < R < R_LIB + 10 & H <= H_LIB + Y, CB goes to Min(L2 / (R - R_LIB), CB0), while CT stays same as before.
+            // If R_LIB + 2 < R <= R_LIB + 10 & H <= H_LIB + Y, CB goes to Min(L2 / (R - R_LIB), CB0), while CT stays same as before.
             if (blockchainMiningStatus == BlockchainMiningStatus.Abnormal)
             {
                 var previousRoundMinedMinerList = State.MinedMinerListMap[currentRoundNumber.Sub(1)].Pubkeys;
