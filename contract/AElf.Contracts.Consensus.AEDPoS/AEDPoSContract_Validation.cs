@@ -62,12 +62,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             
             // Is sender produce too many continuous blocks?
             var latestProviderToTinyBlocksCount = State.LatestProviderToTinyBlocksCount.Value;
-            if (latestProviderToTinyBlocksCount.Pubkey == pubkey && latestProviderToTinyBlocksCount.BlocksCount < 0)
+            if (latestProviderToTinyBlocksCount != null && latestProviderToTinyBlocksCount.Pubkey == pubkey &&
+                latestProviderToTinyBlocksCount.BlocksCount < 0)
             {
                 Context.LogDebug(() => $"Sender {pubkey} produced too many continuous blocks.");
                 return new ValidationResult {Message = "Sender produced too many continuous blocks."};
             }
-            
+
             // Is sender's order of next round correct?
             // Miners that have determined the order of the next round should be equal to
             // miners that mined blocks during current round.

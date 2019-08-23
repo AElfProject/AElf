@@ -25,7 +25,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             while (true)
             {
                 var isAlone = false;
-                if (currentRound.RealTimeMinersInformation.Count > 1 && behaviour == AElfConsensusBehaviour.TinyBlock)
+                if (currentRound.RealTimeMinersInformation.Count > 2 && behaviour == AElfConsensusBehaviour.TinyBlock)
                 {
                     // Not single node.
 
@@ -37,7 +37,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                                   minedMiners.Select(m => m.Pubkey).Contains(publicKey);
                         if (isAlone)
                         {
-                            behaviour = AElfConsensusBehaviour.Nothing;
+                            return ConsensusCommandProviderBase.InvalidConsensusCommand;
                         }
                     }
                 }

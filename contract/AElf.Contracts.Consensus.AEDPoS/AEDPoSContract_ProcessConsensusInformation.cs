@@ -249,25 +249,38 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void ResetLatestProviderToTinyBlocksCount()
         {
-            var currentValue = State.LatestProviderToTinyBlocksCount.Value;
-            if (currentValue.Pubkey == _processingBlockMinerPubkey)
+            LatestProviderToTinyBlocksCount currentValue;
+            if (Context.CurrentHeight == 2)
             {
-                if (currentValue.BlocksCount > 0)
+                currentValue = new LatestProviderToTinyBlocksCount
+                {
+                    Pubkey = _processingBlockMinerPubkey,
+                    BlocksCount = AEDPoSContractConstants.MaximumTinyBlocksCount.Sub(1)
+                };
+                State.LatestProviderToTinyBlocksCount.Value = currentValue;
+            }
+            else
+            {
+                currentValue = State.LatestProviderToTinyBlocksCount.Value;
+                if (currentValue.Pubkey == _processingBlockMinerPubkey)
+                {
+                    if (currentValue.BlocksCount > 0)
+                    {
+                        State.LatestProviderToTinyBlocksCount.Value = new LatestProviderToTinyBlocksCount
+                        {
+                            Pubkey = _processingBlockMinerPubkey,
+                            BlocksCount = currentValue.BlocksCount.Sub(1)
+                        };
+                    }
+                }
+                else
                 {
                     State.LatestProviderToTinyBlocksCount.Value = new LatestProviderToTinyBlocksCount
                     {
                         Pubkey = _processingBlockMinerPubkey,
-                        BlocksCount = currentValue.BlocksCount.Sub(1)
+                        BlocksCount = GetMaximumBlocksCount().Sub(1)
                     };
                 }
-            }
-            else
-            {
-                State.LatestProviderToTinyBlocksCount.Value = new LatestProviderToTinyBlocksCount
-                {
-                    Pubkey = _processingBlockMinerPubkey,
-                    BlocksCount = GetMaximumBlocksCount().Sub(1)
-                };
             }
         }
     }
