@@ -154,6 +154,9 @@
         <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
             <Link>Protobuf/Proto/parliament_auth_contract.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs6.proto">
+            <Link>Protobuf/Proto/acs6.proto</Link>
+        </ContractStub>
     </ItemGroup>
     
 </Project>
