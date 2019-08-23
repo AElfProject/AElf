@@ -133,12 +133,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return AEDPoSContractConstants.MaximumTinyBlocksCount;
             }
 
-            var (blockchainMiningStatus) =
-                new BlockchainMiningStatusEvaluator(
-                    libRoundNumber,
-                    libBlockHeight,
-                    currentRoundNumber,
-                    currentHeight);
+            new BlockchainMiningStatusEvaluator(
+                libRoundNumber,
+                libBlockHeight,
+                currentRoundNumber,
+                currentHeight).Deconstruct(out var blockchainMiningStatus);
 
             Context.LogDebug(() => $"Current blockchain mining status: {blockchainMiningStatus.ToString()}");
 
