@@ -17,6 +17,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         
         public ILogger<ConstrainedAEDPoSTransactionValidationProvider> Logger { get; set; }
 
+        private bool _alreadyHas;
+
         public ConstrainedAEDPoSTransactionValidationProvider(ISmartContractAddressService smartContractAddressService)
         {
             _smartContractAddressService = smartContractAddressService;
@@ -39,7 +41,13 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             if (transaction.To == consensusContractAddress &&
                 constrainedTransaction.Value.Contains(transaction.MethodName))
             {
+                if (!_alreadyHas)
+                {
+                    _alreadyHas = true;
+                    return true;
+                }
                 Logger.LogError($"Not allowed to call consensus contract method '{transaction.MethodName}'");
+                _alreadyHas = false;
                 return false;
             }
 
