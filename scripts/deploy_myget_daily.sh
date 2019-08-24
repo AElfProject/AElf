@@ -25,9 +25,4 @@ for name in `ls *.nupkg`;
 do
     echo ${name}
     dotnet nuget push ${name} -k ${MYGET_API_KEY} -s https://www.myget.org/F/aelf-project-dev/api/v3/index.json
-    if [ "$?" != 0 ] ; then
-        dotnet nuget push ${name} -k ${MYGET_API_KEY} -s https://www.myget.org/F/aelf-project-dev/api/v3/index.json
-    else
-        echo "successful!!!"
-    fi
 done
