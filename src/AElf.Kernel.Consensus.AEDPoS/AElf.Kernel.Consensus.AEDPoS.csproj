@@ -14,6 +14,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.Consensus.Scheduler.RxNet\AElf.Kernel.Consensus.Scheduler.RxNet.csproj" />
+      <ProjectReference Include="..\AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj" />
     </ItemGroup>
 
     <ItemGroup>

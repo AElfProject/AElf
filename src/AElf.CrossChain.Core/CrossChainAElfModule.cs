@@ -1,6 +1,7 @@
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -17,7 +18,7 @@ namespace AElf.CrossChain
             context.Services.AddTransient<ISmartContractAddressNameProvider, CrossChainSmartContractAddressNameProvider>();
             context.Services.AddSingleton<ICrossChainIndexingDataService, CrossChainIndexingDataService>();            
             context.Services
-                .AddScoped<ITransactionValidationProvider, ConstrainedCrossChainTransactionValidationProvider>();
+                .AddScoped<IConstrainedTransactionValidationProvider, ConstrainedCrossChainTransactionValidationProvider>();
             var crossChainConfiguration = context.Services.GetConfiguration().GetSection("CrossChain");
             Configure<CrossChainConfigOptions>(crossChainConfiguration);
         }
