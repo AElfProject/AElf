@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Net;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using AElf.Kernel;
@@ -63,6 +64,7 @@ namespace AElf.OS.Network.Grpc
         public Hash CurrentBlockHash { get; private set; }
         public long CurrentBlockHeight { get; private set; }
 
+        public IPEndPoint RemoteEndpoint { get; }
         public int BufferedTransactionsCount => _bufferedTransactionsCount;
         public int BufferedBlocksCount => _bufferedBlocksCount;
         public int BufferedAnnouncementsCount => _bufferedAnnouncementsCount;
@@ -85,12 +87,12 @@ namespace AElf.OS.Network.Grpc
         
         private readonly BufferBlock<StreamJob> _streamJobs;
 
-        public GrpcPeer(GrpcClient client, string ipAddress, PeerInfo peerInfo)
+        public GrpcPeer(GrpcClient client, IPEndPoint remoteEndpoint, PeerInfo peerInfo)
         {
             _channel = client.Channel;
             _client = client.Client;
 
-            IpAddress = ipAddress;
+            RemoteEndpoint = remoteEndpoint;
             Info = peerInfo;
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
@@ -566,7 +568,7 @@ namespace AElf.OS.Network.Grpc
 
         public override string ToString()
         {
-            return $"{{ listening-port: {IpAddress}, key: {Info.Pubkey.Substring(0, 45)}... }}";
+            return $"{{ listening-port: {RemoteEndpoint}, key: {Info.Pubkey.Substring(0, 45)}... }}";
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using AElf.Contracts.Election;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -37,6 +36,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             State.TokenContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+
+            State.LastIrreversibleBlockHeight.Value = 0;
 
             return new Empty();
         }
@@ -220,6 +221,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(TryToGetCurrentRoundInformation(out _), "Failed to get current round information.");
             Assert(TryToAddRoundInformation(input), "Failed to add round information.");
             Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
+
+            ClearExpiredRandomNumberTokens();
 
             return new Empty();
         }

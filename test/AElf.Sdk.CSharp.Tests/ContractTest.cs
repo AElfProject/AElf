@@ -52,16 +52,6 @@ namespace AElf.Sdk.CSharp.Tests
             balance.ShouldBe(1000000UL);
         }
 
-        [Fact(Skip = "Symbol name format should be checked.")]
-        public void Init_Invalid_Symbol_Test()
-        {
-            Contract.Initialize("eLf Symbol", "elf test token", 1000000, 9);
-            Contract.Symbol().ShouldBe("eLf Symbol");
-            Contract.TokenName().ShouldBe("elf test token");
-            Contract.TotalSupply().ShouldBe(1000000UL);
-            Contract.Decimals().ShouldBe(9U);
-        }
-
         [Fact]
         public void Init_Again_Test()
         {

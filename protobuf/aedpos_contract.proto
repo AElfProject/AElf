@@ -204,3 +204,13 @@ message ConsensusInformation {
 message GetMinerListInput {
     sint64 term_number = 1;
 }
+
+message RandomNumberRequestInformation {
+    sint64 target_round_number = 1;// The random hash is likely generated during this round.
+    sint64 order = 2;
+    sint64 expected_block_height = 3;
+}
+
+message HashList {
+    repeated aelf.Hash values = 1;
+}

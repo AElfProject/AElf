@@ -1,3 +1,5 @@
+using System.Net;
+
 namespace AElf.OS.Network
 {
     public class NetworkTestConstants

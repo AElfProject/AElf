@@ -1,7 +1,5 @@
 using AElf.Sdk.CSharp;
 using System.Linq;
-using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -45,12 +43,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             round.TermNumber = currentTermNumber + 1;
 
             return round;
-        }
-
-        public Hash GetMinersHash()
-        {
-            var orderedMiners = Pubkeys.OrderBy(p => p);
-            return Hash.FromString(orderedMiners.Aggregate("", (current, publicKey) => current + publicKey));
         }
     }
 }

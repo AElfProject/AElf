@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
