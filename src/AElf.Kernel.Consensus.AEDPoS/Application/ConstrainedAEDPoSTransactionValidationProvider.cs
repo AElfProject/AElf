@@ -5,6 +5,8 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
+
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
@@ -12,6 +14,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     public class ConstrainedAEDPoSTransactionValidationProvider : ITransactionValidationProvider
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
+        
+        public ILogger<ConstrainedAEDPoSTransactionValidationProvider> Logger { get; set; }
 
         public ConstrainedAEDPoSTransactionValidationProvider(ISmartContractAddressService smartContractAddressService)
         {
@@ -35,6 +39,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             if (transaction.To == consensusContractAddress &&
                 constrainedTransaction.Value.Contains(transaction.MethodName))
             {
+                Logger.LogError($"Not allowed to call consensus contract method '{transaction.MethodName}'");
                 return false;
             }
 
