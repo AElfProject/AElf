@@ -4,8 +4,8 @@ set -ev
 TAG=$1
 NUGET_API_KEY=$2
 VERSION=`echo ${TAG} | cut -b 2-`
-path1=src/
-path2=contract/
+src_path=src/
+contract_path=contract/
 for path in $path1 $path2 ;
 do
     cd $path
@@ -24,9 +24,8 @@ do
     echo ${name}
     dotnet nuget push ${name} -k ${NUGET_API_KEY} -s https://api.nuget.org/v3/index.json
     if [ "$?" != 0 ] ; then
-        echo "push失败,重新push"
         dotnet nuget push ${name} -k ${NUGET_API_KEY} -s https://api.nuget.org/v3/index.json
     else
-        echo "成功push"
+        echo "successful!!!"
     fi
 done
