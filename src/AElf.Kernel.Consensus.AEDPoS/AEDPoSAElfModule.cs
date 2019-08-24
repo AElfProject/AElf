@@ -31,7 +31,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services.AddSingleton<Application.BestChainFoundEventHandler>();
             context.Services.AddSingleton<ConsensusValidationFailedEventHandler>();
             context.Services.AddSingleton<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
-            context.Services.AddTransient<ITransactionValidationProvider, ConstrainedAEDPoSTransactionValidationProvider>();
+            context.Services.AddScoped<ITransactionValidationProvider, ConstrainedAEDPoSTransactionValidationProvider>();
 
             var configuration = context.Services.GetConfiguration();
 

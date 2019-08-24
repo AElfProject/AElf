@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
@@ -14,7 +15,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     public class ConstrainedAEDPoSTransactionValidationProvider : ITransactionValidationProvider
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        
+
         public ILogger<ConstrainedAEDPoSTransactionValidationProvider> Logger { get; set; }
 
         private bool _alreadyHas;
@@ -46,6 +47,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     _alreadyHas = true;
                     return true;
                 }
+
                 Logger.LogError($"Not allowed to call consensus contract method '{transaction.MethodName}'");
                 _alreadyHas = false;
                 return false;
