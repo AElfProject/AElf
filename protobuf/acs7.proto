@@ -27,6 +27,9 @@ service ACS7 {
     rpc GetIndexedCrossChainBlockDataByHeight (aelf.SInt64Value) returns (CrossChainBlockData) {
         option (aelf.is_view) = true;
     }
+    rpc GetIndexedSideChainBlockDataByHeight (aelf.SInt64Value) returns (IndexedSideChainBlockData) {
+        option (aelf.is_view) = true;
+    }
     rpc GetBoundParentChainHeightAndMerklePathByHeight (aelf.SInt64Value) returns (CrossChainMerkleProofContext) {
         option (aelf.is_view) = true;
     }
@@ -141,4 +144,13 @@ message SideChainCreationRequest {
 message RequestChainCreationOutput {
     int32 chain_id = 1;
     aelf.Hash proposal_id = 2;
+}
+
+message IndexedParentChainBlockData{
+    int64 local_chain_height = 1;
+    repeated acs7.ParentChainBlockData parent_chain_block_data = 2;
+}
+
+message IndexedSideChainBlockData{
+    repeated acs7.SideChainBlockData side_chain_block_data = 1;
 }

@@ -310,7 +310,7 @@ namespace AElf.OS
             return block;
         }
 
-        public Block GenerateBlock(Hash preBlockHash, long preBlockHeight, IEnumerable<Transaction> transactions = null)
+        public virtual Block GenerateBlock(Hash preBlockHash, long preBlockHeight, IEnumerable<Transaction> transactions = null)
         {
             var block = new Block
             {
@@ -378,6 +378,12 @@ namespace AElf.OS
             var txResult = await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
 
             return Address.Parser.ParseFrom(txResult.ReturnValue);
+        }
+
+        public async Task<TransactionResult> GetTransactionResultsAsync(Hash transactionId)
+        {
+            var res = await _transactionResultService.GetTransactionResultAsync(transactionId);
+            return res;
         }
 
         #region private methods

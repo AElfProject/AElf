@@ -6,5 +6,6 @@ namespace AElf.CrossChain.Communication.Grpc
     public interface IGrpcCrossChainServer : IDisposable
     {
         Task StartAsync(string localServerHost, int localServerPort);
+        bool IsStarted { get; }
     }
 }

@@ -18,12 +18,15 @@ using AElf.OS.Node.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Options;
+using Volo.Abp.Threading;
 
 namespace AElf.Parallel.Tests
 {
     public class ParallelTestHelper : OSTestHelper
     {
         private IReadOnlyDictionary<string, byte[]> _codes;
+        private readonly IStaticChainInformationProvider _staticChainInformationProvider;
+        private readonly IAccountService _accountService;
         
         public new IReadOnlyDictionary<string, byte[]> Codes =>
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<ParallelTestHelper>());
@@ -46,6 +49,33 @@ namespace AElf.Parallel.Tests
             minerService, blockchainService, txHub, smartContractAddressService, blockAttachService,
             staticChainInformationProvider, transactionResultService, chainOptions)
         {
+            _accountService = accountService;
+            _staticChainInformationProvider = staticChainInformationProvider;
+        }
+
+        public override Block GenerateBlock(Hash preBlockHash, long preBlockHeight, IEnumerable<Transaction> transactions = null)
+        {
+            var block = new Block
+            {
+                Header = new BlockHeader
+                {
+                    ChainId = _staticChainInformationProvider.ChainId,
+                    Height = preBlockHeight + 1,
+                    PreviousBlockHash = preBlockHash,
+                    Time = TimestampHelper.GetUtcNow(),
+                    SignerPubkey = ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync))
+                },
+                Body = new BlockBody()
+            };
+            if (transactions != null)
+            {
+                foreach (var transaction in transactions)
+                {
+                    block.AddTransaction(transaction);
+                }
+            }
+
+            return block;
         }
 
         public async Task DeployBasicFunctionWithParallelContract()

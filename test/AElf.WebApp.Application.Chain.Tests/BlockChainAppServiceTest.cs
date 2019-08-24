@@ -1243,6 +1243,57 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.RealTimeMinerInformation.Count.ShouldBeGreaterThan(0);
         }
 
+        [Fact]
+        private async Task GetMerklePathByTransactionId_Success_Test()
+        {
+            var transactionList = new List<Transaction>();
+            for (var i = 0; i < 3; i++)
+            {
+                var transaction = await _osTestHelper.GenerateTransferTransaction();
+                transactionList.Add(transaction);
+            }
+
+            await _osTestHelper.BroadcastTransactions(transactionList);
+            var block = await _osTestHelper.MinedOneBlock();
+            // After mined
+            var merkleTreeRoot = block.Header.MerkleTreeRootOfTransactionStatus;
+            var txHex = block.Body.TransactionIds[0].ToHex();
+
+            var response = await GetResponseAsObjectAsync<MerklePathDto>(
+                $"/api/blockChain/merklePathByTransactionId?transactionId={txHex}");
+            var merklePath = new MerklePath();
+            foreach (var res in response.MerklePathNodes)
+            {
+                merklePath.MerklePathNodes.Add(new MerklePathNode
+                {
+                    Hash = HashHelper.HexStringToHash(res.Hash), IsLeftChildNode = res.IsLeftChildNode
+                });
+            }
+
+            var transactionResult = await _osTestHelper.GetTransactionResultsAsync(block.Body.TransactionIds[0]);
+            var calculatedRoot = merklePath.ComputeRootWithLeafNode(
+                GetHashCombiningTransactionAndStatus(transactionResult.TransactionId, transactionResult.Status));
+
+            var merklePathNodes = response.MerklePathNodes;
+            merklePathNodes.Count.ShouldBe(2);
+
+            Assert.True(merklePathNodes[0].IsLeftChildNode == false);
+            Assert.True(merklePathNodes[1].IsLeftChildNode == false);
+            Assert.True(merkleTreeRoot == calculatedRoot);
+        }
+
+        [Fact]
+        private async Task GetMerklePathByTransactionId_Failed_Test()
+        {
+            string hex = "5a7d71da020cae179a0dfe82bd3c967e1573377578f4cc87bc21f74f2556c0ef";
+
+            var errorResponse = await GetResponseAsObjectAsync<WebAppErrorResponse>(
+                $"/api/blockChain/merklePathByTransactionId?transactionId={hex}",
+                expectedStatusCode: HttpStatusCode.Forbidden);
+            errorResponse.Error.Code.ShouldBe(Error.NotFound.ToString());
+            errorResponse.Error.Message.ShouldBe(Error.Message[Error.NotFound]);
+        }
+
         private Task<List<Transaction>> GenerateTwoInitializeTransaction()
         {
             var transactionList = new List<Transaction>();
@@ -1285,6 +1336,15 @@ namespace AElf.WebApp.Application.Chain.Tests
             transaction.Signature = ByteString.CopyFrom(signature);
 
             return Task.FromResult(transaction);
+        }
+        
+        private Hash GetHashCombiningTransactionAndStatus(Hash txId,
+            TransactionResultStatus executionReturnStatus)
+        {
+            // combine tx result status
+            var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
+                .ToArray();
+            return Hash.FromRawBytes(rawBytes);
         }
     }
 }
