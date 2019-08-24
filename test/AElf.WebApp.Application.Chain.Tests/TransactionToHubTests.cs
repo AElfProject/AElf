@@ -94,22 +94,22 @@ namespace AElf.WebApp.Application.Chain.Tests
             Enum.TryParse<TransactionResultStatus>(transactionResult.Status, true, out var status);
             status.ShouldBe(TransactionResultStatus.NotExisted); 
         }
-        
+
         [Fact]
         public async Task SentTransaction_SystemContract_Check_Test()
         {
             //prepare token
             var (transactions, keyPairs) = await _osTestHelper.PrepareTokenForParallel(1, 100);
             await SendTransactionAsync(transactions[0]);
-            
+
             //send consensus transaction
             var consensusContract = GetConsensusContractAddress();
             var transaction = await GenerateTransaction(keyPairs[0], consensusContract, "FirstRound", new Round());
-            
+
             var transactionId = await SendTransactionAsync(transaction);
             var transactionResult = await QueryTransactionResultAsync(transactionId);
             Enum.TryParse<TransactionResultStatus>(transactionResult.Status, true, out var status);
-            status.ShouldBe(TransactionResultStatus.NotExisted);            
+            status.ShouldBe(TransactionResultStatus.NotExisted);
         }
 
         private async Task<string> SendTransactionAsync(Transaction transaction)
