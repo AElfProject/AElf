@@ -232,13 +232,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private bool PreCheck()
         {
             TryToGetCurrentRoundInformation(out var currentRound);
+            TryToGetPreviousRoundInformation(out var previousRound);
 
             _processingBlockMinerPubkey = Context.RecoverPublicKey().ToHex();
 
             // Though we've already prevented related transactions from inserting to the transaction pool
             // via ConstrainedAEDPoSTransactionValidationProvider,
             // this kind of permission check is still useful.
-            if (!currentRound.IsInMinerList(_processingBlockMinerPubkey))
+            if (!currentRound.IsInMinerList(_processingBlockMinerPubkey) && 
+                !previousRound.IsInMinerList(_processingBlockMinerPubkey))// Case a failed miner performing NextTerm
             {
                 return false;
             }
@@ -249,7 +251,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void ResetLatestProviderToTinyBlocksCount()
         {
             LatestProviderToTinyBlocksCount currentValue;
-            if (Context.CurrentHeight == 2)
+            if (State.LatestProviderToTinyBlocksCount.Value == null)
             {
                 currentValue = new LatestProviderToTinyBlocksCount
                 {

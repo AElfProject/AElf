@@ -29,6 +29,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 if (impliedIrreversibleHeights.Count < minimumMinersCount)
                 {
                     libHeight = 0;
+                    return;
                 }
 
                 libHeight = impliedIrreversibleHeights[impliedIrreversibleHeights.Count.Sub(1).Div(3)];

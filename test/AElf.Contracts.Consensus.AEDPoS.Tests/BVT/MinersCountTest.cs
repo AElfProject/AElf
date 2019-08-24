@@ -25,8 +25,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             const int termIntervalMin = 31536000 / 60;
             
-            await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(new Empty());
-
             var maxCount = ValidationDataCenterKeyPairs.Count;
             await InitializeCandidates(maxCount);
 
