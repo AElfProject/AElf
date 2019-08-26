@@ -5,7 +5,6 @@ namespace AElf.OS.Network.Events
 {
     public class PeerConnectedEventData
     {
-        public BlockHeader BestChainHead { get; }
         public NodeInfo NodeInfo { get; }
         public Hash BestChainHash { get; }
         public long BestChainHeight { get; }
