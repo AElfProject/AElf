@@ -246,8 +246,9 @@ namespace AElf.Kernel.SmartContract.Application
                 var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txCtxt);
                 foreach (var postTx in transactions)
                 {
-                    var postTrace = await ExecuteOneAsync(0, internalChainContext, postTx, currentBlockTime,
-                        cancellationToken);
+                    TransactionParameters parameters = new  TransactionParameters(postTx,
+                     internalChainContext, currentBlockTime);
+                    var postTrace = await ExecuteOneAsync(0, parameters, cancellationToken);
                     trace.PostTransactions.Add(postTx);
                     trace.PostTraces.Add(postTrace);
                     if (!postTrace.IsSuccessful())
