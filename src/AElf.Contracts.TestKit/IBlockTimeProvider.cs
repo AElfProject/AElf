@@ -11,7 +11,6 @@ namespace AElf.Contracts.TestKit
     public interface IBlockTimeProvider
     {
         Timestamp GetBlockTime();
-        void SetBlockTime(DateTime blockTime);
         void SetBlockTime(Timestamp blockTime);
     }
 
@@ -20,13 +19,7 @@ namespace AElf.Contracts.TestKit
         private Timestamp _blockTime;
         public Timestamp GetBlockTime()
         {
-
-            return (_blockTime == null) ? TimestampHelper.GetUtcNow() : _blockTime;
-        }
-
-        public void SetBlockTime(DateTime blockTime)
-        {
-            _blockTime = blockTime.ToTimestamp();
+            return _blockTime == null ? TimestampHelper.GetUtcNow() : _blockTime;
         }
 
         public void SetBlockTime(Timestamp blockTime)

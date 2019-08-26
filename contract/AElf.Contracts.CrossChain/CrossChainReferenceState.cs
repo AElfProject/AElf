@@ -1,6 +1,6 @@
 using Acs0;
 using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.ParliamentAuth;
 
 namespace AElf.Contracts.CrossChain

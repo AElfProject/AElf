@@ -13,7 +13,7 @@ namespace AElf.Contracts.Genesis
     public class BasicContractZeroTest : AuthorityNotRequiredBasicContractZeroTestBase
     {
         [Fact]
-        public async Task<Address> Deploy_SmartContracts()
+        public async Task<Address> Deploy_SmartContracts_Test()
         {
             var result = await DefaultTester.DeploySmartContract.SendAsync(new ContractDeploymentInput()
             {
@@ -26,9 +26,9 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task Query_SmartContracts_info()
+        public async Task Query_SmartContracts_Info_Test()
         {
-            var contractAddress = await Deploy_SmartContracts();
+            var contractAddress = await Deploy_SmartContracts_Test();
 
             var resultSerialNumber = await DefaultTester.CurrentContractSerialNumber.CallAsync(new Empty());
             resultSerialNumber.Value.ShouldNotBe(0UL);
@@ -53,9 +53,31 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task Update_SmartContract()
+        public async Task Query_ContractRegistrationByAddress_Test()
         {
-            var contractAddress = await Deploy_SmartContracts();
+            //not exist
+            {
+                var address = SampleAddress.AddressList[0];
+                var registrationInfo =
+                    await DefaultTester.GetSmartContractRegistrationByAddress.CallAsync(address);
+                registrationInfo.ShouldBe(new SmartContractRegistration());
+            }
+            
+            //exist contract
+            {
+                var registrationInfo =
+                    await DefaultTester.GetSmartContractRegistrationByAddress.CallAsync(ContractZeroAddress);
+            
+                registrationInfo.Category.ShouldBe(KernelConstants.CodeCoverageRunnerCategory);
+                registrationInfo.CodeHash.ShouldNotBeNull();
+                registrationInfo.Code.Length.ShouldBeGreaterThan(0);
+            }
+        }
+
+        [Fact]
+        public async Task Update_SmartContract_Test()
+        {
+            var contractAddress = await Deploy_SmartContracts_Test();
 
             var resultUpdate = await DefaultTester.UpdateSmartContract.SendAsync(
                 new ContractUpdateInput()
@@ -73,11 +95,22 @@ namespace AElf.Contracts.Genesis
             var contractHash = Hash.FromRawBytes(contractCode);
             resultHash.ShouldBe(contractHash);
         }
+
+        [Fact]
+        public async Task Change_GenesisOwner_Test()
+        {
+            //without permission
+            {
+                var changeResult = await DefaultTester.ChangeGenesisOwner.SendAsync(AnotherUser);
+                changeResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                changeResult.TransactionResult.Error.ShouldContain("Unauthorized to initialize");
+            }
+        }
         
         [Fact]
-        public async Task Update_SmartContract_WrongUser()
+        public async Task Update_SmartContract_WrongAuthor_Test()
         {
-            var contractAddress = await Deploy_SmartContracts();
+            var contractAddress = await Deploy_SmartContracts_Test();
 
             var resultUpdate = await AnotherTester.UpdateSmartContract.SendAsync(
                 new ContractUpdateInput()
@@ -88,12 +121,11 @@ namespace AElf.Contracts.Genesis
             resultUpdate.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             resultUpdate.TransactionResult.Error.Contains("Only author can propose contract update.").ShouldBeTrue();
         }
-        
 
         [Fact]
-        public async Task Update_SmartContract_With_Same_Code()
+        public async Task Update_SmartContract_With_Same_Code_Test()
         {
-            var contractAddress = await Deploy_SmartContracts();
+            var contractAddress = await Deploy_SmartContracts_Test();
 
             var result = await DefaultTester.UpdateSmartContract.SendAsync(
                 new ContractUpdateInput()
@@ -106,9 +138,9 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task Change_Contract_Author()
+        public async Task Change_Contract_Author_Test()
         {
-            var contractAddress = await Deploy_SmartContracts();
+            var contractAddress = await Deploy_SmartContracts_Test();
 
             var resultChange = await DefaultTester.ChangeContractAuthor.SendAsync(
                 new ChangeContractAuthorInput()
@@ -123,9 +155,9 @@ namespace AElf.Contracts.Genesis
         }
 
         [Fact]
-        public async Task Change_Contract_Author_Without_Permission()
+        public async Task Change_Contract_Author_Without_Permission_Test()
         {
-            var contractAddress = await Deploy_SmartContracts();
+            var contractAddress = await Deploy_SmartContracts_Test();
             var result = await AnotherTester.ChangeContractAuthor.SendAsync(
                 new ChangeContractAuthorInput()
                 {

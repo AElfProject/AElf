@@ -34,11 +34,12 @@ namespace AElf.Kernel.Miner.Application
         /// Mine process.
         /// </summary>
         /// <returns></returns>
-        public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp dateTime,
+        public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime,
             Duration blockExecutionTime)
         {
+            var limit = await _blockTransactionLimitProvider.GetLimitAsync();
             var executableTransactionSet =
-                await _txHub.GetExecutableTransactionSetAsync(_blockTransactionLimitProvider.Limit);
+                await _txHub.GetExecutableTransactionSetAsync(limit);
             var pending = new List<Transaction>();
             if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
             {
@@ -56,7 +57,7 @@ namespace AElf.Kernel.Miner.Application
                 {
                     PreviousBlockHash = previousBlockHash, PreviousBlockHeight = previousBlockHeight,
                     BlockExecutionTime = blockExecutionTime
-                }, pending, dateTime);
+                }, pending, blockTime);
         }
     }
 }

@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
@@ -51,19 +53,19 @@ namespace AElf.OS.Network.Grpc.Connection
         /// <summary>
         /// Connects to a node with the given ip address and adds it to the node's peer pool.
         /// </summary>
-        /// <param name="ipAddress">the ip address of the distant node</param>
+        /// <param name="endpoint">the ip address of the distant node</param>
         /// <returns>True if the connection was successful, false otherwise</returns>
-        public async Task<bool> ConnectAsync(string ipAddress)
+        public async Task<bool> ConnectAsync(IPEndPoint endpoint)
         {
-            Logger.LogTrace($"Attempting to reach {ipAddress}.");
+            Logger.LogTrace($"Attempting to reach {endpoint}.");
 
-            if (_peerPool.FindPeerByAddress(ipAddress) != null)
+            if (_peerPool.FindPeerByEndpoint(endpoint) != null)
             {
-                Logger.LogWarning($"Peer {ipAddress} is already in the pool.");
+                Logger.LogWarning($"Peer {endpoint} is already in the pool.");
                 return false;
             }
 
-            var peer = await _peerDialer.DialPeerAsync(ipAddress);
+            var peer = await _peerDialer.DialPeerAsync(endpoint);
 
             if (peer == null)
                 return false;
@@ -98,22 +100,15 @@ namespace AElf.OS.Network.Grpc.Connection
 
         private void FireConnectionEvent(GrpcPeer peer)
         {
-            var nodeInfo = new NodeInfo {Endpoint = peer.IpAddress, Pubkey = peer.Info.Pubkey.ToByteString()};
+            var nodeInfo = new NodeInfo {Endpoint = peer.RemoteEndpoint.ToString(), Pubkey = peer.Info.Pubkey.ToByteString()};
             var bestChainHash = peer.CurrentBlockHash;
             var bestChainHeight = peer.CurrentBlockHeight;
 
             _ = EventBus.PublishAsync(new PeerConnectedEventData(nodeInfo, bestChainHash, bestChainHeight));
         }
 
-        public async Task<HandshakeReply> DoHandshakeAsync(string peerConnectionIp, Handshake handshake)
+        public async Task<HandshakeReply> DoHandshakeAsync(IPEndPoint endpoint, Handshake handshake)
         {
-            var grpcUrl = GrpcUrl.Parse(peerConnectionIp);
-            if (grpcUrl == null)
-            {
-                Logger.LogWarning($"Peer connection ip error: {peerConnectionIp}.");
-                return new HandshakeReply {ErrorMessage = "Connection ip error"};
-            }
-
             var handshakeValidationResult = await _handshakeProvider.ValidateHandshakeAsync(handshake);
             if (handshakeValidationResult != HandshakeValidationResult.Ok)
             {
@@ -135,11 +130,7 @@ namespace AElf.OS.Network.Grpc.Connection
                 return new HandshakeReply {ErrorMessage = "Peer pool is full"};
             }
 
-            // TODO: find a URI type to use
-            var peerAddress = grpcUrl.IpAddress + ":" + handshake.HandshakeData.ListeningPort;
-            Logger.LogDebug($"Attempting to create channel to {peerAddress}");
-
-            var grpcPeer = await _peerDialer.DialBackPeerAsync(peerAddress, handshake);
+            var grpcPeer = await _peerDialer.DialBackPeerAsync(endpoint, handshake);
 
             var removedPeer = _peerPool.RemovePeer(grpcPeer.Info.Pubkey);
             if (removedPeer != null)

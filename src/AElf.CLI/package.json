@@ -1,8 +1,0 @@
-{
-  "version": "1.0.0",
-  "name": "aelf.cli",
-  "private": true,
-  "dependencies": {
-    "aelf-sdk": "^2.1.12"
-  }
-}

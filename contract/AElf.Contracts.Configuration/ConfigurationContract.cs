@@ -1,13 +1,15 @@
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
-namespace Configuration
+namespace AElf.Contracts.Configuration
 {
-    public class ConfigurationContract : ConfigurationContainer.ConfigurationBase
+    public partial class ConfigurationContract : ConfigurationContainer.ConfigurationBase
     {
         public override Empty SetBlockTransactionLimit(Int32Value input)
         {
-            // TODO: Check permission
+            CheckOwnerAuthority();
+            
             var oldValue = State.BlockTransactionLimit.Value;
             var newValue = input.Value;
             State.BlockTransactionLimit.Value = newValue;
@@ -22,6 +24,19 @@ namespace Configuration
         public override Int32Value GetBlockTransactionLimit(Empty input)
         {
             return new Int32Value {Value = State.BlockTransactionLimit.Value};
+        }
+
+        public override Empty ChangeOwnerAddress(Address input)
+        {
+            CheckOwnerAuthority();
+            State.Owner.Value = input;
+            return new Empty();
+        }
+
+        public override Address GetOwnerAddress(Empty input)
+        {
+            var address = GetOwnerAddress();
+            return address;
         }
     }
 }

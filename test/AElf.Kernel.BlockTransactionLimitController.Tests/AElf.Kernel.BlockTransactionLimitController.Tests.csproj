@@ -22,8 +22,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ContractStub Include="..\..\protobuf\configuration.proto">
-            <Link>Protobuf\Proto\configuration.proto</Link>
+        <ContractStub Include="..\..\protobuf\configuration_contract.proto">
+            <Link>Protobuf\Proto\configuration_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 </Project>

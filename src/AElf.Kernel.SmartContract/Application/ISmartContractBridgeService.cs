@@ -14,11 +14,9 @@ namespace AElf.Kernel.SmartContract.Application
     {
         void LogDebug(Func<string> func);
 
-        Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged, Hash name);
+        Task DeployContractAsync(ContractDto contractDto);
 
-        Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged, Hash name);
+        Task UpdateContractAsync(ContractDto contractDto);
 
         Task<List<Transaction>> GetBlockTransactions(Hash blockHash);
         int GetChainId();
@@ -28,6 +26,8 @@ namespace AElf.Kernel.SmartContract.Application
         IReadOnlyDictionary<Hash, Address> GetSystemContractNameToAddressMapping();
 
         Address GetZeroSmartContractAddress();
+        
+        Address GetZeroSmartContractAddress(int chainId);
 
         Task<ByteString> GetStateAsync(Address contractAddress, string key, long blockHeight, Hash blockHash);
     }
@@ -60,16 +60,14 @@ namespace AElf.Kernel.SmartContract.Application
 #endif
         }
 
-        public async Task DeployContractAsync(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged, Hash name)
+        public async Task DeployContractAsync(ContractDto contractDto)
         {
-            await _smartContractService.DeployContractAsync(contractAddress, registration, isPrivileged, name);
+            await _smartContractService.DeployContractAsync(contractDto);
         }
 
-        public async Task UpdateContractAsync(Address contractAddress, SmartContractRegistration registration,
-            bool isPrivileged, Hash name)
+        public async Task UpdateContractAsync(ContractDto contractDto)
         {
-            await _smartContractService.UpdateContractAsync(contractAddress, registration, isPrivileged, name);
+            await _smartContractService.UpdateContractAsync(contractDto);
         }
 
         public async Task<List<Transaction>> GetBlockTransactions(Hash blockHash)
@@ -96,6 +94,11 @@ namespace AElf.Kernel.SmartContract.Application
         public Address GetZeroSmartContractAddress()
         {
             return _smartContractAddressService.GetZeroSmartContractAddress();
+        }
+
+        public Address GetZeroSmartContractAddress(int chainId)
+        {
+            return _smartContractAddressService.GetZeroSmartContractAddress(chainId);
         }
 
         public Task<ByteString> GetStateAsync(Address contractAddress, string key, long blockHeight, Hash blockHash)

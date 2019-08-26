@@ -47,15 +47,7 @@ namespace AElf.WebApp.Application.Net
         /// <returns></returns>
         public async Task<bool> RemovePeerAsync(string address)
         {
-            try
-            {
-                return await _networkService.RemovePeerAsync(address);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
+            return await _networkService.RemovePeerAsync(address);
         }
         
         /// <summary>
@@ -68,7 +60,7 @@ namespace AElf.WebApp.Application.Net
             
             var peerDtoList = peerList.Select(p => new PeerDto
             {
-                IpAddress = p.IpAddress,
+                IpAddress = p.RemoteEndpoint.ToString(),
                 ProtocolVersion = p.Info.ProtocolVersion,
                 ConnectionTime = p.Info.ConnectionTime.Seconds,
                 Inbound = p.Info.IsInbound,

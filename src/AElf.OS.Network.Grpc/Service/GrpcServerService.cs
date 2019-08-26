@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Helper;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
@@ -47,7 +49,11 @@ namespace AElf.OS.Network.Grpc
         public override async Task<HandshakeReply> DoHandshake(HandshakeRequest request, ServerCallContext context)
         {
             Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a handshake.");
-            return await _connectionService.DoHandshakeAsync(context.Peer, request.Handshake);
+            
+            if(!UriHelper.TryParsePrefixedEndpoint(context.Peer, out IPEndPoint peerEndpoint))
+                return new HandshakeReply() { ErrorMessage = "Invalid Peer." };
+            
+            return await _connectionService.DoHandshakeAsync(peerEndpoint, request.Handshake);
         }
 
         public override async Task<VoidReply> ConfirmHandshake(ConfirmHandshakeRequest request,

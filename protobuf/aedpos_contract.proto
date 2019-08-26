@@ -4,6 +4,7 @@ import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 option csharp_namespace = "AElf.Contracts.Consensus.AEDPoS";
 
@@ -51,13 +52,33 @@ service AEDPoSContract {
     rpc GetCurrentTermNumber (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
+    rpc GetCurrentWelfareReward (google.protobuf.Empty) returns (aelf.SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetMinerList (GetMinerListInput) returns (MinerList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPreviousMinerList (google.protobuf.Empty) returns (MinerList) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetMinedBlocksOfPreviousTerm (google.protobuf.Empty) returns (aelf.SInt64Value) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetNextMinerPubkey (google.protobuf.Empty) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetCurrentMinerPubkey (google.protobuf.Empty) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc IsCurrentMiner (aelf.Address) returns (google.protobuf.BoolValue) {
+        option (aelf.is_view) = true;
+    }
 }
 
 // Events
 message IrreversibleBlockFound {
     option (aelf.is_event) = true;
-    sint64 offset = 1;
-    sint64 irreversible_block_height = 2;
+    sint64 irreversible_block_height = 1;
 }
 
 message InitialAElfConsensusContractInput {
@@ -178,4 +199,18 @@ message VoteMinersCountInput {
 
 message ConsensusInformation {
     bytes value = 1;
+}
+
+message GetMinerListInput {
+    sint64 term_number = 1;
+}
+
+message RandomNumberRequestInformation {
+    sint64 target_round_number = 1;// The random hash is likely generated during this round.
+    sint64 order = 2;
+    sint64 expected_block_height = 3;
+}
+
+message HashList {
+    repeated aelf.Hash values = 1;
 }

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.OS.Network.Events;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
@@ -88,15 +89,17 @@ namespace AElf.OS.Network.Grpc
             }
 
             var taskList = NetworkOptions.BootNodes
-                .Select(async s =>
+                .Select(async node =>
                 {
                     try
                     {
-                        await _connectionService.ConnectAsync(s);
+                        if (!IpEndpointHelper.TryParse(node, out IPEndPoint endpoint))
+                            return;
+                        await _connectionService.ConnectAsync(endpoint);
                     }
                     catch (Exception e)
                     {
-                        Logger.LogError(e, $"Connect peer failed. {s}");
+                        Logger.LogError(e, $"Connect peer failed.{node}");
                     }
                 }).ToList();
             
@@ -106,11 +109,11 @@ namespace AElf.OS.Network.Grpc
         /// <summary>
         /// Connects to a node with the given ip address and adds it to the node's peer pool.
         /// </summary>
-        /// <param name="ipAddress">the ip address of the distant node</param>
+        /// <param name="endpoint">the ip address of the distant node</param>
         /// <returns>True if the connection was successful, false otherwise</returns>
-        public async Task<bool> ConnectAsync(string ipAddress)
+        public async Task<bool> ConnectAsync(IPEndPoint endpoint)
         {
-            return await _connectionService.ConnectAsync(ipAddress);
+            return await _connectionService.ConnectAsync(endpoint);
         }
 
         public async Task DisconnectAsync(IPeer peer, bool sendDisconnect = false)

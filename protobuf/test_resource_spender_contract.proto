@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+import "aelf/options.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+import "acs8.proto";
+
+option csharp_namespace = "AElf.Contracts.TestContract.ResourceSpender";
+
+service ResourceSpenderContract {
+    option (aelf.csharp_state) = "AElf.Contracts.TestContract.ResourceSpender.ResourceSpenderContractState";
+    option (aelf.base) = "acs8.proto";
+    
+    rpc InitializeResourceSpenderContract (InitializeResourceSpenderContractInput) returns (google.protobuf.Empty) {
+    }
+    rpc SendForFun (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
+}
+
+message InitializeResourceSpenderContractInput {
+    string symbol = 1;
+}
