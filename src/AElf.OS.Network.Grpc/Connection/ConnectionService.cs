@@ -83,7 +83,8 @@ namespace AElf.OS.Network.Grpc.Connection
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Peer {peer.Info.Pubkey} is already in the pool.");
+                Logger.LogError(e, $"Confirm handshake error. Peer: {peer.Info.Pubkey}.");
+                _peerPool.RemovePeer(peer.Info.Pubkey);
                 await peer.DisconnectAsync(false);
                 throw;
             }

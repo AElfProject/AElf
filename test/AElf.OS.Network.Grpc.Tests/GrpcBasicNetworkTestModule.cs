@@ -93,10 +93,12 @@ namespace AElf.OS.Network
                         
                         var handshakeCall = TestCalls.AsyncUnaryCall(Task.FromResult(handshakeReply), 
                             Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
-                            
+                        
                         var mockClient = new Mock<PeerService.PeerServiceClient>();
                         mockClient.Setup(m => m.DoHandshakeAsync(It.IsAny<HandshakeRequest>(), It.IsAny<Metadata>(), It.IsAny<DateTime?>(), 
                             CancellationToken.None)).Returns(handshakeCall);
+                        mockClient.Setup(m => m.ConfirmHandshakeAsync(It.IsAny<ConfirmHandshakeRequest>(), It.IsAny<Metadata>(),It.IsAny<DateTime?>(), 
+                            CancellationToken.None)).Throws(new AggregateException());
                         
                         var peer = GrpcTestPeerHelpers.CreatePeerWithClient(NetworkTestConstants.GoodPeerEndpoint,
                             NetworkTestConstants.FakePubkey, mockClient.Object);
@@ -141,10 +143,15 @@ namespace AElf.OS.Network
                             };
                             var handshakeCall = TestCalls.AsyncUnaryCall(Task.FromResult(handshakeReply), 
                                 Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
-                            
+                            var ConfirmHandshakeCall = TestCalls.AsyncUnaryCall(Task.FromResult(new VoidReply()), 
+                                Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
+
                             var mockClient = new Mock<PeerService.PeerServiceClient>();
                             mockClient.Setup(m => m.DoHandshakeAsync(It.IsAny<HandshakeRequest>(), It.IsAny<Metadata>(), It.IsAny<DateTime?>(), 
                                     CancellationToken.None)).Returns(handshakeCall);
+
+                            mockClient.Setup(m => m.ConfirmHandshakeAsync(It.IsAny<ConfirmHandshakeRequest>(), It.IsAny<Metadata>(),It.IsAny<DateTime?>(), 
+                                CancellationToken.None)).Returns(ConfirmHandshakeCall);
                         
                             var peer = GrpcTestPeerHelpers.CreatePeerWithClient(NetworkTestConstants.GoodPeerEndpoint,
                                 keyPair.PublicKey.ToHex(), mockClient.Object);

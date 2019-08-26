@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
@@ -151,12 +152,11 @@ namespace AElf.OS.Network
         }
         
         [Fact] 
-        public async Task DialPeerAsync_HandshakeError_ShouldReturnFalse()
+        public async Task DialPeerAsync_HandshakeError_ShouldThrowException()
         {
             IpEndpointHelper.TryParse(NetworkTestConstants.BadHandshakeIp, out var endpoint);
-            var added = await _networkServer.ConnectAsync(endpoint);
+            _networkServer.ConnectAsync(endpoint).ShouldThrow<NetworkException>();
             
-            added.ShouldBeFalse();
             _peerPool.PeerCount.ShouldBe(0);
         }
 
