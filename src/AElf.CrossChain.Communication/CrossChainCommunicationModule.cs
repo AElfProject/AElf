@@ -11,7 +11,6 @@ namespace AElf.CrossChain.Communication
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<IChainInitializationDataPlugin, CrossChainPlugin>();
-            context.Services.AddTransient<INodePlugin, CrossChainPlugin>();
         }
     }
 }

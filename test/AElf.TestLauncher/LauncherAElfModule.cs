@@ -11,8 +11,6 @@ using AElf.OS;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
-using AElf.OS.Rpc.ChainController;
-using AElf.OS.Rpc.Net;
 using AElf.Runtime.CSharp;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -33,10 +31,7 @@ namespace AElf.TestLauncher
         typeof(KernelAElfModule),
         typeof(OSAElfModule),
         typeof(CSharpRuntimeAElfModule),
-        typeof(GrpcNetworkModule),
-
-        typeof(ChainControllerRpcModule),
-        typeof(NetRpcAElfModule)
+        typeof(GrpcNetworkModule)
     )]
     public class MainBlockchainAElfModule : AElfModule
     {

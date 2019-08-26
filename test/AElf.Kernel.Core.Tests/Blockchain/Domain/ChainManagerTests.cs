@@ -70,6 +70,12 @@ namespace AElf.Kernel.Blockchain.Domain
         [Fact]
         public async Task Create_Chain_ThrowInvalidOperationException()
         {
+            //basic verify for code coverage
+            var chain = new Chain(0, _genesis);
+            chain.ShouldNotBeNull();
+            chain.Id.ShouldBe(0);
+            chain.GenesisBlockHash.ShouldBe(_genesis);
+            
             await _chainManager.CreateAsync(_genesis);
 
             await _chainManager.CreateAsync(_genesis).ShouldThrowAsync<InvalidOperationException>();

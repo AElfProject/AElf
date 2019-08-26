@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -58,7 +57,6 @@ namespace AElf.Contracts.ReferendumAuth
                         TransactionMethodCallList = GenerateTokenInitializationCallList()
                     })).Output;
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
-            
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
@@ -88,7 +86,7 @@ namespace AElf.Contracts.ReferendumAuth
             const string symbol = "ELF";
             const long totalSupply = 100_000_000;
             var tokenContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            tokenContractCallList.Add(nameof(TokenContract.CreateNativeToken), new CreateNativeTokenInput
+            tokenContractCallList.Add(nameof(TokenContract.Create), new CreateInput
             {
                 Symbol = symbol,
                 Decimals = 2,
@@ -96,9 +94,9 @@ namespace AElf.Contracts.ReferendumAuth
                 TokenName = "elf token",
                 TotalSupply = totalSupply,
                 Issuer = DefaultSender,
-                LockWhiteSystemContractNameList =
+                LockWhiteList =
                 {
-                    Hash.FromString("AElf.ContractNames.ReferendumAuth")
+                    ReferendumAuthContractAddress
                 }
             });
 

@@ -42,7 +42,6 @@ namespace AElf.Kernel.SmartContract.Sdk
             private readonly Dictionary<ScopedStatePath, byte[]> _data =
                 new Dictionary<ScopedStatePath, byte[]>();
 
-            //TODO: Add TryGetValue and this[StatePath key] cases [Case]
             public bool TryGetValue(ScopedStatePath key, out byte[] value)
             {
                 return _data.TryGetValue(key, out value);

@@ -1,10 +1,7 @@
-using System;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
-using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Shouldly;
@@ -12,73 +9,13 @@ using Xunit;
 
 namespace AElf.Contracts.Profit
 {
-    public class ProfitTests : ProfitContractTestBase
+    public partial class ProfitTests : ProfitContractTestBase
     {
+        private const long ClaimTransactionFee = 1_00000000;
+
         public ProfitTests()
         {
             InitializeContracts();
-        }
-
-        [Fact]
-        public async Task ProfitContract_CheckTreasury()
-        {
-            await CreateTreasury();
-
-            var treasury = await ProfitContractStub.GetProfitItem.CallAsync(TreasuryHash);
-
-            treasury.Creator.ShouldBe(Address.FromPublicKey(StarterKeyPair.PublicKey));
-            treasury.TokenSymbol.ShouldBe(ProfitContractTestConsts.NativeTokenSymbol);
-            treasury.TotalAmount.ShouldBe((long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2));
-
-            var treasuryAddress = await ProfitContractStub.GetProfitItemVirtualAddress.CallAsync(
-                new GetProfitItemVirtualAddressInput
-                {
-                    ProfitId = TreasuryHash
-                });
-            var treasuryBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Symbol = ProfitContractTestConsts.NativeTokenSymbol,
-                Owner = treasuryAddress
-            })).Balance;
-
-            treasuryBalance.ShouldBe((long) (ProfitContractTestConsts.NativeTokenTotalSupply * 0.2));
-        }
-
-        [Fact]
-        public async Task ProfitContract_CreateProfitItem()
-        {
-            var creator = Creators[0];
-            var creatorAddress = Address.FromPublicKey(CreatorMinerKeyPair[0].PublicKey);
-
-            await creator.CreateProfitItem.SendAsync(new CreateProfitItemInput
-            {
-                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
-            });
-
-            var createdProfitIds = (await creator.GetCreatedProfitItems.CallAsync(new GetCreatedProfitItemsInput
-            {
-                Creator = creatorAddress
-            })).ProfitIds;
-
-            createdProfitIds.Count.ShouldBe(1);
-
-            var profitId = createdProfitIds.First();
-            var profitItem = await creator.GetProfitItem.CallAsync(profitId);
-
-            profitItem.Creator.ShouldBe(creatorAddress);
-            profitItem.TokenSymbol.ShouldBe(ProfitContractTestConsts.NativeTokenSymbol);
-            profitItem.CurrentPeriod.ShouldBe(1);
-            profitItem.ExpiredPeriodNumber.ShouldBe(ProfitContractConsts.DefaultExpiredPeriodNumber);
-            profitItem.TotalWeight.ShouldBe(0);
-            profitItem.TotalAmount.ShouldBe(0);
-
-            var itemBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Symbol = ProfitContractTestConsts.NativeTokenSymbol,
-                Owner = profitItem.VirtualAddress
-            })).Balance;
-
-            Assert.Equal(0, itemBalance);
         }
 
         /// <summary>
@@ -86,110 +23,97 @@ namespace AElf.Contracts.Profit
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task ProfitContract_CreateManyProfitItems()
+        public async Task ProfitContract_CreateManyProfitItems_Test()
         {
             const int createTimes = 5;
 
             var creator = Creators[0];
-            var creatorAddress = Address.FromPublicKey(CreatorMinerKeyPair[0].PublicKey);
+            var creatorAddress = Address.FromPublicKey(CreatorKeyPair[0].PublicKey);
 
             for (var i = 0; i < createTimes; i++)
             {
-                var executionResult = await creator.CreateProfitItem.SendAsync(new CreateProfitItemInput
+                var executionResult = await creator.CreateScheme.SendAsync(new CreateSchemeInput
                 {
-                    TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
                 });
                 executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
-            var createdProfitIds = await creator.GetCreatedProfitItems.CallAsync(new GetCreatedProfitItemsInput
+            var createdSchemeIds = await creator.GetManagingSchemeIds.CallAsync(new GetManagingSchemeIdsInput
             {
-                Creator = creatorAddress
+                Manager = creatorAddress
             });
 
-            createdProfitIds.ProfitIds.Count.ShouldBe(createTimes);
+            createdSchemeIds.SchemeIds.Count.ShouldBe(createTimes);
         }
 
         [Fact]
-        public async Task ProfitContract_CreateProfitItemWithInvalidTokenSymbol()
-        {
-            var creator = Creators[0];
-
-            var executionResult = await creator.CreateProfitItem.SendAsync(new CreateProfitItemInput
-            {
-                TokenSymbol = "WTF"
-            });
-
-            executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Invalid token symbol.");
-        }
-
-        [Fact]
-        public async Task ProfitContract_AddProfits()
+        public async Task ProfitContract_DistributeProfits_Test()
         {
             const int amount = 1000;
 
             var creator = Creators[0];
 
-            var profitId = await CreateProfitItem();
+            var schemeId = await CreateScheme();
 
             // Add profits to virtual address of this profit item.
-            await creator.AddProfits.SendAsync(new AddProfitsInput
+            await creator.ContributeProfits.SendAsync(new ContributeProfitsInput
             {
-                ProfitId = profitId,
-                Amount = amount
+                SchemeId = schemeId,
+                Amount = amount,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
             });
 
             // Check profit item and corresponding balance.
             {
-                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
-                Assert.Equal(amount, profitItem.TotalAmount);
+                var profitItem = await creator.GetScheme.CallAsync(schemeId);
+                Assert.Equal(amount, profitItem.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol]);
 
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
                     Owner = profitItem.VirtualAddress,
-                    Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
                 balance.ShouldBe(amount);
             }
 
             // Add profits to release profits virtual address of this profit item.
             const int period = 3;
-            await creator.AddProfits.SendAsync(new AddProfitsInput
+            await creator.ContributeProfits.SendAsync(new ContributeProfitsInput
             {
-                ProfitId = profitId,
+                SchemeId = schemeId,
                 Amount = amount,
-                Period = period
+                Period = period,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
             });
 
             // Check profit item and corresponding balance.
             {
-                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
+                var profitItem = await creator.GetScheme.CallAsync(schemeId);
                 // Total amount stay.
-                profitItem.TotalAmount.ShouldBe(amount);
+                profitItem.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol].ShouldBe(amount);
 
-                var virtualAddress = await creator.GetProfitItemVirtualAddress.CallAsync(
-                    new GetProfitItemVirtualAddressInput
+                var virtualAddress = await creator.GetSchemeAddress.CallAsync(
+                    new SchemePeriod
                     {
-                        ProfitId = profitId,
+                        SchemeId = schemeId,
                         Period = period
                     });
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
                     Owner = virtualAddress,
-                    Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
                 balance.ShouldBe(amount);
 
-                var releasedProfitInformation = await creator.GetReleasedProfitsInformation.CallAsync(
-                    new GetReleasedProfitsInformationInput
+                var releasedProfitInformation = await creator.GetDistributedProfitsInfo.CallAsync(
+                    new SchemePeriod
                     {
-                        ProfitId = profitId,
+                        SchemeId = schemeId,
                         Period = period
                     });
                 releasedProfitInformation.IsReleased.ShouldBe(false);
-                releasedProfitInformation.TotalWeight.ShouldBe(0);
-                releasedProfitInformation.ProfitsAmount.ShouldBe(amount);
+                releasedProfitInformation.TotalShares.ShouldBe(0);
+                releasedProfitInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol].ShouldBe(amount);
             }
         }
 
@@ -198,220 +122,240 @@ namespace AElf.Contracts.Profit
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task ProfitContract_AddProfits_ByThirdParty()
+        public async Task ProfitContract_ContributeProfits_ByThirdParty_Test()
         {
             const long amountReleasedByCreator = 1000;
             const long amountAddedByGoodGuy = 1000;
-            const long weight = 100;
+            const long shares = 100;
 
             var creator = Creators[0];
             var goodGuy = Creators[1];
 
-            var profitId = await CreateProfitItem();
+            var schemeId = await CreateScheme();
 
-            await creator.AddWeight.SendAsync(new AddWeightInput
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput()
             {
-                ProfitId = profitId,
-                Receiver = SampleAddress.AddressList[0],
-                Weight = weight
+                SchemeId = schemeId,
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = shares}
             });
 
             // Add profits to virtual address of this profit item.
-            await goodGuy.AddProfits.SendAsync(new AddProfitsInput
+            await goodGuy.ContributeProfits.SendAsync(new ContributeProfitsInput
             {
-                ProfitId = profitId,
+                SchemeId = schemeId,
                 Amount = amountAddedByGoodGuy,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
             });
 
             // Check profit item.
             {
-                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
-                profitItem.TotalAmount.ShouldBe(amountReleasedByCreator);
+                var profitItem = await creator.GetScheme.CallAsync(schemeId);
+                profitItem.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol]
+                    .ShouldBe(amountReleasedByCreator);
             }
-            
+
             // Add profits to release profits virtual address of this profit item.
-            await goodGuy.AddProfits.SendAsync(new AddProfitsInput
+            await goodGuy.ContributeProfits.SendAsync(new ContributeProfitsInput
             {
-                ProfitId = profitId,
+                SchemeId = schemeId,
                 Amount = amountAddedByGoodGuy,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 1
             });
 
             // Check balance of period 1
             {
-                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
+                var profitItem = await creator.GetScheme.CallAsync(schemeId);
                 // Total amount stay.
-                profitItem.TotalAmount.ShouldBe(amountReleasedByCreator);
+                profitItem.UndistributedProfits[ProfitContractTestConstants.NativeTokenSymbol]
+                    .ShouldBe(amountReleasedByCreator);
 
-                var releasedProfitsInformation = await creator.GetReleasedProfitsInformation.CallAsync(
-                    new GetReleasedProfitsInformationInput
+                var releasedProfitsInformation = await creator.GetDistributedProfitsInfo.CallAsync(
+                    new SchemePeriod
                     {
-                        ProfitId = profitId,
+                        SchemeId = schemeId,
                         Period = 1
                     });
-                releasedProfitsInformation.ProfitsAmount.ShouldBe(amountReleasedByCreator);
-                // total_weight is 0 before releasing.
-                releasedProfitsInformation.TotalWeight.ShouldBe(0);
+                releasedProfitsInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol]
+                    .ShouldBe(amountReleasedByCreator);
+                // total_Shares is 0 before releasing.
+                releasedProfitsInformation.TotalShares.ShouldBe(0);
                 releasedProfitsInformation.IsReleased.ShouldBe(false);
 
-                var virtualAddress = await creator.GetProfitItemVirtualAddress.CallAsync(
-                    new GetProfitItemVirtualAddressInput
+                var virtualAddress = await creator.GetSchemeAddress.CallAsync(
+                    new SchemePeriod
                     {
-                        ProfitId = profitId,
+                        SchemeId = schemeId,
                         Period = 1
                     });
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
                     Owner = virtualAddress,
-                    Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
                 balance.ShouldBe(amountReleasedByCreator);
             }
 
-            await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
-                ProfitId = profitId,
+                SchemeId = schemeId,
                 Period = 1,
-                Amount = amountReleasedByCreator
+                Amount = amountReleasedByCreator,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             // Creator can release profits of this period.
             {
-                var releasedProfitsInformation = await creator.GetReleasedProfitsInformation.CallAsync(
-                    new GetReleasedProfitsInformationInput
+                var releasedProfitsInformation = await creator.GetDistributedProfitsInfo.CallAsync(
+                    new SchemePeriod
                     {
-                        ProfitId = profitId,
+                        SchemeId = schemeId,
                         Period = 1
                     });
-                releasedProfitsInformation.ProfitsAmount.ShouldBe(amountReleasedByCreator + amountAddedByGoodGuy);
-                releasedProfitsInformation.TotalWeight.ShouldBe(weight);
+                releasedProfitsInformation.ProfitsAmount[ProfitContractTestConstants.NativeTokenSymbol]
+                    .ShouldBe(amountReleasedByCreator + amountAddedByGoodGuy);
+                releasedProfitsInformation.TotalShares.ShouldBe(shares);
                 releasedProfitsInformation.IsReleased.ShouldBe(true);
             }
         }
 
         [Fact]
-        public async Task ProfitContract_RegisterSubProfitItem()
+        public async Task ProfitContract_RemoveSubScheme_Test()
         {
-            const int weight1 = 80;
-            const int weight2 = 20;
+            const int shares1 = 80;
+            const int shares2 = 20;
 
             var creator = Creators[0];
 
-            var profitId = await CreateProfitItem();
-            var subProfitId1 = await CreateProfitItem(1);
-            var subProfitId2 = await CreateProfitItem(2);
+            var schemeId = await CreateScheme();
+            var subSchemeId1 = await CreateScheme(1);
+            var subSchemeId2 = await CreateScheme(2);
 
-            var subProfitItem1 = await creator.GetProfitItem.CallAsync(subProfitId1);
-            var subProfitItem2 = await creator.GetProfitItem.CallAsync(subProfitId2);
+            var subProfitItem1 = await creator.GetScheme.CallAsync(subSchemeId1);
+            var subProfitItem2 = await creator.GetScheme.CallAsync(subSchemeId2);
 
-            await creator.RegisterSubProfitItem.SendAsync(new RegisterSubProfitItemInput
+            await creator.AddSubScheme.SendAsync(new AddSubSchemeInput
             {
-                ProfitId = profitId,
-                SubProfitId = subProfitId1,
-                SubItemWeight = weight1
+                SchemeId = schemeId,
+                SubSchemeId = subSchemeId1,
+                SubSchemeShares = shares1
             });
 
             var profitDetails1 = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
-                ProfitId = profitId,
-                Receiver = subProfitItem1.VirtualAddress
+                SchemeId = schemeId,
+                Beneficiary = subProfitItem1.VirtualAddress
             });
 
             // Check the total_weight of profit item.
             {
-                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
-                profitItem.TotalWeight.ShouldBe(weight1);
+                var profitItem = await creator.GetScheme.CallAsync(schemeId);
+                profitItem.TotalShares.ShouldBe(shares1);
             }
 
             profitDetails1.Details.Count.ShouldBe(1);
             profitDetails1.Details.First().StartPeriod.ShouldBe(1);
             profitDetails1.Details.First().EndPeriod.ShouldBe(long.MaxValue);
             profitDetails1.Details.First().LastProfitPeriod.ShouldBe(0);
-            profitDetails1.Details.First().Weight.ShouldBe(weight1);
+            profitDetails1.Details.First().Shares.ShouldBe(shares1);
 
-            await creator.RegisterSubProfitItem.SendAsync(new RegisterSubProfitItemInput
+            await creator.AddSubScheme.SendAsync(new AddSubSchemeInput()
             {
-                ProfitId = profitId,
-                SubProfitId = subProfitId2,
-                SubItemWeight = weight2
+                SchemeId = schemeId,
+                SubSchemeId = subSchemeId2,
+                SubSchemeShares = shares2
             });
 
             var profitDetails2 = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
             {
-                ProfitId = profitId,
-                Receiver = subProfitItem2.VirtualAddress
+                SchemeId = schemeId,
+                Beneficiary = subProfitItem2.VirtualAddress
             });
 
             // Check the total_weight of profit item.
             {
-                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
-                profitItem.TotalWeight.ShouldBe(weight1 + weight2);
+                var profitItem = await creator.GetScheme.CallAsync(schemeId);
+                profitItem.TotalShares.ShouldBe(shares1 + shares2);
             }
 
             profitDetails2.Details.Count.ShouldBe(1);
             profitDetails2.Details.First().StartPeriod.ShouldBe(1);
             profitDetails2.Details.First().EndPeriod.ShouldBe(long.MaxValue);
             profitDetails2.Details.First().LastProfitPeriod.ShouldBe(0);
-            profitDetails2.Details.First().Weight.ShouldBe(weight2);
+            profitDetails2.Details.First().Shares.ShouldBe(shares2);
+
+            //remove sub scheme1
+            {
+                var removeSubSchemeResult = await creator.RemoveSubScheme.SendAsync(new RemoveSubSchemeInput
+                {
+                    SchemeId = schemeId,
+                    SubSchemeId = subSchemeId1,
+                    SubItemCreator = Address.FromPublicKey(CreatorKeyPair[0].PublicKey)
+                });
+                removeSubSchemeResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                var profitItem = await creator.GetScheme.CallAsync(schemeId);
+                profitItem.TotalShares.ShouldBe(shares2);
+                profitItem.SubSchemes.Count.ShouldBe(1);
+                profitItem.SubSchemes.First().Shares.ShouldBe(shares2);
+            }
         }
 
         [Fact]
-        public async Task ProfitContract_AddWeight()
+        public async Task ProfitContract_AddWeight_Test()
         {
             var creator = Creators[0];
 
-            var profitId = await CreateProfitItem();
+            var schemeId = await CreateScheme();
 
-            const int weight1 = 100;
-            const int weight2 = 200;
+            const int shares1 = 100;
+            const int shares2 = 200;
             var receiver1 = SampleAddress.AddressList[0];
             var receiver2 = SampleAddress.AddressList[1];
 
-            await creator.AddWeight.SendAsync(new AddWeightInput
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                Receiver = receiver1,
-                ProfitId = profitId,
-                Weight = weight1
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = receiver1, Shares = shares1},
+                SchemeId = schemeId,
             });
 
             // Check total_weight and profit_detail
             {
-                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
-                profitItem.TotalWeight.ShouldBe(weight1);
+                var profitItem = await creator.GetScheme.CallAsync(schemeId);
+                profitItem.TotalShares.ShouldBe(shares1);
 
                 var profitDetails = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
-                    ProfitId = profitId,
-                    Receiver = receiver1
+                    SchemeId = schemeId,
+                    Beneficiary = receiver1
                 });
                 profitDetails.Details.Count.ShouldBe(1);
-                profitDetails.Details[0].Weight.ShouldBe(weight1);
+                profitDetails.Details[0].Shares.ShouldBe(shares1);
                 profitDetails.Details[0].EndPeriod.ShouldBe(long.MaxValue);
                 profitDetails.Details[0].StartPeriod.ShouldBe(1);
                 profitDetails.Details[0].LastProfitPeriod.ShouldBe(0);
             }
 
             const int endPeriod = 100;
-            await creator.AddWeight.SendAsync(new AddWeightInput
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                Receiver = receiver2,
-                ProfitId = profitId,
-                Weight = weight2,
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = receiver2, Shares = shares2},
+                SchemeId = schemeId,
                 EndPeriod = endPeriod
             });
 
-            // Check total_weight and profit_detail
+            // Check total_shares and profit_detail
             {
-                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
-                profitItem.TotalWeight.ShouldBe(weight1 + weight2);
+                var profitItem = await creator.GetScheme.CallAsync(schemeId);
+                profitItem.TotalShares.ShouldBe(shares1 + shares2);
 
                 var profitDetails = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
-                    ProfitId = profitId,
-                    Receiver = receiver2
+                    SchemeId = schemeId,
+                    Beneficiary = receiver2
                 });
                 profitDetails.Details.Count.ShouldBe(1);
-                profitDetails.Details[0].Weight.ShouldBe(weight2);
+                profitDetails.Details[0].Shares.ShouldBe(shares2);
                 profitDetails.Details[0].EndPeriod.ShouldBe(endPeriod);
                 profitDetails.Details[0].StartPeriod.ShouldBe(1);
                 profitDetails.Details[0].LastProfitPeriod.ShouldBe(0);
@@ -419,63 +363,61 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_AddWeight_IncorrectEndPeriod()
+        public async Task ProfitContract_AddBeneficiary_IncorrectEndPeriod_Test()
         {
             const long amount = 100;
-            const long weight = 10;
+            const long shares = 10;
 
             var creator = Creators[0];
-            var receiver = SampleAddress.AddressList[0];
+            var beneficiary = SampleAddress.AddressList[0];
 
-            var profitId = await CreateProfitItem();
+            var schemeId = await CreateScheme();
 
             {
-                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
-                profitItem.CurrentPeriod.ShouldBe(1);
+                var scheme = await creator.GetScheme.CallAsync(schemeId);
+                scheme.CurrentPeriod.ShouldBe(1);
             }
 
-            await TransferToProfitItemVirtualAddress(profitId);
+            await TransferToProfitItemVirtualAddress(schemeId);
 
             // Current period: 1
             {
-                var executionResult = await creator.AddWeight.SendAsync(new AddWeightInput
+                var executionResult = await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
                 {
-                    ProfitId = profitId,
-                    Receiver = receiver,
-                    Weight = weight,
+                    SchemeId = schemeId,
+                    BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiary, Shares = shares},
                     EndPeriod = 1
                 });
 
                 executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
-            // We need to add weight successfully for further testing.
-            await creator.AddWeight.SendAsync(new AddWeightInput
+            // We need to add Shares successfully for further testing.
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                ProfitId = profitId,
-                Receiver = receiver,
-                Weight = weight
+                SchemeId = schemeId,
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiary, Shares = shares},
             });
 
-            await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
-                ProfitId = profitId,
+                SchemeId = schemeId,
                 Amount = amount,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 1
             });
 
             {
-                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
-                profitItem.CurrentPeriod.ShouldBe(2);
+                var scheme = await creator.GetScheme.CallAsync(schemeId);
+                scheme.CurrentPeriod.ShouldBe(2);
             }
 
             // Current period: 2
             {
-                var executionResult = await creator.AddWeight.SendAsync(new AddWeightInput
+                var executionResult = await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
                 {
-                    ProfitId = profitId,
-                    Receiver = receiver,
-                    Weight = weight,
+                    SchemeId = schemeId,
+                    BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiary, Shares = shares},
                     EndPeriod = 1
                 });
 
@@ -485,53 +427,52 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_AddWeight_ProfitItemNotFound()
+        public async Task ProfitContract_AddWeight_ProfitItemNotFound_Test()
         {
             var creator = Creators[0];
 
-            var executionResult = await creator.AddWeight.SendAsync(new AddWeightInput
+            var executionResult = await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                ProfitId = Hash.FromString("hash"),
-                Receiver = SampleAddress.AddressList[0],
-                Weight = 100
+                SchemeId = Hash.FromString("SchemeId"),
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Profit item not found.");
+            executionResult.TransactionResult.Error.ShouldContain("Scheme not found.");
         }
 
         /// <summary>
-        /// Every time adding weight to a receiver, will remove expired and used up profit details.
+        /// Every time adding Shares to a Beneficiary, will remove expired and used up profit details.
         /// </summary>
         /// <returns></returns>
         [Fact]
-        public async Task ProfitContract_AddWeight_RemoveExpiredProfitDetails()
+        public async Task ProfitContract_AddWeight_RemoveExpiredProfitDetails_Test()
         {
             const long expiredPeriodNumber = 1;
             const long amount = 150;
-            const long weight = 10;
+            const long shares = 10;
 
             var creator = Creators[0];
-            var receiver = Creators[1];
-            
-            var receiverAddress = Address.FromPublicKey(CreatorMinerKeyPair[1].PublicKey);
+            var beneficiary = Creators[1];
 
-            var profitId = await CreateProfitItem(0, expiredPeriodNumber);
+            var receiverAddress = Address.FromPublicKey(CreatorKeyPair[1].PublicKey);
 
-            await creator.AddWeight.SendAsync(new AddWeightInput
+            var schemeId = await CreateScheme(0, expiredPeriodNumber);
+
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                ProfitId = profitId,
-                Receiver = receiverAddress,
-                Weight = weight,
+                SchemeId = schemeId,
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = receiverAddress, Shares = shares},
                 EndPeriod = 1
             });
 
-            await TransferToProfitItemVirtualAddress(profitId, amount);
+            await TransferToProfitItemVirtualAddress(schemeId, amount);
 
-            await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
-                ProfitId = profitId,
+                SchemeId = schemeId,
                 Amount = amount / 3,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 1
             });
 
@@ -539,21 +480,22 @@ namespace AElf.Contracts.Profit
             {
                 var profitDetails = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
-                    ProfitId = profitId,
-                    Receiver = receiverAddress
+                    SchemeId = schemeId,
+                    Beneficiary = receiverAddress
                 });
 
                 profitDetails.Details.Count.ShouldBe(1);
-                profitDetails.Details[0].Weight.ShouldBe(weight);
+                profitDetails.Details[0].Shares.ShouldBe(shares);
                 profitDetails.Details[0].StartPeriod.ShouldBe(1);
                 profitDetails.Details[0].EndPeriod.ShouldBe(1);
                 profitDetails.Details[0].LastProfitPeriod.ShouldBe(0);
             }
 
-            await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
-                ProfitId = profitId,
+                SchemeId = schemeId,
                 Amount = amount / 3,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 2
             });
 
@@ -561,34 +503,35 @@ namespace AElf.Contracts.Profit
             {
                 var profitDetails = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
-                    ProfitId = profitId,
-                    Receiver = receiverAddress
+                    SchemeId = schemeId,
+                    Beneficiary = receiverAddress
                 });
 
                 profitDetails.Details.Count.ShouldBe(1);
-                profitDetails.Details[0].Weight.ShouldBe(weight);
+                profitDetails.Details[0].Shares.ShouldBe(shares);
                 profitDetails.Details[0].StartPeriod.ShouldBe(1);
                 profitDetails.Details[0].EndPeriod.ShouldBe(1);
                 profitDetails.Details[0].LastProfitPeriod.ShouldBe(0);
             }
 
-            await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
-                ProfitId = profitId,
+                SchemeId = schemeId,
                 Amount = amount / 3,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 3
             });
 
-            await receiver.Profit.SendAsync(new ProfitInput
+            await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
-                ProfitId = profitId
+                SchemeId = schemeId,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
-            
-            await creator.AddWeight.SendAsync(new AddWeightInput
+
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                ProfitId = profitId,
-                Receiver = receiverAddress,
-                Weight = weight * 2,
+                SchemeId = schemeId,
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = receiverAddress, Shares = shares * 2},
                 EndPeriod = 4
             });
 
@@ -596,12 +539,12 @@ namespace AElf.Contracts.Profit
             {
                 var profitDetails = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
-                    ProfitId = profitId,
-                    Receiver = receiverAddress
+                    SchemeId = schemeId,
+                    Beneficiary = receiverAddress
                 });
 
                 profitDetails.Details.Count.ShouldBe(1);
-                profitDetails.Details[0].Weight.ShouldBe(weight * 2);
+                profitDetails.Details[0].Shares.ShouldBe(shares * 2);
                 profitDetails.Details[0].StartPeriod.ShouldBe(4);
                 profitDetails.Details[0].EndPeriod.ShouldBe(4);
                 profitDetails.Details[0].LastProfitPeriod.ShouldBe(0);
@@ -609,133 +552,137 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_SubWeight()
+        public async Task ProfitContract_RemoveBeneficiary_Test()
         {
-            const int weight = 100;
+            const int shares = 100;
             const int amount = 100;
 
             var creator = Creators[0];
-            var receiver = Normal[0];
-            var receiverAddress = Address.FromPublicKey(NormalMinerKeyPair[0].PublicKey);
+            var beneficiary = Normal[0];
+            var receiverAddress = Address.FromPublicKey(NormalKeyPair[0].PublicKey);
 
-            var profitId = await CreateProfitItem();
+            var schemeId = await CreateScheme();
 
-            await TransferToProfitItemVirtualAddress(profitId);
+            await TransferToProfitItemVirtualAddress(schemeId);
 
-            await creator.AddWeight.SendAsync(new AddWeightInput
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                Receiver = receiverAddress,
-                ProfitId = profitId,
-                Weight = weight,
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = receiverAddress, Shares = shares},
+                SchemeId = schemeId,
                 EndPeriod = 1
             });
 
-            await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
-                ProfitId = profitId,
+                SchemeId = schemeId,
                 Amount = amount,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 1
             });
-            
+
             // Check total_weight and profit_detail
             {
-                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
-                profitItem.TotalWeight.ShouldBe(weight);
+                var profitItem = await creator.GetScheme.CallAsync(schemeId);
+                profitItem.TotalShares.ShouldBe(shares);
 
                 var profitDetails = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
-                    ProfitId = profitId,
-                    Receiver = receiverAddress
+                    SchemeId = schemeId,
+                    Beneficiary = receiverAddress
                 });
                 profitDetails.Details.Count.ShouldBe(1);
             }
 
-            await receiver.Profit.SendAsync(new ProfitInput {ProfitId = profitId});
-            
-            await creator.SubWeight.SendAsync(new SubWeightInput
+            await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
-                Receiver = receiverAddress,
-                ProfitId = profitId
+                SchemeId = schemeId,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            });
+
+            await creator.RemoveBeneficiary.SendAsync(new RemoveBeneficiaryInput
+            {
+                Beneficiary = receiverAddress,
+                SchemeId = schemeId
             });
 
             // Check total_weight and profit_detail
             {
-                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
-                profitItem.TotalWeight.ShouldBe(0);
+                var profitItem = await creator.GetScheme.CallAsync(schemeId);
+                profitItem.TotalShares.ShouldBe(0);
 
                 var profitDetails = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
-                    ProfitId = profitId,
-                    Receiver = receiverAddress
+                    SchemeId = schemeId,
+                    Beneficiary = receiverAddress
                 });
                 profitDetails.Details.Count.ShouldBe(0);
             }
         }
 
         [Fact]
-        public async Task ProfitContract_SubWeight_ProfitItemNotFound()
+        public async Task ProfitContract_RemoveBeneficiary_SchemeNotFound_Test()
         {
             var creator = Creators[0];
 
-            var executionResult = await creator.SubWeight.SendAsync(new SubWeightInput
+            var executionResult = await creator.RemoveBeneficiary.SendAsync(new RemoveBeneficiaryInput
             {
-                ProfitId = Hash.FromString("hash2"),
-                Receiver = SampleAddress.AddressList[0]
+                SchemeId = Hash.FromString("SchemeId"),
+                Beneficiary = SampleAddress.AddressList[0]
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Profit item not found.");
+            executionResult.TransactionResult.Error.ShouldContain("Scheme not found.");
         }
 
         [Fact]
-        public async Task ProfitContract_ReleaseProfits_WithoutEnoughBalance()
+        public async Task ProfitContract_ReleaseProfits_WithoutEnoughBalance_Test()
         {
             const long amount = 100;
 
             var creator = Creators[0];
 
-            var profitId = await CreateProfitItem();
+            var schemeId = await CreateScheme();
 
-            await creator.AddWeight.SendAsync(new AddWeightInput
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                Receiver = SampleAddress.AddressList[0],
-                ProfitId = profitId,
-                Weight = 100
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
+                SchemeId = schemeId,
             });
 
-            var executionResult = await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            var executionResult = await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
-                ProfitId = profitId,
+                SchemeId = schemeId,
                 Amount = amount,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 1
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Insufficient profits amount.");
+            executionResult.TransactionResult.Error.ShouldContain("Insufficient balance.");
         }
 
         [Fact]
-        public async Task ProfitContract_ReleaseProfits_InvalidPeriod()
+        public async Task ProfitContract_ReleaseProfits_InvalidPeriod_Test()
         {
             const long amount = 100;
 
             var creator = Creators[0];
 
-            var profitId = await CreateProfitItem();
+            var schemeId = await CreateScheme();
 
-            await TransferToProfitItemVirtualAddress(profitId);
+            await TransferToProfitItemVirtualAddress(schemeId);
 
-            await creator.AddWeight.SendAsync(new AddWeightInput
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                Receiver = SampleAddress.AddressList[0],
-                ProfitId = profitId,
-                Weight = 100
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
+                SchemeId = schemeId,
             });
 
-            var executionResult = await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            var executionResult = await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
-                ProfitId = profitId,
+                SchemeId = schemeId,
                 Amount = amount,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 2
             });
 
@@ -744,70 +691,72 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_ReleaseProfits_NotCreator()
+        public async Task ProfitContract_ReleaseProfits_NotCreator_Test()
         {
             const long amount = 100;
 
-            var profitId = await CreateProfitItem();
+            var schemeId = await CreateScheme();
 
-            await TransferToProfitItemVirtualAddress(profitId);
+            await TransferToProfitItemVirtualAddress(schemeId);
 
             // The actual creator is Creators[0]
             var anotherGuy = Creators[1];
 
-            var executionResult = await anotherGuy.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            var executionResult = await anotherGuy.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
-                ProfitId = profitId,
+                SchemeId = schemeId,
                 Amount = amount,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 1
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Only creator can release profits.");
+            executionResult.TransactionResult.Error.ShouldContain("Only manager");
         }
 
         [Fact]
-        public async Task ProfitContract_ReleaseProfits_ProfitItemNotFound()
+        public async Task ProfitContract_ReleaseProfits_ProfitItemNotFound_Test()
         {
             const long amount = 100;
 
             var user = Creators[0];
 
-            var executionResult = await user.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            var executionResult = await user.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
-                ProfitId = Hash.FromString("hash3"),
+                SchemeId = Hash.FromString("SchemeId"),
                 Amount = amount,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 1
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Profit item not found.");
+            executionResult.TransactionResult.Error.ShouldContain("Scheme not found.");
         }
 
         [Fact]
-        public async Task ProfitContract_ReleaseProfits()
+        public async Task ProfitContract_ReleaseProfits_Test()
         {
             const long amount = 100;
 
             var creator = Creators[0];
 
-            var profitId = await CreateProfitItem();
+            var schemeId = await CreateScheme();
 
-            await TransferToProfitItemVirtualAddress(profitId, amount * 2);
+            await TransferToProfitItemVirtualAddress(schemeId, amount * 2);
 
-            await creator.AddWeight.SendAsync(new AddWeightInput
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                Receiver = SampleAddress.AddressList[0],
-                ProfitId = profitId,
-                Weight = 100
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
+                SchemeId = schemeId,
             });
 
             // First time.
             {
-                var executionResult = await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+                var executionResult = await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
                 {
-                    ProfitId = profitId,
+                    SchemeId = schemeId,
                     Amount = amount,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                     Period = 1
                 });
 
@@ -816,48 +765,19 @@ namespace AElf.Contracts.Profit
 
             // Second time.
             {
-                var executionResult = await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+                var executionResult = await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
                 {
-                    ProfitId = profitId,
+                    SchemeId = schemeId,
                     Amount = amount,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                     Period = 2
                 });
-
                 executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
         }
 
         [Fact]
-        public async Task ProfitContract_ReleaseProfits_BurnProfits()
-        {
-            const long amount = 100;
-            // Will burn specific amount of profits. Because no one can receive profits from -1 period.
-            const long period = -1;
-
-            var creator = Creators[0];
-
-            var profitId = await CreateProfitItem();
-
-            await TransferToProfitItemVirtualAddress(profitId, amount);
-            
-            var executionResult = await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
-            {
-                ProfitId = profitId,
-                Amount = amount,
-                Period = period
-            });
-            executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-            // Check balance.
-            var address = await ProfitContractStub.GetProfitItemVirtualAddress.CallAsync(new GetProfitItemVirtualAddressInput
-                {ProfitId = profitId, Period = -1});
-            var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-                {Owner = address, Symbol = ProfitContractTestConsts.NativeTokenSymbol});
-            balance.Balance.ShouldBe(amount);
-        }
-
-        [Fact]
-        public async Task ProfitContract_ReleaseProfits_WithSubProfitItems()
+        public async Task ProfitContract_ReleaseProfits_WithSubProfitItems_Test()
         {
             const long amount = 100;
             const long weight1 = 80;
@@ -865,42 +785,43 @@ namespace AElf.Contracts.Profit
 
             var creator = Creators[0];
 
-            var profitId = await CreateProfitItem();
-            var subProfitId1 = await CreateProfitItem(1);
-            var subProfitId2 = await CreateProfitItem(2);
+            var schemeId = await CreateScheme();
+            var subSchemeId1 = await CreateScheme(1);
+            var subSchemeId2 = await CreateScheme(2);
 
-            await TransferToProfitItemVirtualAddress(profitId);
+            await TransferToProfitItemVirtualAddress(schemeId);
 
             // Check balance of main profit item.
             {
-                var profitItem = await creator.GetProfitItem.CallAsync(profitId);
+                var profitItem = await creator.GetScheme.CallAsync(schemeId);
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
                     Owner = profitItem.VirtualAddress,
-                    Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
 
                 balance.ShouldBe(amount);
             }
 
-            await creator.RegisterSubProfitItem.SendAsync(new RegisterSubProfitItemInput
+            await creator.AddSubScheme.SendAsync(new AddSubSchemeInput
             {
-                ProfitId = profitId,
-                SubProfitId = subProfitId1,
-                SubItemWeight = weight1
+                SchemeId = schemeId,
+                SubSchemeId = subSchemeId1,
+                SubSchemeShares = weight1
             });
 
-            await creator.RegisterSubProfitItem.SendAsync(new RegisterSubProfitItemInput
+            await creator.AddSubScheme.SendAsync(new AddSubSchemeInput
             {
-                ProfitId = profitId,
-                SubProfitId = subProfitId2,
-                SubItemWeight = weight2
+                SchemeId = schemeId,
+                SubSchemeId = subSchemeId2,
+                SubSchemeShares = weight2
             });
 
-            var executionResult = await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            var executionResult = await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
-                ProfitId = profitId,
+                SchemeId = schemeId,
                 Amount = amount,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 1
             });
 
@@ -908,11 +829,11 @@ namespace AElf.Contracts.Profit
 
             // Check balance of first sub profit item.
             {
-                var subProfitItem = await creator.GetProfitItem.CallAsync(subProfitId1);
+                var subProfitItem = await creator.GetScheme.CallAsync(subSchemeId1);
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
                     Owner = subProfitItem.VirtualAddress,
-                    Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
 
                 balance.ShouldBe(amount.Mul(weight1).Div(weight1 + weight2));
@@ -920,11 +841,11 @@ namespace AElf.Contracts.Profit
 
             // Check balance of second sub profit item.
             {
-                var subProfitItem = await creator.GetProfitItem.CallAsync(subProfitId2);
+                var subProfitItem = await creator.GetScheme.CallAsync(subSchemeId2);
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
                     Owner = subProfitItem.VirtualAddress,
-                    Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
 
                 balance.ShouldBe(amount.Mul(weight2).Div(weight1 + weight2));
@@ -932,108 +853,137 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_Profit()
+        public async Task ProfitContract_Profit_Test()
         {
-            const long weight = 100;
+            const long shares = 100;
             const long amount = 100;
 
             var creator = Creators[0];
-            var receiver = Normal[0];
-            var receiverAddress = Address.FromPublicKey(NormalMinerKeyPair[0].PublicKey);
-
-            var profitId = await CreateProfitItem();
-
-            await TransferToProfitItemVirtualAddress(profitId);
-
-            await creator.AddWeight.SendAsync(new AddWeightInput
+            var beneficiary = Normal[0];
+            var beneficiaryAddress = Address.FromPublicKey(NormalKeyPair[0].PublicKey);
+            var initialBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Receiver = receiverAddress,
-                ProfitId = profitId,
-                Weight = weight
+                Owner = beneficiaryAddress,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            })).Balance;
+
+            var schemeId = await CreateScheme();
+
+            await TransferToProfitItemVirtualAddress(schemeId);
+
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
+            {
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiaryAddress, Shares = shares},
+                SchemeId = schemeId,
             });
 
-            await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
-                ProfitId = profitId,
+                SchemeId = schemeId,
                 Amount = amount,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 1
             });
 
-            await receiver.Profit.SendAsync(new ProfitInput {ProfitId = profitId});
+            await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
+            {
+                SchemeId = schemeId,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            });
 
             var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Owner = receiverAddress,
-                Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                Owner = beneficiaryAddress,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             })).Balance;
-            balance.ShouldBe(amount);
+            balance.ShouldBe(amount + initialBalance - ClaimTransactionFee);
         }
-        
+
         [Fact]
-        public async Task ProfitContract_Profit_TwoReceivers()
+        public async Task ProfitContract_Profit_TwoReceivers_Test()
         {
             const long weight1 = 100;
             const long weight2 = 400;
             const long amount = 100;
 
             var creator = Creators[0];
-            var receiver1 = Normal[0];
-            var receiver2 = Normal[1];
-            var receiverAddress1 = Address.FromPublicKey(NormalMinerKeyPair[0].PublicKey);
-            var receiverAddress2 = Address.FromPublicKey(NormalMinerKeyPair[1].PublicKey);
+            var beneficiary1 = Normal[0];
+            var beneficiary2 = Normal[1];
+            var beneficiaryAddress1 = Address.FromPublicKey(NormalKeyPair[0].PublicKey);
+            var beneficiaryAddress2 = Address.FromPublicKey(NormalKeyPair[1].PublicKey);
 
-            var profitId = await CreateProfitItem();
-
-            await TransferToProfitItemVirtualAddress(profitId);
-
-            await creator.AddWeight.SendAsync(new AddWeightInput
+            var initialBalance1 = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Receiver = receiverAddress1,
-                ProfitId = profitId,
-                Weight = weight1
+                Owner = beneficiaryAddress1,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            })).Balance;
+            var initialBalance2 = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = beneficiaryAddress2,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            })).Balance;
+
+            var schemeId = await CreateScheme();
+
+            await TransferToProfitItemVirtualAddress(schemeId);
+
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
+            {
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiaryAddress1, Shares = weight1},
+                SchemeId = schemeId,
             });
-            
-            await creator.AddWeight.SendAsync(new AddWeightInput
+
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                Receiver = receiverAddress2,
-                ProfitId = profitId,
-                Weight = weight2
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiaryAddress2, Shares = weight2},
+                SchemeId = schemeId,
             });
 
-            await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
-                ProfitId = profitId,
+                SchemeId = schemeId,
                 Amount = amount,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 1
             });
 
-            await receiver1.Profit.SendAsync(new ProfitInput {ProfitId = profitId});
+            await beneficiary1.ClaimProfits.SendAsync(new ClaimProfitsInput
+            {
+                SchemeId = schemeId,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            });
 
-            // Check balance of receiver 1.
+            // Check balance of Beneficiary 1.
             {
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
-                    Owner = receiverAddress1,
-                    Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                    Owner = beneficiaryAddress1,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(weight1.Mul(amount).Div(weight1 + weight2));
+                balance.ShouldBe(weight1.Mul(amount).Div(weight1 + weight2).Add(initialBalance1)
+                    .Sub(ClaimTransactionFee));
             }
-            
-            await receiver2.Profit.SendAsync(new ProfitInput {ProfitId = profitId});
 
-            // Check balance of receiver 2.
+            await beneficiary2.ClaimProfits.SendAsync(new ClaimProfitsInput
+            {
+                SchemeId = schemeId,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            });
+
+            // Check balance of Beneficiary 2.
             {
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
-                    Owner = receiverAddress2,
-                    Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                    Owner = beneficiaryAddress2,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(weight2.Mul(amount).Div(weight1 + weight2));
+                balance.ShouldBe(weight2.Mul(amount).Div(weight1 + weight2).Add(initialBalance2)
+                    .Sub(ClaimTransactionFee));
             }
         }
 
         [Fact]
-        public async Task ProfitContract_Profit_RegisteredSubProfitItems()
+        public async Task ProfitContract_Profit_RegisteredSubProfitItems_Test()
         {
             const long weight1 = 100;
             const long weight2 = 400;
@@ -1041,105 +991,128 @@ namespace AElf.Contracts.Profit
             const long amount = 100;
 
             var creator = Creators[0];
-            var receiver1 = Normal[0];
-            var receiver2 = Normal[1];
-            var receiverAddress1 = Address.FromPublicKey(NormalMinerKeyPair[0].PublicKey);
-            var receiverAddress2 = Address.FromPublicKey(NormalMinerKeyPair[1].PublicKey);
+            var beneficiary1 = Normal[0];
+            var beneficiary2 = Normal[1];
+            var beneficiaryAddress1 = Address.FromPublicKey(NormalKeyPair[0].PublicKey);
+            var beneficiaryAddress2 = Address.FromPublicKey(NormalKeyPair[1].PublicKey);
 
-            var profitId = await CreateProfitItem();
-            var subProfitId = await CreateProfitItem(1);
-
-            await TransferToProfitItemVirtualAddress(profitId);
-
-            await creator.AddWeight.SendAsync(new AddWeightInput
+            var initialBalance1 = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Receiver = receiverAddress1,
-                ProfitId = profitId,
-                Weight = weight1
-            });
-            
-            await creator.AddWeight.SendAsync(new AddWeightInput
+                Owner = beneficiaryAddress1,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            })).Balance;
+            var initialBalance2 = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Receiver = receiverAddress2,
-                ProfitId = profitId,
-                Weight = weight2
-            });
+                Owner = beneficiaryAddress2,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            })).Balance;
 
-            await creator.RegisterSubProfitItem.SendAsync(new RegisterSubProfitItemInput
+            var schemeId = await CreateScheme();
+            var subSchemeId = await CreateScheme(1);
+
+            await TransferToProfitItemVirtualAddress(schemeId);
+
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                ProfitId = profitId,
-                SubProfitId = subProfitId,
-                SubItemWeight = weight3
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiaryAddress1, Shares = weight1},
+                SchemeId = schemeId,
             });
 
-            await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                ProfitId = profitId,
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiaryAddress2, Shares = weight2},
+                SchemeId = schemeId,
+            });
+
+            await creator.AddSubScheme.SendAsync(new AddSubSchemeInput
+            {
+                SchemeId = schemeId,
+                SubSchemeId = subSchemeId,
+                SubSchemeShares = weight3
+            });
+
+            await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
+            {
+                SchemeId = schemeId,
                 Amount = amount,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 1
             });
 
-            await receiver1.Profit.SendAsync(new ProfitInput {ProfitId = profitId});
+            await beneficiary1.ClaimProfits.SendAsync(new ClaimProfitsInput
+            {
+                SchemeId = schemeId,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            });
 
-            // Check balance of receiver 1.
+            // Check balance of Beneficiary 1.
             {
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
-                    Owner = receiverAddress1,
-                    Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                    Owner = beneficiaryAddress1,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(weight1.Mul(amount).Div(weight1.Add(weight2).Add(weight3)));
+                balance.ShouldBe(weight1.Mul(amount).Div(weight1.Add(weight2).Add(weight3)).Add(initialBalance1)
+                    .Sub(ClaimTransactionFee));
             }
-            
-            await receiver2.Profit.SendAsync(new ProfitInput {ProfitId = profitId});
 
-            // Check balance of receiver 2.
+            await beneficiary2.ClaimProfits.SendAsync(new ClaimProfitsInput
+            {
+                SchemeId = schemeId,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            });
+
+            // Check balance of Beneficiary 2.
             {
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
-                    Owner = receiverAddress2,
-                    Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                    Owner = beneficiaryAddress2,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(weight2.Mul(amount).Div(weight1.Add(weight2).Add(weight3)));
+                balance.ShouldBe(weight2.Mul(amount).Div(weight1.Add(weight2).Add(weight3)).Add(initialBalance2)
+                    .Sub(ClaimTransactionFee));
             }
         }
 
         [Fact]
-        public async Task ProfitContract_Profit_ProfitItemNotFound()
+        public async Task ProfitContract_Profit_ProfitItemNotFound_Test()
         {
-            var receiver = Normal[0];
+            var beneficiary = Normal[0];
 
-            var executionResult = await receiver.Profit.SendAsync(new ProfitInput
+            var executionResult = await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
-                ProfitId = Hash.FromString("hash4")
+                SchemeId = Hash.FromString("SchemeId"),
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            executionResult.TransactionResult.Error.ShouldContain("Profit item not found.");
+            executionResult.TransactionResult.Error.ShouldContain("Scheme not found.");
         }
 
         [Fact]
-        public async Task ProfitContract_Profit_NotRegisteredBefore()
+        public async Task ProfitContract_Profit_NotRegisteredBefore_Test()
         {
             const long amount = 100;
 
             var creator = Creators[0];
-            var receiver = Normal[0];
+            var beneficiary = Normal[0];
 
-            var profitId = await CreateProfitItem();
-            
-            await TransferToProfitItemVirtualAddress(profitId);
+            var schemeId = await CreateScheme();
 
-            await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            await TransferToProfitItemVirtualAddress(schemeId);
+
+            await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
-                ProfitId = profitId,
+                SchemeId = schemeId,
                 Amount = amount,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Period = 1
             });
-            
-            var executionResult = await receiver.Profit.SendAsync(new ProfitInput
+
+            var executionResult = await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
             {
-                ProfitId = profitId
+                SchemeId = schemeId,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
             });
 
             executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
@@ -1147,106 +1120,182 @@ namespace AElf.Contracts.Profit
         }
 
         [Fact]
-        public async Task ProfitContract_Profit_MultiplePeriods()
+        public async Task ProfitContract_Profit_MultiplePeriods_Test()
         {
             const int periodCount = 5;
-            const long weight = 100;
+            const long shares = 100;
             const long amount = 100;
 
             var creator = Creators[0];
-            var receiver = Normal[0];
-            var receiverAddress = Address.FromPublicKey(NormalMinerKeyPair[0].PublicKey);
-
-            var profitId = await CreateProfitItem();
-
-            await TransferToProfitItemVirtualAddress(profitId, amount * periodCount + amount);
-
-            await creator.AddWeight.SendAsync(new AddWeightInput
+            var beneficiary = Normal[0];
+            var beneficiaryAddress = Address.FromPublicKey(NormalKeyPair[0].PublicKey);
+            var initialBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
-                Receiver = receiverAddress,
-                ProfitId = profitId,
-                Weight = weight
+                Owner = beneficiaryAddress,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            })).Balance;
+
+            var schemeId = await CreateScheme();
+
+            await TransferToProfitItemVirtualAddress(schemeId, amount * periodCount + amount);
+
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
+            {
+                SchemeId = schemeId,
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = beneficiaryAddress, Shares = shares},
             });
 
             for (var i = 0; i < periodCount; i++)
             {
-                await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+                await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
                 {
-                    ProfitId = profitId,
+                    SchemeId = schemeId,
                     Amount = amount,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                     Period = i + 1
                 });
             }
 
-            await receiver.Profit.SendAsync(new ProfitInput {ProfitId = profitId});
+            await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
+            {
+                SchemeId = schemeId,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            });
 
             {
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
-                    Owner = receiverAddress,
-                    Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                    Owner = beneficiaryAddress,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(amount * periodCount);
+                balance.ShouldBe(amount * periodCount + initialBalance - ClaimTransactionFee);
 
                 var details = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
-                    ProfitId = profitId,
-                    Receiver = receiverAddress
+                    SchemeId = schemeId,
+                    Beneficiary = beneficiaryAddress
                 });
                 details.Details[0].LastProfitPeriod.ShouldBe(periodCount + 1);
             }
 
-            await creator.ReleaseProfit.SendAsync(new ReleaseProfitInput
+            await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
             {
                 Period = periodCount + 1,
                 Amount = amount,
-                ProfitId = profitId
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                SchemeId = schemeId
             });
 
-            await receiver.Profit.SendAsync(new ProfitInput {ProfitId = profitId});
+            await beneficiary.ClaimProfits.SendAsync(new ClaimProfitsInput
+            {
+                SchemeId = schemeId,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol
+            });
 
             {
                 var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
-                    Owner = receiverAddress,
-                    Symbol = ProfitContractTestConsts.NativeTokenSymbol
+                    Owner = beneficiaryAddress,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(amount * periodCount + amount);
+                balance.ShouldBe(amount * periodCount + amount + initialBalance - ClaimTransactionFee * 2);
 
                 var details = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
-                    ProfitId = profitId,
-                    Receiver = receiverAddress
+                    SchemeId = schemeId,
+                    Beneficiary = beneficiaryAddress
                 });
                 details.Details[0].LastProfitPeriod.ShouldBe(periodCount + 2);
-            }          
+            }
         }
 
-        private async Task<Hash> CreateProfitItem(int returnIndex = 0,
-            long expiredPeriodNumber = ProfitContractConsts.DefaultExpiredPeriodNumber)
+        private async Task<Hash> CreateScheme(int returnIndex = 0,
+            long profitReceivingDuePeriodCount = ProfitContractConstants.DefaultProfitReceivingDuePeriodCount)
         {
             var creator = Creators[0];
-            var creatorAddress = Address.FromPublicKey(CreatorMinerKeyPair[0].PublicKey);
+            var creatorAddress = Address.FromPublicKey(CreatorKeyPair[0].PublicKey);
 
-            await creator.CreateProfitItem.SendAsync(new CreateProfitItemInput
+            await creator.CreateScheme.SendAsync(new CreateSchemeInput
             {
-                TokenSymbol = ProfitContractTestConsts.NativeTokenSymbol,
-                ExpiredPeriodNumber = expiredPeriodNumber
+                ProfitReceivingDuePeriodCount = profitReceivingDuePeriodCount
             });
 
-            var createdProfitIds = (await creator.GetCreatedProfitItems.CallAsync(new GetCreatedProfitItemsInput
+            var createdSchemeIds = (await creator.GetManagingSchemeIds.CallAsync(new GetManagingSchemeIdsInput
             {
-                Creator = creatorAddress
-            })).ProfitIds;
+                Manager = creatorAddress
+            })).SchemeIds;
 
-            return createdProfitIds[returnIndex];
+            return createdSchemeIds[returnIndex];
         }
 
-        private async Task TransferToProfitItemVirtualAddress(Hash profitId, long amount = 100)
+        [Fact]
+        public async Task ContributeProfits_MultipleTimes_Test()
         {
-            await ProfitContractStub.AddProfits.SendAsync(new AddProfitsInput
+            const long amount = 100;
+
+            var creator = Creators[0];
+
+            var schemeId = await CreateScheme();
+
+            await TransferToProfitItemVirtualAddress(schemeId, amount * 2);
+
+            await creator.AddBeneficiary.SendAsync(new AddBeneficiaryInput
             {
-                ProfitId = profitId,
+                BeneficiaryShare = new BeneficiaryShare {Beneficiary = SampleAddress.AddressList[0], Shares = 100},
+                SchemeId = schemeId,
+            });
+
+            // First time.
+            {
+                var executionResult = await creator.DistributeProfits.SendAsync(new DistributeProfitsInput
+                {
+                    SchemeId = schemeId,
+                    Amount = amount,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                    Period = 1
+                });
+
+                executionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                
+                var transactionResult = await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
+                {
+                    SchemeId = schemeId,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                    Amount = 100,
+                    Period = 1
+                });
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.TransactionResult.Error.ShouldContain("already released");
+            }
+            
+            //Second time
+            {
+                var transactionResult = await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
+                {
+                    SchemeId = schemeId,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                    Amount = 100,
+                    Period = 2
+                });
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                
+                transactionResult = await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
+                {
+                    SchemeId = schemeId,
+                    Symbol = ProfitContractTestConstants.NativeTokenSymbol,
+                    Amount = 100,
+                    Period = 2
+                });
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+        }
+
+        private async Task TransferToProfitItemVirtualAddress(Hash schemeId, long amount = 100)
+        {
+            await ProfitContractStub.ContributeProfits.SendAsync(new ContributeProfitsInput
+            {
+                SchemeId = schemeId,
+                Symbol = ProfitContractTestConstants.NativeTokenSymbol,
                 Amount = amount
             });
         }

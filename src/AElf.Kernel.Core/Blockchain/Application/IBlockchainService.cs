@@ -378,7 +378,6 @@ namespace AElf.Kernel.Blockchain.Application
 
             if (chainBlockLink.PreviousBlockHash != firstHash)
             {
-                //TODO need to improve
                 throw new Exception("wrong branch");
             }
 

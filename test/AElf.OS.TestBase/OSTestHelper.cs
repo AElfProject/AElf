@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,7 +5,7 @@ using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -26,9 +25,7 @@ using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
-using Org.BouncyCastle.Asn1.TeleTrust;
 using Volo.Abp.Threading;
 
 namespace AElf.OS
@@ -313,7 +310,7 @@ namespace AElf.OS
             return block;
         }
 
-        public Block GenerateBlock(Hash preBlockHash, long preBlockHeight, IEnumerable<Transaction> transactions = null)
+        public virtual Block GenerateBlock(Hash preBlockHash, long preBlockHeight, IEnumerable<Transaction> transactions = null)
         {
             var block = new Block
             {
@@ -383,6 +380,12 @@ namespace AElf.OS
             return Address.Parser.ParseFrom(txResult.ReturnValue);
         }
 
+        public async Task<TransactionResult> GetTransactionResultsAsync(Hash transactionId)
+        {
+            var res = await _transactionResultService.GetTransactionResultAsync(transactionId);
+            return res;
+        }
+
         #region private methods
 
         private async Task StartNodeAsync()
@@ -399,7 +402,7 @@ namespace AElf.OS
 
             var ownAddress = await _accountService.GetAccountAsync();
             var callList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            callList.Add(nameof(TokenContractContainer.TokenContractStub.CreateNativeToken), new CreateInput
+            callList.Add(nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
             {
                 Symbol = "ELF",
                 TokenName = "ELF_Token",

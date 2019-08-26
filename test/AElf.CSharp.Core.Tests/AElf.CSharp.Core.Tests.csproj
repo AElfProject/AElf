@@ -4,8 +4,6 @@
     <IsPackable>true</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\AElf.CSharp.Core\AElf.CSharp.Core.csproj" />
-    <ProjectReference Include="..\..\src\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
     <ProjectReference Include="..\AElf.Runtime.CSharp.Tests.TestContract\AElf.Runtime.CSharp.Tests.TestContract.csproj" />
     <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
   </ItemGroup>

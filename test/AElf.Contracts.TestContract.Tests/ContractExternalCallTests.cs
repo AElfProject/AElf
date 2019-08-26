@@ -1,9 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using AElf.Contracts.TestContract;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestContract.BasicSecurity;
-using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -19,7 +17,7 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task Internal_Execute_And_Call()
+        public async Task Internal_Execute_And_Call_Test()
         {
             //execute method
             var transactionResult = (await TestBasicFunctionContractStub.UserPlayBet.SendAsync(
@@ -38,7 +36,7 @@ namespace AElf.Contract.TestContract
         }
         
         [Fact]
-        public async Task External_Execute_And_Call()
+        public async Task External_Execute_And_Call_Test()
         {
             //execute method
             var transactionResult = (await TestBasicSecurityContractStub.TestExecuteExternalMethod.SendAsync(
@@ -63,7 +61,7 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task Internal_ExecuteFailed()
+        public async Task Internal_ExecuteFailed_Test()
         {
             var transactionResult = (await TestBasicSecurityContractStub.TestExecuteExternalMethod.SendAsync(
                 new Int64Input
@@ -78,7 +76,7 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task External_ExecuteFailed()
+        public async Task External_ExecuteFailed_Test()
         {
             await TestBasicSecurityContractStub.TestInt64State.SendAsync(
                 new Int64Input

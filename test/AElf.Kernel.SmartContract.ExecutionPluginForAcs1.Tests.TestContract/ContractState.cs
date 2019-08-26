@@ -5,6 +5,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract
 {
     public class ContractState : AElf.Sdk.CSharp.State.ContractState
     {
-        public MappedState<string,TokenAmount> MethodFees { get; set; }
+        public MappedState<string,TokenAmounts> MethodFees { get; set; }
     }
 }
