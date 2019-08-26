@@ -117,6 +117,24 @@ namespace AElf.OS.Network
             received.Transactions.First().From.ShouldBe(transactions.First().From);
         }
 
+        [Fact]
+        public void GetRequestMetrics_Test()
+        {
+            var result = _grpcPeer.GetRequestMetrics();
+            
+            result.Count.ShouldBe(3);
+            result.Keys.ShouldContain("GetBlock");
+            result.Keys.ShouldContain("GetBlocks");
+            result.Keys.ShouldContain("Announce");
+        }
+
+        [Fact]
+        public async Task GetNodes_Test()
+        {
+            var nodeList = await _grpcPeer.GetNodesAsync();
+            nodeList.Nodes.Count.ShouldBeGreaterThanOrEqualTo(0);
+        }
+
         public async Task DisconnectAsync_Success()
         {
             var peers = _pool.GetPeers();

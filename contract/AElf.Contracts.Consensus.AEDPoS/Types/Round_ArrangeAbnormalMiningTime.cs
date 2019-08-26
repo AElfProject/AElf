@@ -17,19 +17,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         public Timestamp ArrangeAbnormalMiningTime(string publicKey, Timestamp currentBlockTime)
         {
-            if (!RealTimeMinersInformation.ContainsKey(publicKey))
-            {
-                // Not a miner.
-                return new Timestamp {Seconds = long.MaxValue};
-            }
-
             var miningInterval = GetMiningInterval();
-
-            if (miningInterval <= 0)
-            {
-                // Due to incorrect round information.
-                return new Timestamp {Seconds = long.MaxValue};
-            }
 
             var minerInRound = RealTimeMinersInformation[publicKey];
 

@@ -4,6 +4,7 @@ package AEDPoSImpl;
 
 import "aelf/options.proto";
 import "acs4.proto";
+import "acs6.proto";
 import "aedpos_contract.proto";
 
 option csharp_namespace = "AElf.Contracts.Consensus.AEDPoS";
@@ -11,5 +12,6 @@ option csharp_namespace = "AElf.Contracts.Consensus.AEDPoS";
 service AEDPoSContractImpl {
     option (aelf.csharp_state) = "AElf.Contracts.Consensus.AEDPoS.AEDPoSContractState";
     option (aelf.base) = "acs4.proto";
+    option (aelf.base) = "acs6.proto";
     option (aelf.base) = "aedpos_contract.proto";
 }

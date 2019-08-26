@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
@@ -36,19 +38,26 @@ namespace AElf.OS.Network.Application
 
         public async Task<bool> AddPeerAsync(string address)
         {
-            return await _networkServer.ConnectAsync(address);
+            if (IpEndpointHelper.TryParse(address, out IPEndPoint endpoint))
+                return await _networkServer.ConnectAsync(endpoint);
+
+            return false;
         }
 
         public async Task<bool> RemovePeerAsync(string address)
         {
-            var peer = _peerPool.FindPeerByAddress(address);
+            if (!IpEndpointHelper.TryParse(address, out IPEndPoint endpoint)) 
+                return false;
+            
+            var peer = _peerPool.FindPeerByEndpoint(endpoint);
             if (peer == null)
             {
                 Logger.LogWarning($"Could not find peer at address {address}");
                 return false;
             }
-
+            
             await _networkServer.DisconnectAsync(peer);
+
             return true;
         }
 
@@ -260,7 +269,7 @@ namespace AElf.OS.Network.Application
             }
             catch (NetworkException ex)
             {
-                Logger.LogError(ex, $"Error while requesting block(s) from {peer.IpAddress}.");
+                Logger.LogError(ex, $"Error while requesting block(s) from {peer.RemoteEndpoint}.");
                 await HandleNetworkException(peer, ex);
             }
             
@@ -275,7 +284,7 @@ namespace AElf.OS.Network.Application
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
             {
-                Logger.LogError($"Queuing peer for reconnection {peer.IpAddress}.");
+                Logger.LogError($"Queuing peer for reconnection {peer.RemoteEndpoint}.");
                 QueueNetworkTask(async () => await RecoverPeerAsync(peer));
             }
         }
