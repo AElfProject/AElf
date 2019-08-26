@@ -91,12 +91,9 @@ namespace AElf.Contracts.TestBase
 
         public ContractTester(int chainId, ECKeyPair keyPair)
         {
-            for (var i = 0; i < 3; i++)
-            {
-                var generateKeyPair = CryptoHelper.GenerateKeyPair();
-                InitialMinerList.Add(generateKeyPair);
-            }
-            KeyPair = keyPair ?? InitialMinerList[0];
+            var sampleKeyPairs = SampleECKeys.KeyPairs.Take(3).ToList();
+            InitialMinerList.AddRange(sampleKeyPairs);
+            KeyPair = keyPair ?? InitialMinerList[1];
 
             Application =
                 AbpApplicationFactory.Create<TContractTestAElfModule>(options =>
@@ -225,6 +222,8 @@ namespace AElf.Contracts.TestBase
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
             var contractOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             var consensusOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ConsensusOptions>>().Value;
+            consensusOptions.StartTimestamp = TimestampHelper.GetUtcNow();
+            
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = ChainHelper.ConvertBase58ToChainId("AELF"),
@@ -241,26 +240,25 @@ namespace AElf.Contracts.TestBase
             return await osBlockchainNodeContextService.StartAsync(dto);
         }
         
-        public async Task<OsBlockchainNodeContext> InitialCustomizedChainAsync(List<string> initialMiners = null, int miningInterval = 4000,
+        public async Task<OsBlockchainNodeContext> InitialCustomizedChainAsync(int chainId, List<string> initialMiners = null, int miningInterval = 4000,
             Timestamp startTimestamp = null, Action<List<GenesisSmartContractDto>> configureSmartContract = null)
         {
             if (initialMiners == null)
             {
-                initialMiners = Enumerable.Range(0, 3).Select(i => CryptoHelper.GenerateKeyPair().PublicKey.ToHex())
+                initialMiners = Enumerable.Range(0, 3).Select(i => SampleECKeys.KeyPairs[i].PublicKey.ToHex())
                     .ToList();
             }
 
             if (startTimestamp == null)
             {
-                startTimestamp = new Timestamp {Seconds = 0};
+                startTimestamp = TimestampHelper.GetUtcNow();
             }
             
             var osBlockchainNodeContextService =
                 Application.ServiceProvider.GetRequiredService<IOsBlockchainNodeContextService>();
-            var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
             var dto = new OsBlockchainNodeContextStartDto
             {
-                ChainId = chainOptions.ChainId,
+                ChainId = chainId,
                 ZeroSmartContract = typeof(BasicContractZero),
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
             };
@@ -302,7 +300,7 @@ namespace AElf.Contracts.TestBase
             consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
                 new InitialAElfConsensusContractInput
                 {
-                    IsTermStayOne = true
+                    IsSideChain = true
                 });
             consensusMethodCallList.Add(nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
                 new MinerList

@@ -136,6 +136,11 @@ namespace AElf.Contracts.CrossChain
         
         public override Empty RecordCrossChainData(CrossChainBlockData crossChainBlockData)
         {
+            if (State.ConsensusContract.Value == null)
+            {
+                State.ConsensusContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            }
             var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value; 
             Assert(isCurrentMiner,"Not authorized to do this.");
             

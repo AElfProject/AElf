@@ -7,11 +7,6 @@
         <RootNamespace>AElf.Contracts.MultiToken</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
-      <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
-      <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
-    </ItemGroup>
-    <ItemGroup>
         <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
@@ -101,6 +96,10 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
             <Link>Protobuf\Proto\parliament_auth_contract.proto</Link>
+        </ContractStub>
+        
+        <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
     <Import Project="..\..\test\AllContracts.props" />
