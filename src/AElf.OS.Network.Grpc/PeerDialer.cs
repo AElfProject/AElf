@@ -143,7 +143,7 @@ namespace AElf.OS.Network.Grpc
             {
                 Logger.LogError(ex, $"Could not ping {ipAddress}.");
                 await client.Channel.ShutdownAsync();
-                throw ex;
+                throw;
             }
         }
 

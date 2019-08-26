@@ -130,7 +130,8 @@ namespace AElf.OS.Network.Grpc.Connection
                 return new HandshakeReply {ErrorMessage = "Peer pool is full"};
             }
 
-            var grpcPeer = await _peerDialer.DialBackPeerAsync(endpoint, handshake);
+            var peerAddress = new IPEndPoint(endpoint.Address, handshake.HandshakeData.ListeningPort);
+            var grpcPeer = await _peerDialer.DialBackPeerAsync(peerAddress, handshake);
 
             var removedPeer = _peerPool.RemovePeer(grpcPeer.Info.Pubkey);
             if (removedPeer != null)
