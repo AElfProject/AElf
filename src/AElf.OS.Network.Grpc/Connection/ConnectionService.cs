@@ -113,8 +113,8 @@ namespace AElf.OS.Network.Grpc.Connection
             var handshakeValidationResult = await _handshakeProvider.ValidateHandshakeAsync(handshake);
             if (handshakeValidationResult != HandshakeValidationResult.Ok)
             {
-                var errorMessage = GetHandshakeValidationErrorMessage(handshakeValidationResult);
-                return new HandshakeReply {ErrorMessage = errorMessage};
+                var handshakeError = GetHandshakeError(handshakeValidationResult);
+                return new HandshakeReply {Error = handshakeError};
             }
 
             var pubkey = handshake.HandshakeData.Pubkey.ToHex();
@@ -122,13 +122,13 @@ namespace AElf.OS.Network.Grpc.Connection
             if (currentPeer != null)
             {
                 Logger.LogWarning($"Cleaning up {currentPeer} already known.");
-                return new HandshakeReply {ErrorMessage = "Duplicate connection"};
+                return new HandshakeReply {Error = HandshakeError.RepeatedConnection};
             }
 
             if (_peerPool.IsFull())
             {
                 Logger.LogWarning("Peer pool is full.");
-                return new HandshakeReply {ErrorMessage = "Peer pool is full"};
+                return new HandshakeReply {Error = HandshakeError.ConnectionRefused};
             }
 
             var peerAddress = new IPEndPoint(endpoint.Address, handshake.HandshakeData.ListeningPort);
@@ -144,35 +144,43 @@ namespace AElf.OS.Network.Grpc.Connection
             {
                 Logger.LogWarning($"Stopping connection, peer already in the pool {grpcPeer.Info.Pubkey}.");
                 await grpcPeer.DisconnectAsync(false);
-                return new HandshakeReply {ErrorMessage = "Duplicate connection"};
+                return new HandshakeReply {Error = HandshakeError.RepeatedConnection};
             }
 
             Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
 
             var replyHandshake = await _handshakeProvider.GetHandshakeAsync();
-            return new HandshakeReply {Handshake = replyHandshake};
+            return new HandshakeReply
+            {
+                Handshake = replyHandshake, 
+                Error = HandshakeError.HandshakeOk
+            };
         }
 
-        private string GetHandshakeValidationErrorMessage(HandshakeValidationResult handshakeValidationResult)
+        private HandshakeError GetHandshakeError(HandshakeValidationResult handshakeValidationResult)
         {
-            var errorMessage = string.Empty;
+            HandshakeError handshakeError;
 
             switch (handshakeValidationResult)
             {
                 case HandshakeValidationResult.InvalidChainId:
-                    errorMessage = "Invalid chain id";
+                    handshakeError = HandshakeError.ChainMismatch;
                     break;
                 case HandshakeValidationResult.InvalidVersion:
-                    errorMessage = "Invalid protocol version";
+                    handshakeError = HandshakeError.ProtocolMismatch;
                     break;
                 case HandshakeValidationResult.HandshakeTimeout:
                 case HandshakeValidationResult.InvalidSignature:
-                case HandshakeValidationResult.Unauthorized:
-                    errorMessage = "Authentication failed";
+                    handshakeError = HandshakeError.WrongSignature;
                     break;
+                case HandshakeValidationResult.Unauthorized:
+                    handshakeError = HandshakeError.ConnectionRefused;
+                    break;
+                default:
+                    throw new ArgumentException($"Unable to process handshake validation result: {handshakeValidationResult}");
             }
 
-            return errorMessage;
+            return handshakeError;
         }
 
         public void ConfirmHandshake(string peerPubkey)

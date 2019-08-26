@@ -62,7 +62,17 @@ message HandshakeRequest {
 
 message HandshakeReply {
     Handshake handshake = 1;
-    string error_message = 2;
+    HandshakeError error = 2;
+}
+
+enum HandshakeError {
+    HANDSHAKE_OK = 0;
+    CHAIN_MISMATCH = 1;
+    PROTOCOL_MISMATCH = 2;
+    WRONG_SIGNATURE = 3;
+    REPEATED_CONNECTION = 4;
+    CONNECTION_REFUSED = 5;
+    INVALID_CONNECTION = 6;
 }
 
 message ConfirmHandshakeRequest {

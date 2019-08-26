@@ -50,9 +50,9 @@ namespace AElf.OS.Network.Grpc
             var handshakeReply = await CallDoHandshakeAsync(client, endpoint, handshake);
 
             // verify handshake
-            if (handshakeReply != null && handshakeReply.Handshake == null)
+            if (handshakeReply.Error != HandshakeError.HandshakeOk)
             {
-                Logger.LogWarning($"Handshake error: {handshakeReply.ErrorMessage}.");
+                Logger.LogWarning($"Handshake error: {handshakeReply.Error}.");
                 return null;
             }
 

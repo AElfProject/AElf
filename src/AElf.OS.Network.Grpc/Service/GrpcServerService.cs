@@ -51,7 +51,7 @@ namespace AElf.OS.Network.Grpc
             Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a handshake.");
             
             if(!UriHelper.TryParsePrefixedEndpoint(context.Peer, out IPEndPoint peerEndpoint))
-                return new HandshakeReply() { ErrorMessage = "Invalid Peer." };
+                return new HandshakeReply { Error = HandshakeError.InvalidConnection};
             
             return await _connectionService.DoHandshakeAsync(peerEndpoint, request.Handshake);
         }
