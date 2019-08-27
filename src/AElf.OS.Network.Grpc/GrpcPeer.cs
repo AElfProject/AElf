@@ -234,7 +234,7 @@ namespace AElf.OS.Network.Grpc
             var enqueueSuccess = _sendTransactionJobs.Post(new StreamJob
                 {Transaction = transaction, SendCallback = sendCallback});
             if (!enqueueSuccess)
-                throw new NetworkException($"Dropping transaction, peer has reached max capacity - {this}.",
+                throw new NetworkException($"Dropping transaction, peer has reached max capacity: {_sendTransactionJobs.InputCount} - {this}.",
                     NetworkExceptionType.FullBuffer);
         }
 
@@ -248,7 +248,7 @@ namespace AElf.OS.Network.Grpc
                 {BlockAnnouncement = announcement, SendCallback = sendCallback});
             if (!enqueueSuccess)
                 throw new NetworkException(
-                    $"Dropping announcement, peer has reached max capacity - {this}.",
+                    $"Dropping announcement, peer has reached max capacity: {_sendAnnouncementJobs.InputCount} - {this}.",
                     NetworkExceptionType.FullBuffer);
         }
 
@@ -261,7 +261,7 @@ namespace AElf.OS.Network.Grpc
             var enqueueSuccess = _sendBlockJobs.Post(new StreamJob
                 {BlockWithTransactions = blockWithTransactions, SendCallback = sendCallback});
             if (!enqueueSuccess)
-                throw new NetworkException($"Dropping block, peer has reached max capacity - {this}.",
+                throw new NetworkException($"Dropping block, peer has reached max capacity: {_sendBlockJobs.InputCount} - {this}.",
                     NetworkExceptionType.FullBuffer);
         }
 
