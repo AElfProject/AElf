@@ -96,6 +96,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     nextBlockMiningLeftMilliseconds = AEDPoSContractConstants.MinimumIntervalOfProducingBlocks;
                 }
 
+                if (currentRound.RoundNumber == 1)
+                {
+                    miningDueTime = new Timestamp{Seconds = long.MaxValue};
+                }
+
                 return new ConsensusCommand
                 {
                     ExpectedMiningTime = expectedMiningTime,
