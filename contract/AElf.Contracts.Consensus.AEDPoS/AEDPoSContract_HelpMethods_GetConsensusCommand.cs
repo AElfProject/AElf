@@ -35,16 +35,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var currentBlockTime = Context.CurrentBlockTime;
                 Timestamp expectedMiningTime;
                 int nextBlockMiningLeftMilliseconds;
+                Timestamp miningDueTime;
 
                 switch (behaviour)
                 {
                     case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                         GetScheduleForUpdateValueWithoutPreviousInValue(currentRound, publicKey,
                             out nextBlockMiningLeftMilliseconds, out expectedMiningTime);
+                        miningDueTime = expectedMiningTime.AddMilliseconds(miningInterval);
                         break;
                     case AElfConsensusBehaviour.UpdateValue:
                         expectedMiningTime = currentRound.GetExpectedMiningTime(publicKey);
                         nextBlockMiningLeftMilliseconds = (int) (expectedMiningTime - currentBlockTime).Milliseconds();
+                        miningDueTime = expectedMiningTime.AddMilliseconds(miningInterval);
                         break;
                     case AElfConsensusBehaviour.TinyBlock:
                         GetScheduleForTinyBlock(currentRound, publicKey,
@@ -57,10 +60,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                             continue;
                         }
 
+                        miningDueTime = currentRound.GetExpectedMiningTime(publicKey).AddMilliseconds(miningInterval);
                         break;
                     case AElfConsensusBehaviour.NextRound:
                         GetScheduleForNextRound(currentRound, publicKey,
                             out nextBlockMiningLeftMilliseconds, out expectedMiningTime);
+                        miningDueTime = expectedMiningTime.AddMilliseconds(miningInterval);
                         break;
                     case AElfConsensusBehaviour.NextTerm:
                         expectedMiningTime = currentRound.ArrangeAbnormalMiningTime(publicKey, currentBlockTime);
@@ -71,6 +76,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         }
 
                         nextBlockMiningLeftMilliseconds = (int) (expectedMiningTime - currentBlockTime).Milliseconds();
+                        miningDueTime = expectedMiningTime.AddMilliseconds(miningInterval);
                         break;
                     case AElfConsensusBehaviour.Nothing:
                         return GetInvalidConsensusCommand();
@@ -100,7 +106,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         : behaviour == AElfConsensusBehaviour.NextTerm
                             ? miningInterval
                             : limitMillisecondsOfMiningBlock,
-                    Hint = new AElfConsensusHint {Behaviour = behaviour}.ToByteString()
+                    Hint = new AElfConsensusHint {Behaviour = behaviour}.ToByteString(),
+                    MiningDueTime = miningDueTime
                 };
             }
         }

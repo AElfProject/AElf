@@ -24,11 +24,12 @@ namespace AElf.Kernel
         private readonly IBlockchainService _blockchainService;
         private readonly IConsensusService _consensusService;
         public ILogger<ConsensusRequestMiningEventHandler> Logger { get; set; }
-        
+
         public ILocalEventBus LocalEventBus { get; set; }
 
         public ConsensusRequestMiningEventHandler(IMinerService minerService, IBlockAttachService blockAttachService,
-            ITaskQueueManager taskQueueManager, IBlockchainService blockchainService, IConsensusService consensusService)
+            ITaskQueueManager taskQueueManager, IBlockchainService blockchainService,
+            IConsensusService consensusService)
         {
             _minerService = minerService;
             _blockAttachService = blockAttachService;
@@ -51,7 +52,7 @@ namespace AElf.Kernel
                         Logger.LogWarning("Mining canceled because best chain already updated.");
                         return;
                     }
-                    
+
                     if (eventData.BlockTime > new Timestamp {Seconds = 3600} &&
                         eventData.BlockTime + eventData.BlockExecutionTime <
                         TimestampHelper.GetUtcNow())
@@ -59,11 +60,11 @@ namespace AElf.Kernel
                         Logger.LogTrace(
                             $"Will cancel mining due to timeout: Actual mining time: {eventData.BlockTime}, " +
                             $"execution limit: {eventData.BlockExecutionTime.Milliseconds()} ms.");
-                        
+
                         await _consensusService.TriggerConsensusAsync(new ChainContext
                         {
-                            BlockHash = eventData.PreviousBlockHash,
-                            BlockHeight = eventData.PreviousBlockHeight
+                            BlockHash = chain.BestChainHash,
+                            BlockHeight = chain.BestChainHeight
                         });
                         return;
                     }
@@ -72,16 +73,21 @@ namespace AElf.Kernel
                         eventData.PreviousBlockHeight,
                         eventData.BlockTime, eventData.BlockExecutionTime);
 
-                    await _blockchainService.AddBlockAsync(block);
-
-                    await LocalEventBus.PublishAsync(new BlockMinedEventData()
+                    if (TimestampHelper.GetUtcNow() <= eventData.MiningDueTime)
                     {
-                        BlockHeader = block.Header
-                    });
+                        await _blockchainService.AddBlockAsync(block);
 
-                    // Self mined block do not need do verify
-                    _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
-                        KernelConstants.UpdateChainQueueName);
+                        await LocalEventBus.PublishAsync(new BlockMinedEventData
+                        {
+                            BlockHeader = block.Header,
+                            HasFork = block.Height <= chain.BestChainHeight
+                        });
+
+                        // Self mined block do not need do verify
+                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
+                            KernelConstants.UpdateChainQueueName);
+                    }
+
                 }, KernelConstants.ConsensusRequestMiningQueueName);
             }
             catch (Exception e)
