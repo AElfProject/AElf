@@ -25,6 +25,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var libBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;
             var currentHeight = Context.CurrentHeight;
             var currentRoundNumber = currentRound.RoundNumber;
+            
+            Context.LogDebug(() => $"R_LIB: {libRoundNumber}\nH_LIB:{libBlockHeight}\nR:{currentRoundNumber}\nH:{currentHeight}");
 
             if (libRoundNumber == 0)
             {
@@ -36,6 +38,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 libBlockHeight,
                 currentRoundNumber,
                 currentHeight).Deconstruct(out var blockchainMiningStatus);
+
+            if (currentRound.IsMinerListJustChanged)
+            {
+                blockchainMiningStatus = BlockchainMiningStatus.Normal;
+            }
 
             Context.LogDebug(() => $"Current blockchain mining status: {blockchainMiningStatus.ToString()}");
 

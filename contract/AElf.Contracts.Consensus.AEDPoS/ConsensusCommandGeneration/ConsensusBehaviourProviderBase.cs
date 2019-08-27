@@ -52,6 +52,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         !_currentRound.IsMinerListJustChanged &&
                         _minerInRound.ProducedTinyBlocks < _maximumBlocksCount.Mul(2))
                     {
+                        if (_currentRound.IsMinerListJustChanged && _minerInRound.ProducedTinyBlocks > _maximumBlocksCount.Add(1))
+                        {
+                            // Because NextTerm time slot only produces one block.
+                            return AElfConsensusBehaviour.NextRound;
+                        }
                         return AElfConsensusBehaviour.TinyBlock;
                     }
                 }

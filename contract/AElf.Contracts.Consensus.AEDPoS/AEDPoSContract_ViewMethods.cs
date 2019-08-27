@@ -133,12 +133,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     round.RoundNumber, termNumber);
             }
 
-            if (TryToGetPreviousRoundInformation(out var previousRound))
-            {
-                round.ConfirmedIrreversibleBlockHeight = previousRound.ConfirmedIrreversibleBlockHeight;
-                round.ConfirmedIrreversibleBlockRoundNumber = previousRound.ConfirmedIrreversibleBlockRoundNumber;
-            }
-
+            round.ConfirmedIrreversibleBlockHeight = round.ConfirmedIrreversibleBlockHeight;
+            round.ConfirmedIrreversibleBlockRoundNumber = round.ConfirmedIrreversibleBlockRoundNumber;
             round.BlockchainAge = GetBlockchainAge();
 
             if (round.RealTimeMinersInformation.ContainsKey(senderPublicKey))

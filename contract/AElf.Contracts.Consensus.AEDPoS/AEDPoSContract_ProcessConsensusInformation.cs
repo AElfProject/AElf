@@ -187,6 +187,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (TryToGetPreviousRoundInformation(out var previousRound))
             {
+                Context.LogDebug(() => "Trying to calculate lib height.");
                 new LastIrreversibleBlockHeightCalculator(currentRound, previousRound).Deconstruct(
                     out var libHeight);
                 // LIB height can't be available if it is lower than last time.
