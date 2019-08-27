@@ -23,7 +23,7 @@ namespace AElf.Kernel
         private readonly IBlockchainService _blockchainService;
 
         public ILogger<ConsensusRequestMiningEventHandler> Logger { get; set; }
-        
+
         public ILocalEventBus LocalEventBus { get; set; }
 
         public ConsensusRequestMiningEventHandler(IMinerService minerService, IBlockAttachService blockAttachService,
@@ -56,18 +56,22 @@ namespace AElf.Kernel
                         eventData.PreviousBlockHeight,
                         eventData.BlockTime, eventData.BlockExecutionTime);
 
-                    await _blockchainService.AddBlockAsync(block);
-
-                    var chain = await _blockchainService.GetChainAsync();
-                    await LocalEventBus.PublishAsync(new BlockMinedEventData()
+                    if (TimestampHelper.GetUtcNow() <= eventData.MiningDueTime)
                     {
-                        BlockHeader = block.Header,
-                        HasFork = block.Height <= chain.BestChainHeight
-                    });
+                        await _blockchainService.AddBlockAsync(block);
 
-                    // Self mined block do not need do verify
-                    _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
-                        KernelConstants.UpdateChainQueueName);
+                        var chain = await _blockchainService.GetChainAsync();
+                        await LocalEventBus.PublishAsync(new BlockMinedEventData
+                        {
+                            BlockHeader = block.Header,
+                            HasFork = block.Height <= chain.BestChainHeight
+                        });
+
+                        // Self mined block do not need do verify
+                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
+                            KernelConstants.UpdateChainQueueName);
+                    }
+
                 }, KernelConstants.ConsensusRequestMiningQueueName);
             }
             catch (Exception e)
