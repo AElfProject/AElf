@@ -171,7 +171,6 @@ namespace AElf.OS.Network.Application
         
         public Task BroadcastTransactionAsync(Transaction transaction)
         {
-            return Task.CompletedTask;
             var beforeEnqueue = TimestampHelper.GetUtcNow();
             _taskQueueManager.Enqueue(async () =>
             {
