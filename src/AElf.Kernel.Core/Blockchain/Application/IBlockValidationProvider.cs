@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using AElf.Types;
@@ -94,13 +96,20 @@ namespace AElf.Kernel.Blockchain.Application
         {
             if (block?.Header == null || block.Body == null)
             {
-                Logger.LogWarning($"Block header or body is null.");
+                Logger.LogWarning("Block header or body is null.");
                 return false;
             }
 
             if (block.Body.TransactionsCount == 0)
             {
-                Logger.LogWarning($"Block transactions is empty");
+                Logger.LogWarning("Block transactions is empty");
+                return false;
+            }
+            
+            var hashSet = new HashSet<Hash>();
+            if (block.Body.TransactionIds.Select(item => hashSet.Add(item)).Any(addResult => !addResult))
+            {
+                Logger.LogWarning("Block contains duplicates transaction");
                 return false;
             }
 
@@ -112,13 +121,13 @@ namespace AElf.Kernel.Blockchain.Application
 
             if (block.Header.Height != Constants.GenesisBlockHeight && !block.VerifySignature())
             {
-                Logger.LogWarning($"Block verify signature failed.");
+                Logger.LogWarning("Block verify signature failed.");
                 return false;
             }
 
             if (block.Body.CalculateMerkleTreeRoot() != block.Header.MerkleTreeRootOfTransactions)
             {
-                Logger.LogWarning($"Block merkle tree root mismatch.");
+                Logger.LogWarning("Block merkle tree root mismatch.");
                 return false;
             }
 
