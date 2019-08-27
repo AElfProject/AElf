@@ -29,7 +29,7 @@ namespace AElf.OS.Network.Grpc
         private const int UpdateHandshakeTimeout = 400;
         private const int StreamRecoveryWaitTimeInMilliseconds = 500;
 
-        private const int MaxDegreeOfParallelismForAnnouncementJobs = 2;
+        private const int MaxDegreeOfParallelismForAnnouncementJobs = 3;
         private const int MaxDegreeOfParallelismForTransactionJobs = 1;
         private const int MaxDegreeOfParallelismForBlockJobs = 1;
 
@@ -234,7 +234,8 @@ namespace AElf.OS.Network.Grpc
             var enqueueSuccess = _sendTransactionJobs.Post(new StreamJob
                 {Transaction = transaction, SendCallback = sendCallback});
             if (!enqueueSuccess)
-                throw new NetworkException($"Dropping transaction, peer has reached max capacity: {_sendTransactionJobs.InputCount} - {this}.",
+                throw new NetworkException(
+                    $"Dropping transaction, peer has reached max capacity: {_sendTransactionJobs.InputCount} - {this}.",
                     NetworkExceptionType.FullBuffer);
         }
 
@@ -261,7 +262,8 @@ namespace AElf.OS.Network.Grpc
             var enqueueSuccess = _sendBlockJobs.Post(new StreamJob
                 {BlockWithTransactions = blockWithTransactions, SendCallback = sendCallback});
             if (!enqueueSuccess)
-                throw new NetworkException($"Dropping block, peer has reached max capacity: {_sendBlockJobs.InputCount} - {this}.",
+                throw new NetworkException(
+                    $"Dropping block, peer has reached max capacity: {_sendBlockJobs.InputCount} - {this}.",
                     NetworkExceptionType.FullBuffer);
         }
 
