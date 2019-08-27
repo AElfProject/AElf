@@ -239,7 +239,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 offset = nextBlockMiningLeftMilliseconds;
             }
 
-            limitMillisecondsOfMiningBlock = miningInterval.Div(AEDPoSContractConstants.TotalTinySlots).Add(offset);
+            limitMillisecondsOfMiningBlock = miningInterval.Div(AEDPoSContractConstants.TotalTinySlots); //.Add(offset);
             limitMillisecondsOfMiningBlock = limitMillisecondsOfMiningBlock < 0 ? 0 : limitMillisecondsOfMiningBlock;
 
             var currentRoundStartTime = currentRound.GetStartTime();

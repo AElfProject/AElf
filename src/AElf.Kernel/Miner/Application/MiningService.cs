@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,15 +92,23 @@ namespace AElf.Kernel.Miner.Application
         {
             using (var cts = new CancellationTokenSource())
             {
-                cts.CancelAfter((int) requestMiningDto.BlockExecutionTime.Milliseconds());
-
+                var expirationTime = blockTime + requestMiningDto.BlockExecutionTime;
+                
+                if (expirationTime < TimestampHelper.GetUtcNow())
+                    cts.Cancel();
+                else
+                {
+                    var ts = (expirationTime - TimestampHelper.GetUtcNow()).ToTimeSpan();
+                    cts.CancelAfter(ts);
+                }
+                
                 var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
                     requestMiningDto.PreviousBlockHeight, blockTime);
                 var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
                     requestMiningDto.PreviousBlockHeight);
-
+                
                 var pending = transactions;
-
+                
                 block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                     systemTransactions, pending, cts.Token);
                 await SignBlockAsync(block);
