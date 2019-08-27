@@ -91,6 +91,16 @@ namespace AElf.Kernel
                         _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
                             KernelConstants.UpdateChainQueueName);
                     }
+                    else
+                    {
+                        Logger.LogWarning(
+                            $"Trigger once again because of miningDueTime expiration. MiningDueTime : {eventData.MiningDueTime}");
+                        await _consensusService.TriggerConsensusAsync(new ChainContext
+                        {
+                            BlockHash = chain.BestChainHash,
+                            BlockHeight = chain.BestChainHeight
+                        });
+                    }
                 }, KernelConstants.ConsensusRequestMiningQueueName);
             }
             catch (Exception e)
