@@ -69,9 +69,13 @@ namespace AElf.Kernel
                         return;
                     }
 
+                    var now = TimestampHelper.GetUtcNow();
+                    var blockExecutionDuration = now + eventData.BlockExecutionTime < eventData.MiningDueTime
+                        ? eventData.BlockExecutionTime
+                        : eventData.MiningDueTime - now;
+
                     var block = await _minerService.MineAsync(eventData.PreviousBlockHash,
-                        eventData.PreviousBlockHeight,
-                        eventData.BlockTime, eventData.BlockExecutionTime);
+                        eventData.PreviousBlockHeight, eventData.BlockTime, blockExecutionDuration);
 
                     if (TimestampHelper.GetUtcNow() <= eventData.MiningDueTime)
                     {
@@ -87,7 +91,6 @@ namespace AElf.Kernel
                         _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
                             KernelConstants.UpdateChainQueueName);
                     }
-
                 }, KernelConstants.ConsensusRequestMiningQueueName);
             }
             catch (Exception e)
