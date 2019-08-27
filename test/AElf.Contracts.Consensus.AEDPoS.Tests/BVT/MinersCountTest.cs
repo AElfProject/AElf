@@ -99,7 +99,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             while (minerCount < maxCount)
             {
                 var currentRound = await newMinerStub.GetCurrentRoundInformation.CallAsync(new Empty());
-
+                var firstPubKey = currentRound.RealTimeMinersInformation.Keys.First();
+                newMinerStub = GetAEDPoSContractStub(ValidationDataCenterKeyPairs.First(o =>o.PublicKey.ToHex() == firstPubKey));
+                
                 minerCount = currentRound.RealTimeMinersInformation.Count;
                 Assert.Equal(9.Add(termCount.Mul(2)), minerCount);
 
