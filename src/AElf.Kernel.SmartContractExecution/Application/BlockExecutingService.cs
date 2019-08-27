@@ -76,12 +76,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var executedCancellableTransactions = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
             var allExecutedTransactions =
-                nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash()))).ToList()
+                nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash())))
+                    .ToList();
             var block = await _blockGenerationService.FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
                 returnSetCollection.Executed);
-
-            Logger.LogTrace("Filled block");
-
             return block;
         }
     }
