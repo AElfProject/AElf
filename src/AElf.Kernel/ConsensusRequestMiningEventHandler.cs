@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Sdk.CSharp;
@@ -21,18 +22,19 @@ namespace AElf.Kernel
         private readonly IBlockAttachService _blockAttachService;
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockchainService _blockchainService;
-
+        private readonly IConsensusService _consensusService;
         public ILogger<ConsensusRequestMiningEventHandler> Logger { get; set; }
         
         public ILocalEventBus LocalEventBus { get; set; }
 
         public ConsensusRequestMiningEventHandler(IMinerService minerService, IBlockAttachService blockAttachService,
-            ITaskQueueManager taskQueueManager, IBlockchainService blockchainService)
+            ITaskQueueManager taskQueueManager, IBlockchainService blockchainService, IConsensusService consensusService)
         {
             _minerService = minerService;
             _blockAttachService = blockAttachService;
             _taskQueueManager = taskQueueManager;
             _blockchainService = blockchainService;
+            _consensusService = consensusService;
             Logger = NullLogger<ConsensusRequestMiningEventHandler>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -43,6 +45,13 @@ namespace AElf.Kernel
             {
                 _taskQueueManager.Enqueue(async () =>
                 {
+                    var chain = await _blockchainService.GetChainAsync();
+                    if (eventData.PreviousBlockHash != chain.BestChainHash)
+                    {
+                        Logger.LogWarning("Mining canceled because best chain already updated.");
+                        return;
+                    }
+                    
                     if (eventData.BlockTime > new Timestamp {Seconds = 3600} &&
                         eventData.BlockTime + eventData.BlockExecutionTime <
                         TimestampHelper.GetUtcNow())
@@ -50,7 +59,17 @@ namespace AElf.Kernel
                         Logger.LogTrace(
                             $"Will cancel mining due to timeout: Actual mining time: {eventData.BlockTime}, " +
                             $"execution limit: {eventData.BlockExecutionTime.Milliseconds()} ms.");
+                        
+                        await _consensusService.TriggerConsensusAsync(new ChainContext
+                        {
+                            BlockHash = eventData.PreviousBlockHash,
+                            BlockHeight = eventData.PreviousBlockHeight
+                        });
+                        return;
                     }
+
+                    Logger.LogTrace(
+                        $"Start mining with previous hash: {eventData.PreviousBlockHash}, previous height: {eventData.PreviousBlockHeight}");
 
                     var block = await _minerService.MineAsync(eventData.PreviousBlockHash,
                         eventData.PreviousBlockHeight,
@@ -58,11 +77,9 @@ namespace AElf.Kernel
 
                     await _blockchainService.AddBlockAsync(block);
 
-                    var chain = await _blockchainService.GetChainAsync();
                     await LocalEventBus.PublishAsync(new BlockMinedEventData()
                     {
-                        BlockHeader = block.Header,
-                        HasFork = block.Height <= chain.BestChainHeight
+                        BlockHeader = block.Header
                     });
 
                     // Self mined block do not need do verify
