@@ -109,9 +109,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 ));
             }
 
-            var transactionOrder = transactions.Select(t => t.GetHash()).ToList();
-
-            return returnSets.AsParallel().OrderBy(d => transactionOrder.IndexOf(d.TransactionId)).ToList();
+            return returnSets;
         }
         
         private async Task<List<ExecutionReturnSet>> ProcessTransactionsWithoutContract(List<Transaction> transactions,
