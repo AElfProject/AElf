@@ -5,7 +5,6 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.Network;
 using AElf.OS.Network.Extensions;
-using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -16,27 +15,27 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockAttachService _blockAttachService;
         private readonly IBlockSyncQueueService _blockSyncQueueService;
-        private readonly IBlockValidationService _validationService;
+        private readonly IBlockSyncValidationService _blockSyncValidationService;
 
         public ILogger<BlockSyncAttachService> Logger { get; set; }
 
         public BlockSyncAttachService(IBlockchainService blockchainService,
             IBlockAttachService blockAttachService,
-            IBlockValidationService validationService,
+            IBlockSyncValidationService blockSyncValidationService,
             IBlockSyncQueueService blockSyncQueueService)
         {
             Logger = NullLogger<BlockSyncAttachService>.Instance;
 
             _blockchainService = blockchainService;
             _blockAttachService = blockAttachService;
-            _validationService = validationService;
+            _blockSyncValidationService = blockSyncValidationService;
             _blockSyncQueueService = blockSyncQueueService;
         }
 
         public async Task AttachBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions,
             Func<Task> attachFinishedCallback =null)
         {
-            var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
+            var valid = await _blockSyncValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
             if (!valid)
             {
                 throw new InvalidOperationException(

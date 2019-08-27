@@ -39,7 +39,7 @@ namespace AElf.OS.BlockSync.Application
             };
 
             var validateResult =
-                await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement,
+                await _blockSyncValidationService.ValidateAnnouncementBeforeSyncAsync(chain, blockAnnouncement,
                     GetEncodedPubKeyString());
 
             validateResult.ShouldBeTrue();
@@ -57,12 +57,12 @@ namespace AElf.OS.BlockSync.Application
             };
 
             var validateResult =
-                await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement,
+                await _blockSyncValidationService.ValidateAnnouncementBeforeSyncAsync(chain, blockAnnouncement,
                     GetEncodedPubKeyString());
             validateResult.ShouldBeTrue();
 
             validateResult =
-                await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement,
+                await _blockSyncValidationService.ValidateAnnouncementBeforeSyncAsync(chain, blockAnnouncement,
                     GetEncodedPubKeyString());
             validateResult.ShouldBeFalse();
         }
@@ -79,7 +79,7 @@ namespace AElf.OS.BlockSync.Application
             };
 
             var validateResult =
-                await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement,
+                await _blockSyncValidationService.ValidateAnnouncementBeforeSyncAsync(chain, blockAnnouncement,
                     GetEncodedPubKeyString());
 
             validateResult.ShouldBeFalse();
@@ -93,7 +93,7 @@ namespace AElf.OS.BlockSync.Application
             var block = _osTestHelper.GenerateBlockWithTransactions(chain.LastIrreversibleBlockHash,
                 chain.LastIrreversibleBlockHeight);
 
-            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block, GetEncodedPubKeyString());
+            var validateResult = await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, block, GetEncodedPubKeyString());
 
             validateResult.ShouldBeTrue();
         }
@@ -106,7 +106,7 @@ namespace AElf.OS.BlockSync.Application
             var block = _osTestHelper.GenerateBlockWithTransactions(Hash.FromString("SyncBlockHash"),
                 chain.LastIrreversibleBlockHeight - 1);
 
-            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block, GetEncodedPubKeyString());
+            var validateResult = await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, block, GetEncodedPubKeyString());
 
             validateResult.ShouldBeFalse();
         }
