@@ -5,7 +5,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using AElf.Kernel;
@@ -30,13 +29,9 @@ namespace AElf.OS.Network.Grpc
         private const int UpdateHandshakeTimeout = 400;
         private const int StreamRecoveryWaitTimeInMilliseconds = 500;
 
-        private const int MaxDegreeOfParallelismForHighPriorityJobs = 2;
-        private const int MaxDegreeOfParallelismForLowPriorityJobs = 1;
-        private const int BoundedCapacityForJobs = 200;
-
-        private int _bufferedTransactionsCount;
-        private int _bufferedBlocksCount;
-        private int _bufferedAnnouncementsCount;
+        private const int MaxDegreeOfParallelismForAnnouncementJobs = 2;
+        private const int MaxDegreeOfParallelismForTransactionJobs = 1;
+        private const int MaxDegreeOfParallelismForBlockJobs = 1;
 
         private enum MetricNames
         {
@@ -66,9 +61,9 @@ namespace AElf.OS.Network.Grpc
         public long CurrentBlockHeight { get; private set; }
 
         public IPEndPoint RemoteEndpoint { get; }
-        public int BufferedTransactionsCount => _bufferedTransactionsCount;
-        public int BufferedBlocksCount => _bufferedBlocksCount;
-        public int BufferedAnnouncementsCount => _bufferedAnnouncementsCount;
+        public int BufferedTransactionsCount => _sendTransactionJobs.InputCount;
+        public int BufferedBlocksCount => _sendBlockJobs.InputCount;
+        public int BufferedAnnouncementsCount => _sendAnnouncementJobs.InputCount;
 
         public string IpAddress { get; }
 
@@ -86,8 +81,9 @@ namespace AElf.OS.Network.Grpc
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
         private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
 
-        private readonly ActionBlock<StreamJob> _highPriorityJobs;
-        private readonly ActionBlock<StreamJob> _lowPriorityJobs;
+        private readonly ActionBlock<StreamJob> _sendAnnouncementJobs;
+        private readonly ActionBlock<StreamJob> _sendBlockJobs;
+        private readonly ActionBlock<StreamJob> _sendTransactionJobs;
 
         public GrpcPeer(GrpcClient client, IPEndPoint remoteEndpoint, PeerInfo peerInfo)
         {
@@ -108,17 +104,23 @@ namespace AElf.OS.Network.Grpc
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlock), new ConcurrentQueue<RequestMetric>());
             _recentRequestsRoundtripTimes.TryAdd(nameof(MetricNames.GetBlocks), new ConcurrentQueue<RequestMetric>());
 
-            _highPriorityJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
+            _sendAnnouncementJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
                 new ExecutionDataflowBlockOptions
                 {
-                    MaxDegreeOfParallelism = MaxDegreeOfParallelismForHighPriorityJobs,
-                    BoundedCapacity = BoundedCapacityForJobs
+                    MaxDegreeOfParallelism = MaxDegreeOfParallelismForAnnouncementJobs,
+                    BoundedCapacity = NetworkConstants.DefaultMaxBufferedAnnouncementCount
                 });
-            _lowPriorityJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
+            _sendBlockJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
                 new ExecutionDataflowBlockOptions
                 {
-                    MaxDegreeOfParallelism = MaxDegreeOfParallelismForLowPriorityJobs,
-                    BoundedCapacity = BoundedCapacityForJobs
+                    MaxDegreeOfParallelism = MaxDegreeOfParallelismForBlockJobs,
+                    BoundedCapacity = NetworkConstants.DefaultMaxBufferedBlockCount
+                });
+            _sendTransactionJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
+                new ExecutionDataflowBlockOptions
+                {
+                    MaxDegreeOfParallelism = MaxDegreeOfParallelismForTransactionJobs,
+                    BoundedCapacity = NetworkConstants.DefaultMaxBufferedTransactionCount
                 });
         }
 
@@ -156,7 +158,7 @@ namespace AElf.OS.Network.Grpc
             };
 
             var handshakeReply = await RequestAsync(
-               () => _client.DoHandshakeAsync(new HandshakeRequest {Handshake = handshake}, data), request);
+                () => _client.DoHandshakeAsync(new HandshakeRequest {Handshake = handshake}, data), request);
 
             LastReceivedHandshake = handshakeReply?.Handshake;
 
@@ -229,17 +231,11 @@ namespace AElf.OS.Network.Grpc
                 throw new NetworkException($"Dropping transaction, peer is not ready - {this}.",
                     NetworkExceptionType.NotConnected);
 
-            if (_bufferedTransactionsCount > NetworkConstants.DefaultMaxBufferedTransactionCount)
-                return;
-
-            var enqueueSuccess = _lowPriorityJobs.Post(new StreamJob{Transaction = transaction, SendCallback = sendCallback});
-
+            var enqueueSuccess = _sendTransactionJobs.Post(new StreamJob
+                {Transaction = transaction, SendCallback = sendCallback});
             if (!enqueueSuccess)
-                throw new NetworkException(
-                    $"Dropping transaction, buffer is full {_bufferedTransactionsCount} - {this}.",
+                throw new NetworkException($"Dropping transaction, peer has reached max capacity - {this}.",
                     NetworkExceptionType.FullBuffer);
-
-            Interlocked.Increment(ref _bufferedTransactionsCount);
         }
 
         public void EnqueueAnnouncement(BlockAnnouncement announcement, Action<NetworkException> sendCallback)
@@ -248,20 +244,12 @@ namespace AElf.OS.Network.Grpc
                 throw new NetworkException($"Dropping announcement, peer is not ready - {this}.",
                     NetworkExceptionType.NotConnected);
 
-            if (_bufferedAnnouncementsCount > NetworkConstants.DefaultMaxBufferedAnnouncementCount)
-                throw new NetworkException(
-                    $"Dropping announcement, peer has reached max capacity {_bufferedAnnouncementsCount} - {this}.",
-                    NetworkExceptionType.FullBuffer);
-
-            var enqueueSuccess = _highPriorityJobs.Post(new StreamJob
+            var enqueueSuccess = _sendAnnouncementJobs.Post(new StreamJob
                 {BlockAnnouncement = announcement, SendCallback = sendCallback});
-
             if (!enqueueSuccess)
                 throw new NetworkException(
-                    $"Dropping announcement, buffer is full {_bufferedAnnouncementsCount} - {this}.",
+                    $"Dropping announcement, peer has reached max capacity - {this}.",
                     NetworkExceptionType.FullBuffer);
-
-            Interlocked.Increment(ref _bufferedAnnouncementsCount);
         }
 
         public void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException> sendCallback)
@@ -270,19 +258,11 @@ namespace AElf.OS.Network.Grpc
                 throw new NetworkException($"Dropping block, peer is not ready - {this}.",
                     NetworkExceptionType.NotConnected);
 
-            if (_bufferedBlocksCount > NetworkConstants.DefaultMaxBufferedBlockCount)
-                throw new NetworkException(
-                    $"Dropping block, peer has reached max capacity {_bufferedBlocksCount} - {this}.",
-                    NetworkExceptionType.FullBuffer);
-
-            var enqueueSuccess = _highPriorityJobs.Post(new StreamJob
+            var enqueueSuccess = _sendBlockJobs.Post(new StreamJob
                 {BlockWithTransactions = blockWithTransactions, SendCallback = sendCallback});
-
             if (!enqueueSuccess)
-                throw new NetworkException($"Dropping block, buffer is full {_bufferedBlocksCount} - {this}.",
+                throw new NetworkException($"Dropping block, peer has reached max capacity - {this}.",
                     NetworkExceptionType.FullBuffer);
-
-            Interlocked.Increment(ref _bufferedBlocksCount);
         }
 
         private async Task SendStreamJobAsync(StreamJob job)
@@ -295,17 +275,14 @@ namespace AElf.OS.Network.Grpc
                 if (job.Transaction != null)
                 {
                     await SendTransactionAsync(job.Transaction);
-                    Interlocked.Decrement(ref _bufferedTransactionsCount);
                 }
                 else if (job.BlockAnnouncement != null)
                 {
                     await SendAnnouncementAsync(job.BlockAnnouncement);
-                    Interlocked.Decrement(ref _bufferedAnnouncementsCount);
                 }
                 else if (job.BlockWithTransactions != null)
                 {
                     await BroadcastBlockAsync(job.BlockWithTransactions);
-                    Interlocked.Decrement(ref _bufferedBlocksCount);
                 }
             }
             catch (RpcException ex)
@@ -518,8 +495,10 @@ namespace AElf.OS.Network.Grpc
             IsShutdown = true;
 
             // we complete but no need to await the jobs
-            _highPriorityJobs.Complete();
-            _lowPriorityJobs.Complete();
+            _sendAnnouncementJobs.Complete();
+            _sendBlockJobs.Complete();
+            _sendTransactionJobs.Complete();
+
             _announcementStreamCall?.Dispose();
             _transactionStreamCall?.Dispose();
             _blockStreamCall?.Dispose();

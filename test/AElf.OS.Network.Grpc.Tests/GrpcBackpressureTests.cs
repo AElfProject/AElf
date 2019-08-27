@@ -19,7 +19,7 @@ namespace AElf.OS.Network
         public void EnqueueAnnouncement_ShouldDrop_IfBufferFull()
         {
             // fill the buffer
-            for (int i = 0; i <= NetworkConstants.DefaultMaxBufferedAnnouncementCount; i++)
+            for (int i = 0; i < NetworkConstants.DefaultMaxBufferedAnnouncementCount; i++)
                 _peerUnderTest.EnqueueAnnouncement(new BlockAnnouncement(), null);
             
             var overflowException = Assert.Throws<NetworkException>(()=> _peerUnderTest.EnqueueAnnouncement(new BlockAnnouncement(), null));
@@ -30,7 +30,7 @@ namespace AElf.OS.Network
         public void EnqueueTransaction_ShouldDrop_IfBufferFull()
         {
             // fill the buffer
-            for (int i = 0; i <= NetworkConstants.DefaultMaxBufferedTransactionCount; i++)
+            for (int i = 0; i < NetworkConstants.DefaultMaxBufferedTransactionCount; i++)
                 _peerUnderTest.EnqueueTransaction(new Transaction(), null);
             
             var overflowException = Assert.Throws<NetworkException>(()=> _peerUnderTest.EnqueueTransaction(new Transaction(), null));
@@ -41,7 +41,7 @@ namespace AElf.OS.Network
         public void EnqueueBlock_ShouldDrop_IfBufferFull()
         {
             // fill the buffer
-            for (int i = 0; i <= NetworkConstants.DefaultMaxBufferedBlockCount; i++)
+            for (int i = 0; i < NetworkConstants.DefaultMaxBufferedBlockCount; i++)
                 _peerUnderTest.EnqueueBlock(new BlockWithTransactions(), null);
             
             var overflowException = Assert.Throws<NetworkException>(()=> _peerUnderTest.EnqueueBlock(new BlockWithTransactions(), null));
