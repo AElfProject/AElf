@@ -198,6 +198,20 @@ namespace AElf.OS.Network
             Assert.Empty(reply.Blocks);
         }
 
+        [Fact]
+        public async Task RequestBlocks_MoreThenLimit_ReturnsEmpty()
+        {
+            var serverCallContext = BuildServerCallContext();
+            var chain = await _blockchainService.GetChainAsync();
+            var reply = await _service.RequestBlocks(new BlocksRequest
+            {
+                PreviousBlockHash = chain.GenesisBlockHash,
+                Count = GrpcConstants.MaxSendBlockCountLimit + 1
+            }, serverCallContext);
+
+            Assert.True(reply.Blocks.Count == 0);
+        }
+
         #endregion RequestBlocks
         
         #region Disconnect
