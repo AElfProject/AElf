@@ -3,7 +3,6 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
-using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
 using Google.Protobuf.WellKnownTypes;

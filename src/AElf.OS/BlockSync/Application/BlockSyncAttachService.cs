@@ -36,7 +36,7 @@ namespace AElf.OS.BlockSync.Application
         public async Task AttachBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions,
             Func<Task> attachFinishedCallback = null)
         {
-            var txsValid = await _validationService.ValidateTransactionAsync(blockWithTransactions.Transactions);
+            var txsValid = await _validationService.ValidateTransactionAsync(blockWithTransactions);
             if (!txsValid)
             {
                 throw new InvalidOperationException($"Tx in this block was invalid: {blockWithTransactions}");

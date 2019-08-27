@@ -4,6 +4,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network;
 using AElf.Types;
@@ -20,21 +21,22 @@ namespace AElf.OS.BlockSync.Application
 
         public ILogger<BlockSyncValidationService> Logger { get; set; }
 
-        private readonly IEnumerable<ITransactionValidationProvider> _transactionValidationProviders;
+        private readonly ITransactionValidationService _transactionValidationService;
 
         public BlockSyncValidationService(IAnnouncementCacheProvider announcementCacheProvider,
             IBlockValidationService blockValidationService, ITransactionManager transactionManager,
-            IEnumerable<ITransactionValidationProvider> transactionValidationProviders)
+            ITransactionValidationService transactionValidationService)
         {
             Logger = NullLogger<BlockSyncValidationService>.Instance;
 
             _announcementCacheProvider = announcementCacheProvider;
             _blockValidationService = blockValidationService;
             _transactionManager = transactionManager;
-            _transactionValidationProviders = transactionValidationProviders;
+            _transactionValidationService = transactionValidationService;
         }
 
-        public async Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement, string senderPubKey)
+        public async Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement,
+            string senderPubKey)
         {
             if (!TryCacheNewAnnouncement(blockAnnouncement.BlockHash, blockAnnouncement.BlockHeight, senderPubKey))
             {
@@ -51,7 +53,8 @@ namespace AElf.OS.BlockSync.Application
             return true;
         }
 
-        public async Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions, string senderPubKey)
+        public async Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions,
+            string senderPubKey)
         {
             if (blockWithTransactions.Height <= chain.LastIrreversibleBlockHeight)
             {
@@ -61,25 +64,30 @@ namespace AElf.OS.BlockSync.Application
 
             return true;
         }
-        
+
         private bool TryCacheNewAnnouncement(Hash blockHash, long blockHeight, string senderPubkey)
         {
             return _announcementCacheProvider.TryAddOrUpdateAnnouncementCache(blockHash, blockHeight, senderPubkey);
         }
 
-        public async Task<bool> ValidateTransactionAsync(IEnumerable<Transaction> transactions)
+        public async Task<bool> ValidateTransactionAsync(BlockWithTransactions blockWithTransactions)
         {
-            foreach (var transaction in transactions)
+            foreach (var transaction in blockWithTransactions.Transactions)
             {
-                foreach (var validationProvider in _transactionValidationProviders)
-                {
-                    // No need to validate again if this tx already in local database.
-                    var tx = await _transactionManager.GetTransactionAsync(transaction.GetHash());
-                    if (tx != null)
-                        continue;
+                // No need to validate again if this tx already in local database.
+                var tx = await _transactionManager.GetTransactionAsync(transaction.GetHash());
+                if (tx != null)
+                    continue;
 
-                    if (!await validationProvider.ValidateTransactionAsync(transaction))
-                        return false;
+                if (!await _transactionValidationService.ValidateTransactionAsync(transaction))
+                {
+                    return false;
+                }
+
+                if (!_transactionValidationService.ValidateConstrainedTransaction(transaction,
+                    blockWithTransactions.GetHash()))
+                {
+                    return false;
                 }
             }
 

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
@@ -9,10 +10,15 @@ namespace AElf.Kernel.TransactionPool.Application
     {
         private readonly IEnumerable<ITransactionValidationProvider> _transactionValidationProviders;
 
+        private readonly IEnumerable<IConstrainedTransactionValidationProvider>
+            _constrainedTransactionValidationProviders;
+
         public TransactionValidationForTxHubService(
-            IEnumerable<ITransactionValidationProvider> transactionValidationProviders)
+            IEnumerable<ITransactionValidationProvider> transactionValidationProviders,
+            IEnumerable<IConstrainedTransactionValidationProvider> constrainedTransactionValidationProviders)
         {
             _transactionValidationProviders = transactionValidationProviders;
+            _constrainedTransactionValidationProviders = constrainedTransactionValidationProviders;
         }
 
         public async Task<bool> ValidateTransactionAsync(Transaction transaction)
@@ -26,6 +32,12 @@ namespace AElf.Kernel.TransactionPool.Application
             }
 
             return true;
+        }
+
+        public bool ValidateConstrainedTransaction(Transaction transaction, Hash blockHash)
+        {
+            return _constrainedTransactionValidationProviders.All(provider =>
+                provider.ValidateTransaction(transaction, blockHash));
         }
     }
 }

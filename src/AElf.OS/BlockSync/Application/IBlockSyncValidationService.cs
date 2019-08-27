@@ -12,7 +12,7 @@ namespace AElf.OS.BlockSync.Application
 
         Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions, string senderPubKey);
 
-        Task<bool> ValidateTransactionAsync(IEnumerable<Transaction> transactions);
+        Task<bool> ValidateTransactionAsync(BlockWithTransactions blockWithTransactions);
 
         Task<bool> ValidateBlockBeforeAttachAsync(BlockWithTransactions blockWithTransactions);
     }
