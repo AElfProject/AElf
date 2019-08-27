@@ -68,9 +68,6 @@ namespace AElf.Kernel
                         return;
                     }
 
-                    Logger.LogTrace(
-                        $"Start mining with previous hash: {eventData.PreviousBlockHash}, previous height: {eventData.PreviousBlockHeight}");
-
                     var block = await _minerService.MineAsync(eventData.PreviousBlockHash,
                         eventData.PreviousBlockHeight,
                         eventData.BlockTime, eventData.BlockExecutionTime);

@@ -68,17 +68,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 Logger.LogTrace("Executed cancellable txs");
             }
 
-            Logger.LogTrace("Handled return set");
-
             if (returnSetCollection.Unexecutable.Count > 0)
             {
                 await EventBus.PublishAsync(
                     new UnexecutableTransactionsFoundEvent(blockHeader, returnSetCollection.Unexecutable));
             }
 
-            var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
+            var executedCancellableTransactions = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
             var allExecutedTransactions =
-                nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
+                nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash()))).ToList()
             var block = await _blockGenerationService.FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
                 returnSetCollection.Executed);
 
