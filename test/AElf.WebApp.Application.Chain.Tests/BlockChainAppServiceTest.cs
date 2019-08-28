@@ -420,7 +420,7 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             var getTransactionPoolStatusResponse =
                 await GetResponseAsObjectAsync<GetTransactionPoolStatusOutput>("/api/blockChain/transactionPoolStatus");
-            getTransactionPoolStatusResponse.AllTransactionCount.ShouldBe(2);
+            getTransactionPoolStatusResponse.Queued.ShouldBe(2);
         }
 
         [Fact]
