@@ -150,7 +150,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             // Check round number.
             {
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
-                round.RoundNumber.ShouldBe(3);
+                round.RoundNumber.ShouldBeGreaterThanOrEqualTo(3);
             }
         }
         

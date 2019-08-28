@@ -3,6 +3,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
@@ -97,6 +98,20 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 var mockService = new Mock<ISmartContractAddressService>();
                 mockService.Setup(o => o.GetAddressByContractName(It.IsAny<Hash>()))
                     .Returns(SampleAddress.AddressList[0]);
+
+                return mockService.Object;
+            });
+
+            context.Services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IBlockExtraDataService>();
+                mockService.Setup(m => m.GetExtraDataFromBlockHeader("Consensus", It.IsAny<BlockHeader>()))
+                    .Returns(ByteString.CopyFrom(new AElfConsensusHeaderInformation
+                    {
+                        Behaviour = AElfConsensusBehaviour.UpdateValue,
+                        SenderPubkey = ByteString.CopyFromUtf8("real-pubkey"),
+                        Round = new Round()
+                    }.ToByteArray()));
 
                 return mockService.Object;
             });
