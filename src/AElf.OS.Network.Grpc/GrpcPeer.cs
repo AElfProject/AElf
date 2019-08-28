@@ -231,12 +231,7 @@ namespace AElf.OS.Network.Grpc
                 throw new NetworkException($"Dropping transaction, peer is not ready - {this}.",
                     NetworkExceptionType.NotConnected);
 
-            var enqueueSuccess = _sendTransactionJobs.Post(new StreamJob
-                {Transaction = transaction, SendCallback = sendCallback});
-            if (!enqueueSuccess)
-                throw new NetworkException(
-                    $"Dropping transaction, peer has reached max capacity: {_sendTransactionJobs.InputCount} - {this}.",
-                    NetworkExceptionType.FullBuffer);
+            _sendTransactionJobs.Post(new StreamJob{Transaction = transaction, SendCallback = sendCallback});
         }
 
         public void EnqueueAnnouncement(BlockAnnouncement announcement, Action<NetworkException> sendCallback)
@@ -245,12 +240,7 @@ namespace AElf.OS.Network.Grpc
                 throw new NetworkException($"Dropping announcement, peer is not ready - {this}.",
                     NetworkExceptionType.NotConnected);
 
-            var enqueueSuccess = _sendAnnouncementJobs.Post(new StreamJob
-                {BlockAnnouncement = announcement, SendCallback = sendCallback});
-            if (!enqueueSuccess)
-                throw new NetworkException(
-                    $"Dropping announcement, peer has reached max capacity: {_sendAnnouncementJobs.InputCount} - {this}.",
-                    NetworkExceptionType.FullBuffer);
+            _sendAnnouncementJobs.Post(new StreamJob {BlockAnnouncement = announcement, SendCallback = sendCallback});
         }
 
         public void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException> sendCallback)
@@ -259,12 +249,7 @@ namespace AElf.OS.Network.Grpc
                 throw new NetworkException($"Dropping block, peer is not ready - {this}.",
                     NetworkExceptionType.NotConnected);
 
-            var enqueueSuccess = _sendBlockJobs.Post(new StreamJob
-                {BlockWithTransactions = blockWithTransactions, SendCallback = sendCallback});
-            if (!enqueueSuccess)
-                throw new NetworkException(
-                    $"Dropping block, peer has reached max capacity: {_sendBlockJobs.InputCount} - {this}.",
-                    NetworkExceptionType.FullBuffer);
+            _sendBlockJobs.Post(new StreamJob{BlockWithTransactions = blockWithTransactions, SendCallback = sendCallback});
         }
 
         private async Task SendStreamJobAsync(StreamJob job)
