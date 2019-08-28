@@ -2,11 +2,12 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using Microsoft.Extensions.Logging;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class ConsensusValidationFailedEventHandler : ILocalEventHandler<ConsensusValidationFailedEventData>
+    public class ConsensusValidationFailedEventHandler : ILocalEventHandler<ConsensusValidationFailedEventData>, ITransientDependency
     {
         private readonly IConsensusService _consensusService;
         private readonly IBlockchainService _blockchainService;

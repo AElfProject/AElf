@@ -22,8 +22,6 @@ namespace AElf.Kernel.Consensus.AEDPoS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();
-            context.Services.AddSingleton<Application.BestChainFoundEventHandler>();
-            context.Services.AddSingleton<ConsensusValidationFailedEventHandler>();
 
             var configuration = context.Services.GetConfiguration();
 

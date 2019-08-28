@@ -12,12 +12,11 @@ using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc.Connection
 {
-    public class ConnectionService : IConnectionService, ISingletonDependency
+    public class ConnectionService : IConnectionService
     {
         private ChainOptions ChainOptions => ChainOptionsSnapshot.Value;
         public IOptionsSnapshot<ChainOptions> ChainOptionsSnapshot { get; set; }
