@@ -1,9 +1,10 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace AElf.Kernel.Consensus.Application
 {
     public interface IBroadcastPrivilegedPubkeyListProvider
     {
-        List<string> GetPubkeyList(BlockHeader blockHeader, string currentPubkey);
+        Task<List<string>> GetPubkeyList(BlockHeader blockHeader);
     }
 }

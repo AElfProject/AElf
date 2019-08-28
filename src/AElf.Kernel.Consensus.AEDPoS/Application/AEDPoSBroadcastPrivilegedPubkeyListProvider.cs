@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 
@@ -9,17 +11,21 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     public class AEDPoSBroadcastPrivilegedPubkeyListProvider : IBroadcastPrivilegedPubkeyListProvider
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
+        private readonly IAccountService _accountService;
 
-        public AEDPoSBroadcastPrivilegedPubkeyListProvider(IBlockExtraDataService blockExtraDataService)
+        public AEDPoSBroadcastPrivilegedPubkeyListProvider(IBlockExtraDataService blockExtraDataService,
+            IAccountService accountService)
         {
             _blockExtraDataService = blockExtraDataService;
+            _accountService = accountService;
         }
 
-        public List<string> GetPubkeyList(BlockHeader blockHeader, string currentPubkey)
+        public async Task<List<string>> GetPubkeyList(BlockHeader blockHeader)
         {
             var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", blockHeader);
             var information = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
             var round = information.Round;
+            var currentPubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
             if (round.RealTimeMinersInformation.Values.Any(m => m.OutValue != null) &&
                 round.RealTimeMinersInformation.ContainsKey(currentPubkey))
             {

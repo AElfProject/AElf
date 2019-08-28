@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Consensus.Application;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
@@ -22,16 +23,19 @@ namespace AElf.OS.Network.Application
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IAElfNetworkServer _networkServer;
         private readonly IKnownBlockCacheProvider _knownBlockCacheProvider;
+        private readonly IBroadcastPrivilegedPubkeyListProvider _broadcastPrivilegedPubkeyListProvider;
 
         public ILogger<NetworkService> Logger { get; set; }
 
-        public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager, IAElfNetworkServer networkServer, 
-            IKnownBlockCacheProvider knownBlockCacheProvider)
+        public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager, IAElfNetworkServer networkServer,
+            IKnownBlockCacheProvider knownBlockCacheProvider,
+            IBroadcastPrivilegedPubkeyListProvider broadcastPrivilegedPubkeyListProvider)
         {
             _peerPool = peerPool;
             _taskQueueManager = taskQueueManager;
             _networkServer = networkServer;
             _knownBlockCacheProvider = knownBlockCacheProvider;
+            _broadcastPrivilegedPubkeyListProvider = broadcastPrivilegedPubkeyListProvider;
 
             Logger = NullLogger<NetworkService>.Instance;
         }
@@ -94,33 +98,51 @@ namespace AElf.OS.Network.Application
 
             return true;
         }
-        
-        public Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
+
+        public async Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
         {
             if (!TryAddKnownBlock(blockWithTransactions.Header))
-                return Task.CompletedTask;
-            
+                return;
+
             if (IsOldBlock(blockWithTransactions.Header))
-                return Task.CompletedTask;
-            
+                return;
+
+            var nextMinerPubkey = await GetNextMinerPubkey(blockWithTransactions.Header);
+
             _taskQueueManager.Enqueue(async () =>
             {
+                var nextPeer = _peerPool.FindPeerByPublicKey(nextMinerPubkey);
+                if (nextPeer != null)
+                    await SendBlockAsync(nextPeer, blockWithTransactions);
+
                 foreach (var peer in _peerPool.GetPeers())
                 {
-                    try
-                    {
-                        await peer.SendBlockAsync(blockWithTransactions);
-                    }
-                    catch (NetworkException ex)
-                    {
-                        Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
-                        await HandleNetworkException(peer, ex);
-                    }
+                    if (nextPeer != null && peer.Info.Pubkey == nextPeer.Info.Pubkey)
+                        continue;
+
+                    await SendBlockAsync(peer, blockWithTransactions);
                 }
-                
+
             }, NetworkConstants.BlockBroadcastQueueName);
-            
-            return Task.CompletedTask;
+        }
+
+        private async Task SendBlockAsync(IPeer peer, BlockWithTransactions blockWithTransactions)
+        {
+            try
+            {
+                await peer.SendBlockAsync(blockWithTransactions);
+            }
+            catch (NetworkException ex)
+            {
+                Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
+                await HandleNetworkException(peer, ex);
+            }
+        }
+
+        private async Task<string> GetNextMinerPubkey(BlockHeader blockHeader)
+        {
+            var broadcastList = await _broadcastPrivilegedPubkeyListProvider.GetPubkeyList(blockHeader);
+            return broadcastList.IsNullOrEmpty() ? null : broadcastList[0];
         }
 
         public Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
