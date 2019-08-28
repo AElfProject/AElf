@@ -190,12 +190,10 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<GetTransactionPoolStatusOutput> GetTransactionPoolStatusAsync()
         {
-            var allTransactionCount = await _txHub.GetAllTransactionCountAsync();
-            var validatedTransactionCount = await _txHub.GetValidatedTransactionCountAsync();
             return new GetTransactionPoolStatusOutput
             {
-                AllTransactionCount = allTransactionCount,
-                ValidatedTransactionCount = validatedTransactionCount
+                Queued = await _txHub.GetAllTransactionCountAsync(),
+                Validated = await _txHub.GetValidatedTransactionCountAsync()
             };
         }
 
