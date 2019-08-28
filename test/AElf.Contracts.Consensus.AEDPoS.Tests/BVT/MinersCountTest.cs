@@ -129,11 +129,5 @@ namespace AElf.Contracts.Consensus.AEDPoS
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("No permission");
         }
-
-        [Fact]
-        public async Task AEDPoSContract_SetMaximumMinersCount()
-        {
-            
-        }
     }
 }
