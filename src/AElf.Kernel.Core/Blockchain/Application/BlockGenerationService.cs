@@ -70,10 +70,13 @@ namespace AElf.Kernel.Blockchain.Application
 
             blockHeader.Bloom = ByteString.CopyFrom(bloom.Data);
             blockHeader.MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet);
+            
+            var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
+            blockExecutionReturnSet = blockExecutionReturnSet.AsParallel()
+                .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
             blockHeader.MerkleTreeRootOfTransactionStatus =
                 CalculateTransactionStatusMerkleTreeRoot(blockExecutionReturnSet);
             
-            var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
             blockHeader.MerkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds);
             
             var blockHash = blockHeader.GetHashWithoutCache();

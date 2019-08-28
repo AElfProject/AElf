@@ -235,7 +235,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private void TransactionPoolSizeShouldBe(int size)
         {
-            var transactionPoolSize = _txHub.GetTransactionPoolSizeAsync().Result;
+            var transactionPoolSize = _txHub.GetAllTransactionCountAsync().Result;
             transactionPoolSize.ShouldBe(size);
         }
 

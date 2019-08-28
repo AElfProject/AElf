@@ -58,7 +58,8 @@ namespace AElf.Kernel.Miner.Application
             return await _miningService.MineAsync(
                 new RequestMiningDto
                 {
-                    PreviousBlockHash = previousBlockHash, PreviousBlockHeight = previousBlockHeight,
+                    PreviousBlockHash = previousBlockHash,
+                    PreviousBlockHeight = previousBlockHeight,
                     BlockExecutionTime = blockExecutionTime
                 }, pending, blockTime);
         }
