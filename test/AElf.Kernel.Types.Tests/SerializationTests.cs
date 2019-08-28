@@ -12,11 +12,11 @@ namespace AElf.Kernel.Types.Tests
     public class SerializationTest
     {
         [Fact]
-        public void FromTo()
+        public void FromTo_Test()
         {
             var t = new Transaction();
-            t.From = Address.Generate();
-            t.To = Address.Generate();
+            t.From = AddressHelper.Base58StringToAddress("nGmKp2ekysABSZAzVfXDrmaTNTaSSrfNmDhuaz7RUj5RTCYqy");
+            t.To = AddressHelper.Base58StringToAddress("z1NVbziJbekvcza3Zr4Gt4eAvoPBZThB68LHRQftrVFwjtGVM");
 
             byte[] b = t.ToByteArray();
             b.ShouldNotBe(null);
@@ -29,9 +29,9 @@ namespace AElf.Kernel.Types.Tests
 
 
         [Fact]
-        public void Deserialize()
+        public void Deserialize_Test()
         {
-            var bytes = ByteArrayHelpers.FromHexString(
+            var bytes = ByteArrayHelper.HexStringToByteArray(
                 "0a200a1e9dee15619106b96861d52f03ad30ac7e57aa529eb2f05f7796472d8ce4a112200a1e96d8bf2dccf2ad419d02ed4a7b7a9d77df10617c4d731e766ce8dde63535320a496e697469616c697a653a0a0a015b120122180020005003");
             var txBytes = ByteString.CopyFrom(bytes).ToByteArray();
             var txn = Transaction.Parser.ParseFrom(txBytes);
@@ -39,7 +39,7 @@ namespace AElf.Kernel.Types.Tests
         }
 
         [Fact]
-        public void DefaultValueTest()
+        public void DefaultValue_Test()
         {
             System.Diagnostics.Debug.WriteLine(default(UInt64Value));
         }

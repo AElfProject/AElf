@@ -125,7 +125,7 @@ namespace AElf.Kernel.SmartContract
 
         private byte[] RecoverPublicKey(byte[] signature, byte[] hash)
         {
-            var cabBeRecovered = CryptoHelpers.RecoverPublicKey(signature, hash, out var publicKey);
+            var cabBeRecovered = CryptoHelper.RecoverPublicKey(signature, hash, out var publicKey);
             return !cabBeRecovered ? null : publicKey;
         }
 
@@ -136,7 +136,7 @@ namespace AElf.Kernel.SmartContract
         public byte[] RecoverPublicKey()
         {
             return RecoverPublicKey(TransactionContext.Transaction.Signature.ToByteArray(),
-                TransactionContext.Transaction.GetHash().DumpByteArray());
+                TransactionContext.Transaction.GetHash().ToByteArray());
         }
 
         public T Call<T>(Address address, string methodName, ByteString args) where T : IMessage<T>, new()
@@ -197,12 +197,17 @@ namespace AElf.Kernel.SmartContract
         public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress)
         {
             return Address.FromPublicKey(Self.Value.Concat(
-                virtualAddress.Value.ToByteArray().CalculateHash()).ToArray());
+                virtualAddress.Value.ToByteArray().ComputeHash()).ToArray());
         }
 
         public Address GetZeroSmartContractAddress()
         {
             return _smartContractBridgeService.GetZeroSmartContractAddress();
+        }
+        
+        public Address GetZeroSmartContractAddress(int chainId)
+        {
+            return _smartContractBridgeService.GetZeroSmartContractAddress(chainId);
         }
 
         public List<Transaction> GetPreviousBlockTransactions()
@@ -222,9 +227,17 @@ namespace AElf.Kernel.SmartContract
             {
                 throw new NoPermissionException();
             }
+            
+            var contractDto = new ContractDto
+            {
+                BlockHeight = CurrentHeight,
+                ContractAddress = address,
+                SmartContractRegistration = registration,
+                ContractName = name,
+                IsPrivileged = false
+            };
 
-            AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(address, registration,
-                false, name));
+            AsyncHelper.RunSync(() => _smartContractBridgeService.DeployContractAsync(contractDto));
         }
 
         public void UpdateContract(Address address, SmartContractRegistration registration, Hash name)
@@ -234,8 +247,15 @@ namespace AElf.Kernel.SmartContract
                 throw new NoPermissionException();
             }
 
-            AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(address, registration,
-                false, null));
+            var contractDto = new ContractDto
+            {
+                BlockHeight = CurrentHeight,
+                ContractAddress = address,
+                SmartContractRegistration = registration,
+                ContractName = null,
+                IsPrivileged = false
+            };
+            AsyncHelper.RunSync(() => _smartContractBridgeService.UpdateContractAsync(contractDto));
         }
     }
 }

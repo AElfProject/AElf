@@ -12,7 +12,7 @@
     
     <ItemGroup>
         <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
         <PackageReference Include="Shouldly" Version="3.0.2" />
         <PackageReference Include="xunit" Version="2.4.1" />
         <PackageReference Include="xunit.runner.console" Version="2.4.1" />
@@ -38,6 +38,11 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\AElf.Contracts.TestContract.BasicFunctionWithParallel\AElf.Contracts.TestContract.BasicFunctionWithParallel.csproj" >
+            <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
     </ItemGroup>
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs0.proto">
@@ -51,6 +56,9 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\test_basic_security_contract.proto">
             <Link>Protobuf/Proto/stub/test_basic_security_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\test_basic_function_with_parallel_contract.proto">
+            <Link>Protobuf/Proto/stub/test_basic_function_with_parallel_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
 </Project>

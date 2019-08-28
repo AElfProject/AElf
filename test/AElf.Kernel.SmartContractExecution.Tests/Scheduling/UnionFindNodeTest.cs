@@ -1,3 +1,4 @@
+using System;
 using Xunit;
 
 namespace AElf.Kernel.SmartContractExecution.Scheduling
@@ -5,24 +6,26 @@ namespace AElf.Kernel.SmartContractExecution.Scheduling
     public class UnionFindNodeTest: SmartContractExecutionTestBase
     {
         [Fact]
-        public void TestTrivial()
+        public void Trivial_Test()
         {
             var n1 = new UnionFindNode();
             var n2 = new UnionFindNode();
             
             Assert.True(n1.IsUnionedWith(n1));
             Assert.False(n1.IsUnionedWith(n2));
+
+            Assert.Throws<ArgumentNullException>(() => n1.Union(null));
+            Assert.Throws<ArgumentNullException>(() => n1.IsUnionedWith(null));
         }
         
         [Fact]
-        public void TestUnion()
+        public void Union_Test()
         {
             var n1 = new UnionFindNode();
             var n2 = new UnionFindNode();
             var n3 = new UnionFindNode();
             var n4 = new UnionFindNode();
             var n5 = new UnionFindNode();
-                      
             
             Assert.True(n1.Union(n2));
             Assert.True(n2.Union(n3));

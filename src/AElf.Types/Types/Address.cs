@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using Google.Protobuf;
 
@@ -24,53 +23,52 @@ namespace AElf.Types
         private Address(byte[] bytes)
         {
             if (bytes.Length != TypeConsts.AddressHashLength)
-            {
-                throw new ArgumentOutOfRangeException(
-                    $"Address (sha256 of pubkey) bytes has to be {TypeConsts.AddressHashLength}. The input is {bytes.Length} bytes long.");
-            }
+                throw new ArgumentException("Invalid bytes.", nameof(bytes));
 
             Value = ByteString.CopyFrom(bytes);
         }
 
         public static Address FromPublicKey(byte[] bytes)
         {
-            var hash = bytes.CalculateHash().CalculateHash();
+            var hash = bytes.ComputeHash().ComputeHash();
             return new Address(hash);
         }
 
-        //TODO: move this method into test project
         /// <summary>
-        /// Creates an address from a string. This method is supposed to be used for test only.
-        /// The hash bytes of the string will be used to create the address.
+        /// Loads the content value from 32-byte long byte array.
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="bytes"></param>
         /// <returns></returns>
-        public static Address FromString(string name)
+        /// <exception cref="ArgumentException"></exception>
+        public static Address FromBytes(byte[] bytes)
         {
-            return new Address(name.CalculateHash());
+            if (bytes.Length != TypeConsts.AddressHashLength)
+                throw new ArgumentException("Invalid bytes.", nameof(bytes));
+
+            return new Address
+            {
+                Value = ByteString.CopyFrom(bytes)
+            };
         }
 
-        //TODO: move to test project
         /// <summary>
-        /// Only used in tests to generate random addresses.
+        /// Dumps the content value to byte array.
         /// </summary>
         /// <returns></returns>
-        public static Address Generate()
+        public byte[] ToByteArray()
         {
-            return new Address(Guid.NewGuid().ToByteArray().CalculateHash());
+            return Value.ToByteArray();
         }
 
-        #region Predefined
+        public int CompareTo(Address that)
+        {
+            if (that == null)
+            {
+                throw new InvalidOperationException("Cannot compare address when address is null.");
+            }
 
-        public static readonly Address AElf = FromString("AElf");
-
-        public static readonly Address Zero = new Address(new byte[] { }.CalculateHash());
-
-        public static readonly Address Genesis = FromString("Genesis");
-
-        #endregion
-
-        #region Comparing
+            return CompareAddress(this, that);
+        }
 
         public static bool operator ==(Address address1, Address address2)
         {
@@ -96,7 +94,7 @@ namespace AElf.Types
         {
             if (address1 != null)
             {
-                return address2 == null ? 1 : Compare(address1, address2);
+                return address2 == null ? 1 : ByteStringHelper.Compare(address1.Value, address2.Value);
             }
 
             if (address2 == null)
@@ -107,34 +105,6 @@ namespace AElf.Types
             return -1;
         }
 
-        private static int Compare(Address x, Address y)
-        {
-            if (x == null || y == null)
-            {
-                throw new InvalidOperationException("Cannot compare address when address is null");
-            }
-
-            return ByteStringHelpers.Compare(x.Value, y.Value);
-        }
-
-        public int CompareTo(Address that)
-        {
-            return Compare(this, that);
-        }
-
-        #endregion
-
-        #region Load and dump
-
-        /// <summary>
-        /// Dumps the content value to byte array.
-        /// </summary>
-        /// <returns></returns>
-        public byte[] DumpByteArray()
-        {
-            return Value.ToByteArray();
-        }
-
         private string _formattedAddress;
 
         public string GetFormatted()
@@ -143,43 +113,11 @@ namespace AElf.Types
                 return _formattedAddress;
 
             if (Value.Length != TypeConsts.AddressHashLength)
-            {
-                throw new ArgumentOutOfRangeException(
-                    $"Serialized value does not represent a valid address. The input is {Value.Length} bytes long.");
-            }
+                throw new ArgumentException("Invalid address", nameof(Value));
 
             var pubKeyHash = Base58CheckEncoding.Encode(Value.ToByteArray());
-
             return _formattedAddress = pubKeyHash;
         }
-
-
-        /// <summary>
-        /// Loads the content value from 32-byte long byte array.
-        /// </summary>
-        /// <param name="bytes"></param>
-        /// <returns></returns>
-        /// <exception cref="ArgumentOutOfRangeException"></exception>
-        public static Address FromBytes(byte[] bytes)
-        {
-            if (bytes.Length != TypeConsts.AddressHashLength)
-            {
-                throw new ArgumentOutOfRangeException(
-                    $"Input value does not represent a valid address. The input is {bytes.Length} bytes long.");
-            }
-
-            return new Address
-            {
-                Value = ByteString.CopyFrom(bytes)
-            };
-        }
-
-        public static Address Parse(string inputStr)
-        {
-            return new Address(Base58CheckEncoding.Decode(inputStr));
-        }
-
-        #endregion Load and dump
     }
 
     public class ChainAddress
@@ -193,17 +131,15 @@ namespace AElf.Types
             ChainId = chainId;
         }
 
-        public static ChainAddress Parse(string str)
+        public static ChainAddress Parse(string chainAddressString, string symbol)
         {
-            var arr = str.Split('_');
-
-            if (arr[0] != TypeConsts.AElfAddressPrefix)
+            var arr = chainAddressString.Split('_');
+            if (arr[0] != symbol)
             {
-                throw new ArgumentException("invalid chain address", nameof(str));
+                throw new ArgumentException("invalid chain address", nameof(chainAddressString));
             }
 
-            var address = Address.Parse(arr[1]);
-
+            var address = AddressHelper.Base58StringToAddress(arr[1]);
             var chainId = BitConverter.ToInt32(Base58CheckEncoding.Decode(arr[2]), 0);
 
             return new ChainAddress(address, chainId);
@@ -211,12 +147,12 @@ namespace AElf.Types
 
         private string _formatted;
 
-        public string GetFormatted()
+        public string GetFormatted(string addressPrefix, int chainId)
         {
-            if (_formatted != null)
-                return _formatted;
-            return _formatted = (TypeConsts.AElfAddressPrefix + "_") + Address.GetFormatted() +
-                                ("_" + Base58CheckEncoding.Encode(ChainId.DumpByteArray()));
+            if (_formatted != null) return _formatted;
+            var addressSuffix = Base58CheckEncoding.Encode(chainId.DumpByteArray());
+            _formatted = $"{addressPrefix}_{Address.GetFormatted()}_{addressSuffix}";
+            return _formatted;
         }
     }
 }

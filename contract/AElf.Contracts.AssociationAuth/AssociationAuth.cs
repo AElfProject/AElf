@@ -24,6 +24,8 @@ namespace AElf.Contracts.AssociationAuth
             {
                 return new ProposalOutput();
             }
+            var organization = State.Organisations[proposal.OrganizationAddress];
+            var readyToRelease = IsReleaseThresholdReached(proposal, organization);
 
             return new ProposalOutput
             {
@@ -33,7 +35,8 @@ namespace AElf.Contracts.AssociationAuth
                 OrganizationAddress = proposal.OrganizationAddress,
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
-                ToAddress = proposal.ToAddress
+                ToAddress = proposal.ToAddress,
+                ToBeReleased = readyToRelease
             };
         }
 
@@ -99,17 +102,20 @@ namespace AElf.Contracts.AssociationAuth
 
             State.Proposals[input.ProposalId] = proposal;
 
-            if (IsReleaseThresholdReached(proposal, organization))
-            {
-                Context.SendVirtualInline(
-                    organization.OrganizationHash,
-                    proposal.ToAddress,
-                    proposal.ContractMethodName,
-                    proposal.Params);
-                //State.Proposals[approvalInput.ProposalId] = null;
-            }
-
             return new BoolValue {Value = true};
+        }
+
+        public override Empty Release(Hash proposalId)
+        {
+            var proposalInfo = State.Proposals[proposalId];
+            Assert(proposalInfo != null, "Proposal not found.");
+            Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
+            var organization = State.Organisations[proposalInfo.OrganizationAddress];
+            Assert(IsReleaseThresholdReached(proposalInfo, organization), "Not approved.");
+            Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
+                proposalInfo.ContractMethodName, proposalInfo.Params);
+            
+            return new Empty();
         }
 
         #endregion

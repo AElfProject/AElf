@@ -1,16 +1,15 @@
 using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
-using AElf.Kernel;
 using AElf.Types;
 using Shouldly;
 using Xunit;
 
 namespace AElf.Contracts.Vote
 {
-    public partial class VoteTests : VoteContractTestBase
+    public partial class VoteTests
     {
         [Fact]
-        public async Task VoteContract_TakeSnapshot_WithoutPermission()
+        public async Task VoteContract_TakeSnapshot_WithoutPermission_Test()
         {
             var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 1);
 
@@ -27,12 +26,12 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_TakeSnapshot_WithoutVotingItem()
+        public async Task VoteContract_TakeSnapshot_WithoutVotingItem_Test()
         {
             var transactionResult = (await VoteContractStub.TakeSnapshot.SendAsync(
                 new TakeSnapshotInput
                 {
-                    VotingItemId = Hash.Generate(),
+                    VotingItemId = Hash.FromString("hash"),
                     SnapshotNumber = 1
                 })).TransactionResult;
 
@@ -41,7 +40,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_TakeSnapshot_WithWrongSnapshotNumber()
+        public async Task VoteContract_TakeSnapshot_WithWrongSnapshotNumber_Test()
         {
             var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 2);
             var transactionResult = (await VoteContractStub.TakeSnapshot.SendAsync(
@@ -56,7 +55,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_TakeSnapshot_Success()
+        public async Task VoteContract_TakeSnapshot_Success_Test()
         {
             var registerItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 3);
             for (int i = 0; i < 3; i++)

@@ -6,25 +6,27 @@ namespace AElf.Kernel.Blockchain.Domain
 {
     public sealed class BlockManagerTests:AElfKernelTestBase
     {
-        private IBlockManager _blockManager;
-        private int _chainId = 1234;
+        private readonly KernelTestHelper _kernelTestHelper;
+        private readonly IBlockManager _blockManager;
+        private const int _chainId = 1234;
 
         public BlockManagerTests()
         {
             _blockManager = GetRequiredService<IBlockManager>();
+            _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
 
         [Fact]
         public async Task AddBlockHeaderTest()
         {
-            var header = new BlockHeader();
+            var header = _kernelTestHelper.GenerateBlock(0, Hash.Empty).Header;
             await _blockManager.AddBlockHeaderAsync(header);
         }
 
         [Fact]
         public async Task AddBlockBody_Test()
         {
-            var hash = Hash.Generate();
+            var hash = Hash.FromString("hash");
             var body = new BlockBody();
             await _blockManager.AddBlockBodyAsync(hash, body);
         }
@@ -32,25 +34,17 @@ namespace AElf.Kernel.Blockchain.Domain
         [Fact]
         public async Task GetBlock_Header_And_Body_Test()
         {
-            var header = new BlockHeader()
-            {
-                ChainId = _chainId,
-                Height = 1
-            };
-            var hash = header.GetHash();
-            await _blockManager.AddBlockHeaderAsync(header);
-            var h = await _blockManager.GetBlockHeaderAsync(hash);
-            Assert.Equal(header, h);
+            var block = _kernelTestHelper.GenerateBlock(0, Hash.Empty);
+            var blockHash = block.GetHash();
+            await _blockManager.AddBlockHeaderAsync(block.Header);
+            var blockHeader = await _blockManager.GetBlockHeaderAsync(blockHash);
+            Assert.Equal(blockHeader, block.Header);
+            
+            await _blockManager.AddBlockBodyAsync(blockHash, block.Body);
 
-            var body = new BlockBody()
-            {
-                BlockHeader = hash
-            };
-            await _blockManager.AddBlockBodyAsync(hash, body);
-
-            var block = await _blockManager.GetBlockAsync(hash);
-            Assert.Equal(block.Header, header);
-            Assert.Equal(block.Body, body);
+            var storedBlock = await _blockManager.GetBlockAsync(blockHash);
+            Assert.Equal(storedBlock.Header, block.Header);
+            Assert.Equal(storedBlock.Body, block.Body);
         }
     }
 }

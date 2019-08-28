@@ -18,17 +18,14 @@ service CrossChainContract {
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {
     }
     
-    rpc WithdrawRequest (aelf.SInt32Value) returns (google.protobuf.Empty) {
-    }
-    rpc CreateSideChain (aelf.SInt32Value) returns (aelf.SInt32Value) {
-    }
+//    rpc WithdrawRequest (aelf.SInt32Value) returns (google.protobuf.Empty) {
+//    }
     rpc Recharge (RechargeInput) returns (google.protobuf.Empty) {
     }
     rpc RequestChainDisposal (aelf.SInt32Value) returns (aelf.Hash) {
     }
     rpc DisposeSideChain (aelf.SInt32Value) returns (aelf.SInt64Value) {
     }
-
     rpc ChangOwnerAddress(aelf.Address) returns (google.protobuf.Empty) {
     }
 
@@ -50,7 +47,7 @@ service CrossChainContract {
     }
     rpc GetSideChainHeight (aelf.SInt32Value) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
-    }
+    }   
     rpc GetParentChainHeight (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
@@ -74,9 +71,13 @@ message RechargeInput {
 
 message VerifyTransactionInput {
     aelf.Hash transaction_id = 1;
-    repeated aelf.Hash path = 2;
+    aelf.MerklePath path = 2;
     sint64 parent_chain_height = 3;
     int32 verified_chain_id = 4;
+}
+
+message IndexedChainHeightDict{
+    map<int32, int64> indexed_chain_heights = 1;
 }
 
 // Events
@@ -91,4 +92,10 @@ message Disposed {
     int32 chain_id = 1;
 }
 
+message ParentChainBlockDataIndexed{
+    option (aelf.is_event) = true;
+}
 
+message SideChainBlockDataIndexed{
+    option (aelf.is_event) = true;
+}

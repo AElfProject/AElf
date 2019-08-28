@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.CrossChain.Cache;
 using AElf.CrossChain.Cache.Application;
+using AElf.Kernel;
 using AElf.TestBase;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace AElf.CrossChain
 {
@@ -11,11 +13,16 @@ namespace AElf.CrossChain
     {
         protected ICrossChainCacheEntityProvider CrossChainCacheEntityProvider;
         protected IBlockCacheEntityProducer BlockCacheEntityProducer;
+        protected CrossChainConfigOptions _configOptions;
+        protected ChainOptions _chainOptions;
 
         public CrossChainTestBase()
         {
             CrossChainCacheEntityProvider = GetRequiredService<ICrossChainCacheEntityProvider>();
             BlockCacheEntityProducer = GetRequiredService<IBlockCacheEntityProducer>();
+            _configOptions = GetRequiredService<IOptionsMonitor<CrossChainConfigOptions>>().CurrentValue;
+            _chainOptions = GetRequiredService<IOptionsSnapshot<ChainOptions>>().Value;
+            _configOptions.CrossChainDataValidationIgnored = false;
         }
 
         protected void CreateFakeCache(Dictionary<int, BlockCacheEntityProvider> cachingData)

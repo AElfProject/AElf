@@ -1,8 +1,10 @@
+using System;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,7 +14,9 @@ using Volo.Abp.Modularity;
 
 namespace AElf.OS.Network
 {
-    [DependsOn(typeof(OSCoreWithChainTestAElfModule), typeof(GrpcNetworkModule))]
+    [DependsOn(
+        typeof(OSCoreWithChainTestAElfModule),
+        typeof(GrpcNetworkModule))]
     public class GrpcNetworkTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -36,19 +40,20 @@ namespace AElf.OS.Network
             base.OnApplicationInitialization(context);
             
             var pool = context.ServiceProvider.GetRequiredService<IPeerPool>();
-            var channel = new Channel(GrpcTestConstants.FakeListeningPort, ChannelCredentials.Insecure);
+            var channel = new Channel(NetworkTestConstants.FakeIpEndpoint, ChannelCredentials.Insecure);
             
-            var connectionInfo = new GrpcPeerInfo
+            var connectionInfo = new PeerInfo
             {
-                PublicKey = GrpcTestConstants.FakePubKey2,
-                PeerIpAddress = GrpcTestConstants.FakeListeningPort,
+                Pubkey = NetworkTestConstants.FakePubkey2,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
-                StartHeight = 1,
                 IsInbound = true
             };
             
-            pool.AddPeer(new GrpcPeer(channel, new PeerService.PeerServiceClient(channel), connectionInfo));
+            if (!IpEndpointHelper.TryParse(NetworkTestConstants.FakeIpEndpoint, out var peerEnpdoint))
+                throw new Exception($"Ip {NetworkTestConstants.FakeIpEndpoint} is invalid.");
+            
+            pool.TryAddPeer(new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), peerEnpdoint, connectionInfo));
         }
     }
 }

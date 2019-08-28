@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Linq;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -64,28 +64,41 @@ namespace AElf.Contracts.TokenConverter
         /// <returns></returns>
         public override Empty Initialize(InitializeInput input)
         {
-            Assert(input.TokenContractAddress != null, "Token contract address required.");
-            Assert(input.FeeReceiverAddress != null, "Fee receiver address required.");
-            Assert(IsValidSymbol(input.BaseTokenSymbol), "Base token symbol is invalid.");
+            Assert(IsValidSymbol(input.BaseTokenSymbol), $"Base token symbol is invalid. {input.BaseTokenSymbol}");
             Assert(State.TokenContract.Value == null, "Already initialized.");
-            State.TokenContract.Value = input.TokenContractAddress;
-            State.FeeReceiverAddress.Value = input.FeeReceiverAddress;
-            State.BaseTokenSymbol.Value = input.BaseTokenSymbol;
-            State.ManagerAddress.Value = input.ManagerAddress;
+            State.TokenContract.Value = input.TokenContractAddress != null
+                ? input.TokenContractAddress
+                : Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+
+            State.FeeReceiverAddress.Value = input.FeeReceiverAddress != null
+                ? input.FeeReceiverAddress
+                : Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+
+            State.BaseTokenSymbol.Value = input.BaseTokenSymbol != string.Empty
+                ? input.BaseTokenSymbol
+                : Context.Variables.NativeSymbol;
+
+            State.ManagerAddress.Value = input.ManagerAddress != null
+                ? input.ManagerAddress
+                : Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+
             var feeRate = AssertedDecimal(input.FeeRate);
             Assert(IsBetweenZeroAndOne(feeRate), "Fee rate has to be a decimal between 0 and 1.");
             State.FeeRate.Value = feeRate.ToString(CultureInfo.InvariantCulture);
 
-            var index = State.ConnectorCount.Value;
+            var count = State.ConnectorCount.Value;
             foreach (var connector in input.Connectors)
             {
                 AssertValidConnectorAndNormalizeWeight(connector);
-                State.ConnectorSymbols[index] = connector.Symbol;
+                State.ConnectorSymbols[count] = connector.Symbol;
                 State.Connectors[connector.Symbol] = connector;
-                index = index.Add(1);
+                count = count.Add(1);
             }
 
-            State.ConnectorCount.Value = index;
+            State.ConnectorCount.Value = count;
+
+            //CreateToken();
+
             return new Empty();
         }
 
@@ -104,14 +117,13 @@ namespace AElf.Contracts.TokenConverter
             return new Empty();
         }
 
-
         public override Empty Buy(BuyInput input)
         {
             Assert(IsValidSymbol(input.Symbol), "Invalid symbol.");
             var fromConnector = State.Connectors[State.BaseTokenSymbol.Value];
             var toConnector = State.Connectors[input.Symbol];
             Assert(toConnector != null, "Can't find connector.");
-            var amountToPay = BancorHelpers.GetAmountToPayFromReturn(
+            var amountToPay = BancorHelper.GetAmountToPayFromReturn(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),
                 input.Amount);
@@ -145,13 +157,13 @@ namespace AElf.Contracts.TokenConverter
 
             // Transfer bought token
             State.TokenContract.Transfer.Send(
-                new TransferInput()
+                new TransferInput
                 {
                     Symbol = input.Symbol,
                     To = Context.Sender,
                     Amount = input.Amount
                 });
-            Context.Fire(new TokenBought()
+            Context.Fire(new TokenBought
             {
                 Symbol = input.Symbol,
                 BoughtAmount = input.Amount,
@@ -161,20 +173,24 @@ namespace AElf.Contracts.TokenConverter
             return new Empty();
         }
 
-
         public override Empty Sell(SellInput input)
         {
             Assert(IsValidSymbol(input.Symbol), "Invalid symbol.");
             var fromConnector = State.Connectors[input.Symbol];
             Assert(fromConnector != null, "Can't find connector.");
             var toConnector = State.Connectors[State.BaseTokenSymbol.Value];
-            var amountToReceive = BancorHelpers.GetReturnFromPaid(
+            var amountToReceive = BancorHelper.GetReturnFromPaid(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),
                 input.Amount
             );
 
             var fee = Convert.ToInt64(amountToReceive * GetFeeRate());
+
+            if (Context.Sender == Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName))
+            {
+                fee = 0;
+            }
 
             var amountToReceiveLessFee = amountToReceive.Sub(fee);
             Assert(input.ReceiveLimit == 0 || amountToReceiveLessFee >= input.ReceiveLimit, "Price not good.");
@@ -267,7 +283,6 @@ namespace AElf.Contracts.TokenConverter
             return decimal.Parse(State.FeeRate.Value);
         }
 
-
         private long GetSelfBalance(Connector connector)
         {
             var realBalance = State.TokenContract.GetBalance.Call(
@@ -278,7 +293,7 @@ namespace AElf.Contracts.TokenConverter
                 }).Balance;
             if (connector.IsVirtualBalanceEnabled)
             {
-                return connector.VirtualBalance + realBalance;
+                return connector.VirtualBalance.Add(realBalance);
             }
 
             return realBalance;
@@ -298,7 +313,7 @@ namespace AElf.Contracts.TokenConverter
         {
             Assert(IsValidSymbol(connector.Symbol), "Invalid symbol.");
             var weight = AssertedDecimal(connector.Weight);
-            Assert(IsBetweenZeroAndOne(weight), "Connector weight has to be a decimal between 0 and 1.");
+            Assert(IsBetweenZeroAndOne(weight), "Connector Shares has to be a decimal between 0 and 1.");
             connector.Weight = weight.ToString(CultureInfo.InvariantCulture);
         }
 

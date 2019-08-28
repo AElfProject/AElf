@@ -2,11 +2,9 @@ using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Modularity;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -15,22 +13,19 @@ using Volo.Abp.Modularity;
 
 namespace AElf.OS.Consensus.DPos
 {
-    
     [DependsOn(
-        typeof(OSAElfModule),
-        typeof(OSCoreWithChainTestAElfModule)
+        typeof(OSConsensusDPosTestModule)
     )]
     // ReSharper disable once InconsistentNaming
     public class OSConsensusDPosTestModule_BP : AElfModule
     {
-        private readonly ECKeyPair _keyPair = CryptoHelpers.FromPrivateKey(
-            ByteArrayHelpers.FromHexString(OSConsensusDPosTestConstants.PrivateKeyHex));
+        private readonly ECKeyPair _keyPair = CryptoHelper.FromPrivateKey(
+            ByteArrayHelper.HexStringToByteArray(OSConsensusDPosTestConstants.PrivateKeyHex));
         
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            services.AddTransient<IAccountService, AccountService>();
-            services.AddSingleton<IPeerPool, GrpcPeerPool>();
+            services.AddSingleton<IPeerPool, PeerPool>();
 
             services.AddTransient(o =>
             {
@@ -43,7 +38,6 @@ namespace AElf.OS.Consensus.DPos
                             _keyPair.PublicKey.ToHex()
                         }));
                 return mockService.Object;
-
             });
         }
 
@@ -55,12 +49,12 @@ namespace AElf.OS.Consensus.DPos
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            var peerPool = context.ServiceProvider.GetRequiredService<IPeerPool>();
+            var peerPool = context.ServiceProvider.GetRequiredService<IKnownBlockCacheProvider>();
             var osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
             var blocks = osTestHelper.BestBranchBlockList.GetRange(0, 6);
             foreach (var block in blocks)
             {
-                peerPool.AddRecentBlockHeightAndHash(block.Height,block.GetHash(),false);
+                peerPool.AddKnownBlock(block.Height,block.GetHash(),false);
             }
         }
     }

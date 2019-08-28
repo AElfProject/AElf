@@ -1,4 +1,4 @@
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 

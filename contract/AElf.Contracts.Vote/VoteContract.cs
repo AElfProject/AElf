@@ -1,7 +1,6 @@
 ﻿using System.Linq;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Types;
-using System;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -12,36 +11,17 @@ namespace AElf.Contracts.Vote
     /// </summary>
     public partial class VoteContract : VoteContractContainer.VoteContractBase
     {
-        public override Empty InitialVoteContract(Empty input)
-        {
-            Assert(!State.Initialized.Value, "Already initialized.");
-            State.Initialized.Value = true;
-            return new Empty();
-        }
-
         public override Empty Register(VotingRegisterInput input)
         {
-            var votingItemId = input.GetHash(Context.Sender);
+            var votingItemId = AssertValidNewVotingItem(input);
 
-            if (input.TotalSnapshotNumber == 0)
+            if (State.TokenContract.Value == null)
             {
-                input.TotalSnapshotNumber = 1;
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
 
-            Assert(input.TotalSnapshotNumber > 0, "Total snapshot number must be greater than 0.");
-            Assert(input.EndTimestamp > input.StartTimestamp, "Invalid active time.");
-
-            if (input.EndTimestamp == new Timestamp {Seconds = long.MaxValue})
-            {
-                Assert(input.TotalSnapshotNumber != 1, "Cannot created endless voting event.");
-            }
-
-            InitializeDependentContracts();
-
-            Assert(State.VotingItems[votingItemId] == null, "Voting item already exists.");
-
-            Context.LogDebug(() => $"Voting item created by {Context.Sender}: {votingItemId.ToHex()}");
-
+            // Accepted currency is in white list means this token symbol supports voting.
             var isInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
             {
                 Symbol = input.AcceptedCurrency,
@@ -79,8 +59,15 @@ namespace AElf.Contracts.Vote
             return new Empty();
         }
 
+        /// <summary>
+        /// Execute the Vote action,save the VoteRecords and update the VotingResults and the VotedItems
+        /// Before Voting,the VotingItem's token must be locked,except the votes delegated to a contract.
+        /// </summary>
+        /// <param name="input">VoteInput</param>
+        /// <returns></returns>
         public override Empty Vote(VoteInput input)
         {
+            //the VotingItem is exist in state.
             var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Options.Contains(input.Option), $"Option {input.Option} not found.");
             Assert(votingItem.CurrentSnapshotNumber <= votingItem.TotalSnapshotNumber,
@@ -93,7 +80,9 @@ namespace AElf.Contracts.Vote
             }
             else
             {
+                //Voter just is the transaction sponsor
                 input.Voter = Context.Sender;
+                //VoteId just is the transaction ID;
                 input.VoteId = Context.TransactionId;
             }
 
@@ -107,6 +96,7 @@ namespace AElf.Contracts.Vote
                 VoteTimestamp = Context.CurrentBlockTime,
                 Voter = input.Voter
             };
+            //save the VotingRecords into the state.
             State.VotingRecords[input.VoteId] = votingRecord;
 
             UpdateVotingResult(votingItem, input.Option, input.Amount);
@@ -154,9 +144,16 @@ namespace AElf.Contracts.Vote
                         ActiveVotes = {voteId}
                     };
             }
+
             State.VotedItemsMap[voter] = votedItems;
         }
 
+        /// <summary>
+        /// Update the State.VotingResults.include the VotersCount,VotesAmount and the votes int the results[option]
+        /// </summary>
+        /// <param name="votingItem"></param>
+        /// <param name="option"></param>
+        /// <param name="amount"></param>
         private void UpdateVotingResult(VotingItem votingItem, string option, long amount)
         {
             // Update VotingResult based on this voting behaviour.
@@ -174,15 +171,18 @@ namespace AElf.Contracts.Vote
             State.VotingResults[votingResultHash] = votingResult;
         }
 
+        /// <summary>
+        /// Withdraw the Votes.
+        /// first,mark the related record IsWithdrawn.
+        /// second,delete the vote form ActiveVotes and add the vote to withdrawnVotes.
+        /// finally,unlock the token that Locked in the VotingItem 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty Withdraw(WithdrawInput input)
         {
             var votingRecord = State.VotingRecords[input.VoteId];
             Assert(votingRecord != null, "Voting record not found.");
-            if (votingRecord == null)
-            {
-                return new Empty();
-            }
-
             var votingItem = State.VotingItems[votingRecord.VotingItemId];
 
             if (votingItem.IsLockToken)
@@ -206,7 +206,8 @@ namespace AElf.Contracts.Vote
             State.VotedItemsMap[votingRecord.Voter] = votedItems;
 
             var votingResult = State.VotingResults[votingResultHash];
-            votingResult.Results[votingRecord.Option] -= votingRecord.Amount;
+            votingResult.Results[votingRecord.Option] =
+                votingResult.Results[votingRecord.Option].Sub(votingRecord.Amount);
             if (!votedItems.VotedItemVoteIds[votingRecord.VotingItemId.ToHex()].ActiveVotes.Any())
             {
                 votingResult.VotersCount = votingResult.VotersCount.Sub(1);
@@ -270,16 +271,28 @@ namespace AElf.Contracts.Vote
             return new Empty();
         }
 
+        /// <summary>
+        /// Add a option for corresponding VotingItem.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty AddOption(AddOptionInput input)
         {
             var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
             Assert(!votingItem.Options.Contains(input.Option), "Option already exists.");
+            Assert(votingItem.Options.Count <= VoteContractConstants.MaximumOptionsCount,
+                $"The count of options can't greater than {VoteContractConstants.MaximumOptionsCount}");
             votingItem.Options.Add(input.Option);
             State.VotingItems[votingItem.VotingItemId] = votingItem;
             return new Empty();
         }
 
+        /// <summary>
+        /// Delete a option for corresponding VotingItem
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
         public override Empty RemoveOption(RemoveOptionInput input)
         {
             var votingItem = AssertVotingItem(input.VotingItemId);
@@ -325,12 +338,27 @@ namespace AElf.Contracts.Vote
             return votingItem;
         }
 
-        private void InitializeDependentContracts()
+        /// <summary>
+        /// Initialize the related contracts=>TokenContract;
+        /// </summary>
+        private Hash AssertValidNewVotingItem(VotingRegisterInput input)
         {
-            if (State.TokenContract.Value == null)
+            // Use input without options and sender's address to calculate voting item id.
+            var votingItemId = input.GetHash(Context.Sender);
+
+            Assert(State.VotingItems[votingItemId] == null, "Voting item already exists.");
+
+            // total snapshot number can't be 0. At least one epoch is required.
+            if (input.TotalSnapshotNumber == 0)
             {
-                State.TokenContract.Value = Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+                input.TotalSnapshotNumber = 1;
             }
+
+            Assert(input.EndTimestamp > input.StartTimestamp, "Invalid active time.");
+
+            Context.LogDebug(() => $"Voting item created by {Context.Sender}: {votingItemId.ToHex()}");
+
+            return votingItemId;
         }
 
         private Hash GetVotingResultHash(Hash votingItemId, long snapshotNumber)

@@ -15,20 +15,5 @@ namespace AElf.Cryptography.ECDSA
             PublicKey = publicKey;
             PrivateKey = privateKey.LeftPad(Secp256k1.PRIVKEY_LENGTH);
         }
-
-        public ECKeyPair(AsymmetricCipherKeyPair cipherKeyPair)
-        {
-            if (cipherKeyPair == null)
-            {
-                throw new Exception($"Invalid input null for {nameof(cipherKeyPair)}");
-            }
-
-            // Extract bouncy params
-            var newPrivateKeyParam = (ECPrivateKeyParameters) cipherKeyPair.Private;
-            var newPublicKeyParam = (ECPublicKeyParameters) cipherKeyPair.Public;
-
-            PrivateKey = newPrivateKeyParam.D.ToByteArrayUnsigned().LeftPad(Secp256k1.PRIVKEY_LENGTH);
-            PublicKey = newPublicKeyParam.Q.GetEncoded(false);
-        }
     }
 }

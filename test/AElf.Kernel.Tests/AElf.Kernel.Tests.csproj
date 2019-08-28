@@ -4,7 +4,6 @@
         <RootNamespace>AElf.Kernel</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
       <ProjectReference Include="..\AElf.Kernel.ChainController.Tests\AElf.Kernel.ChainController.Tests.csproj" />
       <ProjectReference Include="..\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContract.Tests\AElf.Kernel.SmartContract.Tests.csproj" />
@@ -14,7 +13,7 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
         <PackageReference Include="Shouldly" Version="3.0.2" />
         <PackageReference Include="xunit" Version="2.4.1" />
         <PackageReference Include="xunit.runner.console" Version="2.4.1" />

@@ -7,19 +7,19 @@ namespace AElf.Contracts.MultiToken
     public partial class TokenContract
     {
         [View]
-        public override TokenAmount GetMethodFee(MethodName input)
+        public override TokenAmounts GetMethodFee(MethodName input)
         {
             return State.MethodFees[input.Name];
         }
-        
-        public override Empty SetMethodFee(SetMethodFeeInput input)
+
+        public override Empty SetMethodFee(TokenAmounts input)
         {
-            AssertValidToken(input.Symbol, input.Amount);
-            State.MethodFees[input.Method] = new TokenAmount()
+            foreach (var symbolToAmount in input.Amounts)
             {
-                Symbol = input.Symbol,
-                Amount = input.Amount
-            };
+                AssertValidToken(symbolToAmount.Symbol, symbolToAmount.Amount);
+            }
+
+            State.MethodFees[input.Method] = input;
             return new Empty();
         }
     }

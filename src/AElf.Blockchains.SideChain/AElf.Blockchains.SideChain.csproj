@@ -9,15 +9,13 @@
     <ItemGroup>
         <ProjectReference Include="..\AElf.Blockchains.BasicBaseChain\AElf.Blockchains.BasicBaseChain.csproj" />
         <ProjectReference Include="..\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
-        <ProjectReference Include="..\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
-        <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs6.proto">
+            <Link>Protobuf\Proto\acs6.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
@@ -30,6 +28,12 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
+        </ContractStub>
+        <ContractMessage Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\acs3.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
+            <Link>Protobuf\Proto\parliament_auth_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
     <ItemGroup>
@@ -48,5 +52,13 @@
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+    </ItemGroup>
+    <ItemGroup>
+        <Folder Include="Protobuf\Generated" />
     </ItemGroup>
 </Project>

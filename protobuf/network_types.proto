@@ -2,26 +2,12 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.OS.Network";
 
-import "google/protobuf/timestamp.proto";
 import "aelf/core.proto";
 import "kernel.proto";
 
-message Handshake {
-    HandshakeData handshake_data = 1;
-    bytes signature = 2;
-    bool success = 3;
-    aelf.BlockHeader best_chain_block_header = 4;
-    sint64 lib_block_height = 5;
-}
+// Messages related to block propagation/syncing
 
-message HandshakeData {
-    int32 chain_id = 1;
-    int32 version = 2;
-    int64 listening_port = 3;
-    bytes pubkey = 4;
-}
-
-message PeerNewBlockAnnouncement {
+message BlockAnnouncement {
     aelf.Hash block_hash = 1;
     int64 block_height = 2;
     bool has_fork = 3;
@@ -30,4 +16,106 @@ message PeerNewBlockAnnouncement {
 message BlockWithTransactions {
     aelf.BlockHeader header = 1;
     repeated aelf.Transaction transactions = 2;
+}
+
+message BlocksRequest {
+    aelf.Hash previous_block_hash = 1;
+    int32 count = 2;
+}
+
+message BlockList {
+    repeated BlockWithTransactions blocks = 1;
+}
+
+message BlockRequest {
+    aelf.Hash hash = 1;
+}
+
+message BlockReply {
+    string error = 1;
+    BlockWithTransactions block = 2;
+}
+
+// Messages related to connection
+
+message ConnectionInfo {
+    int32 chain_id = 1;
+    int32 version = 2;
+    int32 listening_port = 3;
+    bytes pubkey = 4;
+}
+
+enum ConnectError {
+    CONNECT_OK = 0;
+    UNKNOWN_CONNECT_ERROR = 1;
+    INCORRECT_PORT = 2;
+    INVALID_PEER = 3;
+    CHAIN_MISMATCH = 4;
+    PROTOCOL_MISMATCH = 5;
+    CONNECTION_REFUSED = 6;
+}
+
+message ConnectRequest {
+    ConnectionInfo info = 1;
+}
+
+message ConnectReply {
+    ConnectionInfo info = 1;
+    ConnectError error = 2;
+}
+
+// Messages related to handshaking
+
+message Handshake {
+    HandshakeData handshake_data = 1;
+    bytes signature = 2;
+}
+
+message HandshakeData {
+    bytes pubkey = 1;
+    aelf.BlockHeader best_chain_head = 2;
+    sint64 lib_block_height = 3;
+}
+
+message HandshakeRequest {
+    Handshake handshake = 1;
+}
+
+message HandshakeReply {
+    Handshake handshake = 1;
+    HandshakeError error = 2;
+}
+
+enum HandshakeError {
+    HANDSHAKE_OK = 0;
+    UNKNOWN_HANDSHAKE_ERROR = 1;
+    INVALID_KEY = 2;
+    WRONG_SIGNATURE = 3;
+    INVALID_HANDSHAKE = 4;
+    NOT_LISTED = 5;
+    WRONG_CONNECTION = 6;
+}
+
+// Messages related to disconnection
+
+message DisconnectReason {
+    Reason why = 1;
+    enum Reason {
+        SHUTDOWN = 0;
+    }
+}
+
+// Messages related to peer discovery
+
+message NodeInfo {
+    string endpoint = 1;
+    bytes pubkey = 2;
+}
+
+message NodeList {
+    repeated NodeInfo nodes = 1;
+}
+
+message NodesRequest {
+    int32 max_count = 1;
 }

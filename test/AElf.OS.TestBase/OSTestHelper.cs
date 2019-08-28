@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,7 +5,7 @@ using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -21,13 +20,13 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.OS.Network;
 using AElf.OS.Node.Application;
 using AElf.OS.Node.Domain;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Options;
-using Org.BouncyCastle.Asn1.TeleTrust;
+using Volo.Abp.Threading;
 
 namespace AElf.OS
 {
@@ -83,7 +82,6 @@ namespace AElf.OS
             IOptionsSnapshot<ChainOptions> chainOptions)
         {
             _chainOptions = chainOptions.Value;
-
             _osBlockchainNodeContextService = osBlockchainNodeContextService;
             _accountService = accountService;
             _minerService = minerService;
@@ -112,9 +110,9 @@ namespace AElf.OS
         ///        Fork Branch:                    (e)-> q -> r -> s -> t -> u
         ///    Unlinked Branch:                                              v  -> w  -> x  -> y  -> z
         /// </returns>
-        public async Task MockChain()
+        public async Task MockChainAsync()
         {
-            await StartNode();
+            await StartNodeAsync();
             var chain = await _blockchainService.GetChainAsync();
 
             if (chain.BestChainHeight == 1)
@@ -149,7 +147,7 @@ namespace AElf.OS
 
         public async Task<Transaction> GenerateTransferTransaction()
         {
-            var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
+            var newUserKeyPair = CryptoHelper.GenerateKeyPair();
             var accountAddress = await _accountService.GetAccountAsync();
 
             var transaction = GenerateTransaction(accountAddress,
@@ -157,7 +155,7 @@ namespace AElf.OS
                 nameof(TokenContractContainer.TokenContractStub.Transfer),
                 new TransferInput {To = Address.FromPublicKey(newUserKeyPair.PublicKey), Amount = 10, Symbol = "ELF"});
 
-            var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+            var signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
 
             return transaction;
@@ -171,13 +169,13 @@ namespace AElf.OS
             var accountAddress = await _accountService.GetAccountAsync();
             for (var i = 0; i < count; i++)
             {
-                var newUserKeyPair = CryptoHelpers.GenerateKeyPair();
+                var newUserKeyPair = CryptoHelper.GenerateKeyPair();
                 var transaction = GenerateTransaction(accountAddress,
                     _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
                     nameof(TokenContractContainer.TokenContractStub.Transfer),
                     new TransferInput {To = Address.FromPublicKey(newUserKeyPair.PublicKey), Amount = tokenAmount, Symbol = "ELF"});
 
-                var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+                var signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
                 transaction.Signature = ByteString.CopyFrom(signature);
 
                 transactions.Add(transaction);
@@ -195,14 +193,59 @@ namespace AElf.OS
                 var from = Address.FromPublicKey(keyPair.PublicKey);
                 for (var i = 0; i < count; i++)
                 {
-                    var to = CryptoHelpers.GenerateKeyPair();
+                    var to = CryptoHelper.GenerateKeyPair();
                     var transaction = GenerateTransaction(from,
                         _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
                         nameof(TokenContractContainer.TokenContractStub.Transfer),
-                        new TransferInput {To = Address.FromPublicKey(to.PublicKey), Amount = 1, Symbol = "ELF"});
+                        new TransferInput {To = Address.FromPublicKey(to.PublicKey), Amount = 1, Symbol = "ELF"});                   
+                    var signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, transaction.GetHash().ToByteArray());
+                    transaction.Signature = ByteString.CopyFrom(signature); 
 
-                    var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
-                    transaction.Signature = ByteString.CopyFrom(signature);
+                    transactions.Add(transaction);
+                }
+            }
+
+            return transactions;
+        }
+        
+        public async Task<List<Transaction>> GenerateApproveTransactions(List<ECKeyPair> keyPairs, int count = 1)
+        {
+            var transactions = new List<Transaction>();
+            var spender = await _accountService.GetAccountAsync();
+            foreach (var keyPair in keyPairs)
+            {
+                var from = Address.FromPublicKey(keyPair.PublicKey);
+                var transaction = GenerateTransaction(from,
+                    _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
+                    nameof(TokenContractContainer.TokenContractStub.Approve),
+                    new ApproveInput {Spender = spender, Amount = count, Symbol = "ELF"});                
+                var signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, transaction.GetHash().ToByteArray());
+                transaction.Signature = ByteString.CopyFrom(signature); 
+
+                transactions.Add(transaction);
+            }
+
+            return transactions;
+        }
+        
+        public async Task<List<Transaction>> GenerateTransferFromTransactionsWithoutConflict(List<ECKeyPair> keyPairs, int count = 1)
+        {
+            var transactions = new List<Transaction>();
+            var address = await _accountService.GetAccountAsync();
+            foreach (var keyPair in keyPairs)
+            {
+                var from = Address.FromPublicKey(keyPair.PublicKey);
+                for (var i = 0; i < count; i++)
+                {
+                    var to = CryptoHelper.GenerateKeyPair();
+                    var transaction = GenerateTransaction(address,
+                        _smartContractAddressService.GetAddressByContractName(
+                            TokenSmartContractAddressNameProvider.Name),
+                        nameof(TokenContractContainer.TokenContractStub.TransferFrom),
+                        new TransferFromInput
+                            {From = from, To = Address.FromPublicKey(to.PublicKey), Amount = 1, Symbol = "ELF"});                  
+                    var signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
+                    transaction.Signature = ByteString.CopyFrom(signature); 
 
                     transactions.Add(transaction);
                 }
@@ -239,7 +282,7 @@ namespace AElf.OS
             return transaction;
         }
 
-        public async Task BroadcastTransactions(List<Transaction> transactions)
+        public async Task BroadcastTransactions(IEnumerable<Transaction> transactions)
         {
             var transactionsReceivedEvent = new TransactionsReceivedEvent
             {
@@ -267,7 +310,7 @@ namespace AElf.OS
             return block;
         }
 
-        public Block GenerateBlock(Hash preBlockHash, long preBlockHeight, List<Transaction> transactions)
+        public virtual Block GenerateBlock(Hash preBlockHash, long preBlockHeight, IEnumerable<Transaction> transactions = null)
         {
             var block = new Block
             {
@@ -276,18 +319,42 @@ namespace AElf.OS
                     ChainId = _staticChainInformationProvider.ChainId,
                     Height = preBlockHeight + 1,
                     PreviousBlockHash = preBlockHash,
-                    Time = TimestampHelper.GetUtcNow()
+                    Time = TimestampHelper.GetUtcNow(),
+                    MerkleTreeRootOfTransactions = Hash.Empty,
+                    MerkleTreeRootOfWorldState = Hash.Empty,
+                    MerkleTreeRootOfTransactionStatus = Hash.Empty,
+                    ExtraData = {ByteString.Empty},
+                    SignerPubkey = ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync))
                 },
                 Body = new BlockBody()
             };
-            foreach (var transaction in transactions)
+            if (transactions != null)
             {
-                block.AddTransaction(transaction);
+                foreach (var transaction in transactions)
+                {
+                    block.AddTransaction(transaction);
+                }
+
+                block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoot();
             }
 
-            block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoot();
-
             return block;
+        }
+
+        public BlockWithTransactions GenerateBlockWithTransactions(Hash preBlockHash, long preBlockHeight,
+            IEnumerable<Transaction> transactions = null)
+        {
+            var block = GenerateBlock(preBlockHash, preBlockHeight, transactions);
+            var blockWithTransactions = new BlockWithTransactions
+            {
+                Header = block.Header
+            };
+            if (transactions != null)
+            {
+                blockWithTransactions.Transactions.AddRange(transactions);
+            }
+
+            return blockWithTransactions;
         }
 
         public async Task<Address> DeployContract<T>()
@@ -302,7 +369,7 @@ namespace AElf.OS
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(T).Assembly.Location))
                 });
 
-            var signature = await _accountService.SignAsync(transaction.GetHash().DumpByteArray());
+            var signature = await _accountService.SignAsync(transaction.GetHash().ToByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
 
             await BroadcastTransactions(new List<Transaction> {transaction});
@@ -313,9 +380,15 @@ namespace AElf.OS
             return Address.Parser.ParseFrom(txResult.ReturnValue);
         }
 
+        public async Task<TransactionResult> GetTransactionResultsAsync(Hash transactionId)
+        {
+            var res = await _transactionResultService.GetTransactionResultAsync(transactionId);
+            return res;
+        }
+
         #region private methods
 
-        private async Task StartNode()
+        private async Task StartNodeAsync()
         {
             var dto = new OsBlockchainNodeContextStartDto
             {
@@ -329,7 +402,7 @@ namespace AElf.OS
 
             var ownAddress = await _accountService.GetAccountAsync();
             var callList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
-            callList.Add(nameof(TokenContractContainer.TokenContractStub.CreateNativeToken), new CreateInput
+            callList.Add(nameof(TokenContractContainer.TokenContractStub.Create), new CreateInput
             {
                 Symbol = "ELF",
                 TokenName = "ELF_Token",

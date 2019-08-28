@@ -13,7 +13,7 @@ service ACS7 {
     
     rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) {
     }
-    rpc RequestChainCreation (SideChainCreationRequest) returns (RequestChainCreationOutput) {
+    rpc CreateSideChain (SideChainCreationRequest) returns (aelf.SInt32Value) {
     }
     rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
         option (aelf.is_view) = true;
@@ -25,6 +25,9 @@ service ACS7 {
         option (aelf.is_view) = true;
     }
     rpc GetIndexedCrossChainBlockDataByHeight (aelf.SInt64Value) returns (CrossChainBlockData) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetIndexedSideChainBlockDataByHeight (aelf.SInt64Value) returns (IndexedSideChainBlockData) {
         option (aelf.is_view) = true;
     }
     rpc GetBoundParentChainHeightAndMerklePathByHeight (aelf.SInt64Value) returns (CrossChainMerkleProofContext) {
@@ -55,7 +58,7 @@ message ParentChainBlockData {
     aelf.Hash transaction_status_merkle_root = 4;
 
     // Indexed block height from side chain and merkle path for this side chain block
-    map<int64, MerklePath> indexed_merkle_path = 5;
+    map<int64, aelf.MerklePath> indexed_merkle_path = 5;
     map<string, bytes> extra_data = 6;
 }
 
@@ -69,11 +72,9 @@ message CrossChainExtraData {
 
 enum SideChainStatus
 {
-    APPLY = 0;
-    REVIEW = 1;
-    ACTIVE = 2;
-    INSUFFICIENT_BALANCE = 3;
-    TERMINATED = 4;
+    FATAL = 0;
+    ACTIVE = 1;
+    TERMINATED = 2;
 }
 
 message SideChainIdAndHeightDict {
@@ -98,7 +99,7 @@ message CrossChainBlockData {
 
 message CrossChainMerkleProofContext {
     int64 bound_parent_chain_height = 1;
-    MerklePath merkle_path_for_parent_chain_root = 2;
+    aelf.MerklePath merkle_path_for_parent_chain_root = 2;
 }
 
 message ChainInitializationData {
@@ -107,9 +108,8 @@ message ChainInitializationData {
     google.protobuf.Timestamp creation_timestamp = 3;
     repeated bytes extra_information = 4;
     int64 creation_height_on_parent_chain = 5;
+    bool chain_creator_privilege_preserved = 6;
 }
-
-// from resource.proto
 
 enum ResourceType
 {
@@ -138,6 +138,7 @@ message SideChainCreationRequest {
     int64 indexing_price = 1;
     int64 locked_token_amount = 2;
     bytes contract_code = 3;
+    bool is_privilege_preserved = 4;
 }
 
 message RequestChainCreationOutput {
@@ -145,6 +146,11 @@ message RequestChainCreationOutput {
     aelf.Hash proposal_id = 2;
 }
 
-message MerklePath {
-    repeated aelf.Hash path = 1;
+message IndexedParentChainBlockData{
+    int64 local_chain_height = 1;
+    repeated acs7.ParentChainBlockData parent_chain_block_data = 2;
+}
+
+message IndexedSideChainBlockData{
+    repeated acs7.SideChainBlockData side_chain_block_data = 1;
 }

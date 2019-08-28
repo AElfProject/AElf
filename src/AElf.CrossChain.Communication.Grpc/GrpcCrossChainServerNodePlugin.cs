@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.CrossChain.Communication.Grpc
 {
-    public class GrpcCrossChainServerNodePlugin : IGrpcServePlugin, ITransientDependency
+    public class GrpcCrossChainServerNodePlugin : IGrpcServePlugin
     {
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
         private readonly IGrpcCrossChainServer _grpcCrossChainServer;
@@ -18,14 +17,14 @@ namespace AElf.CrossChain.Communication.Grpc
 
         public Task StartAsync(int chainId)
         {
-            if (string.IsNullOrEmpty(_grpcCrossChainConfigOption.LocalServerHost) 
+            if (string.IsNullOrEmpty(_grpcCrossChainConfigOption.ListeningHost) 
                 || _grpcCrossChainConfigOption.LocalServerPort == 0)
                 return Task.CompletedTask;
-            return _grpcCrossChainServer.StartAsync(_grpcCrossChainConfigOption.LocalServerHost,
+            return _grpcCrossChainServer.StartAsync(_grpcCrossChainConfigOption.ListeningHost,
                 _grpcCrossChainConfigOption.LocalServerPort);
         }
 
-        public Task StopAsync()
+        public Task ShutdownAsync()
         {
             _grpcCrossChainServer.Dispose();
             return Task.CompletedTask;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Shouldly;
@@ -8,7 +9,7 @@ namespace AElf
 {
     public class TaskQueueTests
     {
-        private TaskQueue _taskQueue;
+        private readonly TaskQueue _taskQueue;
         private int _counter;
         public TaskQueueTests()
         {
@@ -17,18 +18,19 @@ namespace AElf
         }
 
         [Fact]
-        public async Task StartQueueTest_Twice()
+        public void StartQueueTest_Twice_Test()
         {
             _taskQueue.Start();
             Should.Throw<InvalidOperationException>(() => _taskQueue.Start());
         }
 
         [Fact]
-        public async Task EnqueueTest()
+        public void Enqueue_Test()
         {
             _taskQueue.Start();
             _taskQueue.Enqueue(ProcessTask);
-            Thread.Sleep(10);
+            
+            _taskQueue.Dispose();
             _counter.ShouldBe(1);
             
             _taskQueue.Dispose();
@@ -36,19 +38,18 @@ namespace AElf
         }
 
         [Fact]
-        public async Task Enqueue_MultipleTimes()
+        public void Enqueue_MultipleTimes_Test()
         {
             _taskQueue.Start();
             for (var i = 0; i < 10; i++)
-            {
                 _taskQueue.Enqueue(ProcessTask);
-                Thread.Sleep(10);
-            }
+            _taskQueue.Dispose();
+          
             _counter.ShouldBe(10);
         }
 
         [Fact]
-        public async Task Dispose_QueueTest()
+        public void Dispose_Queue_Test()
         {
             _taskQueue.Start();
             _taskQueue.Dispose();
@@ -57,7 +58,7 @@ namespace AElf
         }
 
         [Fact]
-        public async Task Stop_QueueTest()
+        public void Stop_Queue_Test()
         {
             _taskQueue.Start();
             _taskQueue.Dispose();

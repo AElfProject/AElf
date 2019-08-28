@@ -7,26 +7,30 @@ namespace AElf.Types.Tests.Extensions
     public class ExtensionTests
     {
         [Fact]
-        public void Strinig_Extension_Methods()
+        public void String_Extension_Methods_Test()
         {
-            var hexValue = Hash.Generate().ToHex();
+            var hexValue = Hash.FromString("hx").ToHex();
 
             var hexValueWithPrefix = hexValue.AppendHexPrefix();
             hexValueWithPrefix.Substring(0, 2).ShouldBe("0x");
             var hexValueWithPrefix1 = hexValueWithPrefix.AppendHexPrefix();
             hexValueWithPrefix1.ShouldBeSameAs(hexValueWithPrefix);
 
+            var byteArray = Hash.FromString("hx").ToByteArray();
+            var hexString = byteArray.ToHex(true);
+            hexString.Substring(0, 2).ShouldBe("0x");
+
             var hex = hexValueWithPrefix.RemoveHexPrefix();
             hex.ShouldBe(hexValue);
             var hex1 = hex.RemoveHexPrefix();
             hex1.ShouldBeSameAs(hex);
 
-            var hash1 = hexValue.CalculateHash();
+            var hash1 = hexValue.ComputeHash();
             hash1.ShouldNotBe(null);
         }
 
         [Fact]
-        public void Numberic_Extensions_Methods()
+        public void Number_Extensions_Methods_Test()
         {
             //ulong
             var uNumber = (ulong)10;

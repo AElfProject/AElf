@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using AElf.TestBase;
 using AElf.Types;
@@ -30,7 +28,7 @@ namespace AElf.CrossChain.Communication.Grpc
                 var mockBlockChainService = new Mock<IBlockchainService>();
                 mockBlockChainService.Setup(m => m.GetChainAsync()).Returns(Task.FromResult(new Chain
                 {
-                    LastIrreversibleBlockHeight = 3
+                    LastIrreversibleBlockHeight = CrossChainConstants.LibHeightOffsetForCrossChainIndex + 1
                 }));
                 mockBlockChainService.Setup(m => m.GetBlockHashByHeightAsync(It.IsAny<Chain>(), It.IsAny<long>(), It.IsAny<Hash>()))
                     .Returns<Chain, long, Hash>((chain, height, hash) =>
@@ -67,20 +65,20 @@ namespace AElf.CrossChain.Communication.Grpc
         public async Task GetLibHeight_Test()
         {
             var lastIrreversibleBlockDto = await _blockchainService.GetLibHashAndHeightAsync();
-            lastIrreversibleBlockDto.BlockHeight.ShouldBe(3);
+            lastIrreversibleBlockDto.BlockHeight.ShouldBe(CrossChainConstants.LibHeightOffsetForCrossChainIndex + 1);
         }
 
         [Fact]
         public async Task GetIrreversibleBlockByHeight_Test()
         {
-            var height = 4;
+            var height = 2;
             var irreversibleBlock = await _blockchainService.GetIrreversibleBlockByHeightAsync(height);
             irreversibleBlock.ShouldBeNull();
 
-            height = 3;
+            height = 1;
             irreversibleBlock = await _blockchainService.GetIrreversibleBlockByHeightAsync(height);
-            var expectedHash = new Block {Header = new BlockHeader {Height = height}}.GetHash();
-            irreversibleBlock.GetHash().Equals(expectedHash).ShouldBeTrue();
+            var expectedBlock = new Block {Header = new BlockHeader {Height = height}};
+            irreversibleBlock.Equals(expectedBlock).ShouldBeTrue();
         }
     }
 }

@@ -1,6 +1,8 @@
 using System.Threading.Tasks;
+using AElf.Cryptography;
 using AElf.Kernel.Node.Events;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using Moq;
 using Shouldly;
@@ -62,8 +64,8 @@ namespace AElf.OS.Network
         [Fact]
         public async Task Peers_WithNoLib_Stops_Sync()
         {
-            _peerPool.AddPeer(CreatePeer());
-            _peerPool.AddPeer(CreatePeer());
+            _peerPool.TryAddPeer(CreatePeer());
+            _peerPool.TryAddPeer(CreatePeer());
             
             await _syncStateService.StartSyncAsync();
             
@@ -77,7 +79,7 @@ namespace AElf.OS.Network
         public async Task Trigger_Sync_Depends_On_Peers_And_Local_LIB(SyncState expectedSyncState, int[] peers)
         {
             foreach (int peer in peers)
-                _peerPool.AddPeer(CreatePeer(peer));
+                _peerPool.TryAddPeer(CreatePeer(peer));
             
             await _syncStateService.StartSyncAsync();
             
@@ -86,8 +88,13 @@ namespace AElf.OS.Network
 
         private IPeer CreatePeer(long libHeight = 0)
         {
-            Mock<IPeer> peerMock = new Mock<IPeer>();
-            peerMock.Setup(p => p.LastKnowLibHeight).Returns(libHeight);
+            var peerMock = new Mock<IPeer>();
+            
+            peerMock.Setup(p => p.Info)
+                .Returns(new PeerInfo {Pubkey = CryptoHelper.GenerateKeyPair().PublicKey.ToHex()});
+            
+            peerMock.Setup(p => p.LastKnownLibHeight).Returns(libHeight);
+            
             return peerMock.Object;
         }
     }

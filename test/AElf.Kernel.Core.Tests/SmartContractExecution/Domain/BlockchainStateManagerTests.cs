@@ -23,7 +23,7 @@ namespace AElf.Kernel
             {
                 _tv.Add(new TestPair()
                 {
-                    BlockHash = Hash.Generate(),
+                    BlockHash = Hash.FromRawBytes(new []{Convert.ToByte(i)}),
                     BlockHeight = i,
                     Key = $"key{i}",
                     Value = ByteString.CopyFromUtf8($"value{i}")
@@ -41,7 +41,7 @@ namespace AElf.Kernel
         }
 
         [Fact]
-        public async Task TestAddBlockStateSet()
+        public async Task AddBlockStateSet_Test()
         {
             // one level tests without best chain state
             await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
@@ -155,7 +155,6 @@ namespace AElf.Kernel
             await check2();
             await check3_2();
 
-            int chainId = 1;
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
             await _blockchainStateManager.MergeBlockStateAsync(chainStateInfo, _tv[1].BlockHash);
 
@@ -194,7 +193,7 @@ namespace AElf.Kernel
         }
 
         [Fact]
-        public async Task Test_MergeBlockState_WithStatus_NotCommonStatus()
+        public async Task MergeBlockState_WithStatus_NotCommonStatus_Test()
         {
             await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
             {
@@ -217,7 +216,7 @@ namespace AElf.Kernel
         }
         
         [Fact]
-        public async Task Test_GetState_From_VersionedState()
+        public async Task GetState_From_VersionedState_Test()
         {
             await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
             {
@@ -262,7 +261,7 @@ namespace AElf.Kernel
         }
 
         [Fact]
-        public async Task Test_GetState_From_BlockStateSet()
+        public async Task GetState_From_BlockStateSet_Test()
         {
             await _blockchainStateManager.SetBlockStateSetAsync(new BlockStateSet()
             {
@@ -275,9 +274,8 @@ namespace AElf.Kernel
         }
         
         [Fact]
-        public async Task TestState_MergedSituation()
+        public async Task State_MergedSituation_Test()
         {
-            int chainId = 1;
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
             chainStateInfo.Status = ChainStateMergingStatus.Merged;
             chainStateInfo.MergingBlockHash = _tv[1].BlockHash;

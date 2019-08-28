@@ -23,16 +23,6 @@ namespace AElf.OS
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<IPeerPool>(o =>
-            {
-                Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
-                peerPoolMock.Setup(p => p.FindPeerByAddress(It.IsAny<string>()))
-                    .Returns<string>((adr) => null);
-                peerPoolMock.Setup(p => p.GetPeers(It.IsAny<bool>()))
-                    .Returns(new List<IPeer>());
-                return peerPoolMock.Object;
-            });
-
             context.Services.AddTransient<ISystemTransactionGenerationService>(o =>
             {
                 var mockService = new Mock<ISystemTransactionGenerationService>();
@@ -67,7 +57,7 @@ namespace AElf.OS
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             _osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
-            AsyncHelper.RunSync(() => _osTestHelper.MockChain());
+            AsyncHelper.RunSync(() => _osTestHelper.MockChainAsync());
         }
 
         public override void OnApplicationShutdown(ApplicationShutdownContext context)

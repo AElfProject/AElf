@@ -27,10 +27,10 @@ namespace AElf.Contracts.Genesis
             return info;
         }
 
-        public override Address GetContractOwner(Address input)
+        public override Address GetContractAuthor(Address input)
         {
             var info = State.ContractInfos[input];
-            return info?.Owner;
+            return info?.Author;
         }
 
         public override Hash GetContractHash(Address input)
@@ -55,26 +55,36 @@ namespace AElf.Contracts.Genesis
             return State.SmartContractRegistrations[info.CodeHash];
         }
 
+        public override Empty ValidateSystemContractAddress(ValidateSystemContractAddressInput input)
+        {
+            var actualAddress = GetContractAddressByName(input.SystemContractHashName); 
+            Assert(actualAddress == input.Address, "Address not expected.");
+            return new Empty();
+        }
+
         #endregion Views
 
         #region Actions
 
         public override Address DeploySystemSmartContract(SystemContractDeploymentInput input)
         {
+            RequireAuthority();
             var name = input.Name;
             var category = input.Category;
             var code = input.Code.ToByteArray();
             var transactionMethodCallList = input.TransactionMethodCallList;
             var address = PrivateDeploySystemSmartContract(name, category, code);
 
-            foreach (var methodCall in transactionMethodCallList.Value)
+            if (transactionMethodCallList != null)
             {
-                Context.SendInline(address, methodCall.MethodName, methodCall.Params);
+                foreach (var methodCall in transactionMethodCallList.Value)
+                {
+                    Context.SendInline(address, methodCall.MethodName, methodCall.Params);
+                }
             }
 
             return address;
         }
-
 
         private Address PrivateDeploySystemSmartContract(Hash name, int category, byte[] code)
         {
@@ -91,7 +101,7 @@ namespace AElf.Contracts.Genesis
             var info = new ContractInfo
             {
                 SerialNumber = serialNumber,
-                Owner = Context.Sender,
+                Author = Context.Origin,
                 Category = category,
                 CodeHash = codeHash
             };
@@ -112,7 +122,7 @@ namespace AElf.Contracts.Genesis
             {
                 CodeHash = codeHash,
                 Address = contractAddress,
-                Creator = Context.Sender
+                Creator = Context.Origin
             });
 
             Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
@@ -128,22 +138,22 @@ namespace AElf.Contracts.Genesis
 
         public override Address DeploySmartContract(ContractDeploymentInput input)
         {
-            return DeploySystemSmartContract(new SystemContractDeploymentInput()
-            {
-                Category = input.Category,
-                Code = input.Code,
-                TransactionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList()
-            });
+            RequireAuthority();
+
+            var address = PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray());
+            return address;
         }
 
         public override Address UpdateSmartContract(ContractUpdateInput input)
         {
+            RequireAuthority();
+
             var contractAddress = input.Address;
             var code = input.Code.ToByteArray();
             var info = State.ContractInfos[contractAddress];
-
             Assert(info != null, "Contract does not exist.");
-            Assert(info.Owner.Equals(Context.Sender), "Only owner is allowed to update code.");
+            Assert(info.Author == Context.Self || info.Author == Context.Origin,
+                "Only author can propose contract update.");
 
             var oldCodeHash = info.CodeHash;
             var newCodeHash = Hash.FromRawBytes(code);
@@ -174,26 +184,77 @@ namespace AElf.Contracts.Genesis
             return contractAddress;
         }
 
-        public override Empty ChangeContractOwner(ChangeContractOwnerInput input)
+        public override Empty ChangeContractAuthor(ChangeContractAuthorInput input)
         {
             var contractAddress = input.ContractAddress;
-            var newOwner = input.NewOwner;
             var info = State.ContractInfos[contractAddress];
-            Assert(info != null && info.Owner.Equals(Context.Sender), "no permission.");
+            Assert(info != null && info.Author.Equals(Context.Sender), "no permission.");
 
-            var oldOwner = info.Owner;
-            info.Owner = input.NewOwner;
+            var oldAuthor = info.Author;
+            info.Author = input.NewAuthor;
             State.ContractInfos[contractAddress] = info;
-            Context.Fire(new OwnerChanged
+            var newAuthor = input.NewAuthor;
+            Context.Fire(new AuthorChanged
             {
                 Address = contractAddress,
-                OldOwner = oldOwner,
-                NewOwner = newOwner
+                OldAuthor = oldAuthor,
+                NewAuthor = newAuthor
             });
             return new Empty();
         }
 
+        public override Empty Initialize(InitializeInput input)
+        {
+            Assert(!State.Initialized.Value, "Contract zero already initialized.");
+            Assert(Context.Sender == Context.Self, "Unable to initialize.");
+            State.ContractDeploymentAuthorityRequired.Value = input.ContractDeploymentAuthorityRequired;
+            State.Initialized.Value = true;
+            return new Empty();
+        }
+
+        public override Empty ChangeGenesisOwner(Address newOwnerAddress)
+        {
+            if (State.GenesisOwner.Value == null)
+                InitializeGenesisOwner(newOwnerAddress);
+            else
+            {
+                AssertSenderAddressWith(State.GenesisOwner.Value);
+                State.GenesisOwner.Value = newOwnerAddress;
+            }
+
+            return new Empty();
+        }
+
         #endregion Actions
+
+        public void RequireAuthority()
+        {
+            var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
+            if (!State.Initialized.Value)
+            {
+                // only authority of contract zero is valid before initialization 
+                AssertSenderAddressWith(Context.Self);
+            }
+            else if (isGenesisOwnerAuthorityRequired)
+            {
+                // genesis owner authority check is required
+                AssertSenderAddressWith(State.GenesisOwner.Value);
+            }
+        }
+
+        private void AssertSenderAddressWith(Address address)
+        {
+            Assert(Context.Sender.Equals(address), "Unauthorized behavior.");
+        }
+
+        private void InitializeGenesisOwner(Address genesisOwner)
+        {
+            Assert(State.GenesisOwner.Value == null, "Genesis owner already initialized");
+            var address = GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+            Assert(Context.Sender.Equals(address), "Unauthorized to initialize genesis contract.");
+            Assert(genesisOwner != null, "Genesis Owner should not be null.");
+            State.GenesisOwner.Value = genesisOwner;
+        }
     }
 
     public static class AddressHelper
@@ -206,7 +267,7 @@ namespace AElf.Contracts.Genesis
         public static Address BuildContractAddress(Hash chainId, ulong serialNumber)
         {
             var hash = Hash.FromTwoHashes(chainId, Hash.FromRawBytes(serialNumber.ToBytes()));
-            return Address.FromBytes(hash.DumpByteArray());
+            return Address.FromBytes(hash.ToByteArray());
         }
 
         public static Address BuildContractAddress(int chainId, ulong serialNumber)

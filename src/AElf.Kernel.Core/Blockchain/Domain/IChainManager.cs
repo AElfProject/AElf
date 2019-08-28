@@ -176,15 +176,12 @@ namespace AElf.Kernel.Blockchain.Domain
                 }
                 else
                 {
-                    if (chainBlockLink.Height <= chain.LongestChainHeight)
+                    //check database to ensure whether it can be a branch
+                    var previousChainBlockLink = await this.GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
+                    if (previousChainBlockLink != null && previousChainBlockLink.IsLinked)
                     {
-                        //check database to ensure whether it can be a branch
-                        var previousChainBlockLink = await this.GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
-                        if (previousChainBlockLink != null && previousChainBlockLink.IsLinked)
-                        {
-                            chain.Branches[previousChainBlockLink.BlockHash.ToStorageKey()] = previousChainBlockLink.Height;
-                            continue;
-                        }
+                        chain.Branches[previousChainBlockLink.BlockHash.ToStorageKey()] = previousChainBlockLink.Height;
+                        continue;
                     }
 
                     chain.NotLinkedBlocks[previousHash] = blockHash;
@@ -219,7 +216,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 if (chainBlockLink == null || chainBlockLink.IsIrreversibleBlock)
                     break;
                 if (!chainBlockLink.IsLinked)
-                    throw new InvalidOperationException("should not set an unlinked block as irreversible block");
+                    throw new InvalidOperationException($"should not set an unlinked block as irreversible block, height: {chainBlockLink.Height}, hash: {chainBlockLink.BlockHash}");
                 chainBlockLink.IsIrreversibleBlock = true;
                 links.Push(chainBlockLink);
                 irreversibleBlockHash = chainBlockLink.PreviousBlockHash;
@@ -423,7 +420,9 @@ namespace AElf.Kernel.Blockchain.Domain
 
             chain.LongestChainHash = chain.BestChainHash;
             chain.LongestChainHeight = chain.BestChainHeight;
-            
+            Logger.LogWarning(
+                $"Switch Longest chain to height: {chain.LongestChainHeight}, hash: {chain.LongestChainHash}.");
+
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
         }
     }

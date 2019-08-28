@@ -1,8 +1,6 @@
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -22,11 +20,9 @@ namespace AElf.Contracts.TokenConverter
         
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
-        protected ECKeyPair FeeReceiverKeyPair { get; } = SampleECKeyPairs.KeyPairs[10];
         protected Address FeeReceiverAddress => Address.FromPublicKey(ManagerKeyPair.PublicKey);
         protected ECKeyPair ManagerKeyPair { get; } = SampleECKeyPairs.KeyPairs[11];
         protected Address ManagerAddress => Address.FromPublicKey(ManagerKeyPair.PublicKey);
-        protected ECKeyPair FoundationKeyPair { get; } = SampleECKeyPairs.KeyPairs[12];
         
         protected async Task DeployContractsAsync()
         {
@@ -34,7 +30,7 @@ namespace AElf.Contracts.TokenConverter
                 // TokenContract
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("MultiToken")).Value;
-                TokenContractAddress = await DeployContractAsync(category, code, DefaultSenderKeyPair);
+                TokenContractAddress = await DeployContractAsync(category, code, Hash.FromString("MultiToken"), DefaultSenderKeyPair);
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
 
@@ -59,7 +55,7 @@ namespace AElf.Contracts.TokenConverter
                 // TokenConverterContract
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("TokenConverter")).Value;
-                TokenConverterContractAddress = await DeployContractAsync(category, code, DefaultSenderKeyPair);
+                TokenConverterContractAddress = await DeployContractAsync(category, code, Hash.FromString("TokenConverter"), DefaultSenderKeyPair);
                 DefaultStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
                     TokenConverterContractAddress, DefaultSenderKeyPair);
             }

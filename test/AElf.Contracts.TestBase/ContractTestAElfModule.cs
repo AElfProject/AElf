@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
-using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Modularity;
 using AElf.OS;
@@ -36,15 +35,15 @@ namespace AElf.Contracts.TestBase
             context.Services.AddSingleton(o => Mock.Of<IConsensusService>());
             context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
             
-            Configure<ChainOptions>(o => { o.ChainId = ChainHelpers.ConvertBase58ToChainId("AELF"); });
+//            Configure<ChainOptions>(o => { o.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
 
-            var ecKeyPair = CryptoHelpers.GenerateKeyPair();
+            var ecKeyPair = CryptoHelper.GenerateKeyPair();
 
             context.Services.AddTransient(o =>
             {
                 var mockService = new Mock<IAccountService>();
                 mockService.Setup(a => a.SignAsync(It.IsAny<byte[]>())).Returns<byte[]>(data =>
-                    Task.FromResult(CryptoHelpers.SignWithPrivateKey(ecKeyPair.PrivateKey, data)));
+                    Task.FromResult(CryptoHelper.SignWithPrivateKey(ecKeyPair.PrivateKey, data)));
 
                 mockService.Setup(a => a.GetPublicKeyAsync()).ReturnsAsync(ecKeyPair.PublicKey);
                 

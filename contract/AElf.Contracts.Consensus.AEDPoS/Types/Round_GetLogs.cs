@@ -1,11 +1,12 @@
+using System;
 using System.Linq;
 using System.Text;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    public partial class Round
+    public partial class Round : IFormattable
     {
-        public string GetLogs(string publicKey, AElfConsensusBehaviour behaviour)
+        private string GetLogs(string publicKey)
         {
             var logs = new StringBuilder($"\n[Round {RoundNumber}](Round Id: {RoundId})[Term {TermNumber}]");
             foreach (var minerInRound in RealTimeMinersInformation.Values.OrderBy(m => m.Order))
@@ -42,13 +43,32 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 minerInformation.AppendLine($"Miss:\t {minerInRound.MissedTimeSlots}");
                 minerInformation.AppendLine($"Tiny:\t {minerInRound.ProducedTinyBlocks}");
                 minerInformation.AppendLine($"NOrder:\t {minerInRound.FinalOrderOfNextRound}");
+                minerInformation.AppendLine($"Lib:\t {minerInRound.ImpliedIrreversibleBlockHeight}");
 
                 logs.Append(minerInformation);
             }
 
-            logs.AppendLine($"Recent behaviour: {behaviour.ToString()}");
-
             return logs.ToString();
+        }
+
+        public string ToString(string publicKey)
+        {
+            return ToString(publicKey, null);
+        }
+
+        public string ToString(string format, IFormatProvider formatProvider)
+        {
+            if (string.IsNullOrEmpty(format)) format = "G";
+
+            switch (format)
+            {
+                case "G": return ToString();
+                case "M": 
+                    // Return formatted miner list.
+                    return RealTimeMinersInformation.Keys.Aggregate("\n", (key1, key2) => key1 + "\n" + key2);
+            }
+
+            return GetLogs(format);
         }
     }
 }

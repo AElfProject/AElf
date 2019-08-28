@@ -122,7 +122,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         {
             var data = Hash.FromRawBytes(consensusCommand.NextBlockMiningLeftMilliseconds
                 .DumpByteArray());
-            var bytes = AsyncHelper.RunSync(() => _accountService.SignAsync(data.DumpByteArray()));
+            var bytes = AsyncHelper.RunSync(() => _accountService.SignAsync(data.ToByteArray()));
             return Hash.FromRawBytes(bytes);
         }
     }

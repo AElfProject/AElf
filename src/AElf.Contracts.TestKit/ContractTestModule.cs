@@ -1,19 +1,15 @@
-using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Contracts.Genesis;
 using AElf.Database;
 using AElf.Kernel;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.ChainController;
 using AElf.Kernel.ChainController.Application;
-using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.TransactionPool;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -26,6 +22,7 @@ using AElf.Runtime.CSharp;
 using MartinCostello.Logging.XUnit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Volo.Abp;
 using Volo.Abp.EventBus;
@@ -111,15 +108,16 @@ namespace AElf.Contracts.TestKit
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            
-            context.ServiceProvider.GetService<IAElfAsymmetricCipherKeyPairProvider>().SetKeyPair(CryptoHelpers.GenerateKeyPair());
-            
+            context.ServiceProvider.GetService<IAElfAsymmetricCipherKeyPairProvider>().SetKeyPair(CryptoHelper.GenerateKeyPair());
+
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
-                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory
-            };
+                SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
+            };            
+            var contractOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
+            dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;
             AsyncHelper.RunSync(async () => { that.OsBlockchainNodeContext = await osService.StartAsync(dto); });

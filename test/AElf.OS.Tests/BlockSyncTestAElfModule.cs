@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
+using AElf.OS.Handlers;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.Types;
@@ -25,7 +26,7 @@ namespace AElf.OS
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<INetworkService>(o =>
+            context.Services.AddSingleton(o =>
             {
                 var networkServiceMock = new Mock<INetworkService>();
                 networkServiceMock
@@ -64,12 +65,13 @@ namespace AElf.OS
 
                 return networkServiceMock.Object;
             });
+
+            context.Services.AddSingleton<PeerConnectedEventHandler>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var blockchainService = context.ServiceProvider.GetRequiredService<IBlockchainService>();
-            var genService = context.ServiceProvider.GetRequiredService<IBlockGenerationService>();
             var exec = context.ServiceProvider.GetRequiredService<IBlockExecutingService>();
             var osTestHelper = context.ServiceProvider.GetService<OSTestHelper>();
 
@@ -84,14 +86,9 @@ namespace AElf.OS
             
             var bestBranchHeight = height;
 
-            for (var i = bestBranchHeight; i < bestBranchHeight + 10; i++)
+            for (var i = bestBranchHeight; i < bestBranchHeight + 20; i++)
             {
-                var block = AsyncHelper.RunSync(() => genService.GenerateBlockBeforeExecutionAsync(new GenerateBlockDto
-                {
-                    PreviousBlockHash = previousBlockHash,
-                    PreviousBlockHeight = height,
-                    BlockTime = TimestampHelper.GetUtcNow()
-                }));
+                var block = osTestHelper.GenerateBlock(previousBlockHash, height);
 
                 // no choice need to execute the block to finalize it.
                 var newBlock = AsyncHelper.RunSync(() => exec.ExecuteBlockAsync(block.Header, new List<Transaction>(), new List<Transaction>(), CancellationToken.None));

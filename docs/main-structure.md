@@ -26,6 +26,7 @@
     * [Messages](Contract/msgs.md)
     <!-- * [Contract base](Contract/base.md) -->
     * [Deploy guide](Contract/depl.md)
+    * [AELF Contract Standard](Contract/acs.md)
    <!-- * [Update guide](Contract/upd.md) -->
 * [Cross chain](crosschain/main.md)
     * [Introduction](crosschain/intro.md)

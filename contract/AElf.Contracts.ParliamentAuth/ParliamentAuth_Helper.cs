@@ -19,8 +19,16 @@ namespace AElf.Contracts.ParliamentAuth
 
         private void AssertSenderIsAuthorizedProposer(Organization organization)
         {
-            // add some checks if needed. Any one can propose if no checking here.
-            // TODO: proposer authority to be checked
+            // It is a valid proposer if
+            // authority check is disable,
+            // or sender is in proposer white list,
+            // or sender is one of miners.
+            if (!organization.ProposerAuthorityRequired)
+                return; 
+            if (organization.ProposerWhiteList.Any(p => p == Context.Sender))
+                return;
+            var minerList = GetCurrentMinerList();
+            Assert(minerList.Any(m => m == Context.Sender), "Not authorized to propose.");
         }
 
         private bool IsReleaseThresholdReached(ProposalInfo proposal, Organization organization,

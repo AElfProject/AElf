@@ -1,6 +1,5 @@
-using System;
 using Acs3;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -25,6 +24,8 @@ namespace AElf.Contracts.ReferendumAuth
                 return new ProposalOutput();
             }
 
+            var organization = State.Organisations[proposal.OrganizationAddress];
+            var readyToRelease = IsReleaseThresholdReached(proposalId, organization);
             return new ProposalOutput
             {
                 ProposalId = proposalId,
@@ -34,6 +35,7 @@ namespace AElf.Contracts.ReferendumAuth
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
                 ToAddress = proposal.ToAddress,
+                ToBeReleased = readyToRelease
             };
         }
 
@@ -97,15 +99,6 @@ namespace AElf.Contracts.ReferendumAuth
                 State.ApprovedTokenAmount[input.ProposalId].Add(lockAmount);
 
             var organization = State.Organisations[proposal.OrganizationAddress];
-            if (IsReleaseThresholdReached(input.ProposalId, organization))
-            {
-                Context.SendVirtualInline(
-                    organization.OrganizationHash,
-                    proposal.ToAddress,
-                    proposal.ContractMethodName,
-                    proposal.Params);
-                //State.Proposals[approval.ProposalId] = null;
-            }
 
             LockToken(new LockInput
             {
@@ -141,6 +134,19 @@ namespace AElf.Contracts.ReferendumAuth
                 Symbol = lockReceipt.TokenSymbol,
                 Usage = "Referendum."
             });
+            return new Empty();
+        }
+        
+        public override Empty Release(Hash proposalId)
+        {
+            var proposalInfo = State.Proposals[proposalId];
+            Assert(proposalInfo != null, "Proposal not found.");
+            Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
+            var organization = State.Organisations[proposalInfo.OrganizationAddress];
+            Assert(IsReleaseThresholdReached(proposalId, organization), "Not approved.");
+            Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
+                proposalInfo.ContractMethodName, proposalInfo.Params);
+            
             return new Empty();
         }
     }

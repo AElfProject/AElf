@@ -121,11 +121,11 @@ namespace AElf.Benchmark
                     BlockHeader = block.Header
                 });
                 
-                foreach (var tx in block.Body.Transactions)
+                foreach (var tx in block.Body.TransactionIds)
                 {
-                    _transactionManager.RemoveTransaction(tx);
-                    _transactionResultManager.RemoveTransactionResultAsync(tx, block.GetHash());
-                    _transactionResultManager.RemoveTransactionResultAsync(tx, block.Header.GetPreMiningHash());
+                    await _transactionManager.RemoveTransaction(tx);
+                    await _transactionResultManager.RemoveTransactionResultAsync(tx, block.GetHash());
+                    await _transactionResultManager.RemoveTransactionResultAsync(tx, block.Header.GetPreMiningHash());
                 }
                 await _chainManager.RemoveChainBlockLinkAsync(block.GetHash());
                 await _blockManager.RemoveBlockAsync(block.GetHash());

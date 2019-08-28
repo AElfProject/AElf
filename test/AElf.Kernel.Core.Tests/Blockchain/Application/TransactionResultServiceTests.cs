@@ -75,16 +75,7 @@ namespace AElf.Kernel.Blockchain.Application
         private (Block, List<TransactionResult>) GetNextBlockWithTransactionAndResults(BlockHeader previous,
             IEnumerable<Transaction> transactions, ByteString uniqueData = null)
         {
-            var block = new Block
-            {
-                Header = new BlockHeader()
-                {
-                    Height = previous.Height + 1,
-                    PreviousBlockHash = previous.GetHash(),
-                    MerkleTreeRootOfTransactions = Hash.FromString($"block {previous.Height + 1}")
-                },
-                Body = new BlockBody()
-            };
+            var block = _kernelTestHelper.GenerateBlock(previous.Height, previous.GetHash());
             if (uniqueData != null)
             {
                 // piggy back on Bloom to make block unique
@@ -94,7 +85,7 @@ namespace AElf.Kernel.Blockchain.Application
             var results = new List<TransactionResult>();
             foreach (var transaction in transactions)
             {
-                block.Body.Transactions.Add(transaction.GetHash());
+                block.Body.TransactionIds.Add(transaction.GetHash());
                 results.Add(new TransactionResult()
                 {
                     TransactionId = transaction.GetHash(),
@@ -109,8 +100,8 @@ namespace AElf.Kernel.Blockchain.Application
         {
             return new Transaction()
             {
-                From = Address.Zero,
-                To = Address.Zero,
+                From = SampleAddress.AddressList[0],
+                To = SampleAddress.AddressList[1],
                 MethodName = id
             };
         }

@@ -1,3 +1,5 @@
+using System.Linq;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -36,7 +38,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private bool TryToGetCurrentRoundInformation(out Round round)
         {
             round = null;
-            if (!TryToGetRoundNumber(out var roundNumber)) return false;
+            if (!TryToGetRoundNumber(out var roundNumber))
+            {
+                Context.LogDebug(() => "Failed to get current round number.");
+                return false;
+            }
             round = State.Rounds[roundNumber];
             return !round.IsEmpty;
         }
@@ -61,7 +67,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             From = Context.Sender,
             To = Context.Self,
             MethodName = methodName,
-            Params = parameter.ToByteString()
+            Params = parameter.ToByteString(),
+            RefBlockNumber = Context.CurrentHeight,
+            RefBlockPrefix = ByteString.CopyFrom(Context.PreviousBlockHash.Value.Take(4).ToArray())
         };
 
         private void SetBlockchainStartTimestamp(Timestamp timestamp)
@@ -91,6 +99,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             State.Rounds[round.RoundNumber] = round;
+
+            if (round.RoundNumber > AEDPoSContractConstants.KeepRounds)
+            {
+                // TODO: Set to null.
+                State.Rounds[round.RoundNumber.Sub(AEDPoSContractConstants.KeepRounds)] = new Round();
+            }
+
             return true;
         }
 
@@ -99,6 +114,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var ri = State.Rounds[round.RoundNumber];
             if (ri == null)
             {
+                Context.LogDebug(() => "Round information not found");
                 return false;
             }
 

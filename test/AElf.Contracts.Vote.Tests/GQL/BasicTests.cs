@@ -1,21 +1,18 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
 namespace AElf.Contracts.Vote
 {
-    public partial class VoteTests : VoteContractTestBase
+    public partial class VoteTests
     {
-
         [Fact]
-        public async Task VoteContract_Register_Again()
+        public async Task VoteContract_Register_Again_Test()
         {
             var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 10);
             var transactionResult = (await VoteContractStub.Register.SendAsync(new VotingRegisterInput
@@ -33,7 +30,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_Register_CurrencyNotSupportVoting()
+        public async Task VoteContract_Register_CurrencyNotSupportVoting_Test()
         {
             var startTime = TimestampHelper.GetUtcNow();
             var input = new VotingRegisterInput
@@ -55,13 +52,13 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_Vote_NotSuccess()
+        public async Task VoteContract_Vote_NotSuccess_Test()
         {
             //did not find related vote event
             {
                 var input = new VoteInput
                 {
-                    VotingItemId = Hash.Generate()
+                    VotingItemId = Hash.FromString("hash")
                 };
 
                 var transactionResult = (await VoteContractStub.Vote.SendAsync(input)).TransactionResult;
@@ -96,7 +93,7 @@ namespace AElf.Contracts.Vote
                 {
                     VotingItemId = votingItemId.VotingItemId,
                     Option = votingItemId.Options.First(),
-                    Amount = 2000_000_000L
+                    Amount = 2000_000_000_00000000L
                 };
                 var otherKeyPair = SampleECKeyPairs.KeyPairs[1];
                 var otherVoteStub = GetVoteContractTester(otherKeyPair);

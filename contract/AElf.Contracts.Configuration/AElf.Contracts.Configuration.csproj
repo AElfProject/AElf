@@ -2,11 +2,19 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>AElf.Contracts.Configuration</PackageId>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
 
     <ItemGroup>
-        <ContractCode Include="..\..\protobuf\configuration.proto">
-            <Link>Protobuf/Proto/configuration.proto</Link>
+        <ContractReference Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\reference\acs3.proto</Link>
+        </ContractReference>
+        <ContractCode Include="..\..\protobuf\configuration_contract.proto">
+            <Link>Protobuf/Proto/configuration_contract.proto</Link>
         </ContractCode>
+        <ContractReference Include="..\..\protobuf\parliament_auth_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
+        </ContractReference>
     </ItemGroup>
 </Project>

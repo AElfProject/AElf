@@ -9,12 +9,14 @@ namespace AElf.Cryptography.Tests.ECDSA
     public class BlockSignatureTest
     {
         [Fact]
-        public void SignAndVerifyTransaction()
+        public void SignAndVerifyTransaction_Test()
         {
-            ECKeyPair keyPair = CryptoHelpers.GenerateKeyPair();
+            ECKeyPair keyPair1 = CryptoHelper.GenerateKeyPair();
             Transaction tx = new Transaction();
-            tx.From = Address.FromPublicKey(keyPair.PublicKey);
-            tx.To = Address.Generate();
+            tx.From = Address.FromPublicKey(keyPair1.PublicKey);
+            
+            ECKeyPair keyPair2 = CryptoHelper.GenerateKeyPair();
+            tx.To = Address.FromPublicKey(keyPair2.PublicKey);
             tx.Params = ByteString.CopyFrom(new byte[0]);
             tx.MethodName = "TestMethod";
             tx.Params = ByteString.Empty;
@@ -25,7 +27,7 @@ namespace AElf.Cryptography.Tests.ECDSA
             Hash hash = tx.GetHash();
 
             // Sign the hash
-            var signature = CryptoHelpers.SignWithPrivateKey(keyPair.PrivateKey, hash.DumpByteArray());
+            var signature = CryptoHelper.SignWithPrivateKey(keyPair1.PrivateKey, hash.ToByteArray());
             tx.Signature = ByteString.CopyFrom(signature);
             Assert.True(tx.VerifySignature());
         }

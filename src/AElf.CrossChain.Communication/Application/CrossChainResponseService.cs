@@ -13,20 +13,20 @@ namespace AElf.CrossChain.Communication.Application
     public class CrossChainResponseService : ICrossChainResponseService, ITransientDependency
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
-        private readonly ICrossChainDataProvider _crossChainDataProvider;
-        private readonly IBlockchainService _blockchainService;
+        private readonly ICrossChainService _crossChainService;
+        private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
 
-        public CrossChainResponseService(ICrossChainDataProvider crossChainDataProvider, 
-            IBlockExtraDataService blockExtraDataService, IBlockchainService blockchainService)
+        public CrossChainResponseService(IBlockExtraDataService blockExtraDataService, 
+            ICrossChainService crossChainService, ICrossChainIndexingDataService crossChainIndexingDataService)
         {
-            _crossChainDataProvider = crossChainDataProvider;
             _blockExtraDataService = blockExtraDataService;
-            _blockchainService = blockchainService;
+            _crossChainService = crossChainService;
+            _crossChainIndexingDataService = crossChainIndexingDataService;
         }
 
         public async Task<SideChainBlockData> ResponseSideChainBlockDataAsync(long requestHeight)
         {
-            var block = await _blockchainService.GetIrreversibleBlockByHeightAsync(requestHeight);
+            var block = await _crossChainService.GetNonIndexedBlockAsync(requestHeight);
             if (block == null)
                 return null;
             
@@ -41,7 +41,7 @@ namespace AElf.CrossChain.Communication.Application
 
         public async Task<ParentChainBlockData> ResponseParentChainBlockDataAsync(long requestHeight, int remoteSideChainId)
         {
-            var block = await _blockchainService.GetIrreversibleBlockByHeightAsync(requestHeight);
+            var block = await _crossChainService.GetNonIndexedBlockAsync(requestHeight);
             if (block == null)
                 return null;
             var parentChainBlockData = new ParentChainBlockData
@@ -55,7 +55,7 @@ namespace AElf.CrossChain.Communication.Application
                 return parentChainBlockData;
             }
 
-            var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockDataResult(block);
+            var indexedSideChainBlockDataResult = await GetIndexedSideChainBlockDataResultAsync(block);
             var enumerableMerklePath = GetEnumerableMerklePath(indexedSideChainBlockDataResult, remoteSideChainId);
             foreach (var kv in enumerableMerklePath)
             {
@@ -67,10 +67,7 @@ namespace AElf.CrossChain.Communication.Application
 
         public async Task<ChainInitializationData> ResponseChainInitializationDataFromParentChainAsync(int chainId)
         {
-            var libDto = await _blockchainService.GetLibHashAndHeightAsync();
-            var chainInitializationData =
-                await _crossChainDataProvider.GetChainInitializationDataAsync(chainId, libDto.BlockHash,
-                    libDto.BlockHeight);
+            var chainInitializationData = await _crossChainService.GetChainInitializationDataAsync(chainId);
             return chainInitializationData;
         }
 
@@ -89,26 +86,20 @@ namespace AElf.CrossChain.Communication.Application
             return parentChainBlockData;
         }
         
-        private async Task<List<SideChainBlockData>> GetIndexedSideChainBlockDataResult(Block block)
+        private async Task<List<SideChainBlockData>> GetIndexedSideChainBlockDataResultAsync(Block block)
         {
-            var crossChainBlockData =
-                await _crossChainDataProvider.GetIndexedCrossChainBlockDataAsync(block.GetHash(), block.Height);
-            //Logger.LogTrace($"Indexed side chain block size {crossChainBlockData.SideChainBlockData.Count}");
-            //var crossChainBlockData = CrossChainBlockData.Parser.ParseFrom(message.ToByteString());
-            return crossChainBlockData.SideChainBlockData
-                .Select(m => SideChainBlockData.Parser.ParseFrom(m.ToByteString())).ToList();
+            var indexedSideChainBlockData =
+                await _crossChainIndexingDataService.GetIndexedSideChainBlockDataAsync(block.GetHash(), block.Height);
+            return indexedSideChainBlockData.SideChainBlockData.ToList();
         }
         
         private Dictionary<long, MerklePath> GetEnumerableMerklePath(IList<SideChainBlockData> indexedSideChainBlockDataResult, 
             int sideChainId)
         {
-            var binaryMerkleTree = new BinaryMerkleTree();
-            foreach (var sideChainBlockData in indexedSideChainBlockDataResult)
-            {
-                binaryMerkleTree.AddNode(sideChainBlockData.TransactionMerkleTreeRoot);
-            }
-
-            binaryMerkleTree.ComputeRootHash();
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(
+                indexedSideChainBlockDataResult.Select(sideChainBlockData =>
+                    sideChainBlockData.TransactionMerkleTreeRoot));
+            
             // This is to tell side chain the merkle path for one side chain block,
             // which could be removed with subsequent improvement.
             var res = new Dictionary<long, MerklePath>();
@@ -118,8 +109,7 @@ namespace AElf.CrossChain.Communication.Application
                 if (!info.ChainId.Equals(sideChainId))
                     continue;
 
-                var merklePath = new MerklePath();
-                merklePath.Path.AddRange(binaryMerkleTree.GenerateMerklePath(i));
+                var merklePath = binaryMerkleTree.GenerateMerklePath(i);
                 res.Add(info.Height, merklePath);
             }
             

@@ -29,16 +29,19 @@ namespace AElf.OS.Network.Application
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockchainNodeContextService _blockchainNodeContextService;
         private readonly IPeerPool _peerPool;
+        private readonly IHandshakeProvider _handshakeProvider;
 
         public ILogger<SyncStateService> Logger { get; set; }
         
         public SyncStateService(INodeSyncStateProvider syncStateProvider, IBlockchainService blockchainService, 
-            IBlockchainNodeContextService blockchainNodeContextService, IPeerPool peerPool)
+            IBlockchainNodeContextService blockchainNodeContextService, IPeerPool peerPool, 
+            IHandshakeProvider handshakeProvider)
         {
             _syncStateProvider = syncStateProvider;
             _blockchainService = blockchainService;
             _blockchainNodeContextService = blockchainNodeContextService;
             _peerPool = peerPool;
+            _handshakeProvider = handshakeProvider;
         }
         
         public long GetCurrentSyncTarget() => _syncStateProvider.SyncTarget;
@@ -69,7 +72,7 @@ namespace AElf.OS.Network.Application
         /// <returns></returns>
         public async Task StartSyncAsync()
         {
-            if (SyncState != Application.SyncState.UnInitialized)
+            if (SyncState != SyncState.UnInitialized)
             {
                 Logger.LogWarning("Trying to start the sync, but it has already been started/finished.");
                 return;
@@ -89,7 +92,7 @@ namespace AElf.OS.Network.Application
             // This method should only be called when the sync target has already been found and the
             // node is syncing.
             
-            if (SyncState != Application.SyncState.Syncing)
+            if (SyncState != SyncState.Syncing)
             {
                 Logger.LogWarning("Trying to update the sync, but it is either finished or not yet been initialized.");
                 return;
@@ -102,19 +105,21 @@ namespace AElf.OS.Network.Application
             // also be true when the node starts.
             if (chain.LastIrreversibleBlockHeight >= _syncStateProvider.SyncTarget)
             {
+                var handshake = await _handshakeProvider.GetHandshakeAsync();
+                
                 // Update handshake information of all our peers
                 var tasks = _peerPool.GetPeers().Select(async peer =>
                 {
                     try
                     {
-                        await peer.UpdateHandshakeAsync();
+                        await peer.DoHandshakeAsync(handshake);
                     }
                     catch (NetworkException e)
                     {
-                        Logger.LogError(e, "Error while updating the lib.");
+                        Logger.LogError(e, "Error while handshaking.");
                     }
                     
-                    Logger.LogDebug($"Peer {peer} last known LIB is {peer.LastKnowLibHeight}.");
+                    Logger.LogDebug($"Peer {peer} last known LIB is {peer.LastKnownLibHeight}.");
                     
                 }).ToList();
                 
@@ -143,8 +148,8 @@ namespace AElf.OS.Network.Application
             
             // determine the peers that are high enough to sync to
             var candidates = peers
-                .Where(p => p.LastKnowLibHeight >= minSyncTarget)
-                .OrderBy(p => p.LastKnowLibHeight)
+                .Where(p => p.LastKnownLibHeight >= minSyncTarget)
+                .OrderBy(p => p.LastKnownLibHeight)
                 .ToList();
 
             if (candidates.Count == 0)
@@ -157,7 +162,7 @@ namespace AElf.OS.Network.Application
             {
                 // If there's more than 2/3 of the nodes that we can 
                 // sync to, take the lowest of them as target.
-                var minLib = candidates.First().LastKnowLibHeight;
+                var minLib = candidates.First().LastKnownLibHeight;
                 
                 if (candidates.Count >= Math.Ceiling(2d/3 * peers.Count))
                 {

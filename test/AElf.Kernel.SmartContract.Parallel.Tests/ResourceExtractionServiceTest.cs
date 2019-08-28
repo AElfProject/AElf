@@ -12,13 +12,13 @@ using Xunit;
 
 namespace AElf.Kernel.SmartContract.Parallel.Tests
 {
-    public class ResourceExtractionServiceTest : AbpIntegratedTest<TestModule>
+    public class ResourceExtractionServiceTest : AbpIntegratedTest<ParallelMockTestModule>
     {
         private IResourceExtractionService Service =>
             Application.ServiceProvider.GetRequiredService<IResourceExtractionService>();
 
         [Fact]
-        public async Task GetResourcesAsync_NonAcs2()
+        public async Task GetResourcesAsync_NonAcs2_Test()
         {
             var txn = GetNonAcs2Transaction(new ResourceInfo());
             var resourceInfos =
@@ -29,16 +29,19 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
             {
                 TransactionId = txn.GetHash(),
-                NonParallelizable = true
+                ParallelType = ParallelType.NonParallelizable
             });
         }
 
         [Fact]
-        public async Task GetResourcesAsync_Acs2_Parallelizable()
+        public async Task GetResourcesAsync_Acs2_Parallelizable_Test()
         {
             var txn = GetAcs2Transaction(new ResourceInfo
             {
-                Reources = {12345}
+                Paths =
+                {
+                    GetPath(12345)
+                }
             });
             var resourceInfos =
                 (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, CancellationToken.None))
@@ -48,15 +51,61 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
             {
                 TransactionId = txn.GetHash(),
-                Resources =
+                Paths =
                 {
-                    12345
+                    GetPath(12345)
                 }
             });
         }
 
         [Fact]
-        public async Task GetResourcesAsync_Acs2_NonParallelizable()
+        public async Task GetResourcesAsync_Acs2_CancellationRequested_Test()
+        {
+            var cancelTokenSource = new CancellationTokenSource();
+            cancelTokenSource.Cancel();
+            var txn = GetAcs2Transaction(new ResourceInfo
+            {
+                Paths =
+                {
+                    GetPath(12345)
+                }
+            });
+            var resourceInfos =
+                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, cancelTokenSource.Token))
+                .ToList();
+            resourceInfos.Count.ShouldBe(1);
+            resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
+            {
+                TransactionId = txn.GetHash(),
+                ParallelType = ParallelType.NonParallelizable
+            });
+        }
+
+        [Fact]
+        public async Task GetResourcesAsync_Acs2_MarkedNonParallelizable_Test()
+        {
+            var txn = GetAcs2Transaction(new ResourceInfo
+            {
+                Paths =
+                {
+                    GetPath(12345)
+                }
+            });
+            MockCodeRemarksManager.NonParallelizable = true;
+            var resourceInfos =
+                (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, CancellationToken.None))
+                .ToList();
+
+            resourceInfos.Count.ShouldBe(1);
+            resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
+            {
+                TransactionId = txn.GetHash(),
+                ParallelType = ParallelType.NonParallelizable
+            });
+        }
+
+        [Fact]
+        public async Task GetResourcesAsync_Acs2_NonParallelizable_Test()
         {
             var txn = GetAcs2Transaction(new ResourceInfo
             {
@@ -70,7 +119,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
             {
                 TransactionId = txn.GetHash(),
-                NonParallelizable = true
+                ParallelType = ParallelType.NonParallelizable
             });
         }
 
@@ -78,8 +127,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         {
             return new Transaction()
             {
-                From = Address.FromString("Dummy"),
-                To = Address.FromString(InternalConstants.Acs2),
+                From = AddressHelper.Base58StringToAddress("9Njc5pXW9Rw499wqSJzrfQuJQFVCcWnLNjZispJM4LjKmRPyq"),
+                To = AddressHelper.Base58StringToAddress(InternalConstants.Acs2),
                 MethodName = nameof(SmartContractExecution.Parallel.Tests.TestContract.TestContract.GetResourceInfo),
                 Params = resourceInfo.ToByteString(),
                 Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
@@ -90,11 +139,22 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         {
             return new Transaction()
             {
-                From = Address.FromString("Dummy"),
-                To = Address.FromString(InternalConstants.NonAcs2),
+                From = AddressHelper.Base58StringToAddress("9Njc5pXW9Rw499wqSJzrfQuJQFVCcWnLNjZispJM4LjKmRPyq"),
+                To = AddressHelper.Base58StringToAddress(InternalConstants.NonAcs2),
                 MethodName = nameof(SmartContractExecution.Parallel.Tests.TestContract.TestContract.GetResourceInfo),
                 Params = resourceInfo.ToByteString(),
                 Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
+            };
+        }
+
+        private ScopedStatePath GetPath(int value)
+        {
+            return new ScopedStatePath
+            {
+                Path = new StatePath
+                {
+                    Parts = {value.ToString()}
+                }
             };
         }
     }

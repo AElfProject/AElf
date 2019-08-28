@@ -1,15 +1,20 @@
 ﻿using AElf.Kernel;
 using AElf.Modularity;
+using AElf.OS.BlockSync.Worker;
 using AElf.OS.Consensus.DPos;
-using AElf.OS.Handlers;
+using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Worker;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Volo.Abp;
+using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Modularity;
 
 namespace AElf.OS
 {
     [DependsOn(
+        typeof(AbpBackgroundWorkersModule),
         typeof(KernelAElfModule),
         typeof(CoreOSAElfModule),
         typeof(GrpcNetworkModule),
@@ -21,9 +26,7 @@ namespace AElf.OS
         {
             var configuration = context.Services.GetConfiguration();
 
-            context.Services.AddAssemblyOf<OSAElfModule>();
-
-            context.Services.AddSingleton<PeerConnectedEventHandler>();
+            context.Services.AddSingleton<PeerDiscoveryWorker>();
 
             Configure<AccountOptions>(configuration.GetSection("Account"));
         }
@@ -32,9 +35,20 @@ namespace AElf.OS
         {
             var taskQueueManager = context.ServiceProvider.GetService<ITaskQueueManager>();
 
-            taskQueueManager.CreateQueue(OSConsts.BlockSyncAttachQueueName);
-            taskQueueManager.CreateQueue(OSConsts.BlockSyncQueueName);
-            taskQueueManager.CreateQueue(OSConsts.InitialSyncQueueName);
+            taskQueueManager.CreateQueue(OSConstants.BlockSyncAttachQueueName);
+            taskQueueManager.CreateQueue(OSConstants.BlockFetchQueueName, 4);
+            taskQueueManager.CreateQueue(OSConstants.InitialSyncQueueName);
+
+            var backgroundWorkerManager = context.ServiceProvider.GetRequiredService<IBackgroundWorkerManager>();
+            
+            var networkOptions = context.ServiceProvider.GetService<IOptionsSnapshot<NetworkOptions>>().Value;
+            if (networkOptions.EnablePeerDiscovery)
+            {
+                var peerDiscoveryWorker = context.ServiceProvider.GetService<PeerDiscoveryWorker>();
+                backgroundWorkerManager.Add(peerDiscoveryWorker);
+            }
+
+            backgroundWorkerManager.Add(context.ServiceProvider.GetService<BlockDownloadWorker>());
         }
     }
 }

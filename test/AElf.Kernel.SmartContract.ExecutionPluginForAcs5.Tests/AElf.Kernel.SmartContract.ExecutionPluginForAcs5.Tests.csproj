@@ -1,0 +1,60 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <IsPackable>false</IsPackable>
+    </PropertyGroup>
+    <PropertyGroup>
+        <NoWarn>0436</NoWarn>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
+        <PackageReference Include="Shouldly" Version="3.0.2" />
+        <PackageReference Include="xunit" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.console" Version="2.4.1" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Cryptography\AElf.Cryptography.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Kernel.SmartContract.ExecutionPluginForAcs5\AElf.Kernel.SmartContract.ExecutionPluginForAcs5.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract\AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests.TestContract.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf/Proto/acs0.proto</Link>
+        </ContractReference>
+        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
+            <Link>Protobuf/Proto/basic_contract_zero.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\token_contract.proto">
+            <Link>Protobuf/Proto/token_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\token_converter_contract.proto">
+            <Link>Protobuf/Proto/token_converter_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs5.proto">
+            <Link>Protobuf/Proto/acs5.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs5_plugin_test_contract.proto">
+            <Link>Protobuf/Proto/acs5_plugin_test_contract.proto</Link>
+        </ContractStub>
+    </ItemGroup>
+
+</Project>

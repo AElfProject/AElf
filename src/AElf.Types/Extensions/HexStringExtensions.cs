@@ -6,7 +6,7 @@ namespace AElf
     {
         public static ByteString ToByteString(this string hexString)
         {
-            return ByteString.CopyFrom(ByteArrayHelpers.FromHexString(hexString));
+            return ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(hexString));
         }
     }
 }

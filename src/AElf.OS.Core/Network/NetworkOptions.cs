@@ -38,14 +38,14 @@ namespace AElf.OS.Network
         public int PeerDialTimeoutInMilliSeconds { get; set; } = NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds;
 
         /// <summary>
-        /// Maximum amount of values used when synchronizing a fork.
-        /// </summary>
-        public int BlockIdRequestCount { get; set; } = NetworkConstants.DefaultBlockRequestCount;
-
-        /// <summary>
         /// Indicates if this node will compress blocks when a peer requests blocks.
         /// </summary>
         public bool CompressBlocksOnRequest { get; set; } = NetworkConstants.DefaultCompressBlocks;
+        
+        /// <summary>
+        /// Indicates if the node will participate in peer discovery operations.
+        /// </summary>
+        public bool EnablePeerDiscovery { get; set; } = true;
 
         /// <summary>
         /// The minimum distance between this node and peers needed to trigger initial sync. 

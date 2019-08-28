@@ -68,16 +68,18 @@ namespace AElf.OS.Consensus.DPos
         private readonly IAEDPoSInformationProvider _dpoSInformationProvider;
         private readonly IBlockchainService _blockchainService;
         private readonly IAccountService _accountService;
+        private readonly IKnownBlockCacheProvider _knownBlockCacheProvider;
         public ILogger<AEDPoSLastLastIrreversibleBlockDiscoveryService> Logger { get; set; }
 
         public AEDPoSLastLastIrreversibleBlockDiscoveryService(IPeerPool peerPool,
             IAEDPoSInformationProvider dpoSInformationProvider, IBlockchainService blockchainService,
-            IAccountService accountService)
+            IAccountService accountService, IKnownBlockCacheProvider knownBlockCacheProvider)
         {
             _peerPool = peerPool;
             _dpoSInformationProvider = dpoSInformationProvider;
             _blockchainService = blockchainService;
             _accountService = accountService;
+            _knownBlockCacheProvider = knownBlockCacheProvider;
             //LocalEventBus = NullLocalEventBus.Instance;
         }
 
@@ -94,7 +96,7 @@ namespace AElf.OS.Consensus.DPos
             var chainContext = new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight};
             var pubkeyList = (await _dpoSInformationProvider.GetCurrentMinerList(chainContext)).ToList();
 
-            var peers = _peerPool.GetPeers().Where(p => pubkeyList.Contains(p.PubKey)).ToList();
+            var peers = _peerPool.GetPeers().Where(p => pubkeyList.Contains(p.Info.Pubkey)).ToList();
 
             var pubKey = (await _accountService.GetPublicKeyAsync()).ToHex();
             if (peers.Count == 0 && !pubkeyList.Contains(pubKey))
@@ -108,7 +110,7 @@ namespace AElf.OS.Consensus.DPos
                     return hash == block.Value;
                 }).Count();
                 if (pubkeyList.Contains(pubKey) &&
-                    _peerPool.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var blockHash) &&
+                    _knownBlockCacheProvider.TryGetBlockByHeight(block.Key, out var blockHash) &&
                     blockHash == block.Value)
                     peersHadBlockAmount++;
 

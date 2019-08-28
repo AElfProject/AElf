@@ -22,7 +22,7 @@ namespace AElf.OS.Account.Application
 
         public async Task<byte[]> SignAsync(byte[] data)
         {
-            var signature = CryptoHelpers.SignWithPrivateKey((await GetAccountKeyPairAsync()).PrivateKey, data);
+            var signature = CryptoHelper.SignWithPrivateKey((await GetAccountKeyPairAsync()).PrivateKey, data);
             return signature;
         }
 
@@ -33,13 +33,13 @@ namespace AElf.OS.Account.Application
 
         public async Task<byte[]> EncryptMessageAsync(byte[] receiverPublicKey, byte[] plainMessage)
         {
-            return CryptoHelpers.EncryptMessage((await GetAccountKeyPairAsync()).PrivateKey, receiverPublicKey,
-                plainMessage);
+             return CryptoHelper.EncryptMessage((await GetAccountKeyPairAsync()).PrivateKey, receiverPublicKey,
+                 plainMessage);
         }
 
         public async Task<byte[]> DecryptMessageAsync(byte[] senderPublicKey, byte[] cipherMessage)
         {
-            return CryptoHelpers.DecryptMessage(senderPublicKey, (await GetAccountKeyPairAsync()).PrivateKey,
+            return CryptoHelper.DecryptMessage(senderPublicKey, (await GetAccountKeyPairAsync()).PrivateKey,
                 cipherMessage);
         }
 

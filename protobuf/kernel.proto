@@ -59,6 +59,9 @@ enum ExecutionStatus {
 
     // Pre-failed
     PREFAILED = -99;
+    
+    // Post-failed
+    POSTFAILED = - 199;
 }
 
 message TransactionTrace {
@@ -69,11 +72,13 @@ message TransactionTrace {
     repeated TransactionTrace pre_traces = 5;
     repeated Transaction inline_transactions = 6;
     repeated TransactionTrace inline_traces = 7;
-    repeated LogEvent logs = 8;
-    int64 elapsed = 9;
-    ExecutionStatus execution_status = 10;
-    TransactionExecutingStateSet state_set = 11;
-    string readable_return_value = 12;
+    repeated Transaction post_transactions = 8;
+    repeated TransactionTrace post_traces = 9;
+    repeated LogEvent logs = 10;
+    int64 elapsed = 11;
+    ExecutionStatus execution_status = 12;
+    TransactionExecutingStateSet state_set = 13;
+    string readable_return_value = 14;
 }
 
 message ExecutionReturnSet {
@@ -106,18 +111,12 @@ message BlockHeader {
 
 message BlockBody {
     Hash block_header = 1;
-    repeated Hash transactions = 2;
+    repeated Hash transaction_ids = 2;
 }
 
 message Block {
     BlockHeader header = 1;
     BlockBody body = 2;
-}
-
-message BinaryMerkleTree {
-    repeated Hash nodes = 1;
-    Hash root = 2;
-    int32 leaf_count = 3;
 }
 
 message VersionedState {
@@ -184,4 +183,9 @@ message ChainBlockIndex {
 
 message TransactionBlockIndex {
     Hash block_hash = 1;
+}
+
+message ChainContractInfo{
+    int32 chain_id = 1;
+    map<string,int64> contract_infos= 2;
 }

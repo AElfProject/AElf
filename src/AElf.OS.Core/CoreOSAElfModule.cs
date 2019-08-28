@@ -2,7 +2,6 @@ using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Network;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.BackgroundJobs;
 using Volo.Abp.Modularity;
@@ -16,8 +15,6 @@ namespace AElf.OS
         {
             var configuration = context.Services.GetConfiguration();
 
-            context.Services.AddAssemblyOf<CoreOSAElfModule>();
-
             Configure<NetworkOptions>(configuration.GetSection("Network"));
         }
         
@@ -25,6 +22,9 @@ namespace AElf.OS
         {
             var taskQueueManager = context.ServiceProvider.GetService<ITaskQueueManager>();
             taskQueueManager.CreateQueue(NetworkConstants.PeerReconnectionQueueName);
+            taskQueueManager.CreateQueue(NetworkConstants.BlockBroadcastQueueName);
+            taskQueueManager.CreateQueue(NetworkConstants.AnnouncementBroadcastQueueName);
+            taskQueueManager.CreateQueue(NetworkConstants.TransactionBroadcastQueueName);
         }
     }
 }

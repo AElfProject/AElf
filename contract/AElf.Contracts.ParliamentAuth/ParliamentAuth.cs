@@ -1,4 +1,3 @@
-using System;
 using Acs3;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -23,6 +22,9 @@ namespace AElf.Contracts.ParliamentAuth
             {
                 return new ProposalOutput();
             }
+            var organization = State.Organisations[proposal.OrganizationAddress];
+            var minerList = GetCurrentMinerList();
+            var readyToRelease = IsReleaseThresholdReached(proposal, organization, minerList);
 
             return new ProposalOutput
             {
@@ -32,25 +34,34 @@ namespace AElf.Contracts.ParliamentAuth
                 OrganizationAddress = proposal.OrganizationAddress,
                 Params = proposal.Params,
                 Proposer = proposal.Proposer,
-                ToAddress = proposal.ToAddress
+                ToAddress = proposal.ToAddress,
+                ToBeReleased = readyToRelease
             };
         }
 
-        public override Address GetDefaultOrganizationAddress(Empty input)
+        public override Address GetGenesisOwnerAddress(Empty input)
         {
             Assert(State.Initialized.Value, "Not initialized.");
-            return State.DefaultOrganizationAddress.Value;
+            return State.GenesisOwnerAddress.Value;
         }
 
         #endregion view
-
-        public override Empty Initialize(Empty input)
+        
+        public override Empty Initialize(InitializeInput input)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
             State.Initialized.Value = true;
-            State.DefaultOrganizationAddress.Value =
-                CreateOrganization(
-                    new CreateOrganizationInput {ReleaseThreshold = DefaultReleaseThreshold});
+            var organizationInput = new CreateOrganizationInput
+            {
+                ReleaseThreshold = input.GenesisOwnerReleaseThreshold,
+                ProposerAuthorityRequired = input.ProposerAuthorityRequired,
+            };
+            if (input.PrivilegedProposer != null)
+                organizationInput.ProposerWhiteList.Add(input.PrivilegedProposer);
+            
+            State.GenesisOwnerAddress.Value = CreateOrganization(organizationInput);
+            State.GenesisContract.Value = Context.GetZeroSmartContractAddress();
+            State.GenesisContract.ChangeGenesisOwner.Send(State.GenesisOwnerAddress.Value);
             return new Empty();
         }
 
@@ -62,7 +73,9 @@ namespace AElf.Contracts.ParliamentAuth
             {
                 ReleaseThreshold = input.ReleaseThreshold,
                 OrganizationAddress = organizationAddress,
-                OrganizationHash = organizationHash
+                OrganizationHash = organizationHash,
+                ProposerAuthorityRequired = input.ProposerAuthorityRequired,
+                ProposerWhiteList = {input.ProposerWhiteList}
             };
             Assert(Validate(organization), "Invalid organization.");
             if (State.Organisations[organizationAddress] == null)
@@ -106,19 +119,21 @@ namespace AElf.Contracts.ParliamentAuth
             proposal.ApprovedRepresentatives.Add(Context.Sender);
             State.Proposals[approvalInput.ProposalId] = proposal;
 
-            // organization stores the release threshold
-            var organization = State.Organisations[proposal.OrganizationAddress];
-            if (IsReleaseThresholdReached(proposal, organization, currentParliament))
-            {
-                Context.SendVirtualInline(
-                    organization.OrganizationHash,
-                    proposal.ToAddress,
-                    proposal.ContractMethodName,
-                    proposal.Params);
-                //State.Proposals[approvalInput.ProposalId] = null;
-            }
-
             return new BoolValue {Value = true};
+        }
+
+        public override Empty Release(Hash proposalId)
+        {
+            var proposalInfo = State.Proposals[proposalId];
+            Assert(proposalInfo != null, "Proposal not found.");
+            Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
+            var organization = State.Organisations[proposalInfo.OrganizationAddress];
+            var currentParliament = GetCurrentMinerList();
+            Assert(IsReleaseThresholdReached(proposalInfo, organization, currentParliament), "Not approved.");
+            Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
+                proposalInfo.ContractMethodName, proposalInfo.Params);
+            
+            return new Empty();
         }
     }
 }

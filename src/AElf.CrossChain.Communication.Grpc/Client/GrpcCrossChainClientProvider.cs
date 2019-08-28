@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Concurrent;
-using System.Threading.Tasks;
-using AElf.CrossChain.Cache.Application;
-using Grpc.Core;
+using System.Collections.Generic;
+using System.Linq;
+using AElf.CrossChain.Communication.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
@@ -16,175 +16,69 @@ namespace AElf.CrossChain.Communication.Grpc
         private readonly ConcurrentDictionary<int, ICrossChainClient> _grpcCrossChainClients =
             new ConcurrentDictionary<int, ICrossChainClient>();
         
-        private readonly ConcurrentDictionary<int, ICrossChainClient> _connectionFailedClients =
-            new ConcurrentDictionary<int, ICrossChainClient>();
-        
-        private readonly IBlockCacheEntityProducer _blockCacheEntityProducer;
-
         private readonly GrpcCrossChainConfigOption _grpcCrossChainConfigOption;
 
-        public GrpcCrossChainClientProvider(IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption, 
-            IBlockCacheEntityProducer blockCacheEntityProducer)
+        public GrpcCrossChainClientProvider(IOptionsSnapshot<GrpcCrossChainConfigOption> grpcCrossChainConfigOption)
         {
-            _blockCacheEntityProducer = blockCacheEntityProducer;
             _grpcCrossChainConfigOption = grpcCrossChainConfigOption.Value;
         }
 
         #region Create client
 
-        public ICrossChainClient CreateClientForChainInitializationData(int chainId)
-        {
-            var localChainId = chainId;
-
-            var uriStr = GetUriStr(_grpcCrossChainConfigOption.RemoteParentChainServerHost,
-                _grpcCrossChainConfigOption.RemoteParentChainServerPort);
-            var clientInitializationContext = new GrpcClientInitializationContext
-            {
-                DialTimeout = _grpcCrossChainConfigOption.ConnectionTimeout,
-                LocalChainId = localChainId,
-                LocalServerPort = _grpcCrossChainConfigOption.LocalServerPort,
-                UriStr = uriStr,
-                LocalServerHost = _grpcCrossChainConfigOption.LocalServerHost
-            };
-            var client = new ClientForParentChain(clientInitializationContext, _blockCacheEntityProducer);
-            return client;
-        }
-
-        public void CreateAndCacheClient(CrossChainClientDto crossChainClientDto)
+        public ICrossChainClient AddOrUpdateClient(CrossChainClientDto crossChainClientDto)
         {
             var chainId = crossChainClientDto.RemoteChainId;
-            var uriStr = GetUriStr(crossChainClientDto.RemoteServerHost, crossChainClientDto.RemoteServerPort);
-            var isClientToParentChain = crossChainClientDto.IsClientToParentChain;
-            if (TryGetCachedClient(chainId, out var client) && client.TargetUriString.Equals(uriStr))
-                return; // client already cached
+            var uriStr = crossChainClientDto.IsClientToParentChain
+                ? GetUriStr(_grpcCrossChainConfigOption.RemoteParentChainServerHost,
+                    _grpcCrossChainConfigOption.RemoteParentChainServerPort)
+                : GetUriStr(crossChainClientDto.RemoteServerHost, crossChainClientDto.RemoteServerPort);
             
-            var localChainId = crossChainClientDto.LocalChainId;
-            client = CreateGrpcClient(uriStr, localChainId, chainId, isClientToParentChain);
-            _ = TryConnectAndUpdateClientAsync(client);
-        }
-
-        /// <summary>
-        /// Return cached client by chain id. Retry handshake if it was marked with connection failed.
-        /// </summary>
-        /// <param name="chainId"></param>
-        /// <returns></returns>
-        public async Task<ICrossChainClient> GetClientAsync(int chainId)
-        {
-            if (_grpcCrossChainClients.TryGetValue(chainId, out var crossChainClient))
-                return crossChainClient;
-
-            if (_connectionFailedClients.TryGetValue(chainId, out crossChainClient))
-            {
-                // try connect first 
-                var connectionResult = await TryConnectAndUpdateClientAsync(crossChainClient);
-                
-                return connectionResult ? crossChainClient : null;
-            }
+            if (TryGetClient(chainId, out var client) && client.TargetUriString.Equals(uriStr))
+                return client; // client already cached
             
-            return null;
+            client = CreateCrossChainClient(crossChainClientDto);
+            _grpcCrossChainClients.TryAdd(chainId, client);
+            Logger.LogTrace("Create client finished.");
+            return client;
         }
         
         /// <summary>
-        /// Create a new client to parent chain 
+        /// Create a new client to another chain.
         /// </summary>
         /// <returns>
         /// </returns>
-        private ICrossChainClient CreateGrpcClient(string uriStr, int localChainId, int remoteChainId, bool isClientToParentChain)
+        public ICrossChainClient CreateCrossChainClient(CrossChainClientDto crossChainClientDto)
         {
             var clientInitializationContext = new GrpcClientInitializationContext
             {
                 DialTimeout = _grpcCrossChainConfigOption.ConnectionTimeout,
-                LocalChainId = localChainId,
+                LocalChainId = crossChainClientDto.LocalChainId,
                 LocalServerPort = _grpcCrossChainConfigOption.LocalServerPort,
-                UriStr = uriStr,
                 LocalServerHost = _grpcCrossChainConfigOption.LocalServerHost,
-                RemoteChainId = remoteChainId
+                RemoteChainId = crossChainClientDto.RemoteChainId
             };
-            if (isClientToParentChain)
-                return new ClientForParentChain(clientInitializationContext, _blockCacheEntityProducer);
-            return new ClientForSideChain(clientInitializationContext, _blockCacheEntityProducer);
+            if (crossChainClientDto.IsClientToParentChain)
+            {
+                clientInitializationContext.UriStr = GetUriStr(_grpcCrossChainConfigOption.RemoteParentChainServerHost,
+                    _grpcCrossChainConfigOption.RemoteParentChainServerPort);
+                return new ClientForParentChain(clientInitializationContext);
+            }
+
+            clientInitializationContext.UriStr = GetUriStr(crossChainClientDto.RemoteServerHost,
+                crossChainClientDto.RemoteServerPort);
+            return new ClientForSideChain(clientInitializationContext);
         }
 
-        private bool TryGetCachedClient(int chainId, out ICrossChainClient client)
-        {
-            return _grpcCrossChainClients.TryGetValue(chainId, out client) ||
-                   _connectionFailedClients.TryGetValue(chainId, out client);
-        }
-
-        /// <summary>
-        /// Mark a client if its connection failed.
-        /// </summary>
-        /// <param name="chainId"></param>
-        /// <returns></returns>
-        private void MarkConnectionFailedClient(int chainId)
-        {
-            if (_grpcCrossChainClients.TryRemove(chainId, out var client))
-                _connectionFailedClients.AddOrUpdate(chainId, client, (id, c) => client);
-        }
-        
         #endregion Create client
-
-        #region Request
         
-        private async Task<bool> TryConnectAndUpdateClientAsync(ICrossChainClient client)
+        public bool TryGetClient(int chainId, out ICrossChainClient client)
         {
-            Logger.LogTrace($"Try handshake with chain {ChainHelpers.ConvertChainIdToBase58(client.RemoteChainId)}");
-            _connectionFailedClients.TryAdd(client.RemoteChainId, client);
-            var connectionResult = await RequestAsync(client, c => c.ConnectAsync());
-            if (connectionResult)
-            {
-                Logger.LogTrace($"Connected to chain {ChainHelpers.ConvertChainIdToBase58(client.RemoteChainId)}");
-                UpdateClient(client);
-            }
-            
-            return connectionResult;
+            return _grpcCrossChainClients.TryGetValue(chainId, out client);
         }
-
-        public async Task<T> RequestAsync<T>(ICrossChainClient client, Func<ICrossChainClient, Task<T>> requestFunc)
-        {
-            try
-            {
-                return await requestFunc(client);
-            }
-            catch (RpcException e)
-            {
-                HandleRpcException(client, e);
-                return default(T);
-            }
-        }
-
-        public async Task RequestAsync(ICrossChainClient client, Func<ICrossChainClient, Task> requestFunc)
-        {
-            try
-            {
-                await requestFunc(client);
-            }
-            catch (RpcException e)
-            {
-                HandleRpcException(client, e);
-            }
-        }
-
-        private void HandleRpcException(ICrossChainClient client, RpcException e)
-        {
-            Logger.LogWarning($"Cross chain grpc request failed with exception {e.Message}");
-            MarkConnectionFailedClient(client.RemoteChainId); 
-        }
-
-        private void UpdateClient(ICrossChainClient client)
-        {
-            _connectionFailedClients.TryRemove(client.RemoteChainId, out _);
-            _grpcCrossChainClients.TryAdd(client.RemoteChainId, client);
-        }
-
-        #endregion      
         
-        public async Task CloseClientsAsync()
+        public List<ICrossChainClient> GetAllClients()
         {
-            foreach (var client in _grpcCrossChainClients.Values)
-            {
-                await client.CloseAsync();
-            }
+            return _grpcCrossChainClients.Values.ToList();
         }
 
         private string GetUriStr(string host, int port)

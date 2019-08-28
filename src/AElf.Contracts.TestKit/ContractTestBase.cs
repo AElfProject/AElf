@@ -44,7 +44,7 @@ namespace AElf.Contracts.TestKit
 
         protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
 
-        protected async Task<Address> DeployContractAsync(int category, byte[] code, ECKeyPair senderKey)
+        protected async Task<Address> DeployContractAsync(int category, byte[] code, Hash hashName, ECKeyPair senderKey)
         {
             var zeroStub = GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, senderKey);
             var res = await zeroStub.DeploySmartContract.SendAsync(new ContractDeploymentInput()
@@ -73,7 +73,7 @@ namespace AElf.Contracts.TestKit
             return res.Output;
         }
 
-        public T GetTester<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractStubBase, new()
+        protected T GetTester<T>(Address contractAddress, ECKeyPair senderKey) where T : ContractStubBase, new()
         {
             var factory = Application.ServiceProvider.GetRequiredService<IContractTesterFactory>();
             return factory.Create<T>(contractAddress, senderKey);

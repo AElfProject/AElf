@@ -1,31 +1,32 @@
 using System.Threading.Tasks;
-using AElf.CrossChain.Cache.Application;
-using AElf.Kernel;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.Node.Events;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
 namespace AElf.CrossChain
 {
-    internal class CrossChainModuleEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>, ISingletonDependency
+    internal class CrossChainModuleEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>, ILocalEventHandler<InitialSyncFinishedEvent>, ITransientDependency
     {
-        private readonly ICrossChainDataProvider _crossChainDataProvider;
-        private readonly ICrossChainCacheEntityService _crossChainCacheEntityService;
-
-        public CrossChainModuleEventHandler(ICrossChainDataProvider crossChainDataProvider, ICrossChainCacheEntityService crossChainCacheEntityService)
+        private readonly ICrossChainService _crossChainService;
+        private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
+            
+        public CrossChainModuleEventHandler(ICrossChainService crossChainService, 
+            ICrossChainIndexingDataService crossChainIndexingDataService)
         {
-            _crossChainDataProvider = crossChainDataProvider;
-            _crossChainCacheEntityService = crossChainCacheEntityService;
+            _crossChainService = crossChainService;
+            _crossChainIndexingDataService = crossChainIndexingDataService;
+        }
+        
+        public async Task HandleEventAsync(InitialSyncFinishedEvent eventData)
+        {
+            await _crossChainService.FinishInitialSyncAsync();
         }
 
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            await _crossChainCacheEntityService.RegisterNewChainsAsync(eventData.BlockHash, eventData.BlockHeight);
-            _crossChainDataProvider.UpdateWithLibIndex(new BlockIndex
-            {
-                Hash = eventData.BlockHash,
-                Height = eventData.BlockHeight
-            });
+            await _crossChainService.RegisterNewChainsAsync(eventData.BlockHash, eventData.BlockHeight);
+            _crossChainIndexingDataService.UpdateCrossChainDataWithLib(eventData.BlockHash, eventData.BlockHeight);
         }
     }
 }

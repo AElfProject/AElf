@@ -44,17 +44,8 @@ namespace AElf.Benchmark
         {
             var chain = await _blockchainService.GetChainAsync();
 
-            _block = new Block(chain.BestChainHash)
-            {
-                Header = new BlockHeader
-                {
-                    ChainId = chain.Id,
-                    Height = chain.BestChainHeight + 1,
-                    Time = TimestampHelper.GetUtcNow()
-                }
-            };
-
             _transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
+            _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, _transactions);
         }
 
         [Benchmark]
@@ -69,8 +60,8 @@ namespace AElf.Benchmark
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
             foreach (var transaction in _transactions)
             {
-                _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(), _block.GetHash());
-                _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(),
+                await _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(), _block.GetHash());
+                await _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(),
                     _block.Header.GetPreMiningHash());
             }
         }

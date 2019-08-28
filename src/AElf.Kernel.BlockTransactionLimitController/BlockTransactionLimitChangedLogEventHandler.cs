@@ -3,6 +3,7 @@ using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using AElf.Contracts.Configuration;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -22,9 +23,9 @@ namespace AElf.Kernel.BlockTransactionLimitController
             {
                 if (_interestedEvent != null) return _interestedEvent;
                 var address =
-                    _smartContractAddressService.GetAddressByContractName(ConfigurationContractNameProvider.Name);
+                    _smartContractAddressService.GetAddressByContractName(ConfigurationSmartContractAddressNameProvider.Name);
 
-                _interestedEvent = new Configuration.BlockTransactionLimitChanged().ToLogEvent(address);
+                _interestedEvent = new BlockTransactionLimitChanged().ToLogEvent(address);
 
                 return _interestedEvent;
             }
@@ -42,16 +43,15 @@ namespace AElf.Kernel.BlockTransactionLimitController
 
         public async Task Handle(Block block, TransactionResult result, LogEvent log)
         {
-            var eventData = new Configuration.BlockTransactionLimitChanged();
+            var eventData = new BlockTransactionLimitChanged();
             foreach (var bs in log.Indexed)
             {
                 eventData.MergeFrom(bs);
             }
 
             eventData.MergeFrom(log.NonIndexed);
-            var old = _provider.Limit;
-            _provider.Limit = eventData.New;
-            Logger.LogInformation($"BlockTransactionLimit has been changed from {old} to {eventData.New}");
+            _provider.SetLimit(eventData.New);
+            Logger.LogInformation($"BlockTransactionLimit has been changed to {eventData.New}");
             await Task.CompletedTask;
         }
     }
