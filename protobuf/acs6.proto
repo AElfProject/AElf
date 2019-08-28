@@ -1,21 +1,23 @@
 syntax = "proto3";
 
 package acs6;
-
-import "common.proto";
-import "aelf_options.proto";
-import "google/protobuf/empty.proto";
+import "aelf/options.proto";
+import "aelf/core.proto";
 
 option (aelf.identity) = "acs6";
 
-service RandomNumberGeneratorContract {
-    rpc GetRandomNumber (google.protobuf.Empty) returns (Hash) {
+service RandomNumberProviderContract {
+    rpc RequestRandomNumber (RequestRandomNumberInput) returns (RandomNumberOrder) {
     }
-    rpc GetRandomNumberCoupon (Hash) returns (RandomNumberCoupon) {
+    rpc GetRandomNumber (aelf.Hash) returns (aelf.Hash) {
     }
 }
 
-message RandomNumberCoupon {
-    sint64 block_height = 1;
-    repeated sint32 orders = 2;
+message RequestRandomNumberInput {
+    sint64 minimum_block_height = 1;
+}
+
+message RandomNumberOrder {
+    sint64 block_height = 1;// Orderer is possible to get a random number after this height.
+    aelf.Hash token_hash = 2;// Token to get the random number.
 }

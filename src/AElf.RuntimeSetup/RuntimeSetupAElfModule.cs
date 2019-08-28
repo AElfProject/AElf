@@ -6,14 +6,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.Modularity;
 using System.Linq;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.RuntimeSetup
 {
     [DependsOn(
         typeof(CoreAElfModule)
     )]
-    [Dependency(ServiceLifetime.Singleton, TryRegister = true)]
     public class RuntimeSetupAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

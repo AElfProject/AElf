@@ -21,7 +21,6 @@ using Newtonsoft.Json.Serialization;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Volo.Abp;
 using Volo.Abp.AspNetCore.Mvc;
-using Volo.Abp.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.WebApp.Web
@@ -30,7 +29,6 @@ namespace AElf.WebApp.Web
         typeof(ChainApplicationWebAppAElfModule),
         typeof(NetApplicationWebAppAElfModule),
         typeof(WebAppAbpAspNetCoreMvcModule))]
-    [Dependency(ServiceLifetime.Singleton, TryRegister = true)]
     public class WebWebAppAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

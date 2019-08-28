@@ -11,13 +11,13 @@ namespace AElf.CrossChain
 {
     internal class CrossChainBlockExtraDataProvider : IBlockExtraDataProvider
     {
-        private readonly ICrossChainDataProvider _crossChainDataProvider;
+        private readonly ICrossChainIndexingDataService _crossChainIndexingDataService;
 
         public ILogger<CrossChainBlockExtraDataProvider> Logger { get; set; }
 
-        public CrossChainBlockExtraDataProvider(ICrossChainDataProvider crossChainDataProvider)
+        public CrossChainBlockExtraDataProvider(ICrossChainIndexingDataService crossChainIndexingDataService)
         {
-            _crossChainDataProvider = crossChainDataProvider;
+            _crossChainIndexingDataService = crossChainIndexingDataService;
         }
 
         public async Task<ByteString> GetExtraDataForFillingBlockHeaderAsync(BlockHeader blockHeader)
@@ -28,7 +28,7 @@ namespace AElf.CrossChain
             //Logger.LogTrace($"Get new cross chain data with hash {blockHeader.PreviousBlockHash}, height {blockHeader.Height - 1}");
 
             var newCrossChainBlockData =
-                await _crossChainDataProvider.GetCrossChainBlockDataForNextMiningAsync(blockHeader.PreviousBlockHash,
+                await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(blockHeader.PreviousBlockHash,
                     blockHeader.Height - 1);
             if (newCrossChainBlockData == null || newCrossChainBlockData.SideChainBlockData.Count == 0)
                 return ByteString.Empty;

@@ -20,7 +20,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.AspNetCore;
-using Volo.Abp.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 
@@ -43,7 +42,6 @@ namespace AElf.Blockchains.BasicBaseChain
 
         typeof(ParallelExecutionModule)
     )]
-    [Dependency(ServiceLifetime.Singleton, TryRegister = true)]
     public class BasicBaseChainAElfModule : AElfModule
     {
         public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }

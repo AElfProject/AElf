@@ -9,7 +9,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.BackgroundWorkers;
-using Volo.Abp.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.OS
@@ -21,7 +20,6 @@ namespace AElf.OS
         typeof(GrpcNetworkModule),
         typeof(AElfConsensusOSAElfModule)
     )]
-    [Dependency(ServiceLifetime.Singleton, TryRegister = true)]
     public class OSAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)

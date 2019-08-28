@@ -2,12 +2,10 @@ using AElf.Modularity;
 using AElf.OS.Network.Grpc.Connection;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using Volo.Abp.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.OS.Network.Grpc
 {
-    [Dependency(ServiceLifetime.Singleton, TryRegister = true)]
     public class GrpcNetworkModule : AElfModule
     {
         /// <summary>
