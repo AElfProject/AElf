@@ -262,5 +262,24 @@ namespace AElf.Parallel.Tests
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("Invalid contract address");
         }
+
+        [Fact]
+        public async Task Use_Same_Resource_Key_With_SystemTransaction_Test()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var accountAddress = await _accountService.GetAccountAsync();
+            var startBalance = await _parallelTestHelper.QueryBalanceAsync(accountAddress, "ELF", chain.BestChainHash,
+                chain.BestChainHeight);
+            var systemTransactions = await _parallelTestHelper.GenerateTransferTransactions(1);
+            var cancellableTransactions = await _parallelTestHelper.GenerateTransferTransactions(1);
+            var allTransactons = systemTransactions.Concat(cancellableTransactions).ToList();
+            await _parallelTestHelper.BroadcastTransactions(allTransactons);
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash,chain.BestChainHeight, allTransactons);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
+                cancellableTransactions, CancellationToken.None);
+            
+            var endBalance = await _parallelTestHelper.QueryBalanceAsync(accountAddress, "ELF", block.GetHash(), block.Height);
+            (startBalance - endBalance).ShouldBe(20);
+        }
     }
 }
