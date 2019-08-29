@@ -17,7 +17,8 @@ namespace AElf.CrossChain
 
         public ILogger<ConstrainedCrossChainTransactionValidationProvider> Logger { get; set; }
 
-        private readonly ConcurrentDictionary<Hash, string> _alreadyHas = new ConcurrentDictionary<Hash, string>();
+        private readonly ConcurrentDictionary<Hash, Transaction> _alreadyHas =
+            new ConcurrentDictionary<Hash, Transaction>();
 
         public ConstrainedCrossChainTransactionValidationProvider(
             ISmartContractAddressService smartContractAddressService)
@@ -39,12 +40,18 @@ namespace AElf.CrossChain
             {
                 if (!_alreadyHas.ContainsKey(blockHash))
                 {
-                    _alreadyHas.TryAdd(blockHash, transaction.MethodName);
+                    _alreadyHas.TryAdd(blockHash, transaction);
                     return true;
                 }
 
-                _alreadyHas.TryRemove(blockHash, out _);
-                Logger.LogError($"Only allow one Cross Chain Contract core transaction '{transaction.MethodName}'");
+                if (_alreadyHas[blockHash].GetHash() == transaction.GetHash())
+                {
+                    return true;
+                }
+
+                _alreadyHas.TryRemove(blockHash, out var oldTransaction);
+                Logger.LogError(
+                    $"Only allow one Cross Chain Contract core transaction\nNew tx: {transaction}\nOld tx: {oldTransaction}");
                 return false;
             }
 

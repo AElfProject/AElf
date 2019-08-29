@@ -8,7 +8,6 @@ using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 
-
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     // ReSharper disable once InconsistentNaming
@@ -19,7 +18,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public ILogger<ConstrainedAEDPoSTransactionValidationProvider> Logger { get; set; }
 
-        private readonly ConcurrentDictionary<Hash, string> _alreadyHas = new ConcurrentDictionary<Hash, string>();
+        private readonly ConcurrentDictionary<Hash, Transaction> _alreadyHas =
+            new ConcurrentDictionary<Hash, Transaction>();
 
         public ConstrainedAEDPoSTransactionValidationProvider(ISmartContractAddressService smartContractAddressService,
             ISystemTransactionMethodNameListProvider coreTransactionMethodNameListProvider)
@@ -39,12 +39,19 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             {
                 if (!_alreadyHas.ContainsKey(blockHash))
                 {
-                    _alreadyHas.TryAdd(blockHash, transaction.MethodName);
+                    _alreadyHas.TryAdd(blockHash, transaction);
                     return true;
                 }
 
-                _alreadyHas.TryRemove(blockHash, out _);
-                Logger.LogError($"Only allow one AEDPoS Contract core transaction '{transaction.MethodName}'");
+                if (_alreadyHas[blockHash].GetHash() == transaction.GetHash())
+                {
+                    // Validate twice.
+                    return true;
+                }
+
+                _alreadyHas.TryRemove(blockHash, out var oldTransaction);
+                Logger.LogError(
+                    $"Only allow one AEDPoS Contract core transaction.\nNew tx: {transaction}\nOld tx: {oldTransaction}");
                 return false;
             }
 
