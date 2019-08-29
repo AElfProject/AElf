@@ -214,7 +214,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var updateValueInput = new UpdateValueInput();
             updateValueInput.MergeFrom(transaction.Params);
 
-            var stub = GetAEDPoSContractTester(usingKeyPair);
+            var stub = GetAEDPoSContractStub(usingKeyPair);
             await stub.UpdateValue.SendAsync(updateValueInput);
 
             var currentRound = await stub.GetCurrentRoundInformation.CallAsync(new Empty());
@@ -370,7 +370,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             
             await NextTerm(BootMinerKeyPair);
             
-            var otherUser = GetAEDPoSContractTester(usingKeyPair);
+            var otherUser = GetAEDPoSContractStub(usingKeyPair);
             var validateBeforeResult =
                 await otherUser.ValidateConsensusBeforeExecution.CallAsync(extraDataBytes);
             validateBeforeResult.Success.ShouldBeFalse();

@@ -11,4 +11,9 @@ namespace AElf.OS.Network
     public class GrpcBasicNetworkTestBase : AElfIntegratedTest<GrpcBasicNetworkTestModule>
     {
     }
+
+    public class GrpcBackpressureTestBase : AElfIntegratedTest<GrpcBackpressureTestModule>
+    {
+        
+    }
 }

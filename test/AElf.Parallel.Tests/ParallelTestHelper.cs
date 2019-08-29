@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Deployer;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestContract.BasicFunctionWithParallel;
 using AElf.Cryptography;
-using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
-using AElf.Kernel.Miner;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.Token;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
 using AElf.OS.Node.Application;
@@ -30,8 +30,8 @@ namespace AElf.Parallel.Tests
         private IReadOnlyDictionary<string, byte[]> _codes;
         private readonly IStaticChainInformationProvider _staticChainInformationProvider;
         private readonly IAccountService _accountService;
-        private readonly IMiningService _miningService;
-        private readonly IBlockchainService _blockchainService;
+        private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
+        private readonly ISmartContractAddressService _smartContractAddressService;
         
         public new IReadOnlyDictionary<string, byte[]> Codes =>
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<ParallelTestHelper>());
@@ -50,14 +50,17 @@ namespace AElf.Parallel.Tests
             IBlockAttachService blockAttachService,
             IStaticChainInformationProvider staticChainInformationProvider,
             ITransactionResultService transactionResultService,
-            IOptionsSnapshot<ChainOptions> chainOptions,IMiningService miningService) : base(osBlockchainNodeContextService, accountService,
+            IOptionsSnapshot<ChainOptions> chainOptions,
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService
+            ) : base(osBlockchainNodeContextService, accountService,
             minerService, blockchainService, txHub, smartContractAddressService, blockAttachService,
             staticChainInformationProvider, transactionResultService, chainOptions)
         {
             _accountService = accountService;
             _staticChainInformationProvider = staticChainInformationProvider;
-            _miningService = miningService;
-            _blockchainService = blockchainService;
+            _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
+            _smartContractAddressService = smartContractAddressService;
+
         }
 
         public override Block GenerateBlock(Hash preBlockHash, long preBlockHeight, IEnumerable<Transaction> transactions = null)
@@ -119,41 +122,28 @@ namespace AElf.Parallel.Tests
             return transactions;
         }
 
-        public Transaction CreateTransaction(ECKeyPair from, Address to, string methodName,
-            ByteString parameters, long blockHeight, Hash blockHash)
+        public async Task<ByteString> ExecuteReadOnlyAsync(Transaction transaction, Hash blockHash,long blockHeight)
         {
-            var transaction = new Transaction
-            {
-                From = Address.FromPublicKey(from.PublicKey),
-                To = to,
-                MethodName = methodName,
-                Params = parameters,
-                RefBlockNumber = blockHeight,
-                RefBlockPrefix = ByteString.CopyFrom(blockHash.Value.Take(4).ToArray()),
-            };
-            var signature = CryptoHelper.SignWithPrivateKey(from.PrivateKey,
-                transaction.GetHash().Value.ToByteArray());
-            transaction.Signature = ByteString.CopyFrom(signature);
-            return transaction;
-        }
-        
-        public async Task<Block> ExecuteAsync(Transaction transaction,long previousBlockHeight,Hash previousBlockHash)
-        {
-            var transactionList = new List<Transaction>();
-            if(transaction!=null) transactionList.Add(transaction);
-            var block = await _miningService.MineAsync(
-                new RequestMiningDto
+            var transactionTrace = await _transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
                 {
-                    PreviousBlockHash = previousBlockHash, PreviousBlockHeight = previousBlockHeight,
-                    BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue)
+                    BlockHash = blockHash,
+                    BlockHeight = blockHeight
                 },
-                transactionList,
+                transaction,
                 DateTime.UtcNow.ToTimestamp());
 
-            if(transaction != null)
-                await _blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
-            await _blockchainService.AddBlockAsync(block);
-            return block;
+            return transactionTrace.ReturnValue;
+        }
+
+        public async Task<long> QueryBalanceAsync(Address address,string symbol,Hash blockHash,long blockHeight)
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var transaction = GenerateTransaction(accountAddress,
+                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name),
+                nameof(TokenContractContainer.TokenContractStub.GetBalance),
+                new GetBalanceInput {Owner = address, Symbol = symbol});
+            var returnValue = await ExecuteReadOnlyAsync(transaction, blockHash, blockHeight);
+            return GetBalanceOutput.Parser.ParseFrom(returnValue).Balance;
         }
     }
 }

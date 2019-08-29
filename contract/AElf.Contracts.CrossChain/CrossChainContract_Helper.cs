@@ -122,13 +122,6 @@ namespace AElf.Contracts.CrossChain
             ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             return State.TokenContract.GetNativeTokenInfo.Call(new Empty());
         }
-        
-        private long GetBalance(GetBalanceInput input)
-        {
-            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
-            var output = State.TokenContract.GetBalance.Call(input);
-            return output.Balance;
-        }
 
         private MinerListWithRoundNumber GetCurrentMiners()
         {
@@ -189,22 +182,6 @@ namespace AElf.Contracts.CrossChain
         {
             var owner = GetOwnerAddress();
             Assert(owner.Equals(Context.Sender), "Not authorized to do this.");
-        }
-        
-        private Hash Propose(int waitingPeriod, Address targetAddress, string invokingMethod, IMessage input)
-        {
-            var expiredTime = Context.CurrentBlockTime.AddSeconds(waitingPeriod);
-            var proposal = new CreateProposalInput
-            {
-                ContractMethodName = invokingMethod,
-                OrganizationAddress = GetOwnerAddress(),
-                ExpiredTime = expiredTime,
-                Params = input.ToByteString(),
-                ToAddress = targetAddress
-            };
-            ValidateContractState(State.ParliamentAuthContract, SmartContractConstants.ParliamentAuthContractSystemName);
-            State.ParliamentAuthContract.CreateProposal.Send(proposal);
-            return Hash.FromMessage(proposal);
         }
     }
 }

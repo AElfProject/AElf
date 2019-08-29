@@ -2,14 +2,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Contracts.TestContract.BasicFunctionWithParallel;
-using AElf.Contracts.TestKit;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Kernel.SmartContract.Parallel.Domain;
 using AElf.Kernel.SmartContractExecution.Application;
@@ -20,7 +17,6 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
-using SampleAddress = AElf.Kernel.SampleAddress;
 
 namespace AElf.Parallel.Tests
 {
@@ -35,7 +31,6 @@ namespace AElf.Parallel.Tests
         private readonly ITxHub _txHub;
         private readonly IBlockAttachService _blockAttachService;
         private readonly IAccountService _accountService;
-        private readonly IResourceExtractionService _resourceExtractionService;
         private readonly ParallelTestHelper _parallelTestHelper;
         
         private int _groupCount = 10;
@@ -52,7 +47,6 @@ namespace AElf.Parallel.Tests
             _txHub = GetRequiredService<ITxHub>();
             _blockAttachService = GetRequiredService<IBlockAttachService>();
             _accountService = GetRequiredService<IAccountService>();
-            _resourceExtractionService = GetRequiredService<IResourceExtractionService>();
             _parallelTestHelper = GetRequiredService<ParallelTestHelper>();
         }
         
@@ -139,7 +133,7 @@ namespace AElf.Parallel.Tests
                 _parallelTestHelper.GenerateBasicFunctionWithParallelTransactions(_groupCount, _transactionCount);
             await _parallelTestHelper.BroadcastTransactions(transactions);
 
-            var poolSize = await _txHub.GetTransactionPoolSizeAsync();
+            var poolSize = await _txHub.GetAllTransactionCountAsync();
             poolSize.ShouldBe(transactions.Count);
 
             var groupedTransactions = await _grouper.GroupAsync(
@@ -166,7 +160,7 @@ namespace AElf.Parallel.Tests
             groupedTransactions.Parallelizables.Count.ShouldBe(0);
             groupedTransactions.NonParallelizables.Count.ShouldBe(_transactionCount);
             
-            poolSize = await _txHub.GetTransactionPoolSizeAsync();
+            poolSize = await _txHub.GetAllTransactionCountAsync();
 
             poolSize.ShouldBe(transactions.Count - block.TransactionIds.Count());
 
@@ -270,83 +264,22 @@ namespace AElf.Parallel.Tests
         }
 
         [Fact]
-        public async Task Get_ResourceInfo_With_Contract_Deployment_Fork_Test()
+        public async Task Use_Same_Resource_Key_With_SystemTransaction_Test()
         {
             var chain = await _blockchainService.GetChainAsync();
-            var startBlockHeight = chain.BestChainHeight;
-            var startBlockHash = chain.BestChainHash;
-
-            Transaction transactionWithResourceCache;
-            Address contractAddress;
+            var accountAddress = await _accountService.GetAccountAsync();
+            var startBalance = await _parallelTestHelper.QueryBalanceAsync(accountAddress, "ELF", chain.BestChainHash,
+                chain.BestChainHeight);
+            var systemTransactions = await _parallelTestHelper.GenerateTransferTransactions(1);
+            var cancellableTransactions = await _parallelTestHelper.GenerateTransferTransactions(1);
+            var allTransactons = systemTransactions.Concat(cancellableTransactions).ToList();
+            await _parallelTestHelper.BroadcastTransactions(allTransactons);
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash,chain.BestChainHeight, allTransactons);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
+                cancellableTransactions, CancellationToken.None);
             
-            //branch one
-            {
-                contractAddress = await _parallelTestHelper.DeployContract<BasicFunctionWithParallelContract>();
-            
-                chain = await _blockchainService.GetChainAsync();
-                var betLimitInput = new BetLimitInput
-                {
-                    MinValue = 50,
-                    MaxValue = 100
-                }.ToByteString();
-                
-                var transaction = _parallelTestHelper.CreateTransaction(SampleECKeyPairs.KeyPairs[0], contractAddress,
-                    "UpdateBetLimit", betLimitInput, chain.BestChainHeight, chain.BestChainHash);
-                await _parallelTestHelper.BroadcastTransactions(new List<Transaction>{transaction});
-                var block = await _parallelTestHelper.ExecuteAsync(transaction, chain.BestChainHeight,
-                    chain.BestChainHash);
-                await _blockAttachService.AttachBlockAsync(block);
-                
-                transaction=_parallelTestHelper.CreateTransaction(SampleECKeyPairs.KeyPairs[1], contractAddress,
-                    "UpdateBetLimit", betLimitInput, block.Height, block.GetHash());
-                await _parallelTestHelper.BroadcastTransactions(new List<Transaction>{transaction});
-                block = await _parallelTestHelper.ExecuteAsync(transaction, block.Height, block.GetHash());
-                await _blockAttachService.AttachBlockAsync(block);
-                transactionWithResourceCache = _parallelTestHelper.CreateTransaction(SampleECKeyPairs.KeyPairs[2], contractAddress,
-                    "UpdateBetLimit", betLimitInput, block.Height, block.GetHash());
-                await _parallelTestHelper.BroadcastTransactions(new List<Transaction>{transactionWithResourceCache});
-                
-                var resourceInfo = await _resourceExtractionService.GetResourcesAsync(new ChainContext
-                {
-                    BlockHash = chain.BestChainHash,
-                    BlockHeight = chain.BestChainHeight
-                }, new List<Transaction> {transaction}, CancellationToken.None);
-                resourceInfo.First().Item2.ParallelType.ShouldBe(ParallelType.NonParallelizable);
-            }
-
-            //branch two
-            {
-                var resourceInfo = await _resourceExtractionService.GetResourcesAsync(new ChainContext
-                {
-                    BlockHash = startBlockHash,
-                    BlockHeight = startBlockHeight
-                }, new List<Transaction> {transactionWithResourceCache}, CancellationToken.None);
-                resourceInfo.First().Item2.ParallelType.ShouldBe(ParallelType.NonParallelizable);
-
-                var betLimitInput = new BetLimitInput
-                {
-                    MinValue = 50,
-                    MaxValue = 100
-                }.ToByteString();
-                var transaction = _parallelTestHelper.CreateTransaction(SampleECKeyPairs.KeyPairs[3], contractAddress,
-                    "UpdateBetLimit", betLimitInput, startBlockHeight, startBlockHash);
-                await _parallelTestHelper.BroadcastTransactions(new List<Transaction>{transaction});
-                var block = await _parallelTestHelper.ExecuteAsync(transaction, startBlockHeight, startBlockHash);
-                await _blockAttachService.AttachBlockAsync(block);
-                
-                transaction = _parallelTestHelper.CreateTransaction(SampleECKeyPairs.KeyPairs[4], contractAddress,
-                    "UpdateBetLimit", betLimitInput, block.Height, block.GetHash());
-                block = await _parallelTestHelper.ExecuteAsync(transaction, block.Height, block.GetHash());
-                await _blockAttachService.AttachBlockAsync(block);
-                chain = await _blockchainService.GetChainAsync();
-                await _blockchainService.SetIrreversibleBlockAsync(chain, block.Height, block.GetHash());
-                resourceInfo = await _resourceExtractionService.GetResourcesAsync(new ChainContext
-                {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = block.Height
-                }, new List<Transaction> {transactionWithResourceCache}, CancellationToken.None);
-                resourceInfo.First().Item2.ParallelType.ShouldBe(ParallelType.NonParallelizable);
-            }
+            var endBalance = await _parallelTestHelper.QueryBalanceAsync(accountAddress, "ELF", block.GetHash(), block.Height);
+            (startBalance - endBalance).ShouldBe(20);
         }
     }
 }
