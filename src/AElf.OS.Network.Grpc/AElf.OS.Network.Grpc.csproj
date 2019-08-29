@@ -23,7 +23,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Helpers" />
       <Folder Include="Protobuf" />
       <Folder Include="Protobuf\Generated" />
     </ItemGroup>
