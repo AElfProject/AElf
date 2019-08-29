@@ -19,14 +19,16 @@ namespace AElf.OS.Network
         [Fact]
         public async Task DialPeer_NotExist_Test()
         {
-            var grpcPeer = await _peerDialer.DialPeerAsync(IpEndpointHelper.Parse("127.0.0.1:2000"));
+            var endpoint = IpEndpointHelper.Parse("127.0.0.1:2000");
+            var grpcPeer = await _peerDialer.DialPeerAsync(endpoint);
             grpcPeer.ShouldNotBeNull();
         }
 
         [Fact]
         public async Task DialBackPeer_Test()
         {
-            var grpcPeer = await _peerDialer.DialBackPeer(IpEndpointHelper.Parse("127.0.0.1:2000"), new ConnectionInfo
+            var endpoint = IpEndpointHelper.Parse("127.0.0.1:2000");
+            var grpcPeer = await _peerDialer.DialBackPeer(endpoint, new ConnectionInfo
             {
                 ChainId = 1,
                 ListeningPort = 2000,
