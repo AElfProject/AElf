@@ -1,6 +1,10 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
 using AElf.Types;
@@ -17,18 +21,24 @@ namespace AElf.Kernel.TransactionPool.Application
         private readonly ITokenContractReaderFactory _tokenContractReaderFactory;
         private readonly INativeTokenSymbolProvider _nativeTokenSymbolProvider;
         private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
+        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IConsensusCoreTransactionMethodNameListProvider _coreTransactionMethodNameListProvider;
 
         public ILogger<TransactionFromAddressBalanceValidationProvider> Logger { get; set; }
 
         public TransactionFromAddressBalanceValidationProvider(IBlockchainService blockchainService,
             ITokenContractReaderFactory tokenContractReaderFactory,
             INativeTokenSymbolProvider nativeTokenSymbolProvider,
-            IDeployedContractAddressProvider deployedContractAddressProvider)
+            IDeployedContractAddressProvider deployedContractAddressProvider,
+            ISmartContractAddressService smartContractAddressService,
+            IConsensusCoreTransactionMethodNameListProvider coreTransactionMethodNameListProvider)
         {
             _blockchainService = blockchainService;
             _tokenContractReaderFactory = tokenContractReaderFactory;
             _nativeTokenSymbolProvider = nativeTokenSymbolProvider;
             _deployedContractAddressProvider = deployedContractAddressProvider;
+            _smartContractAddressService = smartContractAddressService;
+            _coreTransactionMethodNameListProvider = coreTransactionMethodNameListProvider;
         }
 
         public async Task<bool> ValidateTransactionAsync(Transaction transaction)
@@ -37,6 +47,16 @@ namespace AElf.Kernel.TransactionPool.Application
             var deployedContractAddressList =
                 await _deployedContractAddressProvider.GetDeployedContractAddressListAsync();
             if (deployedContractAddressList.Value.Contains(transaction.From))
+            {
+                return true;
+            }
+
+            // Skip if this is a consensus transaction.
+            var consensusContractAddress =
+                _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
+            if (transaction.To == consensusContractAddress &&
+                _coreTransactionMethodNameListProvider.GetCoreTransactionMethodNameList()
+                    .Contains(transaction.MethodName))
             {
                 return true;
             }

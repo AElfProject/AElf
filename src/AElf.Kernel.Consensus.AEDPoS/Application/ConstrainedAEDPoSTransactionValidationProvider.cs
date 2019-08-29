@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
@@ -14,14 +15,17 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     public class ConstrainedAEDPoSTransactionValidationProvider : IConstrainedTransactionValidationProvider
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IConsensusCoreTransactionMethodNameListProvider _coreTransactionMethodNameListProvider;
 
         public ILogger<ConstrainedAEDPoSTransactionValidationProvider> Logger { get; set; }
 
         private readonly ConcurrentDictionary<Hash, string> _alreadyHas = new ConcurrentDictionary<Hash, string>();
 
-        public ConstrainedAEDPoSTransactionValidationProvider(ISmartContractAddressService smartContractAddressService)
+        public ConstrainedAEDPoSTransactionValidationProvider(ISmartContractAddressService smartContractAddressService,
+            IConsensusCoreTransactionMethodNameListProvider coreTransactionMethodNameListProvider)
         {
             _smartContractAddressService = smartContractAddressService;
+            _coreTransactionMethodNameListProvider = coreTransactionMethodNameListProvider;
         }
 
         public bool ValidateTransaction(Transaction transaction, Hash blockHash)
@@ -29,15 +33,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var consensusContractAddress =
                 _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
             var constrainedTransaction = new Lazy<List<string>>(() =>
-                new List<string>
-                {
-                    nameof(AEDPoSContractContainer.AEDPoSContractStub.InitialAElfConsensusContract),
-                    nameof(AEDPoSContractContainer.AEDPoSContractStub.FirstRound),
-                    nameof(AEDPoSContractContainer.AEDPoSContractStub.NextRound),
-                    nameof(AEDPoSContractContainer.AEDPoSContractStub.NextTerm),
-                    nameof(AEDPoSContractContainer.AEDPoSContractStub.UpdateValue),
-                    nameof(AEDPoSContractContainer.AEDPoSContractStub.UpdateTinyBlockInformation)
-                });
+                _coreTransactionMethodNameListProvider.GetCoreTransactionMethodNameList());
             if (transaction.To == consensusContractAddress &&
                 constrainedTransaction.Value.Contains(transaction.MethodName))
             {

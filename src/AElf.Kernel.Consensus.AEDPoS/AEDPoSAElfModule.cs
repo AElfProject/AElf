@@ -33,6 +33,9 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services.AddSingleton<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
             context.Services
                 .AddSingleton<IConstrainedTransactionValidationProvider, ConstrainedAEDPoSTransactionValidationProvider>();
+            context.Services
+                .AddSingleton<IConsensusCoreTransactionMethodNameListProvider,
+                    AEDPoSContractCoreTransactionMethodNameListProvider>();
 
             var configuration = context.Services.GetConfiguration();
 
