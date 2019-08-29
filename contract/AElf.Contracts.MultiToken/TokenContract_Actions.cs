@@ -450,6 +450,7 @@ namespace AElf.Contracts.MultiToken
             var transferAmount = totalFee.Sub(burnAmount);
             if (State.TreasuryContract.Value != null)
             {
+                // Main chain would donate tx fees to dividend pool.
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,
@@ -458,13 +459,24 @@ namespace AElf.Contracts.MultiToken
             }
             else
             {
-                Assert(State.FeeReceiver.Value != null, "Fee receiver not set.");
-                Transfer(new TransferInput
+                if (State.FeeReceiver.Value != null)
                 {
-                    To = State.FeeReceiver.Value,
-                    Symbol = symbol,
-                    Amount = transferAmount,
-                });
+                    Transfer(new TransferInput
+                    {
+                        To = State.FeeReceiver.Value,
+                        Symbol = symbol,
+                        Amount = transferAmount,
+                    });
+                }
+                else
+                {
+                    // Burn all!
+                    Burn(new BurnInput
+                    {
+                        Symbol = symbol,
+                        Amount = transferAmount
+                    });
+                }
             }
         }
 
@@ -612,12 +624,26 @@ namespace AElf.Contracts.MultiToken
                 State.Balances[input.ContractAddress][symbol] = 0;
                 var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
                 State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(donates);
-                // TODO: Adapter side chain.
-                State.TreasuryContract.Donate.Send(new DonateInput
+                if (State.TreasuryContract.Value != null)
                 {
-                    Symbol = symbol,
-                    Amount = donates
-                });
+                    // Main Chain.
+                    State.TreasuryContract.Donate.Send(new DonateInput
+                    {
+                        Symbol = symbol,
+                        Amount = donates
+                    });
+                }
+                else
+                {
+                    // Side Chain.
+                    Transfer(new TransferInput
+                    {
+                        To = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName),
+                        Amount = donates,
+                        Symbol = symbol
+                    });
+                }
+   
                 State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol] =
                     State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol].Add(profits.Sub(donates));
             }
