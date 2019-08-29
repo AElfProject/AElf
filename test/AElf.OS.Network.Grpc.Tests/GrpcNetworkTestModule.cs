@@ -1,13 +1,11 @@
-using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
-using Google.Protobuf;
 using Grpc.Core;
-using Grpc.Core.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp;
@@ -51,7 +49,10 @@ namespace AElf.OS.Network
                 IsInbound = true
             };
             
-            pool.TryAddPeer(new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), NetworkTestConstants.FakeIpEndpoint, connectionInfo));
+            if (!IpEndpointHelper.TryParse(NetworkTestConstants.FakeIpEndpoint, out var peerEnpdoint))
+                throw new Exception($"Ip {NetworkTestConstants.FakeIpEndpoint} is invalid.");
+            
+            pool.TryAddPeer(new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), peerEnpdoint, connectionInfo));
         }
     }
 

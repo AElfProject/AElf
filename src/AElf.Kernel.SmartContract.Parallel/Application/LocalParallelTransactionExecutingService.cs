@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -18,6 +17,7 @@ namespace AElf.Kernel.SmartContract.Parallel
     {
         private readonly ITransactionGrouper _grouper;
         private readonly ITransactionExecutingService _plainExecutingService;
+        private readonly ITransactionResultService _transactionResultService;
         public ILogger<LocalParallelTransactionExecutingService> Logger { get; set; }
 
         public ILocalEventBus EventBus { get; set; }
@@ -31,6 +31,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             _plainExecutingService =
                 new TransactionExecutingService(transactionResultService, smartContractExecutiveService, postPlugins,prePlugins
                     );
+            _transactionResultService = transactionResultService;
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<LocalParallelTransactionExecutingService>.Instance;
         }
@@ -48,7 +49,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 //                    $"Throwing exception is not supported in {nameof(LocalParallelTransactionExecutingService)}.");
 //            }
 
-            var chainContext = new ChainContext()
+            var chainContext = new ChainContext
             {
                 BlockHash = blockHeader.PreviousBlockHash,
                 BlockHeight = blockHeader.Height - 1
@@ -63,16 +64,23 @@ namespace AElf.Kernel.SmartContract.Parallel
                 }, cancellationToken, throwException));
             var results = await Task.WhenAll(tasks);
 
-            Logger.LogTrace($"Executed parallelizables.");
+            Logger.LogTrace("Executed parallelizables.");
 
             var returnSets = MergeResults(results, out var conflictingSets).Item1;
             var returnSetCollection = new ReturnSetCollection(returnSets);
 
             var updatedPartialBlockStateSet = returnSetCollection.ToBlockStateSet();
-            updatedPartialBlockStateSet.MergeFrom(transactionExecutingDto.PartialBlockStateSet?.Clone() ??
-                                                  new BlockStateSet());
+            if (transactionExecutingDto.PartialBlockStateSet != null)
+            {
+                var partialBlockStateSet = transactionExecutingDto.PartialBlockStateSet.Clone();
+                foreach ( var change in partialBlockStateSet.Changes)
+                {
+                    if (updatedPartialBlockStateSet.Changes.TryGetValue(change.Key, out _)) continue;
+                    updatedPartialBlockStateSet.Changes[change.Key] = change.Value;
+                }
+            }
 
-            Logger.LogTrace($"Merged results from parallelizables.");
+            Logger.LogTrace("Merged results from parallelizables.");
 
             var nonParallelizableReturnSets = await _plainExecutingService.ExecuteAsync(
                 new TransactionExecutingDto
@@ -83,8 +91,15 @@ namespace AElf.Kernel.SmartContract.Parallel
                 },
                 cancellationToken, throwException);
 
-            Logger.LogTrace($"Merged results from non-parallelizables.");
+            Logger.LogTrace("Merged results from non-parallelizables.");
             returnSets.AddRange(nonParallelizableReturnSets);
+
+            var transactionWithoutContractReturnSets = await ProcessTransactionsWithoutContract(
+                groupedTransactions.TransactionsWithoutContract, blockHeader);
+            
+            Logger.LogTrace("Merged results from transactions without contract.");
+            returnSets.AddRange(transactionWithoutContractReturnSets);
+            
             if (conflictingSets.Count > 0)
             {
                 await EventBus.PublishAsync(new ConflictingTransactionsFoundInParallelGroupsEvent(
@@ -94,9 +109,34 @@ namespace AElf.Kernel.SmartContract.Parallel
                 ));
             }
 
-            var transactionOrder = transactions.Select(t => t.GetHash()).ToList();
+            return returnSets;
+        }
+        
+        private async Task<List<ExecutionReturnSet>> ProcessTransactionsWithoutContract(List<Transaction> transactions,
+            BlockHeader blockHeader)
+        {
+            var returnSets = new List<ExecutionReturnSet>();
+            foreach (var transaction in transactions)
+            {
+                var result = new TransactionResult
+                {
+                    TransactionId = transaction.GetHash(),
+                    Status = TransactionResultStatus.Failed,
+                    Error = "Invalid contract address."
+                };
+                Logger.LogError(result.Error);
+                await _transactionResultService.AddTransactionResultAsync(result, blockHeader);
 
-            return returnSets.AsParallel().OrderBy(d => transactionOrder.IndexOf(d.TransactionId)).ToList();
+                var returnSet = new ExecutionReturnSet
+                {
+                    TransactionId = result.TransactionId,
+                    Status = result.Status,
+                    Bloom = result.Bloom
+                };
+                returnSets.Add(returnSet);
+            }
+
+            return returnSets;
         }
 
         private async Task<(List<ExecutionReturnSet>, HashSet<string>)> ExecuteAndPreprocessResult(

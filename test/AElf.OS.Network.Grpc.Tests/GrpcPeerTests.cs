@@ -18,7 +18,7 @@ namespace AElf.OS.Network
     {
         private IBlockchainService _blockchainService;
         private IAElfNetworkServer _networkServer;
-
+        
         private IPeerPool _pool;
         private GrpcPeer _grpcPeer;
         private GrpcPeer _nonInterceptedPeer;
@@ -165,6 +165,25 @@ namespace AElf.OS.Network
 
         [Fact]
         public async Task GetNodesAsync_Test()
+        [Fact]
+        public void GetRequestMetrics_Test()
+        {
+            var result = _grpcPeer.GetRequestMetrics();
+            
+            result.Count.ShouldBe(3);
+            result.Keys.ShouldContain("GetBlock");
+            result.Keys.ShouldContain("GetBlocks");
+            result.Keys.ShouldContain("Announce");
+        }
+
+        [Fact]
+        public async Task GetNodes_Test()
+        {
+            var nodeList = await _grpcPeer.GetNodesAsync();
+            nodeList.Nodes.Count.ShouldBeGreaterThanOrEqualTo(0);
+        }
+
+        public async Task DisconnectAsync_Success()
         {
             var nodeList = await _grpcPeer.GetNodesAsync();
             nodeList.Nodes.Count.ShouldBe(0);

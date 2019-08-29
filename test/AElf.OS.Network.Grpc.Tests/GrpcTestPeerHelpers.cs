@@ -1,5 +1,8 @@
+using System;
+using System.Net;
 using AElf.Kernel;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Helpers;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Moq;
@@ -12,17 +15,18 @@ namespace AElf.OS.Network
         
         public static GrpcPeer CreateBasicPeer(string ip, string pubkey)
         {
+            
             return CreatePeerWithInfo(ip, new PeerInfo { Pubkey = pubkey });
         }
 
         public static GrpcPeer CreatePeerWithInfo(string ip, PeerInfo info)
         {
-            return new GrpcPeer(new GrpcClient(CreateMockChannel(), null), ip, info);
+            return new GrpcPeer(new GrpcClient(CreateMockChannel(), null), IpEndpointHelper.Parse(ip), info);
         }
 
         public static GrpcPeer CreatePeerWithClient(string ip, string pubkey, PeerService.PeerServiceClient client)
         {
-            return new GrpcPeer(new GrpcClient(CreateMockChannel(), client), ip, new PeerInfo { Pubkey = pubkey });
+            return new GrpcPeer(new GrpcClient(CreateMockChannel(), client), IpEndpointHelper.Parse(ip), new PeerInfo { Pubkey = pubkey });
         }
         
         public static GrpcPeer CreateNewPeer(string ipAddress = "127.0.0.1:2000", bool isValid = true, string publicKey = null)
@@ -49,7 +53,7 @@ namespace AElf.OS.Network
                 IsInbound = true
             };
 
-            return new GrpcPeer(new GrpcClient(channel, client), ipAddress, connectionInfo);
+            return new GrpcPeer(new GrpcClient(channel, client), IpEndpointHelper.Parse(ipAddress), connectionInfo);
         }
     }
 }

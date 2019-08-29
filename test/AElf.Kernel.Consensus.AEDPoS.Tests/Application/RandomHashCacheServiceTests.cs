@@ -39,7 +39,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
         }
 
         [Fact]
-        public void SetGeneratedBlockPreviousBlockInformation()
+        public void SetGeneratedBlockPreviousBlockInformation_Test()
         {
             const long blockHeight = 5L;
             var randomHash1 = Hash.FromString("randomHash1");

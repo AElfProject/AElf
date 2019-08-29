@@ -1,8 +1,6 @@
 using System.Threading.Tasks;
 using Acs2;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
-using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -56,7 +54,6 @@ namespace AElf.Contracts.MultiToken
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
             result.NonParallelizable.ShouldBeFalse();
-            result.Paths.Count.ShouldBeGreaterThan(0);
         }
         
         [Fact]
@@ -67,7 +64,6 @@ namespace AElf.Contracts.MultiToken
                 
             var result = await Acs2BaseStub.GetResourceInfo.CallAsync(transaction);
             result.NonParallelizable.ShouldBeFalse();
-            result.Paths.Count.ShouldBeGreaterThan(0);
         }
         
         [Fact]

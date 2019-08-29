@@ -10,9 +10,9 @@ namespace AElf.OS.Network
         public const int DefaultMaxPeers = 25;
 
         public const int DefaultMaxBlockAgeToBroadcastInMinutes = 10;
-        
+
         public const int DefaultInitialSyncOffset = 512;
-        
+
         public const int DefaultDiscoveryMaxNodesToRequest = 10;
         public const int DefaultDiscoveryPeriodInMilliSeconds = 60_000;
         public const int DefaultDiscoveryPeersToRequestCount = 5;
@@ -21,9 +21,9 @@ namespace AElf.OS.Network
         public const string AnnouncementBroadcastQueueName = "AnnouncementBroadcastQueue";
         public const string TransactionBroadcastQueueName = "TransactionBroadcastQueue";
         public const string BlockBroadcastQueueName = "BlockBroadcastQueue";
-        
+
         public const int DefaultMaxBufferedTransactionCount = 100;
-        public const int DefaultMaxBufferedBlockCount = 20;
-        public const int DefaultMaxBufferedAnnouncementCount = 100;
+        public const int DefaultMaxBufferedBlockCount = 50;
+        public const int DefaultMaxBufferedAnnouncementCount = 200;
     }
 }

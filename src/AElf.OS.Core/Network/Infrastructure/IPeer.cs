@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
@@ -14,6 +15,7 @@ namespace AElf.OS.Network.Infrastructure
         bool IsReady { get; }
         
         long LastKnownLibHeight { get; }
+        IPEndPoint RemoteEndpoint { get; }
         string IpAddress { get; }
         
         int BufferedTransactionsCount { get; }

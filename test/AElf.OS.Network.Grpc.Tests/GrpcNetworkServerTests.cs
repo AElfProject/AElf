@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
@@ -72,7 +73,7 @@ namespace AElf.OS.Network
         public async Task DialPeerAsync_HostAlreadyInPool_ShouldReturnFalse()
         {
             var peer = AddPeerToPool();
-            var added = await _networkServer.ConnectAsync(peer.IpAddress);
+            var added = await _networkServer.ConnectAsync(peer.RemoteEndpoint);
             
             added.ShouldBeFalse();
         }
@@ -80,7 +81,8 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_DialException_ShouldReturnFalse()
         {
-            var added = await _networkServer.ConnectAsync(NetworkTestConstants.DialExceptionIpEndpoint);
+            IpEndpointHelper.TryParse(NetworkTestConstants.DialExceptionIpEndpoint, out var endpoint);
+            var added = await _networkServer.ConnectAsync(endpoint);
             
             added.ShouldBeFalse();
             _peerPool.PeerCount.ShouldBe(0);
@@ -91,7 +93,9 @@ namespace AElf.OS.Network
         {
             // two different hosts with the same pubkey.
             AddPeerToPool();
-            var added = await _networkServer.ConnectAsync(NetworkTestConstants.FakeIpEndpoint2);
+            
+            IpEndpointHelper.TryParse(NetworkTestConstants.FakeIpEndpoint2, out var endpoint);
+            var added = await _networkServer.ConnectAsync(endpoint);
             
             added.ShouldBeFalse();
             _netTestHelpers.AllPeersWhereCleaned().ShouldBeTrue();
@@ -100,11 +104,13 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_GoodPeer_ShouldBeInPool()
         {
+            IpEndpointHelper.TryParse(NetworkTestConstants.GoodPeerEndpoint, out var endpoint);
+
             // two different hosts with the same pubkey.
-            var added = await _networkServer.ConnectAsync(NetworkTestConstants.GoodPeerEndpoint);
+            var added = await _networkServer.ConnectAsync(endpoint);
             
             added.ShouldBeTrue();
-            _peerPool.FindPeerByAddress(NetworkTestConstants.GoodPeerEndpoint).ShouldNotBeNull();
+            _peerPool.FindPeerByEndpoint(endpoint).ShouldNotBeNull();
         }
         
         [Fact] 
@@ -118,10 +124,11 @@ namespace AElf.OS.Network
             });
             
             // two different hosts with the same pubkey.
-            var added = await _networkServer.ConnectAsync(NetworkTestConstants.GoodPeerEndpoint);
+            IpEndpointHelper.TryParse(NetworkTestConstants.GoodPeerEndpoint, out var endpoint);
+            var added = await _networkServer.ConnectAsync(endpoint);
             
             added.ShouldBeTrue();
-            _peerPool.FindPeerByAddress(NetworkTestConstants.GoodPeerEndpoint).ShouldNotBeNull();
+            _peerPool.FindPeerByEndpoint(endpoint).ShouldNotBeNull();
             
             eventData.ShouldNotBeNull();
         }
@@ -129,7 +136,8 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_HandshakeNetProblem_ShouldReturnFalse()
         {
-            var added = await _networkServer.ConnectAsync(NetworkTestConstants.HandshakeWithNetExceptionIp);
+            IpEndpointHelper.TryParse(NetworkTestConstants.HandshakeWithNetExceptionIp, out var endpoint);
+            var added = await _networkServer.ConnectAsync(endpoint);
             
             added.ShouldBeFalse();
             _peerPool.PeerCount.ShouldBe(0);
@@ -138,7 +146,8 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_HandshakeError_ShouldReturnFalse()
         {
-            var added = await _networkServer.ConnectAsync(NetworkTestConstants.BadHandshakeIp);
+            IpEndpointHelper.TryParse(NetworkTestConstants.BadHandshakeIp, out var endpoint);
+            var added = await _networkServer.ConnectAsync(endpoint);
             
             added.ShouldBeFalse();
             _peerPool.PeerCount.ShouldBe(0);

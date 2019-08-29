@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Election;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -68,7 +68,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime);
 
-                var tester = GetAEDPoSContractTester(currentKeyPair);
+                var tester = GetAEDPoSContractStub(currentKeyPair);
 
                 var headerInformationBytes =
                     await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
@@ -96,8 +96,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             await AEDPoSContractStub.NextTerm.SendAsync(nextTermInformation.Round);
 
             // First candidate cheat others with in value.
-            var oneCandidate = GetAEDPoSContractTester(ValidationDataCenterKeyPairs[0]);
-            var anotherCandidate = GetAEDPoSContractTester(ValidationDataCenterKeyPairs[1]);
+            var oneCandidate = GetAEDPoSContractStub(ValidationDataCenterKeyPairs[0]);
+            var anotherCandidate = GetAEDPoSContractStub(ValidationDataCenterKeyPairs[1]);
             var randomHash = Hash.FromString("hash2");
             var input = new AElfConsensusTriggerInformation
             {
@@ -204,7 +204,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime);
 
-                var tester = GetAEDPoSContractTester(currentKeyPair);
+                var tester = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation =
                     (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
                         .ToBytesValue())).ToConsensusHeaderInformation();
@@ -228,8 +228,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             await AEDPoSContractStub.NextTerm.SendAsync(nextTermInformation.Round);
 
             // First candidate cheat others with in value.
-            var oneCandidate = GetAEDPoSContractTester(ValidationDataCenterKeyPairs[0]);
-            var anotherCandidate = GetAEDPoSContractTester(ValidationDataCenterKeyPairs[1]);
+            var oneCandidate = GetAEDPoSContractStub(ValidationDataCenterKeyPairs[0]);
+            var anotherCandidate = GetAEDPoSContractStub(ValidationDataCenterKeyPairs[1]);
             var randomHash = Hash.FromString("hash5");
             var informationOfSecondRound = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
                 new AElfConsensusTriggerInformation

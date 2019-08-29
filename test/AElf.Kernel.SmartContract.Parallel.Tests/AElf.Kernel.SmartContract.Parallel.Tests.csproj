@@ -38,6 +38,9 @@
         <ContractStub Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs6.proto">
+            <Link>Protobuf\Proto\acs6.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractStub>
@@ -55,7 +58,7 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.Autofac" Version="0.15.0" />
-        <PackageReference Include="Volo.Abp.TestBase" Version="0.17.0" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="0.19.0" />
+        <PackageReference Include="Volo.Abp.TestBase" Version="0.19.0" />
     </ItemGroup>
 </Project>

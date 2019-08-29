@@ -10,7 +10,7 @@ namespace AElf.OS.BlockSync.Infrastructure
 
         private ConcurrentQueue<Hash> _toBeCleanedKeys = new ConcurrentQueue<Hash>();
 
-         /// <summary>
+        /// <summary>
         /// Cache received announcement if it is new one. If not, update sender public key collection.
         /// </summary>
         /// <param name="blockHash"></param>

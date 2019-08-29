@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Acs4;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Cryptography;
 using AElf.Cryptography.SecretSharing;
@@ -95,7 +93,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime);
 
-                var tester = GetAEDPoSContractTester(currentKeyPair);
+                var tester = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation = new AElfConsensusHeaderInformation();
                 headerInformation.MergeFrom(
                     (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
@@ -137,7 +135,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 BlockTimeProvider.SetBlockTime(minerInRound.ExpectedMiningTime);
 
-                var tester = GetAEDPoSContractTester(currentKeyPair);
+                var tester = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation = new AElfConsensusHeaderInformation();
                 headerInformation.MergeFrom(
                     (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
