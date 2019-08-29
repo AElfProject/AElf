@@ -38,7 +38,7 @@ namespace AElf.OS.Network
 
         #region Lifecycle
 
-        [Fact(Skip = "problematic test")]
+        [Fact]
         public async Task Start_ShouldLaunch_NetInitEvent()
         {
             NetworkInitializedEvent eventData = null;

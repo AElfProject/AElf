@@ -1,10 +1,13 @@
+using System;
+using System.Net;
+using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
+using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -67,9 +70,9 @@ namespace AElf.OS.Network
             services.AddTransient(provider =>
             {
                 var mockService = new Mock<IConnectionService>();
-                mockService.Setup(m =>m.ConnectAsync(It.IsAny<string>()))
+                mockService.Setup(m =>m.ConnectAsync(It.IsAny<IPEndPoint>()))
                     .Returns(Task.FromResult(true));
-                mockService.Setup(m=>m.DialBackAsync(It.IsAny<string>(), It.IsAny<ConnectionInfo>()))
+                mockService.Setup(m=>m.DialBackAsync(It.IsAny<IPEndPoint>(), It.IsAny<ConnectionInfo>()))
                     .Returns(Task.FromResult(new ConnectReply
                     {
                         Error = ConnectError.ConnectOk,

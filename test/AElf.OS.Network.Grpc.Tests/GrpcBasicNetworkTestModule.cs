@@ -1,11 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
-using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
 using Grpc.Core.Testing;
@@ -150,7 +150,7 @@ namespace AElf.OS.Network
             services.AddTransient(provider =>
             {
                 var mockService = new Mock<IConnectionService>();
-                mockService.Setup(m => m.ConnectAsync(It.IsAny<string>())).Returns(Task.FromResult(true));
+                mockService.Setup(m => m.ConnectAsync(It.IsAny<IPEndPoint>())).Returns(Task.FromResult(true));
                 mockService.Setup(m => m.DisconnectAsync(It.IsAny<IPeer>(), It.IsAny<bool>()))
                     .Returns(Task.CompletedTask);
                 

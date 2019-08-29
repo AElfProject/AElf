@@ -1,13 +1,11 @@
+using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Helper;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS.Network.Domain;
 using AElf.OS.Network.Events;
@@ -15,6 +13,7 @@ using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Grpc.Core.Utils;
@@ -399,57 +398,6 @@ namespace AElf.OS.Network
             {
                 peer.IsReady.ShouldBeFalse();
             }
-        }
-
-        [Fact]
-        public void GrpcUrl_Parse_Test()
-        public async Task Auth_UnaryServerHandler_Success_Test()
-        {
-            //wrong format
-            {
-                const string address = "127.0.0.1:8000";
-                var grpcUrl = GrpcUrl.Parse(address);
-
-                grpcUrl.ShouldBeNull();
-            }
-            
-            //correct format
-            {
-                const string address = "ipv4:127.0.0.1:8000";
-                var grpcUrl = GrpcUrl.Parse(address);
-                
-                grpcUrl.IpVersion.ShouldBe("ipv4");
-                grpcUrl.IpAddress.ShouldBe("127.0.0.1");
-                grpcUrl.Port.ShouldBe(8000);
-
-                var ipPortFormat = grpcUrl.ToIpPortFormat();
-                ipPortFormat.ShouldBe("127.0.0.1:8000");
-            }
-            var authInterceptor = GetRequiredService<AuthInterceptor>();
-            
-            var continuation = new UnaryServerMethod<string, string>((s, y) => Task.FromResult(s));
-            var metadata = new Metadata
-                {{GrpcConstants.PubkeyMetadataKey, NetworkTestConstants.FakePubkey2}};
-            var context = BuildServerCallContext(metadata);
-            var headerCount = context.RequestHeaders.Count;
-            var result = await authInterceptor.UnaryServerHandler("test", context, continuation);
-            
-            result.ShouldBe("test");
-            context.RequestHeaders.Count.ShouldBeGreaterThan(headerCount);
-        }
-
-        [Fact]
-        public async Task Auth_UnaryServerHandler_Success_Test()
-        public async Task Auth_UnaryServerHandler_Failed_Test()
-        {
-            var authInterceptor = GetRequiredService<AuthInterceptor>();
-            
-            var continuation = new UnaryServerMethod<string, string>((s, y) => Task.FromResult(s));
-            var metadata = new Metadata
-                {{GrpcConstants.PubkeyMetadataKey, "invalid-pubkey"}};
-            var context = BuildServerCallContext(metadata);
-            var result = await authInterceptor.UnaryServerHandler("test", context, continuation);
-            result.ShouldBeNull();
         }
 
         [Fact]

@@ -88,7 +88,7 @@ namespace AElf.OS.Network
             AutoResetEvent executed = new AutoResetEvent(false);
 
             NetworkException exception = null;
-            bool called = false;
+            var called = false;
             _nonInterceptedPeer.EnqueueAnnouncement(new BlockAnnouncement(), ex =>
             {
                 exception = ex;
@@ -127,17 +127,6 @@ namespace AElf.OS.Network
         }
 
         [Fact]
-        public void GetRequestMetrics_Test()
-        {
-            var metrics = _grpcPeer.GetRequestMetrics();
-            metrics.Count.ShouldBe(3);
-            var dicKeys = metrics.Keys.ToList();
-            dicKeys.ShouldContain("GetBlock");
-            dicKeys.ShouldContain("GetBlocks");
-            dicKeys.ShouldContain("Announce");
-        }
-
-        [Fact]
         public async Task RequestBlockAsync_Success_Test()
         {
             var block = await _grpcPeer.GetBlockByHashAsync(Hash.FromRawBytes(new byte[] {1, 2, 7}));
@@ -164,8 +153,6 @@ namespace AElf.OS.Network
         }
 
         [Fact]
-        public async Task GetNodesAsync_Test()
-        [Fact]
         public void GetRequestMetrics_Test()
         {
             var result = _grpcPeer.GetRequestMetrics();
@@ -183,7 +170,8 @@ namespace AElf.OS.Network
             nodeList.Nodes.Count.ShouldBeGreaterThanOrEqualTo(0);
         }
 
-        public async Task DisconnectAsync_Success()
+        [Fact]
+        public async Task DisconnectAsync_Success_Test()
         {
             var nodeList = await _grpcPeer.GetNodesAsync();
             nodeList.Nodes.Count.ShouldBe(0);
