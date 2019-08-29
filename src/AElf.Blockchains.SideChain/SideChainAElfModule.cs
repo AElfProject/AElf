@@ -1,4 +1,5 @@
 ﻿using AElf.Blockchains.BasicBaseChain;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
 using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,8 @@ namespace AElf.Blockchains.SideChain
         {
             base.ConfigureServices(context);
             context.Services.AddTransient<IGenesisSmartContractDtoProvider, GenesisSmartContractDtoProvider>();
+            context.Services.AddSingleton<ISystemTransactionMethodNameListProvider,
+                SideChainSystemTransactionMethodNameListProvider>();
         }
     }
 }

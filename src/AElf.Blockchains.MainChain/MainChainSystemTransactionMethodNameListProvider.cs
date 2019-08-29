@@ -2,12 +2,11 @@ using System.Collections.Generic;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;
-using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.TransactionPool.Application;
 
 namespace AElf.Blockchains.MainChain
 {
-    public class SystemTransactionMethodNameListProvider : ISystemTransactionMethodNameListProvider
+    public class MainChainSystemTransactionMethodNameListProvider : ISystemTransactionMethodNameListProvider
     {
         public List<string> GetSystemTransactionMethodNameList()
         {

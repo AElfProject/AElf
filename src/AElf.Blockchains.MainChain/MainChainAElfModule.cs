@@ -23,7 +23,7 @@ namespace AElf.Blockchains.MainChain
             base.ConfigureServices(context);
             context.Services.AddTransient<IGenesisSmartContractDtoProvider, GenesisSmartContractDtoProvider>();
             context.Services.AddSingleton<ISystemTransactionMethodNameListProvider,
-                SystemTransactionMethodNameListProvider>();
+                MainChainSystemTransactionMethodNameListProvider>();
         }
 
         public MainChainAElfModule()
