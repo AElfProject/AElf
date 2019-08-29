@@ -7,6 +7,7 @@ using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 
@@ -51,21 +52,8 @@ namespace AElf.Kernel.TransactionPool.Application
                 return true;
             }
 
-            // Skip if this is a consensus transaction.
-            var systemTransactionMethodNameList =
-                _coreTransactionMethodNameListProvider.GetSystemTransactionMethodNameList();
-            var consensusContractAddress =
-                _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
-            if (transaction.To == consensusContractAddress &&
-                systemTransactionMethodNameList.Contains(transaction.MethodName))
-            {
-                return true;
-            }
-
-            var tokenContractAddress =
-                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
-            if (transaction.To == tokenContractAddress &&
-                systemTransactionMethodNameList.Contains(transaction.MethodName))
+            // Skip if this is a system transaction.
+            if (IsSystemTransaction(transaction))
             {
                 return true;
             }
@@ -92,6 +80,39 @@ namespace AElf.Kernel.TransactionPool.Application
             if (balance == null || balance > 0) return true;
 
             Logger.LogError($"Empty balance of tx from address: {transaction}");
+            return false;
+        }
+
+        private bool IsSystemTransaction(Transaction transaction)
+        {
+            var systemTransactionMethodNameList =
+                _coreTransactionMethodNameListProvider.GetSystemTransactionMethodNameList();
+            var consensusContractAddress =
+                _smartContractAddressService.GetAddressByContractName(
+                    SmartContractConstants.ConsensusContractSystemName);
+            if (transaction.To == consensusContractAddress &&
+                systemTransactionMethodNameList.Contains(transaction.MethodName))
+            {
+                return true;
+            }
+
+            var tokenContractAddress =
+                _smartContractAddressService.GetAddressByContractName(SmartContractConstants.TokenContractSystemName);
+            if (transaction.To == tokenContractAddress &&
+                systemTransactionMethodNameList.Contains(transaction.MethodName))
+            {
+                return true;
+            }
+
+            var crossChainContractAddress =
+                _smartContractAddressService.GetAddressByContractName(SmartContractConstants
+                    .CrossChainContractSystemName);
+            if (transaction.To == crossChainContractAddress &&
+                systemTransactionMethodNameList.Contains(transaction.MethodName))
+            {
+                return true;
+            }
+
             return false;
         }
     }

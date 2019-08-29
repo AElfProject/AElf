@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.TransactionPool.Application;
 
-namespace AElf.Kernel.Consensus.AEDPoS.Application
+namespace AElf.Blockchains.MainChain
 {
-    public class AEDPoSSystemTransactionMethodNameListProvider : ISystemTransactionMethodNameListProvider
+    public class SystemTransactionMethodNameListProvider : ISystemTransactionMethodNameListProvider
     {
         public List<string> GetSystemTransactionMethodNameList()
         {
@@ -18,7 +20,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 nameof(AEDPoSContractContainer.AEDPoSContractStub.UpdateValue),
                 nameof(AEDPoSContractContainer.AEDPoSContractStub.UpdateTinyBlockInformation),
                 nameof(TokenContractContainer.TokenContractStub.ClaimTransactionFees),
-                nameof(TokenContractContainer.TokenContractStub.DonateResourceToken)
+                nameof(TokenContractContainer.TokenContractStub.DonateResourceToken),
+                nameof(CrossChainContractContainer.CrossChainContractStub.RecordCrossChainData)
             };
         }
     }
