@@ -22,6 +22,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (!TryToGetCurrentRoundInformation(out var currentRound))
                 return ConsensusCommandProviderBase.InvalidConsensusCommand;
 
+            if (!currentRound.IsInMinerList(_processingBlockMinerPubkey))
+                return ConsensusCommandProviderBase.InvalidConsensusCommand;
+
             TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
 
             var behaviour = IsMainChain
@@ -30,7 +33,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .GetConsensusBehaviour()
                 : new SideChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey, GetMaximumBlocksCount(),
                     Context.CurrentBlockTime).GetConsensusBehaviour();
-            
 
             Context.LogDebug(() => $"{currentRound.ToString(_processingBlockMinerPubkey)}\nCurrent behaviour: {behaviour.ToString()}");
 

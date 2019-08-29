@@ -55,6 +55,8 @@ namespace AElf.Kernel.Consensus.Application
             _consensusCommand = await _readerFactory.Create(chainContext)
                 .GetConsensusCommand.CallAsync(triggerInformation);
 
+            if (_consensusCommand == null) return;
+
             Logger.LogDebug($"Updated consensus command: {_consensusCommand}");
 
             // Update next mining time, also block time of both getting consensus extra data and txs.
