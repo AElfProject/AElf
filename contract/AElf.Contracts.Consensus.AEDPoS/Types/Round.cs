@@ -257,7 +257,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private static int GetAbsModulus(long longValue, int intValue)
         {
-            return Math.Abs((int) longValue % intValue);
+            return (int) Math.Abs(longValue % intValue);
         }
     }
 }
