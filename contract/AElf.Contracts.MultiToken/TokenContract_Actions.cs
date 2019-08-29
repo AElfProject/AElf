@@ -448,7 +448,7 @@ namespace AElf.Contracts.MultiToken
             });
 
             var transferAmount = totalFee.Sub(burnAmount);
-            if (State.TreasuryContract.Donate != null)
+            if (State.TreasuryContract.Value != null)
             {
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
