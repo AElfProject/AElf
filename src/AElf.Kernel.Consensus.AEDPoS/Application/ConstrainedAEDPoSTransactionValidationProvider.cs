@@ -15,14 +15,14 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     public class ConstrainedAEDPoSTransactionValidationProvider : IConstrainedTransactionValidationProvider
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IConsensusCoreTransactionMethodNameListProvider _coreTransactionMethodNameListProvider;
+        private readonly ISystemTransactionMethodNameListProvider _coreTransactionMethodNameListProvider;
 
         public ILogger<ConstrainedAEDPoSTransactionValidationProvider> Logger { get; set; }
 
         private readonly ConcurrentDictionary<Hash, string> _alreadyHas = new ConcurrentDictionary<Hash, string>();
 
         public ConstrainedAEDPoSTransactionValidationProvider(ISmartContractAddressService smartContractAddressService,
-            IConsensusCoreTransactionMethodNameListProvider coreTransactionMethodNameListProvider)
+            ISystemTransactionMethodNameListProvider coreTransactionMethodNameListProvider)
         {
             _smartContractAddressService = smartContractAddressService;
             _coreTransactionMethodNameListProvider = coreTransactionMethodNameListProvider;
@@ -33,7 +33,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var consensusContractAddress =
                 _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
             var constrainedTransaction = new Lazy<List<string>>(() =>
-                _coreTransactionMethodNameListProvider.GetCoreTransactionMethodNameList());
+                _coreTransactionMethodNameListProvider.GetSystemTransactionMethodNameList());
             if (transaction.To == consensusContractAddress &&
                 constrainedTransaction.Value.Contains(transaction.MethodName))
             {

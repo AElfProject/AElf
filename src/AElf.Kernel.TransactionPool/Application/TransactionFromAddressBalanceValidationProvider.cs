@@ -22,7 +22,7 @@ namespace AElf.Kernel.TransactionPool.Application
         private readonly INativeTokenSymbolProvider _nativeTokenSymbolProvider;
         private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IConsensusCoreTransactionMethodNameListProvider _coreTransactionMethodNameListProvider;
+        private readonly ISystemTransactionMethodNameListProvider _coreTransactionMethodNameListProvider;
 
         public ILogger<TransactionFromAddressBalanceValidationProvider> Logger { get; set; }
 
@@ -31,7 +31,7 @@ namespace AElf.Kernel.TransactionPool.Application
             INativeTokenSymbolProvider nativeTokenSymbolProvider,
             IDeployedContractAddressProvider deployedContractAddressProvider,
             ISmartContractAddressService smartContractAddressService,
-            IConsensusCoreTransactionMethodNameListProvider coreTransactionMethodNameListProvider)
+            ISystemTransactionMethodNameListProvider coreTransactionMethodNameListProvider)
         {
             _blockchainService = blockchainService;
             _tokenContractReaderFactory = tokenContractReaderFactory;
@@ -52,11 +52,20 @@ namespace AElf.Kernel.TransactionPool.Application
             }
 
             // Skip if this is a consensus transaction.
+            var systemTransactionMethodNameList =
+                _coreTransactionMethodNameListProvider.GetSystemTransactionMethodNameList();
             var consensusContractAddress =
                 _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
             if (transaction.To == consensusContractAddress &&
-                _coreTransactionMethodNameListProvider.GetCoreTransactionMethodNameList()
-                    .Contains(transaction.MethodName))
+                systemTransactionMethodNameList.Contains(transaction.MethodName))
+            {
+                return true;
+            }
+
+            var tokenContractAddress =
+                _smartContractAddressService.GetAddressByContractName(TokenSmartContractAddressNameProvider.Name);
+            if (transaction.To == tokenContractAddress &&
+                systemTransactionMethodNameList.Contains(transaction.MethodName))
             {
                 return true;
             }
