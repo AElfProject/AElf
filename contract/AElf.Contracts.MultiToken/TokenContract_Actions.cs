@@ -477,20 +477,20 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty DonateResourceToken(Empty input)
         {
+            var isMainChain = true;
             if (State.TreasuryContract.Value == null)
             {
                 var treasuryContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
                 if (treasuryContractAddress == null)
                 {
-                    // Which means Treasury Contract didn't deployed yet. Ignore this method.
-                    return new Empty();
+                    isMainChain = false;
                 }
-
-                State.TreasuryContract.Value = treasuryContractAddress;
+                else
+                {
+                    State.TreasuryContract.Value = treasuryContractAddress;
+                }
             }
-            
-            // TODO: Adapter side chain.
 
             var transactions = Context.GetPreviousBlockTransactions();
             foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"RAM"}))
@@ -511,12 +511,24 @@ namespace AElf.Contracts.MultiToken
 
                 if (totalAmount > 0)
                 {
-                    State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalAmount);
-                    State.TreasuryContract.Donate.Send(new DonateInput
+                    if (isMainChain)
                     {
-                        Symbol = symbol,
-                        Amount = totalAmount
-                    });
+                        // Main Chain.
+                        State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalAmount);
+                        State.TreasuryContract.Donate.Send(new DonateInput
+                        {
+                            Symbol = symbol,
+                            Amount = totalAmount
+                        });
+                    }
+                    else
+                    {
+                        // Side Chain
+                        var consensusContractAddress =
+                            Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+                        State.Balances[consensusContractAddress][symbol] =
+                            State.Balances[consensusContractAddress][symbol].Add(totalAmount);
+                    }
                 }
             }
 
