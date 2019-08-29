@@ -6,9 +6,11 @@ using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Sdk.CSharp;
+using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Org.BouncyCastle.Asn1.Cms;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 using Volo.Abp.EventBus.Local;
@@ -53,35 +55,27 @@ namespace AElf.Kernel
                         return;
                     }
 
-                    if (eventData.MiningDueTime < TimestampHelper.GetUtcNow())
+                    if (!ValidateBlockMiningTime(eventData.BlockTime, eventData.MiningDueTime,
+                        eventData.BlockExecutionTime))
                     {
-                        Logger.LogWarning("Mining canceled because mining time slot expired.");
-                        return;
-                    }
-                    
-                    if (eventData.BlockTime > new Timestamp {Seconds = 3600} &&
-                        eventData.BlockTime + eventData.BlockExecutionTime <
-                        TimestampHelper.GetUtcNow())
-                    {
-                        Logger.LogTrace(
-                            $"Will cancel mining due to timeout: Actual mining time: {eventData.BlockTime}, " +
-                            $"execution limit: {eventData.BlockExecutionTime.Milliseconds()} ms.");
-
-                        await _consensusService.TriggerConsensusAsync(new ChainContext
-                        {
-                            BlockHash = chain.BestChainHash,
-                            BlockHeight = chain.BestChainHeight
-                        });
+                        await TriggerConsensusEventAsync(chain.BestChainHash, chain.BestChainHeight);
                         return;
                     }
 
-                    var now = TimestampHelper.GetUtcNow();
-                    var blockExecutionDuration = now + eventData.BlockExecutionTime < eventData.MiningDueTime
-                        ? eventData.BlockExecutionTime
-                        : eventData.MiningDueTime - now;
+                    var blockExecutionDuration =
+                        CalculateBlockMiningDuration(eventData.BlockTime, eventData.BlockExecutionTime);
 
-                    var block = await _minerService.MineAsync(eventData.PreviousBlockHash,
-                        eventData.PreviousBlockHeight, eventData.BlockTime, blockExecutionDuration);
+                    Block block;
+                    try
+                    {
+                        block = await _minerService.MineAsync(eventData.PreviousBlockHash,
+                            eventData.PreviousBlockHeight, eventData.BlockTime, blockExecutionDuration);
+                    }
+                    catch (Exception)
+                    {
+                        await TriggerConsensusEventAsync(chain.BestChainHash, chain.BestChainHeight);
+                        throw;
+                    }
 
                     if (TimestampHelper.GetUtcNow() <= eventData.MiningDueTime)
                     {
@@ -90,10 +84,9 @@ namespace AElf.Kernel
                         await LocalEventBus.PublishAsync(new BlockMinedEventData
                         {
                             BlockHeader = block.Header,
-                            HasFork = block.Height <= chain.BestChainHeight
+//                            HasFork = block.Height <= chain.BestChainHeight
                         });
-
-                        // Self mined block do not need do verify
+                        
                         _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
                             KernelConstants.UpdateChainQueueName);
                     }
@@ -101,11 +94,7 @@ namespace AElf.Kernel
                     {
                         Logger.LogWarning(
                             $"Discard block {block.Height} and trigger once again because mining time slot expired. MiningDueTime : {eventData.MiningDueTime}");
-                        await _consensusService.TriggerConsensusAsync(new ChainContext
-                        {
-                            BlockHash = chain.BestChainHash,
-                            BlockHeight = chain.BestChainHeight
-                        });
+                        await TriggerConsensusEventAsync(chain.BestChainHash, chain.BestChainHeight);
                     }
                 }, KernelConstants.ConsensusRequestMiningQueueName);
             }
@@ -114,6 +103,49 @@ namespace AElf.Kernel
                 Logger.LogError(e.ToString());
                 throw;
             }
+        }
+
+        private async Task TriggerConsensusEventAsync(Hash blockHash, long blockHeight)
+        {
+            await _consensusService.TriggerConsensusAsync(new ChainContext
+            {
+                BlockHash = blockHash,
+                BlockHeight = blockHeight
+            });
+        }
+
+        private bool ValidateBlockMiningTime(Timestamp blockTime, Timestamp miningDueTime,
+            Duration blockExecutionDuration)
+        {
+            if (miningDueTime < blockTime + blockExecutionDuration)
+            {
+                Logger.LogWarning("Mining canceled because mining time slot expired.");
+                return false;
+            }
+                    
+            if (!IsGenesisBlockMining(blockTime) && blockTime + blockExecutionDuration < TimestampHelper.GetUtcNow())
+            {
+                Logger.LogTrace($"Will cancel mining due to timeout: Actual mining time: {blockTime}, " +
+                                $"execution limit: {blockExecutionDuration.Milliseconds()} ms.");
+                return false;
+            }
+
+            return true;
+        }
+
+        private Duration CalculateBlockMiningDuration(Timestamp blockTime, Duration expectedDuration)
+        {
+            if (IsGenesisBlockMining(blockTime))
+            {
+                return expectedDuration;
+            }
+            
+            return blockTime + expectedDuration - TimestampHelper.GetUtcNow();
+        }
+
+        private bool IsGenesisBlockMining(Timestamp blockTime)
+        {
+            return blockTime < new Timestamp {Seconds = 3600};
         }
     }
 }
