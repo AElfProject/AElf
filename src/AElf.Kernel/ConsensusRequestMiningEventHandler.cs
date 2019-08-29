@@ -53,6 +53,12 @@ namespace AElf.Kernel
                         return;
                     }
 
+                    if (eventData.MiningDueTime < TimestampHelper.GetUtcNow())
+                    {
+                        Logger.LogWarning("Mining canceled because mining time slot expired.");
+                        return;
+                    }
+                    
                     if (eventData.BlockTime > new Timestamp {Seconds = 3600} &&
                         eventData.BlockTime + eventData.BlockExecutionTime <
                         TimestampHelper.GetUtcNow())
@@ -94,7 +100,7 @@ namespace AElf.Kernel
                     else
                     {
                         Logger.LogWarning(
-                            $"Trigger once again because of miningDueTime expiration. MiningDueTime : {eventData.MiningDueTime}");
+                            $"Discard block {block.Height} and trigger once again because mining time slot expired. MiningDueTime : {eventData.MiningDueTime}");
                         await _consensusService.TriggerConsensusAsync(new ChainContext
                         {
                             BlockHash = chain.BestChainHash,
