@@ -33,6 +33,9 @@ service AEDPoSContract {
     rpc SetMaximumMinersCount (aelf.SInt32Value) returns (google.protobuf.Empty) {
     }
 
+    rpc GetMaximumBlocksCount (google.protobuf.Empty) returns (aelf.SInt32Value) {
+    }
+
     // Views
     rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
         option (aelf.is_view) = true;

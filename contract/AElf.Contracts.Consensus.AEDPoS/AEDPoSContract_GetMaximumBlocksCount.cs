@@ -1,11 +1,18 @@
 using System;
 using System.Linq;
 using AElf.Sdk.CSharp;
+using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSContract
     {
+        public override SInt32Value GetMaximumBlocksCount(Empty input)
+        {
+            return new SInt32Value {Value = GetMaximumBlocksCount()};
+        }
+
         /// <summary>
         /// Implemented GitHub PR #1952.
         /// Adjust (mainly reduce) the count of tiny blocks produced by a miner each time to avoid too many forks.
@@ -13,20 +20,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         private int GetMaximumBlocksCount()
         {
-            if (_minimumBlocksCount != 0)
+            if (_maximumBlocksCount != 0)
             {
-                return _minimumBlocksCount;
+                return _maximumBlocksCount;
             }
 
-            _minimumBlocksCount = AEDPoSContractConstants.MaximumTinyBlocksCount;
+            _maximumBlocksCount = AEDPoSContractConstants.MaximumTinyBlocksCount;
 
             TryToGetCurrentRoundInformation(out var currentRound, true);
             var libRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber;
             var libBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;
             var currentHeight = Context.CurrentHeight;
             var currentRoundNumber = currentRound.RoundNumber;
-            
-            Context.LogDebug(() => $"R_LIB: {libRoundNumber}\nH_LIB:{libBlockHeight}\nR:{currentRoundNumber}\nH:{currentHeight}");
+
+            Context.LogDebug(() =>
+                $"R_LIB: {libRoundNumber}\nH_LIB:{libBlockHeight}\nR:{currentRoundNumber}\nH:{currentHeight}");
 
             if (libRoundNumber == 0)
             {
@@ -57,7 +65,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .Div((int) currentRound.RoundNumber.Sub(libRoundNumber))
                     .Add(1));
                 Context.LogDebug(() => $"Maximum blocks count tune to {count}");
-                _minimumBlocksCount = count;
+                _maximumBlocksCount = count;
                 return count;
             }
 
@@ -69,7 +77,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     DistanceToIrreversibleBlockHeight = currentHeight.Sub(libBlockHeight)
                 });
-                _minimumBlocksCount = 1;
+                _maximumBlocksCount = 1;
                 return 1;
             }
 
