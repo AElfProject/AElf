@@ -109,7 +109,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     LimitMillisecondsOfMiningBlock = isAlone
                         ? currentRound.GetMiningInterval()
                         : behaviour == AElfConsensusBehaviour.NextTerm
-                            ? miningInterval
+                            ? miningInterval.Mul(AEDPoSContractConstants.LimitBlockExecutionTimeWeight)
+                                .Div(AEDPoSContractConstants.LimitBlockExecutionTimeTotalShares)
                             : limitMillisecondsOfMiningBlock,
                     Hint = new AElfConsensusHint {Behaviour = behaviour}.ToByteString(),
                     MiningDueTime = miningDueTime
@@ -300,6 +301,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             if (TryToGetPreviousRoundInformation(out var previousRound))
             {
+                if (previousRound.RealTimeMinersInformation.Count == 1)
+                {
+                    return false;
+                }
+                
                 var minedMiners = previousRound.GetMinedMiners();
                 return minedMiners.Count == 1 &&
                        minedMiners.Select(m => m.Pubkey).Contains(publicKey);

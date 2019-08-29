@@ -117,13 +117,17 @@ namespace AElf.Kernel
         private bool ValidateBlockMiningTime(Timestamp blockTime, Timestamp miningDueTime,
             Duration blockExecutionDuration)
         {
+            if (IsGenesisBlockMining(blockTime))
+                return true;
+            
             if (miningDueTime < blockTime + blockExecutionDuration)
             {
-                Logger.LogWarning("Mining canceled because mining time slot expired.");
+                Logger.LogWarning(
+                    $"Mining canceled because mining time slot expired. MiningDueTime: {miningDueTime}, BlockTime: {blockTime}, Duration: {blockExecutionDuration}");
                 return false;
             }
                     
-            if (!IsGenesisBlockMining(blockTime) && blockTime + blockExecutionDuration < TimestampHelper.GetUtcNow())
+            if (blockTime + blockExecutionDuration < TimestampHelper.GetUtcNow())
             {
                 Logger.LogTrace($"Will cancel mining due to timeout: Actual mining time: {blockTime}, " +
                                 $"execution limit: {blockExecutionDuration.Milliseconds()} ms.");
@@ -136,9 +140,7 @@ namespace AElf.Kernel
         private Duration CalculateBlockMiningDuration(Timestamp blockTime, Duration expectedDuration)
         {
             if (IsGenesisBlockMining(blockTime))
-            {
                 return expectedDuration;
-            }
             
             return blockTime + expectedDuration - TimestampHelper.GetUtcNow();
         }
