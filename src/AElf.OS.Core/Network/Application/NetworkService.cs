@@ -166,6 +166,7 @@ namespace AElf.OS.Network.Application
         
         public Task BroadcastTransactionAsync(Transaction transaction)
         {
+            return Task.CompletedTask;
             foreach (var peer in _peerPool.GetPeers())
             {
                 try
