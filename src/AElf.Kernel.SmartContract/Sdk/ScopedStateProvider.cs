@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Types;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel.SmartContract.Sdk
 {
@@ -25,14 +26,14 @@ namespace AElf.Kernel.SmartContract.Sdk
 
         public Address ContractAddress { get; set; }
 
-        public async Task<byte[]> GetAsync(StatePath path)
+        public byte[] Get(StatePath path)
         {
             var scoped = new ScopedStatePath()
             {
                 Address = ContractAddress,
                 Path = path
             };
-            var byteString = await HostSmartContractBridgeContext.GetStateAsync(scoped.ToStateKey());
+            var byteString = AsyncHelper.RunSync(()=> HostSmartContractBridgeContext.GetStateAsync(scoped.ToStateKey()));
             return byteString?.ToByteArray();
         }
     }

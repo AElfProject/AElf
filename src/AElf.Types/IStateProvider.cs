@@ -6,6 +6,6 @@ namespace AElf
 {
     public interface IStateProvider
     {
-        Task<byte[]> GetAsync(StatePath path);
+        byte[] Get(StatePath path);
     }
 }

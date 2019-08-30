@@ -74,7 +74,7 @@ namespace AElf.Sdk.CSharp.State
         private ValuePair LoadKey(TKey key)
         {
             var path = GetSubStatePath(key.ToString());
-            var bytes = Provider.GetAsync(path).Result;
+            var bytes = Provider.Get(path);
             var value = SerializationHelper.Deserialize<TEntity>(bytes);
             var originalValue = SerializationHelper.Deserialize<TEntity>(bytes);
 

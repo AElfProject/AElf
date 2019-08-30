@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Database.RedisProtocol;
 using Volo.Abp;
@@ -27,26 +28,26 @@ namespace AElf.Database
         public async Task<byte[]> GetAsync(string key)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
-            return _pooledRedisLite.Get(key);
+            return await Task.Run(() => _pooledRedisLite.Get(key));
         }
 
         public async Task SetAsync(string key, byte[] bytes)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
-            _pooledRedisLite.Set(key, bytes);
+            await Task.Run(() => _pooledRedisLite.Set(key, bytes));
         }
 
         public async Task RemoveAsync(string key)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
-            _pooledRedisLite.Remove(key);
+            await Task.Run(() => _pooledRedisLite.Remove(key));
         }
 
         public async Task SetAllAsync(Dictionary<string, byte[]> cache)
         {
             if (cache.Count == 0)
                 return;
-            _pooledRedisLite.SetAll(cache);
+            await Task.Run(() => _pooledRedisLite.SetAll(cache));
         }
     }
 }
