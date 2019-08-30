@@ -30,20 +30,20 @@ namespace AElf.OS
         {
             _peerDiscoveryWorker.ShouldNotBeNull();
 
-            var peerCount = _networkService.GetPeers().Count;
+            var beforePeers = _networkService.GetPeers().Count;
 
             await _peerDiscoveryWorker.ProcessPeerDiscoveryJob();
 
-            var peerCount1 = _networkService.GetPeers().Count;
-            peerCount.ShouldBe(peerCount1);
+            var afterDiscoveryPeers = _networkService.GetPeers().Count;
+            beforePeers.ShouldBe(afterDiscoveryPeers);
 
             var peer = CreateNewPeer();
             peer.IsConnected = true;
             _peerPool.TryAddPeer(peer);
             
             await _peerDiscoveryWorker.ProcessPeerDiscoveryJob();
-            var peerCount2 = _networkService.GetPeers().Count;
-            peerCount2.ShouldBe(peerCount + 1);
+            afterDiscoveryPeers = _networkService.GetPeers().Count;
+            afterDiscoveryPeers.ShouldBe(beforePeers + 1);
         }
 
         private GrpcPeer CreateNewPeer()
