@@ -34,7 +34,6 @@ namespace AElf.Contracts.TestBase
             // When testing contract and packaging transactions, no need to generate and schedule real consensus stuff.
             context.Services.AddSingleton(o => Mock.Of<IConsensusService>());
             context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
-            context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
 //            Configure<ChainOptions>(o => { o.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
 
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
