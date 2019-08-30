@@ -19,7 +19,7 @@ namespace AElf.OS.Network.Grpc
     {
         private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
-        
+
         private readonly IConnectionInfoProvider _connectionInfoProvider;
         private readonly IAccountService _accountService;
 
@@ -38,49 +38,51 @@ namespace AElf.OS.Network.Grpc
         {
             var client = CreateClient(endpoint);
             var connectionInfo = await _connectionInfoProvider.GetConnectionInfoAsync();
-            
+
             ConnectReply connectReply = await CallConnectAsync(client, endpoint, connectionInfo);
 
             if (connectReply?.Info?.Pubkey == null || connectReply.Error != ConnectError.ConnectOk)
             {
                 await CleanupAndGetExceptionAsync($"Connect error: {connectReply?.Error}.", client.Channel);
             }
-            
-            return new GrpcPeer(client, endpoint, connectReply.Info.ToPeerInfo(isInbound: false));
+
+            return new GrpcPeer(client, endpoint, connectReply?.Info.ToPeerInfo(isInbound: false));
         }
 
         /// <summary>
         /// Calls the server side connect RPC method, in order to establish a 2-way connection.
         /// </summary>
         /// <returns>The reply from the server.</returns>
-        private async Task<ConnectReply> CallConnectAsync(GrpcClient client, IPEndPoint ipAddress, 
+        private async Task<ConnectReply> CallConnectAsync(GrpcClient client, IPEndPoint ipAddress,
             ConnectionInfo connectionInfo)
         {
             ConnectReply connectReply = null;
-            
+
             try
             {
-                var metadata = new Metadata {
-                    {GrpcConstants.TimeoutMetadataKey, (NetworkOptions.PeerDialTimeoutInMilliSeconds*2).ToString()}};
-                
-                connectReply = await client.Client.ConnectAsync(new ConnectRequest { Info = connectionInfo }, metadata);
+                var metadata = new Metadata
+                {
+                    {GrpcConstants.TimeoutMetadataKey, (NetworkOptions.PeerDialTimeoutInMilliSeconds * 2).ToString()}
+                };
+
+                connectReply = await client.Client.ConnectAsync(new ConnectRequest {Info = connectionInfo}, metadata);
             }
             catch (AggregateException ex)
             {
                 await CleanupAndGetExceptionAsync($"Could not connect to {ipAddress}.", client.Channel, ex);
             }
-            
+
             return connectReply;
         }
-        
+
         public async Task<GrpcPeer> DialBackPeer(IPEndPoint endpoint, ConnectionInfo peerConnectionInfo)
         {
             var client = CreateClient(endpoint);
-            
+
             await PingNodeAsync(client, endpoint);
             return new GrpcPeer(client, endpoint, peerConnectionInfo.ToPeerInfo(isInbound: true));
         }
-        
+
         /// <summary>
         /// Checks that the distant node is reachable by pinging it.
         /// </summary>
@@ -89,9 +91,11 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                var metadata = new Metadata {
-                    {GrpcConstants.TimeoutMetadataKey, NetworkOptions.PeerDialTimeoutInMilliSeconds.ToString()}};
-                
+                var metadata = new Metadata
+                {
+                    {GrpcConstants.TimeoutMetadataKey, NetworkOptions.PeerDialTimeoutInMilliSeconds.ToString()}
+                };
+
                 await client.Client.PingAsync(new PingRequest(), metadata);
             }
             catch (AggregateException ex)
@@ -99,13 +103,13 @@ namespace AElf.OS.Network.Grpc
                 await CleanupAndGetExceptionAsync($"Could not ping {ipAddress}.", client.Channel, ex);
             }
         }
-        
+
         private async Task CleanupAndGetExceptionAsync(string exceptionMessage, Channel channel, Exception inner = null)
         {
             await channel.ShutdownAsync();
             throw new PeerDialException(exceptionMessage, inner);
         }
-        
+
         /// <summary>
         /// Creates a channel/client pair with the appropriate options and interceptors.
         /// </summary>
@@ -115,11 +119,11 @@ namespace AElf.OS.Network.Grpc
             var channel = new Channel(endpoint.ToString(), ChannelCredentials.Insecure, new List<ChannelOption>
             {
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
-                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
+                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength),
+                new ChannelOption(GrpcConstants.DefaultCompressionLevelKey, (int) CompressionLevel.Medium)
             });
-            
+
             var nodePubkey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex();
-            
             var interceptedChannel = channel.Intercept(metadata =>
             {
                 metadata.Add(GrpcConstants.PubkeyMetadataKey, nodePubkey);
