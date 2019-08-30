@@ -24,12 +24,14 @@ namespace AElf.Contracts.Economic
         public const long CpuUnitPrice = 100;
         public const long StoUnitPrice = 100;
         public const long NetUnitPrice = 100;
-        public const long CpuAmount = 100_000_000;
-        public const long StoAmount = 100_000_000;
-        public const long NetAmount = 100_000_000;
+        public const long CpuConnector = 100_000_000;
+        public const long StoConnector = 100_000_000;
+        public const long NetConnector = 100_000_000;
+        public const long RamConnector = 100_000_000;
         public const long CpuRelayConnectorInitialVirtualBalance = 1_000_000;
         public const long StoRelayConnectorInitialVirtualBalance = 1_000_000;
         public const long NetRelayConnectorInitialVirtualBalance = 1_000_000;
+        public const long RamRelayConnectorInitialVirtualBalance = 1_000_000;
 
         // Election related.
         public const string ElectionTokenSymbol = "VOTE";
