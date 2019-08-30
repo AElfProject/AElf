@@ -173,16 +173,23 @@ namespace AElf.OS.Network
         [Fact]
         public async Task DisconnectAsync_Success_Test()
         {
-            var nodeList = await _grpcPeer.GetNodesAsync();
-            nodeList.Nodes.Count.ShouldBe(0);
-        }
+            var peers = _pool.GetPeers(true);
+            peers.Count.ShouldBe(2);
 
+            await _grpcPeer.DisconnectAsync(true);
+            peers = _pool.GetPeers(true);
+            peers.Count.ShouldBe(1);
+        }
+        
         [Fact]
-        public async Task Peer_DisconnectAsync_Test()
+        public async Task DisconnectAsync_Test()
         {
+            var isReady = _grpcPeer.IsReady;
+            isReady.ShouldBeTrue();
+            
             await _grpcPeer.DisconnectAsync(true);
             
-            var isReady = _grpcPeer.IsReady;
+            isReady = _grpcPeer.IsReady;
             isReady.ShouldBeFalse();
         }
 
