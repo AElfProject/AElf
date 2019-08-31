@@ -68,9 +68,11 @@ namespace AElf.OS.BlockSync.Application
                         async () =>
                         {
                             await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions,
+                                downloadBlockDto.SuggestedPeerPubkey,
                                 async () =>
                                 {
-                                    _blockSyncStateProvider.TryUpdateDownloadJobTargetState(blockWithTransactions.GetHash(),true);
+                                    _blockSyncStateProvider.TryUpdateDownloadJobTargetState(
+                                        blockWithTransactions.GetHash(), true);
                                 });
                         },
                         OSConstants.BlockSyncAttachQueueName);

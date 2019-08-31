@@ -46,7 +46,11 @@ namespace AElf.OS.BlockSync.Application
             }
 
             _blockSyncQueueService.Enqueue(
-                async () => { await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions); },
+                async () =>
+                {
+                    await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions,
+                        suggestedPeerPubKey);
+                },
                 OSConstants.BlockSyncAttachQueueName);
 
             return true;

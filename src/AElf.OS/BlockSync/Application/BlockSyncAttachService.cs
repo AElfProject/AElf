@@ -34,7 +34,7 @@ namespace AElf.OS.BlockSync.Application
         }
 
         public async Task AttachBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions,
-            Func<Task> attachFinishedCallback =null)
+            string senderPubkey, Func<Task> attachFinishedCallback = null)
         {
             var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
             if (!valid)
@@ -46,7 +46,7 @@ namespace AElf.OS.BlockSync.Application
             await _blockchainService.AddTransactionsAsync(blockWithTransactions.Transactions);
             var block = blockWithTransactions.ToBlock();
             await _blockchainService.AddBlockAsync(block);
- 
+
             _blockSyncQueueService.Enqueue(async () =>
                 {
                     try

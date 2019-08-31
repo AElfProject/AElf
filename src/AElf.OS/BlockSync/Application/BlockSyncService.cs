@@ -59,7 +59,7 @@ namespace AElf.OS.BlockSync.Application
             if (syncBlockDto.BlockWithTransactions.Height <=
                 chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset)
             {
-                EnqueueSyncBlockJob(syncBlockDto.BlockWithTransactions);
+                EnqueueSyncBlockJob(syncBlockDto.BlockWithTransactions, syncBlockDto.SuggestedPeerPubkey);
             }
             else
             {
@@ -96,12 +96,12 @@ namespace AElf.OS.BlockSync.Application
             }, OSConstants.BlockFetchQueueName);
         }
 
-        private void EnqueueSyncBlockJob(BlockWithTransactions blockWithTransactions)
+        private void EnqueueSyncBlockJob(BlockWithTransactions blockWithTransactions, string senderPubkey)
         {
             _blockSyncQueueService.Enqueue(async () =>
             {
                 Logger.LogTrace($"Block sync: sync block, block: {blockWithTransactions}.");
-                await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions);
+                await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions, senderPubkey);
             }, OSConstants.BlockSyncAttachQueueName);
         }
 
