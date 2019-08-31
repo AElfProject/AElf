@@ -3,6 +3,8 @@ using AElf.Contracts.Genesis;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
@@ -13,11 +15,15 @@ namespace AElf.Kernel.TransactionPool.Application
         private readonly IBlockchainService _blockchainService;
         private readonly IZeroContractReaderFactory _zeroContractReaderFactory;
 
+        public ILogger<DeployedContractAddressProvider> Logger { get; set; }
+
         public DeployedContractAddressProvider(IBlockchainService blockchainService,
             IZeroContractReaderFactory zeroContractReaderFactory)
         {
             _blockchainService = blockchainService;
             _zeroContractReaderFactory = zeroContractReaderFactory;
+            
+            Logger = new NullLogger<DeployedContractAddressProvider>();
         }
 
         public async Task<AddressList> GetDeployedContractAddressListAsync()
@@ -39,6 +45,8 @@ namespace AElf.Kernel.TransactionPool.Application
         public void AddDeployedContractAddress(Address address)
         {
             _addressList.Value.Add(address);
+
+            Logger.LogInformation($"# Added deployed contract address: {address}");
         }
     }
 }
