@@ -177,13 +177,13 @@ namespace AElf.OS.Network.Application
         
         public Task BroadcastTransactionAsync(Transaction transaction)
         {
-            if (_transactionCache.Count < TransactionCacheMaxSize)
-            {
-                _transactionCache.Push(transaction);
-                return Task.CompletedTask;
-            }
-
-            BroadcastCachedTransaction();
+//            if (_transactionCache.Count < TransactionCacheMaxSize)
+//            {
+//                _transactionCache.Push(transaction);
+//                return Task.CompletedTask;
+//            }
+//
+//            BroadcastCachedTransaction();
 
             return Task.CompletedTask;
         }
