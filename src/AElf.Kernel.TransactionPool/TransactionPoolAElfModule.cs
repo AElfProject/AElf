@@ -18,7 +18,7 @@ namespace AElf.Kernel.TransactionPool
             services.AddSingleton<ITransactionValidationService, TransactionValidationForTxHubService>();
             services.AddSingleton<ITransactionValidationProvider, BasicTransactionValidationProvider>();
             services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
-            services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
+            //services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
             services.AddSingleton<IDeployedContractAddressProvider, DeployedContractAddressProvider>();
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
 
