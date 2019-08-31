@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
@@ -12,6 +13,7 @@ namespace AElf.Kernel.Blockchain.Application
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly ITransactionBlockIndexManager _transactionBlockIndexManager;
         private readonly IBlockchainService _blockchainService;
+        public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITransactionResultManager transactionResultManager,
             ITransactionBlockIndexManager transactionBlockIndexManager,
@@ -28,7 +30,8 @@ namespace AElf.Kernel.Blockchain.Application
             while (true)
             {
                 var block = await _blockchainService.GetBlockByHashAsync(blockHash);
-
+                Logger.LogTrace($"Handle lib for transactions of block {block.Height}");
+                
                 var preMiningHash = block.Header.GetPreMiningHash();
                 var transactionBlockIndex = new TransactionBlockIndex()
                 {

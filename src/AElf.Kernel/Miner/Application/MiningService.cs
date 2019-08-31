@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -114,7 +112,8 @@ namespace AElf.Kernel.Miner.Application
                 await SignBlockAsync(block);
                 Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
                                       $"previous: {block.Header.PreviousBlockHash}, " +
-                                      $"transactions: {block.Body.TransactionsCount}");
+                                      $"executed transactions: {block.Body.TransactionsCount}, " +
+                                      $"not executed transactions {transactions.Count + systemTransactions.Count - block.Body.TransactionsCount}");
                 return block;
             }
         }

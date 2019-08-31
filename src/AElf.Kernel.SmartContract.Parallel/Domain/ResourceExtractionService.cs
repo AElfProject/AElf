@@ -124,6 +124,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
         {
+            Logger.LogTrace("Handle lib found event for resource cache.--- Start");
             var contractInfoCache = _smartContractExecutiveService.GetContractInfoCache();
             var addresses = contractInfoCache.Where(c => c.Value <= eventData.BlockHeight).Select(c => c.Key).ToArray();
             var transactionIds = _resourceCache.Where(c => c.Value.Address.IsIn(addresses) && c.Value.ResourceInfo.ParallelType != ParallelType.NonParallelizable).Select(c => c.Key);
@@ -132,7 +133,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 .Where(c => c.Value.RefBlockNumber <= eventData.BlockHeight)
                 .Select(c => c.Key)).Distinct());
             _smartContractExecutiveService.ClearContractInfoCache(eventData.BlockHeight);
-
+            Logger.LogTrace("Handle lib found event for resource cache.--- End");
             await Task.CompletedTask;
         }
 
