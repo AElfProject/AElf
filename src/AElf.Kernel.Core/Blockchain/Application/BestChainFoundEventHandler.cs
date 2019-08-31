@@ -26,8 +26,7 @@ namespace AElf.Kernel.Blockchain.Application
         
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
-            var blockHash = eventData.BlockHash;
-            foreach (var VARIABLE in eventData.ExecutedBlocks)
+            foreach (var blockHash in eventData.ExecutedBlocks)
             {
                 var block = await _blockchainService.GetBlockByHashAsync(blockHash);
                 Logger.LogTrace($"Handle lib for transactions of block {block.Height}");
@@ -76,13 +75,6 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     await _transactionBlockIndexManager.SetTransactionBlockIndexAsync(txId, transactionBlockIndex);
                 }
-
-                if (block.Height <= eventData.PreviousIrreversibleBlockHeight)
-                {
-                    break;
-                }
-
-                blockHash = block.Header.PreviousBlockHash;
             }
         }
     }
