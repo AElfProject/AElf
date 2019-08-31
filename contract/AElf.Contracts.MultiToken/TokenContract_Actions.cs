@@ -337,6 +337,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
         {
+            Context.LogDebug(() => $"Start executing ChargeResourceToken.{input}");
             if (input.Equals(new ChargeResourceTokenInput()))
             {
                 return new Empty();
@@ -350,12 +351,15 @@ namespace AElf.Contracts.MultiToken
             };
             foreach (var pair in symbolToAmount)
             {
+                Context.LogDebug(() => $"Charging {pair.Value} {pair.Key} tokens.");
                 var existingBalance = State.Balances[Context.Sender][pair.Key];
                 Assert(existingBalance >= pair.Value,
                     $"Insufficient resource. {pair.Key}: {existingBalance} / {pair.Value}");
                 State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key] =
                     State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key].Add(pair.Value);
             }
+            
+            Context.LogDebug(() => "Finished executing ChargeResourceToken.");
 
             return new Empty();
         }
