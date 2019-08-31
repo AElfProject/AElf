@@ -35,7 +35,8 @@ namespace AElf.Kernel.Blockchain.Application
                 var preMiningHash = block.Header.GetPreMiningHash();
                 var transactionBlockIndex = new TransactionBlockIndex()
                 {
-                    BlockHash = blockHash
+                    BlockHash = blockHash,
+                    BlockHeight = block.Height
                 };
                 if (block.Body.TransactionIds.Count == 0)
                 {
