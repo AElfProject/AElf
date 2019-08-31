@@ -8,14 +8,14 @@ using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.Blockchain.Application
 {
-    public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>, ITransientDependency
+    public class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>, ITransientDependency
     {
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly ITransactionBlockIndexManager _transactionBlockIndexManager;
         private readonly IBlockchainService _blockchainService;
-        public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
+        public ILogger<BestChainFoundEventHandler> Logger { get; set; }
 
-        public NewIrreversibleBlockFoundEventHandler(ITransactionResultManager transactionResultManager,
+        public BestChainFoundEventHandler(ITransactionResultManager transactionResultManager,
             ITransactionBlockIndexManager transactionBlockIndexManager,
             IBlockchainService blockchainService)
         {
@@ -24,10 +24,10 @@ namespace AElf.Kernel.Blockchain.Application
             _blockchainService = blockchainService;
         }
         
-        public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
+        public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
             var blockHash = eventData.BlockHash;
-            while (true)
+            foreach (var VARIABLE in eventData.ExecutedBlocks)
             {
                 var block = await _blockchainService.GetBlockByHashAsync(blockHash);
                 Logger.LogTrace($"Handle lib for transactions of block {block.Height}");

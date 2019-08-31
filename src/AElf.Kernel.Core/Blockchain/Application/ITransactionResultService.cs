@@ -43,6 +43,8 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var transactionBlockIndex =
                 await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(transactionId);
+
+            var isInBestChain = await _blockchainService.GetBlockByHeightInBestChainBranchAsync();
             if (transactionBlockIndex != null)
             {
                 // If TransactionBlockIndex exists, then read the result via TransactionBlockIndex
