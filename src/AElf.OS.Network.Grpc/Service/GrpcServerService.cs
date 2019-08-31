@@ -102,31 +102,33 @@ namespace AElf.OS.Network.Grpc
             return Task.CompletedTask;
         }
 
-        public override async Task<VoidReply> TransactionBroadcastStream(IAsyncStreamReader<Transaction> requestStream, ServerCallContext context)
+        public override async Task<VoidReply> TransactionBroadcastStream(IAsyncStreamReader<TransactionList> requestStream, ServerCallContext context)
         {
-            await requestStream.ForEachAsync(async tx => await ProcessTransaction(tx, context));
+            await requestStream.ForEachAsync(async transactionList => await ProcessTransaction(transactionList, context));
             return new VoidReply();
         }
 
         /// <summary>
         /// This method is called when another peer broadcasts a transaction.
         /// </summary>
-        public override async Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
+        public override async Task<VoidReply> SendTransaction(TransactionList transactionList, ServerCallContext context)
         {
-            await ProcessTransaction(tx, context);
+            await ProcessTransaction(transactionList, context);
             return new VoidReply();
         }
 
-        private async Task ProcessTransaction(Transaction tx, ServerCallContext context)
+        private async Task ProcessTransaction(TransactionList transactionList, ServerCallContext context)
         {
             var chain = await _blockchainService.GetChainAsync();
 
+            foreach (var transaction in transactionList.Transactions)
+            {
+                if (transaction.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultInitialSyncOffset)
+                    return;
+                _ = EventBus.PublishAsync(new TransactionsReceivedEvent {Transactions = new List<Transaction> {transaction}});
+            }
             // if this transaction's ref block is a lot higher than our chain 
             // then don't participate in p2p network
-            if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultInitialSyncOffset)
-                return;
-
-            _ = EventBus.PublishAsync(new TransactionsReceivedEvent {Transactions = new List<Transaction> {tx}});
         }
 
         /// <summary>

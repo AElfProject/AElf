@@ -77,7 +77,7 @@ namespace AElf.OS.Network.Grpc
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
 
-        private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
+        private AsyncClientStreamingCall<TransactionList, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
         private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
 
@@ -225,13 +225,13 @@ namespace AElf.OS.Network.Grpc
 
         #region Streaming
 
-        public void EnqueueTransaction(Transaction transaction, Action<NetworkException> sendCallback)
+        public void EnqueueTransaction(TransactionList transactionList, Action<NetworkException> sendCallback)
         {
             if (!IsReady)
                 throw new NetworkException($"Dropping transaction, peer is not ready - {this}.",
                     NetworkExceptionType.NotConnected);
 
-            _sendTransactionJobs.Post(new StreamJob{Transaction = transaction, SendCallback = sendCallback});
+            _sendTransactionJobs.Post(new StreamJob{TransactionList = transactionList, SendCallback = sendCallback});
         }
 
         public void EnqueueAnnouncement(BlockAnnouncement announcement, Action<NetworkException> sendCallback)
@@ -259,9 +259,9 @@ namespace AElf.OS.Network.Grpc
 
             try
             {
-                if (job.Transaction != null)
+                if (job.TransactionList != null)
                 {
-                    await SendTransactionAsync(job.Transaction);
+                    await SendTransactionAsync(job.TransactionList);
                 }
                 else if (job.BlockAnnouncement != null)
                 {
@@ -326,14 +326,14 @@ namespace AElf.OS.Network.Grpc
         /// Send a transaction to the peer using the stream call.
         /// Note: this method is not thread safe.
         /// </summary>
-        private async Task SendTransactionAsync(Transaction transaction)
+        private async Task SendTransactionAsync(TransactionList transactionList)
         {
             if (_transactionStreamCall == null)
                 _transactionStreamCall = _client.TransactionBroadcastStream();
 
             try
             {
-                await _transactionStreamCall.RequestStream.WriteAsync(transaction);
+                await _transactionStreamCall.RequestStream.WriteAsync(transactionList);
             }
             catch (RpcException)
             {

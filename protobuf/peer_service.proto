@@ -14,11 +14,11 @@ service PeerService {
     rpc RequestBlocks (BlocksRequest) returns (BlockList) {}
 
     rpc SendAnnouncement (BlockAnnouncement) returns (VoidReply) {}
-    rpc SendTransaction (aelf.Transaction) returns (VoidReply) {}
+    rpc SendTransaction (TransactionList) returns (VoidReply) {}
 
     rpc BlockBroadcastStream (stream BlockWithTransactions) returns (VoidReply) {}
     
-    rpc TransactionBroadcastStream (stream aelf.Transaction) returns (VoidReply) {}
+    rpc TransactionBroadcastStream (stream TransactionList) returns (VoidReply) {}
     rpc AnnouncementBroadcastStream (stream BlockAnnouncement) returns (VoidReply) {}
 
     rpc GetNodes (NodesRequest) returns (NodeList) {}

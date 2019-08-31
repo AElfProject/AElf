@@ -36,6 +36,10 @@ message BlockReply {
     BlockWithTransactions block = 2;
 }
 
+message TransactionList {
+    repeated aelf.Transaction transactions = 1;
+}
+
 // Messages related to connection
 
 message ConnectionInfo {

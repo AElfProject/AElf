@@ -29,7 +29,7 @@ namespace AElf.OS.Network.Infrastructure
         void AddKnowBlock(BlockAnnouncement blockAnnouncement);
 
         void EnqueueAnnouncement(BlockAnnouncement transaction, Action<NetworkException> sendCallback);
-        void EnqueueTransaction(Transaction transaction, Action<NetworkException> sendCallback);
+        void EnqueueTransaction(TransactionList transactionList, Action<NetworkException> sendCallback);
         void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException> sendCallback);
 
         Task<Handshake> DoHandshakeAsync(Handshake handshake);

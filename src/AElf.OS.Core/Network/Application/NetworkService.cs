@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Helpers;
@@ -25,6 +27,11 @@ namespace AElf.OS.Network.Application
 
         public ILogger<NetworkService> Logger { get; set; }
 
+        private readonly ConcurrentStack<Transaction> _transactionCache;
+
+        private const int TransactionCacheMaxSize = 2000;
+        private const int TransactionCacheMaxSecondLimit = 10;
+
         public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager, IAElfNetworkServer networkServer, 
             IKnownBlockCacheProvider knownBlockCacheProvider)
         {
@@ -34,6 +41,10 @@ namespace AElf.OS.Network.Application
             _knownBlockCacheProvider = knownBlockCacheProvider;
 
             Logger = NullLogger<NetworkService>.Instance;
+            
+            _transactionCache = new ConcurrentStack<Transaction>();
+            Observable.Timer(TimeSpan.FromSeconds(TransactionCacheMaxSecondLimit), 
+                TimeSpan.FromSeconds(TransactionCacheMaxSecondLimit)).Subscribe(BroadcastCachedTransaction);
         }
 
         public async Task<bool> AddPeerAsync(string address)
@@ -166,11 +177,33 @@ namespace AElf.OS.Network.Application
         
         public Task BroadcastTransactionAsync(Transaction transaction)
         {
+            if (_transactionCache.Count < TransactionCacheMaxSize)
+            {
+                _transactionCache.Push(transaction);
+                return Task.CompletedTask;
+            }
+
+            BroadcastCachedTransaction();
+
+            return Task.CompletedTask;
+        }
+
+        private void BroadcastCachedTransaction(long timeout=0)
+        {
+            if (_transactionCache.IsEmpty)
+                return;
+
+            var transactionList = new TransactionList();
+            transactionList.Transactions.AddRange(_transactionCache.ToArray());
+
+            _transactionCache.Clear();
+
+            Logger.LogTrace($"Broadcast cached transaction {transactionList.Transactions.Count}");
             foreach (var peer in _peerPool.GetPeers())
             {
                 try
                 {
-                    peer.EnqueueTransaction(transaction, async ex =>
+                    peer.EnqueueTransaction(transactionList, async ex =>
                     {
                         if (ex != null)
                         {
@@ -184,8 +217,6 @@ namespace AElf.OS.Network.Application
                     Logger.LogError(ex, $"Error while broadcasting transaction to {peer}.");
                 }
             }
-            
-            return Task.CompletedTask;
         }
 
         public async Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, 

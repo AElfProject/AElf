@@ -6,7 +6,7 @@ namespace AElf.OS.Network.Grpc
 {
     public class StreamJob
     {
-        public Transaction Transaction { get; set; }
+        public TransactionList TransactionList { get; set; }
         public BlockAnnouncement BlockAnnouncement { get; set; }
         public BlockWithTransactions BlockWithTransactions { get; set; }
         public Action<NetworkException> SendCallback { get; set; }
