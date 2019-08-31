@@ -61,7 +61,8 @@ namespace AElf.CrossChain
             {
                 if (isSideChainBlockDataIndexed ^ (extraData != null))
                 {
-                    // cross chain extra data in block header should be null if no side chain block data indexed in contract 
+                    // cross chain extra data in block header should be null if no side chain block data indexed in contract
+                    Logger.LogWarning("Cross chain contract state is not matched to block extra data.");
                     return false;
                 }
 
