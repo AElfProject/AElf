@@ -61,7 +61,7 @@ namespace AElf.OS.Network.Application
             return true;
         }
 
-        public async Task<bool> RemovePeerByPubkey(string peerPubKey)
+        public async Task<bool> RemovePeerByPubkeyAsync(string peerPubKey)
         {
             var peer = _peerPool.FindPeerByPublicKey(peerPubKey);
             if (peer == null)

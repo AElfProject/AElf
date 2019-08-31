@@ -17,8 +17,13 @@ namespace AElf.OS.Handlers
 
         public Task HandleEventAsync(BlockValidationFailedEventData eventData)
         {
-            _networkService.RemovePeerByPubkey(eventData.BlockSenderPubkey);
+            HandleBadPeerAsync(eventData.BlockSenderPubkey);
             return Task.CompletedTask;
+        }
+
+        private async Task HandleBadPeerAsync(string peerPubkey)
+        {
+            await _networkService.RemovePeerByPubkeyAsync(peerPubkey);
         }
     }
 }
