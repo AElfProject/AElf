@@ -53,7 +53,7 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(string.IsNullOrEmpty(State.NativeTokenSymbol.Value), "Native token already registered.");
             State.NativeTokenSymbol.Value = input.Symbol;
-            
+
             var tokenInfo = new TokenInfo
             {
                 Symbol = input.Symbol,
@@ -101,11 +101,11 @@ namespace AElf.Contracts.MultiToken
             var parentChainId = GetValidCrossChainContractReferenceState().GetParentChainId.Call(new Empty()).Value;
             var tokenContractAddress = State.CrossChainTransferWhiteList[parentChainId];
             Assert(tokenContractAddress != null, "Token contract address of parent chain not found.");
-            
+
             var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
 
             AssertCrossChainTransaction(originalTransaction, tokenContractAddress, nameof(Create));
-            
+
             var originalTransactionId = originalTransaction.GetHash();
             CrossChainVerify(originalTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
 
@@ -128,18 +128,18 @@ namespace AElf.Contracts.MultiToken
         {
             var owner = GetOwnerAddress();
             Assert(Context.Sender == owner, "No permission.");
-            
+
             var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
             AssertCrossChainTransaction(originalTransaction, Context.GetZeroSmartContractAddress(input.FromChainId),
                 nameof(ACS0Container.ACS0ReferenceState.ValidateSystemContractAddress));
-            
+
             var validAddress = ExtractTokenContractAddress(originalTransaction.Params);
-            
+
             var originalTransactionId = originalTransaction.GetHash();
             CrossChainVerify(originalTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
 
             State.CrossChainTransferWhiteList[input.FromChainId] = validAddress;
-            
+
             return new Empty();
         }
 
@@ -177,7 +177,7 @@ namespace AElf.Contracts.MultiToken
             Assert(State.VerifiedCrossChainTransferTransaction[transferTransactionId] == null,
                 "Token already claimed.");
 
-            var crossChainTransferInput = 
+            var crossChainTransferInput =
                 CrossChainTransferInput.Parser.ParseFrom(transferTransaction.Params.ToByteArray());
             var symbol = crossChainTransferInput.Symbol;
             var amount = crossChainTransferInput.Amount;
@@ -206,9 +206,9 @@ namespace AElf.Contracts.MultiToken
             State.Balances[receivingAddress][symbol] = balanceOfReceiver.Add(amount);
             return new Empty();
         }
-        
+
         #endregion
-        
+
         public override Empty Lock(LockInput input)
         {
             AssertLockAddress(input.Symbol);
@@ -489,6 +489,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty DonateResourceToken(Empty input)
         {
+            Context.LogDebug(() => "Start executing DonateResourceToken");
             var isMainChain = true;
             if (State.TreasuryContract.Value == null)
             {
@@ -520,11 +521,14 @@ namespace AElf.Contracts.MultiToken
                         State.ChargedResourceTokens[caller][contractAddress][symbol] = 0;
                     }
                 }
+                
+                Context.LogDebug(() => $"Charged resource token {symbol}: {totalAmount}");
 
                 if (totalAmount > 0)
                 {
                     if (isMainChain)
                     {
+                        Context.LogDebug(() => $"Adding {totalAmount} of {symbol}s to dividend pool.");
                         // Main Chain.
                         State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalAmount);
                         State.TreasuryContract.Donate.Send(new DonateInput
@@ -535,6 +539,7 @@ namespace AElf.Contracts.MultiToken
                     }
                     else
                     {
+                        Context.LogDebug(() => $"Adding {totalAmount} of {symbol}s to consensus address account.");
                         // Side Chain
                         var consensusContractAddress =
                             Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
@@ -543,6 +548,8 @@ namespace AElf.Contracts.MultiToken
                     }
                 }
             }
+
+            Context.LogDebug(() => "Finished executing DonateResourceToken");
 
             return new Empty();
         }
@@ -643,7 +650,7 @@ namespace AElf.Contracts.MultiToken
                         Symbol = symbol
                     });
                 }
-   
+
                 State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol] =
                     State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol].Add(profits.Sub(donates));
             }
