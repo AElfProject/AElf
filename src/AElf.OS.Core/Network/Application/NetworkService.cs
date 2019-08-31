@@ -30,7 +30,7 @@ namespace AElf.OS.Network.Application
         private readonly ConcurrentStack<Transaction> _transactionCache;
 
         private const int TransactionCacheMaxSize = 2000;
-        private const int TransactionCacheMaxSecondLimit = 10;
+        private const int TransactionCacheMaxSecondLimit = 5;
 
         public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager, IAElfNetworkServer networkServer, 
             IKnownBlockCacheProvider knownBlockCacheProvider)
