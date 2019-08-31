@@ -123,12 +123,13 @@ namespace AElf.OS.Network.Grpc
 
             foreach (var transaction in transactionList.Transactions)
             {
+                // if this transaction's ref block is a lot higher than our chain 
+                // then don't participate in p2p network
                 if (transaction.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultInitialSyncOffset)
                     return;
+
                 _ = EventBus.PublishAsync(new TransactionsReceivedEvent {Transactions = new List<Transaction> {transaction}});
             }
-            // if this transaction's ref block is a lot higher than our chain 
-            // then don't participate in p2p network
         }
 
         /// <summary>
