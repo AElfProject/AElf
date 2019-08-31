@@ -43,7 +43,7 @@ namespace AElf.OS.Network
             return new Handshake { HandshakeData = data, Signature = ByteString.CopyFrom(signature) };
         }
 
-        private BlockHeader CreateFakeBlockHeader(int chainId, long height, ECKeyPair producer)
+        public static BlockHeader CreateFakeBlockHeader(int chainId, long height, ECKeyPair producer)
         {
             return new BlockHeader
             {
