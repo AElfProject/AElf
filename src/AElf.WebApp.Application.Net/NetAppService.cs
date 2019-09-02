@@ -15,7 +15,7 @@ namespace AElf.WebApp.Application.Net
 
         Task<bool> RemovePeerAsync(string address);
 
-        List<PeerDto> GetPeers();
+        List<PeerDto> GetPeers(bool withMetrics);
 
         Task<GetNetworkInfoOutput> GetNetworkInfoAsync();
     }
@@ -54,7 +54,7 @@ namespace AElf.WebApp.Application.Net
         /// Get peer info about the connected network nodes
         /// </summary>
         /// <returns></returns>
-        public List<PeerDto> GetPeers()
+        public List<PeerDto> GetPeers(bool withMetrics = false)
         {
             var peerList = _networkService.GetPeers();
             
@@ -64,7 +64,10 @@ namespace AElf.WebApp.Application.Net
                 ProtocolVersion = p.Info.ProtocolVersion,
                 ConnectionTime = p.Info.ConnectionTime.Seconds,
                 Inbound = p.Info.IsInbound,
-                RequestMetrics = p.GetRequestMetrics().Values.SelectMany(kvp => kvp).ToList()
+                BufferedAnnouncementsCount = p.BufferedAnnouncementsCount,
+                BufferedBlocksCount = p.BufferedBlocksCount,
+                BufferedTransactionsCount = p.BufferedTransactionsCount,
+                RequestMetrics = withMetrics ? p.GetRequestMetrics().Values.SelectMany(kvp => kvp).ToList() : null
             }).ToList();
             
             return peerDtoList;

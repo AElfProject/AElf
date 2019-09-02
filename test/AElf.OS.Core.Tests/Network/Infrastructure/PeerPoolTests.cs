@@ -19,6 +19,7 @@ namespace AElf.OS.Network
         {
             _peerPool = GetRequiredService<IPeerPool>();
         }
+            
         
         [Fact]
         public void AddedPeer_IsFindable_ByAddressAndPubkey()
