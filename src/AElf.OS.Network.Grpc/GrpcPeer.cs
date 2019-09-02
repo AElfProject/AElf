@@ -54,7 +54,6 @@ namespace AElf.OS.Network.Grpc
 
         public long LastKnownLibHeight { get; private set; }
 
-        public bool IsBest { get; set; }
         public bool IsConnected { get; set; }
         public bool IsShutdown { get; set; }
         public Hash CurrentBlockHash { get; private set; }

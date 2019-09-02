@@ -38,7 +38,8 @@ namespace AElf.OS.BlockSync.Application
                 return true;
             }
 
-            var blockWithTransactions = await _networkService.GetBlockByHashAsync(blockHash, suggestedPeerPubKey);
+            var response = await _networkService.GetBlockByHashAsync(blockHash, suggestedPeerPubKey);
+            var blockWithTransactions = response.Payload;
 
             if (blockWithTransactions == null)
             {

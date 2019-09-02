@@ -41,7 +41,7 @@ namespace AElf.OS
                             result = new BlockWithTransactions {Header = _peerBlockList[chain.BestChainHash].Header};
                         }
 
-                        return Task.FromResult(result);
+                        return Task.FromResult(new Response<BlockWithTransactions>(result));
                     });
 
                 networkServiceMock
@@ -60,7 +60,7 @@ namespace AElf.OS
                             hash = block.GetHash();
                         }
 
-                        return Task.FromResult(result);
+                        return Task.FromResult(new Response<List<BlockWithTransactions>>(result));
                     });
 
                 return networkServiceMock.Object;

@@ -45,9 +45,11 @@ namespace AElf.OS.BlockSync.Application
                 Logger.LogDebug(
                     $"Request blocks start with block hash: {lastDownloadBlockHash}, block height: {lastDownloadBlockHeight}");
 
-                var blocksWithTransactions = await _networkService.GetBlocksAsync(lastDownloadBlockHash,
+                var response = await _networkService.GetBlocksAsync(lastDownloadBlockHash,
                     downloadBlockDto.BatchRequestBlockCount, downloadBlockDto.SuggestedPeerPubkey);
-
+                
+                var blocksWithTransactions = response.Payload;
+                
                 if (blocksWithTransactions == null || !blocksWithTransactions.Any())
                 {
                     Logger.LogWarning("No blocks returned.");

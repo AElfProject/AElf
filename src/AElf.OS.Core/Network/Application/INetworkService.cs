@@ -11,8 +11,8 @@ namespace AElf.OS.Network.Application
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
         List<IPeer> GetPeers();
-        Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash, string peer = null);
-        Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousBlock, int count, string peerPubKey = null);
+        Task<Response<BlockWithTransactions>> GetBlockByHashAsync(Hash hash, string peer);
+        Task<Response<List<BlockWithTransactions>>> GetBlocksAsync(Hash previousBlock, int count, string peer);
         Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork);
         Task BroadcastTransactionAsync(Transaction transaction);
         Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions);
