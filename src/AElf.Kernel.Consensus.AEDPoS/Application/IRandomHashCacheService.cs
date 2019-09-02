@@ -6,6 +6,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
@@ -17,7 +18,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         Hash GetLatestGeneratedBlockRandomHash();
     }
 
-    public class RandomHashCacheService : IRandomHashCacheService
+    public class RandomHashCacheService : IRandomHashCacheService, ISingletonDependency
     {
         private readonly Dictionary<Hash, Hash> _randomHashes = new Dictionary<Hash, Hash>();
         private readonly Dictionary<long, Hash> _blockHashes = new Dictionary<long, Hash>();
