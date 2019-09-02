@@ -93,6 +93,11 @@ namespace AElf.Contracts.Economic
                     TotalSupply = EconomicContractConstants.ResourceTokenTotalSupply,
                     Decimals = EconomicContractConstants.ResourceTokenDecimals,
                     Issuer = Context.Self,
+                    LockWhiteList =
+                    {
+                        Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
+                        Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
+                    },
                     IsBurnable = true // TODO: TBD,
                 });
                 
