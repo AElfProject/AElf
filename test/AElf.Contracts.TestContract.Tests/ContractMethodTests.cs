@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using AElf.Contracts.TestContract;
 using AElf.Contracts.TestContract.BasicFunction;
 using AElf.Contracts.TestContract.BasicSecurity;
 using AElf.Contracts.TestKit;
@@ -22,7 +21,7 @@ namespace AElf.Contract.TestContract
 
         #region Basic1 methods Test
         [Fact]
-        public async Task Basic1Contract_UpdateBetLimit_WithoutPermission()
+        public async Task Basic1Contract_UpdateBetLimit_WithoutPermission_Test()
         {
             var transactionResult = (await TestBasicFunctionContractStub.UpdateBetLimit.SendAsync(
                 new BetLimitInput
@@ -36,7 +35,7 @@ namespace AElf.Contract.TestContract
         }
         
         [Fact]
-        public async Task Basic1Contract_UpdateBetLimit_WithException()
+        public async Task Basic1Contract_UpdateBetLimit_WithException_Test()
         {
             var managerStub = GetTestBasicFunctionContractStub(SampleECKeyPairs.KeyPairs[1]);
             var transactionResult = (await managerStub.UpdateBetLimit.SendAsync(
@@ -51,7 +50,7 @@ namespace AElf.Contract.TestContract
         }
         
         [Fact]
-        public async Task Basic1Contract_UpdateBetLimit_Success()
+        public async Task Basic1Contract_UpdateBetLimit_Success_Test()
         {
             var managerStub = GetTestBasicFunctionContractStub(SampleECKeyPairs.KeyPairs[1]);
             var transactionResult = (await managerStub.UpdateBetLimit.SendAsync(
@@ -65,7 +64,7 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task Basic1Contract_QueryMethod()
+        public async Task Basic1Contract_QueryMethod_Test()
         {
             for (int i = 0; i < 10; i++)
             {
@@ -87,7 +86,7 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task BasicContract_ValidateOrigin_Success()
+        public async Task BasicContract_ValidateOrigin_Success_Test()
         {
             var transaction1 = await TestBasicSecurityContractStub.TestOriginAddress.SendAsync(DefaultSender);
             transaction1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -344,6 +343,23 @@ namespace AElf.Contract.TestContract
             }));
             queryResult.FromAmount.ShouldBe(0);
             queryResult.ToAmount.ShouldBe(0);
+        }
+
+        [Fact]
+        public async Task QueryExternalMethod_Tests()
+        {
+            var transactionResult = await TestBasicFunctionContractStub.UserPlayBet.SendAsync(
+                new BetInput
+                {
+                    Int64Value = 125
+                });
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var queryResult1 = await TestBasicSecurityContractStub.QueryExternalMethod1.CallAsync(DefaultSender);
+            queryResult1.Int64Value.ShouldBe(0);
+            
+            var queryResult2 = await TestBasicSecurityContractStub.QueryExternalMethod2.CallAsync(DefaultSender);
+            queryResult2.Int64Value.ShouldBe(125);
         }
         
         #endregion

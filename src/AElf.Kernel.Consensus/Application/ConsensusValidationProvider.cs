@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Consensus.Application
 {
@@ -14,6 +15,7 @@ namespace AElf.Kernel.Consensus.Application
         {
             _consensusService = consensusService;
             _blockExtraDataService = blockExtraDataService;
+            Logger = NullLogger<ConsensusValidationProvider>.Instance;
         }
 
         public async Task<bool> ValidateBeforeAttachAsync(IBlock block)

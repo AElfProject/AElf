@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
@@ -36,19 +38,26 @@ namespace AElf.OS.Network.Application
 
         public async Task<bool> AddPeerAsync(string address)
         {
-            return await _networkServer.ConnectAsync(address);
+            if (IpEndpointHelper.TryParse(address, out IPEndPoint endpoint))
+                return await _networkServer.ConnectAsync(endpoint);
+
+            return false;
         }
 
         public async Task<bool> RemovePeerAsync(string address)
         {
-            var peer = _peerPool.FindPeerByAddress(address);
+            if (!IpEndpointHelper.TryParse(address, out IPEndPoint endpoint)) 
+                return false;
+            
+            var peer = _peerPool.FindPeerByEndpoint(endpoint);
             if (peer == null)
             {
                 Logger.LogWarning($"Could not find peer at address {address}");
                 return false;
             }
-
+            
             await _networkServer.DisconnectAsync(peer);
+
             return true;
         }
 
@@ -99,22 +108,24 @@ namespace AElf.OS.Network.Application
             if (IsOldBlock(blockWithTransactions.Header))
                 return Task.CompletedTask;
             
-            _taskQueueManager.Enqueue(async () =>
+            foreach (var peer in _peerPool.GetPeers())
             {
-                foreach (var peer in _peerPool.GetPeers())
+                try
                 {
-                    try
+                    peer.EnqueueBlock(blockWithTransactions, async ex =>
                     {
-                        await peer.SendBlockAsync(blockWithTransactions);
-                    }
-                    catch (NetworkException ex)
-                    {
-                        Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
-                        await HandleNetworkException(peer, ex);
-                    }
+                        if (ex != null)
+                        {
+                            Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
+                            await HandleNetworkException(peer, ex);
+                        }
+                    });
                 }
-                
-            }, NetworkConstants.BlockBroadcastQueueName);
+                catch (NetworkException ex)
+                {
+                    Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
+                }
+            }
             
             return Task.CompletedTask;
         }
@@ -129,73 +140,59 @@ namespace AElf.OS.Network.Application
             if (IsOldBlock(blockHeader))
                 return Task.CompletedTask;
             
-            var announce = new BlockAnnouncement
+            var blockAnnouncement = new BlockAnnouncement
             {
                 BlockHash = blockHash,
                 BlockHeight = blockHeader.Height,
                 HasFork = hasFork
             };
-            
-            var beforeEnqueue = TimestampHelper.GetUtcNow();
-            _taskQueueManager.Enqueue(async () =>
+
+            foreach (var peer in _peerPool.GetPeers())
             {
-                var execTime = TimestampHelper.GetUtcNow();
-                if (execTime > beforeEnqueue +
-                    TimestampHelper.DurationFromMilliseconds(NetworkConstants.AnnouncementQueueJobTimeout))
+                try
                 {
-                    Logger.LogWarning($"Announcement too old: {execTime - beforeEnqueue}");
-                    return;
+                    peer.EnqueueAnnouncement(blockAnnouncement, async ex =>
+                    {
+                        if (ex != null)
+                        {
+                            Logger.LogError(ex, $"Error while broadcasting announcement to {peer}.");
+                            await HandleNetworkException(peer, ex);
+                        }
+                    });
                 }
-                
-                foreach (var peer in _peerPool.GetPeers())
+                catch (NetworkException ex)
                 {
-                    try
-                    {
-                        await peer.SendAnnouncementAsync(announce);
-                    }
-                    catch (NetworkException ex)
-                    {
-                        Logger.LogError(ex, $"Error while announcing to {peer}.");
-                        await HandleNetworkException(peer, ex);
-                    }
+                    Logger.LogError(ex, $"Error while broadcasting announcement to {peer}.");
                 }
-                
-            }, NetworkConstants.AnnouncementBroadcastQueueName);
+            }
             
             return Task.CompletedTask;
         }
         
         public Task BroadcastTransactionAsync(Transaction transaction)
         {
-            var beforeEnqueue = TimestampHelper.GetUtcNow();
-            _taskQueueManager.Enqueue(async () =>
+            foreach (var peer in _peerPool.GetPeers())
             {
-                var execTime = TimestampHelper.GetUtcNow();
-                if (execTime > beforeEnqueue +
-                    TimestampHelper.DurationFromMilliseconds(NetworkConstants.TransactionQueueJobTimeout))
+                try
                 {
-                    Logger.LogWarning($"Transaction too old: {execTime - beforeEnqueue}");
-                    return;
+                    peer.EnqueueTransaction(transaction, async ex =>
+                    {
+                        if (ex != null)
+                        {
+                            Logger.LogError(ex, $"Error while broadcasting transaction to {peer}.");
+                            await HandleNetworkException(peer, ex);
+                        }
+                    });
                 }
-                
-                foreach (var peer in _peerPool.GetPeers())
+                catch (NetworkException ex)
                 {
-                    try
-                    {
-                        await peer.SendTransactionAsync(transaction);
-                    }
-                    catch (NetworkException ex)
-                    {
-                        Logger.LogError(ex, "Error while sending transaction.");
-                        await HandleNetworkException(peer, ex);
-                    }
+                    Logger.LogError(ex, $"Error while broadcasting transaction to {peer}.");
                 }
-                
-            }, NetworkConstants.TransactionBroadcastQueueName);
-
+            }
+            
             return Task.CompletedTask;
         }
-
+        
         public Task BroadcastLibAnnounceAsync(Hash libHash, long libHeight)
         {
             var announce = new LibAnnouncement
@@ -203,32 +200,25 @@ namespace AElf.OS.Network.Application
                 LibHash = libHash,
                 LibHeight = libHeight
             };
-            
-            var beforeEnqueue = TimestampHelper.GetUtcNow();
-            _taskQueueManager.Enqueue(async () =>
+
+            foreach (var peer in _peerPool.GetPeers())
             {
-                var execTime = TimestampHelper.GetUtcNow();
-                if (execTime > beforeEnqueue +
-                    TimestampHelper.DurationFromMilliseconds(NetworkConstants.LibAnnouncementQueueJobTimeout))
+                try
                 {
-                    Logger.LogWarning($"Lib announcement too old: {execTime - beforeEnqueue}");
-                    return;
+                    peer.EnqueueLibAnnouncement(announce, async ex =>
+                    {
+                        if (ex != null)
+                        {
+                            Logger.LogError(ex, $"Error while broadcasting lib announcement to {peer}.");
+                            await HandleNetworkException(peer, ex);
+                        }
+                    });
                 }
-                
-                foreach (var peer in _peerPool.GetPeers())
+                catch (NetworkException ex)
                 {
-                    try
-                    {
-                        await peer.SendLibAnnouncementAsync(announce);
-                    }
-                    catch (NetworkException ex)
-                    {
-                        Logger.LogError(ex, $"Error while lib announcing to {peer}.");
-                        await HandleNetworkException(peer, ex);
-                    }
+                    Logger.LogError(ex, $"Error while broadcasting lib announcement to {peer}.");
                 }
-                
-            }, NetworkConstants.LibAnnouncementBroadcastQueueName);
+            }
             
             return Task.CompletedTask;
         }
@@ -302,7 +292,7 @@ namespace AElf.OS.Network.Application
             }
             catch (NetworkException ex)
             {
-                Logger.LogError(ex, $"Error while requesting block(s) from {peer.IpAddress}.");
+                Logger.LogError(ex, $"Error while requesting block(s) from {peer.RemoteEndpoint}.");
                 await HandleNetworkException(peer, ex);
             }
             
@@ -313,15 +303,16 @@ namespace AElf.OS.Network.Application
         {
             if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
             {
+                Logger.LogError(exception, $"Removing unrecoverable {peer}.");
                 await _networkServer.DisconnectAsync(peer);
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
             {
-                Logger.LogError($"Queuing peer for reconnection {peer.IpAddress}.");
+                Logger.LogError(exception, $"Queuing peer for reconnection {peer.IpAddress}.");
                 QueueNetworkTask(async () => await RecoverPeerAsync(peer));
             }
         }
-        
+
         private async Task RecoverPeerAsync(IPeer peer)
         {
             if (peer.IsReady) // peer recovered already

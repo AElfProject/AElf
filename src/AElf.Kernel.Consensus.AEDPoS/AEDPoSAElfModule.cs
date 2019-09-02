@@ -21,12 +21,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<IIrreversibleBlockDiscoveryService, IrreversibleBlockDiscoveryService>();
-            context.Services.AddSingleton<IAEDPoSInformationProvider, AEDPoSInformationProvider>();
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();
-            context.Services.AddSingleton<IRandomHashCacheService, RandomHashCacheService>();
-            context.Services.AddSingleton<Application.BestChainFoundEventHandler>();
-            context.Services.AddSingleton<ConsensusValidationFailedEventHandler>();
 
             var configuration = context.Services.GetConfiguration();
 
@@ -39,14 +34,14 @@ namespace AElf.Kernel.Consensus.AEDPoS
                 option.StartTimestamp = new Timestamp
                     {Seconds = string.IsNullOrEmpty(startTimeStamp) ? 0 : long.Parse(startTimeStamp)};
 
-                if (option.InitialMiners == null || option.InitialMiners.Count == 0 ||
-                    string.IsNullOrWhiteSpace(option.InitialMiners[0]))
+                if (option.InitialMinerList == null || option.InitialMinerList.Count == 0 ||
+                    string.IsNullOrWhiteSpace(option.InitialMinerList[0]))
                 {
                     AsyncHelper.RunSync(async () =>
                     {
                         var accountService = context.Services.GetRequiredServiceLazy<IAccountService>().Value;
                         var publicKey = (await accountService.GetPublicKeyAsync()).ToHex();
-                        option.InitialMiners = new List<string> {publicKey};
+                        option.InitialMinerList = new List<string> {publicKey};
                     });
                 }
             });

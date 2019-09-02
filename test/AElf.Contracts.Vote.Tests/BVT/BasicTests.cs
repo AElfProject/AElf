@@ -11,7 +11,7 @@ namespace AElf.Contracts.Vote
     public partial class VoteTests : VoteContractTestBase
     {
         [Fact]
-        public async Task VoteContract_Register()
+        public async Task VoteContract_Register_Test()
         {
             var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 10);
 
@@ -41,7 +41,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_Vote()
+        public async Task VoteContract_Vote_Test()
         {
             //voting item not exist
             {
@@ -66,8 +66,7 @@ namespace AElf.Contracts.Vote
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
                 var voter = SampleECKeyPairs.KeyPairs[31];
                 var voteResult = await Vote(voter, registerItem.VotingItemId, registerItem.Options[0], 100);
-                voteResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                voteResult.Error.Contains("Insufficient balance").ShouldBeTrue();
+                voteResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
             }
 
             //vote option not exist
@@ -90,8 +89,9 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_Withdraw()
+        public async Task VoteContract_Withdraw_Test()
         {
+            const long txFee = 1_00000000;
             //without vote
             {
                 var withdrawResult = await Withdraw(SampleECKeyPairs.KeyPairs[1], Hash.FromString("hash1"));
@@ -154,12 +154,12 @@ namespace AElf.Contracts.Vote
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                 var afterBalance = GetUserBalance(voteAddress);
-                beforeBalance.ShouldBe(afterBalance - 100);
+                beforeBalance.ShouldBe(afterBalance + txFee - 100);
             }
         }
 
         [Fact]
-        public async Task VoteContract_AddOption()
+        public async Task VoteContract_AddOption_Test()
         {
             //add without permission
             {
@@ -207,7 +207,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_RemoveOption()
+        public async Task VoteContract_RemoveOption_Test()
         {
             //remove without permission
             {
@@ -255,7 +255,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_AddOptions()
+        public async Task VoteContract_AddOptions_Test()
         {
             //without permission
             {
@@ -313,7 +313,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_RemoveOptions()
+        public async Task VoteContract_RemoveOptions_Test()
         {
             //without permission
             {
@@ -371,7 +371,7 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_GetVotingResult()
+        public async Task VoteContract_GetVotingResult_Test()
         {
             var voteUser = SampleECKeyPairs.KeyPairs[2];
             var votingItem = await RegisterVotingItemAsync(10, 3, true, DefaultSender, 2);
@@ -386,6 +386,39 @@ namespace AElf.Contracts.Vote
             votingResult.VotingItemId.ShouldBe(votingItem.VotingItemId);
             votingResult.VotersCount.ShouldBe(1);
             votingResult.Results.Values.First().ShouldBe(1000L);
+        }
+
+        [Fact]
+        public async Task VoteContract_VotesAndGetVotedItems_Test()
+        {
+            var voteUser = SampleECKeyPairs.KeyPairs[2];
+            var votingItem = await RegisterVotingItemAsync(10, 3, true, DefaultSender, 2);
+            
+            await Vote(voteUser, votingItem.VotingItemId, votingItem.Options.First(), 1000L);
+            await Vote(voteUser, votingItem.VotingItemId, votingItem.Options.Last(), 500L);
+
+            var votedResult = await GetVotedItems(Address.FromPublicKey(voteUser.PublicKey));
+            votedResult.VotedItemVoteIds[votingItem.VotingItemId.ToHex()].ActiveVotes.Count.ShouldBe(2);
+        }
+
+        [Fact]
+        public async Task VoteContract_GetLatestVotingResult_Test()
+        {
+            var voteUser1 = SampleECKeyPairs.KeyPairs[2];
+            var voteUser2 = SampleECKeyPairs.KeyPairs[3];
+            var votingItem = await RegisterVotingItemAsync(10, 3, true, DefaultSender, 2);
+            
+            await Vote(voteUser1, votingItem.VotingItemId, votingItem.Options.First(), 100L);
+            await Vote(voteUser1, votingItem.VotingItemId, votingItem.Options.First(), 200L);
+            var votingResult = await GetLatestVotingResult(votingItem.VotingItemId);
+            votingResult.VotersCount.ShouldBe(2);
+            votingResult.VotesAmount.ShouldBe(300L);
+            
+            await Vote(voteUser2, votingItem.VotingItemId, votingItem.Options.Last(), 100L);
+            await Vote(voteUser2, votingItem.VotingItemId, votingItem.Options.Last(), 200L);
+            votingResult = await GetLatestVotingResult(votingItem.VotingItemId);
+            votingResult.VotersCount.ShouldBe(4);
+            votingResult.VotesAmount.ShouldBe(600L);
         }
     }
 }

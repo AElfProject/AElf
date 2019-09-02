@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Metrics;
 using AElf.WebApp.Application.Net.Dto;
@@ -22,7 +23,7 @@ namespace AElf.WebApp.Application.Net.Tests
         }
 
         [Fact]
-        public async Task AddPeerTest()
+        public async Task AddPeer_Test()
         { 
             var parameters = new Dictionary<string, string>
             {
@@ -45,14 +46,14 @@ namespace AElf.WebApp.Application.Net.Tests
             
             var peerMock = new Mock<IPeer>();
             peerMock.SetupGet(p => p.Info).Returns(connectionInfo);
-            peerMock.SetupGet(p => p.IpAddress).Returns(ipAddress);
+            peerMock.SetupGet(p => p.RemoteEndpoint).Returns(IpEndpointHelper.Parse(ipAddress));
             peerMock.Setup(p => p.GetRequestMetrics()).Returns(new Dictionary<string, List<RequestMetric>>());
 
             return peerMock.Object;
         }
         
         [Fact]
-        public async Task GetPeersTest()
+        public async Task GetPeers_Test()
         {
             var connectionTime = TimestampHelper.GetUtcNow().Seconds;
             var ipAddressOne = "192.168.1.1:1680";
@@ -79,7 +80,7 @@ namespace AElf.WebApp.Application.Net.Tests
         }
         
         [Fact]
-        public async Task RemovePeerTest()
+        public async Task RemovePeer_Test()
         {
             var connectionTime = TimestampHelper.GetUtcNow().Seconds;
             var ipAddressOne = "192.168.1.1:1680";
@@ -103,7 +104,7 @@ namespace AElf.WebApp.Application.Net.Tests
         }
 
         [Fact]
-        public async Task GetNetWorkInfoTest()
+        public async Task GetNetWorkInfo_Test()
         {
             var connectionTime = TimestampHelper.GetUtcNow().Seconds;
             var ipAddressOne = "192.168.1.1:1680";

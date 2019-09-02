@@ -10,7 +10,7 @@ namespace AElf.Contracts.ParliamentAuth
     public class ParliamentAuthContractPrivilegeTest : ParliamentAuthContractPrivilegeTestBase
     {
         [Fact]
-        public async Task CreateProposal_WithPrivileged()
+        public async Task CreateProposal_WithPrivileged_Test()
         {
             var organizationAddress = await GetGenesisOwnerAddressAsync();
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
@@ -26,7 +26,7 @@ namespace AElf.Contracts.ParliamentAuth
         }
 
         [Fact]
-        public async Task CreateProposal_Creator()
+        public async Task CreateProposal_Creator_Test()
         {
             var organizationAddress = await GetGenesisOwnerAddressAsync();
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
@@ -41,7 +41,7 @@ namespace AElf.Contracts.ParliamentAuth
         }
 
         [Fact]
-        public async Task CreateProposal_Miner()
+        public async Task CreateProposal_Miner_Test()
         {
             var organizationAddress = await GetGenesisOwnerAddressAsync();
             var miner = Tester.CreateNewContractTester(Tester.InitialMinerList[0]);
@@ -55,7 +55,7 @@ namespace AElf.Contracts.ParliamentAuth
         }
 
         [Fact]
-        public async Task CreateProposal_WithoutPrivilege()
+        public async Task CreateProposal_WithoutPrivilege_Test()
         {
             var organizationAddress = await CreateOrganizationAsync();
             var ecKeyPair = CryptoHelper.GenerateKeyPair();

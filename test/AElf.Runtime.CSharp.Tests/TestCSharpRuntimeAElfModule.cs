@@ -12,7 +12,6 @@ namespace AElf.Runtime.CSharp
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            
         }
     }
 }

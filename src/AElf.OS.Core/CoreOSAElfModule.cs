@@ -25,7 +25,6 @@ namespace AElf.OS
             taskQueueManager.CreateQueue(NetworkConstants.BlockBroadcastQueueName);
             taskQueueManager.CreateQueue(NetworkConstants.AnnouncementBroadcastQueueName);
             taskQueueManager.CreateQueue(NetworkConstants.TransactionBroadcastQueueName);
-            taskQueueManager.CreateQueue(NetworkConstants.LibAnnouncementBroadcastQueueName);
         }
     }
 }

@@ -10,10 +10,29 @@
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
         <ContractReference Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\reference\cross_chain_contract.proto</Link>
         </ContractReference>
+        <ContractReference Include="..\..\protobuf\token_converter_contract.proto">
+            <Link>Protobuf\Proto\reference\token_converter_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\treasury_contract.proto">
+            <Link>Protobuf\Proto\reference\treasury_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs8.proto">
+            <Link>Protobuf\Proto\reference\acs8.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\reference\acs3.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\parliament_auth_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
+        </ContractReference>
     </ItemGroup>
+
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\acs1.proto</Link>
@@ -22,13 +41,13 @@
             <Link>Protobuf\Proto\acs2.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\acs7.proto">
-            <Link>Protobuf\Proto\acs2.proto</Link>
+            <Link>Protobuf\Proto\acs7.proto</Link>
         </ContractBase>
         <ContractBase Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractBase>
     </ItemGroup>
-    
+
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\token_contract_impl.proto">
             <Link>Protobuf\Proto\token_contract_impl.proto</Link>

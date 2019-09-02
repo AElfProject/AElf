@@ -1,59 +1,144 @@
-## Introduction to the CLI
+# Introduction to the CLI
 
-We briefly presented AElfs command line tool in the [getting started](../quickstart.md) section. We discovered that AElf.CLI is the client program used for interacting with a node via RPC calls. You can use it for sending transactions, querying the chains state... It also serves as a wallet program to manage your accounts (keys).
+<p align="center">
+  <img alt="Node" src="https://img.shields.io/badge/node->=10.9.0-brightgreen">
+  <img alt="NPM" src="https://img.shields.io/npm/l/aelf-command">
+  <a href="http://commitizen.github.io/cz-cli/">
+    <img alt="Commitizen friendly" src="https://img.shields.io/badge/commitizen-friendly-brightgreen.svg">
+  </a>
+</p>
 
-## Build
+[Github Link](https://github.com/AElfProject/aelf-command)
 
-Navigate to AElfs directory:
-```bash
-dotnet build AElf.CLI --configuration Release
-```
-To use the cli just run it with `dotnet` like:
-```bash
-dotnet AElf.CLI.dll <command> <option1> <option2>
-```
+## Descriptions
 
-The **command** element here refers to any of the available commands, to list them just run the **dll** without providing any arguments: ```dotnet AElf.CLI.dll```. The **options** element refer to the arguments to give to the command. For more about the commands and their options you can refere to the full [command reference](methods.md) of this section.
+_A CLI tools built for AElf_
 
-## Interactive
+We briefly presented AElfs command line tool in the getting started section. We discovered that aelf-command is the client program used for interacting with a node via WEBAPI calls. You can use it for sending transactions, querying the chains state... It also serves as a wallet program to manage your accounts (keys).
 
-CLI is built on top of the js library [aelf.js](https://github.com/AElfProject/aelf-sdk.js), so besides using the standard commands directly, you can also use the interactive mode where you can use javascript to interact with the chain. The ```console``` commands will start your session:
+## Features
 
-```bash
-dotnet AElf.CLI.dll console --endpoint=http://localhost:1234 -a 2jzk2xXHdru6oCGiSyy6mqxTtkWyFbdgBkmrPwNnT5Higm6Tum
-```
+* Get or Set common configs, `endpoint`, `account`, `datadir`, `password`.
+* For new learners who are not familiar with the CLI parameters, any lacked parameters will be asked in a prompting way.
+* Create a new `account`.
+* Load a account by a given `private key` or `mnemonic`.
+* Encrypt account info into `keyStore` format and save into files.
+* Get current `Best Height` of the chain.
+* Get `block info` by a given `height`.
+* Get `transaction result` by a given `transaction id`.
+* Send a `transaction` or call a `read-only method` on a smart `contract`.
+* Deploy a smart `contract`.
+* Open a `REPL` for using `JavaScript` to interact with the chain.
 
-## Options and environment variable
-
-Some options are common to all command and can be set by an environment variable. The following three variable can be set: 
-
-1. The `--datadir` option provides the folder that contains the necessary input files (e.g. stored private keys). As this option will be frequently used and may not change from each run, we also provide an environment variable for the default value. It can be set as:
-    ```bash
-    export AELF_CLI_DATADIR=~/.local/share/aelf
-    ```
-
-2. The `--endpoint` option is the rpc endpoint that we are going to connect to. If you are always connecting to a particular endpoint, you can set the default value using environment variable as well:
-    ```bash
-    export AELF_CLI_ENDPOINT=http://localhost:1234
-    ```
-
-3. The `--account` option suggests the account to be used for interacting with the chain. If you are always using the same account, you can set the default value using environment variable.
-
-    ```bash
-    export AELF_CLI_ACCOUNT=2jzk2xXHdru6oCGiSyy6mqxTtkWyFbdgBkmrPwNnT5Higm6Tum
-    ```
-
-The following option cannot be set with a variable, but is common to many commands: 
+## Installing aelf-command
 
 ```bash
-  -p, --password    The passwod for unlocking the account.
+npm i aelf-command -g
 ```
 
-This option is used for unlocking the account that was previously generated with the ```create``` command. The private key file for the account must be found in `<datadir>/keys` folder. For example, as the value we set in these examples. The private key file `~/.local/share/aelf/keys/2jzk2xXHdru...mrPwNnT5Higm6Tum.ak` must exist.
+## Using aelf-command
 
-Note that not all commands require these options. For example, if you are not sending transactions to the chain, `--account` is not required.
-As the private keys are encrypted in the `.ak` file, a password is required for unlocking the account. User will be prompted to enter the password for the commands requiring account. However, you can also provide the password by the option `--password`. But we don't recommend to do it this way.
+### First Step
 
-All other options are specific to commands and are explained in the [command reference](methods.md).
+You need to create a new account or get a account by a `private key` or `mnemonic` you already have.
+
+```bash
+aelf-command create
+
+Your wallet info is :
+Mnemonic            : great mushroom loan crisp ... door juice embrace
+Private Key         : e038eea7e151eb451ba2901f7...b08ba5b76d8f288
+Public Key          : 0478903d96aa2c8c0...6a3e7d810cacd136117ea7b13d2c9337e1ec88288111955b76ea
+Address             : 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
+✔ Save account info into a file? … no / yes
+✔ Enter a password … ********
+✔ Confirm password … ********
+✔
+Account info has been saved to "/Users/young/.local/share/aelf/keyStore/2Ue31YTuB5Szy7cnr...Gi5uMQBYarYUR5oGin1sys6H.json"
+
+```
+
+Here you can get the account info and decide whether to encrypt account info and save into a file.
+
+Examples:
+```bash
+aelf-command console -a 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
+✔ Enter the password you typed when creating a wallet … ********
+✔ Succeed!
+Welcome to aelf interactive console. Ctrl + C to terminate the program. Double tap Tab to list objects
+
+   ╔═══════════════════════════════════════════════════════════╗
+   ║                                                           ║
+   ║   NAME       | DESCRIPTION                                ║
+   ║   AElf       | imported from aelf-sdk                     ║
+   ║   aelf       | the instance of an aelf-sdk, connect to    ║
+   ║              | http://127.0.0.1:8000                  ║
+   ║   _account   | the instance of an AElf wallet, address    ║
+   ║              | is                                         ║
+   ║              | 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR…   ║
+   ║              | 5oGin1sys6H                                ║
+   ║                                                           ║
+   ╚═══════════════════════════════════════════════════════════╝
+```
+
+Any missed parameters you did not give in CLI parameters will be asked in a prompting way
+```bash
+aelf-command console
+✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
+✔ Enter the password you typed when creating a wallet … ********
+✔ Succeed!
+Welcome to aelf interactive console. Ctrl + C to terminate the program. Double tap Tab to list objects
+
+   ╔═══════════════════════════════════════════════════════════╗
+   ║                                                           ║
+   ║   NAME       | DESCRIPTION                                ║
+   ║   AElf       | imported from aelf-sdk                     ║
+   ║   aelf       | the instance of an aelf-sdk, connect to    ║
+   ║              | http://13.231.179.27:8000                  ║
+   ║   _account   | the instance of an AElf wallet, address    ║
+   ║              | is                                         ║
+   ║              | 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR…   ║
+   ║              | 5oGin1sys6H                                ║
+   ║                                                           ║
+   ╚═══════════════════════════════════════════════════════════╝
+
+```
 
 
+### Help
+
+Type
+```bash
+aelf-command -h
+
+Usage: aelf-command [command] [options]
+
+Options:
+  -v, --version                                            output the version number
+  -e, --endpoint <URI>                                     The URI of an AElf node. Eg: http://127.0.0.1:8000
+  -a, --account <account>                                  The address of AElf wallet
+  -p, --password <password>                                The password of encrypted keyStore
+  -d, --datadir <directory>                                The directory that contains the AElf related files. Default to be `{home}/.local/share/aelf`
+  -h, --help                                               output usage information
+
+Commands:
+  call [contract-address|contract-name] [method] [params]  Call a read-only method on a contract.
+  send [contract-address|contract-name] [method] [params]  Execute a method on a contract.
+  get-blk-height                                           get the current of specified chain
+  get-blk-info [height] [include-txs]                      get a block info
+  get-tx-result [tx-hash]                                  get a transaction result
+  console                                                  Open a node REPL
+  create [save-to-file]                                    create a new account
+  load [private-key|mnemonic] [save-to-file]               load wallet from
+  deploy [category] [code-path]                            Deploy a smart contract
+  config <flag> [key] [value]                              get, set, delete or list aelf-command config
+```
+in your terminal and get useful information.
+
+Any sub-commands such as `call`, you can get `help` by typing this
+```bash
+aelf-command call -h
+aelf-command send -h
+aelf-command console -h
+...
+```

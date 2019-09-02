@@ -16,8 +16,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Context.LogDebug(() => $"impliedIrreversibleHeights count: {impliedIrreversibleHeights.Count}");
                 if (impliedIrreversibleHeights.Count < minimumMinersCount) return 0;
                 var libHeight = impliedIrreversibleHeights[impliedIrreversibleHeights.Count.Sub(1).Div(3)];
-                Context.LogDebug(() => $"lib height confirmed: {libHeight}");
-                return libHeight;
+                if (State.LastIrreversibleBlockHeight.Value < libHeight)
+                {
+                    State.LastIrreversibleBlockHeight.Value = libHeight;
+                    Context.LogDebug(() => $"lib height confirmed: {libHeight}");
+                    return libHeight;
+                }
             }
 
             return 0;

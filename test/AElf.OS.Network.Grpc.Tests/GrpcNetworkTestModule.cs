@@ -1,9 +1,13 @@
+using System;
+using System.Net;
+using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
+using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -12,7 +16,9 @@ using Volo.Abp.Modularity;
 
 namespace AElf.OS.Network
 {
-    [DependsOn(typeof(OSCoreWithChainTestAElfModule), typeof(GrpcNetworkModule))]
+    [DependsOn(
+        typeof(OSCoreWithChainTestAElfModule),
+        typeof(GrpcNetworkModule))]
     public class GrpcNetworkTestModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -23,7 +29,7 @@ namespace AElf.OS.Network
                 o.MaxPeers = 2;
             });
             
-            context.Services.AddSingleton<ISyncStateService>(o =>
+            context.Services.AddSingleton(o =>
             {
                 var mockService = new Mock<ISyncStateService>();
                 mockService.Setup(s => s.SyncState).Returns(SyncState.Finished);
@@ -46,7 +52,41 @@ namespace AElf.OS.Network
                 IsInbound = true
             };
             
-            pool.TryAddPeer(new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), NetworkTestConstants.FakeIpEndpoint, connectionInfo));
+            if (!IpEndpointHelper.TryParse(NetworkTestConstants.FakeIpEndpoint, out var peerEnpdoint))
+                throw new Exception($"Ip {NetworkTestConstants.FakeIpEndpoint} is invalid.");
+            
+            pool.TryAddPeer(new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), peerEnpdoint, connectionInfo));
+        }
+    }
+
+    [DependsOn(
+        typeof(GrpcNetworkTestModule))]
+    public class GrpcNetworkDialerTestModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
+
+            services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IConnectionService>();
+                mockService.Setup(m =>m.ConnectAsync(It.IsAny<IPEndPoint>()))
+                    .Returns(Task.FromResult(true));
+                mockService.Setup(m=>m.DialBackAsync(It.IsAny<IPEndPoint>(), It.IsAny<ConnectionInfo>()))
+                    .Returns(Task.FromResult(new ConnectReply
+                    {
+                        Error = ConnectError.ConnectOk,
+                        Info = new ConnectionInfo
+                        {
+                            ChainId = 1,
+                            ListeningPort = 2000,
+                            Pubkey = ByteString.CopyFromUtf8("pubkey"),
+                            Version = 1
+                        }
+                    }));
+
+                return mockService.Object;
+            });
         }
     }
 }

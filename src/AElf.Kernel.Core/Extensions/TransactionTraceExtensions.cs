@@ -26,6 +26,14 @@ namespace AElf.Kernel
                     return false;
                 }
             }
+            
+            foreach (var trace in txTrace.PostTraces)
+            {
+                if (!trace.IsSuccessful())
+                {
+                    return false;
+                }
+            }
 
             return true;
         }

@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -20,10 +21,9 @@ namespace AElf.OS.BlockSync.Application
             _announcementCacheProvider = announcementCacheProvider;
         }
 
-        public Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement)
+        public Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement, string senderPubKey)
         {
-            if (!_announcementCacheProvider.TryAddAnnouncementCache(blockAnnouncement.BlockHash,
-                blockAnnouncement.BlockHeight))
+            if (!TryCacheNewAnnouncement(blockAnnouncement.BlockHash, blockAnnouncement.BlockHeight, senderPubKey))
             {
                 return Task.FromResult(false);
             }
@@ -38,13 +38,8 @@ namespace AElf.OS.BlockSync.Application
             return Task.FromResult(true);
         }
 
-        public Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions)
+        public Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions, string senderPubKey)
         {
-            if (!_announcementCacheProvider.TryAddAnnouncementCache(blockWithTransactions.GetHash(), blockWithTransactions.Height))
-            {
-                return Task.FromResult(false);
-            }
-
             if (blockWithTransactions.Height <= chain.LastIrreversibleBlockHeight)
             {
                 Logger.LogWarning($"Receive lower block {blockWithTransactions} ignore.");
@@ -52,6 +47,11 @@ namespace AElf.OS.BlockSync.Application
             }
 
             return Task.FromResult(true);
+        }
+        
+        private bool TryCacheNewAnnouncement(Hash blockHash, long blockHeight, string senderPubkey)
+        {
+            return _announcementCacheProvider.TryAddOrUpdateAnnouncementCache(blockHash, blockHeight, senderPubkey);
         }
     }
 }
