@@ -26,7 +26,7 @@ namespace AElf.Runtime.CSharp
 
         private Assembly LoadFromFolderOrDefault(AssemblyName assemblyName)
         {
-            if (assemblyName.Name.StartsWith("AElf.Sdk"))
+            if (assemblyName.Name.StartsWith("AElf.Sdk") || assemblyName.Name.StartsWith("AElf.Cryptography"))
             {
                 // Sdk assembly should NOT be shared
                 Sdk = LoadFromStream(_sdkStreamManager.GetStream(assemblyName));

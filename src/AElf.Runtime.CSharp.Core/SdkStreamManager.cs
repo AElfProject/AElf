@@ -20,7 +20,7 @@ namespace AElf.Runtime.CSharp
         public Stream GetStream(AssemblyName assemblyName)
         {
             // TODO: Handle version
-            var path = Path.Combine(_sdkDir, assemblyName.Name + ".dll");
+            var path = Path.Combine(_sdkDir,$"{assemblyName.Name}/{assemblyName.Version}/{assemblyName.Name}.dll");
             if (!File.Exists(path))
             {
                 var assembly = Assembly.Load(assemblyName);
