@@ -64,9 +64,23 @@ namespace AElf.WebApp.Application.Chain
             }
 
             var transactionResult = await GetTransactionResultAsync(transactionIdHash);
-            var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
-
             var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
+
+            if (transactionResult.Status == TransactionResultStatus.NotExisted)
+            {
+                output.Status = transactionResult.Status.ToString();
+                return output;
+            }
+
+            var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
+            output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+
+            var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
+                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
+
+            output.Transaction.Params = JsonFormatter.ToDiagnosticString(
+                methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
+
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {
                 var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
@@ -75,20 +89,6 @@ namespace AElf.WebApp.Application.Chain
 
             if (transactionResult.Status == TransactionResultStatus.Failed)
                 output.Error = transactionResult.Error;
-
-            if (transactionResult.Status == TransactionResultStatus.NotExisted)
-            {
-                output.Status = transactionResult.Status.ToString();
-                return output;
-            }
-
-            output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
-
-            var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
-                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
-
-            output.Transaction.Params = JsonFormatter.ToDiagnosticString(
-                methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
 
             return output;
         }
