@@ -198,7 +198,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 Owner = TestContractAddress, Symbol = symbol
             });
 
-            var lesserConsumption = balanceAfter.Balance - balanceBefore.Balance;
+            var lesserConsumption = balanceBefore.Balance - balanceAfter.Balance;
 
             consumption.ShouldBeGreaterThan(lesserConsumption);
         }

@@ -15,14 +15,11 @@ namespace AElf.Kernel.TransactionPool
         {
             var services = context.Services;
             services.AddSingleton<ITxHub, TxHub>();
-            services.AddSingleton<ITransactionValidationService, TransactionValidationForTxHubService>();
             services.AddSingleton<ITransactionValidationProvider, BasicTransactionValidationProvider>();
             services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
             //services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
-            services.AddSingleton<IDeployedContractAddressProvider, DeployedContractAddressProvider>();
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
 
-            context.Services.AddSingleton<IContractDeployDiscoveryService, ContractDeployDiscoveryService>();
             context.Services.AddSingleton<BestChainFoundEventHandler>();
 
             var configuration = context.Services.GetConfiguration();

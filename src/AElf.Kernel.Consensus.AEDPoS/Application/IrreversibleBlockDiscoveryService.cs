@@ -19,8 +19,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         Task<long> GetUnacceptableDistanceToLastIrreversibleBlockHeightAsync(Hash blockHash);
     }
 
-    public class IrreversibleBlockRelatedEventsDiscoveryService : IIrreversibleBlockRelatedEventsDiscoveryService,
-        ITransientDependency
+    public class IrreversibleBlockRelatedEventsDiscoveryService : IIrreversibleBlockRelatedEventsDiscoveryService
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultQueryService _transactionResultQueryService;

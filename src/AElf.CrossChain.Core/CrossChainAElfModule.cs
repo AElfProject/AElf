@@ -16,9 +16,6 @@ namespace AElf.CrossChain
             context.Services.AddTransient<ISystemTransactionGenerator, CrossChainIndexingTransactionGenerator>();
             context.Services.AddTransient<IBlockValidationProvider, CrossChainValidationProvider>();
             context.Services
-                .AddTransient<ISmartContractAddressNameProvider, CrossChainSmartContractAddressNameProvider>();
-            context.Services.AddSingleton<ICrossChainIndexingDataService, CrossChainIndexingDataService>();
-            context.Services
                 .AddSingleton<IConstrainedTransactionValidationProvider,
                     ConstrainedCrossChainTransactionValidationProvider>();
             var crossChainConfiguration = context.Services.GetConfiguration().GetSection("CrossChain");
