@@ -27,7 +27,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var currentRoundNumber = currentRound.RoundNumber;
 
             Context.LogDebug(() =>
-                $"R_LIB: {libRoundNumber}\nH_LIB:{libBlockHeight}\nR:{currentRoundNumber}\nH:{currentHeight}");
+                $"Calculating max blocks count based on:\nR_LIB: {libRoundNumber}\nH_LIB:{libBlockHeight}\nR:{currentRoundNumber}\nH:{currentHeight}");
 
             if (libRoundNumber == 0)
             {
