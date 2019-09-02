@@ -42,6 +42,14 @@ namespace AElf.OS.Network
             exception.Message.ShouldBe($"Could not find peer {peerName}.");
         }
 
+        [Fact]
+        public async Task GetBlocks_NetworkException_ReturnsNonSuccessfulResponse()
+        {
+            var response = await _networkService.GetBlocksAsync(Hash.FromString("block_hash"), 1, "failed_peer");
+            response.Success.ShouldBeFalse();
+            response.Payload.ShouldBeNull();
+        }
+
         #endregion GetBlocks
 
         #region GetBlockByHash
@@ -66,6 +74,14 @@ namespace AElf.OS.Network
         {
             var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"), "p1");
             Assert.NotNull(block);
+        }
+        
+        [Fact]
+        public async Task GetBlockByHash_NetworkException_ReturnsNonSuccessfulResponse()
+        {
+            var response = await _networkService.GetBlocksAsync(Hash.FromString("block_hash"), 1, "failed_peer");
+            response.Success.ShouldBeFalse();
+            response.Payload.ShouldBeNull();
         }
 
         #endregion GetBlockByHash

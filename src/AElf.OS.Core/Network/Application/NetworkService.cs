@@ -228,7 +228,7 @@ namespace AElf.OS.Network.Application
                 await HandleNetworkException(peer, ex);
             }
 
-            return default(Response<T>);
+            return new Response<T>();
         }
 
         private async Task HandleNetworkException(IPeer peer, NetworkException exception)
