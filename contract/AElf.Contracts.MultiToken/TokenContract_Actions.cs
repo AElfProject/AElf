@@ -521,6 +521,7 @@ namespace AElf.Contracts.MultiToken
                     if (amount > 0)
                     {
                         State.Balances[contractAddress][symbol] = State.Balances[contractAddress][symbol].Sub(amount);
+                        Context.LogDebug(() => $"Charged {amount} {symbol} tokens from {contractAddress}");
                         totalAmount = totalAmount.Add(amount);
                         State.ChargedResourceTokens[caller][contractAddress][symbol] = 0;
                     }
