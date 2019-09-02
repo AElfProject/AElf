@@ -32,6 +32,7 @@ namespace AElf.OS.Network.Grpc
         private const int MaxDegreeOfParallelismForAnnouncementJobs = 3;
         private const int MaxDegreeOfParallelismForTransactionJobs = 1;
         private const int MaxDegreeOfParallelismForBlockJobs = 1;
+        private const int MaxDegreeOfParallelismForLibAnnouncementJobs = 1;
 
         private enum MetricNames
         {
@@ -52,6 +53,8 @@ namespace AElf.OS.Network.Grpc
             get { return (_channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready) && IsConnected; }
         }
 
+        public Hash LastKnownLibHash { get; private set; }
+
         public long LastKnownLibHeight { get; private set; }
 
         public bool IsBest { get; set; }
@@ -64,6 +67,7 @@ namespace AElf.OS.Network.Grpc
         public int BufferedTransactionsCount => _sendTransactionJobs.InputCount;
         public int BufferedBlocksCount => _sendBlockJobs.InputCount;
         public int BufferedAnnouncementsCount => _sendAnnouncementJobs.InputCount;
+        public int BufferedLibAnnouncementsCount => _sendLibAnnouncementJobs.InputCount;
 
         public string IpAddress { get; }
 
@@ -80,10 +84,12 @@ namespace AElf.OS.Network.Grpc
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
         private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
+        private AsyncClientStreamingCall<LibAnnouncement, VoidReply> _libAnnouncementStreamCall;
 
         private readonly ActionBlock<StreamJob> _sendAnnouncementJobs;
         private readonly ActionBlock<StreamJob> _sendBlockJobs;
         private readonly ActionBlock<StreamJob> _sendTransactionJobs;
+        private readonly ActionBlock<StreamJob> _sendLibAnnouncementJobs;
 
         public GrpcPeer(GrpcClient client, IPEndPoint remoteEndpoint, PeerInfo peerInfo)
         {
@@ -121,6 +127,12 @@ namespace AElf.OS.Network.Grpc
                 {
                     MaxDegreeOfParallelism = MaxDegreeOfParallelismForTransactionJobs,
                     BoundedCapacity = NetworkConstants.DefaultMaxBufferedTransactionCount
+                });
+            _sendLibAnnouncementJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
+                new ExecutionDataflowBlockOptions
+                {
+                    MaxDegreeOfParallelism = MaxDegreeOfParallelismForLibAnnouncementJobs,
+                    BoundedCapacity = NetworkConstants.DefaultMaxBufferedLibAnnouncementCount
                 });
         }
 
@@ -181,6 +193,17 @@ namespace AElf.OS.Network.Grpc
             LastKnownLibHeight = handshake.HandshakeData.LibBlockHeight;
             CurrentBlockHash = handshake.HandshakeData.BestChainHead.GetHash();
             CurrentBlockHeight = handshake.HandshakeData.BestChainHead.Height;
+        }
+
+        public void UpdateLastKnownLib(LibAnnouncement libAnnouncement)
+        {
+            if (libAnnouncement.LibHeight <= LastKnownLibHeight)
+            {
+                return;
+            }
+
+            LastKnownLibHash = libAnnouncement.LibHash;
+            LastKnownLibHeight = libAnnouncement.LibHeight;
         }
 
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
@@ -251,6 +274,19 @@ namespace AElf.OS.Network.Grpc
 
             _sendBlockJobs.Post(new StreamJob{BlockWithTransactions = blockWithTransactions, SendCallback = sendCallback});
         }
+        
+        public void EnqueueLibAnnouncement(LibAnnouncement libAnnouncement, Action<NetworkException> sendCallback)
+        {
+            if (!IsReady)
+                throw new NetworkException($"Dropping lib announcement, peer is not ready - {this}.",
+                    NetworkExceptionType.NotConnected);
+
+            _sendLibAnnouncementJobs.Post(new StreamJob
+            {
+                LibAnnouncement = libAnnouncement,
+                SendCallback = sendCallback
+            });
+        }
 
         private async Task SendStreamJobAsync(StreamJob job)
         {
@@ -270,6 +306,10 @@ namespace AElf.OS.Network.Grpc
                 else if (job.BlockWithTransactions != null)
                 {
                     await BroadcastBlockAsync(job.BlockWithTransactions);
+                }
+                else if (job.LibAnnouncement != null)
+                {
+                    await SendLibAnnouncementAsync(job.LibAnnouncement);
                 }
             }
             catch (RpcException ex)
@@ -340,6 +380,28 @@ namespace AElf.OS.Network.Grpc
                 _transactionStreamCall.Dispose();
                 _transactionStreamCall = null;
 
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Send a lib announcement to the peer using the stream call.
+        /// Note: this method is not thread safe.
+        /// </summary>
+        public async Task SendLibAnnouncementAsync(LibAnnouncement libAnnouncement)
+        {
+            if (_libAnnouncementStreamCall == null)
+                _libAnnouncementStreamCall = _client.LibAnnouncementBroadcastStream();
+            
+            try
+            {
+                await _libAnnouncementStreamCall.RequestStream.WriteAsync(libAnnouncement);
+            }
+            catch (RpcException e)
+            {
+                _libAnnouncementStreamCall.Dispose();
+                _libAnnouncementStreamCall = null;
+                
                 throw;
             }
         }

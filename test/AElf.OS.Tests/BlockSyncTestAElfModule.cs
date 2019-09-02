@@ -1,6 +1,4 @@
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel;
@@ -10,6 +8,7 @@ using AElf.Modularity;
 using AElf.OS.Handlers;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -62,6 +61,8 @@ namespace AElf.OS
 
                         return Task.FromResult(result);
                     });
+
+                networkServiceMock.Setup(p => p.GetPeerByPubkey(It.IsAny<string>())).Returns(Mock.Of<IPeer>());
 
                 return networkServiceMock.Object;
             });

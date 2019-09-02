@@ -13,7 +13,8 @@ namespace AElf.OS.Network.Infrastructure
     {
         bool IsBest { get; set; }
         bool IsReady { get; }
-        
+
+        Hash LastKnownLibHash { get; }
         long LastKnownLibHeight { get; }
         IPEndPoint RemoteEndpoint { get; }
         string IpAddress { get; }
@@ -27,10 +28,12 @@ namespace AElf.OS.Network.Infrastructure
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         
         void AddKnowBlock(BlockAnnouncement blockAnnouncement);
+        void UpdateLastKnownLib(LibAnnouncement libAnnouncement);
 
         void EnqueueAnnouncement(BlockAnnouncement transaction, Action<NetworkException> sendCallback);
         void EnqueueTransaction(Transaction transaction, Action<NetworkException> sendCallback);
         void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException> sendCallback);
+        void EnqueueLibAnnouncement(LibAnnouncement libAnnouncement,Action<NetworkException> sendCallback);
 
         Task<Handshake> DoHandshakeAsync(Handshake handshake);
         Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash);

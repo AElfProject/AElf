@@ -11,7 +11,6 @@ namespace AElf.OS.BlockSync.Application
     {
         private readonly IBlockFetchService _blockFetchService;
         private readonly INetworkService _networkService;
-        private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockchainService _blockchainService;
 
         public BlockFetchServiceTests()

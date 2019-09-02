@@ -21,32 +21,32 @@ namespace AElf.OS.BlockSync.Application
             _announcementCacheProvider = announcementCacheProvider;
         }
 
-        public async Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement, string senderPubKey)
+        public Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement, string senderPubKey)
         {
             if (!TryCacheNewAnnouncement(blockAnnouncement.BlockHash, blockAnnouncement.BlockHeight, senderPubKey))
             {
-                return false;
+                return Task.FromResult(false);
             }
 
             if (blockAnnouncement.BlockHeight <= chain.LastIrreversibleBlockHeight)
             {
                 Logger.LogWarning(
                     $"Receive lower header {{ hash: {blockAnnouncement.BlockHash}, height: {blockAnnouncement.BlockHeight} }} ignore.");
-                return false;
+                return Task.FromResult(false);
             }
 
-            return true;
+            return Task.FromResult(true);
         }
 
-        public async Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions, string senderPubKey)
+        public Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions, string senderPubKey)
         {
             if (blockWithTransactions.Height <= chain.LastIrreversibleBlockHeight)
             {
                 Logger.LogWarning($"Receive lower block {blockWithTransactions} ignore.");
-                return false;
+                return Task.FromResult(false);
             }
 
-            return true;
+            return Task.FromResult(true);
         }
         
         private bool TryCacheNewAnnouncement(Hash blockHash, long blockHeight, string senderPubkey)
