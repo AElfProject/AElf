@@ -1,11 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
-using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
 using Grpc.Core.Testing;
@@ -122,6 +122,39 @@ namespace AElf.OS.Network
                     });
 
                 return mockDialer.Object;
+            });
+        }
+    }
+
+    [DependsOn(typeof(GrpcBasicNetworkTestModule))]
+    public class GrpcNetworkWithBootNodesTestModule : AElfModule
+    {
+        public override void PreConfigureServices(ServiceConfigurationContext context)
+        {
+            Configure<NetworkOptions>(o =>
+            {
+                o.ListeningPort = 2001;
+                o.MaxPeers = 2;
+                o.BootNodes = new List<string>
+                {
+                    "127.0.0.1:2018",
+                    "127.0.0.1:2019"
+                };
+            });
+        }
+
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
+
+            services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IConnectionService>();
+                mockService.Setup(m => m.ConnectAsync(It.IsAny<IPEndPoint>())).Returns(Task.FromResult(true));
+                mockService.Setup(m => m.DisconnectAsync(It.IsAny<IPeer>(), It.IsAny<bool>()))
+                    .Returns(Task.CompletedTask);
+                
+                return mockService.Object;
             });
         }
     }
