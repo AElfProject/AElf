@@ -35,7 +35,7 @@ service TokenContract {
     }
     rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {
     }
-    rpc RegisterNativeTokenInfo(RegisterNativeTokenInfoInput) returns (google.protobuf.Empty) {
+    rpc RegisterNativeAndResourceTokenInfo(RegisterNativeAndResourceTokenInfoInput) returns (google.protobuf.Empty) {
     }  
     rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
     }
@@ -128,6 +128,11 @@ message RegisterNativeTokenInfoInput{
     aelf.Address issuer = 5;
     bool is_burnable = 6;
     sint32 issue_chain_id = 8;
+}
+
+message RegisterNativeAndResourceTokenInfoInput {
+    RegisterNativeTokenInfoInput native_token_info = 1;
+    TokenInfoList resource_token_list = 2;
 }
 
 message IssueInput {
