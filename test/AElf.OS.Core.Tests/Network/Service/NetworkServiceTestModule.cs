@@ -86,8 +86,6 @@ namespace AElf.OS
                         }));
                     peers.Add(p2.Object);
                     
-                    
-                    p3.SetupProperty(p => p.IsBest, true);
                     p3.Setup(p => p.Info).Returns(new PeerInfo { Pubkey = "p3" });
                     p3.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("blocks")), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { blockWithTransactions, blockWithTransactions }));

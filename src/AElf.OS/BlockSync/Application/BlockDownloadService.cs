@@ -94,7 +94,7 @@ namespace AElf.OS.BlockSync.Application
                 // Bad peer
                 else
                 {
-                    var peers = _networkService.GetPeers().Where(p => p.LastKnownLibHeight >= downloadTargetHeight;
+                    var peers = _networkService.GetPeers().Where(p => p.LastKnownLibHeight >= downloadTargetHeight);
                     foreach (var peer in peers)
                     {
                         
@@ -132,9 +132,17 @@ namespace AElf.OS.BlockSync.Application
 
             while (downloadBlockCount < downloadBlockDto.MaxBlockDownloadCount)
             {
-                var blocksWithTransactions = await _networkService.GetBlocksAsync(lastDownloadBlockHash,
+                var getBlocksResult = await _networkService.GetBlocksAsync(lastDownloadBlockHash,
                     downloadBlockDto.BatchRequestBlockCount, peerPubkey);
+                if (!getBlocksResult.Success)
+                {
+                    return new DownloadBlocksResult
+                    {
+                        Success = false
+                    };
+                }
 
+                var blocksWithTransactions = getBlocksResult.Payload;
                 if (blocksWithTransactions == null || !blocksWithTransactions.Any())
                 {
                     Logger.LogWarning("No blocks returned.");
@@ -167,6 +175,7 @@ namespace AElf.OS.BlockSync.Application
 
             return new DownloadBlocksResult
             {
+                Success = true,
                 DownloadBlockCount = downloadBlockCount,
                 LastDownloadBlockHash = lastDownloadBlockHash,
                 LastDownloadBlockHeight = lastDownloadBlockHeight

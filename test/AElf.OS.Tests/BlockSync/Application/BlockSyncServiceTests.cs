@@ -36,7 +36,8 @@ namespace AElf.OS.BlockSync.Application
         public async Task SyncByAnnounce_Success()
         {
             var chain = await _blockchainService.GetChainAsync();
-            var peerBlocks = await _networkService.GetBlocksAsync(chain.BestChainHash, 30);
+            var resp = await _networkService.GetBlocksAsync(chain.BestChainHash, 30, null);
+            var peerBlocks = resp.Payload;
 
             var block = peerBlocks[0];
             var peerBlockHash = block.GetHash();
@@ -98,7 +99,8 @@ namespace AElf.OS.BlockSync.Application
         [Fact]
         public async Task SyncByAnnounce_LessThenFetchLimit_Success()
         {
-            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+            var response = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"), null);
+            var peerBlock = response.Payload;
 
             var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
             block.ShouldBeNull();
@@ -122,7 +124,8 @@ namespace AElf.OS.BlockSync.Application
         [Fact]
         public async Task SyncByAnnounce_FetchQueueIsBusy()
         {
-            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+            var response = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"), null);
+            var peerBlock = response.Payload;
             
             var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
             block.ShouldBeNull();
@@ -195,7 +198,8 @@ namespace AElf.OS.BlockSync.Application
                 TimestampHelper.GetUtcNow()
                     .AddMilliseconds(-(BlockSyncConstants.BlockSyncAttachAndExecuteBlockAgeLimit + 100)));
 
-            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+            var response = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"), null);
+            var peerBlock = response.Payload;
 
             var chain = await _blockchainService.GetChainAsync();
             await _blockSyncService.SyncByAnnouncementAsync(chain, new SyncAnnouncementDto
@@ -216,7 +220,8 @@ namespace AElf.OS.BlockSync.Application
                 TimestampHelper.GetUtcNow()
                 .AddMilliseconds(-(BlockSyncConstants.BlockSyncAttachAndExecuteBlockAgeLimit + 100)));
             
-            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+            var response = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"), null);
+            var peerBlock = response.Payload;
 
             var chain = await _blockchainService.GetChainAsync();
             var bestChainHash = chain.BestChainHash;
@@ -240,7 +245,8 @@ namespace AElf.OS.BlockSync.Application
             _blockSyncStateProvider.SetEnqueueTime(OSConstants.BlockSyncAttachQueueName,
                 TimestampHelper.GetUtcNow().AddMilliseconds(-(BlockSyncConstants.BlockSyncAttachBlockAgeLimit + 100)));
 
-            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+            var response = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"), null);
+            var peerBlock = response.Payload;
 
             var chain = await _blockchainService.GetChainAsync();
             await _blockSyncService.SyncByAnnouncementAsync(chain, new SyncAnnouncementDto
@@ -260,7 +266,8 @@ namespace AElf.OS.BlockSync.Application
             _blockSyncStateProvider.SetEnqueueTime(OSConstants.BlockSyncAttachQueueName,
                 TimestampHelper.GetUtcNow().AddMilliseconds(-(BlockSyncConstants.BlockSyncAttachBlockAgeLimit + 100)));
 
-            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+            var response = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"), null);
+            var peerBlock = response.Payload;
 
             var chain = await _blockchainService.GetChainAsync();
             var bestChainHash = chain.BestChainHash;
@@ -281,7 +288,8 @@ namespace AElf.OS.BlockSync.Application
         [Fact]
         public async Task SyncByBlock_Success()
         {
-            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+            var response = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"), null);
+            var peerBlock = response.Payload;
 
             var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
             block.ShouldBeNull();
