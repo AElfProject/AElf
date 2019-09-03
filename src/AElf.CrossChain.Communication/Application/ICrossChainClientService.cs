@@ -1,13 +1,15 @@
 using System.Threading.Tasks;
-using AElf.CrossChain.Communication.Infrastructure;
+using Acs7;
 
 namespace AElf.CrossChain.Communication.Application
 {
     public interface ICrossChainClientService
     {
-        ICrossChainClient CreateClientForChainInitializationData(int chainId);
+        Task<ChainInitializationData> RequestChainInitializationData(int chainId);
+        
+        Task RequestCrossChainDataAsync(int chainId, long targetHeight);
+
         Task CreateClientAsync(CrossChainClientDto crossChainClientDto);
-        Task<ICrossChainClient> GetClientAsync(int chainId);
         Task CloseClientsAsync();
     }
 }

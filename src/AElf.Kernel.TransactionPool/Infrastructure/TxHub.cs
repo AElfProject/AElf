@@ -7,6 +7,7 @@ using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Types;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.TransactionPool.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -23,11 +24,13 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private readonly ITransactionManager _transactionManager;
         private readonly IBlockchainService _blockchainService;
+        private readonly ITransactionValidationService _transactionValidationService;
 
         private readonly ConcurrentDictionary<Hash, TransactionReceipt> _allTransactions =
             new ConcurrentDictionary<Hash, TransactionReceipt>();
 
-        private ConcurrentDictionary<Hash, TransactionReceipt> _validated = new ConcurrentDictionary<Hash, TransactionReceipt>();
+        private ConcurrentDictionary<Hash, TransactionReceipt> _validated =
+            new ConcurrentDictionary<Hash, TransactionReceipt>();
 
         private ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>> _invalidatedByBlock =
             new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
@@ -43,34 +46,39 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public ILocalEventBus LocalEventBus { get; set; }
 
-        public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService, 
-            IOptionsSnapshot<TransactionOptions> transactionOptions)
+        public TxHub(ITransactionManager transactionManager, IBlockchainService blockchainService,
+            IOptionsSnapshot<TransactionOptions> transactionOptions,
+            ITransactionValidationService transactionValidationService)
         {
             Logger = NullLogger<TxHub>.Instance;
             _transactionManager = transactionManager;
             _blockchainService = blockchainService;
+            _transactionValidationService = transactionValidationService;
             LocalEventBus = NullLocalEventBus.Instance;
             _transactionOptions = transactionOptions.Value;
         }
 
-        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount=0)
+        public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount = 0)
         {
-            var chain = await _blockchainService.GetChainAsync();
-            if (chain.BestChainHash != _bestChainHash)
-            {
-                Logger.LogWarning($"Attempting to retrieve executable transactions while best chain records don't match.");
-                return new ExecutableTransactionSet
-                {
-                    PreviousBlockHash = _bestChainHash,
-                    PreviousBlockHeight = _bestChainHeight
-                };
-            }
-
-            var output = new ExecutableTransactionSet()
+            var output = new ExecutableTransactionSet
             {
                 PreviousBlockHash = _bestChainHash,
                 PreviousBlockHeight = _bestChainHeight
             };
+
+            if (transactionCount == -1)
+            {
+                return output;
+            }
+
+            var chain = await _blockchainService.GetChainAsync();
+            if (chain.BestChainHash != _bestChainHash)
+            {
+                Logger.LogWarning(
+                    $"Attempting to retrieve executable transactions while best chain records don't match.");
+                return output;
+            }
+
             output.Transactions.AddRange(_validated.Values
                 .Where((x, i) => transactionCount <= 0 || i < transactionCount).Select(x => x.Transaction));
 
@@ -87,7 +95,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         #region Private Static Methods
 
-        private static void AddToCollection(ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>> collection,
+        private static void AddToCollection(
+            ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>> collection,
             TransactionReceipt receipt)
         {
             if (!collection.TryGetValue(receipt.Transaction.RefBlockNumber, out var receipts))
@@ -136,7 +145,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             return await GetPrefixByHeightAsync(chain, height, bestChainHash);
         }
 
-        private async Task<Dictionary<long, ByteString>> GetPrefixesByHeightAsync(IEnumerable<long> heights, Hash bestChainHash)
+        private async Task<Dictionary<long, ByteString>> GetPrefixesByHeightAsync(IEnumerable<long> heights,
+            Hash bestChainHash)
         {
             var prefixes = new Dictionary<long, ByteString>();
             var chain = await _blockchainService.GetChainAsync();
@@ -202,9 +212,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var executableTransactions = new List<Transaction>();
             foreach (var transaction in eventData.Transactions)
             {
-                if (!transaction.VerifySignature())
-                    continue;
-
                 var receipt = new TransactionReceipt
                 {
                     TransactionId = transaction.GetHash(),
@@ -222,21 +229,21 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     break;
                 }
 
-                if (transaction.CalculateSize() > TransactionPoolConsts.TransactionSizeLimit)
-                {
-                    Logger.LogWarning($"Transaction {receipt.TransactionId} oversize {transaction.CalculateSize()}");
-                    continue;
-                }
-
-                var txn = await _transactionManager.GetTransaction(receipt.TransactionId);
+                // Skip this transaction if it is already in local database.
+                var txn = await _transactionManager.GetTransactionAsync(receipt.TransactionId);
                 if (txn != null)
                 {
-                    //Logger.LogWarning($"Transaction already exists in TxStore");
                     continue;
                 }
 
-                var success = _allTransactions.TryAdd(receipt.TransactionId, receipt);
-                if (!success)
+                var validationResult = await _transactionValidationService.ValidateTransactionAsync(transaction);
+                if (!validationResult)
+                {
+                    continue;
+                }
+
+                var additionResult = _allTransactions.TryAdd(receipt.TransactionId, receipt);
+                if (!additionResult)
                 {
                     continue;
                 }
@@ -270,8 +277,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
         {
-            Logger.LogDebug($"Handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
-            
+            Logger.LogDebug(
+                $"Handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
+
             var heights = _allTransactions.Select(kv => kv.Value.Transaction.RefBlockNumber).Distinct();
             var prefixes = await GetPrefixesByHeightAsync(heights, eventData.BlockHash);
             ResetCurrentCollections();
@@ -284,8 +292,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             _bestChainHash = eventData.BlockHash;
             _bestChainHeight = eventData.BlockHeight;
-            
-            Logger.LogDebug($"Finish handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
+
+            Logger.LogDebug(
+                $"Finish handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
         }
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
@@ -302,11 +311,17 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             await Task.CompletedTask;
         }
+
         #endregion
 
-        public async Task<int> GetTransactionPoolSizeAsync()
+        public Task<int> GetAllTransactionCountAsync()
         {
-            return await Task.FromResult(_allTransactions.Count);
+            return Task.FromResult(_allTransactions.Count);
+        }
+
+        public Task<int> GetValidatedTransactionCountAsync()
+        {
+            return Task.FromResult(_validated.Count);
         }
     }
 }

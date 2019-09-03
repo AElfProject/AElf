@@ -54,9 +54,9 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
 
         public override StringOutput TestStringState(StringInput input)
         {
-            if(string.IsNullOrEmpty(State.StringInfo.Value))
+            if (string.IsNullOrEmpty(State.StringInfo.Value))
                 State.StringInfo.Value = string.Empty;
-            
+
             State.StringInfo.Value = State.StringInfo.Value + input.StringValue;
             return new StringOutput()
             {
@@ -76,7 +76,7 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
         public override ProtobufOutput TestProtobufState(ProtobufInput input)
         {
             State.ProtoInfo.Value = input.ProtobufValue;
-            
+
             return new ProtobufOutput()
             {
                 ProtobufValue = State.ProtoInfo.Value
@@ -87,7 +87,7 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
         {
             State.BoolInfo.Value = input.BoolValue;
             State.Int32Info.Value = input.Int32Value;
-            
+
             return new Complex1Output()
             {
                 BoolValue = State.BoolInfo.Value,
@@ -99,24 +99,26 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
         {
             State.BoolInfo.Value = input.BoolData.BoolValue;
             State.Int32Info.Value = input.Int32Data.Int32Value;
-            
+
             return new Complex2Output()
             {
-                BoolData = new BoolOutput(){ BoolValue = State.BoolInfo.Value },
-                Int32Data = new Int32Output() { Int32Value = State.Int32Info.Value }
+                BoolData = new BoolOutput() {BoolValue = State.BoolInfo.Value},
+                Int32Data = new Int32Output() {Int32Value = State.Int32Info.Value}
             };
         }
 
         public override ProtobufListOutput TestMappedState(ProtobufInput input)
         {
             var protobufMessage = State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue];
-            if(protobufMessage == null)
-            {    State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue] = new ProtobufMessage()
-                {
-                    BoolValue = true,
-                    Int64Value = input.ProtobufValue.Int64Value,
-                    StringValue = input.ProtobufValue.StringValue
-                };
+            if (protobufMessage == null)
+            {
+                State.Complex3Info[input.ProtobufValue.Int64Value][input.ProtobufValue.StringValue] =
+                    new ProtobufMessage()
+                    {
+                        BoolValue = true,
+                        Int64Value = input.ProtobufValue.Int64Value,
+                        StringValue = input.ProtobufValue.StringValue
+                    };
             }
             else
             {
@@ -124,10 +126,10 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
                     input.ProtobufValue.Int64Value;
             }
 
-          return new ProtobufListOutput
-          {
-              Collection = { input.ProtobufValue }
-          };
+            return new ProtobufListOutput
+            {
+                Collection = {input.ProtobufValue}
+            };
         }
 
         public override TradeMessage TestMapped1State(Complex3Input input)
@@ -139,15 +141,19 @@ namespace AElf.Runtime.CSharp.Tests.TestContract
 
                 return input.TradeDetails;
             }
-            else
-            {
-                tradeMessage.FromAmount += input.TradeDetails.FromAmount;
-                tradeMessage.ToAmount += input.TradeDetails.ToAmount;
 
-                State.Complex4Info[input.From][input.PairA][input.To][input.PairB] = tradeMessage;
+            tradeMessage.FromAmount += input.TradeDetails.FromAmount;
+            tradeMessage.ToAmount += input.TradeDetails.ToAmount;
 
-                return tradeMessage;
-            }
+            State.Complex4Info[input.From][input.PairA][input.To][input.PairB] = tradeMessage;
+
+            return tradeMessage;
+        }
+
+        public override BoolOutput TestReadonlyState(BoolInput input)
+        {
+            State.ReadonlyBool.Value = input.BoolValue;
+            return new BoolOutput {BoolValue = State.ReadonlyBool.Value};
         }
     }
 }

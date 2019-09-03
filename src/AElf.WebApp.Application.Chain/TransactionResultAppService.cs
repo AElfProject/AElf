@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using AElf.Dtos;
 using Volo.Abp;
@@ -21,6 +22,8 @@ namespace AElf.WebApp.Application.Chain
 
         Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
             int limit = 10);
+        
+        Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId);
     }
 
     [ControllerName("BlockChain")]
@@ -61,7 +64,7 @@ namespace AElf.WebApp.Application.Chain
             }
 
             var transactionResult = await GetTransactionResultAsync(transactionIdHash);
-            var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
+            var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
 
             var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
             if (transactionResult.Status == TransactionResultStatus.Mined)
@@ -138,7 +141,7 @@ namespace AElf.WebApp.Application.Chain
                     var transactionResult = await GetTransactionResultAsync(hash);
                     var transactionResultDto =
                         JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
-                    var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
+                    var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
                     transactionResultDto.BlockHash = block.GetHash().ToHex();
 
                     if (transactionResult.Status == TransactionResultStatus.Failed)
@@ -160,6 +163,76 @@ namespace AElf.WebApp.Application.Chain
             }
 
             return output;
+        }
+
+        /// <summary>
+        /// Get the merkle path of a transaction.
+        /// </summary>
+        /// <param name="transactionId"></param>
+        /// <returns></returns>
+        public async Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId)
+        {
+            Hash transactionIdHash;
+            try
+            {
+                transactionIdHash = HashHelper.HexStringToHash(transactionId);
+            }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidTransactionId],
+                    Error.InvalidTransactionId.ToString());
+            }
+
+            var transactionResult = await GetTransactionResultAsync(transactionIdHash);
+            switch (transactionResult.Status)
+            {
+                case TransactionResultStatus.Mined:
+                {
+                    var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
+                    transactionResult.BlockHash = block.GetHash();
+                    break;
+                }
+                case TransactionResultStatus.Failed:
+                    throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+                case TransactionResultStatus.NotExisted:
+                    throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+            }
+
+            var blockHash = transactionResult.BlockHash;
+            var blockInfo = await _blockchainService.GetBlockByHashAsync(blockHash);
+            var transactionIds = blockInfo.Body.TransactionIds;
+            var index = transactionIds.IndexOf(transactionIdHash);
+            if (index == -1)
+            {
+                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+            }
+            
+            var transactionResultList = new List<TransactionResult>();
+            foreach (var item in blockInfo.TransactionIds)
+            {
+                var result = await GetTransactionResultAsync(item);
+                transactionResultList.Add(result);
+            }
+            
+            var transactionResultSet = transactionResultList.Select(txResult => (txResult.TransactionId, txResult.Status));
+            var leafNodes = new List<Hash>();
+            foreach (var (txId, status) in transactionResultSet)
+            {
+                leafNodes.Add(GetHashCombiningTransactionAndStatus(txId, status));
+            }
+
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(leafNodes);
+            var path = binaryMerkleTree.GenerateMerklePath(index);
+            var merklePath = new MerklePathDto {MerklePathNodes = new List<MerklePathNodeDto>()};
+            foreach (var node in path.MerklePathNodes)
+            {
+                merklePath.MerklePathNodes.Add(new MerklePathNodeDto
+                {
+                    Hash = node.Hash.ToHex(), IsLeftChildNode = node.IsLeftChildNode
+                });
+            }
+
+            return merklePath;
         }
 
         private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId)
@@ -188,6 +261,15 @@ namespace AElf.WebApp.Application.Chain
                 TransactionId = transactionId,
                 Status = TransactionResultStatus.NotExisted
             };
+        }
+        
+        private Hash GetHashCombiningTransactionAndStatus(Hash txId,
+            TransactionResultStatus executionReturnStatus)
+        {
+            // combine tx result status
+            var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
+                .ToArray();
+            return Hash.FromRawBytes(rawBytes);
         }
     }
 }

@@ -7,6 +7,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs1;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs5;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs8;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -28,6 +29,7 @@ namespace AElf.Contracts.Economic.TestBase
             context.Services.AddSingleton<IPreExecutionPlugin, ResourceConsumptionPreExecutionPlugin>();
             context.Services.AddSingleton<IPostExecutionPlugin, ResourceConsumptionPostExecutionPlugin>();
             context.Services.AddSingleton<IRandomHashCacheService, MockRandomHashCacheService>();
+            context.Services.AddSingleton<IIsPackageNormalTransactionProvider, IsPackageNormalTransactionProvider>();
         }
     }
     

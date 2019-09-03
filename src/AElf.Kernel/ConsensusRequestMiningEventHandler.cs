@@ -2,10 +2,12 @@ using System;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -21,18 +23,22 @@ namespace AElf.Kernel
         private readonly IBlockAttachService _blockAttachService;
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockchainService _blockchainService;
+        private readonly IConsensusService _consensusService;
+        private readonly IBlockExtraDataService _blockExtraDataService;
 
         public ILogger<ConsensusRequestMiningEventHandler> Logger { get; set; }
-        
+
         public ILocalEventBus LocalEventBus { get; set; }
 
-        public ConsensusRequestMiningEventHandler(IMinerService minerService, IBlockAttachService blockAttachService,
-            ITaskQueueManager taskQueueManager, IBlockchainService blockchainService)
+        public ConsensusRequestMiningEventHandler(IServiceProvider serviceProvider)
         {
-            _minerService = minerService;
-            _blockAttachService = blockAttachService;
-            _taskQueueManager = taskQueueManager;
-            _blockchainService = blockchainService;
+            _minerService = serviceProvider.GetService<IMinerService>();
+            _blockAttachService = serviceProvider.GetService<IBlockAttachService>();
+            _taskQueueManager = serviceProvider.GetService<ITaskQueueManager>();
+            _blockchainService = serviceProvider.GetService<IBlockchainService>();
+            _consensusService = serviceProvider.GetService<IConsensusService>();
+            _blockExtraDataService = serviceProvider.GetService<IBlockExtraDataService>();
+
             Logger = NullLogger<ConsensusRequestMiningEventHandler>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -59,15 +65,28 @@ namespace AElf.Kernel
                     await _blockchainService.AddBlockAsync(block);
 
                     var chain = await _blockchainService.GetChainAsync();
-                    await LocalEventBus.PublishAsync(new BlockMinedEventData()
-                    {
-                        BlockHeader = block.Header,
-                        HasFork = block.Height <= chain.BestChainHeight
-                    });
 
-                    // Self mined block do not need do verify
-                    _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
-                        KernelConstants.UpdateChainQueueName);
+                    var consensusExtraData =
+                        _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", block.Header);
+
+                    // TODO: Just verify the correctness of time slot is enough.
+                    var isValid = await _consensusService.ValidateConsensusBeforeExecutionAsync(new ChainContext
+                    {
+                        BlockHash = block.Header.PreviousBlockHash,
+                        BlockHeight = block.Header.Height - 1
+                    }, consensusExtraData.ToByteArray());
+
+                    if (isValid)
+                    {
+                        await LocalEventBus.PublishAsync(new BlockMinedEventData
+                        {
+                            BlockHeader = block.Header,
+                            HasFork = block.Height <= chain.BestChainHeight
+                        });
+
+                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
+                            KernelConstants.UpdateChainQueueName);
+                    }
                 }, KernelConstants.ConsensusRequestMiningQueueName);
             }
             catch (Exception e)

@@ -173,7 +173,7 @@ namespace AElf.Kernel.Blockchain.Application
             
             foreach (var transactionId in transactionIds)
             {
-                var transaction = await _transactionManager.GetTransaction(transactionId);
+                var transaction = await _transactionManager.GetTransactionAsync(transactionId);
                 transactions.Add(transaction);
             }
 
@@ -295,6 +295,8 @@ namespace AElf.Kernel.Blockchain.Application
                 eventDataToPublish.PreviousIrreversibleBlockHeight);
             await RemoveBlocksAsync(toCleanBlocks);
 
+            Logger.LogInformation($"Set lib: {irreversibleBlockHeight} - {irreversibleBlockHash}");
+
             await LocalEventBus.PublishAsync(eventDataToPublish);
         }
 
@@ -380,7 +382,6 @@ namespace AElf.Kernel.Blockchain.Application
 
             if (chainBlockLink.PreviousBlockHash != firstHash)
             {
-                //TODO need to improve
                 throw new Exception("wrong branch");
             }
 

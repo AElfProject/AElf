@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
@@ -38,27 +40,27 @@ namespace AElf.OS.Network
             {
                 var mockDialer = new Mock<IPeerDialer>();
                 
-                mockDialer.Setup(d => d.DialPeerAsync(It.Is<string>(ip => ip == NetworkTestConstants.FakeIpEndpoint)))
-                    .Returns<string>(s =>
+                mockDialer.Setup(d => d.DialPeerAsync(It.Is<IPEndPoint>(ip => ip.ToString() == NetworkTestConstants.FakeIpEndpoint)))
+                    .Returns<IPEndPoint>(s =>
                     {
                         var peer = GrpcTestPeerHelpers.CreateBasicPeer(NetworkTestConstants.FakeIpEndpoint, NetworkTestConstants.FakePubkey);
                         netTestHelper.AddDialedPeer(peer);
                         return Task.FromResult(peer);
                     });
                 
-                mockDialer.Setup(d => d.DialPeerAsync(It.Is<string>(ip => ip == NetworkTestConstants.FakeIpEndpoint2)))
-                    .Returns<string>(s =>
+                mockDialer.Setup(d => d.DialPeerAsync(It.Is<IPEndPoint>(ip => ip.ToString() == NetworkTestConstants.FakeIpEndpoint2)))
+                    .Returns<IPEndPoint>(s =>
                     {
                         var peer = GrpcTestPeerHelpers.CreateBasicPeer(NetworkTestConstants.FakeIpEndpoint2, NetworkTestConstants.FakePubkey);
                         netTestHelper.AddDialedPeer(peer);
                         return Task.FromResult(peer);
                     });
                 
-                mockDialer.Setup(d => d.DialPeerAsync(It.Is<string>(ip => ip == NetworkTestConstants.DialExceptionIpEndpoint)))
+                mockDialer.Setup(d => d.DialPeerAsync(It.Is<IPEndPoint>(ip => ip.ToString() == NetworkTestConstants.DialExceptionIpEndpoint)))
                     .Throws<PeerDialException>();
 
-                mockDialer.Setup(d => d.DialPeerAsync(It.Is<string>(ip => ip == NetworkTestConstants.HandshakeWithNetExceptionIp)))
-                    .Returns<string>(s =>
+                mockDialer.Setup(d => d.DialPeerAsync(It.Is<IPEndPoint>(ip => ip.ToString() == NetworkTestConstants.HandshakeWithNetExceptionIp)))
+                    .Returns<IPEndPoint>(s =>
                     {
                         var mockClient = new Mock<PeerService.PeerServiceClient>();
                         mockClient.Setup(m => m.DoHandshakeAsync(It.IsAny<HandshakeRequest>(), It.IsAny<Metadata>(), It.IsAny<DateTime?>(), CancellationToken.None))
@@ -73,8 +75,8 @@ namespace AElf.OS.Network
                     });
                 
                 // Incorrect handshake
-                mockDialer.Setup(d => d.DialPeerAsync(It.Is<string>(ip => ip == NetworkTestConstants.BadHandshakeIp)))
-                    .Returns<string>((s) =>
+                mockDialer.Setup(d => d.DialPeerAsync(It.Is<IPEndPoint>(ip => ip.ToString() == NetworkTestConstants.BadHandshakeIp)))
+                    .Returns<IPEndPoint>((s) =>
                     {
                         var handshakeReply = new HandshakeReply {
                             Error = HandshakeError.InvalidHandshake,
@@ -96,8 +98,8 @@ namespace AElf.OS.Network
                     });
                     
                     // This peer will pass all checks with success.
-                    mockDialer.Setup(d => d.DialPeerAsync(It.Is<string>(ip => ip == NetworkTestConstants.GoodPeerEndpoint)))
-                        .Returns<string>(s =>
+                    mockDialer.Setup(d => d.DialPeerAsync(It.Is<IPEndPoint>(ip => ip.ToString() == NetworkTestConstants.GoodPeerEndpoint)))
+                        .Returns<IPEndPoint>(s =>
                         {
                             var keypair = CryptoHelper.GenerateKeyPair();
                             var handshakeReply = new HandshakeReply {
@@ -120,6 +122,39 @@ namespace AElf.OS.Network
                     });
 
                 return mockDialer.Object;
+            });
+        }
+    }
+
+    [DependsOn(typeof(GrpcBasicNetworkTestModule))]
+    public class GrpcNetworkWithBootNodesTestModule : AElfModule
+    {
+        public override void PreConfigureServices(ServiceConfigurationContext context)
+        {
+            Configure<NetworkOptions>(o =>
+            {
+                o.ListeningPort = 2001;
+                o.MaxPeers = 2;
+                o.BootNodes = new List<string>
+                {
+                    "127.0.0.1:2018",
+                    "127.0.0.1:2019"
+                };
+            });
+        }
+
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
+
+            services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IConnectionService>();
+                mockService.Setup(m => m.ConnectAsync(It.IsAny<IPEndPoint>())).Returns(Task.FromResult(true));
+                mockService.Setup(m => m.DisconnectAsync(It.IsAny<IPeer>(), It.IsAny<bool>()))
+                    .Returns(Task.CompletedTask);
+                
+                return mockService.Object;
             });
         }
     }

@@ -40,16 +40,6 @@ namespace AElf.Contracts.MultiToken
                     };
                 }
 
-                case nameof(DonateResourceToken):
-                {
-                    return GetDonateResourceTokenResourceInfo(txn);
-                }
-
-                case nameof(ClaimTransactionFees):
-                {
-                    return GetClaimTransactionFessResourceInfo(txn);
-                }
-
                 // TODO: Support more methods
                 default:
                     throw new AssertionException($"invalid method: {txn.MethodName}");
@@ -95,7 +85,6 @@ namespace AElf.Contracts.MultiToken
 
         private ScopedStatePath GetPath(params string[] parts)
         {
-            // TODO: Use more sophisticated algorithm than GetHashCode
             return new ScopedStatePath
             {
                 Address = Context.Self,

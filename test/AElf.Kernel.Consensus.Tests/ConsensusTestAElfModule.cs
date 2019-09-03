@@ -2,17 +2,14 @@ using System.Threading.Tasks;
 using Acs4;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
-using AElf.OS;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Volo.Abp;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.Consensus
@@ -60,6 +57,16 @@ namespace AElf.Kernel.Consensus
                 mockService.Setup(m => m.GetAddressByContractName(It.IsAny<Hash>()))
                     .Returns(SampleAddress.AddressList[0]);
 
+                return mockService.Object;
+            });
+
+            services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IConsensusExtraDataExtractor>();
+                mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height == 9)))
+                    .Returns(ByteString.Empty);
+                mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height != 9)))
+                    .Returns(ByteString.CopyFromUtf8("test"));
                 return mockService.Object;
             });
 
@@ -151,7 +158,6 @@ namespace AElf.Kernel.Consensus
                 return mockService.Object;
             });
 
-            services.AddSingleton<IRandomHashCacheService, RandomHashCacheService>();
             services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
         }
     }
