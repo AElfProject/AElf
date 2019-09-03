@@ -8,7 +8,6 @@ using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.BlockSync.Types;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -47,62 +46,91 @@ namespace AElf.OS.BlockSync.Application
         /// <returns></returns>
         public async Task<DownloadBlocksResult> DownloadBlocksAsync(DownloadBlockDto downloadBlockDto)
         {
-            if (downloadBlockDto.UseSuggestedPeer)
+            var downloadResult = new DownloadBlocksResult();
+            var peerPubkey = downloadBlockDto.SuggestedPeerPubkey;
+
+            if (UseSuggestedPeer(downloadBlockDto))
             {
-                return await DownloadBlocksAsync(downloadBlockDto, downloadBlockDto.SuggestedPeerPubkey);
+                downloadResult = await DownloadBlocksAsync(downloadBlockDto.PreviousBlockHash,
+                    peerPubkey, downloadBlockDto.BatchRequestBlockCount,
+                    downloadBlockDto.MaxBlockDownloadCount);
             }
-
-            var suggestedPeer = _networkService.GetPeerByPubkey(downloadBlockDto.SuggestedPeerPubkey);
-            var downloadTargetHeight = downloadBlockDto.PreviousBlockHeight + downloadBlockDto.MaxBlockDownloadCount;
-            if (downloadTargetHeight > suggestedPeer.LastKnownLibHeight)
+            else
             {
-                return await DownloadBlocksAsync(downloadBlockDto, downloadBlockDto.SuggestedPeerPubkey);
-            }
-
-            var randomPeerPubkey = GetRandomPeerPubkey(downloadBlockDto.SuggestedPeerPubkey, downloadTargetHeight,
-                new List<string> {_blockSyncStateProvider.LastRequestPeerPubkey});
-
-            var downloadResult = await DownloadBlocksAsync(downloadBlockDto, randomPeerPubkey);
-            if (downloadResult.DownloadBlockCount == 0)
-            {
-                // TODO: Handle bad peer or network problems.
                 // If cannot get the blocks, there should be network problems or bad peer,
                 // because we have selected peer with lib height greater than or equal to the target height.
                 // 1. network problems, need to retry from other peer.
                 // 2. not network problems, this peer or the last peer is bad peer, we need to remove it.
-                //
-                // But now we have no way to know if it is a network problem through the network service,
-                // so we need to modify the implementation of NetworkService.GetBlocksAsync.
-                Logger.LogWarning("Found bad peer or network problems.");
+                var downloadTargetHeight = downloadBlockDto.PreviousBlockHeight + downloadBlockDto.MaxBlockDownloadCount;
+                var exceptedPeers = new List<string> {_blockSyncStateProvider.LastRequestPeerPubkey};
+                var retryTimes = 1;
 
-                // Network problem
-                if (true)
+                while (true)
                 {
-                    var nextRandomPeerPubkey = GetRandomPeerPubkey(downloadBlockDto.SuggestedPeerPubkey,
-                        downloadTargetHeight, new List<string>
-                        {
-                            _blockSyncStateProvider.LastRequestPeerPubkey,
-                            randomPeerPubkey
-                        });
-                    downloadResult = await DownloadBlocksAsync(downloadBlockDto, nextRandomPeerPubkey);
+                    peerPubkey = GetRandomPeerPubkey(downloadBlockDto.SuggestedPeerPubkey, downloadTargetHeight,
+                        exceptedPeers);
 
-                    if (downloadResult.DownloadBlockCount == 0)
-                    {
-                        
-                    }
+                    downloadResult = await DownloadBlocksAsync(downloadBlockDto.PreviousBlockHash, peerPubkey,
+                        downloadBlockDto.BatchRequestBlockCount, downloadBlockDto.MaxBlockDownloadCount);
+
+                    if (downloadResult.Success || retryTimes <= 0) 
+                        break;
+
+                    exceptedPeers.Add(peerPubkey);
+                    retryTimes--;
                 }
-                // Bad peer
-                else
+                
+                if (downloadResult.Success && downloadResult.DownloadBlockCount == 0)
                 {
-                    var peers = _networkService.GetPeers().Where(p => p.LastKnownLibHeight >= downloadTargetHeight);
-                    foreach (var peer in peers)
-                    {
-                        
-                    }
+                    Logger.LogWarning("Found bad peer or network problems.");
+                    await TryToFindBadPeer(downloadBlockDto.PreviousBlockHash, downloadTargetHeight);
                 }
             }
 
+            if (downloadResult.DownloadBlockCount != 0)
+            {
+                _blockSyncStateProvider.SetDownloadJobTargetState(downloadResult.LastDownloadBlockHash, false);
+                _blockSyncStateProvider.LastRequestPeerPubkey = peerPubkey;
+            }
+
             return downloadResult;
+        }
+
+        private async Task TryToFindBadPeer(Hash previousBlockHash, long downloadTargetHeight)
+        {
+            var peers = _networkService.GetPeers().Where(p =>p.LastKnownLibHeight >= downloadTargetHeight);
+            var count = 0;
+            
+            foreach (var peer in peers)
+            {
+                var result = await DownloadBlocksAsync(previousBlockHash, peer.Info.Pubkey, 1, 1);
+                if (result.Success && result.DownloadBlockCount != 0)
+                {
+                    count++;
+                }
+            }
+
+            if (count > 2 * peers.Count() / 3)
+            {
+                // randomPeerPubkey is bad peer
+            }
+            else if (count < 1 * peers.Count() / 3)
+            {
+                // _blockSyncStateProvider.LastRequestPeerPubkey is bad peer
+            }
+        }
+
+        private bool UseSuggestedPeer(DownloadBlockDto downloadBlockDto)
+        {
+            if (downloadBlockDto.UseSuggestedPeer)
+                return true;
+            
+            var suggestedPeer = _networkService.GetPeerByPubkey(downloadBlockDto.SuggestedPeerPubkey);
+            var downloadTargetHeight = downloadBlockDto.PreviousBlockHeight + downloadBlockDto.MaxBlockDownloadCount;
+            if (downloadTargetHeight > suggestedPeer.LastKnownLibHeight)
+                return true;
+
+            return false;
         }
 
         private string GetRandomPeerPubkey(string defaultPeerPubkey, long peerLibHeight, List<string> exceptedPeers)
@@ -120,20 +148,20 @@ namespace AElf.OS.BlockSync.Application
             return randomPeerPubkey;
         }
 
-        private async Task<DownloadBlocksResult> DownloadBlocksAsync(DownloadBlockDto downloadBlockDto,
-            string peerPubkey)
+        private async Task<DownloadBlocksResult> DownloadBlocksAsync(Hash previousBlockHash, string peerPubkey, int
+            batchRequestBlockCount, int maxBlockDownloadCount)
         {
             var downloadBlockCount = 0;
-            var lastDownloadBlockHash = downloadBlockDto.PreviousBlockHash;
-            var lastDownloadBlockHeight = downloadBlockDto.PreviousBlockHeight;
+            var lastDownloadBlockHash = previousBlockHash;
+            var lastDownloadBlockHeight = 0L;
 
             Logger.LogDebug(
                 $"Download blocks start with block hash: {lastDownloadBlockHash}, block height: {lastDownloadBlockHeight}, PeerPubkey: {peerPubkey}");
 
-            while (downloadBlockCount < downloadBlockDto.MaxBlockDownloadCount)
+            while (downloadBlockCount < maxBlockDownloadCount)
             {
                 var getBlocksResult = await _networkService.GetBlocksAsync(lastDownloadBlockHash,
-                    downloadBlockDto.BatchRequestBlockCount, peerPubkey);
+                    batchRequestBlockCount, peerPubkey);
                 if (!getBlocksResult.Success)
                 {
                     return new DownloadBlocksResult
@@ -165,12 +193,6 @@ namespace AElf.OS.BlockSync.Application
                 var lastBlock = blocksWithTransactions.Last();
                 lastDownloadBlockHash = lastBlock.GetHash();
                 lastDownloadBlockHeight = lastBlock.Height;
-            }
-
-            if (downloadBlockCount != 0)
-            {
-                _blockSyncStateProvider.SetDownloadJobTargetState(lastDownloadBlockHash, false);
-                _blockSyncStateProvider.LastRequestPeerPubkey = peerPubkey;
             }
 
             return new DownloadBlocksResult
