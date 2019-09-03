@@ -78,6 +78,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return new ValidationResult {Message = "Invalid FinalOrderOfNextRound."};
             }
 
+            // Is confirmed lib height and lib round number went down?
+            if (baseRound.ConfirmedIrreversibleBlockHeight > providedRound.ConfirmedIrreversibleBlockHeight ||
+                baseRound.ConfirmedIrreversibleBlockRoundNumber > providedRound.ConfirmedIrreversibleBlockRoundNumber)
+            {
+                return new ValidationResult {Message = "Incorrect confirmed lib information."};
+            }
+
             switch (extraData.Behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:

@@ -1,4 +1,3 @@
-using System;
 using System.Linq;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -43,6 +42,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             round.RoundNumber = currentRoundNumber.Add(1);
             round.TermNumber = currentTermNumber.Add(1);
 
+            return round;
+        }
+
+        internal Round GenerateFirstRoundOfNewTerm(int miningInterval, Timestamp currentBlockTime, Round currentRound)
+        {
+            var round = GenerateFirstRoundOfNewTerm(miningInterval, currentBlockTime, currentRound.RoundNumber,
+                currentRound.TermNumber);
+            round.ConfirmedIrreversibleBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;
+            round.ConfirmedIrreversibleBlockRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber;
             return round;
         }
     }
