@@ -88,12 +88,13 @@ namespace AElf.OS.BlockSync.Application
 
                 if (downloadResult.Success && downloadResult.DownloadBlockCount == 0)
                 {
-                    Logger.LogWarning("Found bad peer or network problems.");
                     var checkResult = await CheckIrreversibleBlockHashAsync(downloadBlockDto.PreviousBlockHash,
                         downloadBlockDto.PreviousBlockHeight);
 
                     if (checkResult.HasValue)
                     {
+                        Logger.LogWarning(
+                            $"Found bad peer: peerPubkey: {peerPubkey}, block hash: {downloadBlockDto.PreviousBlockHash}, block height: {downloadBlockDto.PreviousBlockHeight}");
                         await LocalEventBus.PublishAsync(new IncorrectIrreversibleBlockEventData
                         {
                             BlockHash = downloadBlockDto.PreviousBlockHash,
