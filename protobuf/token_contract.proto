@@ -73,6 +73,9 @@ service TokenContract {
     rpc GetNativeTokenInfo (google.protobuf.Empty) returns (TokenInfo) {
         option (aelf.is_view) = true;
     }
+    rpc GetResourceTokenInfo (google.protobuf.Empty) returns (TokenInfoList) {
+        option (aelf.is_view) = true;
+    }
     rpc GetBalance (GetBalanceInput) returns (GetBalanceOutput) {
         option (aelf.is_view) = true;
     }
@@ -308,6 +311,10 @@ message GetLockedAmountOutput {
 message GetVirtualAddressForLockingInput {
     aelf.Address address = 1;
     aelf.Hash lock_id = 3;
+}
+
+message TokenInfoList {
+    repeated TokenInfo value = 1;
 }
 
 // Events
