@@ -267,14 +267,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 currentValue = State.LatestProviderToTinyBlocksCount.Value;
                 if (currentValue.Pubkey == _processingBlockMinerPubkey)
                 {
-                    if (currentValue.BlocksCount > 0)
+                    State.LatestProviderToTinyBlocksCount.Value = new LatestProviderToTinyBlocksCount
                     {
-                        State.LatestProviderToTinyBlocksCount.Value = new LatestProviderToTinyBlocksCount
-                        {
-                            Pubkey = _processingBlockMinerPubkey,
-                            BlocksCount = currentValue.BlocksCount.Sub(1)
-                        };
-                    }
+                        Pubkey = _processingBlockMinerPubkey,
+                        BlocksCount = currentValue.BlocksCount.Sub(1)
+                    };
                 }
                 else
                 {

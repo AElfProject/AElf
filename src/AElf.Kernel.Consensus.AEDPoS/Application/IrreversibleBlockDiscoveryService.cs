@@ -27,10 +27,12 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public ILogger<IrreversibleBlockRelatedEventsDiscoveryService> Logger { get; set; }
         public ILocalEventBus LocalEventBus { get; set; }
         private Address _contractAddress;
-        private IrreversibleBlockFound _irreversibleBlockFoundEvent;
-        private IrreversibleBlockHeightUnacceptable _irreversibleBlockHeightUnacceptableEvent;
-        private LogEvent _logEvent;
-        private Bloom _bloom;
+
+        private LogEvent _logEventOfLibFound;
+        private Bloom _bloomOfLibFound;
+
+        private LogEvent _logEventOfLibUnacceptable;
+        private Bloom _bloomOfLibUnacceptable;
 
         public IrreversibleBlockRelatedEventsDiscoveryService(IBlockchainService blockchainService,
             ITransactionResultQueryService transactionResultQueryService,
@@ -45,7 +47,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         private void PrepareBloomForIrreversibleBlockFound()
         {
-            if (_bloom != null)
+            if (_bloomOfLibFound != null)
             {
                 // already prepared
                 return;
@@ -53,14 +55,13 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             _contractAddress =
                 _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
-            _irreversibleBlockFoundEvent = new IrreversibleBlockFound();
-            _logEvent = _irreversibleBlockFoundEvent.ToLogEvent(_contractAddress);
-            _bloom = _logEvent.GetBloom();
+            _logEventOfLibFound = new IrreversibleBlockFound().ToLogEvent(_contractAddress);
+            _bloomOfLibFound = _logEventOfLibFound.GetBloom();
         }
 
         private void PrepareBloomForIrreversibleBlockHeightUnacceptable()
         {
-            if (_bloom != null)
+            if (_bloomOfLibUnacceptable != null)
             {
                 // already prepared
                 return;
@@ -68,9 +69,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             _contractAddress =
                 _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
-            _irreversibleBlockHeightUnacceptableEvent = new IrreversibleBlockHeightUnacceptable();
-            _logEvent = _irreversibleBlockHeightUnacceptableEvent.ToLogEvent(_contractAddress);
-            _bloom = _logEvent.GetBloom();
+            _logEventOfLibUnacceptable = new IrreversibleBlockHeightUnacceptable().ToLogEvent(_contractAddress);
+            _bloomOfLibUnacceptable = _logEventOfLibUnacceptable.GetBloom();
         }
 
         public async Task<long> GetUnacceptableDistanceToLastIrreversibleBlockHeightAsync(Hash blockHash)
@@ -79,7 +79,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             var block = await _blockchainService.GetBlockByHashAsync(blockHash);
 
-            if (_bloom.IsIn(new Bloom(block.Header.Bloom.ToByteArray())))
+            if (_bloomOfLibUnacceptable.IsIn(new Bloom(block.Header.Bloom.ToByteArray())))
             {
                 foreach (var transactionId in block.Body.TransactionIds)
                 {
@@ -97,18 +97,20 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                         continue;
                     }
 
-                    if (result.Bloom.Length == 0 || !_bloom.IsIn(new Bloom(result.Bloom.ToByteArray())))
+                    if (result.Bloom.Length == 0 || !_bloomOfLibUnacceptable.IsIn(new Bloom(result.Bloom.ToByteArray())))
                     {
                         continue;
                     }
 
                     foreach (var log in result.Logs)
                     {
-                        if (log.Address != _contractAddress || log.Name != _logEvent.Name)
+                        if (log.Address != _contractAddress || log.Name != _logEventOfLibUnacceptable.Name)
                             continue;
 
                         var message = new IrreversibleBlockHeightUnacceptable();
                         message.MergeFrom(log);
+                        Logger.LogTrace(
+                            $"IrreversibleBlockHeightUnacceptable detected: {message}");
                         return message.DistanceToIrreversibleBlockHeight;
                     }
                 }
@@ -129,7 +131,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 var block = await _blockchainService.GetBlockByHashAsync(blockId);
                 Logger.LogTrace($"Check event for block {blockId} - {block.Height}");
 
-                if (!_bloom.IsIn(new Bloom(block.Header.Bloom.ToByteArray())))
+                if (!_bloomOfLibFound.IsIn(new Bloom(block.Header.Bloom.ToByteArray())))
                 {
                     // No interested event in the block
                     continue;
@@ -151,14 +153,14 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                         continue;
                     }
 
-                    if (result.Bloom.Length == 0 || !_bloom.IsIn(new Bloom(result.Bloom.ToByteArray())))
+                    if (result.Bloom.Length == 0 || !_bloomOfLibFound.IsIn(new Bloom(result.Bloom.ToByteArray())))
                     {
                         continue;
                     }
 
                     foreach (var log in result.Logs)
                     {
-                        if (log.Address != _contractAddress || log.Name != _logEvent.Name)
+                        if (log.Address != _contractAddress || log.Name != _logEventOfLibFound.Name)
                             continue;
 
                         var message = new IrreversibleBlockFound();
