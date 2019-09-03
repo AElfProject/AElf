@@ -593,6 +593,70 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
+        public async Task Get_TransactionResult_ByTxId_And_BlockHash_Success_Test()
+        {
+            // Generate 1 transactions and mined
+            var transaction = await _osTestHelper.GenerateTransferTransaction();
+            var transactionHex = transaction.GetHash().ToHex();
+            await _osTestHelper.BroadcastTransactions(new List<Transaction> {transaction});
+
+            var block = await _osTestHelper.MinedOneBlock();
+
+            var response = await GetResponseAsObjectAsync<TransactionResultDto>(
+                $"/api/blockChain/transactionResultByTxIdAndBlockHash?transactionId={transactionHex}&blockHash={block.GetHash().ToHex()}");
+
+            response.TransactionId.ShouldBe(transactionHex);
+            response.BlockHash.ShouldBe(block.GetHash().ToHex());
+        }
+
+        [Fact]
+        public async Task Get_Failed_TransactionResult_ByTxId_And_BlockHash_Test()
+        {
+            // Generate a transaction and broadcast
+            var transactionList = await GenerateTwoInitializeTransaction();
+            await _osTestHelper.BroadcastTransactions(transactionList);
+
+            var block = await _osTestHelper.MinedOneBlock();
+
+            // After executed
+            var transactionHex = transactionList[1].GetHash().ToHex();
+            var response = await GetResponseAsObjectAsync<TransactionResultDto>(
+                $"/api/blockChain/transactionResultByTxIdAndBlockHash?transactionId={transactionHex}&blockHash={block.GetHash().ToHex()}");
+            
+            response.TransactionId.ShouldBe(transactionHex);
+            response.Status.ShouldBe(TransactionResultStatus.Failed.ToString().ToUpper());
+            response.Error.Contains("Token already exists.").ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task Get_NotExisted_TransactionResult_ByTxId_And_BlockHash_Test()
+        {
+            // Generate a transaction
+            var transaction = await _osTestHelper.GenerateTransferTransaction();
+            var transactionHex = transaction.GetHash().ToHex();
+            var block = await _osTestHelper.MinedOneBlock();
+
+            var response = await GetResponseAsObjectAsync<TransactionResultDto>(
+                $"/api/blockChain/transactionResultByTxIdAndBlockHash?transactionId={transactionHex}&blockHash={block.GetHash().ToHex()}");
+
+            response.TransactionId.ShouldBe(transactionHex);
+            response.Status.ShouldBe(TransactionResultStatus.NotExisted.ToString());
+        }
+
+        [Fact]
+        public async Task Get_TxResult_ByTxId_And_BlockHash_ReturnInvalidTransactionId_Test()
+        {
+            var fakeTransactionId = "FakeTransactionId";
+            var fakeBlockHash = "FakeBlockHash";
+            var response = await GetResponseAsObjectAsync<WebAppErrorResponse>(
+                    $"/api/blockChain/transactionResultByTxIdAndBlockHash?transactionId={fakeTransactionId}&blockHash={fakeBlockHash}",
+                    expectedStatusCode: HttpStatusCode.Forbidden);
+
+            response.Error.Code.ShouldBe(Error.InvalidTransactionId.ToString());
+            response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransactionId]);
+        }
+        
+        [Fact]
         public async Task Get_TransactionResults_Success_Test()
         {
             // Generate 20 transactions and mined

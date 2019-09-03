@@ -118,6 +118,9 @@ namespace AElf.Kernel.Blockchain.Application
 
             var queried = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
             queried.ShouldBe(result);
+            
+            var queried2 = await _transactionResultService.GetTxResultAsync(tx.GetHash());
+            queried2.ShouldBe(result);
         }
 
         [Fact]
@@ -133,6 +136,9 @@ namespace AElf.Kernel.Blockchain.Application
 
             var queried = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
             queried.ShouldBe(result);
+            
+            var queried2 = await _transactionResultService.GetTxResultAsync(tx.GetHash());
+            queried2.ShouldBe(result);
         }
 
         [Fact]
@@ -161,10 +167,16 @@ namespace AElf.Kernel.Blockchain.Application
             var queried = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
             queried.ShouldBe(results11.First());
 
+            var queried2 = await _transactionResultService.GetTxResultAsync(tx.GetHash());
+            queried2.ShouldBe(results11.First());
+
             // Set BestChain to branch 2
             await _blockchainService.SetBestChainAsync(chain, block21.Height, block21.Header.GetHash());
             queried = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
             queried.ShouldBe(results21.First());
+
+            queried2 = await _transactionResultService.GetTxResultAsync(tx.GetHash());
+            queried2.ShouldBe(results21.First());
         }
 
         [Fact]
@@ -191,6 +203,9 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 var queried = await _transactionResultService.GetTransactionResultAsync(tx2.GetHash());
                 queried.ShouldBe(results12.First());
+                
+                var queried2 = await _transactionResultService.GetTxResultAsync(tx2.GetHash());
+                queried2.ShouldBe(results12.First());
                 // PreMiningHash
                 var resultWithPreMiningHash =
                     await _transactionResultManager.GetTransactionResultAsync(tx1.GetHash(),
@@ -218,6 +233,9 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 var queried = await _transactionResultService.GetTransactionResultAsync(tx2.GetHash());
                 queried.ShouldBe(results12.First());
+                
+                var queried2 = await _transactionResultService.GetTxResultAsync(tx2.GetHash());
+                queried2.ShouldBe(results12.First());
                 // PreMiningHash
                 var resultWithPreMiningHash =
                     await _transactionResultManager.GetTransactionResultAsync(tx1.GetHash(),
@@ -253,6 +271,9 @@ namespace AElf.Kernel.Blockchain.Application
 
             var queried = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
             queried.ShouldBe(result);
+            
+            var queried2 = await _transactionResultService.GetTxResultAsync(tx.GetHash());
+            queried2.ShouldBe(result);
         }
     }
 }
