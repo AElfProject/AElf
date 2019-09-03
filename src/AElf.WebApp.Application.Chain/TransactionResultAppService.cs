@@ -260,6 +260,12 @@ namespace AElf.WebApp.Application.Chain
                 throw new UserFriendlyException(Error.Message[Error.InvalidBlockHash], 
                     Error.InvalidBlockHash.ToString());
             }
+            
+            var block = await _blockchainService.GetBlockAsync(realBlockHash);
+            if (block == null)
+            {
+                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+            }
 
             var transactionResult = await GetTransactionResultAsync(transactionIdHash, realBlockHash);
             var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
@@ -267,8 +273,8 @@ namespace AElf.WebApp.Application.Chain
             var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {
-                var block1 = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
-                output.BlockHash = block1.GetHash().ToHex();
+                block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
+                output.BlockHash = block.GetHash().ToHex();
             }
 
             if (transactionResult.Status == TransactionResultStatus.Failed)

@@ -102,6 +102,14 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task<TransactionResult> GetTxResultAsync(Hash transactionId)
         {
+            var transactionBlockIndex =
+                await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(transactionId);
+            if (transactionBlockIndex != null)
+            {
+                // If TransactionBlockIndex exists, then read the result via TransactionBlockIndex
+                return await _transactionResultManager.GetTransactionResultAsync(transactionId,
+                    transactionBlockIndex.BlockHash);
+            }
             var chain = await _blockchainService.GetChainAsync();
             var hash = chain.BestChainHash;
             var until = chain.LastIrreversibleBlockHeight > Constants.GenesisBlockHeight
