@@ -1,12 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Security;
+using System.Net.Sockets;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.OS.Network.Grpc.Extensions;
+using AElf.OS.Network.Grpc.Helpers;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Options;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.X509;
 using Volo.Abp.Threading;
 
 namespace AElf.OS.Network.Grpc
@@ -61,7 +66,7 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 var metadata = new Metadata {
-                    {GrpcConstants.TimeoutMetadataKey, (NetworkOptions.PeerDialTimeoutInMilliSeconds*2).ToString()}};
+                    {GrpcConstants.TimeoutMetadataKey, (NetworkOptions.PeerDialTimeoutInMilliSeconds*2).ToString()} };
                 
                 connectReply = await client.Client.ConnectAsync(new ConnectRequest { Info = connectionInfo }, metadata);
             }
@@ -72,7 +77,7 @@ namespace AElf.OS.Network.Grpc
             
             return connectReply;
         }
-        
+
         public async Task<GrpcPeer> DialBackPeer(IPEndPoint endpoint, ConnectionInfo peerConnectionInfo)
         {
             var client = CreateClient(endpoint);
@@ -112,10 +117,20 @@ namespace AElf.OS.Network.Grpc
         /// <returns>A tuple of the channel and client</returns>
         public GrpcClient CreateClient(IPEndPoint endpoint)
         {
-            var channel = new Channel(endpoint.ToString(), ChannelCredentials.Insecure, new List<ChannelOption>
+            var certificate = RetrieveServerCertificate(endpoint);
+
+            var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
+            var clientCertificate = TlsHelper.GenerateCertificate(new X509Name("CN=" + GrpcConstants.DefaultTlsCommonName),
+                new X509Name("CN=" + GrpcConstants.DefaultTlsCommonName), rsaKeyPair.Private, rsaKeyPair.Public);
+            var clientKeyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(clientCertificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));
+
+            var channelCredentials = new SslCredentials(TlsHelper.ObjectToPem(certificate), clientKeyCertificatePair);
+
+            var channel = new Channel(endpoint.ToString(), channelCredentials, new List<ChannelOption>
             {
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
-                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
+                new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength),
+                new ChannelOption(ChannelOptions.SslTargetNameOverride, GrpcConstants.DefaultTlsCommonName)
             });
             
             var nodePubkey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex();
@@ -129,6 +144,34 @@ namespace AElf.OS.Network.Grpc
             var client = new PeerService.PeerServiceClient(interceptedChannel);
 
             return new GrpcClient(channel, client);
+        }
+        
+        private X509Certificate RetrieveServerCertificate(IPEndPoint endpoint)
+        {
+            try
+            {
+                var client = new TcpClient(endpoint.Address.ToString(), endpoint.Port);
+
+                using (var sslStream = new SslStream(client.GetStream(), true, (a, b, c, d) => true))
+                {
+                    sslStream.AuthenticateAsClient(endpoint.Address.ToString());
+                    
+                    if (sslStream.RemoteCertificate == null)
+                        throw new PeerDialException($"Certificate from {endpoint} is null");
+                    
+                    return FromX509Certificate(sslStream.RemoteCertificate);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new PeerDialException($"Could not retrieve certificate from {endpoint}", ex);
+            }
+        }
+        
+        public static X509Certificate FromX509Certificate(
+            System.Security.Cryptography.X509Certificates.X509Certificate x509Cert)
+        {
+            return new X509CertificateParser().ReadCertificate(x509Cert.GetRawCertData());
         }
     }
 }

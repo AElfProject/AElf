@@ -15,29 +15,9 @@ namespace AElf.OS.Network.Grpc.Helpers
 {
     public static class TlsHelper
     {
-//        public static (RSAKeyPair, X509Certificate) BuildKeyAndCertificate(string ipAddress)
-//        {
-//            // generate key pair
-//            var keyPair = GenerateRsaKeyPair();
-//            var certGenerator = new CertGenerator().SetPublicKey(keyPair.PublicKey);
-//            
-//            certGenerator.AddALternativeName(ipAddress);
-//            
-//            // generate certificate
-//            var cert = certGenerator.Generate(keyPair.PrivateKey);
-//            
-//            return (keyPair, cert);
-//        }
-
-        public static AsymmetricCipherKeyPair GenerateRsaKeyPair()
-        {
-            RsaKeyPairGenerator generator = new RsaKeyPairGenerator();
-            generator.Init(new KeyGenerationParameters(new SecureRandom(), 2028));
-            
-            return generator.GenerateKeyPair();
-        }
+        private const int RsaKeyLength = 2048;
         
-        public static string Serialize(object obj)
+        public static string ObjectToPem(object obj)
         {
             TextWriter textWriter = new StringWriter();
             PemWriter pemWriter = new PemWriter(textWriter);
@@ -46,7 +26,15 @@ namespace AElf.OS.Network.Grpc.Helpers
             
             return textWriter.ToString();
         }
-        
+
+        public static AsymmetricCipherKeyPair GenerateRsaKeyPair()
+        {
+            RsaKeyPairGenerator generator = new RsaKeyPairGenerator();
+            generator.Init(new KeyGenerationParameters(new SecureRandom(), RsaKeyLength));
+            
+            return generator.GenerateKeyPair();
+        }
+
         public static X509Certificate GenerateCertificate(X509Name issuer, X509Name subject, 
             AsymmetricKeyParameter issuerPrivate, AsymmetricKeyParameter subjectPublic)
         {

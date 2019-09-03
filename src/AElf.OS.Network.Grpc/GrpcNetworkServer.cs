@@ -18,6 +18,7 @@ using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Org.BouncyCastle.Asn1.X509;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
@@ -72,29 +73,22 @@ namespace AElf.OS.Network.Grpc
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
                 new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
             };
-            
+
             // Setup service
             _server = new Server(serverOptions);
             _server.Services.Add(serviceDefinition);
 
-            // Setup port
-            _server.Ports.Add(new ServerPort(IPAddress.Any.ToString(), NetworkOptions.ListeningPort, ServerCredentials.Insecure));
+            // Generate the servers rsa key pair and self-signed certificate.
+            var rsaKeyPair = TlsHelper.GenerateRsaKeyPair();
+            var certificate = TlsHelper.GenerateCertificate(new X509Name("CN=" + GrpcConstants.DefaultTlsCommonName),
+                new X509Name("CN=" + GrpcConstants.DefaultTlsCommonName), rsaKeyPair.Private, rsaKeyPair.Public);
             
-            if (NetworkOptions.RequireEncryption)
-            {
+            var keyCertificatePair = new KeyCertificatePair(TlsHelper.ObjectToPem(certificate), TlsHelper.ObjectToPem(rsaKeyPair.Private));
+            var serverCredentials = new SslServerCredentials(new List<KeyCertificatePair> { keyCertificatePair });
 
-                IPHostEntry IPHost = Dns.GetHostEntry(Dns.GetHostName());
-                string externalIP = IPHost.AddressList[0].ToString();
-                
-                var (keypair, certif) = TlsHelper.BuildKeyAndCertificate(externalIP);
-                
-                var keyCertificatePair = new KeyCertificatePair(TlsHelper.Serialize(certif), TlsHelper.Serialize(keypair.PrivateKey));
-                var ssls = new SslServerCredentials(new List<KeyCertificatePair> { keyCertificatePair });
-                
-                // setup encrypted endpoint
-                _server.Ports.Add(new ServerPort(IPAddress.Any.ToString(), NetworkOptions.SecureListeningPort, ssls));
-            }
-            
+            // setup encrypted endpoint
+            _server.Ports.Add(new ServerPort(IPAddress.Any.ToString(), NetworkOptions.ListeningPort, serverCredentials));
+
             return Task.Run(() => _server.Start());
         }
 
