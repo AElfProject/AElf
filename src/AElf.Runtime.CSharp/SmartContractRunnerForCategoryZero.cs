@@ -2,13 +2,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
-using Type = System.Type;
 
 namespace AElf.Runtime.CSharp
 {
@@ -27,9 +25,10 @@ namespace AElf.Runtime.CSharp
         private readonly ContractAuditor _contractAuditor;
 
         protected readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
+
         public SmartContractRunnerForCategoryZero(
             string sdkDir,
-            IServiceContainer<IExecutivePlugin> executivePlugins= null,
+            IServiceContainer<IExecutivePlugin> executivePlugins = null,
             IEnumerable<string> blackList = null,
             IEnumerable<string> whiteList = null)
         {
@@ -66,13 +65,11 @@ namespace AElf.Runtime.CSharp
                 throw new InvalidCodeException("Invalid binary code.");
             }
 
-            var executive = new Executive(assembly, _executivePlugins);
-
-            executive.ContractHash = reg.CodeHash;
+            var executive = new Executive(assembly, _executivePlugins) {ContractHash = reg.CodeHash};
 
             return await Task.FromResult(executive);
         }
-        
+
         /// <summary>
         /// Performs code checks.
         /// </summary>
@@ -81,10 +78,7 @@ namespace AElf.Runtime.CSharp
         /// <exception cref="InvalidCodeException">Thrown when issues are found in the code.</exception>
         public void CodeCheck(byte[] code, bool isPrivileged)
         {
-            #if !DEBUG
-            // TODO: Enable ContractAuditor in DEBUG mode until test cases timeout issue is solved
             _contractAuditor.Audit(code, isPrivileged);
-            #endif
         }
     }
 }
