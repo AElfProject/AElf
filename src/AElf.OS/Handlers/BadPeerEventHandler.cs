@@ -6,7 +6,9 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
-    public class BadPeerEventHandler : ILocalEventHandler<BlockValidationFailedEventData>, ITransientDependency
+    public class BadPeerEventHandler : ILocalEventHandler<BlockValidationFailedEventData>,
+        ILocalEventHandler<IncorrectIrreversibleBlockEventData>, 
+        ITransientDependency
     {
         private readonly INetworkService _networkService;
 
@@ -15,15 +17,21 @@ namespace AElf.OS.Handlers
             _networkService = networkService;
         }
 
-        public Task HandleEventAsync(BlockValidationFailedEventData eventData)
-        {
-            HandleBadPeerAsync(eventData.BlockSenderPubkey);
-            return Task.CompletedTask;
-        }
-
         private async Task HandleBadPeerAsync(string peerPubkey)
         {
             await _networkService.RemovePeerByPubkeyAsync(peerPubkey);
+        }
+
+        public Task HandleEventAsync(BlockValidationFailedEventData eventData)
+        {
+            _ = HandleBadPeerAsync(eventData.BlockSenderPubkey);
+            return Task.CompletedTask;
+        }
+
+        public Task HandleEventAsync(IncorrectIrreversibleBlockEventData eventData)
+        {
+            _ = HandleBadPeerAsync(eventData.BlockSenderPubkey);
+            return Task.CompletedTask;
         }
     }
 }

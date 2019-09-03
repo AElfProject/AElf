@@ -46,6 +46,8 @@ namespace AElf.OS.BlockSync.Application
             {
                 await LocalEventBus.PublishAsync(new BlockValidationFailedEventData
                 {
+                    BlockHash = blockWithTransactions.GetHash(),
+                    BlockHeight = blockWithTransactions.Height,
                     BlockSenderPubkey = senderPubkey
                 });
                 
