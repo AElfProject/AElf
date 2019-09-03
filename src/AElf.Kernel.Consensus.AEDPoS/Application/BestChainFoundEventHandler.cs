@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.TransactionPool.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -54,11 +53,17 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             if (distanceToLib > 1024)
             {
+                Logger.LogDebug($"Distance to lib height: {distanceToLib}");
                 _isPackageNormalTransactionProvider.IsPackage = false;
             }
-            
+            else if (distanceToLib > 0)
+            {
+                _isPackageNormalTransactionProvider.IsPackage = true;
+            }
+
             if (index != null)
             {
+                _isPackageNormalTransactionProvider.IsPackage = true;
                 _taskQueueManager.Enqueue(
                     async () =>
                     {
@@ -68,7 +73,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                             await _blockchainService.SetIrreversibleBlockAsync(currentChain, index.Height, index.Hash);
                         }
                     }, KernelConstants.UpdateChainQueueName);
-                _isPackageNormalTransactionProvider.IsPackage = true;
             }
 
             Logger.LogDebug(

@@ -59,14 +59,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     return new ValidationResult {Message = "Time slot already passed before execution."};
                 }
             }
-            
+
             // Is sender produce too many continuous blocks?
-            var latestProviderToTinyBlocksCount = State.LatestProviderToTinyBlocksCount.Value;
-            if (latestProviderToTinyBlocksCount != null && latestProviderToTinyBlocksCount.Pubkey == pubkey &&
-                latestProviderToTinyBlocksCount.BlocksCount < 0)
+            // Skip first two rounds.
+            if (providedRound.RoundNumber > 2)
             {
-                Context.LogDebug(() => $"Sender {pubkey} produced too many continuous blocks.");
-                return new ValidationResult {Message = "Sender produced too many continuous blocks."};
+                var latestProviderToTinyBlocksCount = State.LatestProviderToTinyBlocksCount.Value;
+                if (latestProviderToTinyBlocksCount != null && latestProviderToTinyBlocksCount.Pubkey == pubkey &&
+                    latestProviderToTinyBlocksCount.BlocksCount < 0)
+                {
+                    Context.LogDebug(() => $"Sender {pubkey} produced too many continuous blocks.");
+                    return new ValidationResult {Message = "Sender produced too many continuous blocks."};
+                }
             }
 
             // Is sender's order of next round correct?
