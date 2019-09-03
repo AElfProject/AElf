@@ -10,6 +10,7 @@ jobs:
     inputs:
       version: '2.2.300'
   - script: choco install protoc --version 3.6.0 -y
+  - script: choco install 7zip 7zip.install
   - task: DotNetCoreCLI@2
     inputs:
       command: 'build'
