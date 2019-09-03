@@ -6,7 +6,7 @@ jobs:
   pool:
     vmImage: vs2017-win2016
   steps:
-  - task: DotNetCoreInstaller@0
+  - task: UseDotNet@2
     inputs:
       version: '2.2.300'
   - script: choco install protoc --version 3.6.0 -y
@@ -15,7 +15,7 @@ jobs:
     inputs:
       command: 'build'
       projects: 'AElf.sln'
-      arguments: '/p:NoBuild=false --configuration Debug'
+      arguments: '/clp:ErrorsOnly /p:GeneratePackageOnBuild=false'
   - task: DotNetCoreCLI@2
     inputs:
       command: 'test'
@@ -27,7 +27,7 @@ jobs:
   pool:
     vmImage: ubuntu-16.04
   steps:
-  - task: DotNetCoreInstaller@0
+  - task: UseDotNet@2
     inputs:
       version: '2.2.300'
   - script: bash scripts/install_protobuf.sh
@@ -35,7 +35,7 @@ jobs:
     inputs:
       command: 'build'
       projects: 'AElf.sln'
-      arguments: '/p:NoBuild=false --configuration Debug'
+      arguments: '/clp:ErrorsOnly /p:GeneratePackageOnBuild=false'
   - task: DotNetCoreCLI@2
     inputs:
       command: 'test'
@@ -47,7 +47,7 @@ jobs:
   pool:
     vmImage: macos-10.13
   steps:
-  - task: DotNetCoreInstaller@0
+  - task: UseDotNet@2
     inputs:
       version: '2.2.300' 
   - script: bash scripts/install_protobuf.sh
@@ -55,4 +55,4 @@ jobs:
     inputs:
       command: 'build'
       projects: 'AElf.sln'
-      arguments: '/p:NoBuild=false --configuration Debug'
+      arguments: '/clp:ErrorsOnly /p:GeneratePackageOnBuild=false'
