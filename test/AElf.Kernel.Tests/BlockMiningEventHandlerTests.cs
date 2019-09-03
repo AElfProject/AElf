@@ -20,7 +20,7 @@ namespace AElf.Kernel
         }
 
         [Fact]
-        public async Task HandleEventAsyncTest()
+        public async Task HandleEventAsync_Test()
         {
             var chain = await _chainService.GetChainAsync();
             var hash = chain.BestChainHash;

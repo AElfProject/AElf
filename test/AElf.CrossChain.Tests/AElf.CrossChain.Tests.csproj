@@ -5,37 +5,26 @@
         <RootNamespace>AElf.CrossChain</RootNamespace>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Moq" Version="4.10.1" />
-        <PackageReference Include="Volo.Abp.EventBus" Version="0.15.0" />
-        <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
-        <PackageReference Include="Shouldly" Version="3.0.2" />
-        <PackageReference Include="xunit" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.console" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+        <PackageReference Include="Moq" Version="4.13.0"/>
+        <PackageReference Include="Volo.Abp.EventBus" Version="0.19.0"/>
+        <PackageReference Include="coverlet.msbuild" Version="2.5.1"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0"/>
+        <PackageReference Include="Shouldly" Version="3.0.2"/>
+        <PackageReference Include="xunit" Version="2.4.1"/>
+        <PackageReference Include="xunit.runner.console" Version="2.4.1"/>
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1"/>
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
-      <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
-      <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj"/>
-      <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj"/>
+        <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj"/>
     </ItemGroup>
 
-<!--    <Target Name="IdentifyProjectReferences" AfterTargets="ResolveProjectReferences">-->
-<!--        <ItemGroup>-->
-<!--            <Contract1 Include="@(ProjectReference)" Condition="'%(ProjectReference.OutputItemType)' == 'Contract'"/>-->
-<!--        </ItemGroup>-->
-<!--        <PropertyGroup>-->
-<!--            <AllContracts>@(Contract1, ';')</AllContracts>-->
-<!--        </PropertyGroup>-->
-<!--        <ItemGroup>-->
-<!--            <ContractDlls1 Include="%(_ResolvedProjectReferencePaths.Identity)" Condition="$(AllContracts.Contains(%(_ResolvedProjectReferencePaths.OriginalProjectReferenceItemSpec)))"/>-->
-<!--        </ItemGroup>-->
-<!--        <Message Text="'haha'" Importance="high"/>-->
-<!--        <Message Text="%(_ResolvedProjectReferencePaths.OriginalProjectReferenceItemSpec) + %(_ResolvedProjectReferencePaths.Identity)" Condition="$(AllContracts.Contains(%(_ResolvedProjectReferencePaths.OriginalProjectReferenceItemSpec)))" Importance="high"/>-->
-<!--        <Message Text="@(ContractDlls1, ';')" Importance="high"/>-->
-<!--        <Message Text="'haha end'" Importance="high"/>-->
-<!--    </Target>-->
+    <ItemGroup>
+        <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
+            <Link>Protobuf/Proto/cross_chain_contract.proto</Link>
+        </ContractStub>
+    </ItemGroup>
     <Import Project="..\AllContracts.props" />
 </Project>

@@ -1,8 +1,8 @@
 using AElf.Kernel;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Helpers;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
-using Moq;
 
 namespace AElf.OS.Network
 {
@@ -12,21 +12,23 @@ namespace AElf.OS.Network
         
         public static GrpcPeer CreateBasicPeer(string ip, string pubkey)
         {
+            
             return CreatePeerWithInfo(ip, new PeerInfo { Pubkey = pubkey });
         }
 
         public static GrpcPeer CreatePeerWithInfo(string ip, PeerInfo info)
         {
-            return new GrpcPeer(new GrpcClient(CreateMockChannel(), null), ip, info);
+            return new GrpcPeer(new GrpcClient(CreateMockChannel(), null), IpEndpointHelper.Parse(ip), info);
         }
 
         public static GrpcPeer CreatePeerWithClient(string ip, string pubkey, PeerService.PeerServiceClient client)
         {
-            return new GrpcPeer(new GrpcClient(CreateMockChannel(), client), ip, new PeerInfo { Pubkey = pubkey });
+            return new GrpcPeer(new GrpcClient(CreateMockChannel(), client), IpEndpointHelper.Parse(ip), new PeerInfo { Pubkey = pubkey });
         }
         
-        public static GrpcPeer CreateNewPeer(string ipAddress = "127.0.0.1:2000", bool isValid = true)
+        public static GrpcPeer CreateNewPeer(string ipAddress = "127.0.0.1:2000", bool isValid = true, string publicKey = null)
         {
+            var pubkey = publicKey ?? NetworkTestConstants.FakePubkey;
             var channel = new Channel(ipAddress, ChannelCredentials.Insecure);
             
             PeerService.PeerServiceClient client;
@@ -34,7 +36,7 @@ namespace AElf.OS.Network
             if(isValid)
                 client = new PeerService.PeerServiceClient(channel.Intercept(metadata =>
                 {
-                    metadata.Add(GrpcConstants.PubkeyMetadataKey, NetworkTestConstants.FakePubkey);
+                    metadata.Add(GrpcConstants.PubkeyMetadataKey, pubkey);
                     return metadata;
                 }));
             else
@@ -42,13 +44,13 @@ namespace AElf.OS.Network
             
             var connectionInfo = new PeerInfo
             {
-                Pubkey = NetworkTestConstants.FakePubkey,
+                Pubkey = pubkey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
                 IsInbound = true
             };
 
-            return new GrpcPeer(new GrpcClient(channel, client), ipAddress, connectionInfo);
+            return new GrpcPeer(new GrpcClient(channel, client), IpEndpointHelper.Parse(ipAddress), connectionInfo);
         }
     }
 }

@@ -3,12 +3,13 @@ using System.Threading.Tasks;
 using AElf.Contracts.Economic;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Election;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Treasury;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Account.Infrastructure;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -21,7 +22,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public class AEDPoSContractTestBase : EconomicContractsTestBase
     {
-        private void DeployAllContracts()
+        private new void DeployAllContracts()
         {
             _ = TokenContractAddress;
             _ = VoteContractAddress;
@@ -53,6 +54,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Application.ServiceProvider.GetRequiredService<ITriggerInformationProvider>();
         protected Timestamp BlockchainStartTimestamp => new Timestamp {Seconds = 0};
 
+        protected IBlockchainService BlockchainService =>
+            Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+
         internal TokenContractContainer.TokenContractStub TokenContractStub => GetTokenContractTester(BootMinerKeyPair);
 
         internal VoteContractContainer.VoteContractStub VoteContractStub => GetVoteContractTester(BootMinerKeyPair);
@@ -64,7 +68,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             GetElectionContractTester(BootMinerKeyPair);
 
         internal AEDPoSContractImplContainer.AEDPoSContractImplStub AEDPoSContractStub =>
-            GetAEDPoSContractTester(BootMinerKeyPair);
+            GetAEDPoSContractStub(BootMinerKeyPair);
 
         internal TreasuryContractContainer.TreasuryContractStub TreasuryContractStub =>
             GetTreasuryContractTester(BootMinerKeyPair);
@@ -92,7 +96,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return GetTester<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress, keyPair);
         }
 
-        internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetAEDPoSContractTester(ECKeyPair keyPair)
+        internal AEDPoSContractImplContainer.AEDPoSContractImplStub GetAEDPoSContractStub(ECKeyPair keyPair)
         {
             return GetTester<AEDPoSContractImplContainer.AEDPoSContractImplStub>(ConsensusContractAddress, keyPair);
         }

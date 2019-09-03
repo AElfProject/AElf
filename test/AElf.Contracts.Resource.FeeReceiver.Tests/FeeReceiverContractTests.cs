@@ -1,10 +1,9 @@
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestBase;
+using AElf.Contracts.TestKit;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -14,7 +13,7 @@ using Xunit;
 
 namespace AElf.Contracts.Resource.FeeReceiver
 {
-    public class FeeReceiverContractTests : ContractTestBase<FeeReceiverContractTestAElfModule>
+    public class FeeReceiverContractTests : TestBase.ContractTestBase<FeeReceiverContractTestAElfModule>
     {
         private ECKeyPair FeeKeyPair;
         private ECKeyPair FoundationKeyPair; 
@@ -32,13 +31,13 @@ namespace AElf.Contracts.Resource.FeeReceiver
             FeeKeyPair = CryptoHelper.GenerateKeyPair();
             FoundationKeyPair = CryptoHelper.GenerateKeyPair();
 
-            AsyncHelper.RunSync(()=>InitFeeReceiverContract());
+            AsyncHelper.RunSync(InitFeeReceiverContract);
         }
         
           #region FeeReceiver Contract cases
 
         [Fact]
-        public async Task Query_FeeReceiver_Information()
+        public async Task Query_FeeReceiver_Information_Test()
         {
             {
                 var addressResult = await Tester.CallContractMethodAsync(FeeReceiverContractAddress,
@@ -59,7 +58,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         [Fact]
-        public async Task FeeReceiver_WithDraw_WithoutPermission()
+        public async Task FeeReceiver_WithDraw_WithoutPermission_Test()
         {
             var anotherUser = Tester.CreateNewContractTester(CryptoHelper.GenerateKeyPair());
             var withdrawResult = await anotherUser.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
@@ -69,7 +68,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         [Fact]
-        public async Task FeeReceiver_WithDraw_OverToken()
+        public async Task FeeReceiver_WithDraw_OverToken_Test()
         {
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
             var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
@@ -83,7 +82,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         [Fact]
-        public async Task FeeReceiver_WithDraw_NormalCase()
+        public async Task FeeReceiver_WithDraw_NormalCase_Test()
         {
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
             var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
@@ -96,7 +95,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         [Fact]
-        public async Task FeeReceiver_WithDraw_All()
+        public async Task FeeReceiver_WithDraw_All_Test()
         {
             var founder = Tester.CreateNewContractTester(FoundationKeyPair);
             var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
@@ -106,7 +105,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         [Fact]
-        public async Task FeeReceiver_Burn()
+        public async Task FeeReceiver_Burn_Test()
         {
             //Give FeeReceiver address some token for burn operation
             var balance = 5;

@@ -10,12 +10,10 @@
       <PackageReference Include="BouncyCastle.NetCore" Version="1.8.5" />
       <PackageReference Include="Grpc" Version="1.21.0" />
       <PackageReference Include="Grpc.Tools" Version="1.21.0" />
-      <PackageReference Include="Volo.Abp.EventBus" Version="0.15.0" />
+      <PackageReference Include="Volo.Abp.EventBus" Version="0.19.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Cryptography\AElf.Cryptography.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.Types\AElf.Kernel.Types.csproj" />
       <ProjectReference Include="..\AElf.OS.Core\AElf.OS.Core.csproj" />
     </ItemGroup>
 

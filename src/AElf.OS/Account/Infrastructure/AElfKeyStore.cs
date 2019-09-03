@@ -9,27 +9,22 @@ using AElf.Cryptography.ECDSA;
 using AElf.Cryptography.ECDSA.Exceptions;
 using AElf.OS.Node.Application;
 using AElf.Types;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
-using Org.BouncyCastle.OpenSsl;
-using Org.BouncyCastle.Security;
 using Volo.Abp.DependencyInjection;
+using Nethereum.KeyStore;
+using Nethereum.KeyStore.Crypto;
 
 namespace AElf.OS.Account.Infrastructure
 {
     public class AElfKeyStore : IKeyStore,ISingletonDependency
     {
         private readonly INodeEnvironmentService _nodeEnvironmentService;
-        
-        private readonly SecureRandom Random = new SecureRandom();
 
-        private const string KeyFileExtension = ".ak";
+        private const string KeyFileExtension = ".json";
         private const string KeyFolderName = "keys";
 
-        private const string _algo = "AES-256-CFB";
-
         private readonly List<Account> _unlockedAccounts;
+        private readonly KeyStoreService _keyStoreService;
+
         public TimeSpan DefaultTimeoutToClose = TimeSpan.FromMinutes(10); //in order to customize time setting.
 
         public enum Errors
@@ -45,6 +40,7 @@ namespace AElf.OS.Account.Infrastructure
         {
             _nodeEnvironmentService = nodeEnvironmentService;
             _unlockedAccounts = new List<Account>();
+            _keyStoreService = new KeyStoreService();
         }
 
         private async Task UnlockAccountAsync(string address, string password, TimeSpan? timeoutToClose)
@@ -122,16 +118,16 @@ namespace AElf.OS.Account.Infrastructure
             try
             {
                 var keyFilePath = GetKeyFileFullPath(address);
-                var cypherKeyPair = await Task.Run(() =>
+                var privateKey = await Task.Run(() =>
                 {
                     using (var textReader = File.OpenText(keyFilePath))
                     {
-                        var pr = new PemReader(textReader, new Password(password.ToCharArray()));
-                        return pr.ReadObject() as AsymmetricCipherKeyPair;
+                        var json = textReader.ReadToEnd();
+                        return _keyStoreService.DecryptKeyStoreFromJson(password, json);
                     }
                 });
 
-                return cypherKeyPair == null ? null : new ECKeyPair(cypherKeyPair);
+                return CryptoHelper.FromPrivateKey(privateKey);
             }
             catch (FileNotFoundException ex)
             {
@@ -141,9 +137,9 @@ namespace AElf.OS.Account.Infrastructure
             {
                 throw new KeyStoreNotFoundException("Invalid keystore path.", ex);
             }
-            catch (PemException pemEx)
+            catch (DecryptionException ex)
             {
-                throw new InvalidPasswordException("Invalid password.", pemEx);
+                throw new InvalidPasswordException("Invalid password.", ex);
             }
         }
 
@@ -154,26 +150,22 @@ namespace AElf.OS.Account.Infrastructure
 
             // Ensure path exists
             CreateKeystoreDirectory();
-            
+
             var address = Address.FromPublicKey(keyPair.PublicKey);
             var fullPath = GetKeyFileFullPath(address.GetFormatted());
 
-            var privateKeyParam =
-                new ECPrivateKeyParameters(new BigInteger(1, keyPair.PrivateKey), ECParameters.DomainParams);
-            var publicKeyParam = new ECPublicKeyParameters("EC", ECParameters.Curve.Curve.DecodePoint(keyPair.PublicKey), ECParameters.DomainParams);
-
-            var asymmetricCipherKeyPair = new AsymmetricCipherKeyPair(publicKeyParam, privateKeyParam);
-
-            using (var writer = File.CreateText(fullPath))
+            await Task.Run(() =>
             {
-                var pemWriter = new PemWriter(writer);
-                await Task.Run(() =>
+                using (var writer = File.CreateText(fullPath))
                 {
-                    pemWriter.WriteObject(asymmetricCipherKeyPair, _algo, password.ToCharArray(), Random);
-                    pemWriter.Writer.Close();
-                });
-            }
-
+                    var scryptResult = _keyStoreService.EncryptAndGenerateDefaultKeyStoreAsJson(password,
+                        keyPair.PrivateKey,
+                        address.GetFormatted());
+                    writer.Write(scryptResult);
+                    writer.Flush();
+                }
+            });
+            
             return true;
         }
 

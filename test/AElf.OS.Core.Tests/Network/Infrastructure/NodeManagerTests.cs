@@ -25,6 +25,10 @@ namespace AElf.OS.Network
             var result = await _nodeManager.AddNodeAsync(node);
             result.ShouldBeTrue();
 
+            var data = node.ToDiagnosticString();
+            data.ShouldContain("endpoint");
+            data.ShouldContain(node.Pubkey.ToHex().Substring(0, 45));
+
             //add duplicate one
             var result1 = await _nodeManager.AddNodeAsync(node);
             result1.ShouldBeFalse();
@@ -39,6 +43,12 @@ namespace AElf.OS.Network
             };
             var result = await _nodeManager.AddNodesAsync(nodes);
             result.Nodes.Count.ShouldBe(3);
+
+            var data = nodes.ToDiagnosticString();
+            foreach (var node in nodes.Nodes)
+            {
+                data.ShouldContain(node.Endpoint);
+            }
         }
 
         [Fact]

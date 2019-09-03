@@ -119,12 +119,6 @@ message Block {
     BlockBody body = 2;
 }
 
-message BinaryMerkleTree {
-    repeated Hash nodes = 1;
-    Hash root = 2;
-    int32 leaf_count = 3;
-}
-
 message VersionedState {
     string key = 1;
     bytes value = 2;
@@ -189,4 +183,9 @@ message ChainBlockIndex {
 
 message TransactionBlockIndex {
     Hash block_hash = 1;
+}
+
+message ChainContractInfo{
+    int32 chain_id = 1;
+    map<string,int64> contract_infos= 2;
 }

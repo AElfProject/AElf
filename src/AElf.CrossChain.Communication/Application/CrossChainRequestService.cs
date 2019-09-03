@@ -1,7 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
-using AElf.CrossChain.Cache.Application;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
@@ -10,38 +9,32 @@ namespace AElf.CrossChain.Communication.Application
     public class CrossChainRequestService : ICrossChainRequestService, ITransientDependency
     {
         private readonly ICrossChainClientService _crossChainClientService;
-        private readonly ICrossChainCacheEntityService _crossChainCacheEntityService;
+        private readonly ICrossChainService _crossChainService;
 
         public ILogger<CrossChainRequestService> Logger { get; set; }
 
-        public CrossChainRequestService(ICrossChainCacheEntityService crossChainCacheEntityService, 
+        public CrossChainRequestService(ICrossChainService crossChainService, 
             ICrossChainClientService crossChainClientService)
         {
-            _crossChainCacheEntityService = crossChainCacheEntityService;
+            _crossChainService = crossChainService;
             _crossChainClientService = crossChainClientService;
         }
 
         public async Task RequestCrossChainDataFromOtherChainsAsync()
         {
-            var chainIds = _crossChainCacheEntityService.GetCachedChainIds();
-            Logger.LogTrace(
-                $"Try to request from chain {string.Join(",", chainIds.Select(ChainHelper.ConvertChainIdToBase58))}");
-            foreach (var chainId in chainIds)
+            var chainIdHeightDict = _crossChainService.GetNeededChainIdAndHeightPairs();
+            
+            foreach (var chainIdHeightPair in chainIdHeightDict)
             {
-                var client = await _crossChainClientService.GetClientAsync(chainId);
-                if (client == null)
-                    continue;
-                var targetHeight = _crossChainCacheEntityService.GetTargetHeightForChainCacheEntity(chainId);
-                Logger.LogTrace($" Request chain {ChainHelper.ConvertChainIdToBase58(chainId)} from {targetHeight}");
-                _ = client.RequestCrossChainDataAsync(targetHeight);
+                Logger.LogTrace(
+                    $"Try to request from chain {ChainHelper.ConvertChainIdToBase58(chainIdHeightPair.Key)}, from height {chainIdHeightPair.Value}");
+                await _crossChainClientService.RequestCrossChainDataAsync(chainIdHeightPair.Key, chainIdHeightPair.Value);
             }
         }
 
         public async Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId)
         {
-            var client = _crossChainClientService.CreateClientForChainInitializationData(chainId);
-            var chainInitializationData =
-                await client.RequestChainInitializationDataAsync(chainId);
+            var chainInitializationData = await _crossChainClientService.RequestChainInitializationData(chainId);
             return chainInitializationData;
         }
     }

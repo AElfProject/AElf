@@ -17,45 +17,64 @@ Navigate into the newly created **aelf** directory.
 
 ### Generating the nodes account
 
-Build the command line tool:
+Installing aelf-command
 
 ```bash
-dotnet build AElf.CLI/AElf.CLI.csproj --configuration Release
+npm i aelf-command -g # please intall the Nodejs at first
 ```
 
-For readability we recommend you create the following alias:
+Create account
 
 ```bash
-alias aelf-cli="dotnet AElf.CLI/bin/Release/netcoreapp2.2/AElf.CLI.dll"
+aelf-command create
 ```
 
 The next command will export your datadir, this can be anywhere you want (depending on your system you can also set this is the bashrc or equivalent):
 
 ```bash
-export AELF_CLI_DATADIR=~/.local/share/aelf
+aelf-command create -d [path]
 ```
-
-Generate an account with the following command:
-
-```bash
-aelf-cli create
-```
-
-Reply "yes" to saving the account into a file, the command also asks the user for a password, be sure to remember it for later use.
 
 The output should look like this:
 
-    ```
-Your wallet info is :
-Mnemonic    : ...
-Private Key : 5a5c8d744ff4f96da62e968d5492f9bfd42e7bb2487da69ac55aeabe7d43a9ef
-Public Key : 04e768d9d2905df298981f9c32b1e20d5a3df58f20d3bded1e252fbb8be904372d1273d9d485ee46e7da0d94df9cde59744995f9dcdfb74b8053ea4df926ad9ec5
-Address     : 5MZJC6u1YWjEUwXugPVeDwXuMrikHUPqqysYtr54tjZmxZN
-Saving account info to file? (Y/N): y
-...
-    ```
+```bash
+aelf-command create
 
-Note that a more detailed section about the cli can be found [command line interface](../cli/cli.md). 
+Your wallet info is :
+Mnemonic            : great mushroom loan crisp ... door juice embrace
+Private Key         : e038eea7e151eb451ba2901f7...b08ba5b76d8f288
+Public Key          : 0478903d96aa2c8c0...6a3e7d810cacd136117ea7b13d2c9337e1ec88288111955b76ea
+Address             : 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
+✔ Save account info into a file? … no / yes
+✔ Enter a password … ********
+✔ Confirm password … ********
+✔
+Account info has been saved to "/Users/xxx/.local/share/aelf/keyStore/2Ue31YTuB5Szy7cnr...Gi5uMQBYarYUR5oGin1sys6H.json"
+```
+
+If you want get your account info. The output should look like this:
+
+```bash
+aelf-command console -a 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
+✔ Enter the password you typed when creating a wallet … ********
+✔ Succeed!
+Welcome to aelf interactive console. Ctrl + C to terminate the program. Double tap Tab to list objects
+
+   ╔═══════════════════════════════════════════════════════════╗
+   ║                                                           ║
+   ║   NAME       | DESCRIPTION                                ║
+   ║   AElf       | imported from aelf-sdk                     ║
+   ║   aelf       | the instance of an aelf-sdk, connect to    ║
+   ║              | http://127.0.0.1:8000                  ║
+   ║   _account   | the instance of an AElf wallet, address    ║
+   ║              | is                                         ║
+   ║              | 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR…   ║
+   ║              | 5oGin1sys6H                                ║
+   ║                                                           ║
+   ╚═══════════════════════════════════════════════════════════╝
+```
+
+Note that a more detailed section about the cli can be found [command line interface](../cli/cli.md).
 The last line should give you the path to the default **data directory**, the command will automatically create the folder for you if it doesn't exist.
 
 ### Node configuration
@@ -105,7 +124,7 @@ cd ..
 You now should have a node that's running, to check this run the following command that will query the node for its current block height:
 
 ```bash
-aelf-cli get-blk-height -e http://127.0.0.1:1728
+aelf-command get-blk-height -e http://127.0.0.1:1728
 ```
 
 ### Cleanup

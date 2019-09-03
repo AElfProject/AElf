@@ -5,6 +5,7 @@ using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Miner.Application;
 using AElf.Types;
+using AElf.Contracts.Configuration;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -14,9 +15,8 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
     public class BlockTransactionLimitTests : ContractTestBase<BlockTransactionLimitTestModule>
     {
         private Address ConfigurationContractAddress { get; set; }
-        private Configuration.ConfigurationContainer.ConfigurationStub ConfigurationStub;
+        private ConfigurationContainer.ConfigurationStub ConfigurationStub;
         private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
-        protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
 
         private async Task DeployContractsAsync()
         {
@@ -25,12 +25,12 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
             ConfigurationContractAddress = await DeploySystemSmartContract(category, code,
                 ConfigurationSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
             ConfigurationStub =
-                GetTester<Configuration.ConfigurationContainer.ConfigurationStub>(ConfigurationContractAddress,
+                GetTester<ConfigurationContainer.ConfigurationStub>(ConfigurationContractAddress,
                     DefaultSenderKeyPair);
         }
 
         [Fact]
-        public async Task LimitCanBeSetByExecutingContract()
+        public async Task LimitCanBeSetByExecutingContract_Test()
         {
             await DeployContractsAsync();
             OptionalLogEventListeningService.Enabled = true;
@@ -42,10 +42,11 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
             await ConfigurationStub.SetBlockTransactionLimit.SendAsync(new Int32Value() {Value = 55});
             {
                 var limit = await ConfigurationStub.GetBlockTransactionLimit.CallAsync(new Empty());
-                Assert.Equal(55, limit.Value);
+                Assert.Equal(0, limit.Value);
             }
             var provider = Application.ServiceProvider.GetRequiredService<IBlockTransactionLimitProvider>();
-            Assert.Equal(55, provider.Limit);
+            var limitNum = await provider.GetLimitAsync();
+            Assert.Equal(0, limitNum);
         }
     }
 }

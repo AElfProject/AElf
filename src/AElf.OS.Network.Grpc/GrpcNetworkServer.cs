@@ -8,6 +8,7 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Grpc.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
@@ -109,7 +110,13 @@ namespace AElf.OS.Network.Grpc
             }
 
             var taskList = NetworkOptions.BootNodes
-                .Select(async s => await _connectionService.ConnectAsync(s)).ToList();
+                .Select(async node =>
+                {
+                    if (!IpEndpointHelper.TryParse(node, out IPEndPoint endpoint))
+                        return false;
+                    
+                    return await ConnectAsync(endpoint);
+                }).ToList();
             
             await Task.WhenAll(taskList.ToArray<Task>());
         }
@@ -117,11 +124,11 @@ namespace AElf.OS.Network.Grpc
         /// <summary>
         /// Connects to a node with the given ip address and adds it to the node's peer pool.
         /// </summary>
-        /// <param name="ipAddress">the ip address of the distant node</param>
+        /// <param name="endpoint">the ip address of the distant node</param>
         /// <returns>True if the connection was successful, false otherwise</returns>
-        public async Task<bool> ConnectAsync(string ipAddress)
+        public async Task<bool> ConnectAsync(IPEndPoint endpoint)
         {
-            return await _connectionService.ConnectAsync(ipAddress);
+            return await _connectionService.ConnectAsync(endpoint);
         }
 
         public async Task DisconnectAsync(IPeer peer, bool sendDisconnect = false)

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using AElf.Contracts.Election;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp;

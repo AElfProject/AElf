@@ -3,10 +3,11 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.Options;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Network.Grpc
 {
-    public class ConnectionInfoProvider : IConnectionInfoProvider
+    public class ConnectionInfoProvider : IConnectionInfoProvider, ISingletonDependency
     {
         private ChainOptions ChainOptions => ChainOptionsSnapshot.Value;
         public IOptionsSnapshot<ChainOptions> ChainOptionsSnapshot { get; set; }
