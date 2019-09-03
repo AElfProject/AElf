@@ -1,23 +1,16 @@
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
-using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public class TransactionReadOnlyExecutionService : ITransactionReadOnlyExecutionService, ISingletonDependency
+    public class TransactionReadOnlyExecutionService : ITransactionReadOnlyExecutionService
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private readonly ConcurrentDictionary<Address, byte[]> _allContractFileDescriptorCache =
-            new ConcurrentDictionary<Address, byte[]>();
-        private readonly ConcurrentDictionary<Address, List<FileDescriptor>> _allContractFileDescriptors =
-            new ConcurrentDictionary<Address, List<FileDescriptor>>();
 
         public TransactionReadOnlyExecutionService(ISmartContractExecutiveService smartContractExecutiveService)
         {
@@ -62,18 +55,12 @@ namespace AElf.Kernel.SmartContract.Application
         {
             IExecutive executive = null;
 
-            //byte[] output;
+            byte[] output;
             try
             {
-                if (!_allContractFileDescriptorCache.TryGetValue(address, out var output))
-                {
-                    executive = await _smartContractExecutiveService.GetExecutiveAsync(
-                        chainContext, address);
-                    output = executive.GetFileDescriptorSet();
-                    _allContractFileDescriptorCache.TryAdd(address, output);
-                }
-
-                return output;
+                executive = await _smartContractExecutiveService.GetExecutiveAsync(
+                    chainContext, address);
+                output = executive.GetFileDescriptorSet();
             }
             finally
             {
@@ -83,25 +70,19 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             }
 
-            //return output;
+            return output;
         }
 
         public async Task<IEnumerable<FileDescriptor>> GetFileDescriptorsAsync(IChainContext chainContext, Address address)
         {
             IExecutive executive = null;
 
-            //IEnumerable<FileDescriptor> output;
+            IEnumerable<FileDescriptor> output;
             try
             {
-                if (!_allContractFileDescriptors.TryGetValue(address, out var output))
-                {
-                    executive = await _smartContractExecutiveService.GetExecutiveAsync(
-                                        chainContext, address);
-                    output = executive.GetFileDescriptors().ToList();
-                    _allContractFileDescriptors.TryAdd(address, output.ToList());
-                }
-                
-                return output;
+                executive = await _smartContractExecutiveService.GetExecutiveAsync(
+                    chainContext, address);
+                output = executive.GetFileDescriptors();
             }
             finally
             {
@@ -111,7 +92,7 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             }
 
-            //return output;
+            return output;
         }
 
         public async Task<string> GetTransactionParametersAsync(IChainContext chainContext, Transaction transaction)

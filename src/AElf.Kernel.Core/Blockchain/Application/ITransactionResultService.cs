@@ -11,6 +11,8 @@ namespace AElf.Kernel.Blockchain.Application
     public interface ITransactionResultQueryService
     {
         Task<TransactionResult> GetTransactionResultAsync(Hash transactionId);
+        Task<TransactionResult> GetTxResultAsync(Hash transactionId);
+        Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash);
     }
 
     public interface ITransactionResultService : ITransactionResultQueryService
@@ -79,6 +81,57 @@ namespace AElf.Kernel.Blockchain.Application
                 }
 
                 hash = header.PreviousBlockHash;
+            }
+
+            return null;
+        }
+
+        public async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash)
+        {
+            var txResult = await _transactionResultManager.GetTransactionResultAsync(transactionId, blockHash);
+            if (txResult != null)
+            {
+                return txResult;
+            }
+            var header = await _blockchainService.GetBlockHeaderByHashAsync(blockHash);
+            txResult = await _transactionResultManager.GetTransactionResultAsync(transactionId,
+                header.GetPreMiningHash());
+            
+            return txResult;
+        }
+
+        public async Task<TransactionResult> GetTxResultAsync(Hash transactionId)
+        {
+            var chain = await _blockchainService.GetChainAsync();
+            var hash = chain.BestChainHash;
+            var until = chain.LastIrreversibleBlockHeight > Constants.GenesisBlockHeight
+                ? chain.LastIrreversibleBlockHeight - 1
+                : Constants.GenesisBlockHeight;
+            while (true)
+            {
+                var blockInfo = await _blockchainService.GetBlockByHashAsync(hash);
+                var transactionIds = blockInfo.Body.TransactionIds;
+                if (transactionIds.Contains(transactionId))
+                {
+                    var res = await _transactionResultManager.GetTransactionResultAsync(transactionId, hash);
+                    if (res != null)
+                    {
+                        return res;
+                    }
+                    res = await _transactionResultManager.GetTransactionResultAsync(transactionId,
+                        blockInfo.Header.GetPreMiningHash());
+
+                    return res;
+                }
+                
+                if (blockInfo.Header.Height <= until)
+                {
+                    // do until 1 block below LIB, in case the TransactionBlockIndex is not already added during
+                    // NewIrreversibleBlockFoundEvent handling
+                    break;
+                }
+
+                hash = blockInfo.Header.PreviousBlockHash;
             }
 
             return null;

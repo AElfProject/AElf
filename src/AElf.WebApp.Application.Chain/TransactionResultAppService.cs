@@ -20,6 +20,8 @@ namespace AElf.WebApp.Application.Chain
     {
         Task<TransactionResultDto> GetTransactionResultAsync(string transactionId);
 
+        Task<TransactionResultDto> GetTransactionResultByTxIdAndBlockHashAsync(string transactionId, string blockHash);
+        
         Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
             int limit = 10);
         
@@ -64,23 +66,9 @@ namespace AElf.WebApp.Application.Chain
             }
 
             var transactionResult = await GetTransactionResultAsync(transactionIdHash);
-            var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
-
-            if (transactionResult.Status == TransactionResultStatus.NotExisted)
-            {
-                output.Status = transactionResult.Status.ToString();
-                return output;
-            }
-
             var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
-            output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
 
-            var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
-                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
-
-            output.Transaction.Params = JsonFormatter.ToDiagnosticString(
-                methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
-
+            var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {
                 var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
@@ -89,6 +77,20 @@ namespace AElf.WebApp.Application.Chain
 
             if (transactionResult.Status == TransactionResultStatus.Failed)
                 output.Error = transactionResult.Error;
+
+            if (transactionResult.Status == TransactionResultStatus.NotExisted)
+            {
+                output.Status = transactionResult.Status.ToString();
+                return output;
+            }
+
+            output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+
+            var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
+                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
+
+            output.Transaction.Params = JsonFormatter.ToDiagnosticString(
+                methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
 
             return output;
         }
@@ -235,6 +237,60 @@ namespace AElf.WebApp.Application.Chain
             return merklePath;
         }
 
+        public async Task<TransactionResultDto> GetTransactionResultByTxIdAndBlockHashAsync(string transactionId, string blockHash)
+        {
+            Hash transactionIdHash;
+            Hash realBlockHash;
+            try
+            {
+                transactionIdHash = HashHelper.HexStringToHash(transactionId);
+            }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidTransactionId],
+                    Error.InvalidTransactionId.ToString());
+            }
+
+            try
+            {
+                realBlockHash = HashHelper.HexStringToHash(blockHash);
+            }
+            catch
+            {
+                throw new UserFriendlyException(Error.Message[Error.InvalidBlockHash], 
+                    Error.InvalidBlockHash.ToString());
+            }
+
+            var transactionResult = await GetTransactionResultAsync(transactionIdHash, realBlockHash);
+            var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
+
+            var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
+            if (transactionResult.Status == TransactionResultStatus.Mined)
+            {
+                var block1 = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
+                output.BlockHash = block1.GetHash().ToHex();
+            }
+
+            if (transactionResult.Status == TransactionResultStatus.Failed)
+                output.Error = transactionResult.Error;
+
+            if (transactionResult.Status == TransactionResultStatus.NotExisted)
+            {
+                output.Status = transactionResult.Status.ToString();
+                return output;
+            }
+
+            output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+
+            var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
+                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
+
+            output.Transaction.Params = JsonFormatter.ToDiagnosticString(
+                methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
+
+            return output;
+        }
+
         private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId)
         {
             // in tx pool
@@ -249,7 +305,7 @@ namespace AElf.WebApp.Application.Chain
             }
             
             // in storage
-            var res = await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(transactionId);
+            var res = await _transactionResultProxyService.TransactionResultQueryService.GetTxResultAsync(transactionId);
             if (res != null)
             {
                 return res;
@@ -270,6 +326,35 @@ namespace AElf.WebApp.Application.Chain
             var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
                 .ToArray();
             return Hash.FromRawBytes(rawBytes);
+        }
+
+        private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash)
+        {
+            // in tx pool
+            var receipt = await _transactionResultProxyService.TxHub.GetTransactionReceiptAsync(transactionId);
+            if (receipt != null)
+            {
+                return new TransactionResult
+                {
+                    TransactionId = receipt.TransactionId,
+                    Status = TransactionResultStatus.Pending
+                };
+            }
+            
+            // in storage
+            var res = await _transactionResultProxyService.TransactionResultQueryService.
+                GetTransactionResultAsync(transactionId, blockHash);
+            if (res != null)
+            {
+                return res;
+            }
+
+            // not existed
+            return new TransactionResult
+            {
+                TransactionId = transactionId,
+                Status = TransactionResultStatus.NotExisted
+            };
         }
     }
 }
