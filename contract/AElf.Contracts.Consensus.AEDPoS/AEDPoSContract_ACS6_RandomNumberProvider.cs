@@ -51,8 +51,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 var leftTinyBlocks = lastMinedMinerInformation == null
                     ? 0
-                    : AEDPoSContractConstants.MaximumTinyBlocksCount.Sub(lastMinedMinerInformation.ActualMiningTimes.Count);
-                var leftBlocksCount = _currentHeight.Add(leftMinersCount.Mul(AEDPoSContractConstants.MaximumTinyBlocksCount))
+                    : AEDPoSContractConstants.MaximumTinyBlocksCount.Sub(lastMinedMinerInformation.ActualMiningTimes
+                        .Count);
+                var leftBlocksCount = _currentHeight
+                    .Add(leftMinersCount.Mul(AEDPoSContractConstants.MaximumTinyBlocksCount))
                     .Add(leftTinyBlocks);
                 return new RandomNumberRequestInformation
                 {
@@ -148,9 +150,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Hash GetRandomNumber(Hash input)
         {
             var randomNumberRequestInformation = State.RandomNumberInformationMap[input];
-            if (randomNumberRequestInformation == null || randomNumberRequestInformation.TargetRoundNumber == 0)
+            if (randomNumberRequestInformation == null)
             {
                 Assert(false, "Random number token not found.");
+                // Won't reach here.
+                return Hash.Empty;
+            }
+
+            if (randomNumberRequestInformation.TargetRoundNumber == 0)
+            {
+                Assert(false, "Random number token was cleared.");
                 // Won't reach here.
                 return Hash.Empty;
             }
