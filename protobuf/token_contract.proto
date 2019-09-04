@@ -91,6 +91,9 @@ service TokenContract {
     rpc GetVirtualAddressForLocking (GetVirtualAddressForLockingInput) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
+    rpc CrossChainTransferTokenContractAddress(CrossChainTransferTokenContractAddressInput) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {
@@ -357,4 +360,8 @@ message Burned
     aelf.Address burner = 1 [(aelf.is_indexed) = true];
     string symbol = 2 [(aelf.is_indexed) = true];
     sint64 amount = 3;
+}
+
+message CrossChainTransferTokenContractAddressInput{
+    int32 chainId = 1;
 }
