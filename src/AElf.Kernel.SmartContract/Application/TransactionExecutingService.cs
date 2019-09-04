@@ -258,7 +258,7 @@ namespace AElf.Kernel.SmartContract.Application
                 foreach (var preTx in transactions)
                 {
                     var preTrace = await ExecuteOneAsync(0, internalChainContext, preTx, currentBlockTime,
-                        cancellationToken, isCancellable: false);
+                        cancellationToken);
                     trace.PreTransactions.Add(preTx);
                     trace.PreTraces.Add(preTrace);
                     if (!preTrace.IsSuccessful())
