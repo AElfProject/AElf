@@ -60,12 +60,12 @@ namespace AElf.OS.BlockSync.Application
             var random = new Random();
             var peers = _networkService.GetPeers()
                 .Where(p => p.LastKnownLibHeight >= downloadTargetHeight &&
-                            p.Info.Pubkey != _blockSyncStateProvider.LastRequestPeerPubkey)
+                            p.Pubkey != _blockSyncStateProvider.LastRequestPeerPubkey)
                 .ToList();
 
             var randomPeer = peers.Count == 0 ? suggestedPeer : peers[random.Next() % peers.Count];
 
-            var downloadResult = await DownloadBlocksAsync(downloadBlockDto, randomPeer.Info.Pubkey);
+            var downloadResult = await DownloadBlocksAsync(downloadBlockDto, randomPeer.Pubkey);
             if (downloadResult.DownloadBlockCount == 0)
             {
                 // TODO: Handle bad peer or network problems.

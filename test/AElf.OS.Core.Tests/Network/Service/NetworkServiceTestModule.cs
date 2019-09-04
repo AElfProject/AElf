@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Modularity;
@@ -67,6 +68,7 @@ namespace AElf.OS
                     var blockWithTransactions = osTestHelper.Value.GenerateBlockWithTransactions(Hash.Empty, 10);
 
                     var p2 = new Mock<IPeer>();
+                    p2.Setup(p => p.RemoteEndpoint).Returns(new IPEndPoint(100, 100));
                     p2.Setup(p => p.Info).Returns(new PeerInfo { Pubkey = "p2" });
                     p2.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("block")), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { blockWithTransactions }));
@@ -88,6 +90,7 @@ namespace AElf.OS
                     
                     
                     p3.SetupProperty(p => p.IsBest, true);
+                    p3.Setup(p => p.RemoteEndpoint).Returns(new IPEndPoint(100, 100));
                     p3.Setup(p => p.Info).Returns(new PeerInfo { Pubkey = "p3" });
                     p3.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("blocks")), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { blockWithTransactions, blockWithTransactions }));
@@ -96,6 +99,7 @@ namespace AElf.OS
                     peers.Add(p3.Object);
                     
                     var exceptionOnBcast = new Mock<IPeer>();
+                    exceptionOnBcast.Setup(p => p.RemoteEndpoint).Returns(new IPEndPoint(100, 100));
                     exceptionOnBcast.Setup(p => p.Info).Returns(new PeerInfo { Pubkey = "exceptionOnBcast" });
                     
                     peers.Add(exceptionOnBcast.Object);
@@ -103,6 +107,8 @@ namespace AElf.OS
                     if (includeFailing)
                     {
                         var failingPeer = new Mock<IPeer>();
+                        failingPeer.Setup(p => p.RemoteEndpoint).Returns(new IPEndPoint(100, 100));
+                        failingPeer.Setup(p => p.Info).Returns(new PeerInfo {Pubkey = "failing"});
                         peers.Add(failingPeer.Object);
                     }
                     

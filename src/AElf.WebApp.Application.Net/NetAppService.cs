@@ -60,14 +60,14 @@ namespace AElf.WebApp.Application.Net
             
             var peerDtoList = peerList.Select(p => new PeerDto
             {
-                IpAddress = p.RemoteEndpoint.ToString(),
-                ProtocolVersion = p.Info.ProtocolVersion,
-                ConnectionTime = p.Info.ConnectionTime,
-                Inbound = p.Info.IsInbound,
+                IpAddress = p.IpAddress,
+                ProtocolVersion = p.ProtocolVersion,
+                ConnectionTime = p.ConnectionTime,
+                Inbound = p.Inbound,
                 BufferedAnnouncementsCount = p.BufferedAnnouncementsCount,
                 BufferedBlocksCount = p.BufferedBlocksCount,
                 BufferedTransactionsCount = p.BufferedTransactionsCount,
-                RequestMetrics = withMetrics ? p.GetRequestMetrics().Values.SelectMany(kvp => kvp).ToList() : null
+                RequestMetrics = withMetrics ? p.RequestMetrics : null
             }).ToList();
             
             return peerDtoList;
