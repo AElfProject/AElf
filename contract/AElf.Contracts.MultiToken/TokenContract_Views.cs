@@ -75,7 +75,7 @@ namespace AElf.Contracts.MultiToken
             return virtualAddress;
         }
 
-        public override Address CrossChainTransferTokenContractAddress(CrossChainTransferTokenContractAddressInput input)
+        public override Address GetCrossChainTransferTokenContractAddress(GetCrossChainTransferTokenContractAddressInput input)
         {
             return State.CrossChainTransferWhiteList[input.ChainId];
         }
