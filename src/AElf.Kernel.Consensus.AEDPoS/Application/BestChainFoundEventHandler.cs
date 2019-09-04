@@ -51,14 +51,10 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var distanceToLib = await _irreversibleBlockRelatedEventsDiscoveryService
                 .GetUnacceptableDistanceToLastIrreversibleBlockHeightAsync(eventData.BlockHash);
 
-            if (distanceToLib > 1024)
+            if (distanceToLib > 0)
             {
                 Logger.LogDebug($"Distance to lib height: {distanceToLib}");
                 _isPackageNormalTransactionProvider.IsPackage = false;
-            }
-            else if (distanceToLib > 0)
-            {
-                _isPackageNormalTransactionProvider.IsPackage = true;
             }
 
             if (index != null)
