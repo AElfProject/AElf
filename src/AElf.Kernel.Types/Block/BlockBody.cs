@@ -12,7 +12,6 @@ namespace AElf.Kernel
 
         private Hash CalculateBodyHash()
         {
-            // TODO: BlockHeader is useless.
             if (!VerifyFields())
                 throw new InvalidOperationException($"Invalid block body.");
 
