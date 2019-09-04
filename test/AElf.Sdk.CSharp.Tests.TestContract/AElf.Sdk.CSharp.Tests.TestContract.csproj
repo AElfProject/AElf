@@ -1,12 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <RootNamespace>AElf.Sdk.CSharp.Tests.TestContract2</RootNamespace>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
-
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
     </ItemGroup>
-
 </Project>

@@ -1,21 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract</PackageId>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
     </ItemGroup>
-
     <ItemGroup>
-      <ContractBase Include="..\..\protobuf\acs1.proto">
-        <Link>Protobuf/Proto/acs1.proto</Link>
-      </ContractBase>
-      <ContractCode Include="..\..\protobuf\acs1_plugin_test_contract.proto">
-        <Link>Protobuf/Proto/acs1_plugin_test_contract.proto</Link>
-      </ContractCode>
+        <ContractBase Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf/Proto/acs1.proto</Link>
+        </ContractBase>
+        <ContractCode Include="..\..\protobuf\acs1_plugin_test_contract.proto">
+            <Link>Protobuf/Proto/acs1_plugin_test_contract.proto</Link>
+        </ContractCode>
     </ItemGroup>
-
 </Project>
