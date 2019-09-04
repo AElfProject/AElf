@@ -44,8 +44,14 @@ namespace AElf.Kernel.SmartContract.Parallel
             IEnumerable<Transaction> transactions, CancellationToken ct)
         {
             // Parallel processing below (adding AsParallel) causes ReflectionTypeLoadException
-            var tasks = transactions.Select(t => GetResourcesForOneWithCacheAsync(chainContext, t, ct));
-            return await Task.WhenAll(tasks);
+            var transactionResourceList = new List<(Transaction, TransactionResourceInfo)>();
+            foreach (var t in transactions)
+            {
+                var transactionResourcePair = await GetResourcesForOneWithCacheAsync(chainContext, t, ct);
+                transactionResourceList.Add(transactionResourcePair);
+            }
+            
+            return transactionResourceList;
         }
 
         private async Task<(Transaction, TransactionResourceInfo)> GetResourcesForOneWithCacheAsync(
