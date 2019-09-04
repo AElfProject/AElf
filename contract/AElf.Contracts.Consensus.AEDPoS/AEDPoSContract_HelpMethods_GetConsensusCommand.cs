@@ -25,8 +25,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             while (true)
             {
                 var isAlone = false;
-                if (currentRound.RoundNumber > 3 && currentRound.RealTimeMinersInformation.Count > 2 &&
-                    behaviour == AElfConsensusBehaviour.TinyBlock)
+                if (currentRound.RoundNumber > 3 && currentRound.RealTimeMinersInformation.Count > 2)
                 {
                     // Not single node.
 

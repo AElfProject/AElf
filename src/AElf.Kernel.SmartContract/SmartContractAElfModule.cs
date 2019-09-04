@@ -1,5 +1,4 @@
 using System.Runtime.CompilerServices;
-using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
@@ -17,8 +16,7 @@ namespace AElf.Kernel.SmartContract
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<ISmartContractRunnerContainer, SmartContractRunnerContainer>();
-
-            context.Services.AddSingleton<IDefaultContractZeroCodeProvider, DefaultContractZeroCodeProvider>();
+            
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

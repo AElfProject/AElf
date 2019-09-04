@@ -59,14 +59,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     return new ValidationResult {Message = "Time slot already passed before execution."};
                 }
             }
-            
+
             // Is sender produce too many continuous blocks?
-            var latestProviderToTinyBlocksCount = State.LatestProviderToTinyBlocksCount.Value;
-            if (latestProviderToTinyBlocksCount != null && latestProviderToTinyBlocksCount.Pubkey == pubkey &&
-                latestProviderToTinyBlocksCount.BlocksCount < 0)
+            // Skip first two rounds.
+            if (providedRound.RoundNumber > 2)
             {
-                Context.LogDebug(() => $"Sender {pubkey} produced too many continuous blocks.");
-                return new ValidationResult {Message = "Sender produced too many continuous blocks."};
+                var latestProviderToTinyBlocksCount = State.LatestProviderToTinyBlocksCount.Value;
+                if (latestProviderToTinyBlocksCount != null && latestProviderToTinyBlocksCount.Pubkey == pubkey &&
+                    latestProviderToTinyBlocksCount.BlocksCount < 0)
+                {
+                    Context.LogDebug(() => $"Sender {pubkey} produced too many continuous blocks.");
+                    return new ValidationResult {Message = "Sender produced too many continuous blocks."};
+                }
             }
 
             // Is sender's order of next round correct?
@@ -76,6 +80,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .Count() != providedRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null))
             {
                 return new ValidationResult {Message = "Invalid FinalOrderOfNextRound."};
+            }
+
+            // Is confirmed lib height and lib round number went down?
+            if (baseRound.ConfirmedIrreversibleBlockHeight > providedRound.ConfirmedIrreversibleBlockHeight ||
+                baseRound.ConfirmedIrreversibleBlockRoundNumber > providedRound.ConfirmedIrreversibleBlockRoundNumber)
+            {
+                return new ValidationResult {Message = "Incorrect confirmed lib information."};
             }
 
             switch (extraData.Behaviour)

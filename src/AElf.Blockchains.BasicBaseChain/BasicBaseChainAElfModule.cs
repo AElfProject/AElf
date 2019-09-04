@@ -72,7 +72,7 @@ namespace AElf.Blockchains.BasicBaseChain
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = context.Services
-                    .GetConfiguration().GetValue("TokenInitial:Symbol", "ELF");
+                    .GetConfiguration().GetValue("Economic:Symbol", "ELF");
             });
             
             Configure<ContractOptions>(configuration.GetSection("Contract"));

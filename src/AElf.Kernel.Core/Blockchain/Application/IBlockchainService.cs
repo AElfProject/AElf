@@ -295,6 +295,8 @@ namespace AElf.Kernel.Blockchain.Application
                 eventDataToPublish.PreviousIrreversibleBlockHeight);
             await RemoveBlocksAsync(toCleanBlocks);
 
+            Logger.LogInformation($"Set lib: {irreversibleBlockHeight} - {irreversibleBlockHash}");
+
             await LocalEventBus.PublishAsync(eventDataToPublish);
         }
 

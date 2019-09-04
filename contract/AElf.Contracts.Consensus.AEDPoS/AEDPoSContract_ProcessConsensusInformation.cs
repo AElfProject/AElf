@@ -187,12 +187,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (TryToGetPreviousRoundInformation(out var previousRound))
             {
-                Context.LogDebug(() => "Trying to calculate lib height.");
                 new LastIrreversibleBlockHeightCalculator(currentRound, previousRound).Deconstruct(
                     out var libHeight);
+                Context.LogDebug(() => $"Finished calculation of lib height: {libHeight}");
                 // LIB height can't be available if it is lower than last time.
                 if (State.LastIrreversibleBlockHeight.Value < libHeight)
                 {
+                    Context.LogDebug(() => $"New lib height: {libHeight}");
                     State.LastIrreversibleBlockHeight.Value = libHeight;
                     Context.Fire(new IrreversibleBlockFound
                     {
@@ -266,14 +267,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 currentValue = State.LatestProviderToTinyBlocksCount.Value;
                 if (currentValue.Pubkey == _processingBlockMinerPubkey)
                 {
-                    if (currentValue.BlocksCount > 0)
+                    State.LatestProviderToTinyBlocksCount.Value = new LatestProviderToTinyBlocksCount
                     {
-                        State.LatestProviderToTinyBlocksCount.Value = new LatestProviderToTinyBlocksCount
-                        {
-                            Pubkey = _processingBlockMinerPubkey,
-                            BlocksCount = currentValue.BlocksCount.Sub(1)
-                        };
-                    }
+                        Pubkey = _processingBlockMinerPubkey,
+                        BlocksCount = currentValue.BlocksCount.Sub(1)
+                    };
                 }
                 else
                 {

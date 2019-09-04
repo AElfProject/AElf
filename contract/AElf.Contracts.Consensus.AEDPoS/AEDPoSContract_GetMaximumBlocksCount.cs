@@ -20,13 +20,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         private int GetMaximumBlocksCount()
         {
-            if (_maximumBlocksCount != 0)
-            {
-                return _maximumBlocksCount;
-            }
-
-            _maximumBlocksCount = AEDPoSContractConstants.MaximumTinyBlocksCount;
-
             TryToGetCurrentRoundInformation(out var currentRound, true);
             var libRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber;
             var libBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;
@@ -34,7 +27,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var currentRoundNumber = currentRound.RoundNumber;
 
             Context.LogDebug(() =>
-                $"R_LIB: {libRoundNumber}\nH_LIB:{libBlockHeight}\nR:{currentRoundNumber}\nH:{currentHeight}");
+                $"Calculating max blocks count based on:\nR_LIB: {libRoundNumber}\nH_LIB:{libBlockHeight}\nR:{currentRoundNumber}\nH:{currentHeight}");
 
             if (libRoundNumber == 0)
             {
@@ -65,7 +58,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .Div((int) currentRound.RoundNumber.Sub(libRoundNumber))
                     .Add(1));
                 Context.LogDebug(() => $"Maximum blocks count tune to {count}");
-                _maximumBlocksCount = count;
                 return count;
             }
 
@@ -77,7 +69,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     DistanceToIrreversibleBlockHeight = currentHeight.Sub(libBlockHeight)
                 });
-                _maximumBlocksCount = 1;
                 return 1;
             }
 
