@@ -4,7 +4,6 @@ using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Volo.Abp.BackgroundJobs;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
@@ -39,7 +38,14 @@ namespace AElf.Kernel
             _taskQueueManager.Enqueue(async () =>
             {
                 var chain = await _blockchainService.GetChainAsync();
-                await _blockchainService.CleanChainBranchAsync(chain);
+                var discardedBranch = await _blockchainService.GetDiscardedBranchAsync(chain);
+                
+                if (discardedBranch.BranchKeys.Count > 0 || discardedBranch.BranchKeys.Count > 0)
+                {
+                    _taskQueueManager.Enqueue(
+                        async () => { await _blockchainService.CleanChainBranchAsync(discardedBranch); },
+                        KernelConstants.UpdateChainQueueName);
+                }
             }, KernelConstants.CleanChainBranchQueueName);
         }
     }

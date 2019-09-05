@@ -34,6 +34,7 @@ namespace AElf.Kernel
             taskQueueManager.CreateQueue(KernelConstants.MergeBlockStateQueueName);
             taskQueueManager.CreateQueue(KernelConstants.ConsensusRequestMiningQueueName);
             taskQueueManager.CreateQueue(KernelConstants.UpdateChainQueueName);
+            taskQueueManager.CreateQueue(KernelConstants.CleanChainBranchQueueName);
         }
     }
 }

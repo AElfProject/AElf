@@ -47,7 +47,8 @@ namespace AElf.Kernel.Blockchain.Application
         Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, Block block);
         Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
         Task SetIrreversibleBlockAsync(Chain chain, long irreversibleBlockHeight, Hash irreversibleBlockHash);
-        Task CleanChainBranchAsync(Chain chain);
+        Task<DiscardedBranch> GetDiscardedBranchAsync(Chain chain);
+        Task CleanChainBranchAsync(DiscardedBranch discardedBranch);
     }
 
     public static class BlockchainServiceExtensions
@@ -411,16 +412,16 @@ namespace AElf.Kernel.Blockchain.Application
             return await _chainManager.GetAsync();
         }
 
-        public async Task CleanChainBranchAsync(Chain chain)
+        public async Task<DiscardedBranch> GetDiscardedBranchAsync(Chain chain)
         {
-            var discardedBranch = await _chainManager.GetDiscardedBranchAsync(chain, chain.LastIrreversibleBlockHash,
+            return await _chainManager.GetDiscardedBranchAsync(chain, chain.LastIrreversibleBlockHash,
                 chain.LastIrreversibleBlockHeight);
+        }
 
-            _taskQueueManager.Enqueue(async () =>
-            {
-                var currentChain = await GetChainAsync();
-                await _chainManager.RemoveChainBranchAsync(currentChain, discardedBranch);
-            }, KernelConstants.UpdateChainQueueName);
+        public async Task CleanChainBranchAsync(DiscardedBranch discardedBranch)
+        {
+            var chain = await GetChainAsync();
+            await _chainManager.CleanChainBranchAsync(chain, discardedBranch);
         }
     }
 }

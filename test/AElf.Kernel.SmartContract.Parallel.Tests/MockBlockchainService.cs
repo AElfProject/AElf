@@ -88,7 +88,12 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             throw new System.NotImplementedException();
         }
 
-        public Task CleanChainBranchAsync(Chain chain)
+        public Task<DiscardedBranch> GetDiscardedBranchAsync(Chain chain)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task CleanChainBranchAsync(DiscardedBranch discardedBranch)
         {
             throw new System.NotImplementedException();
         }

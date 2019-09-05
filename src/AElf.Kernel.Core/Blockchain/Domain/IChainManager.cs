@@ -35,7 +35,7 @@ namespace AElf.Kernel.Blockchain.Domain
         Task RemoveLongestBranchAsync(Chain chain);
         Task<DiscardedBranch> GetDiscardedBranchAsync(Chain chain, Hash irreversibleBlockHash,
             long irreversibleBlockHeight);
-        Task RemoveChainBranchAsync(Chain chain, DiscardedBranch discardedBranch);
+        Task CleanChainBranchAsync(Chain chain, DiscardedBranch discardedBranch);
     }
 
     public class ChainManager : IChainManager, ISingletonDependency
@@ -385,7 +385,7 @@ namespace AElf.Kernel.Blockchain.Domain
             };
         }
 
-        public async Task RemoveChainBranchAsync(Chain chain, DiscardedBranch discardedBranch)
+        public async Task CleanChainBranchAsync(Chain chain, DiscardedBranch discardedBranch)
         {
             var longestChainKey = chain.LongestChainHash.ToStorageKey();
             var bestChainKey = chain.BestChainHash.ToStorageKey();
