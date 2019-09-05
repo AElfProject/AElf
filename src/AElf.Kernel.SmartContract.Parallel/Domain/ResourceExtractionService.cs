@@ -26,8 +26,8 @@ namespace AElf.Kernel.SmartContract.Parallel
         public ILogger<ResourceExtractionService> Logger { get; set; }
 
         // TODO: use non concurrent version
-        private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache =
-            new ConcurrentDictionary<Hash, TransactionResourceCache>();
+        private readonly Dictionary<Hash, TransactionResourceCache> _resourceCache =
+            new Dictionary<Hash, TransactionResourceCache>();
 
         public ResourceExtractionService(IBlockchainService blockchainService,
             ISmartContractExecutiveService smartContractExecutiveService, ICodeRemarksManager codeRemarksManager)
@@ -123,7 +123,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             var chainContext = await GetChainContextAsync();
             var transaction = eventData.Transaction;
 
-            _resourceCache.TryAdd(transaction.GetHash(),
+            _resourceCache.Add(transaction.GetHash(),
                 new TransactionResourceCache(transaction.RefBlockNumber,
                     await GetResourcesForOneAsync(chainContext, transaction, CancellationToken.None), transaction.To));
         }
@@ -163,7 +163,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             foreach (var transactionId in transactions)
             {
-                _resourceCache.TryRemove(transactionId, out _);
+                _resourceCache.Remove(transactionId);
             }
 
             Logger.LogTrace($"Resource cache size after cleanup: {_resourceCache.Count}");
