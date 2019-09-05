@@ -1307,7 +1307,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        private async Task GetMerklePathByTransactionId_Success_Test()
+        public async Task GetMerklePathByTransactionId_Success_Test()
         {
             var transactionList = new List<Transaction>();
             for (var i = 0; i < 3; i++)
@@ -1346,7 +1346,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        private async Task GetMerklePathByTransactionId_Failed_Test()
+        public async Task GetMerklePathByTransactionId_Failed_Test()
         {
             string hex = "5a7d71da020cae179a0dfe82bd3c967e1573377578f4cc87bc21f74f2556c0ef";
 
