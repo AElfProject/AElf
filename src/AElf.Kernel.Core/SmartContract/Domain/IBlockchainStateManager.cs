@@ -79,6 +79,11 @@ namespace AElf.Kernel.SmartContract.Domain
                         var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
                         while (blockStateSet != null && blockStateSet.BlockHeight > bestChainState.BlockHeight)
                         {
+                            if (blockStateSet.Deletes.Contains(key))
+                            {
+                                break;
+                            }
+                            
                             if (blockStateSet.Changes.ContainsKey(key))
                             {
                                 value = blockStateSet.Changes[key];
@@ -97,7 +102,7 @@ namespace AElf.Kernel.SmartContract.Domain
                             }
                         }
 
-                        if (value == null)
+                        if (value == null && (blockStateSet == null || !blockStateSet.Deletes.Contains(key) || blockStateSet.BlockHeight <= bestChainState.BlockHeight))
                         {
                             //not found value in block state sets. for example, best chain is 100, blockHeight is 105,
                             //it will find 105 ~ 101 block state set. so the value could only be the best chain state value.
@@ -115,6 +120,11 @@ namespace AElf.Kernel.SmartContract.Domain
                 var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
                 while (blockStateSet != null)
                 {
+                    if (blockStateSet.Deletes.Contains(key))
+                    {
+                        break;
+                    }
+                    
                     if (blockStateSet.Changes.ContainsKey(key))
                     {
                         value = blockStateSet.Changes[key];
@@ -133,7 +143,7 @@ namespace AElf.Kernel.SmartContract.Domain
                     }
                 }
                 
-                if (value == null)
+                if (value == null && blockStateSet == null)
                 {
                     // retry versioned state in case conflict of get state during merging  
                     bestChainState = await _versionedStates.GetAsync(key);
@@ -183,6 +193,11 @@ namespace AElf.Kernel.SmartContract.Domain
                 }).ToDictionary(p => p.Key, p => p);
 
                 await _versionedStates.SetAllAsync(dic);
+
+                foreach (var key in blockState.Deletes)
+                {
+                    await _versionedStates.RemoveAsync(key);
+                }
 
                 chainStateInfo.Status = ChainStateMergingStatus.Merged;
                 chainStateInfo.BlockHash = blockState.BlockHash;

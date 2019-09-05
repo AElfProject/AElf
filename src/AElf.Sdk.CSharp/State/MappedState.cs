@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
 
@@ -21,6 +20,7 @@ namespace AElf.Sdk.CSharp.State
         {
             internal TEntity OriginalValue;
             internal TEntity Value;
+            internal bool IsDeleted;
         }
 
         internal Dictionary<TKey, ValuePair> Cache = new Dictionary<TKey, ValuePair>();
@@ -35,7 +35,7 @@ namespace AElf.Sdk.CSharp.State
                     Cache[key] = valuePair;
                 }
 
-                return valuePair.Value;
+                return valuePair.IsDeleted ? SerializationHelper.Deserialize<TEntity>(null) : valuePair.Value;
             }
             set
             {
@@ -45,10 +45,22 @@ namespace AElf.Sdk.CSharp.State
                     Cache[key] = valuePair;
                 }
 
+                valuePair.IsDeleted = false;
                 valuePair.Value = value;
             }
         }
 
+        public void Remove(TKey key)
+        {
+            if (!Cache.TryGetValue(key, out var valuePair))
+            {
+                valuePair = LoadKey(key);
+                Cache[key] = valuePair;
+            }
+
+            valuePair.IsDeleted = true;
+        }
+        
         internal override void Clear()
         {
             Cache = new Dictionary<TKey, ValuePair>();
@@ -60,7 +72,11 @@ namespace AElf.Sdk.CSharp.State
             foreach (var kv in Cache)
             {
                 var key = GetSubStatePath(kv.Key.ToString()).ToStateKey(Context.Self);
-                if (!Equals(kv.Value.OriginalValue, kv.Value.Value))
+                if (kv.Value.IsDeleted)
+                {
+                    stateSet.Deletes[key] = true;
+                }
+                else if (!Equals(kv.Value.OriginalValue, kv.Value.Value))
                 {
                     stateSet.Writes[key] = ByteString.CopyFrom(SerializationHelper.Serialize(kv.Value.Value));
                 }
@@ -78,10 +94,11 @@ namespace AElf.Sdk.CSharp.State
             var value = SerializationHelper.Deserialize<TEntity>(bytes);
             var originalValue = SerializationHelper.Deserialize<TEntity>(bytes);
 
-            return new ValuePair()
+            return new ValuePair
             {
                 OriginalValue = originalValue,
-                Value = value
+                Value = value,
+                IsDeleted = false
             };
         }
     }
@@ -128,6 +145,11 @@ namespace AElf.Sdk.CSharp.State
             foreach (var kv in Cache)
             {
                 var changes = kv.Value.GetChanges();
+                foreach (var kv1 in changes.Deletes)
+                {
+                    stateSet.Deletes[kv1.Key] = kv1.Value;
+                }
+                
                 foreach (var kv1 in changes.Writes)
                 {
                     stateSet.Writes[kv1.Key] = kv1.Value;
@@ -185,6 +207,11 @@ namespace AElf.Sdk.CSharp.State
             foreach (var kv in Cache)
             {
                 var changes = kv.Value.GetChanges();
+                foreach (var kv1 in changes.Deletes)
+                {
+                    stateSet.Deletes[kv1.Key] = kv1.Value;
+                }
+                
                 foreach (var kv1 in changes.Writes)
                 {
                     stateSet.Writes[kv1.Key] = kv1.Value;
@@ -242,6 +269,11 @@ namespace AElf.Sdk.CSharp.State
             foreach (var kv in Cache)
             {
                 var changes = kv.Value.GetChanges();
+                foreach (var kv1 in changes.Deletes)
+                {
+                    stateSet.Deletes[kv1.Key] = kv1.Value;
+                }
+                
                 foreach (var kv1 in changes.Writes)
                 {
                     stateSet.Writes[kv1.Key] = kv1.Value;

@@ -41,6 +41,13 @@ namespace AElf.Kernel.SmartContract.Domain
                 foreach (var change in returnSet.StateChanges)
                 {
                     blockStateSet.Changes[change.Key] = change.Value;
+                    blockStateSet.Deletes.Remove(change.Key);
+                }
+
+                foreach (var delete in returnSet.StateDeletes)
+                {
+                    blockStateSet.Deletes.AddIfNotContains(delete.Key);
+                    blockStateSet.Changes.Remove(delete.Key);
                 }
             }
 

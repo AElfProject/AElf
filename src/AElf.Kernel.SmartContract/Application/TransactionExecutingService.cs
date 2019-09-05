@@ -76,8 +76,7 @@ namespace AElf.Kernel.SmartContract.Application
                 }
                 else
                 {
-                    groupStateCache.Update(trace.GetFlattenedWrites()
-                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                    groupStateCache.Update(trace.GetStateSets());
                 }
 
                 if (trace.Error != string.Empty)
@@ -213,8 +212,7 @@ namespace AElf.Kernel.SmartContract.Application
             var trace = txCtxt.Trace;
             if (txCtxt.Trace.IsSuccessful() && txCtxt.Trace.InlineTransactions.Count > 0)
             {
-                internalStateCache.Update(txCtxt.Trace.GetFlattenedWrites()
-                    .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                internalStateCache.Update(txCtxt.Trace.GetStateSets());
                 foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                 {
                     var inlineTrace = await ExecuteOneAsync(depth + 1, internalChainContext, inlineTx,
@@ -227,8 +225,7 @@ namespace AElf.Kernel.SmartContract.Application
                         break;
                     }
 
-                    internalStateCache.Update(inlineTrace.GetFlattenedWrites()
-                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                    internalStateCache.Update(inlineTrace.GetStateSets());
                 }
             }
         }
@@ -257,8 +254,10 @@ namespace AElf.Kernel.SmartContract.Application
                         return false;
                     }
 
-                    internalStateCache.Update(preTrace.GetFlattenedWrites()
-                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                    var stateSets = preTrace.GetStateSets().ToList();
+                    internalStateCache.Update(stateSets);
+                    var parentStateCache = txCtxt.StateCache as TieredStateCache;
+                    parentStateCache?.Update(stateSets);
                 }
             }
 
@@ -289,8 +288,7 @@ namespace AElf.Kernel.SmartContract.Application
                         return false;
                     }
 
-                    internalStateCache.Update(postTrace.GetFlattenedWrites()
-                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                    internalStateCache.Update(postTrace.GetStateSets());
                 }
             }
 
@@ -351,17 +349,28 @@ namespace AElf.Kernel.SmartContract.Application
 
             if (trace.IsSuccessful())
             {
-                foreach (var s in trace.GetFlattenedWrites())
+                var transactionExecutingStateSets = trace.GetStateSets();
+                foreach (var transactionExecutingStateSet in transactionExecutingStateSets)
                 {
-                    returnSet.StateChanges[s.Key] = s.Value;
+                    foreach (var write in transactionExecutingStateSet.Writes)
+                    {
+                        returnSet.StateChanges[write.Key] = write.Value;
+                        returnSet.StateDeletes.Remove(write.Key);
+                    }
+                    foreach (var delete in transactionExecutingStateSet.Deletes)
+                    {
+                        returnSet.StateDeletes[delete.Key] = delete.Value;
+                        returnSet.StateChanges.Remove(delete.Key);
+                    }
                 }
 
                 returnSet.ReturnValue = trace.ReturnValue;
             }
 
-            foreach (var s in trace.GetFlattenedReads())
+            var reads = trace.GetFlattenedReads();
+            foreach (var read in reads)
             {
-                returnSet.StateAccesses[s.Key] = s.Value;
+                returnSet.StateAccesses[read.Key] = read.Value;
             }
 
             return returnSet;

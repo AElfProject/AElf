@@ -185,8 +185,7 @@ namespace AElf.Parallel.Tests
             transactionWithoutContract.Signature = ByteString.CopyFrom(signature);
             prepareTransactions.Add(transactionWithoutContract);
 
-            var cancellableTransaction = _parallelTestHelper.GenerateTransaction(accountAddress,
-                _parallelTestHelper.BasicFunctionWithParallelContractAddress, "QueryWinMoney",
+            var cancellableTransaction = _parallelTestHelper.GenerateTransaction(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress, "QueryWinMoney",
                 new Empty()); 
             signature = await _accountService.SignAsync(cancellableTransaction.GetHash().ToByteArray());
             cancellableTransaction.Signature = ByteString.CopyFrom(signature);

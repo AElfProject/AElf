@@ -58,6 +58,13 @@ namespace AElf.Kernel.Blockchain.Application
                 foreach (var change in returnSet.StateChanges)
                 {
                     blockStateSet.Changes[change.Key] = change.Value;
+                    blockStateSet.Deletes.Remove(change.Key);
+                }
+
+                foreach (var delete in returnSet.StateDeletes)
+                {
+                    blockStateSet.Deletes.AddIfNotContains(delete.Key);
+                    blockStateSet.Changes.Remove(delete.Key);
                 }
 
                 if (returnSet.Status == TransactionResultStatus.Mined)
@@ -122,6 +129,13 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 yield return Encoding.UTF8.GetBytes(k);
                 yield return blockStateSet.Changes[k].ToByteArray();
+            }
+
+            keys = blockStateSet.Deletes;
+            foreach (var k in new SortedSet<string>(keys))
+            {
+                yield return Encoding.UTF8.GetBytes(k);
+                yield return ByteString.Empty.ToByteArray();
             }
         }
         

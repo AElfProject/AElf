@@ -76,7 +76,15 @@ namespace AElf.Kernel.SmartContract.Parallel
                 foreach ( var change in partialBlockStateSet.Changes)
                 {
                     if (updatedPartialBlockStateSet.Changes.TryGetValue(change.Key, out _)) continue;
+                    if (updatedPartialBlockStateSet.Deletes.Contains(change.Key)) continue;
                     updatedPartialBlockStateSet.Changes[change.Key] = change.Value;
+                }
+
+                foreach (var delete in partialBlockStateSet.Deletes)
+                {
+                    if (updatedPartialBlockStateSet.Deletes.Contains(delete)) continue;
+                    if (updatedPartialBlockStateSet.Changes.TryGetValue(delete, out _)) continue;
+                    updatedPartialBlockStateSet.Deletes.Add(delete);
                 }
             }
 
@@ -146,7 +154,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             var executionReturnSets =
                 await _plainExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken, throwException);
             var keys = new HashSet<string>(
-                executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateAccesses.Keys)));
+                executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateDeletes.Keys).Concat(s.StateAccesses.Keys)));
             return (executionReturnSets, keys);
         }
 

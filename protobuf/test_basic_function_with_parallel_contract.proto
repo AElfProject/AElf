@@ -24,6 +24,23 @@ service BasicFunctionWithParallelContract {
     }
     rpc ValidateOrigin(aelf.Address) returns (google.protobuf.Empty) {
     }
+    rpc SetValue(SetValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetValueWithPlugin(SetValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc RemoveValue(RemoveValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc RemoveValueWithPlugin(RemoveValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetAfterRemoveValue(SetAfterRemoveValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetAfterRemoveValueWithPlugin(SetAfterRemoveValueInput) returns (google.protobuf.Empty){
+    }
+    rpc RemoveAfterSetValue(RemoveAfterSetValueInput) returns (google.protobuf.Empty){
+    }
+    rpc RemoveAfterSetValueWithPlugin(RemoveAfterSetValueInput) returns (google.protobuf.Empty){
+    }
+    
 
     //View
     rpc QueryWinMoney(google.protobuf.Empty) returns (MoneyOutput) {
@@ -36,6 +53,15 @@ service BasicFunctionWithParallelContract {
     }
     rpc QueryTwoUserWinMoney(QueryTwoUserWinMoneyInput) returns (TwoUserMoneyOut) {
     }
+    rpc GetValue(GetValueInput) returns (GetValueOutput){
+    }
+}
+
+message MessageValue{
+    string string_value = 1;
+    bool bool_value = 2;
+    int64 int64_value = 3;
+    aelf.Address address_value = 4;
 }
 
 //Input
@@ -76,6 +102,38 @@ message QueryTwoUserWinMoneyInput{
     aelf.Address first = 1;
     aelf.Address second = 2;
 }
+
+message SetValueInput{
+    string key = 1;
+    int64 int64_value = 2;
+    string string_value = 3;
+    bool bool_value = 4;
+    MessageValue message_value = 5;
+}
+
+message RemoveValueInput{
+    string key = 1;
+}
+
+message SetAfterRemoveValueInput{
+    string key = 1;
+    int64 int64_value = 2;
+    string string_value = 3;
+    bool bool_value = 4;
+    MessageValue message_value = 5;
+}
+
+message RemoveAfterSetValueInput{
+    string key =1;
+    int64 int64_value = 2;
+    string string_value = 3;
+    bool bool_value = 4;
+    MessageValue message_value = 5;
+}
+
+message GetValueInput{
+    string key = 1;
+}
 //Output
 
 message MoneyOutput {
@@ -89,5 +147,12 @@ message BetStatus {
 message TwoUserMoneyOut{
     int64 first_int64_value = 1;
     int64 second_int64_value = 2;
+}
+
+message GetValueOutput{
+    int64 int64_value = 1;
+    string string_value = 2;
+    bool bool_value = 3;
+    MessageValue message_value = 4;
 }
 

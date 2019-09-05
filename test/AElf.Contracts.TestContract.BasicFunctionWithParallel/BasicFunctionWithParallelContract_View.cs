@@ -48,5 +48,16 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
                 SecondInt64Value = State.WinerHistory[input.First]
             };
         }
+
+        public override GetValueOutput GetValue(GetValueInput input)
+        {
+            return new GetValueOutput
+            {
+                BoolValue = State.BoolValueMap[input.Key],
+                StringValue = State.StringValueMap[input.Key] ?? string.Empty,
+                Int64Value = State.LongValueMap[input.Key],
+                MessageValue = State.MessageValueMap[input.Key]
+            };
+        }
     }
 }

@@ -123,6 +123,27 @@ namespace AElf.Sdk.CSharp.Tests
             changes.Reads.Count.ShouldBeGreaterThan(0);
             changes.Writes.Count.ShouldBeGreaterThan(0);
 
+            state.MappedState[SampleAddress.AddressList[0]][SampleAddress.AddressList[1]] = "test";
+            state.MappedState[SampleAddress.AddressList[0]][SampleAddress.AddressList[2]] = "test2";
+            state.MappedState[SampleAddress.AddressList[3]][SampleAddress.AddressList[4]] = "test3";
+            state.MappedState[SampleAddress.AddressList[0]].Remove(SampleAddress.AddressList[1]);
+            state.MappedState[SampleAddress.AddressList[3]].Remove(SampleAddress.AddressList[4]);
+            changes = state.GetChanges();
+            var key = string.Join("/",
+                SampleAddress.AddressList[0].GetFormatted(), "dummy_address", "MappedState",
+                SampleAddress.AddressList[0].ToString(), SampleAddress.AddressList[1].ToString()
+            );
+            changes.Deletes.TryGetValue(key,out _).ShouldBeTrue();
+            key = string.Join(",", SampleAddress.AddressList[0].GetFormatted(), "dummy_address", "MappedState",
+                SampleAddress.AddressList[0].ToString(), SampleAddress.AddressList[2].ToString());
+            changes.Deletes.TryGetValue(key,out _).ShouldBeFalse();
+            key = string.Join("/", SampleAddress.AddressList[0].GetFormatted(), "dummy_address", "MappedState",
+                SampleAddress.AddressList[3].ToString(), SampleAddress.AddressList[4].ToString());
+            changes.Deletes.TryGetValue(key,out _).ShouldBeTrue();
+
+            key = string.Join("/", SampleAddress.AddressList[0].GetFormatted(), "dummy_address", "MappedState",
+                SampleAddress.AddressList[4].ToString(), SampleAddress.AddressList[5].ToString());
+            changes.Deletes.TryGetValue(key,out _).ShouldBeFalse();
             // Clear values
             state.Clear();
             AssertDefault(state);

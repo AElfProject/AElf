@@ -96,6 +96,74 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
             return new Empty();
         }
 
+        public override Empty SetValue(SetValueInput input)
+        {
+            State.LongValueMap[input.Key] = input.Int64Value;
+            State.StringValueMap[input.Key] = input.StringValue;
+            State.BoolValueMap[input.Key] = input.BoolValue;
+            State.MessageValueMap[input.Key] = input.MessageValue;
+            return new Empty();
+        }
+
+        public override Empty SetValueWithPlugin(SetValueInput input)
+        {
+            return SetValue(input);
+        }
+
+        public override Empty RemoveValue(RemoveValueInput input)
+        {
+            State.LongValueMap.Remove(input.Key);
+            State.StringValueMap.Remove(input.Key);
+            State.BoolValueMap.Remove(input.Key);
+            State.MessageValueMap.Remove(input.Key);
+            return new Empty();
+        }
+
+        public override Empty RemoveValueWithPlugin(RemoveValueInput input)
+        {
+            return RemoveValue(input);
+        }
+
+        public override Empty RemoveAfterSetValue(RemoveAfterSetValueInput input)
+        {
+            State.LongValueMap[input.Key] = input.Int64Value;
+            State.StringValueMap[input.Key] = input.StringValue;
+            State.BoolValueMap[input.Key] = input.BoolValue;
+            State.MessageValueMap[input.Key] = input.MessageValue;
+            
+            State.LongValueMap.Remove(input.Key);
+            State.StringValueMap.Remove(input.Key);
+            State.BoolValueMap.Remove(input.Key);
+            State.MessageValueMap.Remove(input.Key);
+            
+            return new Empty();
+        }
+
+        public override Empty RemoveAfterSetValueWithPlugin(RemoveAfterSetValueInput input)
+        {
+            return RemoveAfterSetValue(input);
+        }
+
+        public override Empty SetAfterRemoveValue(SetAfterRemoveValueInput input)
+        {
+            State.LongValueMap.Remove(input.Key);
+            State.StringValueMap.Remove(input.Key);
+            State.BoolValueMap.Remove(input.Key);
+            State.MessageValueMap.Remove(input.Key);
+            
+            State.LongValueMap[input.Key] = input.Int64Value;
+            State.StringValueMap[input.Key] = input.StringValue;
+            State.BoolValueMap[input.Key] = input.BoolValue;
+            State.MessageValueMap[input.Key] = input.MessageValue;
+            
+            return new Empty();
+        }
+
+        public override Empty SetAfterRemoveValueWithPlugin(SetAfterRemoveValueInput input)
+        {
+            return SetAfterRemoveValue(input);
+        }
+
         private long WinOrLose(long betAmount)
         {
             var data = State.TotalBetBalance.Value.Sub(State.RewardBalance.Value);

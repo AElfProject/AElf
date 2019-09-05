@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 
@@ -52,11 +51,21 @@ namespace AElf.Kernel.SmartContract.Application
             }
         }
 
-        public void Update(IEnumerable<KeyValuePair<string, byte[]>> changes)
+        public void Update(IEnumerable<TransactionExecutingStateSet> stateSets)
         {
-            foreach (var change in changes)
+            foreach (var stateSet in stateSets)
             {
-                _currentValues[change.Key] = change.Value;
+                var changes = stateSet.Writes;
+                foreach (var change in changes)
+                {
+                    _currentValues[change.Key] = change.Value.ToByteArray();
+                }
+
+                var deletes = stateSet.Deletes;
+                foreach (var delete in deletes)
+                {
+                    _currentValues[delete.Key] = null;
+                }
             }
         }
 

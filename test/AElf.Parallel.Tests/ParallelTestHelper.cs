@@ -39,7 +39,7 @@ namespace AElf.Parallel.Tests
         public byte[] BasicFunctionWithParallelContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("BasicFunctionWithParallel")).Value;
         
-        public Address BasicFunctionWithParallelContractAddress { get; private set; }
+        public static Address BasicFunctionWithParallelContractAddress { get; private set; }
 
         public ParallelTestHelper(IOsBlockchainNodeContextService osBlockchainNodeContextService,
             IAccountService accountService,

@@ -64,6 +64,7 @@ message SmartContractRegistration {
 message TransactionExecutingStateSet {
     map<string, bytes> writes = 1;
     map<string, bool> reads = 2;
+    map<string, bool> deletes = 3;
 }
 
 // Common
