@@ -710,16 +710,19 @@ namespace AElf.Contracts.TestBase
             };
             var tokenInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenInitializationCallList.Add(
-                nameof(TokenContractContainer.TokenContractStub.RegisterNativeTokenInfo),
-                new RegisterNativeTokenInfoInput
+                nameof(TokenContractContainer.TokenContractStub.RegisterNativeAndResourceTokenInfo),
+                new RegisterNativeAndResourceTokenInfoInput
                 {
-                    Decimals = nativeTokenInfo.Decimals,
-                    IssueChainId = nativeTokenInfo.IssueChainId,
-                    Issuer = nativeTokenInfo.Issuer,
-                    IsBurnable = nativeTokenInfo.IsBurnable,
-                    Symbol = nativeTokenInfo.Symbol,
-                    TokenName = nativeTokenInfo.TokenName,
-                    TotalSupply = nativeTokenInfo.TotalSupply
+                    NativeTokenInfo = new RegisterNativeTokenInfoInput
+                    {
+                        Decimals = nativeTokenInfo.Decimals,
+                        IssueChainId = nativeTokenInfo.IssueChainId,
+                        Issuer = nativeTokenInfo.Issuer,
+                        IsBurnable = nativeTokenInfo.IsBurnable,
+                        Symbol = nativeTokenInfo.Symbol,
+                        TokenName = nativeTokenInfo.TokenName,
+                        TotalSupply = nativeTokenInfo.TotalSupply
+                    }
                 });
 
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
