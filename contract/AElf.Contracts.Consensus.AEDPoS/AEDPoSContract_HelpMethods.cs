@@ -148,7 +148,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (round.RoundNumber > AEDPoSContractConstants.KeepRounds)
             {
                 // TODO: Set to null.
-                State.Rounds[round.RoundNumber.Sub(AEDPoSContractConstants.KeepRounds)] = new Round();
+                //State.Rounds[round.RoundNumber.Sub(AEDPoSContractConstants.KeepRounds)] = new Round();
             }
 
             return true;
