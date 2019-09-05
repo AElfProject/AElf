@@ -17,6 +17,7 @@ jobs:
       projects: 'AElf.sln'
       arguments: '/p:NoBuild=false --configuration Debug'
   - task: DotNetCoreCLI@2
+    inputs:
       command: 'test'
       projects: 'AElf.sln'
 # All tasks on Linux
