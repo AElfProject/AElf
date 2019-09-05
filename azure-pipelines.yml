@@ -17,7 +17,8 @@ jobs:
       projects: 'AElf.sln'
       arguments: '/p:NoBuild=false --configuration Debug'
   - task: DotNetCoreCLI@2
-  - script: find *.Tests/ -type f -name "*.csproj" -exec dotnet test {} \;
+      command: 'test'
+      projects: 'AElf.sln'
 # All tasks on Linux
 - job: build_all_linux
   displayName: Build all tasks (Linux)
