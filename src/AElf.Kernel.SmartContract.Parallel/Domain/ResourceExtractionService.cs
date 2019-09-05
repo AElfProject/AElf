@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -25,7 +24,6 @@ namespace AElf.Kernel.SmartContract.Parallel
         private readonly ICodeRemarksManager _codeRemarksManager;
         public ILogger<ResourceExtractionService> Logger { get; set; }
 
-        // TODO: use non concurrent version
         private readonly Dictionary<Hash, TransactionResourceCache> _resourceCache =
             new Dictionary<Hash, TransactionResourceCache>();
 
@@ -193,7 +191,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
     internal class TransactionResourceCache
     {
-        public long ResourceUsedBlockHeight { get; set; };
+        public long ResourceUsedBlockHeight { get; set; }
         public readonly TransactionResourceInfo ResourceInfo;
         public readonly Address Address;
 
