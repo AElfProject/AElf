@@ -25,12 +25,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     if (t < roundStartTime)
                     {
-                        return $"{t.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,ffffff} (For Extra Block Slot Of Previous Round)";
+                        return
+                            $"{t.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,ffffff} (For Extra Block Slot Of Previous Round)";
                     }
 
                     return t.ToDateTime().ToUniversalTime().ToString("yyyy-MM-dd HH.mm.ss,ffffff");
                 });
-                var actualMiningTimesStr = minerInRound.ActualMiningTimes.Any() ? string.Join("\n\t ", actualMiningTimes) : "";
+                var actualMiningTimesStr =
+                    minerInRound.ActualMiningTimes.Any() ? string.Join("\n\t ", actualMiningTimes) : "";
                 minerInformation.AppendLine($"Actual:\t {actualMiningTimesStr}");
                 minerInformation.AppendLine($"Out:\t {minerInRound.OutValue?.ToHex()}");
                 if (RoundNumber != 1)
@@ -51,19 +53,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return logs.ToString();
         }
 
-        public string ToString(string publicKey)
-        {
-            return ToString(publicKey, null);
-        }
-
-        public string ToString(string format, IFormatProvider formatProvider)
+        public string ToString(string format, IFormatProvider formatProvider = null)
         {
             if (string.IsNullOrEmpty(format)) format = "G";
 
             switch (format)
             {
                 case "G": return ToString();
-                case "M": 
+                case "M":
                     // Return formatted miner list.
                     return RealTimeMinersInformation.Keys.Aggregate("\n", (key1, key2) => key1 + "\n" + key2);
             }

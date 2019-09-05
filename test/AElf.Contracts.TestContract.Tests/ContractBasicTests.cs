@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using AElf.Contracts.TestContract.BasicFunctionWithParallel;
 using AElf.Contracts.TestKit;
@@ -17,6 +19,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace AElf.Contract.TestContract
 {
@@ -379,114 +382,114 @@ namespace AElf.Contract.TestContract
             
         }
 
-        [Fact]
-        public async Task UpdateContract_With_Two_Different_Contract_Code()
-        {
-            var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
-            var startBlockHeight = blockHeader.Height;
-            var startBlockHash = blockHeader.GetHash();
-
-            var basic11ContractStub = GetTestBasicUpdateContractStub(DefaultSenderKeyPair);
-            //First branch
-            {
-                var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
-                    new Acs0.ContractUpdateInput
-                    {
-                        Address = BasicFunctionContractAddress,
-                        Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicUpdate")).Value) 
-                    }
-                )).TransactionResult;
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-                transactionResult = (await basic11ContractStub.UpdateStopBet.SendAsync(
-                    new Empty())).TransactionResult;
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            }
-
-            //Second branch
-            {
-                var input = new Acs0.ContractUpdateInput
-                {
-                    Address = BasicFunctionContractAddress,
-                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicFunctionWithParallel")).Value)
-                }.ToByteString();
-                var transaction = CreateTransaction(DefaultSender, ContractZeroAddress,
-                    nameof(BasicContractZeroStub.UpdateSmartContract), input, startBlockHeight, startBlockHash);
-                var branchTwoBlock = await ExecuteAsync(transaction, startBlockHeight, startBlockHash);
-                await _blockAttachService.AttachBlockAsync(branchTwoBlock);
-                
-                var basicFunctionContractStub = GetTestBasicFunctionContractStub(DefaultSenderKeyPair);
-                await basicFunctionContractStub.QueryWinMoney.CallAsync(new Empty());
-                
-                _smartContractExecutiveService.ClearContractInfoCache(100);
-
-                var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
-                {
-                    First = SampleAddress.AddressList[0],
-                    Second = SampleAddress.AddressList[1]
-                }.ToByteString();
-                var queryTwoUserWinMoneyTransaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
-                    "QueryTwoUserWinMoney", queryTwoUserWinMoneyInput, branchTwoBlock.Height, branchTwoBlock.GetHash());
-                branchTwoBlock = await ExecuteAsync(queryTwoUserWinMoneyTransaction, branchTwoBlock.Height,
-                    branchTwoBlock.GetHash());
-                await _blockAttachService.AttachBlockAsync(branchTwoBlock);
-
-                var queryTwoUserWinMoneyTransactionResult =
-                    await _transactionResultManager.GetTransactionResultAsync(queryTwoUserWinMoneyTransaction.GetHash(),
-                        branchTwoBlock.Header.GetPreMiningHash());
-                queryTwoUserWinMoneyTransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                queryTwoUserWinMoneyTransactionResult.Error.ShouldContain("Failed to find handler for QueryTwoUserWinMoney");
-
-                await _smartContractExecutiveService.InitContractInfoCacheAsync();
-                
-                queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
-                {
-                    First = SampleAddress.AddressList[0],
-                    Second = SampleAddress.AddressList[1]
-                }.ToByteString();
-                queryTwoUserWinMoneyTransaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
-                    "QueryTwoUserWinMoney", queryTwoUserWinMoneyInput, branchTwoBlock.Height, branchTwoBlock.GetHash());
-                branchTwoBlock = await ExecuteAsync(queryTwoUserWinMoneyTransaction, branchTwoBlock.Height,
-                    branchTwoBlock.GetHash());
-                await _blockAttachService.AttachBlockAsync(branchTwoBlock);
-                queryTwoUserWinMoneyTransactionResult =
-                    await _transactionResultManager.GetTransactionResultAsync(queryTwoUserWinMoneyTransaction
-                        .GetHash(), branchTwoBlock.Header.GetPreMiningHash());
-                queryTwoUserWinMoneyTransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            }
-
-            //Third branch
-            {
-                var updateStopBetTransaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
-                    nameof(basic11ContractStub.UpdateStopBet), new Empty().ToByteString(), startBlockHeight, startBlockHash);
-                var branchThreeBlock = await ExecuteAsync(updateStopBetTransaction, startBlockHeight, startBlockHash);
-                await _blockAttachService.AttachBlockAsync(branchThreeBlock);
-
-                var updateStopBetTransactionResult =
-                    await _transactionResultManager.GetTransactionResultAsync(updateStopBetTransaction.GetHash(),
-                        branchThreeBlock.Header.GetPreMiningHash());
-                updateStopBetTransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                updateStopBetTransactionResult.Error.ShouldContain("Failed to find handler for UpdateStopBet.");
-            
-                var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
-                {
-                    First = SampleAddress.AddressList[0],
-                    Second = SampleAddress.AddressList[1]
-                }.ToByteString();
-                var queryTwoUserWinMoneyTransaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
-                    "QueryTwoUserWinMoney", queryTwoUserWinMoneyInput, branchThreeBlock.Height, branchThreeBlock.GetHash());
-                branchThreeBlock = await ExecuteAsync(queryTwoUserWinMoneyTransaction, branchThreeBlock.Height,
-                    branchThreeBlock.GetHash());
-                await _blockAttachService.AttachBlockAsync(branchThreeBlock);
-
-                var queryTwoUserWinMoneyTransactionResult =
-                    await _transactionResultManager.GetTransactionResultAsync(queryTwoUserWinMoneyTransaction.GetHash(),
-                        branchThreeBlock.Header.GetPreMiningHash());
-                queryTwoUserWinMoneyTransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                queryTwoUserWinMoneyTransactionResult.Error.ShouldContain("Failed to find handler for QueryTwoUserWinMoney.");
-            }
-
-        }
+//        [Fact]
+//        public async Task UpdateContract_With_Two_Different_Contract_Code()
+//        {
+//            var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
+//            var startBlockHeight = blockHeader.Height;
+//            var startBlockHash = blockHeader.GetHash();
+//
+//            var basic11ContractStub = GetTestBasicUpdateContractStub(DefaultSenderKeyPair);
+//            //First branch
+//            {
+//                var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
+//                    new Acs0.ContractUpdateInput
+//                    {
+//                        Address = BasicFunctionContractAddress,
+//                        Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicUpdate")).Value) 
+//                    }
+//                )).TransactionResult;
+//                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+//
+//                transactionResult = (await basic11ContractStub.UpdateStopBet.SendAsync(
+//                    new Empty())).TransactionResult;
+//                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+//            }
+//
+//            //Second branch
+//            {
+//                var input = new Acs0.ContractUpdateInput
+//                {
+//                    Address = BasicFunctionContractAddress,
+//                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicFunctionWithParallel")).Value)
+//                }.ToByteString();
+//                var transaction = CreateTransaction(DefaultSender, ContractZeroAddress,
+//                    nameof(BasicContractZeroStub.UpdateSmartContract), input, startBlockHeight, startBlockHash);
+//                var branchTwoBlock = await ExecuteAsync(transaction, startBlockHeight, startBlockHash);
+//                await _blockAttachService.AttachBlockAsync(branchTwoBlock);
+//                
+//                var basicFunctionContractStub = GetTestBasicFunctionContractStub(DefaultSenderKeyPair);
+//                await basicFunctionContractStub.QueryWinMoney.CallAsync(new Empty());
+//                
+//                _smartContractExecutiveService.ClearContractInfoCache(100);
+//
+//                var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
+//                {
+//                    First = SampleAddress.AddressList[0],
+//                    Second = SampleAddress.AddressList[1]
+//                }.ToByteString();
+//                var queryTwoUserWinMoneyTransaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
+//                    "QueryTwoUserWinMoney", queryTwoUserWinMoneyInput, branchTwoBlock.Height, branchTwoBlock.GetHash());
+//                branchTwoBlock = await ExecuteAsync(queryTwoUserWinMoneyTransaction, branchTwoBlock.Height,
+//                    branchTwoBlock.GetHash());
+//                await _blockAttachService.AttachBlockAsync(branchTwoBlock);
+//
+//                var queryTwoUserWinMoneyTransactionResult =
+//                    await _transactionResultManager.GetTransactionResultAsync(queryTwoUserWinMoneyTransaction.GetHash(),
+//                        branchTwoBlock.Header.GetPreMiningHash());
+//                queryTwoUserWinMoneyTransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+//                queryTwoUserWinMoneyTransactionResult.Error.ShouldContain("Failed to find handler for QueryTwoUserWinMoney");
+//
+//                await _smartContractExecutiveService.InitContractInfoCacheAsync();
+//                
+//                queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
+//                {
+//                    First = SampleAddress.AddressList[0],
+//                    Second = SampleAddress.AddressList[1]
+//                }.ToByteString();
+//                queryTwoUserWinMoneyTransaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
+//                    "QueryTwoUserWinMoney", queryTwoUserWinMoneyInput, branchTwoBlock.Height, branchTwoBlock.GetHash());
+//                branchTwoBlock = await ExecuteAsync(queryTwoUserWinMoneyTransaction, branchTwoBlock.Height,
+//                    branchTwoBlock.GetHash());
+//                await _blockAttachService.AttachBlockAsync(branchTwoBlock);
+//                queryTwoUserWinMoneyTransactionResult =
+//                    await _transactionResultManager.GetTransactionResultAsync(queryTwoUserWinMoneyTransaction
+//                        .GetHash(), branchTwoBlock.Header.GetPreMiningHash());
+//                queryTwoUserWinMoneyTransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+//            }
+//
+//            //Third branch
+//            {
+//                var updateStopBetTransaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
+//                    nameof(basic11ContractStub.UpdateStopBet), new Empty().ToByteString(), startBlockHeight, startBlockHash);
+//                var branchThreeBlock = await ExecuteAsync(updateStopBetTransaction, startBlockHeight, startBlockHash);
+//                await _blockAttachService.AttachBlockAsync(branchThreeBlock);
+//
+//                var updateStopBetTransactionResult =
+//                    await _transactionResultManager.GetTransactionResultAsync(updateStopBetTransaction.GetHash(),
+//                        branchThreeBlock.Header.GetPreMiningHash());
+//                updateStopBetTransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+//                updateStopBetTransactionResult.Error.ShouldContain("Failed to find handler for UpdateStopBet.");
+//            
+//                var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
+//                {
+//                    First = SampleAddress.AddressList[0],
+//                    Second = SampleAddress.AddressList[1]
+//                }.ToByteString();
+//                var queryTwoUserWinMoneyTransaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
+//                    "QueryTwoUserWinMoney", queryTwoUserWinMoneyInput, branchThreeBlock.Height, branchThreeBlock.GetHash());
+//                branchThreeBlock = await ExecuteAsync(queryTwoUserWinMoneyTransaction, branchThreeBlock.Height,
+//                    branchThreeBlock.GetHash());
+//                await _blockAttachService.AttachBlockAsync(branchThreeBlock);
+//
+//                var queryTwoUserWinMoneyTransactionResult =
+//                    await _transactionResultManager.GetTransactionResultAsync(queryTwoUserWinMoneyTransaction.GetHash(),
+//                        branchThreeBlock.Header.GetPreMiningHash());
+//                queryTwoUserWinMoneyTransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+//                queryTwoUserWinMoneyTransactionResult.Error.ShouldContain("Failed to find handler for QueryTwoUserWinMoney.");
+//            }
+//
+//        }
 
         private Transaction CreateTransaction(Address from, Address to, string methodName,
             ByteString parameters, long blockHeight, Hash blockHash)
@@ -523,6 +526,45 @@ namespace AElf.Contract.TestContract
                 await _blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
             await _blockchainService.AddBlockAsync(block);
             return block;
+        }
+        [Fact]
+        //[Theory]
+        public async Task MiningService_Timeout()
+        {
+            int a = 10;
+            var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
+            var startBlockHeight = blockHeader.Height;
+            var startBlockHash = blockHeader.GetHash();
+            var input = new Acs0.ContractUpdateInput
+            {
+                Address = BasicFunctionContractAddress,
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicFunctionWithParallel")).Value)
+            }.ToByteString();
+            var transaction = CreateTransaction(DefaultSender, ContractZeroAddress,
+                nameof(BasicContractZeroStub.UpdateSmartContract), input, startBlockHeight, startBlockHash);
+            ///await ExecuteAsync(transaction, startBlockHeight, startBlockHash);
+            var transactionList = new List<Transaction>();
+            if(transaction!=null) transactionList.Add(transaction);
+            try
+            {
+                await _miningService.MineAsync(
+                    new RequestMiningDto
+                    {
+                        PreviousBlockHash = startBlockHash, PreviousBlockHeight = startBlockHeight,
+                        BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue)
+                    },
+                    transactionList,
+                    DateTime.UtcNow.ToTimestamp()).ToObservable().Timeout(TimeSpan.FromMilliseconds(3000));
+            }
+            catch
+            {
+
+                Console.WriteLine("test out of time");
+            }
+            //Console.WriteLine("finish in time");
+//            if (transaction != null)
+//                await _blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
+            //await _blockchainService.AddBlockAsync(block);
         }
     }
 }

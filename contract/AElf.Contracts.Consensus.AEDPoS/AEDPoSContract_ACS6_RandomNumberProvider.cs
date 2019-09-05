@@ -44,15 +44,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         TargetRoundNumber = _currentRound.RoundNumber,
                         ExpectedBlockHeight =
                             _currentHeight.Add(
-                                _minimumRequestMinersCount.Mul(AEDPoSContractConstants.TinyBlocksNumber)),
+                                _minimumRequestMinersCount.Mul(AEDPoSContractConstants.MaximumTinyBlocksCount)),
                         Order = minedMinersCount
                     };
                 }
 
                 var leftTinyBlocks = lastMinedMinerInformation == null
                     ? 0
-                    : AEDPoSContractConstants.TinyBlocksNumber.Sub(lastMinedMinerInformation.ActualMiningTimes.Count);
-                var leftBlocksCount = _currentHeight.Add(leftMinersCount.Mul(AEDPoSContractConstants.TinyBlocksNumber))
+                    : AEDPoSContractConstants.MaximumTinyBlocksCount.Sub(lastMinedMinerInformation.ActualMiningTimes.Count);
+                var leftBlocksCount = _currentHeight.Add(leftMinersCount.Mul(AEDPoSContractConstants.MaximumTinyBlocksCount))
                     .Add(leftTinyBlocks);
                 return new RandomNumberRequestInformation
                 {

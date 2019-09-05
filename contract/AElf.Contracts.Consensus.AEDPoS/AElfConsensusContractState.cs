@@ -44,5 +44,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public MappedState<long, HashList> RandomNumberTokenMap { get; set; }
 
         public Int64State LastIrreversibleBlockHeight { get; set; }
+
+        public Int32State MaximumMinersCount { get; set; }
+
+        public SingletonState<LatestProviderToTinyBlocksCount> LatestProviderToTinyBlocksCount { get; set; }
+
+        public MappedState<long, MinerList> MinedMinerListMap { get; set; }
     }
 }

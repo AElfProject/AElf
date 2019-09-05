@@ -3,8 +3,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public static class AEDPoSContractConstants
     {
-        public const int TinyBlocksNumber = 8;
-        public const int TotalTinySlots = TinyBlocksNumber;
+        public const int MaximumTinyBlocksCount = 8;
+        public const int TotalTinySlots = MaximumTinyBlocksCount;
         public const int LimitBlockExecutionTimeTotalShares = 5;
         public const int LimitBlockExecutionTimeWeight = 3;
         public const int TimeForNetwork = 100;
@@ -16,5 +16,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public const long TimeToReduceMiningRewardByHalf = 126144000;// 60 * 60 * 24 * 365 * 4
         public const int InitialMinersCount = 9;
         public const int KeepRounds = 32;
+        public const long MaximumMissedBlocksCount = 34560;
     }
 }

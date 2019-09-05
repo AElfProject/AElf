@@ -1,4 +1,4 @@
-namespace AElf.Blockchains.BasicBaseChain
+namespace AElf.OS
 {
     public class EconomicOptions
     {

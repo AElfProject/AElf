@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var extraBlockProducerTinyBlocks = currentRound
                     .RealTimeMinersInformation[extraBlockProducerOfPreviousRound].ProducedTinyBlocks;
-                if (extraBlockProducerTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber)
+                if (extraBlockProducerTinyBlocks < AEDPoSContractConstants.MaximumTinyBlocksCount)
                 {
                     Context.LogDebug(() =>
                         $"CONSENSUS WARNING: Previous extra block miner {extraBlockProducerOfPreviousRound} only produced {extraBlockProducerTinyBlocks} tiny blocks during round {currentRound.RoundNumber}.");
@@ -33,9 +33,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 currentRound.RealTimeMinersInformation.Values.First(m => m.Order == minerInRound.Order.Sub(1));
             var previousTinyBlocks = previousMinerInRound.ProducedTinyBlocks;
             if ((extraBlockProducerOfPreviousRound == previousMinerInRound.Pubkey &&
-                 previousTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber.Mul(2)) ||
+                 previousTinyBlocks < AEDPoSContractConstants.MaximumTinyBlocksCount.Mul(2)) ||
                 (extraBlockProducerOfPreviousRound != previousMinerInRound.Pubkey &&
-                 previousTinyBlocks < AEDPoSContractConstants.TinyBlocksNumber))
+                 previousTinyBlocks < AEDPoSContractConstants.MaximumTinyBlocksCount))
             {
                 Context.LogDebug(() =>
                     $"CONSENSUS WARNING: Previous miner {previousMinerInRound.Pubkey} only produced {previousTinyBlocks} tiny blocks during round {currentRound.RoundNumber}.");
