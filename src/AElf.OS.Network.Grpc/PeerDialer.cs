@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.OS.Network.Grpc.Extensions;
@@ -35,12 +36,12 @@ namespace AElf.OS.Network.Grpc
         /// further communications.
         /// </summary>
         /// <returns>The created peer</returns>
-        public async Task<GrpcPeer> DialPeerAsync(string ipAddress)
+        public async Task<GrpcPeer> DialPeerAsync(IPEndPoint endpoint)
         {
-            var client = CreateClient(ipAddress);
+            var client = CreateClient(endpoint);
             var connectionInfo = await _connectionInfoProvider.GetConnectionInfoAsync();
             
-            ConnectReply connectReply = await CallConnectAsync(client, ipAddress, connectionInfo);
+            ConnectReply connectReply = await CallConnectAsync(client, endpoint, connectionInfo);
 
             if (connectReply?.Info?.Pubkey == null 
                 || connectReply.Error != ConnectError.ConnectOk)
@@ -48,7 +49,7 @@ namespace AElf.OS.Network.Grpc
                 await CleanupAndGetExceptionAsync($"Connect error: {connectReply?.Error}.", client.Channel);
             }   
 
-            var peer = new GrpcPeer(client, ipAddress, connectReply.Info.ToPeerInfo(isInbound: false));
+            var peer = new GrpcPeer(client, endpoint, connectReply.Info.ToPeerInfo(isInbound: false));
             peer.InboundSessionId = connectionInfo.SessionId.ToByteArray();
 
             return peer;
@@ -58,7 +59,7 @@ namespace AElf.OS.Network.Grpc
         /// Calls the server side connect RPC method, in order to establish a 2-way connection.
         /// </summary>
         /// <returns>The reply from the server.</returns>
-        private async Task<ConnectReply> CallConnectAsync(GrpcClient client, string ipAddress, 
+        private async Task<ConnectReply> CallConnectAsync(GrpcClient client, IPEndPoint ipAddress, 
             ConnectionInfo connectionInfo)
         {
             ConnectReply connectReply = null;
@@ -78,20 +79,19 @@ namespace AElf.OS.Network.Grpc
             return connectReply;
         }
         
-        public async Task<GrpcPeer> DialBackPeer(string ipAddress, ConnectionInfo peerConnectionInfo)
+        public async Task<GrpcPeer> DialBackPeer(IPEndPoint endpoint, ConnectionInfo peerConnectionInfo)
         {
-            var client = CreateClient(ipAddress);
+            var client = CreateClient(endpoint);
             
-            await PingNodeAsync(client, ipAddress);
-            
-            return new GrpcPeer(client, ipAddress, peerConnectionInfo.ToPeerInfo(isInbound: true));
+            await PingNodeAsync(client, endpoint);
+            return new GrpcPeer(client, endpoint, peerConnectionInfo.ToPeerInfo(isInbound: true));
         }
         
         /// <summary>
         /// Checks that the distant node is reachable by pinging it.
         /// </summary>
         /// <returns>The reply from the server.</returns>
-        private async Task PingNodeAsync(GrpcClient client, string ipAddress)
+        private async Task PingNodeAsync(GrpcClient client, IPEndPoint ipAddress)
         {
             try
             {
@@ -116,9 +116,9 @@ namespace AElf.OS.Network.Grpc
         /// Creates a channel/client pair with the appropriate options and interceptors.
         /// </summary>
         /// <returns>A tuple of the channel and client</returns>
-        public GrpcClient CreateClient(string ipAddress)
+        public GrpcClient CreateClient(IPEndPoint endpoint)
         {
-            var channel = new Channel(ipAddress, ChannelCredentials.Insecure, new List<ChannelOption>
+            var channel = new Channel(endpoint.ToString(), ChannelCredentials.Insecure, new List<ChannelOption>
             {
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
                 new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)

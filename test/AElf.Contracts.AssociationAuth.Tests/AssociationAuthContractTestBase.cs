@@ -1,9 +1,7 @@
-using System.Collections.Generic;
 using System.IO;
 using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
@@ -29,7 +27,7 @@ namespace AElf.Contracts.AssociationAuth
         
         protected IBlockTimeProvider BlockTimeProvider =>
             Application.ServiceProvider.GetRequiredService<IBlockTimeProvider>();
-        protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
+        protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
         protected Address TokenContractAddress { get; set; }
         protected Address AssociationAuthContractAddress { get; set; }
         

@@ -7,8 +7,7 @@ import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
 
-// TODO: Simplify or remove this namespace
-option csharp_namespace = "AElf.Contracts.MultiToken.Messages";
+option csharp_namespace = "AElf.Contracts.MultiToken";
 
 service TokenContract {
     // Actions
@@ -34,9 +33,15 @@ service TokenContract {
     }
     rpc ClaimTransactionFees (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
+    rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {
+    }
+    rpc RegisterNativeTokenInfo(RegisterNativeTokenInfoInput) returns (google.protobuf.Empty) {
+    }  
     rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
     }
     rpc CrossChainReceiveToken (CrossChainReceiveTokenInput) returns (google.protobuf.Empty) {
+    }
+    rpc CrossChainCreateToken(CrossChainCreateTokenInput) returns (google.protobuf.Empty) {        
     }
     rpc CheckThreshold (CheckThresholdInput) returns (google.protobuf.Empty) {
     }
@@ -63,6 +68,9 @@ service TokenContract {
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetNativeTokenInfo (google.protobuf.Empty) returns (TokenInfo) {
         option (aelf.is_view) = true;
     }
     rpc GetBalance (GetBalanceInput) returns (GetBalanceOutput) {
@@ -94,6 +102,7 @@ message TokenInfo {
     aelf.Address issuer = 6;
     bool is_burnable = 7;
     bool is_transfer_disabled = 8;
+    sint32 issue_chain_id = 9;
 }
 
 message CreateInput {
@@ -105,6 +114,16 @@ message CreateInput {
     bool is_burnable = 6;
     repeated aelf.Address lock_white_list = 7;
     bool is_transfer_disabled = 8;
+}
+
+message RegisterNativeTokenInfoInput{
+    string symbol = 1;
+    string tokenName = 2;
+    sint64 totalSupply = 3;
+    sint32 decimals = 4;
+    aelf.Address issuer = 5;
+    bool is_burnable = 6;
+    sint32 issue_chain_id = 8;
 }
 
 message IssueInput {
@@ -207,17 +226,18 @@ message GetAllowanceOutput {
 
 message CrossChainTransferInput {
     aelf.Address to = 1;
-    TokenInfo token_info = 2;
+    string symbol = 2;
     sint64 amount = 3;
     string memo = 4;
     int32 to_chain_id = 5;
+    int32 issue_chain_id = 6;
 }
 
 message CrossChainReceiveTokenInput {
     int32 from_chain_id = 1;
     int64 parent_chain_height = 2;
     bytes transfer_transaction_bytes = 3;
-    repeated aelf.Hash merkle_path = 4;
+    aelf.MerklePath merkle_path = 4;
 }
 
 message IsInWhiteListInput {
@@ -290,6 +310,22 @@ message GetVirtualAddressForLockingInput {
 }
 
 // Events
+message CrossChainCreateTokenInput {
+    int32 from_chain_id = 1;
+    int64 parent_chain_height = 2;
+    bytes transaction_bytes = 3;
+    aelf.MerklePath merkle_path = 4;
+}
+
+message RegisterCrossChainTokenContractAddressInput{
+    int32 from_chain_id = 1;
+    int64 parent_chain_height = 2;
+    bytes transaction_bytes = 3;
+    aelf.MerklePath merkle_path = 4;
+    aelf.Address token_contract_address = 5;
+}
+
+// EventsCreateInput
 message Transferred {
     option (aelf.is_event) = true;
     aelf.Address from = 1 [(aelf.is_indexed) = true];

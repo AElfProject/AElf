@@ -2,7 +2,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Acs3;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Sdk.CSharp;
@@ -22,7 +21,7 @@ namespace AElf.Contracts.AssociationAuth
         }
 
         [Fact]
-        public async Task Get_Organization()
+        public async Task Get_Organization_Test()
         {
             var reviewer1 = new Reviewer {Address = Reviewer1, Weight = 1};
             var reviewer2 = new Reviewer {Address = Reviewer2, Weight = 2};
@@ -50,16 +49,15 @@ namespace AElf.Contracts.AssociationAuth
         }
 
         [Fact]
-        public async Task Get_OrganizationFailed()
+        public async Task Get_OrganizationFailed_Test()
         {
-            var transactionResult =
-                await AssociationAuthContractStub.GetOrganization.SendAsync(SampleAddress.AddressList[0]);
-            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.TransactionResult.Error.Contains("No registered organization.").ShouldBeTrue();
+            var organization =
+                await AssociationAuthContractStub.GetOrganization.CallAsync(SampleAddress.AddressList[0]);
+            organization.ShouldBe(new Organization());
         }
 
         [Fact]
-        public async Task Get_Proposal()
+        public async Task Get_Proposal_Test()
         {
             var organizationAddress = await CreateOrganizationAsync();
             var transferInput = new TransferInput()
@@ -81,15 +79,14 @@ namespace AElf.Contracts.AssociationAuth
         }
 
         [Fact]
-        public async Task Get_ProposalFailed()
+        public async Task Get_ProposalFailed_Test()
         {
-            var transactionResult = await AssociationAuthContractStub.GetProposal.SendAsync(Hash.FromString("Test"));
-            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
+            var proposal = await AssociationAuthContractStub.GetProposal.CallAsync(Hash.FromString("Test"));
+            proposal.ShouldBe(new ProposalOutput());
         }
 
         [Fact]
-        public async Task Create_OrganizationFailed()
+        public async Task Create_OrganizationFailed_Test()
         {
             var reviewer1 = new Reviewer {Address = Reviewer1, Weight = 1};
             var reviewer2 = new Reviewer {Address = Reviewer2, Weight = 2};
@@ -130,7 +127,7 @@ namespace AElf.Contracts.AssociationAuth
         }
 
         [Fact]
-        public async Task Create_ProposalFailed()
+        public async Task Create_ProposalFailed_Test()
         {
             var organizationAddress = await CreateOrganizationAsync();
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
@@ -174,7 +171,6 @@ namespace AElf.Contracts.AssociationAuth
 
                 var transactionResult = await AssociationAuthContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.TransactionResult.Error.Contains("Expired proposal.").ShouldBeTrue();
             }
             //"No registered organization."
             {
@@ -194,7 +190,6 @@ namespace AElf.Contracts.AssociationAuth
                 var transactionResult =
                     await AssociationAuthContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.TransactionResult.Error.Contains("Unable to propose.").ShouldBeTrue();
             }
             //Reviewer is not permission to propose
             {
@@ -218,18 +213,17 @@ namespace AElf.Contracts.AssociationAuth
         }
 
         [Fact]
-        public async Task Approve_Proposal_NotFoundProposal()
+        public async Task Approve_Proposal_NotFoundProposal_Test()
         {
             var transactionResult = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput
             {
                 ProposalId = Hash.FromString("Test")
             });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
         }
 
         [Fact]
-        public async Task Approve_Proposal_NotAuthorizedApproval()
+        public async Task Approve_Proposal_NotAuthorizedApproval_Test()
         {
             var organizationAddress = await CreateOrganizationAsync();
             var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);
@@ -239,11 +233,10 @@ namespace AElf.Contracts.AssociationAuth
                 ProposalId = proposalId
             });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.TransactionResult.Error.Contains("Not authorized approval.").ShouldBeTrue();
         }
 
         [Fact]
-        public async Task Approve_Proposal_ExpiredTime()
+        public async Task Approve_Proposal_ExpiredTime_Test()
         {
             var organizationAddress = await CreateOrganizationAsync();
             var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);
@@ -257,7 +250,7 @@ namespace AElf.Contracts.AssociationAuth
         }
 
         [Fact]
-        public async Task Approve_Proposal_ApprovalAlreadyExists()
+        public async Task Approve_Proposal_ApprovalAlreadyExists_Test()
         {
             var organizationAddress = await CreateOrganizationAsync();
             var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);
@@ -272,11 +265,10 @@ namespace AElf.Contracts.AssociationAuth
             var transactionResult2 =
                 await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
             transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult2.TransactionResult.Error.Contains("Approval already exists.").ShouldBeTrue();
         }
         
         [Fact]
-        public async Task Release_NotEnoughWeight()
+        public async Task Release_NotEnoughWeight_Test()
         {
             var organizationAddress = await CreateOrganizationAsync();
             var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);
@@ -291,7 +283,7 @@ namespace AElf.Contracts.AssociationAuth
         }
 
         [Fact]
-        public async Task Release_NotFound()
+        public async Task Release_NotFound_Test()
         { 
             var proposalId = Hash.FromString("test");
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
@@ -302,7 +294,7 @@ namespace AElf.Contracts.AssociationAuth
         }
 
         [Fact]
-        public async Task Release_WrongSender()
+        public async Task Release_WrongSender_Test()
         {
             var organizationAddress = await CreateOrganizationAsync();
             var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);
@@ -316,7 +308,7 @@ namespace AElf.Contracts.AssociationAuth
         }
 
         [Fact]
-        public async Task Release_Proposal()
+        public async Task Release_Proposal_Test()
         {
             var organizationAddress = await CreateOrganizationAsync();
             var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.TestBase;
 using Google.Protobuf.WellKnownTypes;
@@ -88,7 +89,7 @@ namespace AElf.OS.Consensus.DPos
                 IsInbound = true
             };
             
-            var peer = new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), OSConsensusDPosTestConstants.FakeIpEndpoint, connectionInfo);
+            var peer = new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), IpEndpointHelper.Parse(OSConsensusDPosTestConstants.FakeIpEndpoint), connectionInfo);
             peer.IsConnected = true;
             var blocks = _osTestHelper.BestBranchBlockList.GetRange(0, blockHeight);
             foreach (var block in blocks)

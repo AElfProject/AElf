@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Threading.Tasks;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Contracts.TokenConverter;
 using AElf.Contracts.Treasury;
@@ -140,7 +140,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 var createResult = await TokenContractStub.Create.SendAsync(new CreateInput
                 {
                     Symbol = "ELF",
-                    Decimals = 2,
+                    Decimals = 8,
                     IsBurnable = true,
                     TokenName = "elf token",
                     TotalSupply = totalSupply,

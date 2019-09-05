@@ -38,6 +38,9 @@
         <ContractStub Include="..\..\protobuf\acs4.proto">
             <Link>Protobuf\Proto\acs4.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs6.proto">
+            <Link>Protobuf\Proto\acs6.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\aedpos_contract.proto</Link>
         </ContractStub>
@@ -48,14 +51,14 @@
     <ItemGroup>
         <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
-        <PackageReference Include="Moq" Version="4.10.1" />
+        <PackageReference Include="Moq" Version="4.13.0" />
         <PackageReference Include="Shouldly" Version="3.0.2" />
         <PackageReference Include="xunit" Version="2.4.1" />
         <PackageReference Include="xunit.runner.console" Version="2.4.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.Autofac" Version="0.15.0" />
-        <PackageReference Include="Volo.Abp.TestBase" Version="0.17.0" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="0.19.0" />
+        <PackageReference Include="Volo.Abp.TestBase" Version="0.19.0" />
     </ItemGroup>
 </Project>

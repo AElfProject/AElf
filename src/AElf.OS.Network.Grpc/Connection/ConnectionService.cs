@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -63,15 +65,15 @@ namespace AElf.OS.Network.Grpc.Connection
         /// <summary>
         /// Connects to a node with the given ip address and adds it to the node's peer pool.
         /// </summary>
-        /// <param name="ipAddress">the ip address of the distant node</param>
+        /// <param name="endpoint">the ip address of the distant node</param>
         /// <returns>True if the connection was successful, false otherwise</returns>
-        public async Task<bool> ConnectAsync(string ipAddress)
+        public async Task<bool> ConnectAsync(IPEndPoint endpoint)
         {
-            Logger.LogTrace($"Attempting to reach {ipAddress}.");
+            Logger.LogTrace($"Attempting to reach {endpoint}.");
 
-            if (_peerPool.FindPeerByAddress(ipAddress) != null)
+            if (_peerPool.FindPeerByEndpoint(endpoint) != null)
             {
-                Logger.LogWarning($"Peer {ipAddress} is already in the pool.");
+                Logger.LogWarning($"Peer {endpoint} is already in the pool.");
                 return false;
             }
 
@@ -80,12 +82,12 @@ namespace AElf.OS.Network.Grpc.Connection
             try
             {
                 // create the connection to the distant node
-                peer = await _peerDialer.DialPeerAsync(ipAddress);
+                peer = await _peerDialer.DialPeerAsync(endpoint);
                 Logger.LogWarning($"Dialed peer: in {peer.InboundSessionId.ToHex()}, out {peer.OutboundSessionId.ToHex()}.");
             }
             catch (PeerDialException ex)
             {
-                Logger.LogError(ex, $"Dial exception {ipAddress}:");
+                Logger.LogError(ex, $"Dial exception {endpoint}:");
                 return false;
             }
             
@@ -106,7 +108,7 @@ namespace AElf.OS.Network.Grpc.Connection
             }
             catch (NetworkException ex)
             {
-                Logger.LogError(ex, $"Handshake failed to {ipAddress} - {peerPubkey}.");
+                Logger.LogError(ex, $"Handshake failed to {endpoint} - {peerPubkey}.");
                 await DisconnectAsync(peer);
                 return false;
             }
@@ -114,7 +116,7 @@ namespace AElf.OS.Network.Grpc.Connection
             HandshakeError handshakeError = ValidateHandshake(peerHandshake, peerPubkey);
             if (handshakeError != HandshakeError.HandshakeOk)
             {
-                Logger.LogWarning($"Invalid handshake [{handshakeError}] from {ipAddress} - {peerPubkey}");
+                Logger.LogWarning($"Invalid handshake [{handshakeError}] from {endpoint} - {peerPubkey}");
                 await DisconnectAsync(peer);
                 return false;
             }
@@ -129,20 +131,15 @@ namespace AElf.OS.Network.Grpc.Connection
                 
         private void FireConnectionEvent(GrpcPeer peer)
         {
-            var nodeInfo = new NodeInfo { Endpoint = peer.IpAddress, Pubkey = peer.Info.Pubkey.ToByteString() };
+            var nodeInfo = new NodeInfo { Endpoint = peer.RemoteEndpoint.ToString(), Pubkey = peer.Info.Pubkey.ToByteString() };
             var bestChainHeader = peer.LastReceivedHandshake.HandshakeData.BestChainHead;
 
             _ = EventBus.PublishAsync(new PeerConnectedEventData(nodeInfo, bestChainHeader));
         }
                 
-        public async Task<ConnectReply> DialBackAsync(string peerConnectionIp, ConnectionInfo peerConnectionInfo)
+        public async Task<ConnectReply> DialBackAsync(IPEndPoint endpoint, ConnectionInfo peerConnectionInfo)
         {
-            var peer = GrpcUrl.Parse(peerConnectionIp);
-            
-            if (peer == null)
-                return new ConnectReply { Error = ConnectError.InvalidPeer };
-
-            var error = ValidateConnectionInfo(peerConnectionInfo);
+            var error = ValidateConnectionInfo(endpoint, peerConnectionInfo);
             
             if (error != ConnectError.ConnectOk)
                 return new ConnectReply { Error = error };
@@ -156,8 +153,7 @@ namespace AElf.OS.Network.Grpc.Connection
                 return new ConnectReply { Error = ConnectError.ConnectionRefused };
             }
 
-            // TODO: find a URI type to use
-            var peerAddress = peer.IpAddress + ":" + peerConnectionInfo.ListeningPort;
+            var peerAddress = new IPEndPoint(endpoint.Address, peerConnectionInfo.ListeningPort);
             
             Logger.LogDebug($"Attempting to create channel to {peerAddress}");
             var grpcPeer = await _peerDialer.DialBackPeer(peerAddress, peerConnectionInfo);
@@ -168,13 +164,13 @@ namespace AElf.OS.Network.Grpc.Connection
                 Logger.LogWarning($"Stopping connection, peer already in the pool {grpcPeer.Info.Pubkey}.");
                 await grpcPeer.DisconnectAsync(false);
             }
-            
+
             Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
 
             var connectInfo = await _connectionInfoProvider.GetConnectionInfoAsync();
             grpcPeer.InboundSessionId = connectInfo.SessionId.ToByteArray();
             
-            Logger.LogWarning($"Just dialed back peer: in {grpcPeer.InboundSessionId.ToHex()}, out {grpcPeer.OutboundSessionId.ToHex()}.");
+            Logger.LogWarning($"Just dialed back peer: inbound token {grpcPeer.InboundSessionId.ToHex()}, out {grpcPeer.OutboundSessionId.ToHex()}.");
 
             return new ConnectReply { Info = connectInfo };
         }
@@ -207,7 +203,7 @@ namespace AElf.OS.Network.Grpc.Connection
             return new HandshakeReply { Handshake = await _handshakeProvider.GetHandshakeAsync() };
         }
 
-        private ConnectError ValidateConnectionInfo(ConnectionInfo connectionInfo)
+        private ConnectError ValidateConnectionInfo(IPEndPoint endpoint, ConnectionInfo connectionInfo)
         {
             // verify chain id
             if (connectionInfo.ChainId != ChainOptions.ChainId)

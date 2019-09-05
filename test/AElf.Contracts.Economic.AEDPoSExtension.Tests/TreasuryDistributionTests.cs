@@ -11,7 +11,7 @@ using Xunit;
 
 namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 {
-    public partial class EconomicTests : EconomicTestBase
+    public partial class EconomicTests
     {
         private readonly Hash _treasurySchemeId;
         private readonly Dictionary<SchemeType, Scheme> _schemes;
@@ -26,8 +26,8 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         /// Distribute treasury after first term and check each profit scheme.
         /// </summary>
         /// <returns></returns>
-        [Fact(Skip = "Skip for saving time.")]
-        public async Task<long> TreasuryDistributionTest_FirstTerm()
+        [Fact]
+        public async Task<long> TreasuryDistribution_FirstTerm_Test()
         {
             const long period = 1;
             long distributedAmount;
@@ -45,7 +45,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 
             // First 10 citizens do some votes.
             var votesTransactions = new List<Transaction>();
-            candidates.Value.ToList().ForEach(async c =>
+            candidates.Value.ToList().ForEach(c =>
                 votesTransactions.AddRange(GetVoteTransactions(5, 100, c.ToHex(), 10)));
             await BlockMiningService.MineBlockAsync(votesTransactions);
 
@@ -125,7 +125,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         }
 
         [Fact(Skip = "Skip for saving time.")]
-        public async Task<TreasuryDistributionInformation> TreasuryDistributionTest_SecondTerm()
+        public async Task<TreasuryDistributionInformation> TreasuryDistribution_SecondTerm_Test()
         {
             var information = new TreasuryDistributionInformation();
             const long period = 2;
@@ -134,7 +134,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             var termNumber = (await ConsensusStub.GetCurrentTermNumber.CallAsync(new Empty())).Value;
             if (termNumber < 2)
             {
-                await TreasuryDistributionTest_FirstTerm();
+                await TreasuryDistribution_FirstTerm_Test();
             }
 
             // Remain 4 core data centers announce election.
@@ -150,7 +150,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 
             // First 10 citizens do some votes.
             var votesTransactions = new List<Transaction>();
-            candidates.Value.ToList().ForEach(async c =>
+            candidates.Value.ToList().ForEach(c =>
                 votesTransactions.AddRange(GetVoteTransactions(5, 100, c.ToHex(), 10)));
             await BlockMiningService.MineBlockAsync(votesTransactions);
 
@@ -266,7 +266,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         }
 
         [Fact(Skip = "Skip for saving time.")]
-        public async Task<TreasuryDistributionInformation> TreasuryDistributionTest_ThirdTerm()
+        public async Task<TreasuryDistributionInformation> TreasuryDistribution_ThirdTerm_Test()
         {
             var information = new TreasuryDistributionInformation();
             const long period = 3;
@@ -275,7 +275,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             var termNumber = (await ConsensusStub.GetCurrentTermNumber.CallAsync(new Empty())).Value;
             if (termNumber < 3)
             {
-                await TreasuryDistributionTest_SecondTerm();
+                await TreasuryDistribution_SecondTerm_Test();
             }
 
             // 10 validation data centers announce election.
@@ -291,7 +291,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 
             // First 10 citizens do some votes.
             var votesTransactions = new List<Transaction>();
-            candidates.Value.ToList().ForEach(async c =>
+            candidates.Value.ToList().ForEach(c =>
                 votesTransactions.AddRange(GetVoteTransactions(5, 100, c.ToHex(), 20)));
             await BlockMiningService.MineBlockAsync(votesTransactions);
 

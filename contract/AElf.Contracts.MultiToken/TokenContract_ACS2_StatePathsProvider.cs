@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Acs2;
-using AElf.Contracts.MultiToken.Messages;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 
@@ -39,16 +38,6 @@ namespace AElf.Contracts.MultiToken
                             GetPath(nameof(TokenContractState.Balances), args.To.ToString(), args.Symbol)
                         }
                     };
-                }
-
-                case nameof(DonateResourceToken):
-                {
-                    return GetDonateResourceTokenResourceInfo(txn);
-                }
-
-                case nameof(ClaimTransactionFees):
-                {
-                    return GetClaimTransactionFessResourceInfo(txn);
                 }
 
                 // TODO: Support more methods
@@ -96,7 +85,6 @@ namespace AElf.Contracts.MultiToken
 
         private ScopedStatePath GetPath(params string[] parts)
         {
-            // TODO: Use more sophisticated algorithm than GetHashCode
             return new ScopedStatePath
             {
                 Address = Context.Self,

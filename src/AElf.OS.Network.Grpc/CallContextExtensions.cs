@@ -7,6 +7,7 @@ namespace AElf.OS.Network.Grpc
     {
         public static string GetPublicKey(this ServerCallContext context)
         {
+            
             return context.RequestHeaders
                 .FirstOrDefault(entry => entry.Key == GrpcConstants.PubkeyMetadataKey)?.Value;
         }

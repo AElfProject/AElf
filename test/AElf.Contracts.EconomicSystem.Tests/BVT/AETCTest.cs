@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
-using AElf.Contracts.MultiToken.Messages;
+using AElf.Contracts.MultiToken;
 using Shouldly;
 using Xunit;
 
@@ -10,7 +10,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
     public partial class EconomicSystemTest
     {
         [Fact]
-        public void ElectionContract_CreateTreasury()
+        public void ElectionContract_CreateTreasury_Test()
         {
             // Check profit items related to Treasury.
             // Theses items already created during AElf Consensus Contract initialization,
@@ -19,7 +19,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         }
         
         [Fact]
-        public async Task ElectionContract_RegisterToTreasury()
+        public async Task ElectionContract_RegisterToTreasury_Test()
         {
             var treasury = await ProfitContractStub.GetScheme.CallAsync(ProfitItemsIds[ProfitType.Treasury]);
             // MinerReward (Shares 3) -> Treasury

@@ -7,8 +7,6 @@ using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-
 namespace AElf.Kernel.Blockchain.Application
 {
     public class BlockGenerationService : IBlockGenerationService
@@ -70,10 +68,13 @@ namespace AElf.Kernel.Blockchain.Application
 
             blockHeader.Bloom = ByteString.CopyFrom(bloom.Data);
             blockHeader.MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet);
+            
+            var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
+            blockExecutionReturnSet = blockExecutionReturnSet.AsParallel()
+                .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
             blockHeader.MerkleTreeRootOfTransactionStatus =
                 CalculateTransactionStatusMerkleTreeRoot(blockExecutionReturnSet);
             
-            var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
             blockHeader.MerkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds);
             
             var blockHash = blockHeader.GetHashWithoutCache();
@@ -134,12 +135,12 @@ namespace AElf.Kernel.Blockchain.Application
                 nodes.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
             }
 
-            return nodes.ComputeBinaryMerkleTreeRootWithLeafNodes();
+            return BinaryMerkleTree.FromLeafNodes(nodes).Root;
         }
 
         private Hash CalculateTransactionMerkleTreeRoot(IEnumerable<Hash> transactionIds)
         {
-            return transactionIds.ComputeBinaryMerkleTreeRootWithLeafNodes();
+            return BinaryMerkleTree.FromLeafNodes(transactionIds).Root;
         }
         
         private Hash GetHashCombiningTransactionAndStatus(Hash txId,

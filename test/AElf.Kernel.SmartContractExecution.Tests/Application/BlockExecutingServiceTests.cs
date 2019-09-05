@@ -34,9 +34,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             block.Body.TransactionsCount.ShouldBe(txs.Count);
 
-            var binaryMerkleTree = new BinaryMerkleTree();
-            binaryMerkleTree.AddNodes(allTxIds);
-            var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(allTxIds);
+            var merkleTreeRoot = binaryMerkleTree.Root;
             block.Header.MerkleTreeRootOfTransactions.ShouldBe(merkleTreeRoot);
 
             block.Body.TransactionIds.ShouldBe(allTxIds);
@@ -67,9 +66,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             block.Body.TransactionsCount.ShouldBe(allTxs.Count);
 
-            var binaryMerkleTree = new BinaryMerkleTree();
-            binaryMerkleTree.AddNodes(allTxIds);
-            var merkleTreeRoot = binaryMerkleTree.ComputeRootHash();
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(allTxIds);
+            var merkleTreeRoot = binaryMerkleTree.Root;
             block.Header.MerkleTreeRootOfTransactions.ShouldBe(merkleTreeRoot);
 
             block.Body.TransactionIds.ShouldBe(allTxIds);
