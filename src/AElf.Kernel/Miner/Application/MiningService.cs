@@ -91,8 +91,8 @@ namespace AElf.Kernel.Miner.Application
         {
             using (var cts = new CancellationTokenSource())
             {
-                cts.CancelAfter((int) requestMiningDto.BlockExecutionTime.Milliseconds());
-
+                //cts.CancelAfter((int) requestMiningDto.BlockExecutionTime.Milliseconds());
+                cts.CancelAfter(4000);
                 var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
                     requestMiningDto.PreviousBlockHeight, blockTime);
                 var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
@@ -110,4 +110,5 @@ namespace AElf.Kernel.Miner.Application
             }
         }
     }
+   
 }
