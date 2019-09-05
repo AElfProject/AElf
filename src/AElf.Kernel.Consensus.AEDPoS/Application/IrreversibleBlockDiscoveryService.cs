@@ -18,7 +18,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         Task<IBlockIndex> DiscoverAndSetIrreversibleAsync(Chain chain, IEnumerable<Hash> blockIdsInOrder);
     }
 
-    public class IrreversibleBlockDiscoveryService : IIrreversibleBlockDiscoveryService, ITransientDependency
+    public class IrreversibleBlockDiscoveryService : IIrreversibleBlockDiscoveryService
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
