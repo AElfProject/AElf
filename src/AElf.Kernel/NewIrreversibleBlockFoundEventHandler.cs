@@ -15,13 +15,16 @@ namespace AElf.Kernel
     {
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockchainStateMergingService _blockchainStateMergingService;
+        private readonly IBlockchainService _blockchainService;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
-            IBlockchainStateMergingService blockchainStateMergingService)
+            IBlockchainStateMergingService blockchainStateMergingService,
+            IBlockchainService blockchainService)
         {
             _taskQueueManager = taskQueueManager;
             _blockchainStateMergingService = blockchainStateMergingService;
+            _blockchainService = blockchainService;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
@@ -32,6 +35,12 @@ namespace AElf.Kernel
                 await _blockchainStateMergingService.MergeBlockStateAsync(eventData.BlockHeight,
                     eventData.BlockHash);
             }, KernelConstants.MergeBlockStateQueueName);
+
+            _taskQueueManager.Enqueue(async () =>
+            {
+                var chain = await _blockchainService.GetChainAsync();
+                await _blockchainService.CleanChainBranchAsync(chain);
+            }, KernelConstants.CleanChainBranchQueueName);
         }
     }
 }

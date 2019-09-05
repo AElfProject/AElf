@@ -32,8 +32,10 @@ namespace AElf.Kernel.Blockchain.Domain
         Task SetChainBlockLinkExecutionStatus(ChainBlockLink blockLink, ChainBlockLinkExecutionStatus status);
         Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
         int GetChainId();
-        Task<List<Hash>> CleanBranchesAsync(Chain chain, Hash irreversibleBlockHash, long irreversibleBlockHeight);
         Task RemoveLongestBranchAsync(Chain chain);
+        Task<DiscardedBranch> GetDiscardedBranchAsync(Chain chain, Hash irreversibleBlockHash,
+            long irreversibleBlockHeight);
+        Task RemoveChainBranchAsync(Chain chain, DiscardedBranch discardedBranch);
     }
 
     public class ChainManager : IChainManager, ISingletonDependency
@@ -296,9 +298,8 @@ namespace AElf.Kernel.Blockchain.Domain
             return ChainId;
         }
 
-        public async Task<List<Hash>> CleanBranchesAsync(Chain chain, Hash irreversibleBlockHash, long irreversibleBlockHeight)
+        public async Task<DiscardedBranch> GetDiscardedBranchAsync(Chain chain, Hash irreversibleBlockHash, long irreversibleBlockHeight)
         {
-            var toRemoveBlocks = new List<Hash>();
             var toCleanBranchKeys = new List<string>();
             var toCleanNotLinkedKeys = new List<string>();
 
@@ -311,7 +312,6 @@ namespace AElf.Kernel.Blockchain.Domain
                     continue;
                 }
 
-                var toRemoveBlocksTemp = new List<Hash>();
                 var chainBlockLink = await GetChainBlockLinkAsync(branch.Key);
                 
                 // Remove incorrect branch.
@@ -328,41 +328,37 @@ namespace AElf.Kernel.Blockchain.Domain
                     }
                 }
 
+                var isDiscardedBranch = false;
                 while (true)
                 {
-                    if (chainBlockLink != null)
+                    if (chainBlockLink == null)
                     {
-
-                        if (chainBlockLink.PreviousBlockHash == irreversibleBlockHash)
-                        {
-                            toRemoveBlocksTemp.Clear();
-                            break;
-                        }
-
-                        // Use the height and hash alternatives to ChainBlockLink.IsIrreversibleBlock to verify,
-                        // because ChainBlockLink can be overwrite 
-                        if (chainBlockLink.Height < irreversibleBlockHeight)
-                        {
-                            var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
-                            if (chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
-                            {
-                                break;
-                            }
-                        }
-
-                        toRemoveBlocksTemp.Add(chainBlockLink.BlockHash);
-                        chainBlockLink = await GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
-                    }
-                    else
-                    {
-                        toCleanBranchKeys.Add(branch.Key);
+                        isDiscardedBranch = true;
                         break;
                     }
+
+                    if (chainBlockLink.PreviousBlockHash == irreversibleBlockHash)
+                    {
+                        break;
+                    }
+
+                    // Use the height and hash alternatives to ChainBlockLink.IsIrreversibleBlock to verify,
+                    // because ChainBlockLink can be overwrite 
+                    if (chainBlockLink.Height < irreversibleBlockHeight)
+                    {
+                        var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
+                        if (chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
+                        {
+                            isDiscardedBranch = true;
+                            break;
+                        }
+                    }
+
+                    chainBlockLink = await GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
                 }
 
-                if (toRemoveBlocksTemp.Count > 0)
+                if (isDiscardedBranch)
                 {
-                    toRemoveBlocks.AddRange(toRemoveBlocksTemp);
                     toCleanBranchKeys.Add(branch.Key);
                 }
             }
@@ -378,23 +374,28 @@ namespace AElf.Kernel.Blockchain.Domain
 
                 if (blockLink.Height <= irreversibleBlockHeight)
                 {
-                    toRemoveBlocks.Add(blockLink.BlockHash);
                     toCleanNotLinkedKeys.Add(notLinkedBlock.Key);
                 }
             }
-
-            Logger.LogTrace($"Cleanup branches: [{toCleanBranchKeys.JoinAsString(",")}]");
-
-            await RemoveChainBranchesAsync(chain, toCleanBranchKeys, toCleanNotLinkedKeys);
-
-            return toRemoveBlocks;
+            
+            return new DiscardedBranch
+            {
+                BranchKeys = toCleanBranchKeys,
+                NotLinkedKeys = toCleanNotLinkedKeys
+            };
         }
 
-        private async Task RemoveChainBranchesAsync(Chain chain, List<string> branchKeys, List<string> notLinkedKeys)
+        public async Task RemoveChainBranchAsync(Chain chain, DiscardedBranch discardedBranch)
         {
             var longestChainKey = chain.LongestChainHash.ToStorageKey();
-            foreach (var key in branchKeys)
+            var bestChainKey = chain.BestChainHash.ToStorageKey();
+            foreach (var key in discardedBranch.BranchKeys)
             {
+                if (key == bestChainKey)
+                {
+                    continue;
+                }
+
                 if (key == longestChainKey)
                 {
                     chain.LongestChainHash = chain.BestChainHash;
@@ -404,7 +405,7 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.Branches.Remove(key);
             }
 
-            foreach (var key in notLinkedKeys)
+            foreach (var key in discardedBranch.NotLinkedKeys)
             {
                 chain.NotLinkedBlocks.Remove(key);
             }
