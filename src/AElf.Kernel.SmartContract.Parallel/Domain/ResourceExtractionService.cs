@@ -133,12 +133,23 @@ namespace AElf.Kernel.SmartContract.Parallel
             Logger.LogTrace("Handle lib found event for resource cache.--- Start");
             var contractInfoCache = _smartContractExecutiveService.GetContractInfoCache();
             var addresses = contractInfoCache.Where(c => c.Value <= eventData.BlockHeight).Select(c => c.Key).ToArray();
-            var transactionIds = _resourceCache.Where(c => c.Value.Address.IsIn(addresses) && c.Value.ResourceInfo.ParallelType != ParallelType.NonParallelizable).Select(c => c.Key);
-
-            ClearResourceCache(transactionIds.Concat(_resourceCache
-                .Where(c => c.Value.ResourceUsedBlockHeight <= eventData.BlockHeight)
-                .Select(c => c.Key)).Distinct().ToList());
             _smartContractExecutiveService.ClearContractInfoCache(eventData.BlockHeight);
+
+            try
+            {
+                var transactionIds = _resourceCache.Where(c =>
+                    c.Value.Address.IsIn(addresses) &&
+                    c.Value.ResourceInfo.ParallelType != ParallelType.NonParallelizable).Select(c => c.Key);
+
+                ClearResourceCache(transactionIds.Concat(_resourceCache
+                    .Where(c => c.Value.ResourceUsedBlockHeight <= eventData.BlockHeight)
+                    .Select(c => c.Key)).Distinct().ToList());
+            }
+            catch (InvalidOperationException e)
+            {
+                Logger.LogError(e, "Unexpected case occured when clear resource info.");
+            }
+            
             Logger.LogTrace("Handle lib found event for resource cache.--- End");
             await Task.CompletedTask;
         }
