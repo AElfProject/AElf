@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using AElf.Types;
 
@@ -12,10 +13,10 @@ namespace AElf.OS.Network.Infrastructure
         
         List<IPeer> GetPeers(bool includeFailing = false);
 
-        IPeer FindPeerByAddress(string peerIpAddress);
+        IPeer FindPeerByEndpoint(IPEndPoint peerEndpoint);
         IPeer FindPeerByPublicKey(string remotePubKey);
 
-        List<IPeer> GetPeersByIpAddress(string ipAddress);
+        List<IPeer> GetPeersByIpAddress(IPAddress ipAddress);
 
         bool TryAddPeer(IPeer peer);
         IPeer RemovePeer(string publicKey);

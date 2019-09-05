@@ -6,9 +6,20 @@
         <IsContract>true</IsContract>
     </PropertyGroup>
     <ItemGroup>
+        <ContractReference Include="..\..\protobuf\acs0.proto">
+            <Link>Protobuf\Proto\reference\acs0.proto</Link>
+        </ContractReference>
         <ContractReference Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\reference\token_contract.proto</Link>
         </ContractReference>
+        <ContractReference Include="..\..\protobuf\basic_contract_zero.proto">
+            <Link>Protobuf\Proto\reference\basic_contract_zero.proto</Link>
+        </ContractReference>
+    </ItemGroup>
+    <ItemGroup>
+        <ContractBase Include="..\..\protobuf\acs5.proto">
+            <Link>Protobuf\Proto\reference\acs5.proto</Link>
+        </ContractBase>
     </ItemGroup>
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\token_converter_contract.proto">

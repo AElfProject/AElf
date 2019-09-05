@@ -47,15 +47,15 @@ namespace AElf.OS.Account.Infrastructure
             errResult = await _keyStore.UnlockAccountAsync(addString, "123", false);
             errResult.ShouldBe(AElfKeyStore.Errors.AccountAlreadyUnlocked);
 
-            Directory.Delete(Path.Combine(_nodeEnvironmentService.GetAppDataPath(), "keys"), true);
-
             await Should.ThrowAsync<KeyStoreNotFoundException>(() => _keyStore.ReadKeyPairAsync(addString + "_fake", "123"));
+            Directory.Delete(Path.Combine(_nodeEnvironmentService.GetAppDataPath(), "keys"), true);
+            await Should.ThrowAsync<KeyStoreNotFoundException>(() => _keyStore.ReadKeyPairAsync(addString, "123"));
         }
 
         [Fact]
         public async Task Account_Create_And_Read_Compare()
         {
-            for (var i = 0; i < 1000; i++)
+            for (var i = 0; i < 10; i++)
             {
                 //Create
                 var keyPair = await _keyStore.CreateAccountKeyPairAsync("123");
@@ -104,6 +104,12 @@ namespace AElf.OS.Account.Infrastructure
             Thread.Sleep(200); //update due to window ci io speed issue may cased case failed.
             var keyPairInfo = _keyStore.GetAccountKeyPair(addString);
             keyPairInfo.ShouldBeNull();
+            
+            //Open account without timeout
+            await _keyStore.UnlockAccountAsync(addString, "123", false);
+            Thread.Sleep(200);
+            keyPairInfo = _keyStore.GetAccountKeyPair(addString);
+            keyPairInfo.ShouldNotBeNull();
         }
     }
 }

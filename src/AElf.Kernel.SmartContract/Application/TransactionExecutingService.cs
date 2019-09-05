@@ -16,16 +16,19 @@ namespace AElf.Kernel.SmartContract.Application
     public class TransactionExecutingService : ITransactionExecutingService
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
-        private readonly List<IExecutionPlugin> _plugins;
+        private readonly List<IPreExecutionPlugin> _prePlugins;
+        private readonly List<IPostExecutionPlugin> _postPlugins;
         private readonly ITransactionResultService _transactionResultService;
         public ILogger<TransactionExecutingService> Logger { get; set; }
 
         public TransactionExecutingService(ITransactionResultService transactionResultService,
-            ISmartContractExecutiveService smartContractExecutiveService, IEnumerable<IExecutionPlugin> plugins)
+            ISmartContractExecutiveService smartContractExecutiveService, IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins
+            )
         {
             _transactionResultService = transactionResultService;
             _smartContractExecutiveService = smartContractExecutiveService;
-            _plugins = GetUniquePlugins(plugins);
+            _prePlugins = GetUniquePrePlugins(prePlugins);
+            _postPlugins = GetUniquePostPlugins(postPlugins);
             Logger = NullLogger<TransactionExecutingService>.Instance;
         }
 
@@ -138,13 +141,24 @@ namespace AElf.Kernel.SmartContract.Application
                 StateCache = chainContext.StateCache,
                 Origin = origin != null ? origin : transaction.From
             };
-            
+
             var internalStateCache = new TieredStateCache(chainContext.StateCache);
             var internalChainContext = new ChainContextWithTieredStateCache(chainContext, internalStateCache);
-            var executive = await _smartContractExecutiveService.GetExecutiveAsync(
-                internalChainContext,
-                transaction.To);
 
+            IExecutive executive;
+            try
+            {
+                executive = await _smartContractExecutiveService.GetExecutiveAsync(
+                    internalChainContext,
+                    transaction.To);
+            }
+            catch (SmartContractFindRegistrationException e)
+            {
+                txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+                txCtxt.Trace.Error += "Invalid contract address.\n";
+                return trace;
+            }
+            
             try
             {
                 #region PreTransaction
@@ -164,6 +178,19 @@ namespace AElf.Kernel.SmartContract.Application
 
                 await ExecuteInlineTransactions(depth, currentBlockTime, txCtxt, internalStateCache,
                     internalChainContext, cancellationToken);
+
+                #region PostTransaction
+
+                if (depth == 0)
+                {
+                    if (!await ExecutePluginOnPostTransactionStageAsync(executive, txCtxt, currentBlockTime,
+                        internalChainContext, internalStateCache, cancellationToken))
+                    {
+                        return trace;
+                    }
+                }
+
+                #endregion
             }
             catch (Exception ex)
             {
@@ -195,6 +222,7 @@ namespace AElf.Kernel.SmartContract.Application
                     trace.InlineTraces.Add(inlineTrace);
                     if (!inlineTrace.IsSuccessful())
                     {
+                        Logger.LogError($"Method name: {inlineTx.MethodName}, {inlineTrace.Error}");
                         // Fail already, no need to execute remaining inline transactions
                         break;
                     }
@@ -212,7 +240,7 @@ namespace AElf.Kernel.SmartContract.Application
             CancellationToken cancellationToken)
         {
             var trace = txCtxt.Trace;
-            foreach (var plugin in _plugins)
+            foreach (var plugin in _prePlugins)
             {
                 var transactions = await plugin.GetPreTransactionsAsync(executive.Descriptors, txCtxt);
                 foreach (var preTx in transactions)
@@ -230,6 +258,38 @@ namespace AElf.Kernel.SmartContract.Application
                     }
 
                     internalStateCache.Update(preTrace.GetFlattenedWrites()
+                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                }
+            }
+
+            return true;
+        }
+
+        private async Task<bool> ExecutePluginOnPostTransactionStageAsync(IExecutive executive,
+            ITransactionContext txCtxt,
+            Timestamp currentBlockTime, ChainContextWithTieredStateCache internalChainContext,
+            TieredStateCache internalStateCache,
+            CancellationToken cancellationToken)
+        {
+            var trace = txCtxt.Trace;
+            foreach (var plugin in _postPlugins)
+            {
+                var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txCtxt);
+                foreach (var postTx in transactions)
+                {
+                    var postTrace = await ExecuteOneAsync(0, internalChainContext, postTx, currentBlockTime,
+                        cancellationToken);
+                    trace.PostTransactions.Add(postTx);
+                    trace.PostTraces.Add(postTrace);
+                    if (!postTrace.IsSuccessful())
+                    {
+                        trace.ExecutionStatus = ExecutionStatus.Postfailed;
+                        postTrace.SurfaceUpError();
+                        trace.Error += postTrace.Error;
+                        return false;
+                    }
+
+                    internalStateCache.Update(postTrace.GetFlattenedWrites()
                         .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
                 }
             }
@@ -266,7 +326,7 @@ namespace AElf.Kernel.SmartContract.Application
                     //StateHash = trace.GetSummarizedStateHash(),
                     Logs = {trace.FlattenedLogs}
                 };
-                
+
                 txRes.UpdateBloom();
 
                 return txRes;
@@ -307,7 +367,13 @@ namespace AElf.Kernel.SmartContract.Application
             return returnSet;
         }
 
-        private static List<IExecutionPlugin> GetUniquePlugins(IEnumerable<IExecutionPlugin> plugins)
+        private static List<IPreExecutionPlugin> GetUniquePrePlugins(IEnumerable<IPreExecutionPlugin> plugins)
+        {
+            // One instance per type
+            return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
+        }
+
+        private static List<IPostExecutionPlugin> GetUniquePostPlugins(IEnumerable<IPostExecutionPlugin> plugins)
         {
             // One instance per type
             return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();

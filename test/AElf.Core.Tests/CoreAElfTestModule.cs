@@ -9,7 +9,6 @@ namespace AElf
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-
         }
     }
 }

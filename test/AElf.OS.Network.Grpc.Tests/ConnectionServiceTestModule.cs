@@ -1,3 +1,4 @@
+using System.Net;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Modularity;
@@ -19,8 +20,8 @@ namespace AElf.OS.Network
             context.Services.AddSingleton(sp =>
             {
                 Mock<IPeerDialer> mockDialer = new Mock<IPeerDialer>();
-                mockDialer.Setup(d => d.DialBackPeer(It.IsAny<string>(), It.IsAny<ConnectionInfo>()))
-                    .Returns<string, ConnectionInfo>((ip, _) =>
+                mockDialer.Setup(d => d.DialBackPeer(It.IsAny<IPEndPoint>(), It.IsAny<ConnectionInfo>()))
+                    .Returns<IPEndPoint, ConnectionInfo>((ip, _) =>
                     {
                         var randomKp = CryptoHelper.GenerateKeyPair();
                         return Task.FromResult(new GrpcPeer(

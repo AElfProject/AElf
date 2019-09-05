@@ -7,7 +7,7 @@ namespace AElf.Types.Tests.Helper
     public class ByteStringHelperTests
     {
         [Fact]
-        public void ByteString_Compare()
+        public void ByteString_Compare_Test()
         {
             var byteString1 = ByteString.CopyFrom(new byte[] { });
             var byteString2 = ByteString.CopyFrom(new byte[1] { 02 });

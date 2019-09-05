@@ -25,7 +25,7 @@ namespace AElf.Kernel.Miner
         }
         
         [Fact]
-        public void Generate_SystemTransactionsTest()
+        public void Generate_SystemTransactions_Test()
         {
             var transactionList = _systemTransactionGenerationService.GenerateSystemTransactions(
                 SampleAddress.AddressList[0], 1L, Hash.FromString("hash"));

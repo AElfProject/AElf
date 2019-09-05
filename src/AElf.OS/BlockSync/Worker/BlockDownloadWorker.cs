@@ -57,6 +57,14 @@ namespace AElf.OS.BlockSync.Worker
                     return;
                 }
 
+                if (jobInfo.IsFinished)
+                {
+                    await RemoveJobAndTargetStateAsync(jobInfo);
+                    continue;
+                }
+
+                Logger.LogDebug($"Execute download job: CurrentTargetBlockHeight: {jobInfo.CurrentTargetBlockHeight}, TargetBlockHeight:{jobInfo.TargetBlockHeight}, SuggestedPeerPubkey:{jobInfo.SuggestedPeerPubkey}.");
+
                 var downloadResult = await DownloadBlocksAsync(chain, jobInfo);
 
                 if (downloadResult.DownloadBlockCount == 0)
@@ -72,6 +80,7 @@ namespace AElf.OS.BlockSync.Worker
                 jobInfo.Deadline = TimestampHelper.GetUtcNow().AddMilliseconds(downloadResult.DownloadBlockCount * 300);
                 jobInfo.CurrentTargetBlockHash = downloadResult.LastDownloadBlockHash;
                 jobInfo.CurrentTargetBlockHeight = downloadResult.LastDownloadBlockHeight;
+                jobInfo.IsFinished = downloadResult.DownloadBlockCount < _blockSyncOptions.MaxBlockDownloadCount;
                 await _blockDownloadJobStore.UpdateAsync(jobInfo);
 
                 Logger.LogDebug(
@@ -89,7 +98,8 @@ namespace AElf.OS.BlockSync.Worker
                 if (blockDownloadJob == null)
                     return null;
 
-                if (blockDownloadJob.TargetBlockHeight <= chain.BestChainHeight)
+                if (blockDownloadJob.TargetBlockHeight <= chain.BestChainHeight &&
+                    blockDownloadJob.CurrentTargetBlockHeight == 0)
                 {
                     await RemoveJobAndTargetStateAsync(blockDownloadJob);
                     continue;

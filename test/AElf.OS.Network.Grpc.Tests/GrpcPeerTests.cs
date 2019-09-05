@@ -1,13 +1,14 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.TransactionPool.Infrastructure;
-using AElf.OS.Network.Events;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Shouldly;
-using Volo.Abp.EventBus.Local;
 using Volo.Abp.Threading;
 using Xunit;
 
@@ -15,24 +16,25 @@ namespace AElf.OS.Network
 {
     public class GrpcPeerTests : GrpcNetworkTestBase
     {
-        private OSTestHelper _osTestHelper;
-        
         private IBlockchainService _blockchainService;
         private IAElfNetworkServer _networkServer;
-        private ILocalEventBus _eventBus;
         
         private IPeerPool _pool;
         private GrpcPeer _grpcPeer;
+        private GrpcPeer _nonInterceptedPeer;
 
         public GrpcPeerTests()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _networkServer = GetRequiredService<IAElfNetworkServer>();
-            _eventBus = GetRequiredService<ILocalEventBus>();
-            _osTestHelper = GetRequiredService<OSTestHelper>();
             _pool = GetRequiredService<IPeerPool>();
 
             _grpcPeer = GrpcTestPeerHelpers.CreateNewPeer();
+            _grpcPeer.IsConnected = true;
+
+            _nonInterceptedPeer = GrpcTestPeerHelpers.CreateNewPeer("127.0.0.1:2000", false);
+            _nonInterceptedPeer.IsConnected = true;
+
             _pool.TryAddPeer(_grpcPeer);
         }
 
@@ -42,9 +44,92 @@ namespace AElf.OS.Network
         }
 
         [Fact]
-        public async Task RequestBlockAsync_Success()
+        public void EnqueueBlock_ShouldExecuteCallback_Test()
         {
-            var block = await _grpcPeer.GetBlockByHashAsync(Hash.FromRawBytes(new byte[]{1,2,7}));
+            AutoResetEvent executed = new AutoResetEvent(false);
+
+            NetworkException exception = null;
+            bool called = false;
+            _nonInterceptedPeer.EnqueueBlock(new BlockWithTransactions(), ex =>
+            {
+                exception = ex;
+                called = true;
+                executed.Set();
+            });
+
+            executed.WaitOne(TimeSpan.FromMilliseconds(1000));
+            exception.ShouldBeNull();
+            called.ShouldBeTrue();
+        }
+
+        [Fact]
+        public void EnqueueTransaction_ShouldExecuteCallback_Test()
+        {
+            AutoResetEvent executed = new AutoResetEvent(false);
+
+            NetworkException exception = null;
+            var transaction = new Transaction();
+            bool called = false;
+            _nonInterceptedPeer.EnqueueTransaction(transaction, ex =>
+            {
+                exception = ex;
+                called = true;
+                executed.Set();
+            });
+
+            executed.WaitOne(TimeSpan.FromMilliseconds(1000));
+            exception.ShouldBeNull();
+            called.ShouldBeTrue();
+        }
+
+        [Fact]
+        public void EnqueueAnnouncement_ShouldExecuteCallback_Test()
+        {
+            AutoResetEvent executed = new AutoResetEvent(false);
+
+            NetworkException exception = null;
+            var called = false;
+            _nonInterceptedPeer.EnqueueAnnouncement(new BlockAnnouncement(), ex =>
+            {
+                exception = ex;
+                called = true;
+                executed.Set();
+            });
+
+            executed.WaitOne(TimeSpan.FromMilliseconds(1000));
+            exception.ShouldBeNull();
+            called.ShouldBeTrue();
+        }
+
+        [Fact]
+        public void EnqueueAnnouncement_WithPeerNotReady_Test()
+        {
+            AutoResetEvent executed = new AutoResetEvent(false);
+
+            NetworkException exception = null;
+            bool called = false;
+            _grpcPeer.IsConnected = false;
+            Should.Throw<NetworkException>(() =>
+                _grpcPeer.EnqueueAnnouncement(new BlockAnnouncement(), ex =>
+                {
+                    exception = ex;
+                    called = true;
+                    executed.Set();
+                }));
+
+            Should.Throw<NetworkException>(()=>
+                _grpcPeer.EnqueueBlock(new BlockWithTransactions(), ex =>
+                {
+                    exception = ex;
+                    called = true;
+                    executed.Set();
+                }));
+        }
+
+        [Fact]
+        public async Task RequestBlockAsync_Success_Test()
+        {
+            var block = await _grpcPeer.GetBlockByHashAsync(Hash.FromRawBytes(new byte[] {1, 2, 7}));
             block.ShouldBeNull();
 
             var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
@@ -52,20 +137,8 @@ namespace AElf.OS.Network
             block.ShouldNotBeNull();
         }
 
-        [Fact(Skip = "Improve the logic of this test.")]
-        public async Task RequestBlockAsync_Failed()
-        {
-            _grpcPeer = GrpcTestPeerHelpers.CreateNewPeer("127.0.0.1:3000", false);
-            _pool.TryAddPeer(_grpcPeer);
-
-            var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
-            var block = await _grpcPeer.GetBlockByHashAsync(blockHeader.GetHash());
-            
-            block.ShouldBeNull();
-        }
-
         [Fact]
-        public async Task GetBlocksAsync_Success()
+        public async Task GetBlocksAsync_Success_Test()
         {
             var chain = await _blockchainService.GetChainAsync();
             var genesisHash = chain.GenesisBlockHash;
@@ -73,58 +146,83 @@ namespace AElf.OS.Network
             var blocks = await _grpcPeer.GetBlocksAsync(genesisHash, 5);
             blocks.Count.ShouldBe(5);
             blocks.Select(o => o.Height).ShouldBe(new long[] {2, 3, 4, 5, 6});
+
+            var blockHash = Hash.Empty;
+            blocks = await _grpcPeer.GetBlocksAsync(blockHash, 1);
+            blocks.ShouldBe(new List<BlockWithTransactions>());
         }
 
-        // TODO
-        [Fact(Skip = "Either test client side logic or server side with corresponding mocks. Not both here.")]
-        public async Task AnnounceAsync_Success()
+        [Fact]
+        public void GetRequestMetrics_Test()
         {
-            AnnouncementReceivedEventData received = null;
-            _eventBus.Subscribe<AnnouncementReceivedEventData>(a =>
-            {
-                received = a;
-                return Task.CompletedTask;
-            });
-
-            var header = new BlockAnnouncement
-            {
-                BlockHeight = 100,
-                BlockHash = Hash.FromRawBytes(new byte[]{9,2})
-            };
-
-            await _grpcPeer.SendAnnouncementAsync(header);
-
-            received.ShouldNotBeNull();
-            received.Announce.BlockHeight.ShouldBe(100);
+            var result = _grpcPeer.GetRequestMetrics();
+            
+            result.Count.ShouldBe(3);
+            result.Keys.ShouldContain("GetBlock");
+            result.Keys.ShouldContain("GetBlocks");
+            result.Keys.ShouldContain("Announce");
         }
 
-        // TODO
-        [Fact(Skip = "Either test client side logic or server side with corresponding mocks. Not both here.")]
-        public async Task SendTransactionAsync_Success()
+        [Fact]
+        public async Task GetNodes_Test()
         {
-            TransactionsReceivedEvent received = null;
-            _eventBus.Subscribe<TransactionsReceivedEvent>(t =>
-            {
-                received = t;
-                return Task.CompletedTask;
-            });
-            var transactions = await _osTestHelper.GenerateTransferTransactions(1);
-            await _grpcPeer.SendTransactionAsync(transactions.First());
-
-            await Task.Delay(200);
-            received.ShouldNotBeNull();
-            received.Transactions.Count().ShouldBe(1);
-            received.Transactions.First().From.ShouldBe(transactions.First().From);
+            var nodeList = await _grpcPeer.GetNodesAsync();
+            nodeList.Nodes.Count.ShouldBeGreaterThanOrEqualTo(0);
         }
 
-        public async Task DisconnectAsync_Success()
+        [Fact]
+        public async Task DisconnectAsync_Success_Test()
         {
-            var peers = _pool.GetPeers();
+            var peers = _pool.GetPeers(true);
             peers.Count.ShouldBe(2);
 
             await _grpcPeer.DisconnectAsync(true);
-            peers = _pool.GetPeers();
+            peers = _pool.GetPeers(true);
             peers.Count.ShouldBe(1);
+        }
+        
+        [Fact]
+        public async Task DisconnectAsync_Test()
+        {
+            var isReady = _grpcPeer.IsReady;
+            isReady.ShouldBeTrue();
+            
+            await _grpcPeer.DisconnectAsync(true);
+            
+            isReady = _grpcPeer.IsReady;
+            isReady.ShouldBeFalse();
+        }
+
+        [Fact]
+        public void Peer_AddKnowBlock_Test()
+        {
+            //fork clean hash
+            var announcement = new BlockAnnouncement
+            {
+                HasFork = true
+            };
+            _grpcPeer.AddKnowBlock(announcement);
+            _grpcPeer.RecentBlockHeightAndHashMappings.Count().ShouldBe(0);
+
+            for (var i = 0; i < 10; i++)
+            {
+                _grpcPeer.AddKnowBlock(new BlockAnnouncement
+                {
+                    BlockHash = Hash.FromString($"height-{i+1}"),
+                    BlockHeight = i+1,
+                    HasFork = false
+                });
+                _grpcPeer.RecentBlockHeightAndHashMappings.Count().ShouldBe(i+1);
+            }
+            
+            //over max value
+            _grpcPeer.AddKnowBlock(new BlockAnnouncement
+            {
+                BlockHash = Hash.FromString($"random-hash"),
+                BlockHeight = 20,
+                HasFork = false
+            });
+            _grpcPeer.RecentBlockHeightAndHashMappings.Count().ShouldBe(10);
         }
     }
 }

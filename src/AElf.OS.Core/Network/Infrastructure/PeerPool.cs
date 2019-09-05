@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -42,10 +43,10 @@ namespace AElf.OS.Network.Infrastructure
             return peers.Select(p => p).ToList();
         }
 
-        public IPeer FindPeerByAddress(string peerAddress)
+        public IPeer FindPeerByEndpoint(IPEndPoint endpoint)
         {
             return Peers
-                .Where(p => p.Value.IpAddress == peerAddress)
+                .Where(p => p.Value.RemoteEndpoint.Equals(endpoint))
                 .Select(p => p.Value)
                 .FirstOrDefault();
         }
@@ -60,10 +61,10 @@ namespace AElf.OS.Network.Infrastructure
             return p;
         }
 
-        public List<IPeer> GetPeersByIpAddress(string ipAddress)
+        public List<IPeer> GetPeersByIpAddress(IPAddress ipAddress)
         {
             return Peers
-                .Where(p => p.Value.IpAddress.Split(':')[0] == ipAddress)
+                .Where(p => p.Value.RemoteEndpoint.Address.Equals(ipAddress))
                 .Select(p => p.Value)
                 .ToList();
         }

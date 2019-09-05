@@ -8,7 +8,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
     public class RandomHashCacheServiceTests : AEDPoSTestBase
     {
         [Fact]
-        public async Task RandomHashCacheService_NormalProcess()
+        public async Task RandomHashCacheService_NormalProcess_Test()
         {
             var randomHash1 = Hash.FromString("hash1");
             var previousHashOfGeneratingBlock1 = Hash.FromString("hash2");

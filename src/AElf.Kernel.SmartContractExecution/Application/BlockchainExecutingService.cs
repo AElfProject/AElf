@@ -12,7 +12,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class FullBlockchainExecutingService : IBlockchainExecutingService, ISingletonDependency
+    public class FullBlockchainExecutingService : IBlockchainExecutingService, ITransientDependency
     {
         private readonly IChainManager _chainManager;
         private readonly IBlockchainService _blockchainService;
@@ -135,7 +135,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
             catch (BlockValidationException ex)
             {
-                if (!(ex.InnerException is ValidateNextTimeBlockValidationException) || successLinks.Count == 0)
+                if (!(ex.InnerException is ValidateNextTimeBlockValidationException))
                 {
                     await _chainManager.RemoveLongestBranchAsync(chain);
                     throw;
@@ -150,6 +150,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 throw;
             }
 
+            if (successLinks.Count == 0)
+            {
+                Logger.LogWarning("No block execution succeed in this branch.");
+                await _chainManager.RemoveLongestBranchAsync(chain);
+                return null;
+            }
+            
             await SetBestChainAsync(successLinks, chain);
             
             Logger.LogInformation(

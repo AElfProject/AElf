@@ -15,7 +15,7 @@ namespace AElf.WebApp.Application.Net
 
         Task<bool> RemovePeerAsync(string address);
 
-        List<PeerDto> GetPeers();
+        List<PeerDto> GetPeers(bool withMetrics);
 
         Task<GetNetworkInfoOutput> GetNetworkInfoAsync();
     }
@@ -47,32 +47,27 @@ namespace AElf.WebApp.Application.Net
         /// <returns></returns>
         public async Task<bool> RemovePeerAsync(string address)
         {
-            try
-            {
-                return await _networkService.RemovePeerAsync(address);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
+            return await _networkService.RemovePeerAsync(address);
         }
         
         /// <summary>
         /// Get peer info about the connected network nodes
         /// </summary>
         /// <returns></returns>
-        public List<PeerDto> GetPeers()
+        public List<PeerDto> GetPeers(bool withMetrics = false)
         {
             var peerList = _networkService.GetPeers();
             
             var peerDtoList = peerList.Select(p => new PeerDto
             {
-                IpAddress = p.IpAddress,
+                IpAddress = p.RemoteEndpoint.ToString(),
                 ProtocolVersion = p.Info.ProtocolVersion,
                 ConnectionTime = p.Info.ConnectionTime,
                 Inbound = p.Info.IsInbound,
-                RequestMetrics = p.GetRequestMetrics().Values.SelectMany(kvp => kvp).ToList()
+                BufferedAnnouncementsCount = p.BufferedAnnouncementsCount,
+                BufferedBlocksCount = p.BufferedBlocksCount,
+                BufferedTransactionsCount = p.BufferedTransactionsCount,
+                RequestMetrics = withMetrics ? p.GetRequestMetrics().Values.SelectMany(kvp => kvp).ToList() : null
             }).ToList();
             
             return peerDtoList;

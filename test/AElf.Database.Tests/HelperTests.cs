@@ -6,7 +6,7 @@ namespace AElf.Database.Tests
     public class HelperTests
     {
         [Fact]
-        public void Memchr_Query()
+        public void Memchr_Query_Test()
         {
             var data = new byte[4] { 0x01, 0x02, 0x03, 0x04 };
             Helper.Memchr(data, 0x03, 0).ShouldBe(2);

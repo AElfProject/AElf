@@ -14,8 +14,6 @@ namespace AElf.Parallel.Tests
     )]
     public class ParallelTestAElfModule : AElfModule
     {
-        private ParallelTestHelper _parallelTestHelper;
-
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             base.ConfigureServices(context);
@@ -24,14 +22,8 @@ namespace AElf.Parallel.Tests
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            _parallelTestHelper = context.ServiceProvider.GetService<ParallelTestHelper>();
-            AsyncHelper.RunSync(() => _parallelTestHelper.MockChainAsync());
-            AsyncHelper.RunSync(() => _parallelTestHelper.DeployBasicFunctionWithParallelContract());
-        }
-
-        public override void OnApplicationShutdown(ApplicationShutdownContext context)
-        {
-            AsyncHelper.RunSync(() => _parallelTestHelper.DisposeMock());
+            var parallelTestHelper = context.ServiceProvider.GetService<ParallelTestHelper>();
+            AsyncHelper.RunSync(() => parallelTestHelper.DeployBasicFunctionWithParallelContract());
         }
     }
 }
