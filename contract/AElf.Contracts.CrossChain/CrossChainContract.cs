@@ -150,7 +150,7 @@ namespace AElf.Contracts.CrossChain
             }
 
             var indexedSideChainBlockData = IndexSideChainBlockData(crossChainBlockData.SideChainBlockData);
-            State.IndexedSideChainBlockData[Context.CurrentHeight] = indexedSideChainBlockData;
+            State.IndexedSideChainBlockData.Set(Context.CurrentHeight, indexedSideChainBlockData);
 
             if (indexedSideChainBlockData.SideChainBlockData.Count > 0)
                 Context.Fire(new SideChainBlockDataIndexed());
