@@ -66,7 +66,10 @@ namespace AElf.Kernel.SmartContract.Parallel
                 });
 
             if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache))
+            {
+                resourceCache.ResourceUsedBlockHeight = chainContext.BlockHeight;
                 return (transaction, resourceCache.ResourceInfo);
+            }
 
             return (transaction, await GetResourcesForOneAsync(chainContext, transaction, ct));
         }
@@ -123,9 +126,9 @@ namespace AElf.Kernel.SmartContract.Parallel
             var chainContext = await GetChainContextAsync();
             var transaction = eventData.Transaction;
 
+            var resourceInfo = await GetResourcesForOneAsync(chainContext, transaction, CancellationToken.None);
             _resourceCache.Add(transaction.GetHash(),
-                new TransactionResourceCache(transaction.RefBlockNumber,
-                    await GetResourcesForOneAsync(chainContext, transaction, CancellationToken.None), transaction.To));
+                new TransactionResourceCache(resourceInfo, transaction.To));
         }
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
@@ -136,7 +139,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             var transactionIds = _resourceCache.Where(c => c.Value.Address.IsIn(addresses) && c.Value.ResourceInfo.ParallelType != ParallelType.NonParallelizable).Select(c => c.Key);
 
             ClearResourceCache(transactionIds.Concat(_resourceCache
-                .Where(c => c.Value.RefBlockNumber <= eventData.BlockHeight)
+                .Where(c => c.Value.ResourceUsedBlockHeight <= eventData.BlockHeight)
                 .Select(c => c.Key)).Distinct());
             _smartContractExecutiveService.ClearContractInfoCache(eventData.BlockHeight);
             Logger.LogTrace("Handle lib found event for resource cache.--- End");
@@ -190,13 +193,13 @@ namespace AElf.Kernel.SmartContract.Parallel
 
     internal class TransactionResourceCache
     {
-        public readonly long RefBlockNumber;
+        public long ResourceUsedBlockHeight { get; set; };
         public readonly TransactionResourceInfo ResourceInfo;
         public readonly Address Address;
 
-        public TransactionResourceCache(long refBlockNumber, TransactionResourceInfo resourceInfo,Address address)
+        public TransactionResourceCache(TransactionResourceInfo resourceInfo,Address address)
         {
-            RefBlockNumber = refBlockNumber;
+            ResourceUsedBlockHeight = long.MaxValue;
             ResourceInfo = resourceInfo;
             Address = address;
         }
