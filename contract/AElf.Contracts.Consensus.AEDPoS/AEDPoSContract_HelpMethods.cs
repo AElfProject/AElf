@@ -137,13 +137,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool TryToAddRoundInformation(Round round)
         {
-            var ri = State.Rounds[round.RoundNumber];
-            if (ri != null)
-            {
-                return false;
-            }
 
-            State.Rounds[round.RoundNumber] = round;
+//            var ri = State.Rounds[round.RoundNumber];
+//            if (ri != null)
+//            {
+//                return false;
+//            }
+
+            State.Rounds.Set(round.RoundNumber, round);
 
             if (round.RoundNumber > AEDPoSContractConstants.KeepRounds)
             {
@@ -164,6 +165,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             State.Rounds[round.RoundNumber] = round;
+            
             return true;
         }
     }
