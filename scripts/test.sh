@@ -1,3 +1,5 @@
+#!/bin/bash
+
 cd test/
 
 for i in *Tests ; do
