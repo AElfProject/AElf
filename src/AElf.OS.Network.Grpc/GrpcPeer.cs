@@ -32,7 +32,6 @@ namespace AElf.OS.Network.Grpc
         private const int MaxDegreeOfParallelismForAnnouncementJobs = 3;
         private const int MaxDegreeOfParallelismForTransactionJobs = 1;
         private const int MaxDegreeOfParallelismForBlockJobs = 1;
-        private const int MaxDegreeOfParallelismForLibAnnouncementJobs = 1;
 
         private enum MetricNames
         {
