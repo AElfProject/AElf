@@ -15,17 +15,17 @@ namespace AElf.Kernel.Miner.Application
         public ILogger<MinerService> Logger { get; set; }
         private readonly ITxHub _txHub;
         private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
-        private readonly IIsPackageNormalTransactionProvider _isPackageNormalTransactionProvider;
+        private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
         private readonly IMiningService _miningService;
 
         public MinerService(IMiningService miningService, ITxHub txHub,
             IBlockTransactionLimitProvider blockTransactionLimitProvider,
-            IIsPackageNormalTransactionProvider isPackageNormalTransactionProvider)
+            ITransactionInclusivenessProvider transactionInclusivenessProvider)
         {
             _miningService = miningService;
             _txHub = txHub;
             _blockTransactionLimitProvider = blockTransactionLimitProvider;
-            _isPackageNormalTransactionProvider = isPackageNormalTransactionProvider;
+            _transactionInclusivenessProvider = transactionInclusivenessProvider;
 
             Logger = NullLogger<MinerService>.Instance;
         }
@@ -40,7 +40,7 @@ namespace AElf.Kernel.Miner.Application
         {
             var limit = await _blockTransactionLimitProvider.GetLimitAsync();
             var executableTransactionSet =
-                await _txHub.GetExecutableTransactionSetAsync(_isPackageNormalTransactionProvider.IsPackage
+                await _txHub.GetExecutableTransactionSetAsync(_transactionInclusivenessProvider.IsTransactionPackable
                     ? limit
                     : -1);
             var pending = new List<Transaction>();

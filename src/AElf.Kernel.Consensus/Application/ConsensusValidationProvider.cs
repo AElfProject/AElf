@@ -13,7 +13,7 @@ namespace AElf.Kernel.Consensus.Application
     public class ConsensusValidationProvider : IBlockValidationProvider
     {
         private readonly IConsensusService _consensusService;
-        private readonly IIsPackageNormalTransactionProvider _isPackageNormalTransactionProvider;
+        private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
         private readonly IBlockchainService _blockchainService;
         private readonly IConsensusExtraDataExtractor _consensusExtraDataExtractor;
         private readonly int _systemTransactionCount;
@@ -22,7 +22,7 @@ namespace AElf.Kernel.Consensus.Application
         public ConsensusValidationProvider(IServiceProvider serviceProvider)
         {
             _consensusService = serviceProvider.GetService<IConsensusService>();
-            _isPackageNormalTransactionProvider = serviceProvider.GetService<IIsPackageNormalTransactionProvider>();
+            _transactionInclusivenessProvider = serviceProvider.GetService<ITransactionInclusivenessProvider>();
             _blockchainService = serviceProvider.GetService<IBlockchainService>();
             _consensusExtraDataExtractor = serviceProvider.GetService<IConsensusExtraDataExtractor>();
             _systemTransactionCount = serviceProvider.GetServices<ISystemTransactionGenerator>().Count();
@@ -74,7 +74,7 @@ namespace AElf.Kernel.Consensus.Application
 
         private async Task<bool> ValidateTransactionCount(IBlock block)
         {
-            if (_isPackageNormalTransactionProvider.IsPackage) return true;
+            if (_transactionInclusivenessProvider.IsTransactionPackable) return true;
 
             var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash == block.Header.PreviousBlockHash &&
