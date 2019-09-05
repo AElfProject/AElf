@@ -143,18 +143,16 @@ namespace AElf.Kernel.Blockchain.Application
         private readonly IChainManager _chainManager;
         private readonly IBlockManager _blockManager;
         private readonly ITransactionManager _transactionManager;
-        private readonly ITaskQueueManager _taskQueueManager;
         public ILocalEventBus LocalEventBus { get; set; }
         public ILogger<FullBlockchainService> Logger { get; set; }
 
         public FullBlockchainService(IChainManager chainManager, IBlockManager blockManager,
-            ITransactionManager transactionManager, ITaskQueueManager taskQueueManager)
+            ITransactionManager transactionManager)
         {
             Logger = NullLogger<FullBlockchainService>.Instance;
             _chainManager = chainManager;
             _blockManager = blockManager;
             _transactionManager = transactionManager;
-            _taskQueueManager = taskQueueManager;
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
