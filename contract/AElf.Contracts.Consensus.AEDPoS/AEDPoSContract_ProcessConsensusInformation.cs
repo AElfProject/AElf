@@ -38,6 +38,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void ProcessNextRound(Round nextRound)
         {
+            Context.LogDebug(() => "Start ProcessNextRound.");
+
             RecordMinedMinerListOfCurrentRound();
 
             TryToGetCurrentRoundInformation(out var currentRound, true);
@@ -80,10 +82,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
 
             ClearExpiredRandomNumberTokens();
+
+            Context.LogDebug(() => "Finished ProcessNextRound.");
         }
 
         private void ProcessNextTerm(Round nextRound)
         {
+            Context.LogDebug(() => "Start ProcessNextTerm.");
+
             RecordMinedMinerListOfCurrentRound();
 
             // Count missed time slot of current round.
@@ -144,19 +150,26 @@ namespace AElf.Contracts.Consensus.AEDPoS
             });
 
             Context.LogDebug(() => $"Changing term number to {nextRound.TermNumber}");
+
+            Context.LogDebug(() => "Finished ProcessNextTerm.");
         }
 
         private void RecordMinedMinerListOfCurrentRound()
         {
+            Context.LogDebug(() => "Start RecordMinedMinerListOfCurrentRound.");
+
             TryToGetCurrentRoundInformation(out var currentRound, true);
             State.MinedMinerListMap[currentRound.RoundNumber] = new MinerList
             {
                 Pubkeys = {currentRound.GetMinedMiners().Select(m => m.Pubkey.ToByteString())}
             };
+            Context.LogDebug(() => "Finished RecordMinedMinerListOfCurrentRound.");
         }
 
         private void ProcessUpdateValue(UpdateValueInput updateValueInput)
         {
+            Context.LogDebug(() => "Start ProcessUpdateValue.");
+
             TryToGetCurrentRoundInformation(out var currentRound, true);
 
             var minerInRound = currentRound.RealTimeMinersInformation[_processingBlockMinerPubkey];
@@ -208,10 +221,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 Assert(false, "Failed to update round information.");
             }
+
+            Context.LogDebug(() => "Finished ProcessUpdateValue.");
         }
 
         private void ProcessTinyBlock(TinyBlockInput tinyBlockInput)
         {
+            Context.LogDebug(() => "Start ProcessTinyBlock.");
+
             TryToGetCurrentRoundInformation(out var currentRound, true);
 
             currentRound.RealTimeMinersInformation[_processingBlockMinerPubkey].ActualMiningTimes
@@ -224,6 +241,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 producedTinyBlocks.Add(1);
 
             Assert(TryToUpdateRoundInformation(currentRound), "Failed to update round information.");
+            Context.LogDebug(() => "Finished ProcessTinyBlock.");
         }
 
         /// <summary>
@@ -233,16 +251,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         private bool PreCheck()
         {
+            Context.LogDebug(() => "Start PreCheck.");
+
             TryToGetCurrentRoundInformation(out var currentRound);
             TryToGetPreviousRoundInformation(out var previousRound);
 
             _processingBlockMinerPubkey = Context.RecoverPublicKey().ToHex();
 
+            Context.LogDebug(() => "Finished PreCheck.");
+
             // Though we've already prevented related transactions from inserting to the transaction pool
             // via ConstrainedAEDPoSTransactionValidationProvider,
             // this kind of permission check is still useful.
-            if (!currentRound.IsInMinerList(_processingBlockMinerPubkey) && 
-                !previousRound.IsInMinerList(_processingBlockMinerPubkey))// Case a failed miner performing NextTerm
+            if (!currentRound.IsInMinerList(_processingBlockMinerPubkey) &&
+                !previousRound.IsInMinerList(_processingBlockMinerPubkey)) // Case a failed miner performing NextTerm
             {
                 return false;
             }
@@ -252,6 +274,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void ResetLatestProviderToTinyBlocksCount()
         {
+            Context.LogDebug(() => "Start ResetLatestProviderToTinyBlocksCount.");
             LatestProviderToTinyBlocksCount currentValue;
             if (State.LatestProviderToTinyBlocksCount.Value == null)
             {
@@ -282,6 +305,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     };
                 }
             }
+
+            Context.LogDebug(() => "Finished ResetLatestProviderToTinyBlocksCount.");
         }
     }
 }
