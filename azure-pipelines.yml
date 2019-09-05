@@ -30,7 +30,6 @@ jobs:
   - task: DotNetCoreInstaller@0
     inputs:
       version: '2.2.300'
-  - script: sudo apt update
   - script: bash scripts/install_protobuf.sh
   - task: DotNetCoreCLI@2
     inputs:
