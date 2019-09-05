@@ -1,8 +1,10 @@
 #!/bin/bash
 
 cd test/
-
-for i in *Tests ; do
+path=`ls | grep .Tests$`
+dir=`find $path -name "*.csproj" -type f | awk -F/ '{print $1}'`
+for i in $dir ; 
+do
   echo ""
   echo "### Executing Tests for $i:"
 
