@@ -133,7 +133,6 @@ namespace AElf.Kernel.SmartContract.Parallel
             Logger.LogTrace("Handle lib found event for resource cache.--- Start");
             var contractInfoCache = _smartContractExecutiveService.GetContractInfoCache();
             var addresses = contractInfoCache.Where(c => c.Value <= eventData.BlockHeight).Select(c => c.Key).ToArray();
-            _smartContractExecutiveService.ClearContractInfoCache(eventData.BlockHeight);
 
             try
             {
@@ -144,6 +143,8 @@ namespace AElf.Kernel.SmartContract.Parallel
                 ClearResourceCache(transactionIds.Concat(_resourceCache
                     .Where(c => c.Value.ResourceUsedBlockHeight <= eventData.BlockHeight)
                     .Select(c => c.Key)).Distinct().ToList());
+                
+                _smartContractExecutiveService.ClearContractInfoCache(eventData.BlockHeight);
             }
             catch (InvalidOperationException e)
             {
