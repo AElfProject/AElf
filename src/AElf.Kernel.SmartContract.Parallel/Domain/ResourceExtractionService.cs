@@ -125,8 +125,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             var transaction = eventData.Transaction;
 
             var resourceInfo = await GetResourcesForOneAsync(chainContext, transaction, CancellationToken.None);
-            _resourceCache.Add(transaction.GetHash(),
-                new TransactionResourceCache(resourceInfo, transaction.To));
+            _resourceCache.Add(transaction.GetHash(), new TransactionResourceCache(resourceInfo, transaction.To));
         }
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
@@ -138,7 +137,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
             ClearResourceCache(transactionIds.Concat(_resourceCache
                 .Where(c => c.Value.ResourceUsedBlockHeight <= eventData.BlockHeight)
-                .Select(c => c.Key)).Distinct());
+                .Select(c => c.Key)).Distinct().ToList());
             _smartContractExecutiveService.ClearContractInfoCache(eventData.BlockHeight);
             Logger.LogTrace("Handle lib found event for resource cache.--- End");
             await Task.CompletedTask;
