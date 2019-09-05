@@ -38,7 +38,10 @@ jobs:
       projects: 'AElf.sln'
       arguments: '/p:NoBuild=false --configuration Debug'
   - task: DotNetCoreCLI@2
-  - script: bash scripts/test.sh
+    inputs:
+      command: test
+      projects: 'test/*Tests/*.csproj'
+      arguments: '--configuration Debug'
 # All tasks on macOS
 - job: build_all_darwin
   displayName: Build all tasks (macOS)
@@ -54,3 +57,9 @@ jobs:
       command: 'build'
       projects: 'AElf.sln'
       arguments: '/p:NoBuild=false --configuration Debug'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: test
+      projects: 'test/*Tests/*.csproj'
+      arguments: '--configuration Debug'
+      
