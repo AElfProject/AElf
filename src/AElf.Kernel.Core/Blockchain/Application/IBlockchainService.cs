@@ -167,7 +167,6 @@ namespace AElf.Kernel.Blockchain.Application
             await AddBlockAsync(block);
 
             return await _chainManager.CreateAsync(block.GetHash());
-            ;
         }
 
         public async Task<List<Transaction>> GetTransactionsAsync(IEnumerable<Hash> transactionIds)
