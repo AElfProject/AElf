@@ -121,11 +121,8 @@ namespace AElf.OS.Network.Grpc.Connection
             var currentPeer = _peerPool.FindPeerByPublicKey(pubkey);
             if (currentPeer != null)
             {
-                var removedPeer = _peerPool.RemovePeer(pubkey);
-                if (removedPeer != null)
-                {
-                    await removedPeer.DisconnectAsync(false);
-                }
+                _peerPool.RemovePeer(pubkey);
+                await currentPeer.DisconnectAsync(false);
             }
 
             if (_peerPool.IsFull())

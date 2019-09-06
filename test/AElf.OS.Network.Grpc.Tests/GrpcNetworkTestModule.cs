@@ -41,8 +41,6 @@ namespace AElf.OS.Network
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            //base.OnApplicationInitialization(context);
-            
             var pool = context.ServiceProvider.GetRequiredService<IPeerPool>();
             var channel = new Channel(NetworkTestConstants.FakeIpEndpoint, ChannelCredentials.Insecure);
             

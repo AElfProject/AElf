@@ -11,9 +11,11 @@ using AElf.OS.Network.Domain;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Protocol;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Grpc.Core.Utils;
@@ -32,7 +34,7 @@ namespace AElf.OS.Network
         private readonly ILocalEventBus _eventBus;
         private readonly INodeManager _nodeManager;
         private readonly OSTestHelper _osTestHelper;
-        private readonly IAccountService _accountService;
+        private readonly IHandshakeProvider _handshakeProvider;
         
         private readonly GrpcServerService _service;
 
@@ -45,7 +47,7 @@ namespace AElf.OS.Network
             _eventBus = GetRequiredService<ILocalEventBus>();
             _nodeManager = GetRequiredService<INodeManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
-            _accountService = GetRequiredService<IAccountService>();
+            _handshakeProvider = GetRequiredService<IHandshakeProvider>();
         }
 
         private ServerCallContext BuildServerCallContext(Metadata metadata = null, string address = null)
@@ -54,91 +56,35 @@ namespace AElf.OS.Network
                 address ?? "127.0.0.1", null, null, m => TaskUtils.CompletedTask, () => new WriteOptions(), writeOptions => { });
         }
 
-//        [Fact]
-//        public async Task Connect_Invalid_Test()
-//        {
-//            var connectionRequest = new ConnectRequest
-//            {
-//                Info = new ConnectionInfo
-//                {
-//                    ChainId = ChainHelper.ConvertBase58ToChainId("AELF"),
-//                    ListeningPort = 2001,
-//                    Pubkey = ByteString.CopyFromUtf8("pubkey"),
-//                    Version = 1
-//                }
-//            };
-//            //invalid peer
-//            var context = BuildServerCallContext();
-//            var connectResult = await _service.Connect(connectionRequest, context);
-//            connectResult.Error.ShouldBe(ConnectError.InvalidPeer);
-//
-//            context = BuildServerCallContext(null, "ipv4:127.0.0.1:2001");
-//            
-//            //invalid chainId
-//            connectionRequest.Info.ChainId = 1234;
-//            connectResult = await _service.Connect(connectionRequest, context);
-//            connectResult.Error.ShouldBe(ConnectError.ChainMismatch);
-//            
-//            //invalid protocol
-//            connectionRequest.Info.ChainId = ChainHelper.ConvertBase58ToChainId("AELF");
-//            connectionRequest.Info.Version = 2;
-//            connectResult = await _service.Connect(connectionRequest, context);
-//            connectResult.Error.ShouldBe(ConnectError.ProtocolMismatch);
-//
-//            //exist peer
-//            connectionRequest.Info.Version = 1;
-//            connectionRequest.Info.Pubkey = ByteString.CopyFrom(ByteArrayHelper.HexStringToByteArray(NetworkTestConstants.FakePubkey2));
-//            connectResult = await _service.Connect(connectionRequest, context);
-//            connectResult.Error.ShouldBe(ConnectError.ConnectionRefused);
-//
-//            //not exist peer
-//            connectionRequest.Info.Pubkey = ByteString.CopyFromUtf8("pubkey");
-//            connectionRequest.Info.ListeningPort = 1335;
-//            await Should.ThrowAsync<PeerDialException>(async ()=>await _service.Connect(connectionRequest, context));
-//        }
-//
-//        [Fact]
-//        public async Task DoHandshake_Invalid_Test()
-//        {
-//            var context = BuildServerCallContext();
-//            var request = new HandshakeRequest();
-//
-//            //invalid handshake
-//            var result = await _service.DoHandshake(request, context);
-//            result.Error.ShouldBe(HandshakeError.InvalidHandshake);
-//
-//            var chain = await _blockchainService.GetChainAsync();
-//            var header = await _blockchainService.GetBlockHeaderByHashAsync(chain.BestChainHash);
-//            var pubKeyBytes = await _accountService.GetPublicKeyAsync();
-//            request = new HandshakeRequest
-//            {
-//                Handshake = new Handshake
-//                {
-//                    HandshakeData = new HandshakeData
-//                    {
-//                        BestChainHead = header,
-//                        LibBlockHeight = chain.LastIrreversibleBlockHeight,
-//                        Pubkey = ByteString.CopyFrom(pubKeyBytes) 
-//                    }
-//                }
-//            };
-//            result = await _service.DoHandshake(request, context);
-//            result.Error.ShouldBe(HandshakeError.InvalidKey);
-//            
-//            //wrong signature
-//            var metadata = new Metadata
-//            {
-//                {GrpcConstants.PubkeyMetadataKey, pubKeyBytes.ToHex()}
-//            };
-//            context = BuildServerCallContext(metadata, null);
-//            result = await _service.DoHandshake(request, context);
-//            result.Error.ShouldBe(HandshakeError.WrongSignature);
-//
-//            //wrong connection
-//            request.Handshake.Signature = ByteString.CopyFrom(await _accountService.SignAsync(Hash.FromMessage(request.Handshake.HandshakeData).ToByteArray()));
-//            result = await _service.DoHandshake(request, context);
-//            result.Error.ShouldBe(HandshakeError.WrongConnection);
-//        }
+        [Fact]
+        public async Task DoHandshake_Test()
+        {
+            var context = BuildServerCallContext();
+            var request = new HandshakeRequest {Handshake = new Handshake {HandshakeData = new HandshakeData()}};
+
+            var result = await _service.DoHandshake(request, context);
+            result.Error.ShouldBe(HandshakeError.InvalidConnection);
+            
+            context = BuildServerCallContext(null, "ipv4:127.0.0.1:7878");
+            
+            //invalid handshake
+            result = await _service.DoHandshake(request, context);
+            result.Error.ShouldBe(HandshakeError.ChainMismatch);
+
+            request.Handshake.HandshakeData.ChainId = _blockchainService.GetChainId();
+            result = await _service.DoHandshake(request, context);
+            result.Error.ShouldBe(HandshakeError.ProtocolMismatch);
+
+            request.Handshake.HandshakeData.Version = KernelConstants.ProtocolVersion;
+            request.Handshake.HandshakeData.Time = TimestampHelper.GetUtcNow();
+            result = await _service.DoHandshake(request, context);
+            result.Error.ShouldBe(HandshakeError.WrongSignature);
+
+            var handshake = await _handshakeProvider.GetHandshakeAsync();
+            request = new HandshakeRequest {Handshake = handshake};
+            result = await _service.DoHandshake(request, context);
+            result.Error.ShouldBe(HandshakeError.HandshakeOk);
+        }
 
         #region Announce and transaction
 
@@ -192,7 +138,14 @@ namespace AElf.OS.Network
                     HasFork = false
                 });
             }
-            var context = BuildServerCallContext();
+            
+            var pubkey = _peerPool.GetPeers(true).First().Info.Pubkey;
+            var metadata = new Metadata {
+            {
+                GrpcConstants.PubkeyMetadataKey, pubkey
+            }};
+            
+            var context = BuildServerCallContext(metadata);
             var requestStream = new TestAsyncStreamReader<BlockAnnouncement>(announcements.ToArray());
             
             
