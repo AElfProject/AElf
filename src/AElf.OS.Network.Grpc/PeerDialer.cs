@@ -151,7 +151,7 @@ namespace AElf.OS.Network.Grpc
         /// Creates a channel/client pair with the appropriate options and interceptors.
         /// </summary>
         /// <returns>A tuple of the channel and client</returns>
-        public GrpcClient CreateClient(IPEndPoint endpoint)
+        private GrpcClient CreateClient(IPEndPoint endpoint)
         {
             var channel = new Channel(endpoint.ToString(), ChannelCredentials.Insecure, new List<ChannelOption>
             {

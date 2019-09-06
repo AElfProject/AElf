@@ -7,10 +7,12 @@ using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Protocol;
 using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using NSubstitute;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
@@ -39,7 +41,7 @@ namespace AElf.OS.Network
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            base.OnApplicationInitialization(context);
+            //base.OnApplicationInitialization(context);
             
             var pool = context.ServiceProvider.GetRequiredService<IPeerPool>();
             var channel = new Channel(NetworkTestConstants.FakeIpEndpoint, ChannelCredentials.Insecure);
@@ -56,37 +58,6 @@ namespace AElf.OS.Network
                 throw new Exception($"Ip {NetworkTestConstants.FakeIpEndpoint} is invalid.");
             
             pool.TryAddPeer(new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), peerEnpdoint, connectionInfo));
-        }
-    }
-
-    [DependsOn(
-        typeof(GrpcNetworkTestModule))]
-    public class GrpcNetworkDialerTestModule : AElfModule
-    {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            var services = context.Services;
-
-            services.AddTransient(provider =>
-            {
-                var mockService = new Mock<IConnectionService>();
-                mockService.Setup(m =>m.ConnectAsync(It.IsAny<IPEndPoint>()))
-                    .Returns(Task.FromResult(true));
-                mockService.Setup(m=>m.DialBackAsync(It.IsAny<IPEndPoint>(), It.IsAny<ConnectionInfo>()))
-                    .Returns(Task.FromResult(new ConnectReply
-                    {
-                        Error = ConnectError.ConnectOk,
-                        Info = new ConnectionInfo
-                        {
-                            ChainId = 1,
-                            ListeningPort = 2000,
-                            Pubkey = ByteString.CopyFromUtf8("pubkey"),
-                            Version = 1
-                        }
-                    }));
-
-                return mockService.Object;
-            });
         }
     }
 }
