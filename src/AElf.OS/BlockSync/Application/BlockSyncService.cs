@@ -44,7 +44,7 @@ namespace AElf.OS.BlockSync.Application
                     return;
                 }
                 
-                EnqueueFetchBlockJob(syncAnnouncementDto, BlockSyncConstants.FetchBlockRetryTimes);
+                EnqueueFetchBlockJob(syncAnnouncementDto);
             }
             else
             {
@@ -68,7 +68,7 @@ namespace AElf.OS.BlockSync.Application
             }
         }
 
-        private void EnqueueFetchBlockJob(SyncAnnouncementDto syncAnnouncementDto, int retryTimes)
+        private void EnqueueFetchBlockJob(SyncAnnouncementDto syncAnnouncementDto)
         {
             _blockSyncQueueService.Enqueue(async () =>
             {
@@ -84,14 +84,10 @@ namespace AElf.OS.BlockSync.Application
 
                 if (fetchResult)
                     return;
-                if (retryTimes > 1)
-                {
-                    EnqueueFetchBlockJob(syncAnnouncementDto, retryTimes - 1);
-                }
-                else if (_announcementCacheProvider.TryGetAnnouncementNextSender(syncAnnouncementDto.SyncBlockHash, out var senderPubKey))
+                if (_announcementCacheProvider.TryGetAnnouncementNextSender(syncAnnouncementDto.SyncBlockHash, out var senderPubKey))
                 {
                     syncAnnouncementDto.SuggestedPeerPubkey = senderPubKey;
-                    EnqueueFetchBlockJob(syncAnnouncementDto, BlockSyncConstants.FetchBlockRetryTimes);
+                    EnqueueFetchBlockJob(syncAnnouncementDto);
                 }
             }, OSConstants.BlockFetchQueueName);
         }
