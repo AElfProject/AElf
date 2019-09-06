@@ -19,6 +19,7 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty Create(CreateInput input)
         {
+            Assert(AssertValidCreateInput(input),"Invalid input.");
             RegisterTokenInfo(new TokenInfo
             {
                 Symbol = input.Symbol,
@@ -76,6 +77,7 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty Issue(IssueInput input)
         {
+            AssertValidMemoOrUsage(input.Memo);
             Assert(input.To != null, "To address not filled.");
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == Context.GetZeroSmartContractAddress(),
@@ -90,6 +92,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Transfer(TransferInput input)
         {
             AssertValidSymbolAndAmount(input.Symbol, input.Amount);
+            AssertValidMemoOrUsage(input.Memo);
             DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
             return new Empty();
         }
@@ -152,6 +155,8 @@ namespace AElf.Contracts.MultiToken
         public override Empty CrossChainTransfer(CrossChainTransferInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
+            AssertValidMemoOrUsage(input.Memo);
+            
             int issueChainId = GetIssueChainId(input.Symbol);
             Assert(issueChainId == input.IssueChainId, "Incorrect issue chain id.");
             Assert(State.CrossChainTransferWhiteList[input.ToChainId] != null, "Invalid transfer target chain.");
@@ -213,6 +218,7 @@ namespace AElf.Contracts.MultiToken
         {
             AssertLockAddress(input.Symbol);
             AssertValidToken(input.Symbol, input.Amount);
+            AssertValidMemoOrUsage(input.Usage);
             var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
                 .Concat(input.LockId.Value).ToArray());
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
@@ -225,6 +231,7 @@ namespace AElf.Contracts.MultiToken
         {
             AssertLockAddress(input.Symbol);
             AssertValidToken(input.Symbol, input.Amount);
+            AssertValidMemoOrUsage(input.Usage);
             var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
                 .Concat(input.LockId.Value).ToArray());
             Context.SendVirtualInline(fromVirtualAddress, Context.Self, nameof(Transfer), new TransferInput
@@ -240,6 +247,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty TransferFrom(TransferFromInput input)
         {
             AssertValidSymbolAndAmount(input.Symbol, input.Amount);
+            AssertValidMemoOrUsage(input.Memo);
 
             // First check allowance.
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
@@ -578,6 +586,7 @@ namespace AElf.Contracts.MultiToken
             var profitReceivingInformation = State.ProfitReceivingInfos[input.ContractAddress];
             Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
                 "Only profit Beneficiary can perform this action.");
+            Assert(input.Symbols.Count <= TokenContractConstants.SymbolCountLimit);
             foreach (var symbol in input.Symbols.Except(TokenContractConstants.ResourceTokenSymbols))
             {
                 var profits = State.Balances[input.ContractAddress][symbol];
@@ -605,6 +614,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty TransferToContract(TransferToContractInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
+            AssertValidMemoOrUsage(input.Memo);
 
             // First check allowance.
             var allowance = State.Allowances[Context.Origin][Context.Sender][input.Symbol];

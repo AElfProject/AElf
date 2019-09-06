@@ -57,10 +57,13 @@ namespace AElf.Contracts.ParliamentAuth
 
         private const int MaxThreshold = 10000;
         private const int DefaultReleaseThreshold = 6666; // 2/3 for default parliament organization
+        private const int Count = 50;
 
         private bool Validate(Organization organization)
         {
-            return organization.ReleaseThreshold > 0 && organization.ReleaseThreshold <= MaxThreshold;
+            return organization.ReleaseThreshold > 0 
+                   && organization.ReleaseThreshold <= MaxThreshold
+                   && organization.ProposerWhiteList.Count <= Count;
         }
 
         private bool Validate(ProposalInfo proposal)

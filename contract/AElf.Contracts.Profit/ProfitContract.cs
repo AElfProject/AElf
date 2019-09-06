@@ -283,6 +283,7 @@ namespace AElf.Contracts.Profit
 
         public override Empty AddBeneficiaries(AddBeneficiariesInput input)
         {
+            Assert(input.BeneficiaryShares.Count <= ProfitContractConstants.BeneficiaryShareCountLimit, "Invalid input.");
             foreach (var beneficiaryShare in input.BeneficiaryShares)
             {
                 AddBeneficiary(new AddBeneficiaryInput
@@ -298,6 +299,7 @@ namespace AElf.Contracts.Profit
 
         public override Empty RemoveBeneficiaries(RemoveBeneficiariesInput input)
         {
+            Assert(input.Beneficiaries.Count <= ProfitContractConstants.BeneficiaryCountLimit, "Invalid input.");
             foreach (var beneficiary in input.Beneficiaries)
             {
                 RemoveBeneficiary(new RemoveBeneficiaryInput

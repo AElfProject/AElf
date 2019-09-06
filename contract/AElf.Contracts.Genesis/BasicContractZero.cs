@@ -66,6 +66,7 @@ namespace AElf.Contracts.Genesis
 
         #region Actions
 
+        private const int ParamLengthLimit = 1024;
         public override Address DeploySystemSmartContract(SystemContractDeploymentInput input)
         {
             RequireAuthority();
@@ -79,6 +80,9 @@ namespace AElf.Contracts.Genesis
             {
                 foreach (var methodCall in transactionMethodCallList.Value)
                 {
+                    Assert(methodCall.Params.ToByteArray().Length > 0
+                           && methodCall.Params.ToByteArray().Length <= ParamLengthLimit 
+                           && methodCall.MethodName.Length > 0 ,"Invalid input");
                     Context.SendInline(address, methodCall.MethodName, methodCall.Params);
                 }
             }
@@ -86,11 +90,13 @@ namespace AElf.Contracts.Genesis
             return address;
         }
 
+        private const int CodeLengthLimit = 1024*1024*2 ;
         private Address PrivateDeploySystemSmartContract(Hash name, int category, byte[] code)
         {
             if (name != null)
                 Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
 
+            Assert(code.Length > 0 && code.Length <= CodeLengthLimit , "Invalid input.");
             var serialNumber = State.ContractSerialNumber.Value;
             // Increment
             State.ContractSerialNumber.Value = serialNumber + 1;
@@ -146,6 +152,7 @@ namespace AElf.Contracts.Genesis
 
         public override Address UpdateSmartContract(ContractUpdateInput input)
         {
+            Assert(input.Code.ToByteArray().Length > 0 && input.Code.ToByteArray().Length <= CodeLengthLimit , "Invalid input.");
             RequireAuthority();
 
             var contractAddress = input.Address;
