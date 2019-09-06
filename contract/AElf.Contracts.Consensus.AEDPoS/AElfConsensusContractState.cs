@@ -4,6 +4,8 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
+    // ReSharper disable UnusedAutoPropertyAccessor.Global
     public partial class AEDPoSContractState : ContractState
     {
         public BoolState Initialized { get; set; }

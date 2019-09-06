@@ -1,8 +1,10 @@
+// ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        public interface IConsensusBehaviourProvider
+        internal interface IConsensusBehaviourProvider
         {
             AElfConsensusBehaviour GetConsensusBehaviour();
         }

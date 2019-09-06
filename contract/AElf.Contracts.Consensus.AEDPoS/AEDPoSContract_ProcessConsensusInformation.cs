@@ -8,6 +8,7 @@ using AElf.Types;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         private void ProcessConsensusInformation(dynamic input, [CallerMemberName] string caller = null)

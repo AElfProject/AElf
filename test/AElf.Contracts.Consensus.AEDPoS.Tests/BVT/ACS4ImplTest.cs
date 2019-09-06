@@ -137,7 +137,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue}
                 .ToByteString();
             consensusCommand.Hint.ShouldBe(hint);
-            consensusCommand.ExpectedMiningTime.ShouldBe(BlockchainStartTimestamp + new Duration
+            consensusCommand.ArrangedMiningTime.ShouldBe(BlockchainStartTimestamp + new Duration
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(3).Div(1000)
             });

@@ -6,6 +6,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         /// <summary>
@@ -25,7 +26,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (!currentRound.IsInMinerList(_processingBlockMinerPubkey))
                 return ConsensusCommandProviderBase.InvalidConsensusCommand;
 
-            TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
+            if (TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp))
+            {
+                // Unlikely.
+                Assert(false, "Failed to get blockchain start timestamp.");
+            }
 
             var behaviour = IsMainChain
                 ? new MainChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey, GetMaximumBlocksCount(),

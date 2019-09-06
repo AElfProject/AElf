@@ -2,8 +2,10 @@ using System.Linq;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         public class MainChainConsensusBehaviourProvider : ConsensusBehaviourProviderBase
@@ -23,17 +25,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 // In first round, the blockchain start timestamp is incorrect.
                 // We can return NextRound directly.
-                if (_currentRound.RoundNumber == 1)
+                if (CurrentRound.RoundNumber == 1)
                 {
                     return AElfConsensusBehaviour.NextRound;
                 }
 
-                var minimumMinersCount = _currentRound.GetMinimumMinersCount();
-                var approvalsCount = _currentRound.RealTimeMinersInformation.Values
+                var minimumMinersCount = CurrentRound.GetMinimumMinersCount();
+                var approvalsCount = CurrentRound.RealTimeMinersInformation.Values
                     .Where(m => m.ActualMiningTimes.Any())
                     .Select(m => m.ActualMiningTimes.Last())
                     .Count(actualMiningTimestamp =>
-                        IsTimeToChangeTerm(_blockchainStartTimestamp, actualMiningTimestamp, _currentRound.TermNumber,
+                        IsTimeToChangeTerm(_blockchainStartTimestamp, actualMiningTimestamp, CurrentRound.TermNumber,
                             _timeEachTerm));
                 if (approvalsCount < minimumMinersCount)
                 {

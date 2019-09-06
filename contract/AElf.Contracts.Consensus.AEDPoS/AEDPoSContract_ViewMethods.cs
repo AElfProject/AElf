@@ -1,16 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using AElf.Contracts.Election;
-using AElf.Cryptography.SecretSharing;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         public override SInt64Value GetCurrentRoundNumber(Empty input) =>
@@ -166,7 +164,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var victoriesPublicKeys = State.ElectionContract.GetVictories.Call(new Empty());
             Context.LogDebug(() =>
-                $"Got victories from Election Contract:\n{string.Join("\n", victoriesPublicKeys.Value.Select(s => s.ToHex().Substring(0, 10)))}");
+                "Got victories from Election Contract:\n" +
+                $"{string.Join("\n", victoriesPublicKeys.Value.Select(s => s.ToHex().Substring(0, 20)))}");
             victories = new MinerList
             {
                 Pubkeys = {victoriesPublicKeys.Value},
@@ -235,7 +234,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return result;
         }
 
-        private Hash GetMinerListHash(IEnumerable<string> minerList)
+        private static Hash GetMinerListHash(IEnumerable<string> minerList)
         {
             return Hash.FromString(
                 minerList.OrderBy(p => p).Aggregate("", (current, publicKey) => current + publicKey));
@@ -312,7 +311,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return nextCandidate ?? firstRound.RealTimeMinersInformation.Keys.FirstOrDefault(k =>
                        !round.RealTimeMinersInformation.ContainsKey(k));
         }
-
 
         private int GetMinersCount(Round input)
         {

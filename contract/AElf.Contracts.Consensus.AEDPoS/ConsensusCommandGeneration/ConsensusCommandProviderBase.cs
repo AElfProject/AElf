@@ -2,11 +2,13 @@ using Acs4;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        public class ConsensusCommandProviderBase : IConsensusCommandProvider
+        protected class ConsensusCommandProviderBase : IConsensusCommandProvider
         {
             private readonly AElfConsensusBehaviour _behaviour;
 
@@ -15,7 +17,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             /// </summary>
             public static ConsensusCommand InvalidConsensusCommand => new ConsensusCommand
             {
-                ExpectedMiningTime = new Timestamp {Seconds = long.MaxValue},
+                ArrangedMiningTime = new Timestamp {Seconds = long.MaxValue},
                 Hint = ByteString.CopyFrom(new AElfConsensusHint
                 {
                     Behaviour = AElfConsensusBehaviour.Nothing

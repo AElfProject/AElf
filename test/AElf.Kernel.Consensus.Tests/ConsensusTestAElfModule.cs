@@ -83,7 +83,7 @@ namespace AElf.Kernel.Consensus
                         ReturnValue = ByteString.CopyFrom(new ConsensusCommand
                         {
                             NextBlockMiningLeftMilliseconds = 4000,
-                            ExpectedMiningTime = TimestampHelper.GetUtcNow(),
+                            ArrangedMiningTime = TimestampHelper.GetUtcNow(),
                             Hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.Nothing}.ToByteString(),
                             LimitMillisecondsOfMiningBlock = 400
                         }.ToByteArray())
