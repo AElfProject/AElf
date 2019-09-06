@@ -173,7 +173,7 @@ namespace AElf.Kernel.Blockchain.Application
             
             foreach (var transactionId in transactionIds)
             {
-                var transaction = await _transactionManager.GetTransaction(transactionId);
+                var transaction = await _transactionManager.GetTransactionAsync(transactionId);
                 transactions.Add(transaction);
             }
 
@@ -294,6 +294,8 @@ namespace AElf.Kernel.Blockchain.Application
             var toCleanBlocks = await _chainManager.CleanBranchesAsync(chain, eventDataToPublish.PreviousIrreversibleBlockHash,
                 eventDataToPublish.PreviousIrreversibleBlockHeight);
             await RemoveBlocksAsync(toCleanBlocks);
+
+            Logger.LogInformation($"Set lib: {irreversibleBlockHeight} - {irreversibleBlockHash}");
 
             await LocalEventBus.PublishAsync(eventDataToPublish);
         }

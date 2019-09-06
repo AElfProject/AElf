@@ -81,7 +81,7 @@ namespace AElf.Contracts.MultiToken
             Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == Context.GetZeroSmartContractAddress(),
                 $"Sender is not allowed to issue token {input.Symbol}.");
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
-            Assert(tokenInfo.Supply <= tokenInfo.TotalSupply, "Total supply exceeded");
+            Assert(tokenInfo.Supply.Add(tokenInfo.Burned) <= tokenInfo.TotalSupply, "Total supply exceeded");
             State.TokenInfos[input.Symbol] = tokenInfo;
             State.Balances[input.To][input.Symbol] = State.Balances[input.To][input.Symbol].Add(input.Amount);
             return new Empty();
@@ -299,6 +299,7 @@ namespace AElf.Contracts.MultiToken
             Assert(existingBalance >= input.Amount, "Burner doesn't own enough balance.");
             State.Balances[Context.Sender][input.Symbol] = existingBalance.Sub(input.Amount);
             tokenInfo.Supply = tokenInfo.Supply.Sub(input.Amount);
+            tokenInfo.Burned = tokenInfo.Burned.Add(input.Amount);
             Context.Fire(new Burned
             {
                 Burner = Context.Sender,
@@ -389,12 +390,15 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ClaimTransactionFees(Empty input)
         {
+            Context.LogDebug(() => "Start ClaimTransactionFees.");
             if (State.TreasuryContract.Value == null)
             {
                 var treasuryContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
                 if (treasuryContractAddress == null)
                 {
+                    Context.LogDebug(() => "End ClaimTransactionFees.");
+
                     // Which means Treasury Contract didn't deployed yet. Ignore this method.
                     return new Empty();
                 }
@@ -405,6 +409,8 @@ namespace AElf.Contracts.MultiToken
             if (State.PreviousBlockTransactionFeeTokenSymbolList.Value == null ||
                 !State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Any())
             {
+                Context.LogDebug(() => "End ClaimTransactionFees.");
+
                 return new Empty();
             }
 
@@ -429,17 +435,32 @@ namespace AElf.Contracts.MultiToken
 
             State.PreviousBlockTransactionFeeTokenSymbolList.Value = new TokenSymbolList();
 
+            Context.LogDebug(() => "End ClaimTransactionFees.");
+
             return new Empty();
         }
 
+        /// <summary>
+        /// Burn 10%
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <param name="totalFee"></param>
         private void TransferTransactionFeesToFeeReceiver(string symbol, long totalFee)
         {
+            var burnAmount = totalFee.Div(10);
+            Burn(new BurnInput
+            {
+                Symbol = symbol,
+                Amount = burnAmount
+            });
+
+            var transferAmount = totalFee.Sub(burnAmount);
             if (State.TreasuryContract.Donate != null)
             {
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,
-                    Amount = totalFee
+                    Amount = transferAmount
                 });
             }
             else
@@ -449,7 +470,7 @@ namespace AElf.Contracts.MultiToken
                 {
                     To = State.FeeReceiver.Value,
                     Symbol = symbol,
-                    Amount = totalFee,
+                    Amount = transferAmount,
                 });
             }
         }
@@ -463,18 +484,24 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty DonateResourceToken(Empty input)
         {
+            Context.LogDebug(() => "Start DonateResourceToken.");
+
             if (State.TreasuryContract.Value == null)
             {
                 var treasuryContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
                 if (treasuryContractAddress == null)
                 {
+                    Context.LogDebug(() => "End DonateResourceToken.");
+
                     // Which means Treasury Contract didn't deployed yet. Ignore this method.
                     return new Empty();
                 }
 
                 State.TreasuryContract.Value = treasuryContractAddress;
             }
+            
+            // TODO: Adapter side chain.
 
             var transactions = Context.GetPreviousBlockTransactions();
             foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"RAM"}))
@@ -503,6 +530,8 @@ namespace AElf.Contracts.MultiToken
                     });
                 }
             }
+
+            Context.LogDebug(() => "End DonateResourceToken.");
 
             return new Empty();
         }
@@ -577,13 +606,14 @@ namespace AElf.Contracts.MultiToken
         {
             var profitReceivingInformation = State.ProfitReceivingInfos[input.ContractAddress];
             Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
-                "Only profit Beneficiary can perform this action.");
+                "Only profit receiver can perform this action.");
             foreach (var symbol in input.Symbols.Except(TokenContractConstants.ResourceTokenSymbols))
             {
                 var profits = State.Balances[input.ContractAddress][symbol];
                 State.Balances[input.ContractAddress][symbol] = 0;
                 var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
                 State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(donates);
+                // TODO: Adapter side chain.
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,

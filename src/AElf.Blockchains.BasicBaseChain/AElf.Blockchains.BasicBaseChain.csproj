@@ -15,8 +15,6 @@
         <ProjectReference Include="..\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
         <ProjectReference Include="..\AElf.RuntimeSetup\AElf.RuntimeSetup.csproj" />
         <ProjectReference Include="..\AElf.WebApp.Web\AElf.WebApp.Web.csproj" />
-    </ItemGroup>
-    <ItemGroup>
         <ProjectReference Include="..\AElf.OS\AElf.OS.csproj" />
     </ItemGroup>
 
