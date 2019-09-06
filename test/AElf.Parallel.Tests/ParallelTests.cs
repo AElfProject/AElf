@@ -272,9 +272,9 @@ namespace AElf.Parallel.Tests
                 chain.BestChainHeight);
             var systemTransactions = await _parallelTestHelper.GenerateTransferTransactions(1);
             var cancellableTransactions = await _parallelTestHelper.GenerateTransferTransactions(1);
-            var allTransactons = systemTransactions.Concat(cancellableTransactions).ToList();
-            await _parallelTestHelper.BroadcastTransactions(allTransactons);
-            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash,chain.BestChainHeight, allTransactons);
+            var allTransactions = systemTransactions.Concat(cancellableTransactions).ToList();
+            await _parallelTestHelper.BroadcastTransactions(allTransactions);
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash,chain.BestChainHeight, allTransactions);
             block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
                 cancellableTransactions, CancellationToken.None);
             

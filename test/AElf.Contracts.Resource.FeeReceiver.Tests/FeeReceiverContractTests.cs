@@ -15,9 +15,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
 {
     public class FeeReceiverContractTests : TestBase.ContractTestBase<FeeReceiverContractTestAElfModule>
     {
-        private ECKeyPair FeeKeyPair;
         private ECKeyPair FoundationKeyPair; 
-        
         private Address TokenContractAddress;
         private Address FeeReceiverContractAddress;
 
@@ -28,9 +26,7 @@ namespace AElf.Contracts.Resource.FeeReceiver
             FeeReceiverContractAddress =
                 Tester.GetContractAddress(ResourceFeeReceiverSmartContractAddressNameProvider.Name);
 
-            FeeKeyPair = CryptoHelper.GenerateKeyPair();
             FoundationKeyPair = CryptoHelper.GenerateKeyPair();
-
             AsyncHelper.RunSync(InitFeeReceiverContract);
         }
         

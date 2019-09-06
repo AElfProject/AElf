@@ -90,9 +90,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             }
 
             // Miner of order 3 produce his first block.
-            await BlockMiningService.MineBlockAsync();
-
             {
+                await BlockMiningService.MineBlockAsync();
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
                 round.RealTimeMinersInformation.Values.Count(m => m.OutValue != null).ShouldBe(3);
             }
@@ -115,8 +114,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 round.RoundNumber.ShouldBe(2);
             }
 
-            // 6 more blocks will end second round.
-            for (var i = 0; i < AEDPoSExtensionConstants.TinyBlocksNumber * 6; i++)
+            // 5 more blocks will end second round.
+            for (var i = 1; i < AEDPoSExtensionConstants.TinyBlocksNumber * 5; i++)
             {
                 await BlockMiningService.MineBlockAsync(new List<Transaction>());
             }
@@ -124,7 +123,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             // Check round number.
             {
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
-                round.RoundNumber.ShouldBe(3);
+                round.RoundNumber.ShouldBeGreaterThanOrEqualTo(3);
             }
         }
         
