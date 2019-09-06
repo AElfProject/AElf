@@ -12,6 +12,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         private void ProcessConsensusInformation(dynamic input, [CallerMemberName] string caller = null)
         {
+            Context.LogDebug(() => $"Processing {caller}");
             var stopwatch = new Stopwatch();
             stopwatch.Start();
             /* Privilege check. */
@@ -155,19 +156,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void RecordMinedMinerListOfCurrentRound()
         {
-            Context.LogDebug(() => "Start RecordMinedMinerListOfCurrentRound.");
-
-            TryToGetCurrentRoundInformation(out var currentRound, true);
-            Context.LogDebug(() => "Got Current Round.");
+            TryToGetCurrentRoundInformation(out var currentRound);
 
             State.MinedMinerListMap.Set(currentRound.RoundNumber, new MinerList
             {
                 Pubkeys = {currentRound.GetMinedMiners().Select(m => m.Pubkey.ToByteString())}
             });
-
-            Context.LogDebug(() => "Set MinedMinerListMap.");
-
-            Context.LogDebug(() => "Finished RecordMinedMinerListOfCurrentRound.");
         }
 
         private void ProcessUpdateValue(UpdateValueInput updateValueInput)
@@ -218,12 +212,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            Context.LogDebug(() => "TryToUpdateRoundInformation 1");
             if (!TryToUpdateRoundInformation(currentRound))
             {
                 Assert(false, "Failed to update round information.");
             }
-            Context.LogDebug(() => "TryToUpdateRoundInformation 2");
         }
 
         private void ProcessTinyBlock(TinyBlockInput tinyBlockInput)

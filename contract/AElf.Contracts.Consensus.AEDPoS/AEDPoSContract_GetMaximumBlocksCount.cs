@@ -29,8 +29,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Context.LogDebug(() =>
                 $"Calculating max blocks count based on:\nR_LIB: {libRoundNumber}\nH_LIB:{libBlockHeight}\nR:{currentRoundNumber}\nH:{currentHeight}");
 
-            if (libRoundNumber == 0)
+            if (libRoundNumber == 0 || currentRound.IsMinerListJustChanged)
             {
+                Context.LogDebug(() => $"Current blockchain mining status: {BlockchainMiningStatus.Normal}");
                 return AEDPoSContractConstants.MaximumTinyBlocksCount;
             }
 
@@ -39,11 +40,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 libBlockHeight,
                 currentRoundNumber,
                 currentHeight).Deconstruct(out var blockchainMiningStatus);
-
-            if (currentRound.IsMinerListJustChanged)
-            {
-                blockchainMiningStatus = BlockchainMiningStatus.Normal;
-            }
 
             Context.LogDebug(() => $"Current blockchain mining status: {blockchainMiningStatus.ToString()}");
 
