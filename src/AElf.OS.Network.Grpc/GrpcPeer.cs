@@ -29,7 +29,7 @@ namespace AElf.OS.Network.Grpc
         private const int UpdateHandshakeTimeout = 400;
         private const int StreamRecoveryWaitTimeInMilliseconds = 500;
 
-        private const int MaxDegreeOfParallelismForAnnouncementJobs = 3;
+        private const int MaxDegreeOfParallelismForAnnouncementJobs = 1;
         private const int MaxDegreeOfParallelismForTransactionJobs = 1;
         private const int MaxDegreeOfParallelismForBlockJobs = 1;
 
