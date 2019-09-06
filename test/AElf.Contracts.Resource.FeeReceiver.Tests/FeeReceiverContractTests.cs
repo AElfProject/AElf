@@ -54,27 +54,29 @@ namespace AElf.Contracts.Resource.FeeReceiver
         }
 
         [Fact]
-        public async Task FeeReceiver_WithDraw_WithoutPermission_Test()
+        public async Task FeeReceiver_WithDraw_Failed_Test()
         {
-            var anotherUser = Tester.CreateNewContractTester(CryptoHelper.GenerateKeyPair());
-            var withdrawResult = await anotherUser.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
-                nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Withdraw), new SInt32Value {Value = 100});
-            withdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            withdrawResult.Error.Contains("Only foundation can withdraw token.").ShouldBeTrue();
-        }
-
-        [Fact]
-        public async Task FeeReceiver_WithDraw_OverToken_Test()
-        {
-            var founder = Tester.CreateNewContractTester(FoundationKeyPair);
-            var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
-                nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Withdraw),
-                new SInt64Value()
-                {
-                    Value = 100
-                });
-            withdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            withdrawResult.Error.Contains("Too much to withdraw.").ShouldBeTrue();
+            //without permission
+            {
+                var anotherUser = Tester.CreateNewContractTester(CryptoHelper.GenerateKeyPair());
+                var withdrawResult = await anotherUser.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
+                    nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Withdraw), new SInt32Value {Value = 100});
+                withdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                withdrawResult.Error.Contains("Only foundation can withdraw token.").ShouldBeTrue();
+            }
+            
+            //over token
+            {
+                var founder = Tester.CreateNewContractTester(FoundationKeyPair);
+                var withdrawResult = await founder.ExecuteContractWithMiningAsync(FeeReceiverContractAddress,
+                    nameof(FeeReceiverContractContainer.FeeReceiverContractStub.Withdraw),
+                    new SInt64Value()
+                    {
+                        Value = 100
+                    });
+                withdrawResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                withdrawResult.Error.Contains("Too much to withdraw.").ShouldBeTrue();
+            }
         }
 
         [Fact]
