@@ -1,7 +1,6 @@
 ﻿using System;
 using AElf.Types;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 
 namespace AElf.Kernel
 {
@@ -22,9 +21,6 @@ namespace AElf.Kernel
         public bool VerifyFields()
         {
             if (TransactionIds.Count == 0)
-                return false;
-
-            if (BlockHeader == null)
                 return false;
 
             return true;

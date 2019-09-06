@@ -78,10 +78,7 @@ namespace AElf.Kernel.Blockchain.Application
             blockHeader.MerkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds);
             
             var blockHash = blockHeader.GetHashWithoutCache();
-            var blockBody = new BlockBody
-            {
-                BlockHeader = blockHash
-            };
+            var blockBody = new BlockBody();
             blockBody.TransactionIds.AddRange(allExecutedTransactionIds);
             
             var block = new Block
@@ -89,7 +86,6 @@ namespace AElf.Kernel.Blockchain.Application
                 Header = blockHeader,
                 Body = blockBody
             };
-            blockBody.BlockHeader = blockHash;
             blockStateSet.BlockHash = blockHash;
 
             await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);

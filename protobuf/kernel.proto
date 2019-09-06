@@ -110,7 +110,6 @@ message BlockHeader {
 }
 
 message BlockBody {
-    Hash block_header = 1;
     repeated Hash transaction_ids = 2;
 }
 
