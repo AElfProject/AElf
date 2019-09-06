@@ -121,8 +121,11 @@ namespace AElf.OS.Network.Grpc.Connection
             var currentPeer = _peerPool.FindPeerByPublicKey(pubkey);
             if (currentPeer != null)
             {
-                Logger.LogWarning($"Cleaning up {currentPeer} already known.");
-                return new HandshakeReply {Error = HandshakeError.RepeatedConnection};
+                var removedPeer = _peerPool.RemovePeer(pubkey);
+                if (removedPeer != null)
+                {
+                    await removedPeer.DisconnectAsync(false);
+                }
             }
 
             if (_peerPool.IsFull())
@@ -133,12 +136,6 @@ namespace AElf.OS.Network.Grpc.Connection
 
             var peerAddress = new IPEndPoint(endpoint.Address, handshake.HandshakeData.ListeningPort);
             var grpcPeer = await _peerDialer.DialBackPeerAsync(peerAddress, handshake);
-
-            var removedPeer = _peerPool.RemovePeer(grpcPeer.Info.Pubkey);
-            if (removedPeer != null)
-            {
-                await removedPeer.DisconnectAsync(false);
-            }
 
             if (!_peerPool.TryAddPeer(grpcPeer))
             {
