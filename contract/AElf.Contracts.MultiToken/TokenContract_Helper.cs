@@ -128,13 +128,12 @@ namespace AElf.Contracts.MultiToken
             return tokenInfo.IssueChainId;
         }
 
-        private bool AssertValidCreateInput(CreateInput input)
+        private void AssertValidCreateInput(CreateInput input)
         {
-            return input.LockWhiteList.Count <= TokenContractConstants.WhiteListCountLimit
-                   && input.TokenName.Length > 0
+            var isValid = input.LockWhiteList.Count <= TokenContractConstants.WhiteListCountLimit
                    && input.TokenName.Length <= TokenContractConstants.TokenNameLength
-                   && input.Decimals > 0
                    && input.Decimals <= TokenContractConstants.MaxDecimals;
+            Assert(isValid, "Invalid input.");
         }
 
         private void AssertValidMemoOrUsage(string str)

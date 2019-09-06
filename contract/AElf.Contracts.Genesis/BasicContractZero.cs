@@ -80,8 +80,7 @@ namespace AElf.Contracts.Genesis
             {
                 foreach (var methodCall in transactionMethodCallList.Value)
                 {
-                    Assert(methodCall.Params.ToByteArray().Length > 0
-                           && methodCall.Params.ToByteArray().Length <= ParamLengthLimit 
+                    Assert(methodCall.Params.ToByteArray().Length <= ParamLengthLimit 
                            && methodCall.MethodName.Length > 0 ,"Invalid input");
                     Context.SendInline(address, methodCall.MethodName, methodCall.Params);
                 }
