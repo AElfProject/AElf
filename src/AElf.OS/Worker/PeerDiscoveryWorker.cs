@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
@@ -35,6 +36,11 @@ namespace AElf.OS.Worker
         }
 
         protected override async void DoWork()
+        {
+            await ProcessPeerDiscoveryJob();
+        }
+
+        internal async Task ProcessPeerDiscoveryJob()
         {
             try
             {

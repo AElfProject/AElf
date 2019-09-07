@@ -6,6 +6,7 @@ using System.Net;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Consensus.Application;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
@@ -24,6 +25,7 @@ namespace AElf.OS.Network.Application
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IAElfNetworkServer _networkServer;
         private readonly IKnownBlockCacheProvider _knownBlockCacheProvider;
+        private readonly IBroadcastPrivilegedPubkeyListProvider _broadcastPrivilegedPubkeyListProvider;
 
         public ILogger<NetworkService> Logger { get; set; }
 
@@ -32,13 +34,15 @@ namespace AElf.OS.Network.Application
         private const int TransactionCacheMaxSize = 2000;
         private const int TransactionCacheMaxSecondLimit = 5;
 
-        public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager, IAElfNetworkServer networkServer, 
-            IKnownBlockCacheProvider knownBlockCacheProvider)
+        public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager, IAElfNetworkServer networkServer,
+            IKnownBlockCacheProvider knownBlockCacheProvider,
+            IBroadcastPrivilegedPubkeyListProvider broadcastPrivilegedPubkeyListProvider)
         {
             _peerPool = peerPool;
             _taskQueueManager = taskQueueManager;
             _networkServer = networkServer;
             _knownBlockCacheProvider = knownBlockCacheProvider;
+            _broadcastPrivilegedPubkeyListProvider = broadcastPrivilegedPubkeyListProvider;
 
             Logger = NullLogger<NetworkService>.Instance;
             
@@ -105,35 +109,53 @@ namespace AElf.OS.Network.Application
 
             return true;
         }
-        
-        public Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
+
+        public async Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
         {
             if (!TryAddKnownBlock(blockWithTransactions.Header))
-                return Task.CompletedTask;
-            
+                return;
+
             if (IsOldBlock(blockWithTransactions.Header))
-                return Task.CompletedTask;
+                return;
             
+            var nextMinerPubkey = await GetNextMinerPubkey(blockWithTransactions.Header);
+            
+            var nextPeer = _peerPool.FindPeerByPublicKey(nextMinerPubkey);
+            if (nextPeer != null)
+                await SendBlockAsync(nextPeer, blockWithTransactions);
+
             foreach (var peer in _peerPool.GetPeers())
             {
-                try
-                {
-                    peer.EnqueueBlock(blockWithTransactions, async ex =>
-                    {
-                        if (ex != null)
-                        {
-                            Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
-                            await HandleNetworkException(peer, ex);
-                        }
-                    });
-                }
-                catch (NetworkException ex)
-                {
-                    Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
-                }
+                if (nextPeer != null && peer.Info.Pubkey == nextPeer.Info.Pubkey)
+                    continue;
+
+                await SendBlockAsync(peer, blockWithTransactions);
             }
-            
-            return Task.CompletedTask;
+        }
+        
+        private async Task SendBlockAsync(IPeer peer, BlockWithTransactions blockWithTransactions)
+        {
+            try
+            {
+                peer.EnqueueBlock(blockWithTransactions, async ex =>
+                {
+                    if (ex != null)
+                    {
+                        Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
+                        await HandleNetworkException(peer, ex);
+                    }
+                });
+            }
+            catch (NetworkException ex)
+            {
+                Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
+            }
+        }
+        
+        private async Task<string> GetNextMinerPubkey(BlockHeader blockHeader)
+        {
+            var broadcastList = await _broadcastPrivilegedPubkeyListProvider.GetPubkeyList(blockHeader);
+            return broadcastList.IsNullOrEmpty() ? null : broadcastList[0];
         }
 
         public Task BroadcastAnnounceAsync(BlockHeader blockHeader, bool hasFork)
