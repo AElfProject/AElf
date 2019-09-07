@@ -35,7 +35,7 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
                         }
                     };
                 }
-                case nameof(RemoveValue):
+                case nameof(RemoveValueParallel):
                 {
                     var args = RemoveValueInput.Parser.ParseFrom(txn.Params);
                     return new ResourceInfo
@@ -74,6 +74,17 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
                             GetPath(nameof(BasicFunctionWithParallelContractState.LongValueMap),args.Key),
                             GetPath(nameof(BasicFunctionWithParallelContractState.StringValueMap),args.Key),
                             GetPath(nameof(BasicFunctionWithParallelContractState.MessageValueMap),args.Key)
+                        }
+                    };
+                }
+                case nameof(IncreaseValueParallel):
+                {
+                    var args = IncreaseValueInput.Parser.ParseFrom(txn.Params);
+                    return new ResourceInfo
+                    {
+                        Paths =
+                        {
+                            GetPath(nameof(BasicFunctionWithParallelContractState.LongValueMap),args.Key)
                         }
                     };
                 }

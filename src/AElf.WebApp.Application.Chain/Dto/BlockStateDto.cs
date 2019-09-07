@@ -11,5 +11,7 @@ namespace AElf.WebApp.Application.Chain.Dto
         public long BlockHeight { get; set; }
         
         public Dictionary<string,string > Changes { get; set; }
+        
+        public List<string> Deletes { get; set; }
     }
 }

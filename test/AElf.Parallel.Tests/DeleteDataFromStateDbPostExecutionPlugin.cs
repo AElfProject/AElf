@@ -105,7 +105,7 @@ namespace AElf.Parallel.Tests
                 {
                     Key = $"{key}_pre_plugin_key_for_delete"
                 }.ToByteString(),
-                MethodName = nameof(BasicFunctionWithParallelContract.RemoveValue),
+                MethodName = nameof(BasicFunctionWithParallelContract.RemoveValueParallel),
                 RefBlockNumber = transactionContext.BlockHeight-1,
                 RefBlockPrefix = ByteString.CopyFrom(transactionContext.PreviousBlockHash.Value.Take(4).ToArray())
             };

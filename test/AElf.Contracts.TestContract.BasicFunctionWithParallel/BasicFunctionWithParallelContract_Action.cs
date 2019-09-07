@@ -164,6 +164,24 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
             return SetAfterRemoveValue(input);
         }
 
+        public override Empty IncreaseValue(IncreaseValueInput input)
+        {
+            var longValue = State.LongValueMap[input.Key];
+            longValue++;
+            State.LongValueMap[input.Key] = longValue;
+            return new Empty();
+        }
+
+        public override Empty IncreaseValueParallel(IncreaseValueInput input)
+        {
+            return IncreaseValue(input);
+        }
+
+        public override Empty RemoveValueParallel(RemoveValueInput input)
+        {
+            return RemoveValue(input);
+        }
+
         private long WinOrLose(long betAmount)
         {
             var data = State.TotalBetBalance.Value.Sub(State.RewardBalance.Value);

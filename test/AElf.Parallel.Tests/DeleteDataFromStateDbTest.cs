@@ -64,7 +64,7 @@ namespace AElf.Parallel.Tests
             CheckValueNotExisted(value);
 
             var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                nameof(BasicFunctionWithParallelContract.RemoveValue), new RemoveValueInput
+                nameof(BasicFunctionWithParallelContract.RemoveValueParallel), new RemoveValueInput
                 {
                     Key = key
                 });
@@ -314,48 +314,6 @@ namespace AElf.Parallel.Tests
                 prePluginMessageValue);
             await CheckValueInVersionStateAsync(postPluginKey, true, 2, $"{key}_post_plugin_string",
                 postPluginMessageValue);
-        }
-
-        [Fact]
-        public async Task Test()
-        {
-            var key = "TestKey";
-            var accountAddress = await _accountService.GetAccountAsync();
-            var chain = await _blockchainService.GetChainAsync();
-            await SetIrreversibleBlockAsync(chain);
-            
-            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
-            CheckValueNotExisted(value);
-            
-            var transactions = new List<Transaction>();
-            var setValueInput = new SetValueInput
-            {
-                Key = key,
-                BoolValue = true,
-                Int64Value = 20,
-                StringValue = "test",
-                MessageValue = new MessageValue
-                {
-                    AddressValue = SampleAddress.AddressList[3],
-                    BoolValue = true,
-                    Int64Value = 40,
-                    StringValue = "MessageTest",
-                }
-            };
-            var transaction = await GenerateTransactionAsync(accountAddress,
-                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                nameof(BasicFunctionWithParallelContract.SetValueWithPlugin), setValueInput);
-            transactions.Add(transaction);
-            
-            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,transactions);
-            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
-            await _blockchainService.AddTransactionsAsync(transactions);
-            await _blockchainService.AddBlockAsync(block);
-            await _blockAttachService.AttachBlockAsync(block);
-            //var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
-            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
-            CheckValue(value, setValueInput.BoolValue, setValueInput.StringValue, setValueInput.Int64Value,
-                setValueInput.MessageValue);
         }
         
         [Fact]

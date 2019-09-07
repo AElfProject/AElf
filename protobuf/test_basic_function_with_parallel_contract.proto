@@ -40,7 +40,12 @@ service BasicFunctionWithParallelContract {
     }
     rpc RemoveAfterSetValueWithPlugin(RemoveAfterSetValueInput) returns (google.protobuf.Empty){
     }
-    
+    rpc IncreaseValue(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueParallel(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc RemoveValueParallel(RemoveValueInput) returns (google.protobuf.Empty) {
+    }
 
     //View
     rpc QueryWinMoney(google.protobuf.Empty) returns (MoneyOutput) {
@@ -113,6 +118,7 @@ message SetValueInput{
 
 message RemoveValueInput{
     string key = 1;
+    string memo = 2;
 }
 
 message SetAfterRemoveValueInput{
@@ -133,6 +139,11 @@ message RemoveAfterSetValueInput{
 
 message GetValueInput{
     string key = 1;
+}
+
+message IncreaseValueInput{
+    string key = 1;
+    string memo = 2;
 }
 //Output
 
