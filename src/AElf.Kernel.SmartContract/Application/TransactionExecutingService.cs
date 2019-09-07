@@ -224,14 +224,11 @@ namespace AElf.Kernel.SmartContract.Application
             }
             finally
             {
-                if (!cancellationToken.IsCancellationRequested)
+                await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
+                await LocalEventBus.PublishAsync(new TransactionExecutedEventData
                 {
-                    await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
-                    await LocalEventBus.PublishAsync(new TransactionExecutedEventData
-                    {
-                        TransactionTrace = trace
-                    });
-                }
+                    TransactionTrace = trace
+                });
             }
             return trace;
         }
