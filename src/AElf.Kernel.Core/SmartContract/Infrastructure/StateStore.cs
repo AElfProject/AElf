@@ -52,24 +52,24 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             }
 
             var state = await _stateStoreImplementation.GetAsync(key);
-            if (state != null)
-            {
-                _toBeCleanedKeys.Enqueue(key);
-                while (_toBeCleanedKeys.Count > StateStoreConstants.BlockCacheSize)
-                {
-                    try
-                    {
-                        if (_toBeCleanedKeys.TryDequeue(out var cleanKey))
-                            _cache.TryRemove(cleanKey, out _);
-                    }
-                    catch
-                    {
-                        //ignore concurrency exceptions 
-                    }
-                }
+//            if (state != null)
+//            {
+//                _toBeCleanedKeys.Enqueue(key);
+//                while (_toBeCleanedKeys.Count > StateStoreConstants.BlockCacheSize)
+//                {
+//                    try
+//                    {
+//                        if (_toBeCleanedKeys.TryDequeue(out var cleanKey))
+//                            _cache.TryRemove(cleanKey, out _);
+//                    }
+//                    catch
+//                    {
+//                        //ignore concurrency exceptions 
+//                    }
+//                }
 
                 _cache[key] = state;
-            }
+//            }
 
             return state;
         }
