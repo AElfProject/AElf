@@ -66,7 +66,7 @@ namespace AElf.Contracts.Genesis
 
         #region Actions
 
-        private const int ParamLengthLimit = 1024;
+        private const int ParamLengthLimit = 1024*1024;
         public override Address DeploySystemSmartContract(SystemContractDeploymentInput input)
         {
             RequireAuthority();
