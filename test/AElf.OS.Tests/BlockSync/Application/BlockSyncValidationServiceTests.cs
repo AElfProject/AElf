@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.BlockSync.Infrastructure;
 using AElf.OS.Network;
@@ -17,6 +18,7 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockSyncValidationService _blockSyncValidationService;
         private readonly IBlockchainService _blockchainService;
         private readonly IAnnouncementCacheProvider _announcementCacheProvider;
+        private readonly IAccountService _accountService;
         private readonly OSTestHelper _osTestHelper;
 
         public BlockSyncValidationServiceTests()
@@ -24,6 +26,7 @@ namespace AElf.OS.BlockSync.Application
             _blockSyncValidationService = GetRequiredService<IBlockSyncValidationService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _announcementCacheProvider = GetRequiredService<IAnnouncementCacheProvider>();
+            _accountService = GetRequiredService<IAccountService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
         }
 
@@ -92,14 +95,29 @@ namespace AElf.OS.BlockSync.Application
 
             var block = _osTestHelper.GenerateBlockWithTransactions(chain.LastIrreversibleBlockHash,
                 chain.LastIrreversibleBlockHeight);
+            var pubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
 
-            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block, GetEncodedPubKeyString());
+            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block, pubkey);
 
             validateResult.ShouldBeTrue();
         }
         
         [Fact]
         public async Task ValidateBlock_LessThenLIBHeight()
+        {
+            var chain = await _blockchainService.GetChainAsync();
+
+            var block = _osTestHelper.GenerateBlockWithTransactions(Hash.FromString("SyncBlockHash"),
+                chain.LastIrreversibleBlockHeight - 1);
+            var pubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
+
+            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block, pubkey);
+
+            validateResult.ShouldBeFalse();
+        }
+        
+        [Fact]
+        public async Task ValidateBlock_IncorrectSender()
         {
             var chain = await _blockchainService.GetChainAsync();
 

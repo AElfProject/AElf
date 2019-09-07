@@ -46,6 +46,12 @@ namespace AElf.OS.BlockSync.Application
                 return Task.FromResult(false);
             }
 
+            if (blockWithTransactions.Header.SignerPubkey.ToHex() != senderPubKey)
+            {
+                Logger.LogWarning($"Sender {senderPubKey} of block {blockWithTransactions} is incorrect.");
+                return Task.FromResult(false);
+            }
+
             return Task.FromResult(true);
         }
         
