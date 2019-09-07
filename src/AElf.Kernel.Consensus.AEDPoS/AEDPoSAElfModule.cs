@@ -23,6 +23,8 @@ namespace AElf.Kernel.Consensus.AEDPoS
         {
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();
             context.Services.AddTransient<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
+            context.Services
+                .AddSingleton<IBroadcastPrivilegedPubkeyListProvider, AEDPoSBroadcastPrivilegedPubkeyListProvider>();
 
             var configuration = context.Services.GetConfiguration();
 
