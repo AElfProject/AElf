@@ -1,14 +1,14 @@
 using System.Linq;
-using AElf.OS.Network.Domain;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Types;
 
 namespace AElf.OS.Network.Helpers
 {
     public static class PeerHelper
     {
-        public static Peer FromNetworkPeer(IPeer peer)
+        public static PeerInfo FromNetworkPeer(IPeer peer)
         {
-            return new Peer
+            return new PeerInfo
             {
                 IpAddress = peer.RemoteEndpoint.ToString(),
                 Pubkey = peer.Info.Pubkey,

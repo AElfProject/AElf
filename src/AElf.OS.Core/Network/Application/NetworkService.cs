@@ -4,9 +4,9 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.OS.Network.Domain;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Types;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -62,12 +62,12 @@ namespace AElf.OS.Network.Application
             return true;
         }
 
-        public List<Peer> GetPeers()
+        public List<PeerInfo> GetPeers()
         {   
             return _peerPool.GetPeers(true).Select(PeerHelper.FromNetworkPeer).ToList();
         }
 
-        public Peer GetPeerByPubkey(string peerPubkey)
+        public PeerInfo GetPeerByPubkey(string peerPubkey)
         {
             var peer = _peerPool.FindPeerByPublicKey(peerPubkey);
             return peer == null ? null : PeerHelper.FromNetworkPeer(peer);

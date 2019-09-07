@@ -2,9 +2,9 @@ using System;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Protocol.Types;
 using Moq;
 using Shouldly;
 using Xunit;
@@ -78,7 +78,7 @@ namespace AElf.OS.Network
             var keyPair = CryptoHelper.GenerateKeyPair();
             var pubkey = keyPair.PublicKey.ToHex();
             
-            var peerInfo = new PeerInfo
+            var peerInfo = new PeerConnectionInfo
             {
                 Pubkey = pubkey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,

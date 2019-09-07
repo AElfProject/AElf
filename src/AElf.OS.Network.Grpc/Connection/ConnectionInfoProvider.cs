@@ -21,9 +21,9 @@ namespace AElf.OS.Network.Grpc
             _accountService = accountService;
         }
 
-        public async Task<ConnectionInfo> GetConnectionInfoAsync()
+        public async Task<Network.ConnectionInfo> GetConnectionInfoAsync()
         {
-            return new ConnectionInfo
+            return new Network.ConnectionInfo
             {
                 ChainId = ChainOptions.ChainId,
                 ListeningPort = NetworkOptions.ListeningPort,

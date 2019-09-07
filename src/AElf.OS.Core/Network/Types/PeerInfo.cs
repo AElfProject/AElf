@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using AElf.OS.Network.Metrics;
 
-namespace AElf.OS.Network.Domain
+namespace AElf.OS.Network.Types
 {
-    public class Peer
+    public class PeerInfo
     {
         public string Pubkey { get; set; }
         public long LastKnownLibHeight { get; set; }
