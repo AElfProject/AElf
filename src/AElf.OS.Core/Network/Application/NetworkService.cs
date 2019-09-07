@@ -64,13 +64,13 @@ namespace AElf.OS.Network.Application
 
         public List<PeerInfo> GetPeers()
         {   
-            return _peerPool.GetPeers(true).Select(PeerHelper.FromNetworkPeer).ToList();
+            return _peerPool.GetPeers(true).Select(PeerInfoHelper.FromNetworkPeer).ToList();
         }
 
         public PeerInfo GetPeerByPubkey(string peerPubkey)
         {
             var peer = _peerPool.FindPeerByPublicKey(peerPubkey);
-            return peer == null ? null : PeerHelper.FromNetworkPeer(peer);
+            return peer == null ? null : PeerInfoHelper.FromNetworkPeer(peer);
         }
 
         private bool IsOldBlock(BlockHeader header)

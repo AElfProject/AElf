@@ -4,7 +4,7 @@ using AElf.OS.Network.Types;
 
 namespace AElf.OS.Network.Helpers
 {
-    public static class PeerHelper
+    public static class PeerInfoHelper
     {
         public static PeerInfo FromNetworkPeer(IPeer peer)
         {
