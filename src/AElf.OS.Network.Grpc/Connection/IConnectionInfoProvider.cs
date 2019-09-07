@@ -4,6 +4,6 @@ namespace AElf.OS.Network.Grpc
 {
     public interface IConnectionInfoProvider
     {
-        Task<Network.ConnectionInfo> GetConnectionInfoAsync();
+        Task<ConnectionInfo> GetConnectionInfoAsync();
     }
 }

@@ -136,7 +136,7 @@ namespace AElf.OS.Network.Grpc.Connection
             _ = EventBus.PublishAsync(new PeerConnectedEventData(nodeInfo, bestChainHeader));
         }
                 
-        public async Task<ConnectReply> DialBackAsync(IPEndPoint endpoint, Network.ConnectionInfo peerConnectionInfo)
+        public async Task<ConnectReply> DialBackAsync(IPEndPoint endpoint, ConnectionInfo peerConnectionInfo)
         {
             var error = ValidateConnectionInfo(endpoint, peerConnectionInfo);
             
@@ -198,7 +198,7 @@ namespace AElf.OS.Network.Grpc.Connection
             return new HandshakeReply { Handshake = await _handshakeProvider.GetHandshakeAsync() };
         }
 
-        private ConnectError ValidateConnectionInfo(IPEndPoint endpoint, Network.ConnectionInfo connectionInfo)
+        private ConnectError ValidateConnectionInfo(IPEndPoint endpoint, ConnectionInfo connectionInfo)
         {
             // verify chain id
             if (connectionInfo.ChainId != ChainOptions.ChainId)

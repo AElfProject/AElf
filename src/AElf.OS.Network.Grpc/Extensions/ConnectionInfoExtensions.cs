@@ -5,7 +5,7 @@ namespace AElf.OS.Network.Grpc.Extensions
 {
     public static class ConnectionInfoExtensions
     {
-        public static PeerConnectionInfo ToPeerInfo(this Network.ConnectionInfo connectionInfo, bool isInbound)
+        public static PeerConnectionInfo ToPeerInfo(this ConnectionInfo connectionInfo, bool isInbound)
         {
             return new PeerConnectionInfo
             {

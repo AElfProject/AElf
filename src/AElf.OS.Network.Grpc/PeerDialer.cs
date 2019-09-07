@@ -54,7 +54,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         /// <returns>The reply from the server.</returns>
         private async Task<ConnectReply> CallConnectAsync(GrpcClient client, IPEndPoint ipAddress, 
-            Network.ConnectionInfo connectionInfo)
+            ConnectionInfo connectionInfo)
         {
             ConnectReply connectReply = null;
             
@@ -73,7 +73,7 @@ namespace AElf.OS.Network.Grpc
             return connectReply;
         }
         
-        public async Task<GrpcPeer> DialBackPeer(IPEndPoint endpoint, Network.ConnectionInfo peerConnectionInfo)
+        public async Task<GrpcPeer> DialBackPeer(IPEndPoint endpoint, ConnectionInfo peerConnectionInfo)
         {
             var client = CreateClient(endpoint);
             
