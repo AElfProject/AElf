@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using AElf.Contracts.Election;
@@ -13,8 +12,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private void ProcessConsensusInformation(dynamic input, [CallerMemberName] string caller = null)
         {
             Context.LogDebug(() => $"Processing {caller}");
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
             /* Privilege check. */
             if (!PreCheck())
             {
@@ -38,8 +35,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             ResetLatestProviderToTinyBlocksCount();
-            stopwatch.Stop();
-            Context.LogDebug(() => $"Consensus tx duration: {stopwatch.ElapsedMilliseconds} ms.");
         }
 
         private void ProcessNextRound(Round nextRound)
