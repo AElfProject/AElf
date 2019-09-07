@@ -47,7 +47,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             _taskQueueManager = GetRequiredService<ITaskQueueManager>();
         }
 
-        [Fact]
+        [Fact(Skip = "Validator was not activated")]
         public async Task SentTransaction_Token_Check_Test()
         {
             //user without token - NotExisted
@@ -79,7 +79,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             }
         }
 
-        [Fact]
+        [Fact(Skip = "Validator was not activated")]
         public async Task SentTransaction_ContractAddress_Check_Test()
         {
             //prepare token
