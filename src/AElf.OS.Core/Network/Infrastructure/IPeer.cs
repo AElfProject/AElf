@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Metrics;
+using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
 
 namespace AElf.OS.Network.Infrastructure
@@ -23,7 +23,7 @@ namespace AElf.OS.Network.Infrastructure
         int BufferedBlocksCount { get; }
         int BufferedAnnouncementsCount { get; }
 
-        PeerInfo Info { get; }
+        PeerConnectionInfo Info { get; }
 
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         

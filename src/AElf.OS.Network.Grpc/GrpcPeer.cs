@@ -11,6 +11,7 @@ using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Metrics;
+using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -71,7 +72,7 @@ namespace AElf.OS.Network.Grpc
 
         public string IpAddress { get; }
 
-        public PeerInfo Info { get; }
+        public PeerConnectionInfo Info { get; }
 
         public Handshake LastReceivedHandshake { get; private set; }
 
@@ -91,13 +92,13 @@ namespace AElf.OS.Network.Grpc
         private readonly ActionBlock<StreamJob> _sendTransactionJobs;
         private readonly ActionBlock<StreamJob> _sendLibAnnouncementJobs;
 
-        public GrpcPeer(GrpcClient client, IPEndPoint remoteEndpoint, PeerInfo peerInfo)
+        public GrpcPeer(GrpcClient client, IPEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo)
         {
             _channel = client.Channel;
             _client = client.Client;
 
             RemoteEndpoint = remoteEndpoint;
-            Info = peerInfo;
+            Info = peerConnectionInfo;
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
