@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.Kernel.Consensus.Application;
 using AElf.Modularity;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
@@ -116,6 +117,8 @@ namespace AElf.OS
                 });
             
             context.Services.AddSingleton<IPeerPool>(o => peerPoolMock.Object);
+
+            context.Services.AddTransient(o => Mock.Of<IBroadcastPrivilegedPubkeyListProvider>());
         }
     }
 }
