@@ -301,7 +301,12 @@ namespace AElf.Kernel.SmartContract.Application
         {
             if (trace.ExecutionStatus == ExecutionStatus.Undefined)
             {
-                return null;
+                return new TransactionResult
+                {
+                    TransactionId = trace.TransactionId,
+                    Status = TransactionResultStatus.Unexecutable,
+                    Error = ExecutionStatus.Undefined.ToString()
+                };
             }
 
             if (trace.ExecutionStatus == ExecutionStatus.Prefailed)

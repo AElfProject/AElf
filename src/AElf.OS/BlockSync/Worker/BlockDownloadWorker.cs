@@ -130,7 +130,6 @@ namespace AElf.OS.BlockSync.Worker
             var downloadResult = new DownloadBlocksResult();
             if (jobInfo.CurrentTargetBlockHeight > 0)
             {
-                // TODO: change "8"
                 if (jobInfo.CurrentTargetBlockHeight <= chain.BestChainHeight + 8 || await BlockIsInBestChain(chain,
                         jobInfo.CurrentTargetBlockHash, jobInfo.CurrentTargetBlockHeight))
                 {
