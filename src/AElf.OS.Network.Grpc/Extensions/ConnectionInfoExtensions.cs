@@ -1,12 +1,13 @@
 using AElf.Kernel;
+using AElf.OS.Network.Protocol.Types;
 
 namespace AElf.OS.Network.Grpc.Extensions
 {
     public static class ConnectionInfoExtensions
     {
-        public static PeerInfo ToPeerInfo(this ConnectionInfo connectionInfo, bool isInbound)
+        public static PeerConnectionInfo ToPeerInfo(this ConnectionInfo connectionInfo, bool isInbound)
         {
-            return new PeerInfo
+            return new PeerConnectionInfo
             {
                 Pubkey = connectionInfo.Pubkey.ToHex(),
                 ProtocolVersion = connectionInfo.Version,

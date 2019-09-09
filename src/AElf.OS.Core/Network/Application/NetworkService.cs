@@ -7,6 +7,7 @@ using AElf.Kernel;
 using AElf.Kernel.Consensus.Application;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Types;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -65,6 +66,17 @@ namespace AElf.OS.Network.Application
             return true;
         }
 
+        public List<PeerInfo> GetPeers()
+        {   
+            return _peerPool.GetPeers(true).Select(PeerInfoHelper.FromNetworkPeer).ToList();
+        }
+
+        public PeerInfo GetPeerByPubkey(string peerPubkey)
+        {
+            var peer = _peerPool.FindPeerByPublicKey(peerPubkey);
+            return peer == null ? null : PeerInfoHelper.FromNetworkPeer(peer);
+        }
+        
         public async Task<bool> RemovePeerByPubkeyAsync(string peerPubKey)
         {
             var peer = _peerPool.FindPeerByPublicKey(peerPubKey);
@@ -77,16 +89,6 @@ namespace AElf.OS.Network.Application
             await _networkServer.DisconnectAsync(peer);
 
             return true;
-        }
-
-        public List<IPeer> GetPeers()
-        {
-            return _peerPool.GetPeers(true).ToList();
-        }
-
-        public IPeer GetPeerByPubkey(string peerPubkey)
-        {
-            return _peerPool.FindPeerByPublicKey(peerPubkey);
         }
 
         private bool IsOldBlock(BlockHeader header)

@@ -6,7 +6,6 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using AElf.Sdk.CSharp;
 using AElf.WebApp.Web;

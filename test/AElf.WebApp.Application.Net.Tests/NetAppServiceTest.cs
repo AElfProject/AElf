@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Metrics;
+using AElf.OS.Network.Protocol.Types;
 using AElf.WebApp.Application.Net.Dto;
 using Moq;
 using Shouldly;
@@ -36,7 +36,7 @@ namespace AElf.WebApp.Application.Net.Tests
 
         private IPeer BuildPeer(string ipAddress, string pubkey, long connectionTime, bool isInbound)
         {
-            var connectionInfo = new PeerInfo
+            var connectionInfo = new PeerConnectionInfo
             {
                 Pubkey = pubkey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
