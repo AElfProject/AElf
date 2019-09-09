@@ -28,7 +28,7 @@ namespace AElf.Contracts.MultiToken
                 Issuer = input.Issuer,
                 IsBurnable = input.IsBurnable,
                 IsTransferDisabled = input.IsTransferDisabled,
-                IssueChainId = Context.ChainId
+                IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
             });
 
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))

@@ -109,6 +109,7 @@ message ChainInitializationData {
     repeated bytes extra_information = 4;
     int64 creation_height_on_parent_chain = 5;
     bool chain_creator_privilege_preserved = 6;
+    string side_chain_token_symbol = 7;
 }
 
 enum ResourceType
@@ -139,6 +140,17 @@ message SideChainCreationRequest {
     int64 locked_token_amount = 2;
     bytes contract_code = 3;
     bool is_privilege_preserved = 4;
+    string token_name = 5;
+    SideChainTokenInfo side_chain_token_info =6;
+}
+
+message SideChainTokenInfo {
+    string symbol = 1;
+    string tokenName = 2;
+    sint64 totalSupply = 3;
+    sint32 decimals = 4;
+    aelf.Address issuer = 5;
+    bool is_burnable = 6;
 }
 
 message RequestChainCreationOutput {
