@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -25,9 +24,8 @@ namespace AElf.Kernel.SmartContract.Parallel
         private readonly ICodeRemarksManager _codeRemarksManager;
         public ILogger<ResourceExtractionService> Logger { get; set; }
 
-        // TODO: use non concurrent version
-        private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache =
-            new ConcurrentDictionary<Hash, TransactionResourceCache>();
+        private readonly Dictionary<Hash, TransactionResourceCache> _resourceCache =
+            new Dictionary<Hash, TransactionResourceCache>();
 
         public ResourceExtractionService(IBlockchainService blockchainService,
             ISmartContractExecutiveService smartContractExecutiveService, ICodeRemarksManager codeRemarksManager)
@@ -44,8 +42,14 @@ namespace AElf.Kernel.SmartContract.Parallel
             IEnumerable<Transaction> transactions, CancellationToken ct)
         {
             // Parallel processing below (adding AsParallel) causes ReflectionTypeLoadException
-            var tasks = transactions.Select(t => GetResourcesForOneWithCacheAsync(chainContext, t, ct));
-            return await Task.WhenAll(tasks);
+            var transactionResourceList = new List<(Transaction, TransactionResourceInfo)>();
+            foreach (var t in transactions)
+            {
+                var transactionResourcePair = await GetResourcesForOneWithCacheAsync(chainContext, t, ct);
+                transactionResourceList.Add(transactionResourcePair);
+            }
+            
+            return transactionResourceList;
         }
 
         private async Task<(Transaction, TransactionResourceInfo)> GetResourcesForOneWithCacheAsync(
@@ -60,7 +64,10 @@ namespace AElf.Kernel.SmartContract.Parallel
                 });
 
             if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache))
+            {
+                resourceCache.ResourceUsedBlockHeight = chainContext.BlockHeight;
                 return (transaction, resourceCache.ResourceInfo);
+            }
 
             return (transaction, await GetResourcesForOneAsync(chainContext, transaction, ct));
         }
@@ -117,22 +124,32 @@ namespace AElf.Kernel.SmartContract.Parallel
             var chainContext = await GetChainContextAsync();
             var transaction = eventData.Transaction;
 
-            _resourceCache.TryAdd(transaction.GetHash(),
-                new TransactionResourceCache(transaction.RefBlockNumber,
-                    await GetResourcesForOneAsync(chainContext, transaction, CancellationToken.None), transaction.To));
+            var resourceInfo = await GetResourcesForOneAsync(chainContext, transaction, CancellationToken.None);
+            _resourceCache.Add(transaction.GetHash(), new TransactionResourceCache(resourceInfo, transaction.To));
         }
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
         {
             var contractInfoCache = _smartContractExecutiveService.GetContractInfoCache();
             var addresses = contractInfoCache.Where(c => c.Value <= eventData.BlockHeight).Select(c => c.Key).ToArray();
-            var transactionIds = _resourceCache.Where(c => c.Value.Address.IsIn(addresses) && c.Value.ResourceInfo.ParallelType != ParallelType.NonParallelizable).Select(c => c.Key);
 
-            ClearResourceCache(transactionIds.Concat(_resourceCache
-                .Where(c => c.Value.RefBlockNumber <= eventData.BlockHeight)
-                .Select(c => c.Key)).Distinct());
-            _smartContractExecutiveService.ClearContractInfoCache(eventData.BlockHeight);
+            try
+            {
+                var transactionIds = _resourceCache.Where(c =>
+                    c.Value.Address.IsIn(addresses) &&
+                    c.Value.ResourceInfo.ParallelType != ParallelType.NonParallelizable).Select(c => c.Key);
 
+                ClearResourceCache(transactionIds.Concat(_resourceCache
+                    .Where(c => c.Value.ResourceUsedBlockHeight <= eventData.BlockHeight)
+                    .Select(c => c.Key)).Distinct().ToList());
+                
+                _smartContractExecutiveService.ClearContractInfoCache(eventData.BlockHeight);
+            }
+            catch (InvalidOperationException e)
+            {
+                Logger.LogError(e, "Unexpected case occured when clear resource info.");
+            }
+            
             await Task.CompletedTask;
         }
 
@@ -156,7 +173,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             foreach (var transactionId in transactions)
             {
-                _resourceCache.TryRemove(transactionId, out _);
+                _resourceCache.Remove(transactionId);
             }
 
             Logger.LogTrace($"Resource cache size after cleanup: {_resourceCache.Count}");
@@ -183,13 +200,13 @@ namespace AElf.Kernel.SmartContract.Parallel
 
     internal class TransactionResourceCache
     {
-        public readonly long RefBlockNumber;
+        public long ResourceUsedBlockHeight { get; set; }
         public readonly TransactionResourceInfo ResourceInfo;
         public readonly Address Address;
 
-        public TransactionResourceCache(long refBlockNumber, TransactionResourceInfo resourceInfo,Address address)
+        public TransactionResourceCache(TransactionResourceInfo resourceInfo,Address address)
         {
-            RefBlockNumber = refBlockNumber;
+            ResourceUsedBlockHeight = long.MaxValue;
             ResourceInfo = resourceInfo;
             Address = address;
         }
