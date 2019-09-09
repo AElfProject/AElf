@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -125,10 +126,12 @@ namespace AElf.Kernel.Infrastructure
             /* Seven zip (LZMA) */
             lock (_sevenZipLock)
             {
+                Stopwatch sw = Stopwatch.StartNew();
                 var compSevenZip = Compress7Zip(serialized);
-                SevenZiptotalGain = SevenZiptotalGain + serialized.Length - compSevenZip.Length;
-                //Logger.LogDebug($"[{_storeId}] - [{key}] - Seven zip :: pre-compressed: {serialized.Length} -> {compSevenZip.Length}, current total: {SevenZiptotalGain}  ({typeof(T)})");
-                
+                sw.Stop();
+
+                //Logger.LogDebug($"Compression time: {sw.ElapsedMilliseconds} ms");
+
                 _metricsRecorder.EnqueueMetric(new DatabaseCompressionRecord
                 {
                     RecordTime = DateTime.Now,
@@ -136,6 +139,7 @@ namespace AElf.Kernel.Infrastructure
                     SerializedType = typeof(T),
                     InitialSize = serialized.Length,
                     CompressedSize = compSevenZip.Length,
+                    CompressionDuration = sw.ElapsedMilliseconds,
                 });
             }
             /* END LZMA */

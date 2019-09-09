@@ -84,7 +84,6 @@ namespace AElf.Kernel.Infrastructure
                 var sevenZipMetrics = _metrics.Where(m => m.CompressionType == CompressionType.SevenZip).ToList();
                 var sevenZipMetricsByType = sevenZipMetrics.ToLookup(t => t.SerializedType); //.ToDictionary(g => g.Key, g => g.ToList());
 
-                
                 foreach (var type in sevenZipMetricsByType)
                 {
                     var sevenZipResult = new CompressionStat
@@ -94,12 +93,13 @@ namespace AElf.Kernel.Infrastructure
                         TotalGain = type.Sum(m => m.InitialSize - m.CompressedSize),
                         BiggestGain = type.Max(m => m.InitialSize - m.CompressedSize),
                         LowestGain = type.Min(m => m.InitialSize - m.CompressedSize),
-                        AverageGain = type.Average(m => m.InitialSize - m.CompressedSize)
+                        AverageGain = type.Average(m => m.InitialSize - m.CompressedSize),
+                        AverageCompressionDuration = (long)type.Average(m => m.CompressionDuration)
                     };
                     
                     stats.Add(sevenZipResult);
                 }
-                
+
                 // gzip
 //                var gzipMetrics = _metrics.Where(m => m.CompressionType == CompressionType.Gzip).ToList();
 //                var gzipResult = new CompressionStat
@@ -110,7 +110,7 @@ namespace AElf.Kernel.Infrastructure
             
             foreach (var sevenZipResult in stats.OrderByDescending(c => c.AverageGain).ToList())
             {
-                Logger.LogDebug($"[{sevenZipResult.CompressionType} - {sevenZipResult.SerializedType}] \t Gain range: {sevenZipResult.LowestGain} - {sevenZipResult.BiggestGain} \t -- Total saved: {sevenZipResult.TotalGain} \t -- Average: {sevenZipResult.AverageGain} ");
+                Logger.LogDebug($"[{sevenZipResult.CompressionType} - {sevenZipResult.SerializedType}] \t Gain range: {sevenZipResult.LowestGain} - {sevenZipResult.BiggestGain} \t -- Total saved: {sevenZipResult.TotalGain} \t -- Average: {sevenZipResult.AverageGain} \t -- compression time {sevenZipResult.AverageCompressionDuration} ms");
             }
         }
     }
@@ -127,10 +127,10 @@ namespace AElf.Kernel.Infrastructure
         public long BiggestGain { get; set; }
         public long LowestGain { get; set; }
         public double AverageGain { get; set; }
+        public long AverageCompressionDuration { get; set; }
 
         public CompressionStat()
         {
-            
         }
     }
 
@@ -142,6 +142,6 @@ namespace AElf.Kernel.Infrastructure
         
         public int InitialSize { get; set; }
         public int CompressedSize { get; set; }
-        
+        public long CompressionDuration { get; set; }
     }
 }
