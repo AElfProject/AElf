@@ -33,7 +33,6 @@ namespace AElf.OS.Network.Grpc
         private const int MaxDegreeOfParallelismForAnnouncementJobs = 3;
         private const int MaxDegreeOfParallelismForTransactionJobs = 1;
         private const int MaxDegreeOfParallelismForBlockJobs = 1;
-        private const int MaxDegreeOfParallelismForLibAnnouncementJobs = 1;
 
         private enum MetricNames
         {
@@ -58,7 +57,6 @@ namespace AElf.OS.Network.Grpc
 
         public long LastKnownLibHeight { get; private set; }
 
-        public bool IsBest { get; set; }
         public bool IsConnected { get; set; }
         public bool IsShutdown { get; set; }
         public Hash CurrentBlockHash { get; private set; }
@@ -68,7 +66,6 @@ namespace AElf.OS.Network.Grpc
         public int BufferedTransactionsCount => _sendTransactionJobs.InputCount;
         public int BufferedBlocksCount => _sendBlockJobs.InputCount;
         public int BufferedAnnouncementsCount => _sendAnnouncementJobs.InputCount;
-        public int BufferedLibAnnouncementsCount => _sendLibAnnouncementJobs.InputCount;
 
         public string IpAddress { get; }
 
@@ -90,7 +87,6 @@ namespace AElf.OS.Network.Grpc
         private readonly ActionBlock<StreamJob> _sendAnnouncementJobs;
         private readonly ActionBlock<StreamJob> _sendBlockJobs;
         private readonly ActionBlock<StreamJob> _sendTransactionJobs;
-        private readonly ActionBlock<StreamJob> _sendLibAnnouncementJobs;
 
         public GrpcPeer(GrpcClient client, IPEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo)
         {
@@ -128,12 +124,6 @@ namespace AElf.OS.Network.Grpc
                 {
                     MaxDegreeOfParallelism = MaxDegreeOfParallelismForTransactionJobs,
                     BoundedCapacity = NetworkConstants.DefaultMaxBufferedTransactionCount
-                });
-            _sendLibAnnouncementJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
-                new ExecutionDataflowBlockOptions
-                {
-                    MaxDegreeOfParallelism = MaxDegreeOfParallelismForLibAnnouncementJobs,
-                    BoundedCapacity = NetworkConstants.DefaultMaxBufferedLibAnnouncementCount
                 });
         }
 
@@ -282,7 +272,7 @@ namespace AElf.OS.Network.Grpc
                 throw new NetworkException($"Dropping lib announcement, peer is not ready - {this}.",
                     NetworkExceptionType.NotConnected);
 
-            _sendLibAnnouncementJobs.Post(new StreamJob
+            _sendAnnouncementJobs.Post(new StreamJob
             {
                 LibAnnouncement = libAnnouncement,
                 SendCallback = sendCallback
