@@ -47,6 +47,10 @@ namespace AElf.Blockchains.SideChain
                 return genesisSmartContractDtoList;
             }
             
+            genesisSmartContractDtoList.AddGenesisSmartContract(
+                _codes.Single(kv => kv.Key.Contains("Configuration")).Value,
+                ConfigurationSmartContractAddressNameProvider.Name);
+            
             // chainInitializationData cannot be null if it is first time side chain startup. 
             genesisSmartContractDtoList.AddGenesisSmartContract(
                 _codes.Single(kv=>kv.Key.Contains("Consensus.AEDPoS")).Value,
