@@ -10,6 +10,7 @@ jobs:
     inputs:
       version: '2.2.300'
   - script: choco install protoc --version 3.6.0 -y
+  - script: choco install unzip
   - task: DotNetCoreCLI@2
     inputs:
       command: 'build'
@@ -17,14 +18,9 @@ jobs:
       arguments: '/p:NoBuild=false --configuration Debug'
   - task: DotNetCoreCLI@2
     inputs:
-      command: 'build'
-      projects: 'AElf.Console.sln'
-      arguments: '/p:NoBuild=false --configuration Debug'
-  - task: DotNetCoreCLI@2
-    inputs:
-      command: 'test'
-      projects: 'AElf.sln'
-
+      command: test
+      projects: 'test/*Tests/*.csproj'
+      arguments: '--configuration Debug'
 # All tasks on Linux
 - job: build_all_linux
   displayName: Build all tasks (Linux)
@@ -34,7 +30,6 @@ jobs:
   - task: DotNetCoreInstaller@0
     inputs:
       version: '2.2.300'
-  - script: sudo apt update ;sudo apt install nodejs -y
   - script: bash scripts/install_protobuf.sh
   - task: DotNetCoreCLI@2
     inputs:
@@ -43,9 +38,9 @@ jobs:
       arguments: '/p:NoBuild=false --configuration Debug'
   - task: DotNetCoreCLI@2
     inputs:
-      command: 'test'
-      projects: 'AElf.sln'
-
+      command: test
+      projects: 'test/*Tests/*.csproj'
+      arguments: '--configuration Debug'
 # All tasks on macOS
 - job: build_all_darwin
   displayName: Build all tasks (macOS)
@@ -61,3 +56,9 @@ jobs:
       command: 'build'
       projects: 'AElf.sln'
       arguments: '/p:NoBuild=false --configuration Debug'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: test
+      projects: 'test/*Tests/*.csproj'
+      arguments: '--configuration Debug'
+      
