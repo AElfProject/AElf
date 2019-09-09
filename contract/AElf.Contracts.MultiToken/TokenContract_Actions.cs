@@ -89,6 +89,7 @@ namespace AElf.Contracts.MultiToken
         {
             Assert(input.To != null, "To address not filled.");
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
+            Assert(tokenInfo.IssueChainId == Context.ChainId, "Unable to issue token with wrong chainId.");
             Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == Context.GetZeroSmartContractAddress(),
                 $"Sender is not allowed to issue token {input.Symbol}.");
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
