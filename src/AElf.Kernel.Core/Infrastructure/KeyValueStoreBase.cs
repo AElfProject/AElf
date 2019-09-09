@@ -89,59 +89,53 @@ namespace AElf.Kernel.Infrastructure
         
         public ILogger<TKeyValueDbContext> Logger { get; set; }
 
-        private int TotalGainDotnet = 0;
-        private int SevenZiptotalGain = 0;
-
-        private int _storeId;
-
         public KeyValueStoreBase(TKeyValueDbContext keyValueDbContext, IStoreKeyPrefixProvider<T> prefixProvider, IDatabaseMetricsRecorder metricsRecorder)
         {
             _keyValueDbContext = keyValueDbContext;
             _metricsRecorder = metricsRecorder;
-            // ReSharper disable once VirtualMemberCallInConstructor
             _collection = keyValueDbContext.Collection(prefixProvider.GetStoreKeyPrefix());
 
             _messageParser = new MessageParser<T>(() => new T());
-            
-            _storeId = new Random().Next();
         }
-        
-        private readonly object _dotnetLock = new object();
-        private readonly object _sevenZipLock = new object();
 
         public async Task SetAsync(string key, T value)
         {
             var serialized = Serialize(value);
             
             /* dotnet */
-            lock (_dotnetLock)
-            {
-                var compDotnet = CompressDotnet(serialized);
-                TotalGainDotnet = TotalGainDotnet + serialized.Length - compDotnet.Length;
-                //Logger.LogDebug($"[{_storeId}] - [{key}] - DOTNET :: pre-compressed: {serialized.Length} -> {compDotnet.Length}, current total: {TotalGainDotnet} ({typeof(T)})");
-            }
             
+            Stopwatch dotnetSw = Stopwatch.StartNew();
+            var compressedDotnet = CompressDotnet(serialized);
+            dotnetSw.Stop();
+            
+            _metricsRecorder.EnqueueMetric(new DatabaseCompressionRecord
+            {
+                RecordTime = DateTime.Now,
+                CompressionType = CompressionType.Gzip,
+                SerializedType = typeof(T),
+                InitialSize = serialized.Length,
+                CompressedSize = compressedDotnet.Length,
+                CompressionDuration = dotnetSw.ElapsedMilliseconds,
+            });
+
             /* End dotnet **/
             
             /* Seven zip (LZMA) */
-            lock (_sevenZipLock)
+
+            Stopwatch sw = Stopwatch.StartNew();
+            var compressedSevenZip = Compress7Zip(serialized);
+            sw.Stop();
+
+            _metricsRecorder.EnqueueMetric(new DatabaseCompressionRecord
             {
-                Stopwatch sw = Stopwatch.StartNew();
-                var compSevenZip = Compress7Zip(serialized);
-                sw.Stop();
+                RecordTime = DateTime.Now,
+                CompressionType = CompressionType.SevenZip,
+                SerializedType = typeof(T),
+                InitialSize = serialized.Length,
+                CompressedSize = compressedSevenZip.Length,
+                CompressionDuration = sw.ElapsedMilliseconds,
+            });
 
-                //Logger.LogDebug($"Compression time: {sw.ElapsedMilliseconds} ms");
-
-                _metricsRecorder.EnqueueMetric(new DatabaseCompressionRecord
-                {
-                    RecordTime = DateTime.Now,
-                    CompressionType = CompressionType.SevenZip,
-                    SerializedType = typeof(T),
-                    InitialSize = serialized.Length,
-                    CompressedSize = compSevenZip.Length,
-                    CompressionDuration = sw.ElapsedMilliseconds,
-                });
-            }
             /* END LZMA */
 
             await _collection.SetAsync(key, serialized);

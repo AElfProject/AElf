@@ -56,7 +56,7 @@ namespace AElf.Kernel.Infrastructure
             });
         }
 
-        private async void OnTimerTick(object state)
+        private void OnTimerTick(object state)
         {
             if (!_isStarted)
             {
@@ -77,40 +77,38 @@ namespace AElf.Kernel.Infrastructure
 
         private void Dump()
         {
-            var stats = new List<CompressionStat>();
             lock (_dumpLock)
             {
-                // seven zip
-                var sevenZipMetrics = _metrics.Where(m => m.CompressionType == CompressionType.SevenZip).ToList();
-                var sevenZipMetricsByType = sevenZipMetrics.ToLookup(t => t.SerializedType); //.ToDictionary(g => g.Key, g => g.ToList());
+                DumpStats(CompressionType.Gzip);
+                DumpStats(CompressionType.SevenZip);
+            }
+        }
 
-                foreach (var type in sevenZipMetricsByType)
+        private void DumpStats(CompressionType compressionType)
+        {
+            var stats = new List<CompressionStat>();
+            var metrics = _metrics.Where(m => m.CompressionType == compressionType).ToList();
+            var metricsByType = metrics.ToLookup(t => t.SerializedType);
+
+            foreach (var type in metricsByType)
+            {
+                var compressionStat = new CompressionStat
                 {
-                    var sevenZipResult = new CompressionStat
-                    {
-                        CompressionType = CompressionType.SevenZip,
-                        SerializedType = type.Key,
-                        TotalGain = type.Sum(m => m.InitialSize - m.CompressedSize),
-                        BiggestGain = type.Max(m => m.InitialSize - m.CompressedSize),
-                        LowestGain = type.Min(m => m.InitialSize - m.CompressedSize),
-                        AverageGain = type.Average(m => m.InitialSize - m.CompressedSize),
-                        AverageCompressionDuration = (long)type.Average(m => m.CompressionDuration)
-                    };
+                    CompressionType = compressionType,
+                    SerializedType = type.Key,
+                    TotalGain = type.Sum(m => m.InitialSize - m.CompressedSize),
+                    BiggestGain = type.Max(m => m.InitialSize - m.CompressedSize),
+                    LowestGain = type.Min(m => m.InitialSize - m.CompressedSize),
+                    AverageGain = type.Average(m => m.InitialSize - m.CompressedSize),
+                    AverageCompressionDuration = (long)type.Average(m => m.CompressionDuration)
+                };
                     
-                    stats.Add(sevenZipResult);
-                }
-
-                // gzip
-//                var gzipMetrics = _metrics.Where(m => m.CompressionType == CompressionType.Gzip).ToList();
-//                var gzipResult = new CompressionStat
-//                {
-//                
-//                };
+                stats.Add(compressionStat);
             }
             
-            foreach (var sevenZipResult in stats.OrderByDescending(c => c.AverageGain).ToList())
+            foreach (var stat in stats.OrderByDescending(c => c.AverageGain).ToList())
             {
-                Logger.LogDebug($"[{sevenZipResult.CompressionType} - {sevenZipResult.SerializedType}] \t Gain range: {sevenZipResult.LowestGain} - {sevenZipResult.BiggestGain} \t -- Total saved: {sevenZipResult.TotalGain} \t -- Average: {sevenZipResult.AverageGain} \t -- compression time {sevenZipResult.AverageCompressionDuration} ms");
+                Logger.LogDebug($"[{stat.CompressionType} - {stat.SerializedType}] \t Gain range: {stat.LowestGain} - {stat.BiggestGain} \t -- Total saved: {stat.TotalGain} \t -- Average: {stat.AverageGain} \t -- compression time {stat.AverageCompressionDuration} ms");
             }
         }
     }
