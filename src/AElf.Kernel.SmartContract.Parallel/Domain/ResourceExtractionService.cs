@@ -130,7 +130,6 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            Logger.LogTrace("Handle lib found event for resource cache.--- Start");
             var contractInfoCache = _smartContractExecutiveService.GetContractInfoCache();
             var addresses = contractInfoCache.Where(c => c.Value <= eventData.BlockHeight).Select(c => c.Key).ToArray();
 
@@ -151,7 +150,6 @@ namespace AElf.Kernel.SmartContract.Parallel
                 Logger.LogError(e, "Unexpected case occured when clear resource info.");
             }
             
-            Logger.LogTrace("Handle lib found event for resource cache.--- End");
             await Task.CompletedTask;
         }
 

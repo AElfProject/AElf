@@ -290,10 +290,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            Logger.LogTrace("Handle lib for txhub --- Start");
             CleanTransactions(_expiredByExpiryBlock, eventData.BlockHeight);
             CleanTransactions(_invalidatedByBlock, eventData.BlockHeight);
-            Logger.LogTrace("Handle lib for txhub --- End");
 
             await Task.CompletedTask;
         }
