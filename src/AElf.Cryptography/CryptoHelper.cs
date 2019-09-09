@@ -38,10 +38,10 @@ namespace AElf.Cryptography
                 var secp256K1PubKey = new byte[64];
 
                 if(!Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey))
-                    throw new ArgumentException("Private key is incorrect.");
+                    throw new InvalidOperationException("Create public key failed.");
                 var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
                 if(!Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey))
-                    throw new ArgumentException("Private key is incorrect.");
+                    throw new InvalidOperationException("Serialize public key failed.");
                 return new ECKeyPair(privateKey, pubKey);
             }
             finally
@@ -66,10 +66,10 @@ namespace AElf.Cryptography
                 } while (!Secp256K1.SecretKeyVerify(privateKey));
 
                 if(!Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey))
-                    throw new InvalidOperationException("Generate key pair failed.");
+                    throw new InvalidOperationException("Create public key failed.");
                 var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
                 if(!Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey))
-                    throw new InvalidOperationException("Generate key pair failed.");
+                    throw new InvalidOperationException("Serialize public key failed.");
                 return new ECKeyPair(privateKey, pubKey);
             }
             finally
@@ -86,9 +86,9 @@ namespace AElf.Cryptography
                 var recSig = new byte[65];
                 var compactSig = new byte[65];
                 if(!Secp256K1.SignRecoverable(recSig, hash, privateKey))
-                    throw new ArgumentException("Private key or hash is incorrect.");
+                    throw new InvalidOperationException("Create a recoverable ECDSA signature failed.");
                 if(!Secp256K1.RecoverableSignatureSerializeCompact(compactSig, out var recoverId, recSig))
-                    throw new ArgumentException("Private key or hash is incorrect.");
+                    throw new InvalidOperationException("Serialize an ECDSA signature failed.");
                 compactSig[64] = (byte) recoverId; // put recover id at the last slot
                 return compactSig;
             }
@@ -153,10 +153,10 @@ namespace AElf.Cryptography
                 Lock.AcquireWriterLock(Timeout.Infinite);
                 var usablePublicKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
                 if(!Secp256K1.PublicKeyParse(usablePublicKey, publicKey))
-                    throw new ArgumentException("Private key or public key is incorrect.");
+                    throw new InvalidOperationException("Parse public key failed.");
                 var ecdhKey = new byte[Secp256k1.SERIALIZED_COMPRESSED_PUBKEY_LENGTH];
                 if(!Secp256K1.Ecdh(ecdhKey, usablePublicKey, privateKey))
-                    throw new ArgumentException("Private key or public key is incorrect.");
+                    throw new InvalidOperationException("Compute EC Diffie- secret failed.");
                 return ecdhKey;
             }
             finally

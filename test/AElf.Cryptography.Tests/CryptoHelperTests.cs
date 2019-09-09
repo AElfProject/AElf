@@ -69,9 +69,9 @@ namespace AElf.Cryptography.Tests
         }
 
         [Fact]
-        public void FromPrivateKey_BadPrivateKey_ShouldThrowArgumentException()
+        public void FromPrivateKey_BadPrivateKey_ShouldThrowException()
         {
-            Assert.Throws<ArgumentException>(() => CryptoHelper.FromPrivateKey(new byte[32]));
+            Assert.Throws<InvalidOperationException>(() => CryptoHelper.FromPrivateKey(new byte[32]));
         }
         
         [Fact]
@@ -116,9 +116,9 @@ namespace AElf.Cryptography.Tests
         }
         
         [Fact]
-        public void Ecdh_BadArgument_ShouldThrowArgumentException()
+        public void Ecdh_BadArgument_ShouldThrowException()
         {
-            Assert.Throws<ArgumentException>(() => CryptoHelper.Ecdh(new byte[32], new byte[33]));
+            Assert.Throws<InvalidOperationException>(() => CryptoHelper.Ecdh(new byte[32], new byte[33]));
         }
     }
 }
