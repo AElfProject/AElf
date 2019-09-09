@@ -67,10 +67,13 @@ namespace AElf.Contracts.MultiToken
 
             RegisterTokenInfo(nativeTokenInfo);
 
-            foreach (var resourceTokenInfo in input.ResourceTokenList.Value)
+            if (input.ResourceTokenList?.Value != null)
             {
-                resourceTokenInfo.Supply = 0;
-                RegisterTokenInfo(resourceTokenInfo);
+                foreach (var resourceTokenInfo in input.ResourceTokenList.Value)
+                {
+                    resourceTokenInfo.Supply = 0;
+                    RegisterTokenInfo(resourceTokenInfo);
+                }
             }
             
             return new Empty();

@@ -25,7 +25,7 @@ namespace AElf.Contracts.MultiToken
                 Value =
                 {
                     TokenContractConstants.ResourceTokenSymbols.Select(symbol =>
-                        State.TokenInfos[symbol])
+                        State.TokenInfos[symbol] ?? new TokenInfo())
                 }
             };
         }
