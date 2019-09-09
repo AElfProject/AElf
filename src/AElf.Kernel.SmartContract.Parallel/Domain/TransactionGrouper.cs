@@ -98,7 +98,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             }
             
             Logger.LogTrace($"From {transactions.Count} transactions, grouped into " +
-                            $"{groupedTransactions.Parallelizables.Count} groups, left" +
+                            $"{groupedTransactions.Parallelizables.Count} groups, left " +
                             $"{groupedTransactions.NonParallelizables.Count} as non-parallelizable transactions.");
 
             return groupedTransactions;

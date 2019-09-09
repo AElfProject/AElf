@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using Google.Protobuf.WellKnownTypes;
@@ -55,6 +54,8 @@ namespace AElf.Kernel.Miner.Application
                                   $"best chain hash {previousBlockHash}.");
             }
 
+            Logger.LogTrace(
+                $"Start mining with previous hash: {previousBlockHash}, previous height: {previousBlockHeight}.");
             return await _miningService.MineAsync(
                 new RequestMiningDto
                 {

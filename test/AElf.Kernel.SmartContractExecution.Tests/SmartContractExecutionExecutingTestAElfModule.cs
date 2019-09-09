@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Modularity;
@@ -149,6 +150,24 @@ namespace AElf.Kernel.SmartContractExecution
                 var mockProvider = new Mock<IBlockValidationService>();
                 mockProvider.Setup(m => m.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>()))
                     .Returns<IBlock>((block) => Task.FromResult(block.Header.Height == Constants.GenesisBlockHeight));
+
+                return mockProvider.Object;
+            });
+        }
+    }
+
+    [DependsOn(typeof(SmartContractExecutionExecutingTestAElfModule))]
+    public class FullBlockChainExecutingTestModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
+
+            services.AddTransient<ITransactionResultManager>(p =>
+            {
+                var mockProvider = new Mock<ITransactionResultManager>();
+                mockProvider.Setup(m => m.AddTransactionResultAsync(It.IsAny<TransactionResult>(), It.IsAny<Hash>()))
+                    .Returns<TransactionResult, Hash>((txResult, hash) => Task.CompletedTask);
 
                 return mockProvider.Object;
             });
