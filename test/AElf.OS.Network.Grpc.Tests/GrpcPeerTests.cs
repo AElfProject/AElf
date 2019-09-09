@@ -68,9 +68,9 @@ namespace AElf.OS.Network
             AutoResetEvent executed = new AutoResetEvent(false);
 
             NetworkException exception = null;
-            var transaction = new Transaction();
+            var transactionList = new TransactionList();
             bool called = false;
-            _nonInterceptedPeer.EnqueueTransaction(transaction, ex =>
+            _nonInterceptedPeer.EnqueueTransaction(transactionList, ex =>
             {
                 exception = ex;
                 called = true;

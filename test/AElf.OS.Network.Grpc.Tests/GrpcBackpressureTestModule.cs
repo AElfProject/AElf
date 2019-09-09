@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
-using AElf.Types;
 using Grpc.Core;
 using Grpc.Core.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +30,7 @@ namespace AElf.OS.Network
                 .Returns(announcementStreamCall);
             
             // setup mock transaction stream
-            var transactionStreamCall = MockStreamCall<Transaction, VoidReply>(_testCompletionSource.Task);
+            var transactionStreamCall = MockStreamCall<TransactionList, VoidReply>(_testCompletionSource.Task);
             mockClient.Setup(m => m.TransactionBroadcastStream(null, null, CancellationToken.None))
                 .Returns(transactionStreamCall);
             

@@ -228,17 +228,17 @@ namespace AElf.OS.Network
                 return Task.CompletedTask;
             });
 
-            var tx = new Transaction
+            var transactionList = new TransactionList();
+            transactionList.Transactions.Add(new Transaction
             {
                 From = SampleAddress.AddressList[0], 
                 To = SampleAddress.AddressList[1]
-            };
-
-            await _service.SendTransaction(tx, BuildServerCallContext());
+            });
+            await _service.SendTransaction(transactionList, BuildServerCallContext());
             
             received?.Transactions.ShouldNotBeNull();
             received.Transactions.Count().ShouldBe(1);
-            received.Transactions.First().From.ShouldBe(tx.From);
+            received.Transactions.First().From.ShouldBe(SampleAddress.AddressList[0]);
         }
 
         [Fact]
@@ -252,8 +252,9 @@ namespace AElf.OS.Network
             });
             var context = BuildServerCallContext();
             var transactions = await _osTestHelper.GenerateTransferTransactions(3);
-            var requestStream = new TestAsyncStreamReader<Transaction>(transactions.ToArray());
-            
+            var transactionList = new TransactionList();
+            transactionList.Transactions.AddRange(transactions);
+            var requestStream = new TestAsyncStreamReader<TransactionList>(new []{transactionList});
             var result = await _service.TransactionBroadcastStream(requestStream, context);
             result.ShouldBe(new VoidReply());
             
@@ -269,15 +270,15 @@ namespace AElf.OS.Network
                 received = t;
                 return Task.CompletedTask;
             });
-            
-            Transaction tx = new Transaction();
-            tx.From = SampleAddress.AddressList[0];
-            tx.To = SampleAddress.AddressList[1];
+
+            var tx = new Transaction {From = SampleAddress.AddressList[0], To = SampleAddress.AddressList[1]};
+            var transactionList = new TransactionList();
+            transactionList.Transactions.Add(tx);
 
             var chain = await  _blockchainService.GetChainAsync();
             tx.RefBlockNumber = chain.BestChainHeight + NetworkConstants.DefaultInitialSyncOffset + 1;
             
-            await _service.SendTransaction(tx, BuildServerCallContext());
+            await _service.SendTransaction(transactionList, BuildServerCallContext());
             
             received.ShouldBeNull();
         }
@@ -298,7 +299,9 @@ namespace AElf.OS.Network
                 To = SampleAddress.AddressList[1]
             };
 
-            await _service.SendTransaction(tx, BuildServerCallContext());
+            var transactionList = new TransactionList();
+            transactionList.Transactions.Add(tx);
+            await _service.SendTransaction(transactionList, BuildServerCallContext());
             
             received?.Transactions.ShouldNotBeNull();
             received.Transactions.Count().ShouldBe(1);

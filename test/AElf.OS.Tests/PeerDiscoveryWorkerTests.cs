@@ -1,4 +1,3 @@
-using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
