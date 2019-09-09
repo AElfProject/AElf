@@ -36,7 +36,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract
         public override Empty CpuConsumingMethod(Empty input)
         {
             var sum = 0L;
-            for (var i = 0; i < 999_999_999; i++)
+            for (var i = 0; i < 99_999; i++)
             {
                 sum = sum.Add(i);
             }
