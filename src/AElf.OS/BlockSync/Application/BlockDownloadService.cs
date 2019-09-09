@@ -123,7 +123,7 @@ namespace AElf.OS.BlockSync.Application
 
                 foreach (var peer in peers)
                 {
-                    var result = await _networkService.GetBlocksAsync(blockHash, 1, peer.Info.Pubkey);
+                    var result = await _networkService.GetBlocksAsync(blockHash, 1, peer.Pubkey);
                     if (result.Success)
                     {
                         if (result.Payload != null && result.Payload.Count != 0)
@@ -169,12 +169,12 @@ namespace AElf.OS.BlockSync.Application
             var random = new Random();
             var peers = _networkService.GetPeers()
                 .Where(p => p.LastKnownLibHeight >= peerLibHeight &&
-                            (exceptedPeers.IsNullOrEmpty() || !exceptedPeers.Contains(p.Info.Pubkey)))
+                            (exceptedPeers.IsNullOrEmpty() || !exceptedPeers.Contains(p.Pubkey)))
                 .ToList();
 
             var randomPeerPubkey = peers.Count == 0
                 ? defaultPeerPubkey
-                : peers[random.Next() % peers.Count].Info.Pubkey;
+                : peers[random.Next() % peers.Count].Pubkey;
 
             return randomPeerPubkey;
         }
