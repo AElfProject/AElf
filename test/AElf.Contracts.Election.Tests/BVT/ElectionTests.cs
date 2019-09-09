@@ -209,6 +209,14 @@ namespace AElf.Contracts.Election
 
             // Check candidate's Votes information.
             {
+                //not exist
+                var input = new StringInput
+                {
+                    Value = "FakePubkey"
+                };
+                var candidateVotesWithRecords = await ElectionContractStub.GetCandidateVoteWithRecords.CallAsync(input);
+                candidateVotesWithRecords.ShouldBe(new CandidateVote());
+                
                 var candidateVotes = await ElectionContractStub.GetCandidateVote.CallAsync(new StringInput
                 {
                     Value = candidateKeyPair.PublicKey.ToHex()
@@ -218,7 +226,7 @@ namespace AElf.Contracts.Election
                 candidateVotes.ObtainedActiveVotedVotesAmount.ShouldBe(amount * 2);
                 candidateVotes.ObtainedWithdrawnVotesRecords.Count.ShouldBe(0); // Not filled.
 
-                var candidateVotesWithRecords = await ElectionContractStub.GetCandidateVoteWithRecords.CallAsync(
+                candidateVotesWithRecords = await ElectionContractStub.GetCandidateVoteWithRecords.CallAsync(
                     new StringInput
                     {
                         Value = candidateKeyPair.PublicKey.ToHex()
