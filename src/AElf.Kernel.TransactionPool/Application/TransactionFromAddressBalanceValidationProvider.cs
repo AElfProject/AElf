@@ -1,9 +1,7 @@
-using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Consensus;
-using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.Token;
@@ -11,6 +9,7 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 
+[assembly: InternalsVisibleTo("AElf.WebApp.Application.TestBase")]
 namespace AElf.Kernel.TransactionPool.Application
 {
     /// <summary>
