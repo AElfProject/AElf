@@ -35,7 +35,7 @@ service TokenContract {
     }
     rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {
     }
-    rpc RegisterNativeTokenInfo(RegisterNativeTokenInfoInput) returns (google.protobuf.Empty) {
+    rpc RegisterNativeAndResourceTokenInfo(RegisterNativeAndResourceTokenInfoInput) returns (google.protobuf.Empty) {
     }  
     rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
     }
@@ -71,6 +71,9 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     rpc GetNativeTokenInfo (google.protobuf.Empty) returns (TokenInfo) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetResourceTokenInfo (google.protobuf.Empty) returns (TokenInfoList) {
         option (aelf.is_view) = true;
     }
     rpc GetBalance (GetBalanceInput) returns (GetBalanceOutput) {
@@ -125,6 +128,11 @@ message RegisterNativeTokenInfoInput{
     aelf.Address issuer = 5;
     bool is_burnable = 6;
     sint32 issue_chain_id = 8;
+}
+
+message RegisterNativeAndResourceTokenInfoInput {
+    RegisterNativeTokenInfoInput native_token_info = 1;
+    TokenInfoList resource_token_list = 2;
 }
 
 message IssueInput {
@@ -308,6 +316,10 @@ message GetLockedAmountOutput {
 message GetVirtualAddressForLockingInput {
     aelf.Address address = 1;
     aelf.Hash lock_id = 3;
+}
+
+message TokenInfoList {
+    repeated TokenInfo value = 1;
 }
 
 // Events

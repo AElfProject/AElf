@@ -10,18 +10,24 @@ namespace AElf.Blockchains.SideChain
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList(ChainInitializationData chainInitializationData)
         {
             var nativeTokenInfo = TokenInfo.Parser.ParseFrom(chainInitializationData.ExtraInformation[1]);
+            var resourceTokenList = TokenInfoList.Parser.ParseFrom(chainInitializationData.ExtraInformation[2]);
             var tokenInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenInitializationCallList.Add(
-                nameof(TokenContractContainer.TokenContractStub.RegisterNativeTokenInfo),
-                new RegisterNativeTokenInfoInput
+                nameof(TokenContractContainer.TokenContractStub.RegisterNativeAndResourceTokenInfo),
+                new RegisterNativeAndResourceTokenInfoInput
                 {
-                    Decimals = nativeTokenInfo.Decimals,
-                    IssueChainId = nativeTokenInfo.IssueChainId,
-                    Issuer = nativeTokenInfo.Issuer,
-                    IsBurnable = nativeTokenInfo.IsBurnable,
-                    Symbol = nativeTokenInfo.Symbol,
-                    TokenName = nativeTokenInfo.TokenName,
-                    TotalSupply = nativeTokenInfo.TotalSupply
+                    NativeTokenInfo =
+                        new RegisterNativeTokenInfoInput
+                        {
+                            Decimals = nativeTokenInfo.Decimals,
+                            IssueChainId = nativeTokenInfo.IssueChainId,
+                            Issuer = nativeTokenInfo.Issuer,
+                            IsBurnable = nativeTokenInfo.IsBurnable,
+                            Symbol = nativeTokenInfo.Symbol,
+                            TokenName = nativeTokenInfo.TokenName,
+                            TotalSupply = nativeTokenInfo.TotalSupply
+                        },
+                    ResourceTokenList = resourceTokenList
                 });
                 
             return tokenInitializationCallList;
