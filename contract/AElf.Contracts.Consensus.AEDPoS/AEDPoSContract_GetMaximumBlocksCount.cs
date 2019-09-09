@@ -20,6 +20,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         private int GetMaximumBlocksCount()
         {
+            return AEDPoSContractConstants.MaximumTinyBlocksCount;
+
+            // TODO: Disable temporally.
             TryToGetCurrentRoundInformation(out var currentRound, true);
             var libRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber;
             var libBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;

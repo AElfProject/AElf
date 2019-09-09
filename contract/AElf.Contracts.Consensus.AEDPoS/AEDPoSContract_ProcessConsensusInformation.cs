@@ -153,10 +153,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             TryToGetCurrentRoundInformation(out var currentRound);
 
-            State.MinedMinerListMap.Set(currentRound.RoundNumber, new MinerList
+            State.MinedMinerListMap[currentRound.RoundNumber] = new MinerList
             {
                 Pubkeys = {currentRound.GetMinedMiners().Select(m => m.Pubkey.ToByteString())}
-            });
+            };
+//            State.MinedMinerListMap.Set(currentRound.RoundNumber, new MinerList
+//            {
+//                Pubkeys = {currentRound.GetMinedMiners().Select(m => m.Pubkey.ToByteString())}
+//            });
         }
 
         private void ProcessUpdateValue(UpdateValueInput updateValueInput)
