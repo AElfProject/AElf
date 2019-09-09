@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Acs3;
 using Acs7;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
@@ -124,6 +123,15 @@ namespace AElf.Contracts.CrossChain
         {
             ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             return State.TokenContract.GetNativeTokenInfo.Call(new Empty());
+        }
+
+        private TokenInfo GetTokenInfo(string symbol)
+        {
+            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            return State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            {
+                Symbol = symbol
+            });
         }
 
         private TokenInfoList GetResourceTokenInfo()

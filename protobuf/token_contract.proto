@@ -134,6 +134,7 @@ message RegisterNativeTokenInfoInput{
 message RegisterNativeAndResourceTokenInfoInput {
     RegisterNativeTokenInfoInput native_token_info = 1;
     TokenInfoList resource_token_list = 2;
+    TokenInfo chain_primary_token = 3;
 }
 
 message IssueInput {

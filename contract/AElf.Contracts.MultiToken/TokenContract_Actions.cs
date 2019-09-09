@@ -66,7 +66,11 @@ namespace AElf.Contracts.MultiToken
             };
 
             RegisterTokenInfo(nativeTokenInfo);
-
+            
+            Assert(input.ChainPrimaryToken.IssueChainId == Context.ChainId, "Invalid primary token info.");
+            State.ChainPrimaryTokenSymbol.Value = input.ChainPrimaryToken.Symbol;
+            RegisterTokenInfo(input.ChainPrimaryToken);
+            
             foreach (var resourceTokenInfo in input.ResourceTokenList.Value)
             {
                 resourceTokenInfo.Supply = 0;
