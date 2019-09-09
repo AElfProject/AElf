@@ -52,8 +52,8 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             }
 
             var state = await _stateStoreImplementation.GetAsync(key);
-//            if (state != null)
-//            {
+            if (state != null)
+            {
 //                _toBeCleanedKeys.Enqueue(key);
 //                while (_toBeCleanedKeys.Count > StateStoreConstants.BlockCacheSize)
 //                {
@@ -69,7 +69,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
 //                }
 
                 _cache[key] = state;
-//            }
+            }
 
             return state;
         }
