@@ -118,6 +118,7 @@ message CreateInput {
     bool is_burnable = 6;
     repeated aelf.Address lock_white_list = 7;
     bool is_transfer_disabled = 8;
+    int32 issue_chain_id = 9;
 }
 
 message RegisterNativeTokenInfoInput{

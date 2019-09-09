@@ -37,15 +37,15 @@ namespace AElf.Contracts.CrossChain
 
             Assert(sideChainCreationRequest.LockedTokenAmount > 0
                    && sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice
-                   && !sideChainCreationRequest.ContractCode.IsEmpty,
+                   && sideChainCreationRequest.SideChainTokenInfo != null,
                 "Invalid chain creation request.");
 
-            State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value + 1;
+            State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value.Add(1);
             var serialNumber = State.SideChainSerialNumber.Value;
             int chainId = ChainHelper.GetChainId(serialNumber);
 
             // lock token and resource
-            LockTokenAndResource(sideChainCreationRequest, chainId);
+            CreateSideChainToken(sideChainCreationRequest, chainId);
             var sideChainInfo = new SideChainInfo
             {
                 Proposer = Context.Origin,
