@@ -109,7 +109,6 @@ message ChainInitializationData {
     repeated bytes extra_information = 4;
     int64 creation_height_on_parent_chain = 5;
     bool chain_creator_privilege_preserved = 6;
-    string side_chain_token_symbol = 7;
 }
 
 enum ResourceType

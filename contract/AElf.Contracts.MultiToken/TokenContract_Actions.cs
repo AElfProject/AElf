@@ -49,23 +49,34 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty RegisterNativeTokenInfo(RegisterNativeTokenInfoInput input)
+        public override Empty RegisterNativeAndResourceTokenInfo(RegisterNativeAndResourceTokenInfoInput input)
         {
             Assert(string.IsNullOrEmpty(State.NativeTokenSymbol.Value), "Native token already registered.");
-            State.NativeTokenSymbol.Value = input.Symbol;
-            
-            var tokenInfo = new TokenInfo
+            State.NativeTokenSymbol.Value = input.NativeTokenInfo.Symbol;
+
+            var nativeTokenInfo = new TokenInfo
             {
-                Symbol = input.Symbol,
-                TokenName = input.TokenName,
-                TotalSupply = input.TotalSupply,
-                Issuer = input.Issuer,
-                Decimals = input.Decimals,
+                Symbol = input.NativeTokenInfo.Symbol,
+                TokenName = input.NativeTokenInfo.TokenName,
+                TotalSupply = input.NativeTokenInfo.TotalSupply,
+                Issuer = input.NativeTokenInfo.Issuer,
+                Decimals = input.NativeTokenInfo.Decimals,
                 IsBurnable = true,
-                IssueChainId = input.IssueChainId
+                IssueChainId = input.NativeTokenInfo.IssueChainId
             };
 
-            RegisterTokenInfo(tokenInfo);
+            RegisterTokenInfo(nativeTokenInfo);
+            
+            Assert(input.ChainPrimaryToken.IssueChainId == Context.ChainId, "Invalid primary token info.");
+            State.ChainPrimaryTokenSymbol.Value = input.ChainPrimaryToken.Symbol;
+            RegisterTokenInfo(input.ChainPrimaryToken);
+            
+            foreach (var resourceTokenInfo in input.ResourceTokenList.Value)
+            {
+                resourceTokenInfo.Supply = 0;
+                RegisterTokenInfo(resourceTokenInfo);
+            }
+            
             return new Empty();
         }
 
