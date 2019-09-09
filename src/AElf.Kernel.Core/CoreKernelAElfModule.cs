@@ -43,10 +43,20 @@ namespace AElf.Kernel
 
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
+
+            services.AddSingleton<IDatabaseMetricsRecorder, DatabaseMetricsRecorder>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
+        }
+
+        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
+        {
+            base.OnPostApplicationInitialization(context);
+
+            var dbMetrics = context.ServiceProvider.GetService<IDatabaseMetricsRecorder>();
+            dbMetrics.Start();
         }
     }
 
