@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -97,6 +98,10 @@ namespace AElf.Kernel.Miner.Application
                 else
                 {
                     var ts = (expirationTime - TimestampHelper.GetUtcNow()).ToTimeSpan();
+                    if (ts.TotalMilliseconds > 4000)
+                    {
+                        ts = TimeSpan.FromMilliseconds(4000);
+                    }
                     cts.CancelAfter(ts);
                 }
                 
