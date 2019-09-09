@@ -206,13 +206,17 @@ namespace AElf.Kernel.Blockchain.Application
 
             #endregion
 
-            await _localEventBus.PublishAsync(new NewIrreversibleBlockFoundEvent()
+            var bestChainFoundEventData = new BestChainFoundEventData
             {
                 BlockHash = block11.GetHash(),
-                BlockHeight = block11.Height
-            });
+                BlockHeight = block11.Height,
+                ExecutedBlocks = new List<Hash>()
+            };
 
-            #region After LIB
+            bestChainFoundEventData.ExecutedBlocks.Add(block11.GetHash());
+            await _localEventBus.PublishAsync(bestChainFoundEventData);
+
+            #region After Best Chain Found
 
             // After LIB, transaction result is re-saved with PostMiningHash (normal BlockHash)
             {
@@ -223,7 +227,7 @@ namespace AElf.Kernel.Blockchain.Application
                     await _transactionResultManager.GetTransactionResultAsync(tx1.GetHash(),
                         block11.Header.GetPreMiningHash());
                 resultWithPreMiningHash.ShouldBeNull();
-
+                
                 // PostMiningHash
                 var resultWithPostMiningHash =
                     await _transactionResultManager.GetTransactionResultAsync(tx1.GetHash(),
@@ -247,7 +251,8 @@ namespace AElf.Kernel.Blockchain.Application
 
             var transactionBlockIndex = new TransactionBlockIndex()
             {
-                BlockHash = block.GetHash()
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height
             };
             await _transacionBlockIndexManager.SetTransactionBlockIndexAsync(tx.GetHash(), transactionBlockIndex);
 

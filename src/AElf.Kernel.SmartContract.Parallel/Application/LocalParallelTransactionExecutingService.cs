@@ -55,7 +55,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 BlockHeight = blockHeader.Height - 1
             };
             var groupedTransactions = await _grouper.GroupAsync(chainContext, transactions);
-            var tasks = groupedTransactions.Parallelizables.AsParallel().Select(
+            var tasks = groupedTransactions.Parallelizables.Select(
                 txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
                 {
                     BlockHeader = blockHeader,
