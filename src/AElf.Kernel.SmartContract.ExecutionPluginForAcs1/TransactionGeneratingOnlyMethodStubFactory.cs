@@ -31,9 +31,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 
             async Task<TOutput> CallAsync(TInput input)
             {
-                var tcs = new TaskCompletionSource<TOutput>();
-                tcs.SetException(new NotSupportedException());
-                return await tcs.Task;
+                throw new NotSupportedException();
             }
 
             return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync);

@@ -20,9 +20,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
         {
             async Task<IExecutionResult<TOutput>> SendAsync(TInput input)
             {
-                var tcs = new TaskCompletionSource<IExecutionResult<TOutput>>();
-                tcs.SetException(new NotSupportedException());
-                return await tcs.Task;
+                throw new NotSupportedException();
             }
 
             var context = _context;
