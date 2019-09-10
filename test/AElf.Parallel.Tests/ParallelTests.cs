@@ -213,7 +213,7 @@ namespace AElf.Parallel.Tests
             
             var transactionResult =
                 await _transactionResultManager.GetTransactionResultAsync(transactionHash,
-                    block.Header.GetPreMiningHash());
+                    block.Header.GetHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("Invalid contract address");
             
@@ -258,7 +258,7 @@ namespace AElf.Parallel.Tests
 
             transactionResult =
                 await _transactionResultManager.GetTransactionResultAsync(transactionHash,
-                    block.Header.GetPreMiningHash());
+                    block.Header.GetHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("Invalid contract address");
         }
