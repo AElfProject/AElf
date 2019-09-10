@@ -4,8 +4,6 @@ package acs2;
 
 import "aelf/core.proto";
 import "aelf/options.proto";
-import public "google/protobuf/empty.proto";
-import public "google/protobuf/any.proto";
 
 option (aelf.identity) = "acs2";
 

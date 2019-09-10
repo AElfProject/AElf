@@ -13,6 +13,7 @@ namespace AElf.CrossChain.Communication.Grpc
             _grpcClientPlugin = grpcClientPlugin;
         }
 
+        #pragma warning disable 1998
         public async Task HandleEventAsync(NewChainConnectionEvent eventData)
         {
             _ = _grpcClientPlugin.CreateClientAsync(new CrossChainClientDto

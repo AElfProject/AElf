@@ -1,8 +1,7 @@
 syntax = "proto3";
 
 import "aelf/core.proto";
-import "kernel.proto";
-import "google/protobuf/timestamp.proto";
+import public "google/protobuf/timestamp.proto";
 import "acs7.proto";
 
 option csharp_namespace = "AElf.CrossChain";

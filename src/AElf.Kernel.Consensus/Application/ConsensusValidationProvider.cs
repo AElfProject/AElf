@@ -18,6 +18,7 @@ namespace AElf.Kernel.Consensus.Application
             Logger = NullLogger<ConsensusValidationProvider>.Instance;
         }
 
+        #pragma warning disable 1998
         public async Task<bool> ValidateBeforeAttachAsync(IBlock block)
         {
             if (block.Header.Height == Constants.GenesisBlockHeight)

@@ -14,6 +14,7 @@ namespace AElf.CrossChain.Communication
             _crossChainRequestService = crossChainRequestService;
         }
 
+        #pragma warning disable 1998
         public async Task HandleEventAsync(CrossChainDataValidatedEvent eventData)
         {
             _ = _crossChainRequestService.RequestCrossChainDataFromOtherChainsAsync();

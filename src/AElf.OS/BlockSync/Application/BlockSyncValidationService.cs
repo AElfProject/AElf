@@ -21,6 +21,7 @@ namespace AElf.OS.BlockSync.Application
             _announcementCacheProvider = announcementCacheProvider;
         }
 
+        #pragma warning disable 1998
         public async Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement, string senderPubKey)
         {
             if (!TryCacheNewAnnouncement(blockAnnouncement.BlockHash, blockAnnouncement.BlockHeight, senderPubKey))
@@ -38,6 +39,7 @@ namespace AElf.OS.BlockSync.Application
             return true;
         }
 
+        #pragma warning disable 1998
         public async Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions, string senderPubKey)
         {
             if (blockWithTransactions.Height <= chain.LastIrreversibleBlockHeight)

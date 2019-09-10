@@ -37,6 +37,7 @@ namespace AElf.Kernel
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
+        #pragma warning disable 1998
         public async Task HandleEventAsync(ConsensusRequestMiningEventData eventData)
         {
             try
