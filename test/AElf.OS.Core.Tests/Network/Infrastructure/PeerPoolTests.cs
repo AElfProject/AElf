@@ -46,7 +46,6 @@ namespace AElf.OS.Network
             _peerPool.FindPeerByPublicKey(peer.Info.Pubkey).ShouldBeNull();
         }
 
-        #pragma warning disable 1998
         [Fact]
         public async Task CannotAddPeerTwice()
         {
@@ -59,7 +58,6 @@ namespace AElf.OS.Network
             _peerPool.FindPeerByPublicKey(peer.Info.Pubkey).ShouldNotBeNull();
         }
 
-        #pragma warning disable 1998
         [Fact]
         public async Task AddPeer_MultipleTimes_Test()
         {
