@@ -20,7 +20,7 @@ namespace AElf.Contracts.Deployer
 
         private static byte[] GetCode(string dllName,string contractDir)
         {
-            var dllPath = contractDir != null
+            var dllPath = Directory.Exists(contractDir)
                 ? Path.Combine(contractDir, $"{dllName}.dll")
                 : Assembly.Load(dllName).Location;
             return File.ReadAllBytes(dllPath);

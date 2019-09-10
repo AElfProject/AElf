@@ -36,7 +36,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
 
         public void SetDefaultContractZeroRegistrationByType(Type defaultZero)
         {
-            var dllPath = _contractOptions.GenesisContractDir != null
+            var dllPath = Directory.Exists(_contractOptions.GenesisContractDir)
                 ? Path.Combine(_contractOptions.GenesisContractDir, $"{defaultZero.Assembly.GetName().Name}.dll")
                 : defaultZero.Assembly.Location;
             var code = File.ReadAllBytes(dllPath);

@@ -83,7 +83,7 @@ namespace AElf.OS.Node.Application
             int category,
             SystemContractDeploymentInput.Types.SystemTransactionMethodCallList transactionMethodCallList = null)
         {
-            var dllPath = _contractOptions.GenesisContractDir != null
+            var dllPath = Directory.Exists(_contractOptions.GenesisContractDir)
                 ? Path.Combine(_contractOptions.GenesisContractDir, $"{contractType.Assembly.GetName().Name}.dll")
                 : contractType.Assembly.Location;
             var code = File.ReadAllBytes(dllPath);
