@@ -304,9 +304,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         }
         #endregion
 
-        public async Task<int> GetTransactionPoolSizeAsync()
+        public Task<int> GetAllTransactionCountAsync()
         {
-            return await Task.FromResult(_allTransactions.Count);
+            return Task.FromResult(_allTransactions.Count);
+        }
+
+        public Task<int> GetValidatedTransactionCountAsync()
+        {
+            return Task.FromResult(_validated.Count);
         }
     }
 }

@@ -12,7 +12,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class FullBlockchainExecutingService : IBlockchainExecutingService, ISingletonDependency
+    public class FullBlockchainExecutingService : IBlockchainExecutingService, ITransientDependency
     {
         private readonly IChainManager _chainManager;
         private readonly IBlockchainService _blockchainService;
@@ -140,8 +140,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     await _chainManager.RemoveLongestBranchAsync(chain);
                     throw;
                 }
-                
-                Logger.LogWarning($"Block validation failed: {ex.Message}.");
+
+                Logger.LogWarning(
+                    $"Block validation failed: {ex.Message}. Inner exception {ex.InnerException.Message}");
             }
             catch (Exception ex)
             {

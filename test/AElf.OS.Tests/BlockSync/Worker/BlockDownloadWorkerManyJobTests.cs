@@ -60,13 +60,13 @@ namespace AElf.OS.BlockSync.Worker
             }
 
             {
-                // Worker run 4 times
+                // Worker run 6 times
                 // Execute job(TargetBlockHeight: 25)
-                // BestChainHeight should be 26
-                await RunWorkerAsync(4, peerBlocks);
+                // BestChainHeight should be 31
+                await RunWorkerAsync(6, peerBlocks);
                 chain = await _blockchainService.GetChainAsync();
-                chain.BestChainHeight.ShouldBe(peerBlocks[14].Height);
-                chain.BestChainHash.ShouldBe(peerBlocks[14].GetHash());
+                chain.BestChainHeight.ShouldBe(peerBlocks[19].Height);
+                chain.BestChainHash.ShouldBe(peerBlocks[19].GetHash());
 
                 var jobInfo = await _blockDownloadJobStore.GetFirstWaitingJobAsync();
                 jobInfo.TargetBlockHeight.ShouldBe(peerBlocks[13].Height);
@@ -77,37 +77,9 @@ namespace AElf.OS.BlockSync.Worker
                 // Worker run once
                 // Execute job(TargetBlockHeight: 25): Just drop the job
                 // Execute job(TargetBlockHeight: 26): Just drop the job
-                // Execute job(TargetBlockHeight: 27)
-                // BestChainHeight should be 29
-                await RunWorkerAsync(1, peerBlocks);
-                chain = await _blockchainService.GetChainAsync();
-                chain.BestChainHeight.ShouldBe(peerBlocks[17].Height);
-                chain.BestChainHash.ShouldBe(peerBlocks[17].GetHash());
-
-                var jobInfo = await _blockDownloadJobStore.GetFirstWaitingJobAsync();
-                jobInfo.TargetBlockHeight.ShouldBe(peerBlocks[15].Height);
-                jobInfo.TargetBlockHash.ShouldBe(peerBlocks[15].GetHash());
-            }
-
-            {
-                // Worker run once
                 // Execute job(TargetBlockHeight: 27): Just drop the job
                 // Execute job(TargetBlockHeight: 28): Just drop the job
                 // Execute job(TargetBlockHeight: 29): Just drop the job
-                // Execute job(TargetBlockHeight: 30)
-                // BestChainHeight should be 31
-                await RunWorkerAsync(1, peerBlocks);
-                chain = await _blockchainService.GetChainAsync();
-                chain.BestChainHeight.ShouldBe(peerBlocks[19].Height);
-                chain.BestChainHash.ShouldBe(peerBlocks[19].GetHash());
-
-                var jobInfo = await _blockDownloadJobStore.GetFirstWaitingJobAsync();
-                jobInfo.TargetBlockHeight.ShouldBe(peerBlocks[18].Height);
-                jobInfo.TargetBlockHash.ShouldBe(peerBlocks[18].GetHash());
-            }
-
-            {
-                // Worker run once
                 // Execute job(TargetBlockHeight: 30): Just drop the job
                 // Execute job(TargetBlockHeight: 31): Just drop the job
                 // BestChainHeight should be 31
