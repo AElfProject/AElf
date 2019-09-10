@@ -135,7 +135,16 @@ namespace AElf.Contract.CrossChain.Tests
             {
                 ContractCode = contractCode,
                 IndexingPrice = indexingPrice,
-                LockedTokenAmount = lockedTokenAmount
+                LockedTokenAmount = lockedTokenAmount,
+                SideChainTokenInfo = new SideChainTokenInfo
+                {
+                    Decimals = 2,
+                    IsBurnable = true,
+                    Issuer = Address.FromPublicKey(Tester.KeyPair.PublicKey),
+                    TotalSupply = 1_000_000_000,
+                    Symbol = "TE",
+                    TokenName = "TEST",
+                }
             };
 //            if (resourceTypeBalancePairs != null)
 //                res.ResourceBalances.AddRange(resourceTypeBalancePairs.Select(x =>

@@ -140,8 +140,7 @@ message SideChainCreationRequest {
     int64 locked_token_amount = 2;
     bytes contract_code = 3;
     bool is_privilege_preserved = 4;
-    string token_name = 5;
-    SideChainTokenInfo side_chain_token_info =6;
+    SideChainTokenInfo side_chain_token_info = 5;
 }
 
 message SideChainTokenInfo {

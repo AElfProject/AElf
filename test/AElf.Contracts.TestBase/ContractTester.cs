@@ -708,6 +708,7 @@ namespace AElf.Contracts.TestBase
                 TotalSupply = TokenTotalSupply,
                 IssueChainId = ChainHelper.ConvertBase58ToChainId("AELF")
             };
+            var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
             var tokenInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenInitializationCallList.Add(
                 nameof(TokenContractContainer.TokenContractStub.RegisterNativeAndResourceTokenInfo),
@@ -722,7 +723,17 @@ namespace AElf.Contracts.TestBase
                         Symbol = nativeTokenInfo.Symbol,
                         TokenName = nativeTokenInfo.TokenName,
                         TotalSupply = nativeTokenInfo.TotalSupply
-                    }
+                    },
+                    ChainPrimaryToken = new TokenInfo
+                    {
+                        Decimals = 2,
+                        IsBurnable = true,
+                        Issuer = Address.FromPublicKey(KeyPair.PublicKey),
+                        TotalSupply = 1_000_000_000,
+                        Symbol = "TE",
+                        TokenName = "TEST",
+                        IssueChainId = chainOptions.ChainId
+                    },
                 });
 
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();

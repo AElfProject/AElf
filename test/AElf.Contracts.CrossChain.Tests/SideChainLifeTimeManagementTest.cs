@@ -75,16 +75,6 @@ namespace AElf.Contract.CrossChain.Tests
                 Assert.True(status == TransactionResultStatus.Failed);
                 Assert.Contains("Invalid chain creation request.", transactionResult.Error);
             }
-            {
-                var proposalId = await CreateSideChainProposalAsync(1, lockedTokenAmount, ByteString.Empty);
-                await ApproveWithMinersAsync(proposalId);
-
-                var transactionResult = await Tester.ExecuteContractWithMiningAsync(ParliamentAddress,
-                    nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Release), proposalId);
-                var status = transactionResult.Status;
-                Assert.True(status == TransactionResultStatus.Failed);
-                Assert.Contains("Invalid chain creation request.", transactionResult.Error);
-            }
         }
 
         [Fact]
