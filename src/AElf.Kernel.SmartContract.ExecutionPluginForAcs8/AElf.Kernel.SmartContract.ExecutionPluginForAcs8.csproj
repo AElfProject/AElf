@@ -27,4 +27,8 @@
             <Link>Protobuf/Proto/token_converter_contract.proto</Link>
         </ContractStub>
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Protobuf\Generated" />
+    </ItemGroup>
 </Project>

@@ -39,8 +39,7 @@ namespace AElf.OS.BlockSync.Application
             return true;
         }
 
-        #pragma warning disable 1998
-        public async Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions, string senderPubKey)
+        public async Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions)
         {
             if (blockWithTransactions.Height <= chain.LastIrreversibleBlockHeight)
             {

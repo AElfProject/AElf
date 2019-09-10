@@ -57,6 +57,24 @@ namespace AElf.Cryptography.Tests
         }
 
         [Fact]
+        public void VerifySignature_BadSignature()
+        {
+            var keyPair = CryptoHelper.GenerateKeyPair();
+            var messageBytes = Encoding.UTF8.GetBytes("Hello world.");
+            var messageHash = messageBytes.ComputeHash();
+            var signature = new byte[65];
+
+            var verifyResult = CryptoHelper.VerifySignature(signature, messageHash, keyPair.PublicKey);
+            verifyResult.ShouldBeFalse();
+        }
+
+        [Fact]
+        public void FromPrivateKey_BadPrivateKey_ShouldThrowException()
+        {
+            Assert.Throws<InvalidOperationException>(() => CryptoHelper.FromPrivateKey(new byte[32]));
+        }
+        
+        [Fact]
         public void Decrypt_Message_Test()
         {
             var alice = CryptoHelper.GenerateKeyPair();
@@ -95,6 +113,12 @@ namespace AElf.Cryptography.Tests
         {
             var byteArray1 = CryptoHelper.RandomFill(30);
             byteArray1.Length.ShouldBe(30);
+        }
+        
+        [Fact]
+        public void Ecdh_BadArgument_ShouldThrowException()
+        {
+            Assert.Throws<InvalidOperationException>(() => CryptoHelper.Ecdh(new byte[32], new byte[33]));
         }
     }
 }
