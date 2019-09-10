@@ -311,7 +311,7 @@ namespace AElf.WebApp.Application.Chain
             }
             
             // in storage
-            var res = await _transactionResultProxyService.TransactionResultQueryService.GetTxResultAsync(transactionId);
+            var res = await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync2(transactionId);
             if (res != null)
             {
                 return res;
