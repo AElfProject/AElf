@@ -36,7 +36,7 @@ namespace AElf.OS.Consensus.DPos
                 {
                     Pubkey = publicKeys[i],
                     ProtocolVersion = KernelConstants.ProtocolVersion,
-                    ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                    ConnectionTime = TimestampHelper.GetUtcNow(),
                     IsInbound = true
                 };
                 peerList.Add(new GrpcPeer(new GrpcClient(null, null), IpEndpointHelper.Parse($"127.0.0.1:68{i + 1}0"), connectionInfo));

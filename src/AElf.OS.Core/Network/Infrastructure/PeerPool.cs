@@ -30,7 +30,9 @@ namespace AElf.OS.Network.Infrastructure
 
         public bool IsFull()
         {
-            return NetworkOptions.MaxPeers == 0 || PeerCount >= NetworkOptions.MaxPeers;
+            var peerCount = Peers.Where(p => !p.Value.IsInvalid).ToList().Count;
+
+            return NetworkOptions.MaxPeers != 0 && peerCount >= NetworkOptions.MaxPeers;
         }
 
         public List<IPeer> GetPeers(bool includeFailing = false)
@@ -55,9 +57,9 @@ namespace AElf.OS.Network.Infrastructure
         {
             if (string.IsNullOrEmpty(publicKey))
                 return null;
-            
+
             Peers.TryGetValue(publicKey, out IPeer p);
-            
+
             return p;
         }
 
@@ -69,6 +71,15 @@ namespace AElf.OS.Network.Infrastructure
 
         public bool TryAddPeer(IPeer peer)
         {
+            // clear invalid peer
+            var invalidPeers = Peers.Where(p => p.Value.IsInvalid).ToList();
+
+            foreach (var invalidPeer in invalidPeers)
+            {
+                var removedPeer = RemovePeer(invalidPeer.Key);
+                removedPeer?.DisconnectAsync(false);
+            }
+
             return Peers.TryAdd(peer.Info.Pubkey, peer);
         }
     }

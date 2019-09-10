@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -14,22 +13,17 @@ namespace AElf.OS.Worker
 {
     public class PeerDiscoveryWorker : PeriodicBackgroundWorkerBase, ISingletonDependency
     {
-        private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
-        public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
-        
         private readonly IPeerDiscoveryService _peerDiscoveryService;
-        private readonly IPeerPool _peerPool;
         private readonly INetworkService _networkService;
 
         public new ILogger<PeerDiscoveryWorker> Logger { get; set; }
 
-        public PeerDiscoveryWorker(AbpTimer timer, IPeerDiscoveryService peerDiscoveryService, IPeerPool peerPool,
+        public PeerDiscoveryWorker(AbpTimer timer, IPeerDiscoveryService peerDiscoveryService,
             INetworkService networkService) : base(timer)
         {
             _peerDiscoveryService = peerDiscoveryService;
             Timer.Period = NetworkConstants.DefaultDiscoveryPeriodInMilliSeconds;
 
-            _peerPool = peerPool;
             _networkService = networkService;
 
             Logger = NullLogger<PeerDiscoveryWorker>.Instance;
@@ -56,9 +50,9 @@ namespace AElf.OS.Worker
 
                 foreach (var node in newNodes.Nodes)
                 {
-                    if (_peerPool.PeerCount >= NetworkOptions.MaxPeers)
+                    if (_networkService.IsPeerPoolFull())
                     {
-                        Logger.LogDebug($"Discovery: Max peers reached {_peerPool.PeerCount}, aborting add.");
+                        Logger.LogDebug("Discovery: Peer pool is full, aborting add.");
                         break;
                     }
 

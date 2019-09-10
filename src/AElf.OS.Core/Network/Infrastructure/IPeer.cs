@@ -13,7 +13,7 @@ namespace AElf.OS.Network.Infrastructure
     {
         bool IsBest { get; set; }
         bool IsReady { get; }
-        
+        bool IsInvalid { get; }
         long LastKnownLibHeight { get; }
         IPEndPoint RemoteEndpoint { get; }
         string IpAddress { get; }
@@ -32,7 +32,6 @@ namespace AElf.OS.Network.Infrastructure
         void EnqueueTransaction(Transaction transaction, Action<NetworkException> sendCallback);
         void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException> sendCallback);
 
-        Task<Handshake> DoHandshakeAsync(Handshake handshake);
         Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash);
         Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);
         Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest);
@@ -40,7 +39,6 @@ namespace AElf.OS.Network.Infrastructure
         Task<bool> TryRecoverAsync();
         
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();
-
         Task DisconnectAsync(bool gracefulDisconnect);
     }
 }
