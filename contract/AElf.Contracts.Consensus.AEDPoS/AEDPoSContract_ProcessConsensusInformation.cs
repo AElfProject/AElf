@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using AElf.Contracts.Election;
@@ -35,6 +36,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             ResetLatestProviderToTinyBlocksCount();
+            ClearCachedFields();
         }
 
         private void ProcessNextRound(Round nextRound)
@@ -285,6 +287,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     };
                 }
             }
+        }
+
+        private void ClearCachedFields()
+        {
+            _rounds.Clear();
+            _processingBlockMinerPubkey = null;
         }
     }
 }
