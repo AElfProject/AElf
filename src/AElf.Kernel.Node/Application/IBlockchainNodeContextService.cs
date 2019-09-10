@@ -90,6 +90,7 @@ namespace AElf.Kernel.Node.Application
 
         public async Task StopAsync(BlockchainNodeContext blockchainNodeContext)
         {
+            await Task.Yield();
         }
     }
 }

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "aelf/core.proto";
 import "aelf/options.proto";
-import "acs3.proto";
+import public "acs3.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 

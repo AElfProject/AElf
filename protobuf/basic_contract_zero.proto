@@ -3,7 +3,7 @@ syntax = "proto3";
 package zero;
 
 import "aelf/options.proto";
-import "acs0.proto";
+import public "acs0.proto";
 
 option csharp_namespace = "AElf.Contracts.Genesis";
 

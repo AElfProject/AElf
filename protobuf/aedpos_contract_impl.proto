@@ -3,9 +3,9 @@ syntax = "proto3";
 package AEDPoSImpl;
 
 import "aelf/options.proto";
-import "acs4.proto";
-import "acs6.proto";
-import "aedpos_contract.proto";
+import public "acs4.proto";
+import public "acs6.proto";
+import public "aedpos_contract.proto";
 
 option csharp_namespace = "AElf.Contracts.Consensus.AEDPoS";
 

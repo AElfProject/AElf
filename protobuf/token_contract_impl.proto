@@ -3,9 +3,9 @@ syntax = "proto3";
 package tokenimpl;
 
 import "aelf/options.proto";
-import "acs1.proto";
-import "acs2.proto";
-import "token_contract.proto";
+import public "acs1.proto";
+import public "acs2.proto";
+import public "token_contract.proto";
 
 option csharp_namespace = "AElf.Contracts.MultiToken";
 

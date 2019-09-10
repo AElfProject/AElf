@@ -11,6 +11,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
         public Address Sender { get; set; }
         public Address ContractAddress { get; set; }
 
+        #pragma warning disable 1998
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
             where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
         {
@@ -30,7 +31,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5
 
             async Task<TOutput> CallAsync(TInput input)
             {
-                throw new NotSupportedException();
+                var tcs = new TaskCompletionSource<TOutput>();
+                tcs.SetException(new NotSupportedException());
+                return await tcs.Task;
             }
 
             return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync);

@@ -88,7 +88,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 // Try storing in cache here
                 return resourceInfo;
             }
-            catch (SmartContractFindRegistrationException e)
+            catch (SmartContractFindRegistrationException)
             {
                 return new TransactionResourceInfo
                 {

@@ -70,7 +70,7 @@ namespace AElf.WebApp.Application.Chain
                 var response = await CallReadOnlyAsync(transaction);
                 return response?.ToHex();
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
                     Error.InvalidTransaction.ToString());

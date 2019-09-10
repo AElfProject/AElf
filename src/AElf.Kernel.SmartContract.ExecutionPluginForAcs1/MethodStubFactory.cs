@@ -14,12 +14,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             _context = context;
         }
 
+        #pragma warning disable 1998
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
             where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
         {
             async Task<IExecutionResult<TOutput>> SendAsync(TInput input)
             {
-                throw new NotSupportedException();
+                var tcs = new TaskCompletionSource<IExecutionResult<TOutput>>();
+                tcs.SetException(new NotSupportedException());
+                return await tcs.Task;
             }
 
             var context = _context;
