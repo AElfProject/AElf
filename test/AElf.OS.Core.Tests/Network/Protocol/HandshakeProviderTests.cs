@@ -1,28 +1,59 @@
 using System.Threading.Tasks;
-using AElf.Kernel.Account.Application;
-using AElf.OS.Network.Infrastructure;
+using AElf.Cryptography;
+using AElf.Kernel;
+using AElf.Sdk.CSharp;
+using AElf.Types;
+using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
 namespace AElf.OS.Network.Protocol
 {
-    public class HandshakeProviderTests : NetworkInfrastructureTestBase
+    public class HandshakeProviderTests : HandshakeTestBase
     {
         private readonly IHandshakeProvider _handshakeProvider;
-        private readonly IAccountService _accountService;
 
         public HandshakeProviderTests()
         {
             _handshakeProvider = GetRequiredService<IHandshakeProvider>();
-            _accountService = GetRequiredService<IAccountService>();
         }
 
         [Fact]
-        public async Task GetHandshakeAsync_Test()
+        public async Task ValidateHandshake_Test()
         {
             var handshake = await _handshakeProvider.GetHandshakeAsync();
-            handshake.ShouldNotBeNull();
-            handshake.HandshakeData.Pubkey.ShouldBe(await _accountService.GetPublicKeyAsync());
+            var validationResult = await _handshakeProvider.ValidateHandshakeAsync(handshake);
+            validationResult.ShouldBe(HandshakeValidationResult.Ok);
+
+            handshake = await _handshakeProvider.GetHandshakeAsync();
+            var fakeKeyPair = CryptoHelper.GenerateKeyPair();
+            handshake.HandshakeData.Pubkey = ByteString.CopyFrom(fakeKeyPair.PublicKey);
+            validationResult = await _handshakeProvider.ValidateHandshakeAsync(handshake);
+            validationResult.ShouldBe(HandshakeValidationResult.Unauthorized);
+
+            handshake = await _handshakeProvider.GetHandshakeAsync();
+            handshake.HandshakeData.ChainId = 1234;
+            validationResult = await _handshakeProvider.ValidateHandshakeAsync(handshake);
+            validationResult.ShouldBe(HandshakeValidationResult.InvalidChainId);
+
+            handshake = await _handshakeProvider.GetHandshakeAsync();
+            handshake.HandshakeData.Version = 0;
+            validationResult = await _handshakeProvider.ValidateHandshakeAsync(handshake);
+            validationResult.ShouldBe(HandshakeValidationResult.InvalidVersion);
+
+            handshake = await _handshakeProvider.GetHandshakeAsync();
+            handshake.HandshakeData.Time =
+                TimestampHelper.GetUtcNow().AddMilliseconds(-(NetworkConstants.HandshakeTimeout + 100));
+            validationResult = await _handshakeProvider.ValidateHandshakeAsync(handshake);
+            validationResult.ShouldBe(HandshakeValidationResult.HandshakeTimeout);
+
+            handshake = await _handshakeProvider.GetHandshakeAsync();
+            var signature = CryptoHelper.SignWithPrivateKey(fakeKeyPair.PrivateKey, Hash
+                .FromMessage(handshake.HandshakeData)
+                .ToByteArray());
+            handshake.Signature = ByteString.CopyFrom(signature);
+            validationResult = await _handshakeProvider.ValidateHandshakeAsync(handshake);
+            validationResult.ShouldBe(HandshakeValidationResult.InvalidSignature);
         }
     }
 }

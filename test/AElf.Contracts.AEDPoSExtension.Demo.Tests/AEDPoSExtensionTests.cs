@@ -15,7 +15,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
     // ReSharper disable once InconsistentNaming
     public class AEDPoSExtensionTests : AEDPoSExtensionDemoTestBase
     {
-        [Fact]
+        [Fact(Skip = "May fails due to task queue.")]
         public async Task Demo_Test()
         {
             // Check round information after initialization.
@@ -25,6 +25,9 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 round.TermNumber.ShouldBe(1);
                 round.RealTimeMinersInformation.Count.ShouldBe(AEDPoSExtensionConstants.InitialKeyPairCount);
 
+                TestDataProvider.SetBlockTime(
+                    round.RealTimeMinersInformation.Single(m => m.Value.Order == 1).Value.ExpectedMiningTime +
+                    new Duration {Seconds = 1});
                 var firstMinerPubkey = round.RealTimeMinersInformation.Single(m => m.Value.Order == 1).Key;
                 var currentMinerPubkey = await ConsensusStub.GetCurrentMinerPubkey.CallAsync(new Empty());
                 currentMinerPubkey.Value.ShouldBe(firstMinerPubkey);

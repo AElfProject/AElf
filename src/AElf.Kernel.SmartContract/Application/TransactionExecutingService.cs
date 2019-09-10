@@ -108,9 +108,9 @@ namespace AElf.Kernel.SmartContract.Application
 
         private async Task<TransactionTrace> ExecuteOneAsync(int depth, IChainContext chainContext,
             Transaction transaction, Timestamp currentBlockTime, CancellationToken cancellationToken,
-            Address origin = null)
+            Address origin = null, bool isCancellable = true)
         {
-            if (cancellationToken.IsCancellationRequested)
+            if (cancellationToken.IsCancellationRequested && isCancellable)
             {
                 return new TransactionTrace
                 {
@@ -278,7 +278,7 @@ namespace AElf.Kernel.SmartContract.Application
                 foreach (var postTx in transactions)
                 {
                     var postTrace = await ExecuteOneAsync(0, internalChainContext, postTx, currentBlockTime,
-                        cancellationToken);
+                        cancellationToken, isCancellable: false);
                     trace.PostTransactions.Add(postTx);
                     trace.PostTraces.Add(postTrace);
                     if (!postTrace.IsSuccessful())
@@ -301,7 +301,12 @@ namespace AElf.Kernel.SmartContract.Application
         {
             if (trace.ExecutionStatus == ExecutionStatus.Undefined)
             {
-                return null;
+                return new TransactionResult
+                {
+                    TransactionId = trace.TransactionId,
+                    Status = TransactionResultStatus.Unexecutable,
+                    Error = ExecutionStatus.Undefined.ToString()
+                };
             }
 
             if (trace.ExecutionStatus == ExecutionStatus.Prefailed)

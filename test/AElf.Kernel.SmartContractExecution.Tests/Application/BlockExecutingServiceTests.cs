@@ -64,13 +64,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
             allTxs.Add(cancellableTxs[1]);
             allTxs.Add(cancellableTxs[2]);
 
-            block.Body.TransactionsCount.ShouldBe(allTxs.Count);
+            block.Body.TransactionsCount.ShouldBe(nonCancellableTxs.Count);
 
-            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(allTxIds);
+            var nonCancellableTxIds = nonCancellableTxs.Select(tx => tx.GetHash()).ToList();
+            var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(nonCancellableTxIds);
             var merkleTreeRoot = binaryMerkleTree.Root;
             block.Header.MerkleTreeRootOfTransactions.ShouldBe(merkleTreeRoot);
 
-            block.Body.TransactionIds.ShouldBe(allTxIds);
+            block.Body.TransactionIds.ShouldBe(nonCancellableTxIds);
         }
 
         private List<Transaction> BuildTransactions(int txCount)
