@@ -62,7 +62,7 @@ namespace AElf.WebApp.Application.Net
             {
                 IpAddress = p.RemoteEndpoint.ToString(),
                 ProtocolVersion = p.Info.ProtocolVersion,
-                ConnectionTime = p.Info.ConnectionTime,
+                ConnectionTime = p.Info.ConnectionTime.Seconds,
                 Inbound = p.Info.IsInbound,
                 BufferedAnnouncementsCount = p.BufferedAnnouncementsCount,
                 BufferedBlocksCount = p.BufferedBlocksCount,
