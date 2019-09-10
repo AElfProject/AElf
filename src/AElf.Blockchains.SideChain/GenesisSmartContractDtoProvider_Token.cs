@@ -11,6 +11,7 @@ namespace AElf.Blockchains.SideChain
         {
             var nativeTokenInfo = TokenInfo.Parser.ParseFrom(chainInitializationData.ExtraInformation[1]);
             var resourceTokenList = TokenInfoList.Parser.ParseFrom(chainInitializationData.ExtraInformation[2]);
+            var chainPrimaryTokenInfo = TokenInfo.Parser.ParseFrom(chainInitializationData.ExtraInformation[3]);
             var tokenInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenInitializationCallList.Add(
                 nameof(TokenContractContainer.TokenContractStub.RegisterNativeAndResourceTokenInfo),
@@ -27,7 +28,8 @@ namespace AElf.Blockchains.SideChain
                             TokenName = nativeTokenInfo.TokenName,
                             TotalSupply = nativeTokenInfo.TotalSupply
                         },
-                    ResourceTokenList = resourceTokenList
+                    ResourceTokenList = resourceTokenList,
+                    ChainPrimaryToken = chainPrimaryTokenInfo
                 });
                 
             return tokenInitializationCallList;
