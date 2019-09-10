@@ -425,10 +425,9 @@ namespace AElf.Contracts.MultiToken
                     State.ChargedFees[sender][symbol] = 0;
                 }
 
-                State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalFee);
-
                 if (totalFee > 0)
                 {
+                    State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalFee);
                     TransferTransactionFeesToFeeReceiver(symbol, totalFee);
                 }
             }
@@ -448,7 +447,7 @@ namespace AElf.Contracts.MultiToken
         private void TransferTransactionFeesToFeeReceiver(string symbol, long totalFee)
         {
             var burnAmount = totalFee.Div(10);
-            Burn(new BurnInput
+            Context.SendInline(Context.Self, nameof(Burn), new BurnInput
             {
                 Symbol = symbol,
                 Amount = burnAmount
