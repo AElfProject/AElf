@@ -50,9 +50,8 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     break;
                 }
-
-                var trace = await ExecuteOneAsync(0, groupChainContext, transaction,
-                    transactionExecutingDto.BlockHeader.Time,
+                var parameters = new TransactionParameters(transaction,groupChainContext,transactionExecutingDto.BlockHeader.Time);
+                var trace = await ExecuteOneAsync(0, parameters,
                     cancellationToken);
 
                 // Will be useful when debugging MerkleTreeRootOfWorldState is different from each miner.
@@ -106,106 +105,73 @@ namespace AElf.Kernel.SmartContract.Application
                    trace.InlineTraces.ToList().Any(IsTransactionCanceled);
         }
 
-        private async Task<TransactionTrace> ExecuteOneAsync(int depth, IChainContext chainContext,
-            Transaction transaction, Timestamp currentBlockTime, CancellationToken cancellationToken,
+        private async Task<TransactionTrace> ExecuteOneAsync(int depth, TransactionParameters parameters, CancellationToken cancellationToken,
             Address origin = null)
         {
             if (cancellationToken.IsCancellationRequested)
             {
                 return new TransactionTrace
                 {
-                    TransactionId = transaction.GetHash(),
+                    TransactionId = parameters.Transaction.GetHash(),
                     ExecutionStatus = ExecutionStatus.Canceled,
                     Error = "Execution cancelled"
                 };
             }
 
-            if (transaction.To == null || transaction.From == null)
+            if (parameters.Transaction.To == null || parameters.Transaction.From == null)
             {
-                throw new Exception($"error tx: {transaction}");
+                throw new Exception($"error tx: {parameters.Transaction}");
             }
 
-            var trace = new TransactionTrace
-            {
-                TransactionId = transaction.GetHash()
-            };
+            TransactionExcuteEntry excuteEntry = new TransactionExcuteEntry(
+                depth,parameters,origin);
 
-            var txCtxt = new TransactionContext
-            {
-                PreviousBlockHash = chainContext.BlockHash,
-                CurrentBlockTime = currentBlockTime,
-                Transaction = transaction,
-                BlockHeight = chainContext.BlockHeight + 1,
-                Trace = trace,
-                CallDepth = depth,
-                StateCache = chainContext.StateCache,
-                Origin = origin != null ? origin : transaction.From
-            };
-
-            var internalStateCache = new TieredStateCache(chainContext.StateCache);
-            var internalChainContext = new ChainContextWithTieredStateCache(chainContext, internalStateCache);
-
-            IExecutive executive;
+            var executive = await _smartContractExecutiveService.GetExecutiveAsync(
+                excuteEntry.internalChainContext,
+                excuteEntry.txCtxt.Transaction.To);
+                
             try
-            {
-                executive = await _smartContractExecutiveService.GetExecutiveAsync(
-                    internalChainContext,
-                    transaction.To);
-            }
-            catch (SmartContractFindRegistrationException e)
-            {
-                txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                txCtxt.Trace.Error += "Invalid contract address.\n";
-                return trace;
-            }
-            
-            try
-            {
-                #region PreTransaction
-
-                if (depth == 0)
+            {                
+                if(!await ProcessTransactionExecution(depth,executive,excuteEntry, cancellationToken))
                 {
-                    if (!await ExecutePluginOnPreTransactionStageAsync(executive, txCtxt, currentBlockTime,
-                        internalChainContext, internalStateCache, cancellationToken))
-                    {
-                        return trace;
-                    }
+                    return excuteEntry.trace;
                 }
-
-                #endregion
-
-                await executive.ApplyAsync(txCtxt);
-
-                await ExecuteInlineTransactions(depth, currentBlockTime, txCtxt, internalStateCache,
-                    internalChainContext, cancellationToken);
-
-                #region PostTransaction
-
-                if (depth == 0)
-                {
-                    if (!await ExecutePluginOnPostTransactionStageAsync(executive, txCtxt, currentBlockTime,
-                        internalChainContext, internalStateCache, cancellationToken))
-                    {
-                        return trace;
-                    }
-                }
-
-                #endregion
             }
             catch (Exception ex)
             {
-                txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                txCtxt.Trace.Error += ex + "\n";
+                excuteEntry.txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+                excuteEntry.txCtxt.Trace.Error += ex + "\n";
                 throw;
             }
             finally
             {
-                await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
+                await _smartContractExecutiveService.PutExecutiveAsync(excuteEntry.txCtxt.Transaction.To, executive);
             }
 
-            return trace;
+            return excuteEntry.trace;
         }
+        
+        private async Task<bool> ProcessTransactionExecution(int depth, IExecutive executive,
+            TransactionExcuteEntry excuteEntry, CancellationToken cancellationToken)
+        {
+            #region PreTransaction
+            if (depth == 0)
+            {
+                if (!await ExecutePluginOnPreTransactionStageAsync(executive, excuteEntry.txCtxt, excuteEntry.txCtxt.CurrentBlockTime,
+                    excuteEntry.internalChainContext, excuteEntry.internalStateCache, cancellationToken))
+                {
+                    return false;
+                }
+            }
+            #endregion
+            await executive.ApplyAsync(excuteEntry.txCtxt);
 
+            await ExecuteInlineTransactions(depth, excuteEntry.txCtxt.CurrentBlockTime, excuteEntry.txCtxt, excuteEntry.internalStateCache,
+                excuteEntry.internalChainContext, cancellationToken);
+
+            return true;
+        }
+        
         private async Task ExecuteInlineTransactions(int depth, Timestamp currentBlockTime,
             TransactionContext txCtxt, TieredStateCache internalStateCache,
             ChainContextWithTieredStateCache internalChainContext, CancellationToken cancellationToken)
@@ -217,8 +183,8 @@ namespace AElf.Kernel.SmartContract.Application
                     .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
                 foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                 {
-                    var inlineTrace = await ExecuteOneAsync(depth + 1, internalChainContext, inlineTx,
-                        currentBlockTime, cancellationToken, txCtxt.Origin);
+                    var parameters = new TransactionParameters(inlineTx,internalChainContext,currentBlockTime);
+                    var inlineTrace = await ExecuteOneAsync(depth + 1, parameters, cancellationToken, txCtxt.Origin);
                     trace.InlineTraces.Add(inlineTrace);
                     if (!inlineTrace.IsSuccessful())
                     {
@@ -245,7 +211,8 @@ namespace AElf.Kernel.SmartContract.Application
                 var transactions = await plugin.GetPreTransactionsAsync(executive.Descriptors, txCtxt);
                 foreach (var preTx in transactions)
                 {
-                    var preTrace = await ExecuteOneAsync(0, internalChainContext, preTx, currentBlockTime,
+                    var parameters = new TransactionParameters(preTx,internalChainContext,currentBlockTime);
+                    var preTrace = await ExecuteOneAsync(0, parameters,
                         cancellationToken);
                     trace.PreTransactions.Add(preTx);
                     trace.PreTraces.Add(preTrace);
@@ -277,7 +244,8 @@ namespace AElf.Kernel.SmartContract.Application
                 var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txCtxt);
                 foreach (var postTx in transactions)
                 {
-                    var postTrace = await ExecuteOneAsync(0, internalChainContext, postTx, currentBlockTime,
+                    var parameters = new TransactionParameters(postTx,internalChainContext,currentBlockTime);
+                    var postTrace = await ExecuteOneAsync(0, parameters,
                         cancellationToken);
                     trace.PostTransactions.Add(postTx);
                     trace.PostTraces.Add(postTrace);
@@ -377,6 +345,50 @@ namespace AElf.Kernel.SmartContract.Application
         {
             // One instance per type
             return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
+        }
+        
+        public class TransactionExcuteEntry
+        {
+            public TransactionTrace trace {get; set;}
+            public TransactionContext txCtxt {get; set;}
+            public TieredStateCache internalStateCache {get; set;}
+            public ChainContextWithTieredStateCache internalChainContext {get; set;}
+            public TransactionExcuteEntry(int depth, TransactionParameters parameters, Address origin = null)
+            {
+                this.trace = new TransactionTrace
+                {
+                    TransactionId = parameters.Transaction.GetHash()
+                };
+
+                this.txCtxt = new TransactionContext
+                {
+                    PreviousBlockHash = parameters.ChainContext.BlockHash,
+                    CurrentBlockTime = parameters.CurrentBlockTime,
+                    Transaction = parameters.Transaction,
+                    BlockHeight = parameters.ChainContext.BlockHeight + 1,
+                    Trace = trace,
+                    CallDepth = depth,
+                    StateCache = parameters.ChainContext.StateCache,
+                    Origin = origin != null ? origin : parameters.Transaction.From
+                };
+            
+                this.internalStateCache = new TieredStateCache(parameters.ChainContext.StateCache);
+                this.internalChainContext = new ChainContextWithTieredStateCache(parameters.ChainContext, internalStateCache);
+            }
+
+        }
+        public class TransactionParameters
+        {
+            public Transaction Transaction { get; set; }
+            public IChainContext ChainContext { get; set; }
+            public Timestamp CurrentBlockTime { get; set; }
+
+            public TransactionParameters(Transaction transaction, IChainContext chainContext, Timestamp currentBlockTime)
+            {
+                this.Transaction = transaction;
+                this.ChainContext = chainContext;
+                this.CurrentBlockTime = currentBlockTime;
+            }
         }
     }
 }
