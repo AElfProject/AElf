@@ -88,7 +88,7 @@ namespace AElf.Contract.TestContract
 
                  var queryTwoUserWinMoneyTransactionResult =
                     await _transactionResultManager.GetTransactionResultAsync(queryTwoUserWinMoneyTransaction
-                        .GetHash(),branchOneBlock.Header.GetPreMiningHash());
+                        .GetHash(),branchOneBlock.Header.GetHash());
                 queryTwoUserWinMoneyTransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 

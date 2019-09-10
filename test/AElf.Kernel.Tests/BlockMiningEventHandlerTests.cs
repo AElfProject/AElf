@@ -9,7 +9,7 @@ using Xunit;
 
 namespace AElf.Kernel
 {
-    public class BlockMiningEventHandlerTests : KernelWithChainTestBase
+    public class BlockMiningEventHandlerTests : KernelWithoutConsensusStaffTestBase
     {
         private IBlockchainService _chainService;
         private ConsensusRequestMiningEventHandler _miningEventHandler;
