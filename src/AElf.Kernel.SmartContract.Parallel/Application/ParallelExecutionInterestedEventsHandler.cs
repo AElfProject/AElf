@@ -8,7 +8,7 @@ using Volo.Abp.EventBus;
 namespace AElf.Kernel.SmartContract.Parallel
 {
     public class ParallelExecutionInterestedEventsHandler : ILocalEventHandler<TransactionAcceptedEvent>,
-        ILocalEventHandler<BlockAcceptedEvent>,
+//        ILocalEventHandler<BlockAcceptedEvent>,
         ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
         ILocalEventHandler<UnexecutableTransactionsFoundEvent>,
         ITransientDependency

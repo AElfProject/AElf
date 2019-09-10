@@ -128,7 +128,9 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             _currentRound =
                 initialMinerList.GenerateFirstRoundOfNewTerm(AEDPoSExtensionConstants.MiningInterval,
                     currentBlockTime);
+            _testDataProvider.SetBlockTime(currentBlockTime.ToTimestamp());
             _contractStubs.First().FirstRound.SendAsync(_currentRound);
+            _testDataProvider.SetBlockTime(currentBlockTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval).ToTimestamp());
         }
 
         public async Task MineBlockAsync(List<Transaction> transactions = null)
