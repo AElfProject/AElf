@@ -25,8 +25,8 @@ service PeerService {
 
     rpc GetNodes (NodesRequest) returns (NodeList) {}
 
-    rpc Connect (ConnectRequest) returns (ConnectReply) {}
     rpc DoHandshake (HandshakeRequest) returns (HandshakeReply) {}
+    rpc ConfirmHandshake (ConfirmHandshakeRequest) returns (VoidReply) {}
 
     rpc Disconnect (DisconnectReason) returns (VoidReply) {}
 }

@@ -288,6 +288,11 @@ namespace AElf.OS.Network.Application
 
             return await Request(peer, p => p.GetBlockByHashAsync(hash));
         }
+        
+        public bool IsPeerPoolFull()
+        {
+            return _peerPool.IsFull();
+        }
 
         private async Task<Response<T>> Request<T>(IPeer peer, Func<IPeer, Task<T>> func) where T : class
         {

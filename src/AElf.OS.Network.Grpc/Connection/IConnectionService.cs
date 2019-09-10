@@ -9,8 +9,8 @@ namespace AElf.OS.Network.Grpc
         GrpcPeer GetPeerByPubkey(string pubkey);
         Task DisconnectAsync(IPeer peer, bool sendDisconnect = false);
         Task<bool> ConnectAsync(IPEndPoint endpoint);
-        Task<ConnectReply> DialBackAsync(IPEndPoint endpoint, ConnectionInfo peerConnectionInfo);
-        Task<HandshakeReply> CheckIncomingHandshakeAsync(string peerId, Handshake handshake);
+        Task<HandshakeReply> DoHandshakeAsync(IPEndPoint endpoint, Handshake handshake);
+        void ConfirmHandshake(string peerPubkey);
         Task DisconnectPeersAsync(bool gracefulDisconnect);
         void RemovePeer(string pubkey);
     }

@@ -14,7 +14,7 @@ namespace AElf.OS.Network
         public static GrpcPeer CreateBasicPeer(string ip, string pubkey)
         {
             
-            return CreatePeerWithInfo(ip, new PeerConnectionInfo { Pubkey = pubkey });
+            return CreatePeerWithInfo(ip, new PeerConnectionInfo { Pubkey = pubkey, ConnectionTime = TimestampHelper.GetUtcNow() });
         }
 
         public static GrpcPeer CreatePeerWithInfo(string ip, PeerConnectionInfo info)
@@ -47,7 +47,7 @@ namespace AElf.OS.Network
             {
                 Pubkey = pubkey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
-                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                ConnectionTime = TimestampHelper.GetUtcNow(),
                 IsInbound = true
             };
 

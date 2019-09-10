@@ -19,9 +19,7 @@ namespace AElf.OS.Consensus.DPos
             _aedpoSLastLastIrreversibleBlockDiscoveryService;
         private readonly IPeerPool _peerPool;
         private readonly OSTestHelper _osTestHelper;
-
-        private readonly long _connectionTime = TimestampHelper.GetUtcNow().Seconds;
-
+        
         public AEDPoSLastLastIrreversibleBlockDiscoveryServiceTests_BP()
         {
             _aedpoSLastLastIrreversibleBlockDiscoveryService =
@@ -75,7 +73,7 @@ namespace AElf.OS.Consensus.DPos
             {
                 Pubkey = publicKey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
-                ConnectionTime = _connectionTime,
+                ConnectionTime = TimestampHelper.GetUtcNow(),
                 IsInbound = true
             };
             

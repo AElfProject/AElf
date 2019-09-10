@@ -14,7 +14,7 @@ namespace AElf.OS.Network.Helpers
                 Pubkey = peer.Info.Pubkey,
                 LastKnownLibHeight = peer.LastKnownLibHeight,
                 ProtocolVersion = peer.Info.ProtocolVersion,
-                ConnectionTime = peer.Info.ConnectionTime,
+                ConnectionTime = peer.Info.ConnectionTime.Seconds,
                 Inbound = peer.Info.IsInbound,
                 BufferedAnnouncementsCount = peer.BufferedAnnouncementsCount,
                 BufferedBlocksCount = peer.BufferedBlocksCount,

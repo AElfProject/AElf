@@ -19,5 +19,6 @@ namespace AElf.OS.Network.Application
         Task BroadcastTransactionAsync(Transaction transaction);
         Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions);
         Task BroadcastLibAnnounceAsync(Hash libHash, long libHeight);
+        bool IsPeerPoolFull();
     }
 }
