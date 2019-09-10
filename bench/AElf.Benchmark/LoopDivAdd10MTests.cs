@@ -37,6 +37,7 @@ namespace AElf.Benchmark
             _chain = await _blockchainService.GetChainAsync();
         }
 
+        #pragma warning disable 1998
         [IterationSetup]
         public async Task IterationSetup()
         {
@@ -62,6 +63,7 @@ namespace AElf.Benchmark
                 TimestampHelper.GetUtcNow());
         }
 
+        #pragma warning disable 1998
         [IterationCleanup]
         public async Task IterationCleanup()
         {

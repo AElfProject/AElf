@@ -24,6 +24,7 @@ namespace AElf.OS.Network
             _eventBus = GetRequiredService<ILocalEventBus>();
         }
         
+        #pragma warning disable 1998
         [Fact]
         public async Task Initial_State_Is_Syncing()
         {

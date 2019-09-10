@@ -185,6 +185,7 @@ namespace AElf.OS
             return (transactions, keyPairs);
         }
 
+        #pragma warning disable 1998
         public async Task<List<Transaction>> GenerateTransactionsWithoutConflict(List<ECKeyPair> keyPairs, int count = 1)
         {
             var transactions = new List<Transaction>();
