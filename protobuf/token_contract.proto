@@ -329,7 +329,10 @@ message TokenInfoList {
     repeated TokenInfo value = 1;
 }
 
-// Events
+message GetCrossChainTransferTokenContractAddressInput {
+    int32 chainId = 1;
+}
+
 message CrossChainCreateTokenInput {
     int32 from_chain_id = 1;
     int64 parent_chain_height = 2;
@@ -344,6 +347,8 @@ message RegisterCrossChainTokenContractAddressInput{
     aelf.MerklePath merkle_path = 4;
     aelf.Address token_contract_address = 5;
 }
+
+// Events
 
 message Transferred {
     option (aelf.is_event) = true;
@@ -378,6 +383,7 @@ message Burned
     sint64 amount = 3;
 }
 
-message GetCrossChainTransferTokenContractAddressInput {
-    int32 chainId = 1;
+message ChainPrimaryTokenSymbolSet {
+    option (aelf.is_event) = true;
+    string token_symbol = 1;
 }
