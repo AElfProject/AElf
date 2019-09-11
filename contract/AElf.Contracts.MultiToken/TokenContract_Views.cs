@@ -91,6 +91,11 @@ namespace AElf.Contracts.MultiToken
         {
             return State.CrossChainTransferWhiteList[input.ChainId];
         }
+        
+        public override StringValue GetPrimaryTokenSymbol(Empty input)
+        {
+            return new StringValue {Value = State.ChainPrimaryTokenSymbol.Value ?? State.NativeTokenSymbol.Value};
+        }
 
         #region ForTests
 

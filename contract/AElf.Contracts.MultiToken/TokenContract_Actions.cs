@@ -79,6 +79,8 @@ namespace AElf.Contracts.MultiToken
                     RegisterTokenInfo(resourceTokenInfo);
                 }
             }
+
+            Context.Fire(new ChainPrimaryTokenSymbolSet {TokenSymbol = input.ChainPrimaryToken.Symbol});
             
             return new Empty();
         }

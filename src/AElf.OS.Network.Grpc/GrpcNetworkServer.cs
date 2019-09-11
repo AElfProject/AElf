@@ -3,15 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using AElf.Cryptography;
-using AElf.Kernel;
-using AElf.Kernel.Account.Application;
-using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
-using AElf.Types;
-using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
@@ -97,10 +91,16 @@ namespace AElf.OS.Network.Grpc
             var taskList = NetworkOptions.BootNodes
                 .Select(async node =>
                 {
-                    if (!IpEndpointHelper.TryParse(node, out IPEndPoint endpoint))
-                        return false;
-                    
-                    return await ConnectAsync(endpoint);
+                    try
+                    {
+                        if (!IpEndpointHelper.TryParse(node, out IPEndPoint endpoint))
+                            return;
+                        await _connectionService.ConnectAsync(endpoint);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.LogError(e, $"Connect peer failed.{node}");
+                    }
                 }).ToList();
             
             await Task.WhenAll(taskList.ToArray<Task>());
