@@ -27,6 +27,8 @@ namespace AElf.OS.BlockSync.Application
         
         public ILogger<BlockDownloadService> Logger { get; set; }
 
+        private const int PeerCheckMinimumCount = 15;
+
         public BlockDownloadService(INetworkService networkService,
             IBlockSyncAttachService blockSyncAttachService,
             IBlockSyncQueueService blockSyncQueueService,
@@ -51,7 +53,7 @@ namespace AElf.OS.BlockSync.Application
         /// <returns></returns>
         public async Task<DownloadBlocksResult> DownloadBlocksAsync(DownloadBlockDto downloadBlockDto)
         {
-            var downloadResult = new DownloadBlocksResult();
+            DownloadBlocksResult downloadResult;
             var peerPubkey = downloadBlockDto.SuggestedPeerPubkey;
 
             if (UseSuggestedPeer(downloadBlockDto))
@@ -112,11 +114,11 @@ namespace AElf.OS.BlockSync.Application
 
         private async Task<bool?> CheckIrreversibleBlockHashAsync(Hash blockHash, long blockHeight)
         {
-            var peers = _networkService.GetPeers().Where(p => p.LastKnownLibHeight >= blockHeight);
+            var peers = _networkService.GetPeers().Where(p => p.LastKnownLibHeight >= blockHeight).ToList();
             bool? checkResult = null;
 
             // Make sure we have enough peer to check the block
-            if (peers.Count() > 15)
+            if (peers.Count() > PeerCheckMinimumCount)
             {
                 var getBlockSuccessCount = 0;
                 var getBlockFailedCount = 0;
