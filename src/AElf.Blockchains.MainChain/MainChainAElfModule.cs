@@ -8,8 +8,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Blockchains.MainChain
 {
     [DependsOn(
-        typeof(BasicBaseChainAElfModule),
-        typeof(BlockTransactionLimitControllerModule)
+        typeof(BasicBaseChainAElfModule)
     )]
     public class MainChainAElfModule : AElfModule
     {
