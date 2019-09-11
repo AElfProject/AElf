@@ -1,4 +1,3 @@
-using System.Net;
 using System.Threading.Tasks;
 
 namespace AElf.OS.Network.Protocol
