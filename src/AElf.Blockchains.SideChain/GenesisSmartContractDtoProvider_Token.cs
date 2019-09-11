@@ -35,7 +35,7 @@ namespace AElf.Blockchains.SideChain
             tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
             {
                 Symbol = chainPrimaryTokenInfo.Symbol,
-                Amount = chainPrimaryTokenInfo.Supply / SideChainStartupConstants.SideChainPrimaryTokenInitialIssueRatio,
+                Amount = chainPrimaryTokenInfo.TotalSupply / SideChainStartupConstants.SideChainPrimaryTokenInitialIssueRatio,
                 Memo = "Initial issue",
                 To = chainPrimaryTokenInfo.Issuer
             });
