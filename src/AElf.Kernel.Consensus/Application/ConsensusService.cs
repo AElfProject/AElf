@@ -48,15 +48,20 @@ namespace AElf.Kernel.Consensus.Application
 
             Logger.LogTrace($"Set block time to utc now: {now:hh:mm:ss.ffffff}. Trigger.");
 
-            var triggerInformation = _triggerInformationProvider.GetTriggerInformationForConsensusCommand(new BytesValue());
-            
-            Logger.LogDebug($"Mining triggered, chain context: {chainContext}");
+            var triggerInformation =
+                _triggerInformationProvider.GetTriggerInformationForConsensusCommand(new BytesValue());
+
+            Logger.LogDebug($"Mining triggered, chain context: {chainContext.BlockHeight} - {chainContext.BlockHash}");
 
             // Upload the consensus command.
             _consensusCommand = await _readerFactory.Create(chainContext)
                 .GetConsensusCommand.CallAsync(triggerInformation);
 
-            if (_consensusCommand == null) return;
+            if (_consensusCommand == null)
+            {
+                Logger.LogDebug("Consensus command is null.");
+                return;
+            }
 
             Logger.LogDebug($"Updated consensus command: {_consensusCommand}");
 
@@ -68,7 +73,7 @@ namespace AElf.Kernel.Consensus.Application
             // Initial consensus scheduler.
             var blockMiningEventData = new ConsensusRequestMiningEventData(chainContext.BlockHash,
                 chainContext.BlockHeight,
-                _nextMiningTime, 
+                _nextMiningTime,
                 TimestampHelper.DurationFromMilliseconds(_consensusCommand.LimitMillisecondsOfMiningBlock),
                 _consensusCommand.MiningDueTime);
             _consensusScheduler.CancelCurrentEvent();
