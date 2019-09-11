@@ -19,6 +19,7 @@ namespace AElf.OS.Network
         {
             _peerPool = GetRequiredService<IPeerPool>();
         }
+            
         
         [Fact]
         public void AddedPeer_IsFindable_ByAddressAndPubkey()
@@ -81,7 +82,7 @@ namespace AElf.OS.Network
             {
                 Pubkey = pubkey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
-                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                ConnectionTime = TimestampHelper.GetUtcNow(),
                 IsInbound = true
             };
 

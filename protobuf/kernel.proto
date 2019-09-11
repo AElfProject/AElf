@@ -183,6 +183,7 @@ message ChainBlockIndex {
 
 message TransactionBlockIndex {
     Hash block_hash = 1;
+    int64 block_height = 2;
 }
 
 message ChainContractInfo{

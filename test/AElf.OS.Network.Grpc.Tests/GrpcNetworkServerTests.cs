@@ -1,4 +1,6 @@
+using System;
 using System.Threading.Tasks;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
@@ -38,7 +40,7 @@ namespace AElf.OS.Network
 
         #region Lifecycle
 
-        [Fact(Skip = "problematic test")]
+        [Fact]
         public async Task Start_ShouldLaunch_NetInitEvent()
         {
             NetworkInitializedEvent eventData = null;
@@ -60,6 +62,7 @@ namespace AElf.OS.Network
             await _networkServer.StartAsync();
             var peer = AddPeerToPool();
             peer.IsShutdown.ShouldBeFalse();
+            await _networkServer.DisconnectAsync(peer);
             await _networkServer.StopAsync();
             peer.IsShutdown.ShouldBeTrue();
         }
@@ -78,12 +81,11 @@ namespace AElf.OS.Network
         }
         
         [Fact] 
-        public async Task DialPeerAsync_DialException_ShouldReturnFalse()
+        public async Task DialPeerAsync_ShouldThrowException()
         {
             IpEndpointHelper.TryParse(NetworkTestConstants.DialExceptionIpEndpoint, out var endpoint);
-            var added = await _networkServer.ConnectAsync(endpoint);
+            _networkServer.ConnectAsync(endpoint).ShouldThrow<Exception>();
             
-            added.ShouldBeFalse();
             _peerPool.PeerCount.ShouldBe(0);
         }
         
@@ -133,22 +135,29 @@ namespace AElf.OS.Network
         }
         
         [Fact] 
-        public async Task DialPeerAsync_HandshakeNetProblem_ShouldReturnFalse()
+        public async Task DialPeerAsync_HandshakeNetProblem_ShouldThrowException()
         {
             IpEndpointHelper.TryParse(NetworkTestConstants.HandshakeWithNetExceptionIp, out var endpoint);
-            var added = await _networkServer.ConnectAsync(endpoint);
+            _networkServer.ConnectAsync(endpoint).ShouldThrow<Exception>();
             
-            added.ShouldBeFalse();
+            _peerPool.PeerCount.ShouldBe(0);
+        }
+        
+        [Fact]
+        public async Task DialPeerAsync_HandshakeDataProblem_ShouldThrowException()
+        {
+            IpEndpointHelper.TryParse(NetworkTestConstants.HandshakeWithNetExceptionIp, out var endpoint);
+            _networkServer.ConnectAsync(endpoint).ShouldThrow<Exception>();
+            
             _peerPool.PeerCount.ShouldBe(0);
         }
         
         [Fact] 
-        public async Task DialPeerAsync_HandshakeError_ShouldReturnFalse()
+        public async Task DialPeerAsync_HandshakeError_ShouldThrowException()
         {
             IpEndpointHelper.TryParse(NetworkTestConstants.BadHandshakeIp, out var endpoint);
-            var added = await _networkServer.ConnectAsync(endpoint);
+            _networkServer.ConnectAsync(endpoint).ShouldThrow<NetworkException>();
             
-            added.ShouldBeFalse();
             _peerPool.PeerCount.ShouldBe(0);
         }
 

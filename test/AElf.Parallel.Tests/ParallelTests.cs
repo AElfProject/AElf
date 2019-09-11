@@ -133,7 +133,7 @@ namespace AElf.Parallel.Tests
                 _parallelTestHelper.GenerateBasicFunctionWithParallelTransactions(_groupCount, _transactionCount);
             await _parallelTestHelper.BroadcastTransactions(transactions);
 
-            var poolSize = await _txHub.GetTransactionPoolSizeAsync();
+            var poolSize = await _txHub.GetAllTransactionCountAsync();
             poolSize.ShouldBe(transactions.Count);
 
             var groupedTransactions = await _grouper.GroupAsync(
@@ -160,7 +160,7 @@ namespace AElf.Parallel.Tests
             groupedTransactions.Parallelizables.Count.ShouldBe(0);
             groupedTransactions.NonParallelizables.Count.ShouldBe(_transactionCount);
             
-            poolSize = await _txHub.GetTransactionPoolSizeAsync();
+            poolSize = await _txHub.GetAllTransactionCountAsync();
 
             poolSize.ShouldBe(transactions.Count - block.TransactionIds.Count());
 
@@ -213,7 +213,7 @@ namespace AElf.Parallel.Tests
             
             var transactionResult =
                 await _transactionResultManager.GetTransactionResultAsync(transactionHash,
-                    block.Header.GetPreMiningHash());
+                    block.Header.GetHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("Invalid contract address");
             
@@ -258,7 +258,7 @@ namespace AElf.Parallel.Tests
 
             transactionResult =
                 await _transactionResultManager.GetTransactionResultAsync(transactionHash,
-                    block.Header.GetPreMiningHash());
+                    block.Header.GetHash());
             transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.Error.ShouldContain("Invalid contract address");
         }

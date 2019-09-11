@@ -9,11 +9,12 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.Consensus.Application
 {
-    internal class ConsensusService : IConsensusService
+    internal class ConsensusService : IConsensusService, ISingletonDependency
     {
         private ConsensusCommand _consensusCommand;
         private readonly IConsensusScheduler _consensusScheduler;
@@ -64,7 +65,8 @@ namespace AElf.Kernel.Consensus.Application
             var blockMiningEventData = new ConsensusRequestMiningEventData(chainContext.BlockHash,
                 chainContext.BlockHeight,
                 _nextMiningTime, 
-                TimestampHelper.DurationFromMilliseconds(_consensusCommand.LimitMillisecondsOfMiningBlock));
+                TimestampHelper.DurationFromMilliseconds(_consensusCommand.LimitMillisecondsOfMiningBlock),
+                _consensusCommand.MiningDueTime);
             _consensusScheduler.CancelCurrentEvent();
             _consensusScheduler.NewEvent(_consensusCommand.NextBlockMiningLeftMilliseconds,
                 blockMiningEventData);

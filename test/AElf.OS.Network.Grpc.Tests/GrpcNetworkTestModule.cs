@@ -1,14 +1,18 @@
 using System;
+using System.Net;
+using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Protocol;
+using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using NSubstitute;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
@@ -27,7 +31,7 @@ namespace AElf.OS.Network
                 o.MaxPeers = 2;
             });
             
-            context.Services.AddSingleton<ISyncStateService>(o =>
+            context.Services.AddSingleton(o =>
             {
                 var mockService = new Mock<ISyncStateService>();
                 mockService.Setup(s => s.SyncState).Returns(SyncState.Finished);
@@ -37,8 +41,6 @@ namespace AElf.OS.Network
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            base.OnApplicationInitialization(context);
-            
             var pool = context.ServiceProvider.GetRequiredService<IPeerPool>();
             var channel = new Channel(NetworkTestConstants.FakeIpEndpoint, ChannelCredentials.Insecure);
             
@@ -46,7 +48,7 @@ namespace AElf.OS.Network
             {
                 Pubkey = NetworkTestConstants.FakePubkey2,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
-                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                ConnectionTime = TimestampHelper.GetUtcNow(),
                 IsInbound = true
             };
             
