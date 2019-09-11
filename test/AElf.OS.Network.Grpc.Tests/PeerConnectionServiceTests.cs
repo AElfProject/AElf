@@ -2,6 +2,7 @@ using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network.Grpc;
+using Google.Protobuf;
 using Shouldly;
 using Xunit;
 
@@ -21,11 +22,11 @@ namespace AElf.OS.Network
         {
             var peerEndpoint = new IPEndPoint(IPAddress.Parse("1.2.3.4"), 1234);
 
-            var firstPeerFromHostResp = await _connectionService.DialBackAsync(peerEndpoint, GetDefaultConnectionInfo());
-            firstPeerFromHostResp.Error.ShouldBe(ConnectError.ConnectOk);
+            var firstPeerFromHostResp = await _connectionService.DoHandshakeAsync(peerEndpoint, GetHandshake());
+            firstPeerFromHostResp.Error.ShouldBe(HandshakeError.HandshakeOk);
             
-            var secondPeerFromHostResp = await _connectionService.DialBackAsync(peerEndpoint, GetDefaultConnectionInfo());
-            secondPeerFromHostResp.Error.ShouldBe(ConnectError.ConnectionRefused);
+            var secondPeerFromHostResp = await _connectionService.DoHandshakeAsync(peerEndpoint, GetHandshake());
+            secondPeerFromHostResp.Error.ShouldBe(HandshakeError.ConnectionRefused);
         }
         
         [Fact]
@@ -34,19 +35,19 @@ namespace AElf.OS.Network
             var grpcUriLocal = new IPEndPoint(IPAddress.Loopback, 1234);
             var grpcUriLocalhostIp = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1234);
 
-            var firstLocalPeerResp = await _connectionService.DialBackAsync(grpcUriLocal, GetDefaultConnectionInfo());
-            firstLocalPeerResp.Error.ShouldBe(ConnectError.ConnectOk);
+            var firstLocalPeerResp = await _connectionService.DoHandshakeAsync(grpcUriLocal, GetHandshake());
+            firstLocalPeerResp.Error.ShouldBe(HandshakeError.HandshakeOk);
             
-            var secondLocalPeerResp = await _connectionService.DialBackAsync(grpcUriLocal, GetDefaultConnectionInfo());
-            secondLocalPeerResp.Error.ShouldBe(ConnectError.ConnectOk);
+            var secondLocalPeerResp = await _connectionService.DoHandshakeAsync(grpcUriLocal, GetHandshake());
+            secondLocalPeerResp.Error.ShouldBe(HandshakeError.HandshakeOk);
             
-            var thirdPeerFromHostResp = await _connectionService.DialBackAsync(grpcUriLocalhostIp, GetDefaultConnectionInfo());
-            thirdPeerFromHostResp.Error.ShouldBe(ConnectError.ConnectOk);
+            var thirdPeerFromHostResp = await _connectionService.DoHandshakeAsync(grpcUriLocalhostIp, GetHandshake());
+            thirdPeerFromHostResp.Error.ShouldBe(HandshakeError.HandshakeOk);
         }
 
-        private ConnectionInfo GetDefaultConnectionInfo()
+        private Handshake GetHandshake(string pubKey = "mockPubKey")
         {
-            return new ConnectionInfo { ChainId = 9992731, Version = KernelConstants.ProtocolVersion };
+            return new Handshake { HandshakeData = new HandshakeData { Pubkey = ByteString.CopyFromUtf8(pubKey)}};
         }
     }
 }

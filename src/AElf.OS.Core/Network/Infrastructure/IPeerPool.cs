@@ -10,6 +10,9 @@ namespace AElf.OS.Network.Infrastructure
         int PeerCount { get; }
 
         bool IsFull();
+
+        bool AddHandshakingPeer(IPEndPoint endpoint, Handshake handshake);
+        bool RemoveHandshakingPeer(IPEndPoint endpoint, Handshake handshake);
         
         List<IPeer> GetPeers(bool includeFailing = false);
 

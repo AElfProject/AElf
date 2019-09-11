@@ -11,15 +11,12 @@ namespace AElf.OS.Network
     public class GrpcNetworkTestBase : AElfIntegratedTest<GrpcNetworkTestModule>
     {
     }
-    
-    public class GrpcNetworkDialerTestBase : AElfIntegratedTest<GrpcNetworkDialerTestModule>
-    {}
-    
-    public class ServerServiceTestBase : AElfIntegratedTest<ConnectionServiceTestModule>
-    {
-    }
 
     public class GrpcBasicNetworkTestBase : AElfIntegratedTest<GrpcBasicNetworkTestModule>
+    {
+    }
+    
+    public class ServerServiceTestBase : AElfIntegratedTest<ConnectionServiceTestModule>
     {
     }
 
@@ -28,6 +25,18 @@ namespace AElf.OS.Network
     }
 
     public class GrpcBackpressureTestBase : AElfIntegratedTest<GrpcBackpressureTestModule>
+    {
+    }
+
+    public class PeerDialerTestBase : AElfIntegratedTest<PeerDialerTestModule>
+    {
+    }
+    
+    public class PeerDialerInvalidHandshakeTestBase : AElfIntegratedTest<PeerDialerInvalidHandshakeTestModule>
+    {
+    }
+    
+    public class PeerDialerReplyErrorTestBase : AElfIntegratedTest<PeerDialerReplyErrorTestModule>
     {
     }
 

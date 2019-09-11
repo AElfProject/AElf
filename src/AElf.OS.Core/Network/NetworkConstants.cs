@@ -23,6 +23,10 @@ namespace AElf.OS.Network
         public const string TransactionBroadcastQueueName = "TransactionBroadcastQueue";
         public const string BlockBroadcastQueueName = "BlockBroadcastQueue";
 
+        public const long HandshakeTimeout = 1000;
+
+        public const long PeerConnectionTimeout = 10000;
+
         public const int DefaultMaxBufferedTransactionCount = 100;
         public const int DefaultMaxBufferedBlockCount = 50;
         public const int DefaultMaxBufferedAnnouncementCount = 200;

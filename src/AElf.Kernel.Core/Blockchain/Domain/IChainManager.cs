@@ -138,6 +138,8 @@ namespace AElf.Kernel.Blockchain.Domain
         {
             BlockAttachOperationStatus status = BlockAttachOperationStatus.None;
 
+            bool isLinkedToLongestChain = chainBlockLink.PreviousBlockHash == chain.LongestChainHash &&
+                                          chainBlockLink.Height == chain.LongestChainHeight + 1;
             while (true)
             {
                 var previousHash = chainBlockLink.PreviousBlockHash.ToStorageKey();
@@ -148,7 +150,9 @@ namespace AElf.Kernel.Blockchain.Domain
                     chain.Branches[blockHash] = chainBlockLink.Height;
                     chain.Branches.Remove(previousHash);
 
-                    if (chainBlockLink.Height > chain.LongestChainHeight)
+                    //TODO: change the longest chain switch length 
+                    if (isLinkedToLongestChain && chainBlockLink.Height > chain.LongestChainHeight
+                        || chainBlockLink.Height >= chain.LongestChainHeight + 8)
                     {
                         chain.LongestChainHeight = chainBlockLink.Height;
                         chain.LongestChainHash = chainBlockLink.BlockHash;
