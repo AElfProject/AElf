@@ -109,7 +109,9 @@ namespace AElf.OS.Network.Grpc
         public async Task<GrpcPeer> DialBackPeerAsync(IPEndPoint endpoint, Handshake handshake)
         {
             var client = CreateClient(endpoint);
-            await PingNodeAsync(client, endpoint);
+
+            if (!await PingNodeAsync(client, endpoint))
+                return null;
 
             var peer = new GrpcPeer(client, endpoint, new PeerInfo
             {
@@ -128,7 +130,7 @@ namespace AElf.OS.Network.Grpc
         /// Checks that the distant node is reachable by pinging it.
         /// </summary>
         /// <returns>The reply from the server.</returns>
-        private async Task PingNodeAsync(GrpcClient client, IPEndPoint ipAddress)
+        private async Task<bool> PingNodeAsync(GrpcClient client, IPEndPoint ipAddress)
         {
             try
             {
@@ -138,12 +140,14 @@ namespace AElf.OS.Network.Grpc
                 };
 
                 await client.Client.PingAsync(new PingRequest(), metadata);
+
+                return true;
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex, $"Could not ping {ipAddress}.");
                 await client.Channel.ShutdownAsync();
-                throw;
+                return false;
             }
         }
 

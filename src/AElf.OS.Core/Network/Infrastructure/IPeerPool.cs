@@ -11,9 +11,9 @@ namespace AElf.OS.Network.Infrastructure
 
         bool IsFull();
 
-        bool AddHandshakingPeer(IPEndPoint endpoint, Handshake handshake);
-        bool RemoveHandshakingPeer(IPEndPoint endpoint, Handshake handshake);
-        
+        bool AddHandshakingPeer(IPEndPoint endpoint, string pubkey);
+        bool RemoveHandshakingPeer(IPEndPoint endpoint, string pubkey);
+
         List<IPeer> GetPeers(bool includeFailing = false);
 
         IPeer FindPeerByEndpoint(IPEndPoint peerEndpoint);

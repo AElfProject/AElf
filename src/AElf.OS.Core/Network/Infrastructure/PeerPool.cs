@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -22,12 +23,12 @@ namespace AElf.OS.Network.Infrastructure
         public int PeerCount => Peers.Count;
 
         protected readonly ConcurrentDictionary<string, IPeer> Peers;
-        protected readonly ConcurrentDictionary<string, List<Handshake>> HandshakingPeers;
+        protected readonly ConcurrentDictionary<string, List<string>> HandshakingPeers;
 
         public PeerPool()
         {
             Peers = new ConcurrentDictionary<string, IPeer>();
-            HandshakingPeers = new ConcurrentDictionary<string, List<Handshake>>();
+            HandshakingPeers = new ConcurrentDictionary<string, List<string>>();
             Logger = NullLogger<PeerPool>.Instance;
         }
 
@@ -37,13 +38,19 @@ namespace AElf.OS.Network.Infrastructure
             return NetworkOptions.MaxPeers != 0 && peerCount >= NetworkOptions.MaxPeers;
         }
 
-        public bool AddHandshakingPeer(IPEndPoint endpoint, Handshake handshake)
+        public bool AddHandshakingPeer(IPEndPoint endpoint, string pubkey)
         {
+            if (IsFull())
+            {
+                Logger.LogWarning("Peer pool is full.");
+                return false;
+            }
+
             // check if the we've reached the maximum number of connections from this IP
             if (NetworkOptions.MaxPeersPerIpAddress != 0 && !endpoint.Address.Equals(IPAddress.Loopback))
             {
                 int initiatedHandshakes = 0;
-                if (HandshakingPeers.TryGetValue(endpoint.Address.ToString(), out List<Handshake> handshakes))
+                if (HandshakingPeers.TryGetValue(endpoint.Address.ToString(), out List<string> handshakes))
                     initiatedHandshakes = handshakes.Count;
                 
                 int peerFromIp = GetPeersByIpAddress(endpoint.Address).Count;
@@ -56,32 +63,32 @@ namespace AElf.OS.Network.Infrastructure
                 }
             }
 
-            HandshakingPeers.AddOrUpdate(endpoint.Address.ToString(), new List<Handshake> { handshake },
+            HandshakingPeers.AddOrUpdate(endpoint.Address.ToString(), new List<string> { pubkey },
                 (key, handshakes) =>
                 {
-                    handshakes.Add(handshake);
+                    handshakes.Add(pubkey);
                     return handshakes;
                 });
 
             return true;
         }
 
-        public bool RemoveHandshakingPeer(IPEndPoint endpoint, Handshake handshake)
+        public bool RemoveHandshakingPeer(IPEndPoint endpoint, string pubkey)
         {
             bool removed = false;
             
-            if (HandshakingPeers.TryGetValue(endpoint.Address.ToString(), out var handshakes))
+            if (HandshakingPeers.TryGetValue(endpoint.Address.ToString(), out var pubkeys))
             {
                 // remove the corresponding handshake
-                var toRemove = handshakes.FirstOrDefault(h => h.HandshakeData.Pubkey == handshake.HandshakeData.Pubkey);
+                var toRemove = pubkeys.FirstOrDefault(p => p == pubkey);
 
                 if (toRemove != null)
                 {
-                    handshakes.Remove(toRemove);
+                    pubkeys.Remove(toRemove);
                     removed = true;
                 }
                 
-                if (!handshakes.IsNullOrEmpty())
+                if (!pubkeys.IsNullOrEmpty())
                     CleanHandshakes(endpoint.Address);
             }
 
@@ -137,6 +144,9 @@ namespace AElf.OS.Network.Infrastructure
 
         public bool TryAddPeer(IPeer peer)
         {
+            // clear any remaining
+            RemoveHandshakingPeer(peer.RemoteEndpoint, peer.Info.Pubkey);
+            
             // clear invalid peer
             var invalidPeers = Peers.Where(p => p.Value.IsInvalid).ToList();
 
