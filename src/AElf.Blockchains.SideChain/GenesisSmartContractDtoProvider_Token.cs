@@ -31,6 +31,14 @@ namespace AElf.Blockchains.SideChain
                     ResourceTokenList = resourceTokenList,
                     ChainPrimaryToken = chainPrimaryTokenInfo
                 });
+            
+            tokenInitializationCallList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
+            {
+                Symbol = chainPrimaryTokenInfo.Symbol,
+                Amount = chainPrimaryTokenInfo.Supply / SideChainStartupConstants.SideChainPrimaryTokenInitialIssueRatio,
+                Memo = "Initial issue",
+                To = chainPrimaryTokenInfo.Issuer
+            });
                 
             return tokenInitializationCallList;
         }
