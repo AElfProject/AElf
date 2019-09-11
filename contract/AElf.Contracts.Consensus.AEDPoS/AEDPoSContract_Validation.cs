@@ -9,39 +9,84 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSContract
     {
+        /// <summary>
+        /// This method will be executed before executing a block.
+        /// </summary>
+        /// <param name="extraData"></param>
+        /// <returns></returns>
         private ValidationResult ValidateBeforeExecution(AElfConsensusHeaderInformation extraData)
         {
-            var publicKey = extraData.SenderPubkey.ToHex();
-            var updatedRound = extraData.Round;
+            // We can trust this because we already validated the pubkey
+            // during `AEDPoSExtraDataExtractor.ExtractConsensusExtraData`
+            var pubkey = extraData.SenderPubkey.ToHex();
+            
+            // This validation focuses on the new round information.
+            var providedRound = extraData.Round;
 
-            // Validate the sender.
-            if (TryToGetCurrentRoundInformation(out var currentRound) &&
-                !currentRound.RealTimeMinersInformation.ContainsKey(publicKey))
+            // According to current round information:
+            if (!TryToGetCurrentRoundInformation(out var baseRound))
+            {
+                return new ValidationResult {Success = false, Message = "Failed to get current round information."};
+            }
+
+            /* Ask several questions: */
+
+            // Is sender in miner list?
+            if (!baseRound.IsInMinerList(pubkey))
             {
                 Context.LogDebug(() => "Sender is not a miner.");
-                return new ValidationResult {Success = false, Message = $"Sender {publicKey} is not a miner."};
+                return new ValidationResult {Success = false, Message = $"Sender {pubkey} is not a miner."};
             }
 
-            // Validate the time slots of round information.
-            var timeSlotsCheckResult = updatedRound.CheckRoundTimeSlots();
-            if (!timeSlotsCheckResult.Success)
+            // If provided round is a new round
+            if (providedRound.RoundId != baseRound.RoundId)
             {
-                Context.LogDebug(() => $"Round time slots incorrect: {timeSlotsCheckResult.Message}");
-                return timeSlotsCheckResult;
+                // Is round information fits time slot rule?
+                var timeSlotsCheckResult = providedRound.CheckRoundTimeSlots();
+                if (!timeSlotsCheckResult.Success)
+                {
+                    Context.LogDebug(() => $"Round time slots incorrect: {timeSlotsCheckResult.Message}");
+                    return timeSlotsCheckResult;
+                }
             }
-            
-            // Validate whether this miner abide by his time slot.
-            // Maybe failing due to using too much time producing previous tiny blocks.
-            if (updatedRound.RoundId == currentRound.RoundId && !CheckMinerTimeSlot(updatedRound, publicKey))
+            else
             {
-                Context.LogDebug(() => "Time slot already passed before execution.");
-                return new ValidationResult {Message = "Time slot already passed before execution."};
+                // Is sender respect his time slot?
+                // It is maybe failing due to using too much time producing previous tiny blocks.
+                if (!CheckMinerTimeSlot(providedRound, pubkey))
+                {
+                    Context.LogDebug(() => "Time slot already passed before execution.");
+                    return new ValidationResult {Message = "Time slot already passed before execution."};
+                }
             }
 
-            if (updatedRound.RealTimeMinersInformation.Values.Where(m => m.FinalOrderOfNextRound > 0).Distinct()
-                    .Count() != updatedRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null))
+            // Is sender produce too many continuous blocks?
+            // Skip first two rounds.
+            if (providedRound.RoundNumber > 2)
+            {
+                var latestProviderToTinyBlocksCount = State.LatestProviderToTinyBlocksCount.Value;
+                if (latestProviderToTinyBlocksCount != null && latestProviderToTinyBlocksCount.Pubkey == pubkey &&
+                    latestProviderToTinyBlocksCount.BlocksCount < 0)
+                {
+                    Context.LogDebug(() => $"Sender {pubkey} produced too many continuous blocks.");
+                    return new ValidationResult {Message = "Sender produced too many continuous blocks."};
+                }
+            }
+
+            // Is sender's order of next round correct?
+            // Miners that have determined the order of the next round should be equal to
+            // miners that mined blocks during current round.
+            if (providedRound.RealTimeMinersInformation.Values.Where(m => m.FinalOrderOfNextRound > 0).Distinct()
+                    .Count() != providedRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null))
             {
                 return new ValidationResult {Message = "Invalid FinalOrderOfNextRound."};
+            }
+
+            // Is confirmed lib height and lib round number went down?
+            if (baseRound.ConfirmedIrreversibleBlockHeight > providedRound.ConfirmedIrreversibleBlockHeight ||
+                baseRound.ConfirmedIrreversibleBlockRoundNumber > providedRound.ConfirmedIrreversibleBlockRoundNumber)
+            {
+                return new ValidationResult {Message = "Incorrect confirmed lib information."};
             }
 
             switch (extraData.Behaviour)
@@ -51,6 +96,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     return ValidationForUpdateValue(extraData);
                 case AElfConsensusBehaviour.NextRound:
                     return ValidationForNextRound(extraData);
+                case AElfConsensusBehaviour.NextTerm:
+                    return ValidationForNextTerm(extraData);
             }
 
             return new ValidationResult {Success = true};
@@ -101,12 +148,35 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private ValidationResult ValidationForNextRound(AElfConsensusHeaderInformation extraData)
         {
-            // None of in values should be filled.
+            // Is next round information correct?
+            if (TryToGetCurrentRoundInformation(out var currentRound, true) &&
+                currentRound.RoundNumber.Add(1) != extraData.Round.RoundNumber)
+            {
+                return new ValidationResult {Message = "Incorrect round number for next round."};
+            }
             if (extraData.Round.RealTimeMinersInformation.Values.Any(m => m.InValue != null))
             {
-                return new ValidationResult {Message = "Incorrect in values."};
+                return new ValidationResult {Message = "Incorrect next round information."};
             }
 
+
+            return new ValidationResult {Success = true};
+        }
+
+        private ValidationResult ValidationForNextTerm(AElfConsensusHeaderInformation extraData)
+        {
+            // Is next round information correct?
+            var validationResult = ValidationForNextRound(extraData);
+            if (!validationResult.Success)
+            {
+                return validationResult;
+            }
+            if (TryToGetCurrentRoundInformation(out var currentRound, true) &&
+                currentRound.TermNumber.Add(1) != extraData.Round.TermNumber)
+            {
+                return new ValidationResult {Message = "Incorrect term number for next round."};
+            }
+            
             return new ValidationResult {Success = true};
         }
 

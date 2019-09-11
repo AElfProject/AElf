@@ -62,6 +62,11 @@ namespace AElf.Contracts.Genesis
             return new Empty();
         }
 
+        public override AddressList GetDeployedContractAddressList(Empty input)
+        {
+            return State.DeployedContractAddressList.Value;
+        }
+
         #endregion Views
 
         #region Actions
@@ -125,13 +130,22 @@ namespace AElf.Contracts.Genesis
                 Creator = Context.Origin
             });
 
+            var deployedContractAddressList = State.DeployedContractAddressList.Value;
+            if (deployedContractAddressList == null)
+            {
+                State.DeployedContractAddressList.Value = new AddressList {Value = {contractAddress}};
+            }
+            else
+            {
+                deployedContractAddressList.Value.Add(contractAddress);
+                State.DeployedContractAddressList.Value = deployedContractAddressList;
+            }
+
             Context.LogDebug(() => "BasicContractZero - Deployment ContractHash: " + codeHash.ToHex());
             Context.LogDebug(() => "BasicContractZero - Deployment success: " + contractAddress.GetFormatted());
 
-
             if (name != null)
                 State.NameAddressMapping[name] = contractAddress;
-
 
             return contractAddress;
         }

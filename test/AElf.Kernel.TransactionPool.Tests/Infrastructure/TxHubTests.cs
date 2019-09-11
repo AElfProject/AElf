@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {
-    public class TxHubTests : TransactionPoolWithChainTestBase
+    public sealed class TxHubTests : TransactionPoolWithChainTestBase
     {
         private readonly TxHub _txHub;
         private readonly IBlockchainService _blockchainService;
@@ -21,7 +21,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
         
-        [Fact]
+        // TODO: Need to deploy zero contract.
+        [Fact(Skip = "Zero contract not deployed.")]
         public async Task Test_TxHub()
         {
             {
@@ -38,6 +39,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
 
             var transactionHeight100 = _kernelTestHelper.GenerateTransaction(100);
+
             {
                 // Receive a feature transaction twice
                 // Chain:

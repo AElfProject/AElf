@@ -49,10 +49,14 @@ namespace AElf.Kernel.Consensus.Application
             Logger.LogTrace($"Set block time to utc now: {now:hh:mm:ss.ffffff}. Trigger.");
 
             var triggerInformation = _triggerInformationProvider.GetTriggerInformationForConsensusCommand(new BytesValue());
+            
+            Logger.LogDebug($"Mining triggered, chain context: {chainContext}");
 
             // Upload the consensus command.
             _consensusCommand = await _readerFactory.Create(chainContext)
                 .GetConsensusCommand.CallAsync(triggerInformation);
+
+            if (_consensusCommand == null) return;
 
             Logger.LogDebug($"Updated consensus command: {_consensusCommand}");
 
