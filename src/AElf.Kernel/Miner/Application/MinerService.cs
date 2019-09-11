@@ -39,10 +39,12 @@ namespace AElf.Kernel.Miner.Application
             Duration blockExecutionTime)
         {
             var limit = await _blockTransactionLimitProvider.GetLimitAsync();
+//            var executableTransactionSet =
+//                await _txHub.GetExecutableTransactionSetAsync(_isPackageNormalTransactionProvider.IsPackage
+//                    ? limit
+//                    : -1);
             var executableTransactionSet =
-                await _txHub.GetExecutableTransactionSetAsync(_isPackageNormalTransactionProvider.IsPackage
-                    ? limit
-                    : -1);
+                await _txHub.GetExecutableTransactionSetAsync(0);
             var pending = new List<Transaction>();
             if (executableTransactionSet.PreviousBlockHash == previousBlockHash)
             {

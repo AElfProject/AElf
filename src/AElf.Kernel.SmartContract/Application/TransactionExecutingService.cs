@@ -49,6 +49,7 @@ namespace AElf.Kernel.SmartContract.Application
                 transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);
 
             var returnSets = new List<ExecutionReturnSet>();
+            Logger.LogTrace($"###=======### start enumerating transactions and transaction count is {transactionExecutingDto.Transactions.Count()}");
             foreach (var transaction in transactionExecutingDto.Transactions)
             {
                 TransactionTrace trace;
@@ -60,7 +61,7 @@ namespace AElf.Kernel.SmartContract.Application
                 }
                 catch(Exception e)
                 {
-                    Logger.LogDebug("canceled in executeAsync");
+                    Logger.LogTrace("###=======###canceled in executeAsync  in foreach transaction");
                     break;
                 }
                 if (trace == null)
@@ -121,6 +122,7 @@ namespace AElf.Kernel.SmartContract.Application
             Transaction transaction, Timestamp currentBlockTime, CancellationToken cancellationToken,
             Address origin = null)
         {
+            Logger.LogTrace("###====### smart contract prepared");
             if (transaction.To == null || transaction.From == null)
             {
                 throw new Exception($"error tx: {transaction}");
@@ -149,12 +151,15 @@ namespace AElf.Kernel.SmartContract.Application
             IExecutive executive;
             try
             {
+                Logger.LogTrace("######=======####### prepare to execute smart contract");
                 executive = await _smartContractExecutiveService.GetExecutiveAsync(
                     internalChainContext,
                     transaction.To).WithCancellation(cancellationToken);
             }
             catch (Exception e)
             {
+                Logger.LogTrace("######=======####### cancel in 158");
+                trace.ExecutionStatus = ExecutionStatus.Canceled;
                 txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                 txCtxt.Trace.Error += "Invalid contract address.\n";
                 return trace;
@@ -176,7 +181,8 @@ namespace AElf.Kernel.SmartContract.Application
                         }
                         catch
                         {
-                            Logger.LogDebug("canceled in plugin pre transaction");
+                            Logger.LogTrace("###=======#######canceled in plugin pre transaction");
+                            trace.ExecutionStatus = ExecutionStatus.Canceled;
                             return trace;
                         }
                         if (!isSuccess)
@@ -205,7 +211,8 @@ namespace AElf.Kernel.SmartContract.Application
                     }
                     catch
                     {
-                        Logger.LogDebug("canceled in plugin post transaction");
+                        Logger.LogTrace("######=======####### canceled in plugin post transaction");
+                        trace.ExecutionStatus = ExecutionStatus.Canceled;
                         return trace;
                     }
                     if (!isSuccess)

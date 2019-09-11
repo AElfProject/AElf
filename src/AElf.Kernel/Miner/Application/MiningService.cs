@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
@@ -92,20 +93,26 @@ namespace AElf.Kernel.Miner.Application
             using (var cts = new CancellationTokenSource())
             {
                 //cts.CancelAfter((int) requestMiningDto.BlockExecutionTime.Milliseconds());
-                cts.CancelAfter(4000);
+                cts.CancelAfter(10);
+                var watch =new Stopwatch();
+                watch.Start();
                 var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
                     requestMiningDto.PreviousBlockHeight, blockTime);
                 var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
                     requestMiningDto.PreviousBlockHeight);
 
                 var pending = transactions;
-
+                int pendingCount = pending.Count;
+                int systemCount = systemTransactions.Count;
                 block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                     systemTransactions, pending, cts.Token);
                 await SignBlockAsync(block);
+                watch.Stop();
+                var addedInfo = $"###===###system transactions count is {systemCount} pending transactions in miningservice: {pendingCount}  and elapsed {watch.ElapsedMilliseconds}";
                 Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
                                       $"previous: {block.Header.PreviousBlockHash}, " +
-                                      $"transactions: {block.Body.TransactionsCount}");
+                                      $"transactions: {block.Body.TransactionsCount}" + addedInfo);
+
                 return block;
             }
         }

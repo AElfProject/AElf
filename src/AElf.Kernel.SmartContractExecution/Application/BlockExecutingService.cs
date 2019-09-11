@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,19 +46,22 @@ namespace AElf.Kernel.SmartContractExecution.Application
             Logger.LogTrace("Entered ExecuteBlockAsync");
             var nonCancellable = nonCancellableTransactions.ToList();
             var cancellable = cancellableTransactions.ToList();
-
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
             var nonCancellableReturnSets =
                 await _executingService.ExecuteAsync(
                     new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = nonCancellable},
                     CancellationToken.None, true);
-            Logger.LogTrace("Executed non-cancellable txs");
+            var addInfo = $" deal time is {stopWatch.ElapsedMilliseconds}";
+            stopWatch.Stop();
+            Logger.LogTrace("Executed non-cancellable txs" + addInfo);
 
             var returnSetCollection = new ReturnSetCollection(nonCancellableReturnSets);
             List<ExecutionReturnSet> cancellableReturnSets = new List<ExecutionReturnSet>();
+           stopWatch.Start();
             if (cancellable.Count > 0)
             {
-                cancellableReturnSets = await _executingService.ExecuteAsync(
-                    new TransactionExecutingDto
+                cancellableReturnSets = await _executingService.ExecuteAsync(new TransactionExecutingDto 
                     {
                         BlockHeader = blockHeader,
                         Transactions = cancellable,
@@ -66,8 +70,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     cancellationToken, false);
                 returnSetCollection.AddRange(cancellableReturnSets);
             }
-
-            Logger.LogTrace("Executed cancellable txs");
+            stopWatch.Stop();
+            var addedInfo = $"###===###handled transaction count is {cancellableReturnSets.Count}" +
+                            $"###===###elapsed milliseconds is {stopWatch.ElapsedMilliseconds}";
+            Logger.LogTrace("Executed cancellable txs" + addedInfo);
 
             Logger.LogTrace("Handled return set");
 

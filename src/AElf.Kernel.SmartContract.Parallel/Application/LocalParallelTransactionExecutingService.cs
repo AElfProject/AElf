@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,6 +42,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             Logger.LogTrace($"Entered parallel ExecuteAsync.");
             var transactions = transactionExecutingDto.Transactions.ToList();
+            Logger.LogTrace($"all transaction count is {transactions.Count}");
             var blockHeader = transactionExecutingDto.BlockHeader;
             // TODO: Is it reasonable to allow throwing exception here
 //            if (throwException)
@@ -55,6 +57,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                 BlockHeight = blockHeader.Height - 1
             };
             var groupedTransactions = await _grouper.GroupAsync(chainContext, transactions);
+            var addedInfo = $"###===### group parallel tansaction count is {groupedTransactions.Parallelizables.Count}, non para is {groupedTransactions.NonParallelizables.Count},   transaction without contract is {groupedTransactions.TransactionsWithoutContract.Count}";
             var tasks = groupedTransactions.Parallelizables.AsParallel().Select(
                 txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
                 {
@@ -62,9 +65,28 @@ namespace AElf.Kernel.SmartContract.Parallel
                     Transactions = txns,
                     PartialBlockStateSet = transactionExecutingDto.PartialBlockStateSet
                 }, cancellationToken, throwException));
+//            var tasks2 = new List<Task<(List<ExecutionReturnSet>,HashSet<string>)>>();
+//            foreach (var transaction in groupedTransactions.Parallelizables)
+//            {
+//                Task<(List<ExecutionReturnSet>, HashSet<string>)> transactionTask = null;
+//                try
+//                {
+//                    transactionTask = ExecuteAndPreprocessResult(new TransactionExecutingDto
+//                    {
+//                        BlockHeader = blockHeader,
+//                        Transactions = transaction,
+//                        PartialBlockStateSet = transactionExecutingDto.PartialBlockStateSet
+//                    }, cancellationToken, throwException);
+//                }
+//                catch
+//                {
+//                    break;
+//                }
+//                tasks2.Add(transactionTask);
+//            }
             var results = await Task.WhenAll(tasks);
 
-            Logger.LogTrace("Executed parallelizables.");
+            Logger.LogTrace("Executed parallelizables." + addedInfo);
 
             var returnSets = MergeResults(results, out var conflictingSets).Item1;
             var returnSetCollection = new ReturnSetCollection(returnSets);
@@ -143,8 +165,17 @@ namespace AElf.Kernel.SmartContract.Parallel
             TransactionExecutingDto transactionExecutingDto, CancellationToken cancellationToken,
             bool throwException = false)
         {
-            var executionReturnSets =
-                await _plainExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken, throwException);
+            Logger.LogTrace("###====###  start ExecuteAndPreprocessResult");
+            List<ExecutionReturnSet> executionReturnSets = null;
+            try
+            {
+                executionReturnSets = await _plainExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken, throwException).WithCancellation(cancellationToken);
+            }
+            catch
+            {
+                executionReturnSets = new List<ExecutionReturnSet>();
+                Logger.LogTrace("###====###  timeout in ExecuteAndPreprocessResult");
+            }
             var keys = new HashSet<string>(
                 executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateAccesses.Keys)));
             return (executionReturnSets, keys);
