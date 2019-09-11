@@ -144,9 +144,6 @@ namespace AElf.OS.Network.Infrastructure
 
         public bool TryAddPeer(IPeer peer)
         {
-            // clear any remaining
-            RemoveHandshakingPeer(peer.RemoteEndpoint, peer.Info.Pubkey);
-            
             // clear invalid peer
             var invalidPeers = Peers.Where(p => p.Value.IsInvalid).ToList();
 

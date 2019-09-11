@@ -156,7 +156,7 @@ namespace AElf.OS.Network.Grpc.Connection
             }
             finally
             {
-                // remove the mark (IP; pubkey) 
+                // remove the handshaking mark (IP; pubkey)
                 _peerPool.RemoveHandshakingPeer(endpoint, pubkey);
             }
         }
