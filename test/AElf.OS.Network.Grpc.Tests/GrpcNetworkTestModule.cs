@@ -52,7 +52,7 @@ namespace AElf.OS.Network
                 IsInbound = true
             };
             
-            if (!IpEndpointHelper.TryParse(NetworkTestConstants.FakeIpEndpoint, out var peerEnpdoint))
+            if (!IpEndPointHelper.TryParse(NetworkTestConstants.FakeIpEndpoint, out var peerEnpdoint))
                 throw new Exception($"Ip {NetworkTestConstants.FakeIpEndpoint} is invalid.");
             
             pool.TryAddPeer(new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), peerEnpdoint, connectionInfo));

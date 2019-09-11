@@ -6,7 +6,6 @@ using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Protocol;
-using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
@@ -23,6 +22,7 @@ namespace AElf.OS.Network
             context.Services.AddSingleton(sp =>
             {
                 Mock<IPeerDialer> mockDialer = new Mock<IPeerDialer>();
+                
                 mockDialer.Setup(d => d.DialBackPeerAsync(It.IsAny<IPEndPoint>(), It.IsAny<Handshake>()))
                     .Returns<IPEndPoint, Handshake>((ip, _) =>
                     {
@@ -33,6 +33,20 @@ namespace AElf.OS.Network
                                     Pubkey = randomKp.PublicKey.ToHex(),
                                     ConnectionTime = TimestampHelper.GetUtcNow()
                                 }));
+                    });
+                
+                mockDialer.Setup(d => d.DialBackPeerAsync(It.Is<IPEndPoint>(ipEndpoint => ipEndpoint.Address.Equals(IPAddress.Parse("1.2.3.5"))), It.IsAny<Handshake>()))
+                    .Returns<IPEndPoint, Handshake>(async (ip, _) =>
+                    {
+                        var randomKp = CryptoHelper.GenerateKeyPair();
+                        await Task.Delay(TimeSpan.FromSeconds(2));
+                        
+                        return new GrpcPeer(
+                            new GrpcClient(null, Mock.Of<PeerService.PeerServiceClient>()), ip, new PeerInfo
+                            {
+                                Pubkey = randomKp.PublicKey.ToHex(),
+                                ConnectionTime = TimestampHelper.GetUtcNow()
+                            });
                     });
 
                 return mockDialer.Object;

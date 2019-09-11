@@ -11,8 +11,9 @@ namespace AElf.OS.Network.Infrastructure
 
         bool IsFull();
 
-        bool AddHandshakingPeer(IPEndPoint endpoint, string pubkey);
-        bool RemoveHandshakingPeer(IPEndPoint endpoint, string pubkey);
+        bool AddHandshakingPeer(IPAddress ipAddress, string pubkey);
+        bool RemoveHandshakingPeer(IPAddress ipAddress, string pubkey);
+        Dictionary<IPAddress, List<string>> GetHandshakingPeers();
 
         List<IPeer> GetPeers(bool includeFailing = false);
 

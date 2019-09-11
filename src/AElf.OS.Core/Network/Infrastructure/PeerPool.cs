@@ -21,14 +21,16 @@ namespace AElf.OS.Network.Infrastructure
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
 
         public int PeerCount => Peers.Count;
+        public Dictionary<IPAddress, List<string>> GetHandshakingPeers()
+            => HandshakingPeers.ToDictionary(p => p.Key, p => p.Value);
 
         protected readonly ConcurrentDictionary<string, IPeer> Peers;
-        protected readonly ConcurrentDictionary<string, List<string>> HandshakingPeers;
+        protected readonly ConcurrentDictionary<IPAddress, List<string>> HandshakingPeers;
 
         public PeerPool()
         {
             Peers = new ConcurrentDictionary<string, IPeer>();
-            HandshakingPeers = new ConcurrentDictionary<string, List<string>>();
+            HandshakingPeers = new ConcurrentDictionary<IPAddress, List<string>>();
             Logger = NullLogger<PeerPool>.Instance;
         }
 
@@ -38,7 +40,7 @@ namespace AElf.OS.Network.Infrastructure
             return NetworkOptions.MaxPeers != 0 && peerCount >= NetworkOptions.MaxPeers;
         }
 
-        public bool AddHandshakingPeer(IPEndPoint endpoint, string pubkey)
+        public bool AddHandshakingPeer(IPAddress ipAddress, string pubkey)
         {
             if (IsFull())
             {
@@ -47,23 +49,23 @@ namespace AElf.OS.Network.Infrastructure
             }
 
             // check if the we've reached the maximum number of connections from this IP
-            if (NetworkOptions.MaxPeersPerIpAddress != 0 && !endpoint.Address.Equals(IPAddress.Loopback))
+            if (NetworkOptions.MaxPeersPerIpAddress != 0 && !ipAddress.Equals(IPAddress.Loopback))
             {
                 int initiatedHandshakes = 0;
-                if (HandshakingPeers.TryGetValue(endpoint.Address.ToString(), out List<string> handshakes))
+                if (HandshakingPeers.TryGetValue(ipAddress, out var handshakes))
                     initiatedHandshakes = handshakes.Count;
                 
-                int peerFromIp = GetPeersByIpAddress(endpoint.Address).Count;
-                if (peerFromIp + initiatedHandshakes >= NetworkOptions.MaxPeersPerIpAddress)
+                int peersFromIpCount = GetPeersByIpAddress(ipAddress).Count;
+                if (peersFromIpCount + initiatedHandshakes >= NetworkOptions.MaxPeersPerIpAddress)
                 {
-                    Logger.LogWarning($"Max peers from {endpoint.Address} exceeded, current count {peerFromIp} " +
+                    Logger.LogWarning($"Max peers from {ipAddress} exceeded, current count {peersFromIpCount} " +
                                       $"(max. per ip {NetworkOptions.MaxPeersPerIpAddress}).");
 
                     return false;
                 }
             }
 
-            HandshakingPeers.AddOrUpdate(endpoint.Address.ToString(), new List<string> { pubkey },
+            HandshakingPeers.AddOrUpdate(ipAddress, new List<string> { pubkey },
                 (key, handshakes) =>
                 {
                     handshakes.Add(pubkey);
@@ -73,11 +75,11 @@ namespace AElf.OS.Network.Infrastructure
             return true;
         }
 
-        public bool RemoveHandshakingPeer(IPEndPoint endpoint, string pubkey)
+        public bool RemoveHandshakingPeer(IPAddress address, string pubkey)
         {
             bool removed = false;
             
-            if (HandshakingPeers.TryGetValue(endpoint.Address.ToString(), out var pubkeys))
+            if (HandshakingPeers.TryGetValue(address, out var pubkeys))
             {
                 // remove the corresponding handshake
                 var toRemove = pubkeys.FirstOrDefault(p => p == pubkey);
@@ -88,8 +90,8 @@ namespace AElf.OS.Network.Infrastructure
                     removed = true;
                 }
                 
-                if (!pubkeys.IsNullOrEmpty())
-                    CleanHandshakes(endpoint.Address);
+                if (pubkeys.IsNullOrEmpty())
+                    CleanHandshakes(address);
             }
 
             return removed;
@@ -97,7 +99,7 @@ namespace AElf.OS.Network.Infrastructure
 
         private void CleanHandshakes(IPAddress ipAddress)
         {
-            HandshakingPeers.TryRemove(ipAddress.ToString(), out _);
+            HandshakingPeers.TryRemove(ipAddress, out _);
         }
 
         public List<IPeer> GetPeers(bool includeFailing = false)

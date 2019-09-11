@@ -93,7 +93,7 @@ namespace AElf.OS.Network.Grpc
                 {
                     try
                     {
-                        if (!IpEndpointHelper.TryParse(node, out IPEndPoint endpoint))
+                        if (!IpEndPointHelper.TryParse(node, out IPEndPoint endpoint))
                             return;
                         await _connectionService.ConnectAsync(endpoint);
                     }

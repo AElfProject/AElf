@@ -121,7 +121,8 @@ namespace AElf.OS.Network.Grpc.Connection
             
             try
             {
-                // remove any remaining connection to the peer
+                // remove any remaining connection to the peer (before the check
+                // that we have room for more connections)
                 var currentPeer = _peerPool.FindPeerByPublicKey(pubkey);
                 if (currentPeer != null)
                 {
@@ -130,7 +131,7 @@ namespace AElf.OS.Network.Grpc.Connection
                 }
 
                 // mark the (IP; pubkey) pair as currently handshaking
-                if (!_peerPool.AddHandshakingPeer(endpoint, pubkey))
+                if (!_peerPool.AddHandshakingPeer(endpoint.Address, pubkey))
                     return new HandshakeReply {Error = HandshakeError.ConnectionRefused};
 
                 // create the connection to the peer
@@ -147,17 +148,14 @@ namespace AElf.OS.Network.Grpc.Connection
 
                 Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
 
+                // send back our handshake
                 var replyHandshake = await _handshakeProvider.GetHandshakeAsync();
-                return new HandshakeReply
-                {
-                    Handshake = replyHandshake, 
-                    Error = HandshakeError.HandshakeOk
-                };
+                return new HandshakeReply { Handshake = replyHandshake, Error = HandshakeError.HandshakeOk };
             }
             finally
             {
                 // remove the handshaking mark (IP; pubkey)
-                _peerPool.RemoveHandshakingPeer(endpoint, pubkey);
+                _peerPool.RemoveHandshakingPeer(endpoint.Address, pubkey);
             }
         }
 

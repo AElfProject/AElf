@@ -76,7 +76,7 @@ namespace AElf.OS.Consensus.DPos
                 IsInbound = true
             };
             
-            var peer = new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), IpEndpointHelper.Parse(OSConsensusDPosTestConstants.FakeIpEndpoint), connectionInfo);
+            var peer = new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), IpEndPointHelper.Parse(OSConsensusDPosTestConstants.FakeIpEndpoint), connectionInfo);
             peer.IsConnected = true;
             
             var blocks = _osTestHelper.BestBranchBlockList.GetRange(0, blockHeight);
