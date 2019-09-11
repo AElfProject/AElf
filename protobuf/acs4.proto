@@ -13,7 +13,7 @@ service ConsensusContract {
     rpc GetConsensusCommand (google.protobuf.BytesValue) returns (ConsensusCommand) {
         option (aelf.is_view) = true;
     }
-    rpc GetInformationToUpdateConsensus (google.protobuf.BytesValue) returns (google.protobuf.BytesValue) {
+    rpc GetConsensusExtraData (google.protobuf.BytesValue) returns (google.protobuf.BytesValue) {
         option (aelf.is_view) = true;
     }
     rpc GenerateConsensusTransactions (google.protobuf.BytesValue) returns (TransactionList) {

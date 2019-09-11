@@ -47,7 +47,7 @@ namespace AElf.Kernel.Consensus.Application
             var chainContext = await GetDefaultChainContext();
 
             await TriggerConsensusAsync();
-            var result = await _consensusService.GetInformationToUpdateConsensusAsync(chainContext);
+            var result = await _consensusService.GetConsensusExtraDataAsync(chainContext);
             result.ShouldNotBeNull();
         }
 

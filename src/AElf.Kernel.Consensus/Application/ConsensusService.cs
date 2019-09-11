@@ -135,13 +135,13 @@ namespace AElf.Kernel.Consensus.Application
         /// </summary>
         /// <param name="chainContext"></param>
         /// <returns></returns>
-        public async Task<byte[]> GetInformationToUpdateConsensusAsync(ChainContext chainContext)
+        public async Task<byte[]> GetConsensusExtraDataAsync(ChainContext chainContext)
         {
             _blockTimeProvider.SetBlockTime(_nextMiningTime);
 
             Logger.LogTrace($"Set block time to next mining time: {_nextMiningTime:hh:mm:ss.ffffff}. Extra Data.");
 
-            return (await _readerFactory.Create(chainContext).GetInformationToUpdateConsensus
+            return (await _readerFactory.Create(chainContext).GetConsensusExtraData
                     .CallAsync(await _triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraDataAsync(
                         _consensusCommand.ToBytesValue()))).Value
                 .ToByteArray();

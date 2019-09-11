@@ -26,7 +26,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (!currentRound.IsInMinerList(_processingBlockMinerPubkey))
                 return ConsensusCommandProviderBase.InvalidConsensusCommand;
 
-            if (TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp))
+            if (!TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp))
             {
                 // Unlikely.
                 Assert(false, "Failed to get blockchain start timestamp.");
@@ -39,7 +39,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 : new SideChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey, GetMaximumBlocksCount(),
                     Context.CurrentBlockTime).GetConsensusBehaviour();
 
-            Context.LogDebug(() => $"{currentRound.ToString(_processingBlockMinerPubkey)}\nCurrent behaviour: {behaviour.ToString()}");
+            Context.LogDebug(() => $"{currentRound.ToString(_processingBlockMinerPubkey)}\nArranged behaviour: {behaviour.ToString()}");
 
             return behaviour == AElfConsensusBehaviour.Nothing
                 ? ConsensusCommandProviderBase.InvalidConsensusCommand
@@ -47,7 +47,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 : GetConsensusCommand(behaviour, currentRound, _processingBlockMinerPubkey);
         }
 
-        public override BytesValue GetInformationToUpdateConsensus(BytesValue input)
+        public override BytesValue GetConsensusExtraData(BytesValue input)
         {
             return GetConsensusBlockExtraData(input);
         }
