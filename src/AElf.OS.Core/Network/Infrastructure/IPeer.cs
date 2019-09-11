@@ -16,8 +16,7 @@ namespace AElf.OS.Network.Infrastructure
         
         long LastKnownLibHeight { get; }
         IPEndPoint RemoteEndpoint { get; }
-        string IpAddress { get; }
-        
+
         int BufferedTransactionsCount { get; }
         int BufferedBlocksCount { get; }
         int BufferedAnnouncementsCount { get; }

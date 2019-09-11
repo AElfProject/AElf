@@ -273,7 +273,7 @@ namespace AElf.OS.Network.Application
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
             {
-                Logger.LogError(exception, $"Queuing peer for reconnection {peer.IpAddress}.");
+                Logger.LogError(exception, $"Queuing peer for reconnection {peer.RemoteEndpoint}.");
                 QueueNetworkTask(async () => await RecoverPeerAsync(peer));
             }
         }
