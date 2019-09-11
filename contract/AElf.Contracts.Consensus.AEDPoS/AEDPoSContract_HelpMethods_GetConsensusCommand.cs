@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using Acs4;
 using AElf.Sdk.CSharp;
@@ -23,13 +24,32 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             while (true)
             {
-                var isAlone = CheckLonelyMiner(publicKey);
-                if (behaviour == AElfConsensusBehaviour.TinyBlock && isAlone &&
-                    currentRound.RealTimeMinersInformation.Count >
-                    2 // There are more than 1 miner possible to save him.
-                )
+                var isAlone = false;
+                if (currentRound.RoundNumber > 3 && currentRound.RealTimeMinersInformation.Count > 2)
                 {
-                    behaviour = AElfConsensusBehaviour.Nothing;
+                    // Not single node.
+
+                    // If only this node mined during previous round, stop mining.
+                    if (TryToGetPreviousRoundInformation(out var previousRound))
+                    {
+                        var minedMiners = previousRound.GetMinedMiners();
+                        isAlone = minedMiners.Count == 1 &&
+                                  minedMiners.Select(m => m.Pubkey).Contains(publicKey);
+                    }
+
+                    // check one Further round.
+                    if (isAlone && TryToGetRoundInformation(previousRound.RoundNumber.Sub(1),
+                            out var previousPreviousRound))
+                    {
+                        var minedMiners = previousPreviousRound.GetMinedMiners();
+                        isAlone = minedMiners.Count == 1 &&
+                                  minedMiners.Select(m => m.Pubkey).Contains(publicKey);
+                    }
+
+                    if (isAlone)
+                    {
+                        return ConsensusCommandProviderBase.InvalidConsensusCommand;
+                    }
                 }
 
                 var currentBlockTime = Context.CurrentBlockTime;
@@ -98,7 +118,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 if (currentRound.RoundNumber == 1)
                 {
-                    miningDueTime = new Timestamp{Seconds = long.MaxValue};
+                    miningDueTime = new Timestamp {Seconds = long.MaxValue};
                 }
 
                 return new ConsensusCommand
@@ -106,12 +126,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     ExpectedMiningTime = expectedMiningTime,
                     NextBlockMiningLeftMilliseconds =
                         nextBlockMiningLeftMilliseconds < 0 ? 0 : nextBlockMiningLeftMilliseconds,
-                    LimitMillisecondsOfMiningBlock = isAlone
-                        ? currentRound.GetMiningInterval()
-                        : behaviour == AElfConsensusBehaviour.NextTerm
-                            ? miningInterval.Mul(AEDPoSContractConstants.LimitBlockExecutionTimeWeight)
-                                .Div(AEDPoSContractConstants.LimitBlockExecutionTimeTotalShares)
-                            : limitMillisecondsOfMiningBlock,
+                    LimitMillisecondsOfMiningBlock = behaviour == AElfConsensusBehaviour.NextTerm
+                        ? miningInterval.Mul(AEDPoSContractConstants.LimitBlockExecutionTimeWeight)
+                            .Div(AEDPoSContractConstants.LimitBlockExecutionTimeTotalShares)
+                        : limitMillisecondsOfMiningBlock,
                     Hint = new AElfConsensusHint {Behaviour = behaviour}.ToByteString(),
                     MiningDueTime = miningDueTime
                 };
@@ -159,7 +177,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var timeForEachBlock = miningInterval.Div(AEDPoSContractConstants.TotalTinySlots);
             expectedMiningTime = currentRound.GetExpectedMiningTime(publicKey);
 
-            if (minerInRound.IsMinedBlockForCurrentRound())
+            if (minerInRound.IsThisANewRoundForThisMiner())
             {
                 // After publishing out value (producing normal block)
                 expectedMiningTime = expectedMiningTime.AddMilliseconds(
@@ -176,7 +194,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             if (currentRound.RoundNumber == 1 ||
-                currentRound.RoundNumber == 2 && !minerInRound.IsMinedBlockForCurrentRound())
+                currentRound.RoundNumber == 2 && !minerInRound.IsThisANewRoundForThisMiner())
             {
                 nextBlockMiningLeftMilliseconds =
                     GetNextBlockMiningLeftMillisecondsForFirstRound(minerInRound, miningInterval);
@@ -252,9 +270,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var producedTinyBlocksForPreviousRound =
                 minerInRound.ActualMiningTimes.Count(t => t < currentRoundStartTime);
 
-            if (minerInRound.ProducedTinyBlocks == AEDPoSContractConstants.TinyBlocksNumber ||
-                minerInRound.ProducedTinyBlocks ==
-                AEDPoSContractConstants.TinyBlocksNumber.Add(producedTinyBlocksForPreviousRound))
+            var blocksCount = GetMaximumBlocksCount();
+            if (minerInRound.ProducedTinyBlocks == blocksCount ||
+                minerInRound.ProducedTinyBlocks == blocksCount.Add(producedTinyBlocksForPreviousRound))
             {
                 limitMillisecondsOfMiningBlock = limitMillisecondsOfMiningBlock.Div(2);
             }
@@ -296,22 +314,5 @@ namespace AElf.Contracts.Consensus.AEDPoS
             LimitMillisecondsOfMiningBlock = 0,
             NextBlockMiningLeftMilliseconds = int.MaxValue
         };
-
-        private bool CheckLonelyMiner(string publicKey)
-        {
-            if (TryToGetPreviousRoundInformation(out var previousRound))
-            {
-                if (previousRound.RealTimeMinersInformation.Count == 1)
-                {
-                    return false;
-                }
-                
-                var minedMiners = previousRound.GetMinedMiners();
-                return minedMiners.Count == 1 &&
-                       minedMiners.Select(m => m.Pubkey).Contains(publicKey);
-            }
-
-            return false;
-        }
     }
 }

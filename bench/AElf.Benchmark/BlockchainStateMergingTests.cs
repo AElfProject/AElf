@@ -123,7 +123,7 @@ namespace AElf.Benchmark
                 
                 foreach (var tx in block.Body.TransactionIds)
                 {
-                    await _transactionManager.RemoveTransaction(tx);
+                    await _transactionManager.RemoveTransactionAsync(tx);
                     await _transactionResultManager.RemoveTransactionResultAsync(tx, block.GetHash());
                     await _transactionResultManager.RemoveTransactionResultAsync(tx, block.Header.GetPreMiningHash());
                 }

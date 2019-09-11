@@ -1,3 +1,4 @@
+using Acs0;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
@@ -30,5 +31,9 @@ namespace AElf.Sdk.CSharp.Tests.TestContract
         public TokenInfoState TokenInfo { get; set; }
         public BalanceMappedState Balances { get; set; }
         public AllowanceMappedState Allowances { get; set; }
+
+        public ReadonlyState<string> NativeTokenSymbol { get; set; }
+
+        internal ACS0Container.ACS0ReferenceState ZeroContract { get; set; }
     }
 }

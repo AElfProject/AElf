@@ -64,7 +64,7 @@ namespace AElf.WebApp.Application.Chain
             }
 
             var transactionResult = await GetTransactionResultAsync(transactionIdHash);
-            var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
+            var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
 
             var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
             if (transactionResult.Status == TransactionResultStatus.Mined)
@@ -141,7 +141,7 @@ namespace AElf.WebApp.Application.Chain
                     var transactionResult = await GetTransactionResultAsync(transactionId, block.GetHash());
                     var transactionResultDto =
                         JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
-                    var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
+                    var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
                     transactionResultDto.BlockHash = block.GetHash().ToHex();
 
                     if (transactionResult.Status == TransactionResultStatus.Failed)

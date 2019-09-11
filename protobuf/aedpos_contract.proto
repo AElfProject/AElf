@@ -29,6 +29,12 @@ service AEDPoSContract {
     
     rpc UpdateConsensusInformation (ConsensusInformation) returns (google.protobuf.Empty) {
     }
+    
+    rpc SetMaximumMinersCount (aelf.SInt32Value) returns (google.protobuf.Empty) {
+    }
+
+    rpc GetMaximumBlocksCount (google.protobuf.Empty) returns (aelf.SInt32Value) {
+    }
 
     // Views
     rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
@@ -73,12 +79,6 @@ service AEDPoSContract {
     rpc IsCurrentMiner (aelf.Address) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
-}
-
-// Events
-message IrreversibleBlockFound {
-    option (aelf.is_event) = true;
-    sint64 irreversible_block_height = 1;
 }
 
 message InitialAElfConsensusContractInput {
@@ -127,6 +127,9 @@ message Round {
     sint64 blockchain_age = 4;
     string extra_block_producer_of_previous_round = 7;
     sint64 term_number = 8;
+    sint64 confirmed_irreversible_block_height = 9;
+    sint64 confirmed_irreversible_block_round_number = 10;
+    bool is_miner_list_just_changed = 11;
 }
 
 // The information of a miner in a specific round.
@@ -213,4 +216,20 @@ message RandomNumberRequestInformation {
 
 message HashList {
     repeated aelf.Hash values = 1;
+}
+
+message LatestProviderToTinyBlocksCount {
+    string pubkey = 1;
+    sint64 blocks_count = 2;
+}
+
+// Events
+message IrreversibleBlockFound {
+    option (aelf.is_event) = true;
+    sint64 irreversible_block_height = 1;
+}
+
+message IrreversibleBlockHeightUnacceptable {
+    option (aelf.is_event) = true;
+    sint64 distance_to_irreversible_block_height = 1;
 }

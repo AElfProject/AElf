@@ -60,6 +60,16 @@ namespace AElf.Kernel.Consensus
                 return mockService.Object;
             });
 
+            services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IConsensusExtraDataExtractor>();
+                mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height == 9)))
+                    .Returns(ByteString.Empty);
+                mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height != 9)))
+                    .Returns(ByteString.CopyFromUtf8("test"));
+                return mockService.Object;
+            });
+
             //mock consensus service transaction execution result
             services.AddTransient(provider =>
             {
