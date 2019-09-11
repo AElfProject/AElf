@@ -4,10 +4,20 @@ package zero;
 
 import "aelf/options.proto";
 import public "acs0.proto";
+import "aelf/core.proto";
+import "google/protobuf/empty.proto";
 
 option csharp_namespace = "AElf.Contracts.Genesis";
 
 service BasicContractZero {
     option (aelf.csharp_state) = "AElf.Contracts.Genesis.BasicContractZeroState";
     option (aelf.base) = "acs0.proto";
+    
+    rpc GetDeployedContractAddressList (google.protobuf.Empty) returns (AddressList) {
+        option (aelf.is_view) = true;
+    }
+}
+
+message AddressList {
+    repeated aelf.Address Value = 1;
 }

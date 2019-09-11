@@ -100,7 +100,7 @@ namespace AElf.Sdk.CSharp.State
         public static T Deserialize<T>(byte[] bytes)
         {
             if (bytes == null)
-                return default(T);
+                return default;
 
             var type = typeof(T);
             var primitiveDeserializer = GetPrimitiveDeserializer(type);
@@ -111,7 +111,7 @@ namespace AElf.Sdk.CSharp.State
                     return (T) primitiveDeserializer(bytes);
                 }
 
-                return default(T);
+                return default;
             }
 
             if (type == typeof(string))
