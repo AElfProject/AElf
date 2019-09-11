@@ -95,7 +95,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 ExecutedBlocks = successLinks.Select(p => p.BlockHash).ToList()
             });
         }
-        
+
         public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain,
             BlockAttachOperationStatus status)
         {
@@ -140,8 +140,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     await _chainManager.RemoveLongestBranchAsync(chain);
                     throw;
                 }
-                
-                Logger.LogWarning($"Block validation failed: {ex.Message}.");
+
+                Logger.LogWarning(
+                    $"Block validation failed: {ex.Message}. Inner exception {ex.InnerException.Message}");
             }
             catch (Exception ex)
             {

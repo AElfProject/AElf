@@ -8,6 +8,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSContract
     {
+        private bool IsMainChain
+        {
+            get
+            {
+                if (_isMainChain == null)
+                {
+                    _isMainChain = State.IsMainChain.Value;
+                    return (bool) _isMainChain;
+                }
+
+                return (bool) _isMainChain;
+            }
+        }
+
         private bool TryToGetBlockchainStartTimestamp(out Timestamp startTimestamp)
         {
             startTimestamp = State.BlockchainStartTimestamp.Value;
@@ -35,30 +49,53 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return roundNumber != 0;
         }
 
-        private bool TryToGetCurrentRoundInformation(out Round round)
+        private bool TryToGetCurrentRoundInformation(out Round round, bool useCache = false)
         {
             round = null;
-            if (!TryToGetRoundNumber(out var roundNumber))
+            if (!TryToGetRoundNumber(out var roundNumber)) return false;
+
+            if (useCache && _rounds.ContainsKey(roundNumber))
             {
-                Context.LogDebug(() => "Failed to get current round number.");
-                return false;
+                round = _rounds[roundNumber];
             }
-            round = State.Rounds[roundNumber];
+            else
+            {
+                round = State.Rounds[roundNumber];
+            }
+
             return !round.IsEmpty;
         }
 
-        private bool TryToGetPreviousRoundInformation(out Round previousRound)
+        private bool TryToGetPreviousRoundInformation(out Round previousRound, bool useCache = false)
         {
             previousRound = new Round();
             if (!TryToGetRoundNumber(out var roundNumber)) return false;
             if (roundNumber < 2) return false;
-            previousRound = State.Rounds[roundNumber - 1];
+            var targetRoundNumber = roundNumber.Sub(1);
+            if (useCache && _rounds.ContainsKey(targetRoundNumber))
+            {
+                previousRound = _rounds[targetRoundNumber];
+            }
+            else
+            {
+                previousRound = State.Rounds[targetRoundNumber];
+            }
+
             return !previousRound.IsEmpty;
         }
 
-        private bool TryToGetRoundInformation(long roundNumber, out Round round)
+        private bool TryToGetRoundInformation(long roundNumber, out Round round, bool useCache = false)
         {
-            round = State.Rounds[roundNumber];
+            if (useCache && _rounds.ContainsKey(roundNumber))
+            {
+                round = _rounds[roundNumber];
+            }
+            else
+            {
+                round = State.Rounds[roundNumber];
+                _rounds[roundNumber] = round;
+            }
+
             return !round.IsEmpty;
         }
 
@@ -92,18 +129,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool TryToAddRoundInformation(Round round)
         {
-            var ri = State.Rounds[round.RoundNumber];
-            if (ri != null)
-            {
-                return false;
-            }
-
-            State.Rounds[round.RoundNumber] = round;
+            State.Rounds.Set(round.RoundNumber, round);
 
             if (round.RoundNumber > AEDPoSContractConstants.KeepRounds)
             {
                 // TODO: Set to null.
-                State.Rounds[round.RoundNumber.Sub(AEDPoSContractConstants.KeepRounds)] = new Round();
+                //State.Rounds[round.RoundNumber.Sub(AEDPoSContractConstants.KeepRounds)] = new Round();
             }
 
             return true;
@@ -119,6 +150,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             State.Rounds[round.RoundNumber] = round;
+            
             return true;
         }
     }

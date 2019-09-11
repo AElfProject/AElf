@@ -1,6 +1,6 @@
 namespace AElf.Contracts.Treasury
 {
-    public class TreasuryContractConstants
+    public static class TreasuryContractConstants
     {
         public const int CitizenWelfareWeight = 1;
         public const int BackupSubsidyWeight = 1;
@@ -9,5 +9,7 @@ namespace AElf.Contracts.Treasury
         public const int BasicMinerRewardWeight = 4;
         public const int VotesWeightRewardWeight = 1;
         public const int ReElectionRewardWeight = 1;
+
+        public const int MaximumReElectionRewardShare = 10;
     }
 }

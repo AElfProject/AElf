@@ -233,10 +233,7 @@ namespace AElf.Contracts.Election
         {
             var votes = State.CandidateVotes[input.Value];
             if (votes == null)
-                return new CandidateVote
-                {
-                    Pubkey = input.Value.ToByteString()
-                };
+                return new CandidateVote();
 
             var obtainedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {

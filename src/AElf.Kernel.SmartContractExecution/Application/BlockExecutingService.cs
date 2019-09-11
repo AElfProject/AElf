@@ -54,7 +54,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var returnSetCollection = new ReturnSetCollection(nonCancellableReturnSets);
             List<ExecutionReturnSet> cancellableReturnSets = new List<ExecutionReturnSet>();
-            if (cancellable.Count > 0)
+            if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
             {
                 cancellableReturnSets = await _executingService.ExecuteAsync(
                     new TransactionExecutingDto
@@ -65,11 +65,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     },
                     cancellationToken, false);
                 returnSetCollection.AddRange(cancellableReturnSets);
+                Logger.LogTrace("Executed cancellable txs");
             }
-
-            Logger.LogTrace("Executed cancellable txs");
-
-            Logger.LogTrace("Handled return set");
 
             if (returnSetCollection.Unexecutable.Count > 0)
             {
@@ -77,14 +74,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     new UnexecutableTransactionsFoundEvent(blockHeader, returnSetCollection.Unexecutable));
             }
 
-            var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
+            var executedCancellableTransactions = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
             var allExecutedTransactions =
-                nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
+                nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash())))
+                    .ToList();
             var block = await _blockGenerationService.FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
                 returnSetCollection.Executed);
-
-            Logger.LogTrace("Filled block");
-
             return block;
         }
     }

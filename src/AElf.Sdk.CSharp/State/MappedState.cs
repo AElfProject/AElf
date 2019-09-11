@@ -61,6 +61,17 @@ namespace AElf.Sdk.CSharp.State
             valuePair.IsDeleted = true;
         }
         
+        public void Set(TKey key, TEntity value)
+        {
+            var valuePair = new ValuePair
+            {
+                OriginalValue = default(TEntity),
+                Value = default(TEntity)
+            };
+            Cache[key] = valuePair;
+            valuePair.Value = value;
+        }
+
         internal override void Clear()
         {
             Cache = new Dictionary<TKey, ValuePair>();

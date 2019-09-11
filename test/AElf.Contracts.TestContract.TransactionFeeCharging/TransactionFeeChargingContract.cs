@@ -49,5 +49,11 @@ namespace AElf.Contracts.TestContract.TransactionFeeCharging
         {
             return new Empty();
         }
+
+        public override Empty SupposedToFail(Empty input)
+        {
+            Assert(false, "Fate!");
+            return new Empty();
+        }
     }
 }

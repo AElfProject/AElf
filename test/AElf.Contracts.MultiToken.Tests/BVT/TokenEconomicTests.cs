@@ -23,7 +23,8 @@ namespace AElf.Contracts.MultiToken
                     IsBurnable = true,
                     TokenName = "elf token",
                     TotalSupply = TotalSupply,
-                    Issuer = DefaultAddress
+                    Issuer = DefaultAddress,
+                    LockWhiteList = { TreasuryContractAddress }
                 });
                 await TokenContractStub.Issue.SendAsync(new IssueInput()
                 {
@@ -158,6 +159,30 @@ namespace AElf.Contracts.MultiToken
                     });
                 fee.Amounts.First(a => a.Symbol == AliceCoinTokenInfo.Symbol).Amount.ShouldBe(10L);
             }
+        }
+
+        [Fact]
+        public async Task MultiTokenContract_ClaimTransactionFees_Test()
+        {
+            await InitialEconomic();
+            var result = (await TokenContractStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
+            {
+                SymbolToAmount = {new Dictionary<string, long> {{DefaultSymbol, 10L}}}
+            })).TransactionResult;
+            result.Status.ShouldBe(TransactionResultStatus.Mined);
+            await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                Symbol = DefaultSymbol,
+                Amount = 1000L,
+                Memo = "transfer test",
+                To = TreasuryContractAddress
+            });
+
+            var transactionResult = await TokenContractStub.ClaimTransactionFees.SendAsync(new Empty());
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var treasuryBalance = await TreasuryContractStub.GetCurrentTreasuryBalance.CallAsync(new Empty());
+            treasuryBalance.Value.ShouldBe(9L);
         }
     }
 }
