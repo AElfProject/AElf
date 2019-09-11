@@ -14,7 +14,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             _context = context;
         }
 
-        #pragma warning disable 1998
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
             where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
         {

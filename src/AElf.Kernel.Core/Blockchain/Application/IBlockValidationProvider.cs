@@ -90,7 +90,6 @@ namespace AElf.Kernel.Blockchain.Application
             _blockchainServce = blockchainService;
         }
 
-        #pragma warning disable 1998
         public async Task<bool> ValidateBeforeAttachAsync(IBlock block)
         {
             if (block?.Header == null || block.Body == null)

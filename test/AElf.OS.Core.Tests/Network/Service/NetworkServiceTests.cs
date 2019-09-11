@@ -91,7 +91,6 @@ namespace AElf.OS.Network
             await _networkService.BroadcastAnnounceAsync(blockHeader, false);
         }
 
-        #pragma warning disable 1998
         [Fact]
         public async Task BroadcastBlockWithTransactionsAsync_Test()
         {

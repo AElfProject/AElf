@@ -5,6 +5,9 @@
         <PackageId>AElf.OS.Consensus.DPos</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <NoWarn>1998</NoWarn>
+    </PropertyGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />

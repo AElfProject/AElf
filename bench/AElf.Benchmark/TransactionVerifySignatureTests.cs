@@ -21,7 +21,6 @@ namespace AElf.Benchmark
             _transaction = await _osTestHelper.GenerateTransferTransaction();
         }
 
-        #pragma warning disable 1998
         [Benchmark]
         public async Task VerifySignatureTest()
         {

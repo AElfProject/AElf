@@ -11,7 +11,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
         public Address Sender { get; set; }
         public Address ContractAddress { get; set; }
 
-        #pragma warning disable 1998
         public IMethodStub<TInput, TOutput> Create<TInput, TOutput>(Method<TInput, TOutput> method)
             where TInput : IMessage<TInput>, new() where TOutput : IMessage<TOutput>, new()
         {

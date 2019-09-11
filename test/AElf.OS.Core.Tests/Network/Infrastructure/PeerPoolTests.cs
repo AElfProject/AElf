@@ -32,7 +32,6 @@ namespace AElf.OS.Network
             _peerPool.FindPeerByPublicKey(peer.Info.Pubkey).ShouldNotBeNull();
         }
 
-        #pragma warning disable 1998
         [Fact]
         public async Task RemovePeerByPublicKey_ShouldNotBeFindable()
         {

@@ -5,6 +5,9 @@
         <PackageId>AElf.Kernel</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <NoWarn>1998</NoWarn>
+    </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.Node\AElf.Kernel.Node.csproj" />

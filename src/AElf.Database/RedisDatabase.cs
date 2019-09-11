@@ -3,8 +3,6 @@ using System.Threading.Tasks;
 using AElf.Database.RedisProtocol;
 using Volo.Abp;
 
-#pragma warning disable 1998
-
 namespace AElf.Database
 {
     public class RedisDatabase<TKeyValueDbContext> : IKeyValueDatabase<TKeyValueDbContext>

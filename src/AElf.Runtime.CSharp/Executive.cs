@@ -81,7 +81,6 @@ namespace AElf.Runtime.CSharp
             _smartContractProxy.Cleanup();
         }
 
-        #pragma warning disable 1998
         public async Task ApplyAsync(ITransactionContext transactionContext)
         {
             try

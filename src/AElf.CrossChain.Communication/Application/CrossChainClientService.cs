@@ -43,7 +43,6 @@ namespace AElf.CrossChain.Communication.Application
                 b => _blockCacheEntityProducer.TryAddBlockCacheEntity(b));
         }
 
-        #pragma warning disable 1998
         public async Task CreateClientAsync(CrossChainClientDto crossChainClientDto)
         {
             var crossChainClient = _crossChainClientProvider.AddOrUpdateClient(crossChainClientDto);

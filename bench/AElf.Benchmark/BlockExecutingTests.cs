@@ -29,7 +29,6 @@ namespace AElf.Benchmark
         [Params(1, 10, 100, 1000, 3000, 5000)] 
         public int TransactionCount;
 
-        #pragma warning disable 1998
         [GlobalSetup]
         public async Task GlobalSetup()
         {

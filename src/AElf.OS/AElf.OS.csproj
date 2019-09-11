@@ -5,7 +5,10 @@
         <PackageId>AElf.OS</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
-
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <NoWarn>1998</NoWarn>
+    </PropertyGroup>
+    
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
         <ProjectReference Include="..\AElf.OS.Consensus.DPos\AElf.OS.Consensus.DPos.csproj" />

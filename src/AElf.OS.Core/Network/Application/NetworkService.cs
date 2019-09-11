@@ -122,7 +122,6 @@ namespace AElf.OS.Network.Application
             }
         }
         
-        #pragma warning disable 1998
 
         private async Task SendBlockAsync(IPeer peer, BlockWithTransactions blockWithTransactions)
         {

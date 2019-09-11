@@ -27,7 +27,6 @@ namespace AElf.OS.Consensus.DPos
             _blockchainService = blockchainService;
         }
 
-        #pragma warning disable 1998
         public async Task HandleEventAsync(AnnouncementReceivedEventData eventData)
         {
             //Disable network lib

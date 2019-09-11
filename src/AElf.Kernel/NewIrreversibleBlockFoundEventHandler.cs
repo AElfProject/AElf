@@ -25,7 +25,6 @@ namespace AElf.Kernel
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
-        #pragma warning disable 1998
         public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
             _taskQueueManager.Enqueue(async () =>

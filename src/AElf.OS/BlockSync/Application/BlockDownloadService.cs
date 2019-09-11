@@ -34,7 +34,6 @@ namespace AElf.OS.BlockSync.Application
             _blockSyncStateProvider = blockSyncStateProvider;
         }
 
-        #pragma warning disable 1998
         public async Task<DownloadBlocksResult> DownloadBlocksAsync(DownloadBlockDto downloadBlockDto)
         {
             var downloadBlockCount = 0;

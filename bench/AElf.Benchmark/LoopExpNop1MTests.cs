@@ -37,7 +37,6 @@ namespace AElf.Benchmark
             _chain = await _blockchainService.GetChainAsync();
         }
 
-        #pragma warning disable 1998
         [IterationSetup]
         public async Task IterationSetup()
         {
