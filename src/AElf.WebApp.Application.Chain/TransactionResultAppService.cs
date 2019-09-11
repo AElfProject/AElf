@@ -20,8 +20,6 @@ namespace AElf.WebApp.Application.Chain
     {
         Task<TransactionResultDto> GetTransactionResultAsync(string transactionId);
 
-        Task<TransactionResultDto> GetTransactionResultByTxIdAndBlockHashAsync(string transactionId, string blockHash);
-        
         Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
             int limit = 10);
         
@@ -138,9 +136,9 @@ namespace AElf.WebApp.Application.Chain
             {
                 limit = Math.Min(limit, block.Body.TransactionIds.Count - offset);
                 var transactionIds = block.Body.TransactionIds.ToList().GetRange(offset, limit);
-                foreach (var hash in transactionIds)
+                foreach (var transactionId in transactionIds)
                 {
-                    var transactionResult = await GetTransactionResultAsync(hash);
+                    var transactionResult = await GetTransactionResultAsync(transactionId, block.GetHash());
                     var transactionResultDto =
                         JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
                     var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
@@ -237,66 +235,6 @@ namespace AElf.WebApp.Application.Chain
             return merklePath;
         }
 
-        public async Task<TransactionResultDto> GetTransactionResultByTxIdAndBlockHashAsync(string transactionId, string blockHash)
-        {
-            Hash transactionIdHash;
-            Hash realBlockHash;
-            try
-            {
-                transactionIdHash = HashHelper.HexStringToHash(transactionId);
-            }
-            catch
-            {
-                throw new UserFriendlyException(Error.Message[Error.InvalidTransactionId],
-                    Error.InvalidTransactionId.ToString());
-            }
-
-            try
-            {
-                realBlockHash = HashHelper.HexStringToHash(blockHash);
-            }
-            catch
-            {
-                throw new UserFriendlyException(Error.Message[Error.InvalidBlockHash], 
-                    Error.InvalidBlockHash.ToString());
-            }
-            
-            var block = await _blockchainService.GetBlockAsync(realBlockHash);
-            if (block == null)
-            {
-                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-            }
-
-            var transactionResult = await GetTransactionResultAsync(transactionIdHash, realBlockHash);
-            var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
-
-            var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
-            if (transactionResult.Status == TransactionResultStatus.Mined)
-            {
-                block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
-                output.BlockHash = block.GetHash().ToHex();
-            }
-
-            if (transactionResult.Status == TransactionResultStatus.Failed)
-                output.Error = transactionResult.Error;
-
-            if (transactionResult.Status == TransactionResultStatus.NotExisted)
-            {
-                output.Status = transactionResult.Status.ToString();
-                return output;
-            }
-
-            output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
-
-            var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
-                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
-
-            output.Transaction.Params = JsonFormatter.ToDiagnosticString(
-                methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
-
-            return output;
-        }
-
         private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId)
         {
             // in tx pool
@@ -311,7 +249,7 @@ namespace AElf.WebApp.Application.Chain
             }
             
             // in storage
-            var res = await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync2(transactionId);
+            var res = await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(transactionId);
             if (res != null)
             {
                 return res;
