@@ -117,45 +117,48 @@ namespace AElf.OS.Network.Grpc.Connection
                 return new HandshakeReply {Error = handshakeError};
             }
 
-            // remove any remaining connection to the peer
             var pubkey = handshake.HandshakeData.Pubkey.ToHex();
-            var currentPeer = _peerPool.FindPeerByPublicKey(pubkey);
-            if (currentPeer != null)
+            
+            try
             {
-                _peerPool.RemovePeer(pubkey);
-                await currentPeer.DisconnectAsync(false);
+                // remove any remaining connection to the peer
+                var currentPeer = _peerPool.FindPeerByPublicKey(pubkey);
+                if (currentPeer != null)
+                {
+                    _peerPool.RemovePeer(pubkey);
+                    await currentPeer.DisconnectAsync(false);
+                }
+
+                // mark the (IP; pubkey) pair as currently handshaking
+                if (!_peerPool.AddHandshakingPeer(endpoint, pubkey))
+                    return new HandshakeReply {Error = HandshakeError.ConnectionRefused};
+
+                // create the connection to the peer
+                var peerAddress = new IPEndPoint(endpoint.Address, handshake.HandshakeData.ListeningPort);
+                var grpcPeer = await _peerDialer.DialBackPeerAsync(peerAddress, handshake);
+
+                // add the new peer to the pool
+                if (!_peerPool.TryAddPeer(grpcPeer))
+                {
+                    Logger.LogWarning($"Stopping connection, peer already in the pool {grpcPeer.Info.Pubkey}.");
+                    await grpcPeer.DisconnectAsync(false);
+                    return new HandshakeReply {Error = HandshakeError.RepeatedConnection};
+                }
+
+                Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
+
+                var replyHandshake = await _handshakeProvider.GetHandshakeAsync();
+                return new HandshakeReply
+                {
+                    Handshake = replyHandshake, 
+                    Error = HandshakeError.HandshakeOk
+                };
             }
-
-            // mark the (IP; pubkey) pair as currently handshaking
-            if (!_peerPool.AddHandshakingPeer(endpoint, pubkey))
-                return new HandshakeReply {Error = HandshakeError.ConnectionRefused};
-
-            // create the connection to the peer
-            var peerAddress = new IPEndPoint(endpoint.Address, handshake.HandshakeData.ListeningPort);
-            var grpcPeer = await _peerDialer.DialBackPeerAsync(peerAddress, handshake);
-
-            if (grpcPeer == null)
+            finally
             {
+                // remove the mark (IP; pubkey) 
                 _peerPool.RemoveHandshakingPeer(endpoint, pubkey);
-                return new HandshakeReply {Error = HandshakeError.ConnectionRefused};
             }
-
-            // add the new peer to the pool, this will clean the currently handshaking peers 
-            if (!_peerPool.TryAddPeer(grpcPeer))
-            {
-                Logger.LogWarning($"Stopping connection, peer already in the pool {grpcPeer.Info.Pubkey}.");
-                await grpcPeer.DisconnectAsync(false);
-                return new HandshakeReply {Error = HandshakeError.RepeatedConnection};
-            }
-
-            Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
-
-            var replyHandshake = await _handshakeProvider.GetHandshakeAsync();
-            return new HandshakeReply
-            {
-                Handshake = replyHandshake, 
-                Error = HandshakeError.HandshakeOk
-            };
         }
 
         private HandshakeError GetHandshakeError(HandshakeValidationResult handshakeValidationResult)
