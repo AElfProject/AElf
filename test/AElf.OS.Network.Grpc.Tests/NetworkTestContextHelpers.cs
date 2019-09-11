@@ -33,9 +33,15 @@ namespace AElf.OS.Network
         {
             var data = new HandshakeData
             {
-                BestChainHead = CreateFakeBlockHeader(chainId, bestChainHeight, producer),
-                LibBlockHeight = 1,
-                Pubkey = ByteString.CopyFrom(producer.PublicKey)
+                ChainId = chainId,
+                Version = KernelConstants.ProtocolVersion,
+                ListeningPort = 0,
+                Pubkey = ByteString.CopyFrom(producer.PublicKey),
+                BestChainHash = Hash.FromString("BestChainHash"),
+                BestChainHeight = bestChainHeight,
+                LastIrreversibleBlockHash = Hash.FromString("LastIrreversibleBlockHash"),
+                LastIrreversibleBlockHeight = 1,
+                Time = TimestampHelper.GetUtcNow()
             };
             
             var signature = CryptoHelper.SignWithPrivateKey(producer.PrivateKey, Hash.FromMessage(data).ToByteArray());
@@ -43,7 +49,7 @@ namespace AElf.OS.Network
             return new Handshake { HandshakeData = data, Signature = ByteString.CopyFrom(signature) };
         }
 
-        public static BlockHeader CreateFakeBlockHeader(int chainId, long height, ECKeyPair producer)
+        public BlockHeader CreateFakeBlockHeader(int chainId, long height, ECKeyPair producer)
         {
             return new BlockHeader
             {
