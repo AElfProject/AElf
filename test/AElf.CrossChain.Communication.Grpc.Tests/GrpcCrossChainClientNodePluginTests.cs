@@ -21,7 +21,7 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         [Fact]
-        public async Task ClientStartTest_Test()
+        public async Task ClientStart_Test()
         {
             var chainId = ChainHelper.GetChainId(1);
             var remoteChainId = ChainOptions.ChainId;
@@ -33,7 +33,7 @@ namespace AElf.CrossChain.Communication.Grpc
         }
 
         [Fact]
-        public async Task ClientStartTest_Null_Test()
+        public async Task ClientStart_Null_Test()
         {
             var chainId = ChainOptions.ChainId;
             _grpcCrossChainConfigOption.RemoteParentChainServerPort = 0;

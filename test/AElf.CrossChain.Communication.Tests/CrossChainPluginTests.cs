@@ -25,6 +25,8 @@ namespace AElf.CrossChain.Communication
             CreateAndGetClient(localChainId, false, remoteChainId);
             var res = await _crossChainPlugin.GetChainInitializationDataAsync(localChainId);
             Assert.True(res.CreationHeightOnParentChain.Equals(1));
+            
+            _server.Dispose();
         }
     }
 }
