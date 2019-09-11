@@ -390,12 +390,15 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ClaimTransactionFees(Empty input)
         {
+            Context.LogDebug(() => "Start ClaimTransactionFees.");
             if (State.TreasuryContract.Value == null)
             {
                 var treasuryContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
                 if (treasuryContractAddress == null)
                 {
+                    Context.LogDebug(() => "End ClaimTransactionFees.");
+
                     // Which means Treasury Contract didn't deployed yet. Ignore this method.
                     return new Empty();
                 }
@@ -406,6 +409,8 @@ namespace AElf.Contracts.MultiToken
             if (State.PreviousBlockTransactionFeeTokenSymbolList.Value == null ||
                 !State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Any())
             {
+                Context.LogDebug(() => "End ClaimTransactionFees.");
+
                 return new Empty();
             }
 
@@ -420,15 +425,16 @@ namespace AElf.Contracts.MultiToken
                     State.ChargedFees[sender][symbol] = 0;
                 }
 
-                State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalFee);
-
                 if (totalFee > 0)
                 {
+                    State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalFee);
                     TransferTransactionFeesToFeeReceiver(symbol, totalFee);
                 }
             }
 
             State.PreviousBlockTransactionFeeTokenSymbolList.Value = new TokenSymbolList();
+
+            Context.LogDebug(() => "End ClaimTransactionFees.");
 
             return new Empty();
         }
@@ -441,7 +447,7 @@ namespace AElf.Contracts.MultiToken
         private void TransferTransactionFeesToFeeReceiver(string symbol, long totalFee)
         {
             var burnAmount = totalFee.Div(10);
-            Burn(new BurnInput
+            Context.SendInline(Context.Self, nameof(Burn), new BurnInput
             {
                 Symbol = symbol,
                 Amount = burnAmount
@@ -477,12 +483,16 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty DonateResourceToken(Empty input)
         {
+            Context.LogDebug(() => "Start DonateResourceToken.");
+
             if (State.TreasuryContract.Value == null)
             {
                 var treasuryContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
                 if (treasuryContractAddress == null)
                 {
+                    Context.LogDebug(() => "End DonateResourceToken.");
+
                     // Which means Treasury Contract didn't deployed yet. Ignore this method.
                     return new Empty();
                 }
@@ -519,6 +529,8 @@ namespace AElf.Contracts.MultiToken
                     });
                 }
             }
+
+            Context.LogDebug(() => "End DonateResourceToken.");
 
             return new Empty();
         }

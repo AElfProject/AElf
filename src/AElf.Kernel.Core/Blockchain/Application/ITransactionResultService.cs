@@ -43,14 +43,21 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var transactionBlockIndex =
                 await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(transactionId);
-            if (transactionBlockIndex != null)
-            {
-                // If TransactionBlockIndex exists, then read the result via TransactionBlockIndex
-                return await _transactionResultManager.GetTransactionResultAsync(transactionId,
-                    transactionBlockIndex.BlockHash);
-            }
 
             var chain = await _blockchainService.GetChainAsync();
+            if (transactionBlockIndex != null)
+            {
+                var blockHashInBestChain =
+                    await _blockchainService.GetBlockHashByHeightAsync(chain, transactionBlockIndex.BlockHeight,
+                        chain.BestChainHash);
+                
+                // check whether it is on best chain or a fork branch
+                if (transactionBlockIndex.BlockHash == blockHashInBestChain)
+                    // If TransactionBlockIndex exists, then read the result via TransactionBlockIndex
+                    return await _transactionResultManager.GetTransactionResultAsync(transactionId,
+                        transactionBlockIndex.BlockHash);
+            }
+
             var hash = chain.BestChainHash;
             var until = chain.LastIrreversibleBlockHeight > Constants.GenesisBlockHeight
                 ? chain.LastIrreversibleBlockHeight - 1

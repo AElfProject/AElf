@@ -43,7 +43,6 @@ namespace AElf.Contracts.Election
         /// Take first 7 full node key pairs to announce election.
         /// </summary>
         /// <returns>Return 7 candidates key pairs.</returns>
-        [Fact]
         public async Task<List<ECKeyPair>> ElectionContract_AnnounceElection_Test()
         {
             var candidatesKeyPairs = ValidationDataCenterKeyPairs.Take(CandidatesCount).ToList();
@@ -90,7 +89,6 @@ namespace AElf.Contracts.Election
             balanceBeforeAnnouncing.ShouldBe(balanceAfterAnnouncing + ElectionContractConstants.LockTokenForElection);
         }
 
-        [Fact]
         public async Task ElectionContract_QuiteElection_Test()
         {
             const int quitCount = 2;
@@ -139,7 +137,6 @@ namespace AElf.Contracts.Election
         /// Votes are got from 2 different voters.
         /// </summary>
         /// <returns></returns>
-        [Fact]
         public async Task<List<ECKeyPair>> ElectionContract_Vote_Test()
         {
             const int votersCount = 2;
@@ -209,6 +206,14 @@ namespace AElf.Contracts.Election
 
             // Check candidate's Votes information.
             {
+                //not exist
+                var input = new StringInput
+                {
+                    Value = "FakePubkey"
+                };
+                var candidateVotesWithRecords = await ElectionContractStub.GetCandidateVoteWithRecords.CallAsync(input);
+                candidateVotesWithRecords.ShouldBe(new CandidateVote());
+                
                 var candidateVotes = await ElectionContractStub.GetCandidateVote.CallAsync(new StringInput
                 {
                     Value = candidateKeyPair.PublicKey.ToHex()
@@ -218,7 +223,7 @@ namespace AElf.Contracts.Election
                 candidateVotes.ObtainedActiveVotedVotesAmount.ShouldBe(amount * 2);
                 candidateVotes.ObtainedWithdrawnVotesRecords.Count.ShouldBe(0); // Not filled.
 
-                var candidateVotesWithRecords = await ElectionContractStub.GetCandidateVoteWithRecords.CallAsync(
+                candidateVotesWithRecords = await ElectionContractStub.GetCandidateVoteWithRecords.CallAsync(
                     new StringInput
                     {
                         Value = candidateKeyPair.PublicKey.ToHex()
