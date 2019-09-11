@@ -6,6 +6,7 @@ using AElf.Contracts.Deployer;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestContract.BasicFunctionWithParallel;
 using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -93,13 +94,14 @@ namespace AElf.Parallel.Tests
             BasicFunctionWithParallelContractAddress = await DeployContract<BasicFunctionWithParallelContract>();
         }
         
-        public List<Transaction> GenerateBasicFunctionWithParallelTransactions(int groupCount,int transactionCount)
+        public List<Transaction> GenerateBasicFunctionWithParallelTransactions(List<ECKeyPair> groupUsers, int transactionCount)
         {
             var transactions = new List<Transaction>();
-            
+
+            var groupCount = groupUsers.Count;
             for (var i = 0; i < groupCount; i++)
             {
-                var keyPair = CryptoHelper.GenerateKeyPair();
+                var keyPair = groupUsers[i];
                 var from = Address.FromPublicKey(keyPair.PublicKey);
                 var count = transactionCount / groupCount;
                 for (var j = 0; j < count; j++)

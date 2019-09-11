@@ -26,6 +26,8 @@ service ElectionContract {
     }
     rpc Vote (VoteMinerInput) returns (google.protobuf.Empty) {
     }
+    rpc ChangeVotingOption (ChangeVotingOptionInput) returns (google.protobuf.Empty) {
+    }
     rpc Withdraw (aelf.Hash) returns (google.protobuf.Empty) {
     }
     rpc UpdateCandidateInformation (UpdateCandidateInformationInput) returns (google.protobuf.Empty) {
@@ -133,6 +135,11 @@ message VoteMinerInput {
     string candidate_pubkey = 1;
     sint64 amount = 2;
     google.protobuf.Timestamp end_timestamp = 3;
+}
+
+message ChangeVotingOptionInput {
+    aelf.Hash vote_id = 1;
+    string candidate_pubkey = 2;
 }
 
 message UpdateTermNumberInput {

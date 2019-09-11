@@ -154,6 +154,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return RealTimeMinersInformation.Values.Sum(minerInRound => minerInRound.ProducedBlocks);
         }
 
+        public MinerList GetMinerList()
+        {
+            return new MinerList
+            {
+                Pubkeys = {RealTimeMinersInformation.Keys.Select(k => k.ToByteString())}
+            };
+        }
+
+        public bool IsInMinerList(string pubkey)
+        {
+            return RealTimeMinersInformation.Keys.Contains(pubkey);
+        }
+
         public bool IsTimeToChangeTerm(Round previousRound, Timestamp blockchainStartTimestamp,
             long termNumber, long timeEachTerm)
         {
@@ -186,6 +199,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return RealTimeMinersInformation.ContainsKey(publicKey)
                 ? RealTimeMinersInformation[publicKey].Order
                 : int.MaxValue;
+        }
+
+        public bool TryToDetectEvilMiners(out List<string> evilMiners)
+        {
+            evilMiners = RealTimeMinersInformation.Values
+                .Where(m => m.MissedTimeSlots >= AEDPoSContractConstants.MaximumMissedBlocksCount)
+                .Select(m => m.Pubkey).ToList();
+            return evilMiners.Count > 0;
         }
 
         /// <summary>
@@ -236,7 +257,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private static int GetAbsModulus(long longValue, int intValue)
         {
-            return Math.Abs((int) longValue % intValue);
+            return (int) Math.Abs(longValue % intValue);
         }
     }
 }
