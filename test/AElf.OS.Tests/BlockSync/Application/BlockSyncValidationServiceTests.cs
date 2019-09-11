@@ -97,7 +97,7 @@ namespace AElf.OS.BlockSync.Application
                 chain.LastIrreversibleBlockHeight);
             var pubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
 
-            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block, pubkey);
+            var validateResult = await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, block, pubkey);
 
             validateResult.ShouldBeTrue();
         }
@@ -111,7 +111,7 @@ namespace AElf.OS.BlockSync.Application
                 chain.LastIrreversibleBlockHeight - 1);
             var pubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
 
-            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block, pubkey);
+            var validateResult = await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, block, pubkey);
 
             validateResult.ShouldBeFalse();
         }
@@ -124,7 +124,7 @@ namespace AElf.OS.BlockSync.Application
             var block = _osTestHelper.GenerateBlockWithTransactions(Hash.FromString("SyncBlockHash"),
                 chain.LastIrreversibleBlockHeight - 1);
 
-            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block, GetEncodedPubKeyString());
+            var validateResult = await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, block, GetEncodedPubKeyString());
 
             validateResult.ShouldBeFalse();
         }

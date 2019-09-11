@@ -18,7 +18,7 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockAttachService _blockAttachService;
         private readonly IBlockSyncQueueService _blockSyncQueueService;
-        private readonly IBlockValidationService _validationService;
+        private readonly IBlockSyncValidationService _blockSyncValidationService;
 
         public readonly ILocalEventBus LocalEventBus;
 
@@ -26,7 +26,7 @@ namespace AElf.OS.BlockSync.Application
 
         public BlockSyncAttachService(IBlockchainService blockchainService,
             IBlockAttachService blockAttachService,
-            IBlockValidationService validationService,
+            IBlockSyncValidationService blockSyncValidationService,
             IBlockSyncQueueService blockSyncQueueService)
         {
             Logger = NullLogger<BlockSyncAttachService>.Instance;
@@ -34,15 +34,15 @@ namespace AElf.OS.BlockSync.Application
 
             _blockchainService = blockchainService;
             _blockAttachService = blockAttachService;
-            _validationService = validationService;
+            _blockSyncValidationService = blockSyncValidationService;
             _blockSyncQueueService = blockSyncQueueService;
         }
 
         public async Task AttachBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions,
             string senderPubkey, Func<Task> attachFinishedCallback = null)
         {
-            var valid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
-            if (!valid)
+            var blockValid = await _blockSyncValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
+            if (!blockValid)
             {
                 await LocalEventBus.PublishAsync(new BlockValidationFailedEventData
                 {

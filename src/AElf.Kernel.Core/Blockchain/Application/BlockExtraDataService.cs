@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Kernel.Blockchain.Application

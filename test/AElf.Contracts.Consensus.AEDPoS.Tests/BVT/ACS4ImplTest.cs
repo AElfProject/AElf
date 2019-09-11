@@ -31,7 +31,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var consensusCommand = await AEDPoSContractStub.GetConsensusCommand.CallAsync(triggerForCommand);
 
-            consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBe(EconomicContractsTestConstants.MiningInterval);
+            consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBeLessThanOrEqualTo(EconomicContractsTestConstants.MiningInterval);
             consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractTestConstants
                 .SmallBlockMiningInterval);
             var hint = new AElfConsensusHint
