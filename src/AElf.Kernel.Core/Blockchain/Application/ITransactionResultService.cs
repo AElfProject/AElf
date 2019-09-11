@@ -11,7 +11,6 @@ namespace AElf.Kernel.Blockchain.Application
     public interface ITransactionResultQueryService
     {
         Task<TransactionResult> GetTransactionResultAsync(Hash transactionId);
-        //Task<TransactionResult> GetTransactionResultAsync2(Hash transactionId);
         Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash);
     }
 
@@ -105,51 +104,6 @@ namespace AElf.Kernel.Blockchain.Application
                 header.GetPreMiningHash());
             
             return txResult;
-        }
-
-        private async Task<TransactionResult> GetTransactionResultAsync2(Hash transactionId)
-        {
-            var transactionBlockIndex =
-                await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(transactionId);
-            if (transactionBlockIndex != null)
-            {
-                // If TransactionBlockIndex exists, then read the result via TransactionBlockIndex
-                return await _transactionResultManager.GetTransactionResultAsync(transactionId,
-                    transactionBlockIndex.BlockHash);
-            }
-            var chain = await _blockchainService.GetChainAsync();
-            var hash = chain.BestChainHash;
-            var until = chain.LastIrreversibleBlockHeight > Constants.GenesisBlockHeight
-                ? chain.LastIrreversibleBlockHeight - 1
-                : Constants.GenesisBlockHeight;
-            while (true)
-            {
-                var blockInfo = await _blockchainService.GetBlockByHashAsync(hash);
-                var transactionIds = blockInfo.Body.TransactionIds;
-                if (transactionIds.Contains(transactionId))
-                {
-                    var res = await _transactionResultManager.GetTransactionResultAsync(transactionId, hash);
-                    if (res != null)
-                    {
-                        return res;
-                    }
-                    res = await _transactionResultManager.GetTransactionResultAsync(transactionId,
-                        blockInfo.Header.GetPreMiningHash());
-
-                    return res;
-                }
-                
-                if (blockInfo.Header.Height <= until)
-                {
-                    // do until 1 block below LIB, in case the TransactionBlockIndex is not already added during
-                    // NewIrreversibleBlockFoundEvent handling
-                    break;
-                }
-
-                hash = blockInfo.Header.PreviousBlockHash;
-            }
-
-            return null;
         }
     }
 }
