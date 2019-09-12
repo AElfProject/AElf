@@ -55,7 +55,6 @@ namespace AElf.Contracts.TokenConverter
         }
         
         [Theory]
-        [InlineData(10L)]
         [InlineData(100L)]
         [InlineData(1000L)]
         [InlineData(10000L)]
@@ -67,7 +66,6 @@ namespace AElf.Contracts.TokenConverter
         }
 
         [Theory]
-        [InlineData(10L)]
         [InlineData(100L)]
         [InlineData(1000L)]
         [InlineData(10000L)]
