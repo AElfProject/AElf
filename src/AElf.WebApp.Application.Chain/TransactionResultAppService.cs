@@ -71,7 +71,7 @@ namespace AElf.WebApp.Application.Chain
             {
                 var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
                 output.BlockHash = block.GetHash().ToHex();
-                output.ReturnHexValue = transactionResult.ReturnValue.ToHex();
+                output.ReturnValue = transactionResult.ReturnValue.ToHex();
             }
 
             if (transactionResult.Status == TransactionResultStatus.Failed)
@@ -145,7 +145,7 @@ namespace AElf.WebApp.Application.Chain
                         JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
                     var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
                     transactionResultDto.BlockHash = block.GetHash().ToHex();
-                    transactionResultDto.ReturnHexValue = transactionResult.ReturnValue.ToHex();
+                    transactionResultDto.ReturnValue = transactionResult.ReturnValue.ToHex();
 
                     if (transactionResult.Status == TransactionResultStatus.Failed)
                         transactionResultDto.Error = transactionResult.Error;

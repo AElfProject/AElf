@@ -40,10 +40,10 @@ service EventsContract {
 }
 
 enum OrderStatus {
-    Created = 0;
-    Canceled = 1;
-    Ongoing = 2;
-    Done = 3;    
+    CREATED = 0;
+    CANCELED = 1;
+    ONGOING = 2;
+    DONE = 3;    
 }
 
 //Input
