@@ -40,7 +40,8 @@ namespace AElf.Blockchains.BasicBaseChain
         //web api module
         typeof(WebWebAppAElfModule),
 
-        typeof(ParallelExecutionModule)
+        typeof(ParallelExecutionModule),
+        typeof(BlockTransactionLimitControllerModule)
     )]
     public class BasicBaseChainAElfModule : AElfModule
     {
