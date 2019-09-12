@@ -20,7 +20,7 @@ namespace AElf.OS.Network.Grpc
 
         public override Task<TResponse> UnaryServerHandler<TRequest, TResponse>(TRequest request, ServerCallContext context, UnaryServerMethod<TRequest, TResponse> continuation)
         {
-            if (context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.Connect)))
+            if (context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake)))
             {
                 // a method other that Connect is being called
                 

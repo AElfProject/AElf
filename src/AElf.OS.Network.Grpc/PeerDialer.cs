@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.Kernel.Account.Application;
-using AElf.OS.Network.Grpc.Extensions;
-using Google.Protobuf;
+using AElf.OS.Network.Protocol;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Volo.Abp.Threading;
 
@@ -21,72 +22,111 @@ namespace AElf.OS.Network.Grpc
     {
         private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
-        
-        private readonly IConnectionInfoProvider _connectionInfoProvider;
-        private readonly IAccountService _accountService;
 
-        public PeerDialer(IConnectionInfoProvider connectionInfoProvider, IAccountService accountService)
+        private readonly IAccountService _accountService;
+        private readonly IHandshakeProvider _handshakeProvider;
+
+        public ILogger<PeerDialer> Logger { get; set; }
+
+        public PeerDialer(IAccountService accountService,
+            IHandshakeProvider handshakeProvider)
         {
-            _connectionInfoProvider = connectionInfoProvider;
             _accountService = accountService;
+            _handshakeProvider = handshakeProvider;
+
+            Logger = NullLogger<PeerDialer>.Instance;
         }
 
         /// <summary>
-        /// Given an IP address, will create a connection to the distant node for
+        /// Given an IP address, will create a handshake to the distant node for
         /// further communications.
         /// </summary>
         /// <returns>The created peer</returns>
         public async Task<GrpcPeer> DialPeerAsync(IPEndPoint endpoint)
         {
+            var handshake = await _handshakeProvider.GetHandshakeAsync();
             var client = CreateClient(endpoint);
-            var connectionInfo = await _connectionInfoProvider.GetConnectionInfoAsync();
-            
-            ConnectReply connectReply = await CallConnectAsync(client, endpoint, connectionInfo);
 
-            if (connectReply?.Info?.Pubkey == null 
-                || connectReply.Error != ConnectError.ConnectOk)
+            var handshakeReply = await CallDoHandshakeAsync(client, endpoint, handshake);
+
+            // verify handshake
+            if (handshakeReply.Error != HandshakeError.HandshakeOk)
             {
-                await CleanupAndGetExceptionAsync($"Connect error: {connectReply?.Error}.", client.Channel);
-            }   
+                Logger.LogWarning($"Handshake error: {handshakeReply.Error}.");
+                return null;
+            }
 
-            var peer = new GrpcPeer(client, endpoint, connectReply.Info.ToPeerInfo(isInbound: false));
-            peer.InboundSessionId = connectionInfo.SessionId.ToByteArray();
+            if (await _handshakeProvider.ValidateHandshakeAsync(handshakeReply.Handshake) !=
+                HandshakeValidationResult.Ok)
+            {
+                Logger.LogWarning($"Connect error: {handshakeReply}.");
+                await client.Channel.ShutdownAsync();
+                return null;
+            }
+
+            var peer = new GrpcPeer(client, endpoint, new PeerInfo
+            {
+                Pubkey = handshakeReply.Handshake.HandshakeData.Pubkey.ToHex(),
+                ConnectionTime = TimestampHelper.GetUtcNow(),
+                ProtocolVersion = handshakeReply.Handshake.HandshakeData.Version,
+                SessionId = handshakeReply.Handshake.SessionId.ToByteArray(),
+                IsInbound = false,
+            });
+
+            peer.InboundSessionId = handshake.SessionId.ToByteArray();
+            peer.UpdateLastReceivedHandshake(handshakeReply.Handshake);
 
             return peer;
         }
 
         /// <summary>
-        /// Calls the server side connect RPC method, in order to establish a 2-way connection.
+        /// Calls the server side DoHandshake RPC method, in order to establish a 2-way connection.
         /// </summary>
         /// <returns>The reply from the server.</returns>
-        private async Task<ConnectReply> CallConnectAsync(GrpcClient client, IPEndPoint ipAddress, 
-            ConnectionInfo connectionInfo)
+        private async Task<HandshakeReply> CallDoHandshakeAsync(GrpcClient client, IPEndPoint ipAddress,
+            Handshake handshake)
         {
-            ConnectReply connectReply = null;
-            
+            HandshakeReply handshakeReply;
+
             try
             {
-                var metadata = new Metadata {
-                    {GrpcConstants.TimeoutMetadataKey, (NetworkOptions.PeerDialTimeoutInMilliSeconds*2).ToString()}};
-                
-                connectReply = await client.Client.ConnectAsync(new ConnectRequest { Info = connectionInfo }, metadata);
+                var metadata = new Metadata
+                {
+                    {GrpcConstants.TimeoutMetadataKey, (NetworkOptions.PeerDialTimeoutInMilliSeconds * 2).ToString()}
+                };
+
+                handshakeReply =
+                    await client.Client.DoHandshakeAsync(new HandshakeRequest {Handshake = handshake}, metadata);
             }
-            catch (AggregateException ex)
+            catch (Exception ex)
             {
-                await CleanupAndGetExceptionAsync($"Could not connect to {ipAddress}.", client.Channel, ex);
+                Logger.LogError(ex, $"Could not connect to {ipAddress}.");
+                await client.Channel.ShutdownAsync();
+                throw;
             }
-            
-            return connectReply;
+
+            return handshakeReply;
         }
-        
-        public async Task<GrpcPeer> DialBackPeer(IPEndPoint endpoint, ConnectionInfo peerConnectionInfo)
+
+        public async Task<GrpcPeer> DialBackPeerAsync(IPEndPoint endpoint, Handshake handshake)
         {
             var client = CreateClient(endpoint);
-            
             await PingNodeAsync(client, endpoint);
-            return new GrpcPeer(client, endpoint, peerConnectionInfo.ToPeerInfo(isInbound: true));
+
+            var peer = new GrpcPeer(client, endpoint, new PeerInfo
+            {
+                Pubkey = handshake.HandshakeData.Pubkey.ToHex(),
+                ConnectionTime = TimestampHelper.GetUtcNow(),
+                SessionId = handshake.SessionId.ToByteArray(),
+                ProtocolVersion = handshake.HandshakeData.Version,
+                IsInbound = true
+            });
+
+            peer.UpdateLastReceivedHandshake(handshake);
+
+            return peer;
         }
-        
+
         /// <summary>
         /// Checks that the distant node is reachable by pinging it.
         /// </summary>
@@ -95,37 +135,35 @@ namespace AElf.OS.Network.Grpc
         {
             try
             {
-                var metadata = new Metadata {
-                    {GrpcConstants.TimeoutMetadataKey, NetworkOptions.PeerDialTimeoutInMilliSeconds.ToString()}};
-                
+                var metadata = new Metadata
+                {
+                    {GrpcConstants.TimeoutMetadataKey, NetworkOptions.PeerDialTimeoutInMilliSeconds.ToString()}
+                };
+
                 await client.Client.PingAsync(new PingRequest(), metadata);
             }
-            catch (AggregateException ex)
+            catch (Exception ex)
             {
-                await CleanupAndGetExceptionAsync($"Could not ping {ipAddress}.", client.Channel, ex);
+                Logger.LogError(ex, $"Could not ping {ipAddress}.");
+                await client.Channel.ShutdownAsync();
+                throw;
             }
         }
-        
-        private async Task CleanupAndGetExceptionAsync(string exceptionMessage, Channel channel, Exception inner = null)
-        {
-            await channel.ShutdownAsync();
-            throw new PeerDialException(exceptionMessage, inner);
-        }
-        
+
         /// <summary>
         /// Creates a channel/client pair with the appropriate options and interceptors.
         /// </summary>
         /// <returns>A tuple of the channel and client</returns>
-        public GrpcClient CreateClient(IPEndPoint endpoint)
+        private GrpcClient CreateClient(IPEndPoint endpoint)
         {
             var channel = new Channel(endpoint.ToString(), ChannelCredentials.Insecure, new List<ChannelOption>
             {
                 new ChannelOption(ChannelOptions.MaxSendMessageLength, GrpcConstants.DefaultMaxSendMessageLength),
                 new ChannelOption(ChannelOptions.MaxReceiveMessageLength, GrpcConstants.DefaultMaxReceiveMessageLength)
             });
-            
+
             var nodePubkey = AsyncHelper.RunSync(() => _accountService.GetPublicKeyAsync()).ToHex();
-            
+
             var interceptedChannel = channel.Intercept(metadata =>
             {
                 metadata.Add(GrpcConstants.PubkeyMetadataKey, nodePubkey);

@@ -1,59 +1,47 @@
 using System;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using AElf.Cryptography;
-using AElf.Kernel;
-using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
-using AElf.Types;
+using AElf.OS.Network.Protocol;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc.Connection
 {
     public class ConnectionService : IConnectionService
     {
-        private ChainOptions ChainOptions => ChainOptionsSnapshot.Value;
-        public IOptionsSnapshot<ChainOptions> ChainOptionsSnapshot { get; set; }
-        private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
-        public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
-        
         private readonly IPeerPool _peerPool;
         private readonly IPeerDialer _peerDialer;
         private readonly IHandshakeProvider _handshakeProvider;
-        private readonly IConnectionInfoProvider _connectionInfoProvider;
         public ILocalEventBus EventBus { get; set; }
-        public ILogger<GrpcNetworkServer> Logger { get; set; }
-        
-        public ConnectionService(IPeerPool peerPool, IPeerDialer peerDialer, 
-            IHandshakeProvider handshakeProvider, IConnectionInfoProvider connectionInfoProvider)
+        public ILogger<ConnectionService> Logger { get; set; }
+
+        public ConnectionService(IPeerPool peerPool, IPeerDialer peerDialer,
+            IHandshakeProvider handshakeProvider)
         {
             _peerPool = peerPool;
             _peerDialer = peerDialer;
             _handshakeProvider = handshakeProvider;
-            _connectionInfoProvider = connectionInfoProvider;
 
-            Logger = NullLogger<GrpcNetworkServer>.Instance;
+            Logger = NullLogger<ConnectionService>.Instance;
             EventBus = NullLocalEventBus.Instance;
         }
-        
+
         public async Task DisconnectAsync(IPeer peer, bool sendDisconnect = false)
         {
             if (peer == null)
                 throw new ArgumentNullException(nameof(peer));
-            
+
             // clean the pool
             if (_peerPool.RemovePeer(peer.Info.Pubkey) == null)
                 Logger.LogWarning($"{peer} was not found in pool.");
-            
+
             // clean the peer
             await peer.DisconnectAsync(sendDisconnect);
-            
+
             Logger.LogDebug($"Removed peer {peer}");
         }
 
@@ -61,7 +49,7 @@ namespace AElf.OS.Network.Grpc.Connection
         {
             return _peerPool.FindPeerByPublicKey(pubkey) as GrpcPeer;
         }
-        
+
         /// <summary>
         /// Connects to a node with the given ip address and adds it to the node's peer pool.
         /// </summary>
@@ -77,177 +65,142 @@ namespace AElf.OS.Network.Grpc.Connection
                 return false;
             }
 
-            GrpcPeer peer;
-            
-            try
-            {
-                // create the connection to the distant node
-                peer = await _peerDialer.DialPeerAsync(endpoint);
-                Logger.LogWarning($"Dialed peer: in {peer.InboundSessionId.ToHex()}, out {peer.OutboundSessionId.ToHex()}.");
-            }
-            catch (PeerDialException ex)
-            {
-                Logger.LogError(ex, $"Dial exception {endpoint}:");
+            var peer = await _peerDialer.DialPeerAsync(endpoint);
+
+            if (peer == null)
                 return false;
-            }
             
-            var peerPubkey = peer.Info.Pubkey;
+            Logger.LogDebug($"Dialed peer: in {peer.InboundSessionId.ToHex()}, out {peer.OutboundSessionId.ToHex()}.");Logger.LogWarning($"Dialed peer: in {peer.InboundSessionId.ToHex()}, out {peer.OutboundSessionId.ToHex()}.");
 
             if (!_peerPool.TryAddPeer(peer))
             {
-                Logger.LogWarning($"Peer {peerPubkey} is already in the pool.");
+                Logger.LogWarning($"Peer {peer.Info.Pubkey} is already in the pool.");
                 await peer.DisconnectAsync(false);
                 return false;
             }
-            
-            Handshake peerHandshake;
-            
+
             try
             {
-                peerHandshake = await peer.DoHandshakeAsync(await _handshakeProvider.GetHandshakeAsync());
+                await peer.ConfirmHandshakeAsync();
             }
-            catch (NetworkException ex)
+            catch (Exception e)
             {
-                Logger.LogError(ex, $"Handshake failed to {endpoint} - {peerPubkey}.");
-                await DisconnectAsync(peer);
-                return false;
+                Logger.LogError(e, $"Confirm handshake error. Peer: {peer.Info.Pubkey}.");
+                _peerPool.RemovePeer(peer.Info.Pubkey);
+                await peer.DisconnectAsync(false);
+                throw;
             }
 
-            HandshakeError handshakeError = ValidateHandshake(peerHandshake, peerPubkey);
-            if (handshakeError != HandshakeError.HandshakeOk)
-            {
-                Logger.LogWarning($"Invalid handshake [{handshakeError}] from {endpoint} - {peerPubkey}");
-                await DisconnectAsync(peer);
-                return false;
-            }
-            
+            peer.IsConnected = true;
+
             Logger.LogTrace($"Connected to {peer} - LIB height {peer.LastKnownLibHeight}, " +
                             $"best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}].");
-            
+
             FireConnectionEvent(peer);
 
             return true;
         }
-                
+
         private void FireConnectionEvent(GrpcPeer peer)
         {
-            var nodeInfo = new NodeInfo { Endpoint = peer.RemoteEndpoint.ToString(), Pubkey = peer.Info.Pubkey.ToByteString() };
-            var bestChainHeader = peer.LastReceivedHandshake.HandshakeData.BestChainHead;
+            var nodeInfo = new NodeInfo {Endpoint = peer.RemoteEndpoint.ToString(), Pubkey = peer.Info.Pubkey.ToByteString()};
+            var bestChainHash = peer.CurrentBlockHash;
+            var bestChainHeight = peer.CurrentBlockHeight;
 
-            _ = EventBus.PublishAsync(new PeerConnectedEventData(nodeInfo, bestChainHeader));
+            _ = EventBus.PublishAsync(new PeerConnectedEventData(nodeInfo, bestChainHash, bestChainHeight));
         }
-                
-        public async Task<ConnectReply> DialBackAsync(IPEndPoint endpoint, ConnectionInfo peerConnectionInfo)
+
+        public async Task<HandshakeReply> DoHandshakeAsync(IPEndPoint endpoint, Handshake handshake)
         {
-            var error = ValidateConnectionInfo(endpoint, peerConnectionInfo);
-            
-            if (error != ConnectError.ConnectOk)
-                return new ConnectReply { Error = error };
-            
-            string pubKey = peerConnectionInfo.Pubkey.ToHex();
-            
-            var currentPeer = _peerPool.FindPeerByPublicKey(pubKey);
-            if (currentPeer != null)
+            try
             {
-                Logger.LogWarning($"Cleaning up {currentPeer} already known.");
-                return new ConnectReply { Error = ConnectError.ConnectionRefused };
-            }
+                var handshakeValidationResult = await _handshakeProvider.ValidateHandshakeAsync(handshake);
+                if (handshakeValidationResult != HandshakeValidationResult.Ok)
+                {
+                    var handshakeError = GetHandshakeError(handshakeValidationResult);
+                    return new HandshakeReply {Error = handshakeError};
+                }
 
-            var peerAddress = new IPEndPoint(endpoint.Address, peerConnectionInfo.ListeningPort);
+                var pubkey = handshake.HandshakeData.Pubkey.ToHex();
+                var currentPeer = _peerPool.FindPeerByPublicKey(pubkey);
+                if (currentPeer != null)
+                {
+                    _peerPool.RemovePeer(pubkey);
+                    await currentPeer.DisconnectAsync(false);
+                }
+
+                if (_peerPool.IsFull())
+                {
+                    Logger.LogWarning("Peer pool is full.");
+                    return new HandshakeReply {Error = HandshakeError.ConnectionRefused};
+                }
+
+                var peerAddress = new IPEndPoint(endpoint.Address, handshake.HandshakeData.ListeningPort);
+                var grpcPeer = await _peerDialer.DialBackPeerAsync(peerAddress, handshake);
+
+                if (!_peerPool.TryAddPeer(grpcPeer))
+                {
+                    Logger.LogWarning($"Stopping connection, peer already in the pool {grpcPeer.Info.Pubkey}.");
+                    await grpcPeer.DisconnectAsync(false);
+                    return new HandshakeReply {Error = HandshakeError.RepeatedConnection};
+                }
+
+                Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
+
+                var replyHandshake = await _handshakeProvider.GetHandshakeAsync();
+                grpcPeer.InboundSessionId = replyHandshake.SessionId.ToByteArray();
             
-            Logger.LogDebug($"Attempting to create channel to {peerAddress}");
-            var grpcPeer = await _peerDialer.DialBackPeer(peerAddress, peerConnectionInfo);
-
-            // If auth ok -> add it to our peers
-            if (!_peerPool.TryAddPeer(grpcPeer))
+                Logger.LogWarning($"Just dialed back peer: inbound token {grpcPeer.InboundSessionId?.ToHex()}, out {grpcPeer.OutboundSessionId?.ToHex()}.");
+            
+                return new HandshakeReply
+                {
+                    Handshake = replyHandshake,
+                    Error = HandshakeError.HandshakeOk
+                };
+            }
+            catch (Exception e)
             {
-                Logger.LogWarning($"Stopping connection, peer already in the pool {grpcPeer.Info.Pubkey}.");
-                await grpcPeer.DisconnectAsync(false);
+                Logger.LogError(e, "Error in connection");
+                throw;
             }
-
-            Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
-
-            var connectInfo = await _connectionInfoProvider.GetConnectionInfoAsync();
-            grpcPeer.InboundSessionId = connectInfo.SessionId.ToByteArray();
-            
-            Logger.LogWarning($"Just dialed back peer: inbound token {grpcPeer.InboundSessionId.ToHex()}, out {grpcPeer.OutboundSessionId.ToHex()}.");
-
-            return new ConnectReply { Info = connectInfo };
         }
-        
-        public async Task<HandshakeReply> CheckIncomingHandshakeAsync(string peerId, Handshake handshake)
+
+        private HandshakeError GetHandshakeError(HandshakeValidationResult handshakeValidationResult)
         {
-            var error = ValidateHandshake(handshake, peerId);
+            HandshakeError handshakeError;
 
-            if (error != HandshakeError.HandshakeOk)
+            switch (handshakeValidationResult)
             {
-                Logger.LogWarning($"Handshake not valid: {error}");
-                return new HandshakeReply { Error = error };
+                case HandshakeValidationResult.InvalidChainId:
+                    handshakeError = HandshakeError.ChainMismatch;
+                    break;
+                case HandshakeValidationResult.InvalidVersion:
+                    handshakeError = HandshakeError.ProtocolMismatch;
+                    break;
+                case HandshakeValidationResult.HandshakeTimeout:
+                case HandshakeValidationResult.InvalidSignature:
+                    handshakeError = HandshakeError.WrongSignature;
+                    break;
+                case HandshakeValidationResult.Unauthorized:
+                    handshakeError = HandshakeError.ConnectionRefused;
+                    break;
+                default:
+                    throw new ArgumentException($"Unable to process handshake validation result: {handshakeValidationResult}");
             }
-            
-            var peer = _peerPool.FindPeerByPublicKey(peerId) as GrpcPeer;
 
-            // should never happen because the interceptor takes care of this, but if the peer
-            // is remove between the interceptor's check and here: stop the process.
+            return handshakeError;
+        }
+
+        public void ConfirmHandshake(string peerPubkey)
+        {
+            var peer = _peerPool.FindPeerByPublicKey(peerPubkey) as GrpcPeer;
             if (peer == null)
             {
-                Logger.LogWarning($"Peer {peerId}: {error}");
-                return new HandshakeReply { Error = HandshakeError.WrongConnection };
-            }
-            
-            peer.UpdateLastReceivedHandshake(handshake);
-            
-            Logger.LogTrace($"Connected to {peer} - LIB height {peer.LastKnownLibHeight}, " +
-                            $"best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}].");
-            
-            return new HandshakeReply { Handshake = await _handshakeProvider.GetHandshakeAsync() };
-        }
-
-        private ConnectError ValidateConnectionInfo(IPEndPoint endpoint, ConnectionInfo connectionInfo)
-        {
-            // verify chain id
-            if (connectionInfo.ChainId != ChainOptions.ChainId)
-                return ConnectError.ChainMismatch;
-
-            // verify protocol
-            if (connectionInfo.Version != KernelConstants.ProtocolVersion)
-                return ConnectError.ProtocolMismatch;
-            
-            // verify if we still have room for more peers
-            if (NetworkOptions.MaxPeers != 0 && _peerPool.IsFull())
-            {
-                Logger.LogWarning($"Cannot add peer, there's currently {_peerPool.PeerCount} peers (max. {NetworkOptions.MaxPeers}).");
-                return ConnectError.ConnectionRefused;
+                Logger.LogWarning($"Cannot find Peer {peerPubkey} in the pool.");
+                return;
             }
 
-            return ConnectError.ConnectOk;
-        }
-
-        private HandshakeError ValidateHandshake(Handshake handshake, string connectionPubkey)
-        {
-            if (handshake?.HandshakeData == null)
-                return HandshakeError.InvalidHandshake;
-
-            if (handshake.HandshakeData.Pubkey.ToHex() != connectionPubkey)
-                return HandshakeError.InvalidKey;
-            
-            var validData = CryptoHelper.VerifySignature(handshake.Signature.ToByteArray(),
-                Hash.FromMessage(handshake.HandshakeData).ToByteArray(), handshake.HandshakeData.Pubkey.ToByteArray());
-            
-            if (!validData)
-                return HandshakeError.WrongSignature;
-            
-            // verify authentication
-            var pubKey = handshake.HandshakeData.Pubkey.ToHex();
-            
-            if (NetworkOptions.AuthorizedPeers == AuthorizedPeers.Authorized 
-                && !NetworkOptions.AuthorizedKeys.Contains(pubKey))
-            {
-                Logger.LogDebug($"{pubKey} not in the authorized peers.");
-                return HandshakeError.NotListed;
-            }
-
-            return HandshakeError.HandshakeOk;
+            peer.IsConnected = true;
         }
 
         public async Task DisconnectPeersAsync(bool gracefulDisconnect)
@@ -258,7 +211,7 @@ namespace AElf.OS.Network.Grpc.Connection
                 await peer.DisconnectAsync(gracefulDisconnect);
             }
         }
-        
+
         public void RemovePeer(string pubkey)
         {
             _peerPool.RemovePeer(pubkey);

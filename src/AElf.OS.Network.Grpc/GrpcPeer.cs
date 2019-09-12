@@ -11,6 +11,7 @@ using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Metrics;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -52,6 +53,16 @@ namespace AElf.OS.Network.Grpc
             get { return (_channel.State == ChannelState.Idle || _channel.State == ChannelState.Ready) && IsConnected; }
         }
 
+        public bool IsInvalid
+        {
+            get
+            {
+                return !IsConnected &&
+                       Info.ConnectionTime.AddMilliseconds(NetworkConstants.PeerConnectionTimeout) <
+                       TimestampHelper.GetUtcNow();
+            }
+        }
+
         public long LastKnownLibHeight { get; private set; }
 
         public bool IsBest { get; set; }
@@ -80,8 +91,6 @@ namespace AElf.OS.Network.Grpc
         public string IpAddress { get; }
 
         public PeerInfo Info { get; }
-
-        public Handshake LastReceivedHandshake { get; private set; }
 
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
@@ -142,6 +151,7 @@ namespace AElf.OS.Network.Grpc
             foreach (var roundtripTime in _recentRequestsRoundtripTimes.ToArray())
             {
                 var metricsToAdd = new List<RequestMetric>();
+
                 metrics.Add(roundtripTime.Key, metricsToAdd);
                 foreach (var requestMetric in roundtripTime.Value)
                 {
@@ -164,40 +174,11 @@ namespace AElf.OS.Network.Grpc
             return RequestAsync(() => _client.GetNodesAsync(new NodesRequest {MaxCount = count}, data), request);
         }
 
-        public async Task<Handshake> DoHandshakeAsync(Handshake handshake)
-        {
-            GrpcRequest request = new GrpcRequest {ErrorMessage = "Error while updating handshake."};
-
-            Metadata data = new Metadata
-            {
-                {GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString()},
-                { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
-            };
-
-            var handshakeReply = await RequestAsync(
-                () => _client.DoHandshakeAsync(new HandshakeRequest {Handshake = handshake}, data), request);
-
-            LastReceivedHandshake = handshakeReply?.Handshake;
-
-            // Do some pre-checks that represent the minimum acceptable for the peers state.
-            if (LastReceivedHandshake?.HandshakeData?.BestChainHead == null)
-            {
-                IsConnected = false;
-                return null;
-            }
-
-            UpdateLastReceivedHandshake(LastReceivedHandshake);
-
-            return LastReceivedHandshake;
-        }
-
         public void UpdateLastReceivedHandshake(Handshake handshake)
         {
-            IsConnected = true;
-
-            LastKnownLibHeight = handshake.HandshakeData.LibBlockHeight;
-            CurrentBlockHash = handshake.HandshakeData.BestChainHead.GetHash();
-            CurrentBlockHeight = handshake.HandshakeData.BestChainHead.Height;
+            LastKnownLibHeight = handshake.HandshakeData.LastIrreversibleBlockHeight;
+            CurrentBlockHash = handshake.HandshakeData.BestChainHash;
+            CurrentBlockHeight = handshake.HandshakeData.BestChainHeight;
         }
 
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
@@ -370,6 +351,19 @@ namespace AElf.OS.Network.Grpc
         }
 
         #endregion
+        
+        public async Task ConfirmHandshakeAsync()
+        {
+            var request = new GrpcRequest {ErrorMessage = "Error while sending confirm handshake."};
+
+            Metadata data = new Metadata
+            {
+                {GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString()},
+                {GrpcConstants.SessionIdMetadataKey, OutboundSessionId}
+            };
+
+            await RequestAsync(() => _client.ConfirmHandshakeAsync(new ConfirmHandshakeRequest(), data), request);
+        }
 
         private async Task<TResp> RequestAsync<TResp>(Func<AsyncUnaryCall<TResp>> func, GrpcRequest requestParams)
         {

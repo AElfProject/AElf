@@ -12,7 +12,7 @@ namespace AElf.OS.Network
         
         public static GrpcPeer CreateBasicPeer(string ip, string pubkey)
         {
-            return CreatePeerWithInfo(ip, new PeerInfo { Pubkey = pubkey, SessionId = new byte[] { 0, 1, 2} });
+            return CreatePeerWithInfo(ip, new PeerInfo { Pubkey = pubkey, SessionId = new byte[] { 0, 1, 2}, ConnectionTime = TimestampHelper.GetUtcNow()});
         }
 
         public static GrpcPeer CreatePeerWithInfo(string ip, PeerInfo info)
@@ -49,7 +49,7 @@ namespace AElf.OS.Network
             {
                 Pubkey = pubkey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
-                ConnectionTime = TimestampHelper.GetUtcNow().Seconds,
+                ConnectionTime = TimestampHelper.GetUtcNow(),
                 SessionId = new byte[] { 0, 1, 2},
                 IsInbound = true
             };
