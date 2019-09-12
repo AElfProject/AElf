@@ -20,19 +20,93 @@ namespace AElf.OS.Network.Infrastructure
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
 
         public int PeerCount => Peers.Count;
+        public Dictionary<IPAddress, ConcurrentDictionary<string, string>> GetHandshakingPeers()
+            => HandshakingPeers.ToDictionary(p => p.Key, p => p.Value);
+
         protected readonly ConcurrentDictionary<string, IPeer> Peers;
+        protected readonly ConcurrentDictionary<IPAddress, ConcurrentDictionary<string, string>> HandshakingPeers;
 
         public PeerPool()
         {
             Peers = new ConcurrentDictionary<string, IPeer>();
+            HandshakingPeers = new ConcurrentDictionary<IPAddress, ConcurrentDictionary<string, string>>();
             Logger = NullLogger<PeerPool>.Instance;
         }
 
         public bool IsFull()
         {
             var peerCount = Peers.Where(p => !p.Value.IsInvalid).ToList().Count;
-
             return NetworkOptions.MaxPeers != 0 && peerCount >= NetworkOptions.MaxPeers;
+        }
+
+        public bool AddHandshakingPeer(IPAddress ipAddress, string pubkey)
+        {
+            if (IsFull())
+            {
+                Logger.LogWarning("Peer pool is full.");
+                return false;
+            }
+
+            // check if the we've reached the maximum number of connections from this IP
+            if (IsOverIpLimit(ipAddress))
+                return false;
+            
+            bool added = true;
+            HandshakingPeers.AddOrUpdate(ipAddress, new ConcurrentDictionary<string, string> { [pubkey] = pubkey },
+                (key, handshakes) =>
+                {
+                    if (IsOverIpLimit(ipAddress))
+                    {
+                        added = false;
+                        return handshakes;
+                    }
+
+                    handshakes.TryAdd(pubkey, pubkey);
+                    
+                    return handshakes;
+                });
+
+            return added;
+        }
+
+        private bool IsOverIpLimit(IPAddress ipAddress)
+        {
+            if (NetworkOptions.MaxPeersPerIpAddress == 0 || ipAddress.Equals(IPAddress.Loopback))
+                return false;
+                
+            int initiatedHandshakes = 0;
+            if (HandshakingPeers.TryGetValue(ipAddress, out var handshakes))
+                initiatedHandshakes = handshakes.Count;
+                
+            int peersFromIpCount = GetPeersByIpAddress(ipAddress).Count;
+            if (peersFromIpCount + initiatedHandshakes >= NetworkOptions.MaxPeersPerIpAddress)
+            {
+                Logger.LogWarning($"Max peers from {ipAddress} exceeded, current count {peersFromIpCount} " +
+                                  $"(max. per ip {NetworkOptions.MaxPeersPerIpAddress}).");
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool RemoveHandshakingPeer(IPAddress address, string pubkey)
+        {
+            bool removed = false;
+            if (HandshakingPeers.TryGetValue(address, out var pubkeys))
+            {
+                removed = pubkeys.TryRemove(pubkey, out _);
+
+                if (pubkeys.IsNullOrEmpty())
+                    CleanHandshakes(address);
+            }
+
+            return removed;
+        }
+
+        private void CleanHandshakes(IPAddress ipAddress)
+        {
+            HandshakingPeers.TryRemove(ipAddress, out _);
         }
 
         public List<IPeer> GetPeers(bool includeFailing = false)
@@ -61,6 +135,14 @@ namespace AElf.OS.Network.Infrastructure
             Peers.TryGetValue(publicKey, out IPeer p);
 
             return p;
+        }
+
+        public List<IPeer> GetPeersByIpAddress(IPAddress ipAddress)
+        {
+            return Peers
+                .Where(p => p.Value.RemoteEndpoint.Address.Equals(ipAddress))
+                .Select(p => p.Value)
+                .ToList();
         }
 
         public IPeer RemovePeer(string publicKey)

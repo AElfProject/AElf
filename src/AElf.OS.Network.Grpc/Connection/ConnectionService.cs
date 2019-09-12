@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol;
-using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
@@ -112,16 +111,20 @@ namespace AElf.OS.Network.Grpc.Connection
 
         public async Task<HandshakeReply> DoHandshakeAsync(IPEndPoint endpoint, Handshake handshake)
         {
+            // validate the handshake (signature, chain id...)
+            var handshakeValidationResult = await _handshakeProvider.ValidateHandshakeAsync(handshake);
+            if (handshakeValidationResult != HandshakeValidationResult.Ok)
+            {
+                var handshakeError = GetHandshakeError(handshakeValidationResult);
+                return new HandshakeReply {Error = handshakeError};
+            }
+
+            var pubkey = handshake.HandshakeData.Pubkey.ToHex();
+            
             try
             {
-                var handshakeValidationResult = await _handshakeProvider.ValidateHandshakeAsync(handshake);
-                if (handshakeValidationResult != HandshakeValidationResult.Ok)
-                {
-                    var handshakeError = GetHandshakeError(handshakeValidationResult);
-                    return new HandshakeReply {Error = handshakeError};
-                }
-
-                var pubkey = handshake.HandshakeData.Pubkey.ToHex();
+                // remove any remaining connection to the peer (before the check
+                // that we have room for more connections)
                 var currentPeer = _peerPool.FindPeerByPublicKey(pubkey);
                 if (currentPeer != null)
                 {
@@ -129,15 +132,15 @@ namespace AElf.OS.Network.Grpc.Connection
                     await currentPeer.DisconnectAsync(false);
                 }
 
-                if (_peerPool.IsFull())
-                {
-                    Logger.LogWarning("Peer pool is full.");
+                // mark the (IP; pubkey) pair as currently handshaking
+                if (!_peerPool.AddHandshakingPeer(endpoint.Address, pubkey))
                     return new HandshakeReply {Error = HandshakeError.ConnectionRefused};
-                }
 
+                // create the connection to the peer
                 var peerAddress = new IPEndPoint(endpoint.Address, handshake.HandshakeData.ListeningPort);
                 var grpcPeer = await _peerDialer.DialBackPeerAsync(peerAddress, handshake);
 
+                // add the new peer to the pool
                 if (!_peerPool.TryAddPeer(grpcPeer))
                 {
                     Logger.LogWarning($"Stopping connection, peer already in the pool {grpcPeer.Info.Pubkey}.");
@@ -147,21 +150,18 @@ namespace AElf.OS.Network.Grpc.Connection
 
                 Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
 
+                // send back our handshake
                 var replyHandshake = await _handshakeProvider.GetHandshakeAsync();
                 grpcPeer.InboundSessionId = replyHandshake.SessionId.ToByteArray();
             
                 Logger.LogWarning($"Just dialed back peer: inbound token {grpcPeer.InboundSessionId?.ToHex()}, out {grpcPeer.OutboundSessionId?.ToHex()}.");
-            
-                return new HandshakeReply
-                {
-                    Handshake = replyHandshake,
-                    Error = HandshakeError.HandshakeOk
-                };
+
+                return new HandshakeReply { Handshake = replyHandshake, Error = HandshakeError.HandshakeOk };
             }
-            catch (Exception e)
+            finally
             {
-                Logger.LogError(e, "Error in connection");
-                throw;
+                // remove the handshaking mark (IP; pubkey)
+                _peerPool.RemoveHandshakingPeer(endpoint.Address, pubkey);
             }
         }
 

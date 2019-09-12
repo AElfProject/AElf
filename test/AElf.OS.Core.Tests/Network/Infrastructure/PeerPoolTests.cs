@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -11,15 +14,64 @@ using Xunit;
 
 namespace AElf.OS.Network
 {
-    public class GrpcPeerPoolTests : NetworkInfrastructureTestBase
+    public class PeerPoolTests : NetworkInfrastructureTestBase
     {
         private readonly IPeerPool _peerPool;
 
-        public GrpcPeerPoolTests()
+        public PeerPoolTests()
         {
             _peerPool = GetRequiredService<IPeerPool>();
         }
+        
+        [Fact]
+        public void GetPeersByHost_ShouldReturnAllPeers_WithSameHost()
+        {
+            IPAddress commonHost = IPAddress.Parse("12.34.56.67");
+            string commonPort = "1900";
+            string commonEndpoint = commonHost + ":" + commonPort;
             
+            _peerPool.TryAddPeer(CreatePeer(commonEndpoint));
+            _peerPool.TryAddPeer(CreatePeer(commonEndpoint));
+            _peerPool.TryAddPeer(CreatePeer("12.34.56.64:1900"));
+            _peerPool.TryAddPeer(CreatePeer("12.34.56.61:1900"));
+
+            var peersWithSameHost = _peerPool.GetPeersByIpAddress(commonHost);
+            peersWithSameHost.Count.ShouldBe(2);
+        }
+
+        [Fact]
+        public void AddHandshakingPeer_WithSameIp_ShouldAddToList()
+        {
+            var commonIp = IPAddress.Parse("12.34.56.64");
+            var mockPubkeyOne = "pub1";
+            var mockPubkeyTwo = "pub2";
+            
+            _peerPool.AddHandshakingPeer(commonIp, mockPubkeyOne);
+            _peerPool.AddHandshakingPeer(commonIp, mockPubkeyTwo);
+
+            _peerPool.GetHandshakingPeers().TryGetValue(commonIp, out var peers);
+            peers.Values.Count.ShouldBe(2);
+            peers.Values.ShouldContain(mockPubkeyOne, mockPubkeyTwo);
+        }
+        
+        [Fact]
+        public void RemoveHandshakingPeer_Last_ShouldRemoveEndpoint()
+        {
+            var commonIp = IPAddress.Parse("12.34.56.64");
+            var mockPubkeyOne = "pub1";
+            var mockPubkeyTwo = "pub2";
+            
+            _peerPool.AddHandshakingPeer(commonIp, mockPubkeyOne);
+            _peerPool.AddHandshakingPeer(commonIp, mockPubkeyTwo);
+            
+            _peerPool.RemoveHandshakingPeer(commonIp, mockPubkeyOne);
+            _peerPool.GetHandshakingPeers().TryGetValue(commonIp, out _).ShouldBeTrue();
+            
+            // remove last should remove entry
+            _peerPool.RemoveHandshakingPeer(commonIp, mockPubkeyTwo);
+            _peerPool.GetHandshakingPeers().TryGetValue(commonIp, out _).ShouldBeFalse();
+
+        }
         
         [Fact]
         public void AddedPeer_IsFindable_ByAddressAndPubkey()
@@ -71,7 +123,7 @@ namespace AElf.OS.Network
             _peerPool.IsFull().ShouldBeTrue();
         }
         
-        private static IPeer CreatePeer(string ip = NetworkTestConstants.FakeIpEndpoint)
+        private static IPeer CreatePeer(string ipEndpoint = NetworkTestConstants.FakeIpEndpoint)
         {
             var peerMock = new Mock<IPeer>();
                 
@@ -86,13 +138,20 @@ namespace AElf.OS.Network
                 IsInbound = true
             };
 
-            if (!IpEndpointHelper.TryParse(ip, out var endpoint))
-                throw new Exception($"Endpoint {ip} could not be parsed.");
+            var endpoint = ParseEndPoint(ipEndpoint);
 
             peerMock.Setup(p => p.RemoteEndpoint).Returns(endpoint);
             peerMock.Setup(p => p.Info).Returns(peerInfo);
             
             return peerMock.Object;
+        }
+
+        private static IPEndPoint ParseEndPoint(string ipEndpoint)
+        {
+            if (!IpEndPointHelper.TryParse(ipEndpoint, out var endpoint))
+                throw new Exception($"Endpoint {ipEndpoint} could not be parsed.");
+
+            return endpoint;
         }
     }
 }

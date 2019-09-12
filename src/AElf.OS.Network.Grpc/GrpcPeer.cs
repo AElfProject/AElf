@@ -88,8 +88,6 @@ namespace AElf.OS.Network.Grpc
         public int BufferedBlocksCount => _sendBlockJobs.InputCount;
         public int BufferedAnnouncementsCount => _sendAnnouncementJobs.InputCount;
 
-        public string IpAddress { get; }
-
         public PeerInfo Info { get; }
 
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }

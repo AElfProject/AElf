@@ -17,14 +17,14 @@ namespace AElf.OS.Network
 
         public static GrpcPeer CreatePeerWithInfo(string ip, PeerInfo info)
         {
-            var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), null), IpEndpointHelper.Parse(ip), info);
+            var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), null), IpEndPointHelper.Parse(ip), info);
             peer.InboundSessionId = new byte[] {0, 1, 2};
             return peer;
         }
 
         public static GrpcPeer CreatePeerWithClient(string ip, string pubkey, PeerService.PeerServiceClient client)
         {
-            var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), client), IpEndpointHelper.Parse(ip), new PeerInfo { Pubkey = pubkey, SessionId = new byte[] { 0, 1, 2} });
+            var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), client), IpEndPointHelper.Parse(ip), new PeerInfo { Pubkey = pubkey, SessionId = new byte[] { 0, 1, 2} });
             peer.InboundSessionId = new byte[] {0, 1, 2};
             return peer;
         }
@@ -54,7 +54,7 @@ namespace AElf.OS.Network
                 IsInbound = true
             };
 
-            var peer = new GrpcPeer(new GrpcClient(channel, client), IpEndpointHelper.Parse(ipAddress), connectionInfo);
+            var peer = new GrpcPeer(new GrpcClient(channel, client), IpEndPointHelper.Parse(ipAddress), connectionInfo);
             peer.InboundSessionId = new byte[] {0, 1, 2};
 
             return peer;

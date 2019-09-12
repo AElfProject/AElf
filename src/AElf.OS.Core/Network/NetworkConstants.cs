@@ -8,6 +8,7 @@ namespace AElf.OS.Network
         public const int DefaultMaxRequestRetryCount = 1;
         public const int DefaultMaxRandomPeersPerRequest = 2;
         public const int DefaultMaxPeers = 25;
+        public const int DefaultMaxPeersPerIpAddress = 0;
 
         public const int DefaultSessionIdSize = 5;
 
