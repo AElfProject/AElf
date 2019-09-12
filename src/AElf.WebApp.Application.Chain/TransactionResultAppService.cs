@@ -38,8 +38,7 @@ namespace AElf.WebApp.Application.Chain
         public TransactionResultAppService(ITransactionResultProxyService transactionResultProxyService,
             ITransactionManager transactionManager,
             IBlockchainService blockchainService,
-            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
-            ITransactionResultManager transactionResultManager)
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService)
         {
             _transactionResultProxyService = transactionResultProxyService;
             _transactionManager = transactionManager;
