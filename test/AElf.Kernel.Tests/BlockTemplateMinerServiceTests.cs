@@ -79,7 +79,6 @@ namespace AElf.Kernel
 
             #endregion
 
-
             //Send bytes to Server
 
             newHeader = BlockHeader.Parser.ParseFrom(ByteString.CopyFrom(bytes));

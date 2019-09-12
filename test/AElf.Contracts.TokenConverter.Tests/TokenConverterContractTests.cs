@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -205,7 +206,7 @@ namespace AElf.Contracts.TokenConverter
             balanceOfElfToken.ShouldBe(amountToPay);
 
             var balanceOfFeeReceiver = await GetBalanceAsync(NativeSymbol,FeeReceiverAddress);
-            balanceOfFeeReceiver.ShouldBe(fee);
+            balanceOfFeeReceiver.ShouldBe(fee.Div(2));
 
             var balanceOfRamToken = await GetBalanceAsync(RamSymbol,TokenConverterContractAddress);
             balanceOfRamToken.ShouldBe(100_0000L - 1000L);
@@ -298,16 +299,16 @@ namespace AElf.Contracts.TokenConverter
             balanceOfTesterRam.ShouldBe(0L);
 
             var balanceOfFeeReceiverAfterSell = await GetBalanceAsync(NativeSymbol,FeeReceiverAddress);
-            balanceOfFeeReceiverAfterSell.ShouldBe(fee+balanceOfFeeReceiver);
+            balanceOfFeeReceiverAfterSell.ShouldBe(fee.Div(2) + balanceOfFeeReceiver);
 
             var balanceOfElfTokenAfterSell = await GetBalanceAsync(NativeSymbol, TokenConverterContractAddress);
-            balanceOfElfTokenAfterSell.ShouldBe(balanceOfElfToken-amountToReceive);
+            balanceOfElfTokenAfterSell.ShouldBe(balanceOfElfToken-amountToReceive + fee);
 
             var balanceOfRamToken = await GetBalanceAsync(RamSymbol,TokenConverterContractAddress);
             balanceOfRamToken.ShouldBe(100_0000L);
 
             var balanceOfTesterTokenAfterSell = await GetBalanceAsync(NativeSymbol, DefaultSender);
-            balanceOfTesterTokenAfterSell.ShouldBe(balanceOfTesterToken + (amountToReceive - fee));
+            balanceOfTesterTokenAfterSell.ShouldBe(balanceOfTesterToken + (amountToReceive - fee) - fee);
         }
 
         [Fact]

@@ -122,21 +122,6 @@ namespace AElf.Contracts.Vote
                 beforeBalance.ShouldBe(afterBalance); // Stay same
             }
 
-            //vote but not expire
-            {
-                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-
-                var voteUser = SampleECKeyPairs.KeyPairs[1];
-
-                await Vote(voteUser, registerItem.VotingItemId, registerItem.Options[1], 100);
-
-                var voteIds = await GetVoteIds(voteUser, registerItem.VotingItemId);
-                var transactionResult = await Withdraw(voteUser, voteIds.ActiveVotes.First());
-
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Cannot withdraw votes of on-going voting item").ShouldBeTrue();
-            }
-
             //success
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);

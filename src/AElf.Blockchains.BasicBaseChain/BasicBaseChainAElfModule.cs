@@ -40,7 +40,8 @@ namespace AElf.Blockchains.BasicBaseChain
         //web api module
         typeof(WebWebAppAElfModule),
 
-        typeof(ParallelExecutionModule)
+        typeof(ParallelExecutionModule),
+        typeof(BlockTransactionLimitControllerModule)
     )]
     public class BasicBaseChainAElfModule : AElfModule
     {
@@ -72,7 +73,7 @@ namespace AElf.Blockchains.BasicBaseChain
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = context.Services
-                    .GetConfiguration().GetValue("TokenInitial:Symbol", "ELF");
+                    .GetConfiguration().GetValue("Economic:Symbol", "ELF");
             });
             
             Configure<ContractOptions>(configuration.GetSection("Contract"));

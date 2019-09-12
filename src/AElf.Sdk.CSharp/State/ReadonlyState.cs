@@ -1,20 +1,20 @@
-using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp.State
 {
-    public class SingletonState : StateBase
+    public class ReadonlyState : StateBase
     {
     }
 
-    public class SingletonState<TEntity> : SingletonState
+    public class ReadonlyState<TEntity> : ReadonlyState
     {
-        internal bool Loaded = false;
-        internal bool Modified => Equals(_originalValue, _value);
+        internal bool Loaded;
 
-        private TEntity _originalValue;
         private TEntity _value;
+
+        // If the target of current ReadonlyState is default(TEntity), it maybe not proper to use ReadonlyState.
+        private bool NotSetBefore => Equals(_value, default(TEntity));
 
         public TEntity Value
         {
@@ -34,35 +34,34 @@ namespace AElf.Sdk.CSharp.State
                     Load();
                 }
 
-                _value = value;
+                if (NotSetBefore)
+                {
+                    _value = value;
+                }
             }
         }
 
         internal override void Clear()
         {
             Loaded = false;
-            _originalValue = default(TEntity);
-            _value = _originalValue;
+            _value = default;
         }
 
         internal override TransactionExecutingStateSet GetChanges()
         {
             var stateSet = new TransactionExecutingStateSet();
             var key = Path.ToStateKey(Context.Self);
-            if (!Equals(_originalValue, _value))
+            if (!NotSetBefore)
             {
                 stateSet.Writes[key] = ByteString.CopyFrom(SerializationHelper.Serialize(_value));
             }
-
-            if (Loaded) stateSet.Reads[key] = true;
-
+            
             return stateSet;
         }
 
         private void Load()
         {
             var bytes = Provider.GetAsync(Path).Result;
-            _originalValue = SerializationHelper.Deserialize<TEntity>(bytes);
             _value = SerializationHelper.Deserialize<TEntity>(bytes);
             Loaded = true;
         }

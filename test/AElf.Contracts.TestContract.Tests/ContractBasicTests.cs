@@ -75,7 +75,7 @@ namespace AElf.Contract.TestContract
                 contractAddress = Address.Parser.ParseFrom(transactionResult.ReturnValue);
                 blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
 
-                 var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
+                var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
                 {
                     First = SampleAddress.AddressList[0],
                     Second = SampleAddress.AddressList[1]

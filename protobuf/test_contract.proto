@@ -32,6 +32,8 @@ service TestContract {
     }
     rpc TestMapped1State(Complex3Input) returns (TradeMessage) {
     }
+    rpc TestReadonlyState(BoolInput) returns (BoolOutput) {
+    }
 }
 
 //Input
