@@ -136,9 +136,9 @@ namespace AElf.WebApp.Application.Chain
             {
                 limit = Math.Min(limit, block.Body.TransactionIds.Count - offset);
                 var transactionIds = block.Body.TransactionIds.ToList().GetRange(offset, limit);
-                foreach (var hash in transactionIds)
+                foreach (var transactionId in transactionIds)
                 {
-                    var transactionResult = await GetTransactionResultAsync(hash);
+                    var transactionResult = await GetTransactionResultAsync(transactionId, realBlockHash);
                     var transactionResultDto =
                         JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
                     var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
@@ -235,7 +235,7 @@ namespace AElf.WebApp.Application.Chain
             return merklePath;
         }
 
-        private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId)
+        private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash = null)
         {
             // in tx pool
             var receipt = await _transactionResultProxyService.TxHub.GetTransactionReceiptAsync(transactionId);
@@ -249,10 +249,19 @@ namespace AElf.WebApp.Application.Chain
             }
             
             // in storage
-            var res = await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(transactionId);
-            if (res != null)
+            TransactionResult result;
+            if (blockHash != null)
             {
-                return res;
+                result = await _transactionResultProxyService.TransactionResultQueryService.
+                    GetTransactionResultAsync(transactionId, blockHash);
+            }
+            else
+            {
+                result = await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(transactionId);
+            }
+            if (result != null)
+            {
+                return result;
             }
 
             // not existed
