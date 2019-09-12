@@ -74,10 +74,8 @@ namespace AElf.Parallel.Tests
             await _blockchainService.AddTransactionsAsync(transactions);
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
-            
-            var transactionResult =
-                await _transactionResultManager.GetTransactionResultAsync(transaction.GetHash(),
-                    block.Header.GetPreMiningHash());
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
@@ -124,10 +122,8 @@ namespace AElf.Parallel.Tests
             await _blockchainService.AddTransactionsAsync(transactions);
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
-            
-            var transactionResult =
-                await _transactionResultManager.GetTransactionResultAsync(transaction.GetHash(),
-                    block.Header.GetPreMiningHash());
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
@@ -282,10 +278,8 @@ namespace AElf.Parallel.Tests
             await _blockchainService.AddTransactionsAsync(transactions);
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
-            
-            var transactionResult =
-                await _transactionResultManager.GetTransactionResultAsync(transaction.GetHash(),
-                    block.Header.GetPreMiningHash());
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
@@ -626,6 +620,15 @@ namespace AElf.Parallel.Tests
             output.StringValue.ShouldBe(stringValue);
             output.Int64Value.ShouldBe(longValue);
             output.MessageValue.ShouldBe(messageValue);
+        }
+
+        private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, BlockHeader blockHeader)
+        {
+            var transactionResult = await _transactionResultManager.GetTransactionResultAsync(transactionId,
+                blockHeader.GetHash());
+            if (transactionResult != null) return transactionResult;
+            return await _transactionResultManager.GetTransactionResultAsync(transactionId,
+                blockHeader.GetPreMiningHash());
         }
         #endregion
     }
