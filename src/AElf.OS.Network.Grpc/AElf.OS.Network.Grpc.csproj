@@ -4,6 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.OS.Network.Grpc</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Protobuf_NoWarnMissingExpected>true</Protobuf_NoWarnMissingExpected>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <NoWarn>1998</NoWarn>

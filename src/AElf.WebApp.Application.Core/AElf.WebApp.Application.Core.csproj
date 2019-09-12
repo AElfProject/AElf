@@ -7,6 +7,9 @@
         <PackageId>AElf.WebApp.Application.Core</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <NoWarn>1591</NoWarn>
+    </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Volo.Abp.Ddd.Application" Version="0.19.0" />
