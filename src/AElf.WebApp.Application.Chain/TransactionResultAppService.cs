@@ -77,6 +77,7 @@ namespace AElf.WebApp.Application.Chain
             {
                 var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
                 output.BlockHash = block.GetHash().ToHex();
+                output.ReturnHexValue = transactionResult.ReturnValue.ToHex();
             }
 
             if (transactionResult.Status == TransactionResultStatus.Failed)
@@ -89,7 +90,6 @@ namespace AElf.WebApp.Application.Chain
             }
 
             output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
-
             var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
                 _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
 
@@ -112,6 +112,7 @@ namespace AElf.WebApp.Application.Chain
             if (transactionResult.Status == TransactionResultStatus.Mined)
             {
                 output.BlockHash = block.GetHash().ToHex();
+                output.ReturnHexValue = transactionResult.ReturnValue.ToHex();
             }
 
             if (transactionResult.Status == TransactionResultStatus.Failed)
@@ -184,6 +185,7 @@ namespace AElf.WebApp.Application.Chain
                         JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
                     var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
                     transactionResultDto.BlockHash = block.GetHash().ToHex();
+                    transactionResultDto.ReturnHexValue = transactionResult.ReturnValue.ToHex();
 
                     if (transactionResult.Status == TransactionResultStatus.Failed)
                         transactionResultDto.Error = transactionResult.Error;
