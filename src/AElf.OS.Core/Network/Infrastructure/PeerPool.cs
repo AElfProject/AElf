@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -21,16 +20,16 @@ namespace AElf.OS.Network.Infrastructure
         public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
 
         public int PeerCount => Peers.Count;
-        public Dictionary<IPAddress, List<string>> GetHandshakingPeers()
+        public Dictionary<IPAddress, ConcurrentDictionary<string, string>> GetHandshakingPeers()
             => HandshakingPeers.ToDictionary(p => p.Key, p => p.Value);
 
         protected readonly ConcurrentDictionary<string, IPeer> Peers;
-        protected readonly ConcurrentDictionary<IPAddress, List<string>> HandshakingPeers;
+        protected readonly ConcurrentDictionary<IPAddress, ConcurrentDictionary<string, string>> HandshakingPeers;
 
         public PeerPool()
         {
             Peers = new ConcurrentDictionary<string, IPeer>();
-            HandshakingPeers = new ConcurrentDictionary<IPAddress, List<string>>();
+            HandshakingPeers = new ConcurrentDictionary<IPAddress, ConcurrentDictionary<string, string>>();
             Logger = NullLogger<PeerPool>.Instance;
         }
 
@@ -49,47 +48,55 @@ namespace AElf.OS.Network.Infrastructure
             }
 
             // check if the we've reached the maximum number of connections from this IP
-            if (NetworkOptions.MaxPeersPerIpAddress != 0 && !ipAddress.Equals(IPAddress.Loopback))
-            {
-                int initiatedHandshakes = 0;
-                if (HandshakingPeers.TryGetValue(ipAddress, out var handshakes))
-                    initiatedHandshakes = handshakes.Count;
-                
-                int peersFromIpCount = GetPeersByIpAddress(ipAddress).Count;
-                if (peersFromIpCount + initiatedHandshakes >= NetworkOptions.MaxPeersPerIpAddress)
-                {
-                    Logger.LogWarning($"Max peers from {ipAddress} exceeded, current count {peersFromIpCount} " +
-                                      $"(max. per ip {NetworkOptions.MaxPeersPerIpAddress}).");
-
-                    return false;
-                }
-            }
-
-            HandshakingPeers.AddOrUpdate(ipAddress, new List<string> { pubkey },
+            if (IsOverIpLimit(ipAddress))
+                return false;
+            
+            bool added = true;
+            HandshakingPeers.AddOrUpdate(ipAddress, new ConcurrentDictionary<string, string> { [pubkey] = pubkey },
                 (key, handshakes) =>
                 {
-                    handshakes.Add(pubkey);
+                    if (IsOverIpLimit(ipAddress))
+                    {
+                        added = false;
+                        return handshakes;
+                    }
+
+                    handshakes.TryAdd(pubkey, pubkey);
+                    
                     return handshakes;
                 });
 
-            return true;
+            return added;
+        }
+
+        private bool IsOverIpLimit(IPAddress ipAddress)
+        {
+            if (NetworkOptions.MaxPeersPerIpAddress == 0 || ipAddress.Equals(IPAddress.Loopback))
+                return false;
+                
+            int initiatedHandshakes = 0;
+            if (HandshakingPeers.TryGetValue(ipAddress, out var handshakes))
+                initiatedHandshakes = handshakes.Count;
+                
+            int peersFromIpCount = GetPeersByIpAddress(ipAddress).Count;
+            if (peersFromIpCount + initiatedHandshakes >= NetworkOptions.MaxPeersPerIpAddress)
+            {
+                Logger.LogWarning($"Max peers from {ipAddress} exceeded, current count {peersFromIpCount} " +
+                                  $"(max. per ip {NetworkOptions.MaxPeersPerIpAddress}).");
+
+                return true;
+            }
+
+            return false;
         }
 
         public bool RemoveHandshakingPeer(IPAddress address, string pubkey)
         {
             bool removed = false;
-            
             if (HandshakingPeers.TryGetValue(address, out var pubkeys))
             {
-                // remove the corresponding handshake
-                var toRemove = pubkeys.FirstOrDefault(p => p == pubkey);
+                removed = pubkeys.TryRemove(pubkey, out _);
 
-                if (toRemove != null)
-                {
-                    pubkeys.Remove(toRemove);
-                    removed = true;
-                }
-                
                 if (pubkeys.IsNullOrEmpty())
                     CleanHandshakes(address);
             }

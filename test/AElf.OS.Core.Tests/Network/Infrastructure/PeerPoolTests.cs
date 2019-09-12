@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.Cryptography;
@@ -49,7 +50,8 @@ namespace AElf.OS.Network
             _peerPool.AddHandshakingPeer(commonIp, mockPubkeyTwo);
 
             _peerPool.GetHandshakingPeers().TryGetValue(commonIp, out var peers);
-            peers.ShouldContain(mockPubkeyOne, mockPubkeyTwo);
+            peers.Values.Count.ShouldBe(2);
+            peers.Values.ShouldContain(mockPubkeyOne, mockPubkeyTwo);
         }
         
         [Fact]

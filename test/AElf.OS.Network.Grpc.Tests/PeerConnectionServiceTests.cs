@@ -27,25 +27,11 @@ namespace AElf.OS.Network
         {
             var peerEndpoint = new IPEndPoint(IPAddress.Parse("1.2.3.4"), 1234);
 
-            var firstPeerFromHostResp = await _connectionService.DoHandshakeAsync(peerEndpoint, GetHandshake());
+            var firstPeerFromHostResp = await _connectionService.DoHandshakeAsync(peerEndpoint, GetHandshake("pubKey1"));
             firstPeerFromHostResp.Error.ShouldBe(HandshakeError.HandshakeOk);
             
-            var secondPeerFromHostResp = await _connectionService.DoHandshakeAsync(peerEndpoint, GetHandshake());
+            var secondPeerFromHostResp = await _connectionService.DoHandshakeAsync(peerEndpoint, GetHandshake("pubKey2"));
             secondPeerFromHostResp.Error.ShouldBe(HandshakeError.ConnectionRefused);
-            
-            _peerPool.GetPeers(true).Count.ShouldBe(1);
-            _peerPool.GetHandshakingPeers().Values.Count.ShouldBe(0);
-        }
-        
-        [Fact]
-        public async Task DoHandshake_ConcurrentConnection_Test()
-        {
-            var peerEndpoint = new IPEndPoint(IPAddress.Parse("1.2.3.5"), 1234);
-
-            var firstPeerFromHostResp = _connectionService.DoHandshakeAsync(peerEndpoint, GetHandshake());
-            var secondPeerFromHostResp = _connectionService.DoHandshakeAsync(peerEndpoint, GetHandshake());
-
-            await Task.WhenAll(new List<Task> { firstPeerFromHostResp, secondPeerFromHostResp });
             
             _peerPool.GetPeers(true).Count.ShouldBe(1);
             _peerPool.GetHandshakingPeers().Values.Count.ShouldBe(0);
@@ -57,13 +43,13 @@ namespace AElf.OS.Network
             var grpcUriLocal = new IPEndPoint(IPAddress.Loopback, 1234);
             var grpcUriLocalhostIp = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1234);
 
-            var firstLocalPeerResp = await _connectionService.DoHandshakeAsync(grpcUriLocal, GetHandshake());
+            var firstLocalPeerResp = await _connectionService.DoHandshakeAsync(grpcUriLocal, GetHandshake("pubKey1"));
             firstLocalPeerResp.Error.ShouldBe(HandshakeError.HandshakeOk);
             
-            var secondLocalPeerResp = await _connectionService.DoHandshakeAsync(grpcUriLocal, GetHandshake());
+            var secondLocalPeerResp = await _connectionService.DoHandshakeAsync(grpcUriLocal, GetHandshake("pubKey2"));
             secondLocalPeerResp.Error.ShouldBe(HandshakeError.HandshakeOk);
             
-            var thirdPeerFromHostResp = await _connectionService.DoHandshakeAsync(grpcUriLocalhostIp, GetHandshake());
+            var thirdPeerFromHostResp = await _connectionService.DoHandshakeAsync(grpcUriLocalhostIp, GetHandshake("pubKey3"));
             thirdPeerFromHostResp.Error.ShouldBe(HandshakeError.HandshakeOk);
             
             _peerPool.GetPeers(true).Count.ShouldBe(3);

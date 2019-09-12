@@ -24,27 +24,25 @@ namespace AElf.OS.Network
                 Mock<IPeerDialer> mockDialer = new Mock<IPeerDialer>();
                 
                 mockDialer.Setup(d => d.DialBackPeerAsync(It.IsAny<IPEndPoint>(), It.IsAny<Handshake>()))
-                    .Returns<IPEndPoint, Handshake>((ip, _) =>
+                    .Returns<IPEndPoint, Handshake>((ip, hsk) =>
                     {
-                        var randomKp = CryptoHelper.GenerateKeyPair();
                         return Task.FromResult(new GrpcPeer(
                                 new GrpcClient(null, Mock.Of<PeerService.PeerServiceClient>()), ip, new PeerInfo
                                 {
-                                    Pubkey = randomKp.PublicKey.ToHex(),
+                                    Pubkey = hsk.HandshakeData.Pubkey.ToHex(),
                                     ConnectionTime = TimestampHelper.GetUtcNow()
                                 }));
                     });
                 
                 mockDialer.Setup(d => d.DialBackPeerAsync(It.Is<IPEndPoint>(ipEndpoint => ipEndpoint.Address.Equals(IPAddress.Parse("1.2.3.5"))), It.IsAny<Handshake>()))
-                    .Returns<IPEndPoint, Handshake>(async (ip, _) =>
+                    .Returns<IPEndPoint, Handshake>(async (ip, hsk) =>
                     {
-                        var randomKp = CryptoHelper.GenerateKeyPair();
                         await Task.Delay(TimeSpan.FromSeconds(2));
                         
                         return new GrpcPeer(
                             new GrpcClient(null, Mock.Of<PeerService.PeerServiceClient>()), ip, new PeerInfo
                             {
-                                Pubkey = randomKp.PublicKey.ToHex(),
+                                Pubkey = hsk.HandshakeData.Pubkey.ToHex(),
                                 ConnectionTime = TimestampHelper.GetUtcNow()
                             });
                     });

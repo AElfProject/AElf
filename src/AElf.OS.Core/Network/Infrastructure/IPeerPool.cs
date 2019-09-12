@@ -1,7 +1,6 @@
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Net;
-using System.Threading.Tasks;
-using AElf.Types;
 
 namespace AElf.OS.Network.Infrastructure
 {
@@ -13,7 +12,7 @@ namespace AElf.OS.Network.Infrastructure
 
         bool AddHandshakingPeer(IPAddress ipAddress, string pubkey);
         bool RemoveHandshakingPeer(IPAddress ipAddress, string pubkey);
-        Dictionary<IPAddress, List<string>> GetHandshakingPeers();
+        Dictionary<IPAddress, ConcurrentDictionary<string, string>> GetHandshakingPeers();
 
         List<IPeer> GetPeers(bool includeFailing = false);
 
