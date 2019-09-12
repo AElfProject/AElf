@@ -22,7 +22,7 @@ namespace AElf.OS.Network.Grpc
         {
             if (context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake)))
             {
-                // a method other that Connect is being called
+                // a method other than DoHandshake is being called
                 
                 var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
 
