@@ -41,7 +41,8 @@ namespace AElf.OS
                     
                     var blockWithTransactions = osTestHelper.Value.GenerateBlockWithTransactions(Hash.Empty, 10);
 
-                    p1.Setup(p => p.Info).Returns(new PeerConnectionInfo { Pubkey = "p1" });
+                    p1.Setup(p => p.Info).Returns(new PeerConnectionInfo
+                        {Pubkey = "p1", ConnectionTime = TimestampHelper.GetUtcNow()});
                     p1.Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions>()));
                     
@@ -55,7 +56,8 @@ namespace AElf.OS
                 .Returns<string>(adr =>
                 {
                     var p1 = new Mock<IPeer>();
-                    p1.Setup(p => p.Info).Returns(new PeerConnectionInfo { Pubkey = "p1" });
+                    p1.Setup(p => p.Info).Returns(new PeerConnectionInfo
+                        {Pubkey = "p1", ConnectionTime = TimestampHelper.GetUtcNow()});
                     p1.Setup(p => p.GetBlockByHashAsync(It.IsAny<Hash>())).Throws(new NetworkException());
                     p1.Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>())).Throws(new NetworkException());
                     return p1.Object;
@@ -70,7 +72,8 @@ namespace AElf.OS
 
                     var p2 = new Mock<IPeer>();
                     p2.Setup(p => p.RemoteEndpoint).Returns(new IPEndPoint(100, 100));
-                    p2.Setup(p => p.Info).Returns(new PeerConnectionInfo { Pubkey = "p2" });
+                    p2.Setup(p => p.Info).Returns(new PeerConnectionInfo
+                        {Pubkey = "p2", ConnectionTime = TimestampHelper.GetUtcNow()});
                     p2.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("block")), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { blockWithTransactions }));
                     p2.Setup(p => p.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("block"))))
@@ -90,7 +93,8 @@ namespace AElf.OS
                     peers.Add(p2.Object);
 
                     p3.Setup(p => p.RemoteEndpoint).Returns(new IPEndPoint(100, 100));
-                    p3.Setup(p => p.Info).Returns(new PeerConnectionInfo { Pubkey = "p3" });
+                    p3.Setup(p => p.Info).Returns(new PeerConnectionInfo
+                        {Pubkey = "p3", ConnectionTime = TimestampHelper.GetUtcNow()});
                     p3.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("blocks")), It.IsAny<int>()))
                         .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { blockWithTransactions, blockWithTransactions }));
                     p3.Setup(p => p.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("bHash2"))))
@@ -99,7 +103,8 @@ namespace AElf.OS
                     
                     var exceptionOnBcast = new Mock<IPeer>();
                     exceptionOnBcast.Setup(p => p.RemoteEndpoint).Returns(new IPEndPoint(100, 100));
-                    exceptionOnBcast.Setup(p => p.Info).Returns(new PeerConnectionInfo { Pubkey = "exceptionOnBcast" });
+                    exceptionOnBcast.Setup(p => p.Info).Returns(new PeerConnectionInfo
+                        {Pubkey = "exceptionOnBcast", ConnectionTime = TimestampHelper.GetUtcNow()});
                     
                     peers.Add(exceptionOnBcast.Object);
 
@@ -107,7 +112,8 @@ namespace AElf.OS
                     {
                         var failingPeer = new Mock<IPeer>();
                         failingPeer.Setup(p => p.RemoteEndpoint).Returns(new IPEndPoint(100, 100));
-                        failingPeer.Setup(p => p.Info).Returns(new PeerConnectionInfo {Pubkey = "failing"});
+                        failingPeer.Setup(p => p.Info).Returns(new PeerConnectionInfo
+                            {Pubkey = "failing", ConnectionTime = TimestampHelper.GetUtcNow()});
                         peers.Add(failingPeer.Object);
                     }
                     
