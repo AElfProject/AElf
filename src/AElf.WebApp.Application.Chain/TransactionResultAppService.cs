@@ -235,7 +235,7 @@ namespace AElf.WebApp.Application.Chain
             return merklePath;
         }
 
-        private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId)
+        private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash = null)
         {
             // in tx pool
             var receipt = await _transactionResultProxyService.TxHub.GetTransactionReceiptAsync(transactionId);
@@ -249,10 +249,19 @@ namespace AElf.WebApp.Application.Chain
             }
             
             // in storage
-            var res = await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(transactionId);
-            if (res != null)
+            TransactionResult result;
+            if (blockHash != null)
             {
-                return res;
+                result = await _transactionResultProxyService.TransactionResultQueryService.
+                    GetTransactionResultAsync(transactionId, blockHash);
+            }
+            else
+            {
+                result = await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(transactionId);
+            }
+            if (result != null)
+            {
+                return result;
             }
 
             // not existed
@@ -270,35 +279,6 @@ namespace AElf.WebApp.Application.Chain
             var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
                 .ToArray();
             return Hash.FromRawBytes(rawBytes);
-        }
-
-        private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash)
-        {
-            // in tx pool
-            var receipt = await _transactionResultProxyService.TxHub.GetTransactionReceiptAsync(transactionId);
-            if (receipt != null)
-            {
-                return new TransactionResult
-                {
-                    TransactionId = receipt.TransactionId,
-                    Status = TransactionResultStatus.Pending
-                };
-            }
-            
-            // in storage
-            var res = await _transactionResultProxyService.TransactionResultQueryService.
-                GetTransactionResultAsync(transactionId, blockHash);
-            if (res != null)
-            {
-                return res;
-            }
-
-            // not existed
-            return new TransactionResult
-            {
-                TransactionId = transactionId,
-                Status = TransactionResultStatus.NotExisted
-            };
         }
     }
 }
