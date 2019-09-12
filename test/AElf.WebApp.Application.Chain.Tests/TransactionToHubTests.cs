@@ -28,23 +28,13 @@ namespace AElf.WebApp.Application.Chain.Tests
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ITxHub _txHub;
-        private readonly IBlockchainStateMergingService _blockchainStateMergingService;
-        private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly OSTestHelper _osTestHelper;
-        private readonly IAccountService _accountService;
-        private readonly ITaskQueueManager _taskQueueManager;
         
         public TransactionToHubTests(ITestOutputHelper outputHelper) : base(outputHelper)
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
-            _txHub = GetRequiredService<ITxHub>();
-            _blockchainStateMergingService = GetRequiredService<IBlockchainStateMergingService>();
-            _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
-            _accountService = GetRequiredService<IAccountService>();
-            _taskQueueManager = GetRequiredService<ITaskQueueManager>();
         }
 
         [Fact]
