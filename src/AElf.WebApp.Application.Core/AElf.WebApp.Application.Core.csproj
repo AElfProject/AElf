@@ -6,8 +6,6 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <PackageId>AElf.WebApp.Application.Core</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <NoWarn>1591</NoWarn>
     </PropertyGroup>
 

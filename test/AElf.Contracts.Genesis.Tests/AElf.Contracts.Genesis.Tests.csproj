@@ -2,10 +2,7 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <IsPackable>true</IsPackable>
-    </PropertyGroup>
-
-    <PropertyGroup>
-        <NoWarn>0436</NoWarn>
+        <NoWarn>0436;0618</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

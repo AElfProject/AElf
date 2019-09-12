@@ -5,10 +5,7 @@
         <PackageId>AElf.CrossChain.Communication.Grpc</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Protobuf_NoWarnMissingExpected>true</Protobuf_NoWarnMissingExpected>
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <NoWarn>1701;1702;0436;1998</NoWarn>
+        <NoWarn>1701;1702;0436</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

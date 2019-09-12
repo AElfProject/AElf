@@ -4,9 +4,6 @@
         <PackageId>AElf.Database</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-        <NoWarn>1998</NoWarn>
-    </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\AElf.Core\AElf.Core.csproj"/>
     </ItemGroup>

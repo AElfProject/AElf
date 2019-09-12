@@ -5,6 +5,7 @@
 
         <IsPackable>true</IsPackable>
         <RootNamespace>AElf.Contracts.MultiToken</RootNamespace>
+        <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
       <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />

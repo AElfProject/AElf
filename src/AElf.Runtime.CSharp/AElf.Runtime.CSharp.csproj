@@ -6,9 +6,6 @@
         <PackageId>AElf.Runtime.CSharp</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-        <NoWarn>1998</NoWarn>
-    </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />

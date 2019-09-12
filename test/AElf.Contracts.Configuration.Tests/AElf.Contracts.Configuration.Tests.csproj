@@ -4,6 +4,7 @@
         <OutputType>Exe</OutputType>
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <RootNamespace>AElf.Contracts.ConfigurationContract.Tests</RootNamespace>
+        <NoWarn>0436</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

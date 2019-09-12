@@ -6,9 +6,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Protobuf_NoWarnMissingExpected>true</Protobuf_NoWarnMissingExpected>
     </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-        <NoWarn>1998</NoWarn>
-    </PropertyGroup>    
+
     <ItemGroup>
       <PackageReference Include="Grpc" Version="1.21.0" />
       <PackageReference Include="Grpc.Tools" Version="1.21.0" />

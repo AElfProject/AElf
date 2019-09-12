@@ -89,6 +89,7 @@ namespace AElf.Contracts.Election
             balanceBeforeAnnouncing.ShouldBe(balanceAfterAnnouncing + ElectionContractConstants.LockTokenForElection);
         }
 
+        [Fact]
         public async Task ElectionContract_QuiteElection_Test()
         {
             const int quitCount = 2;

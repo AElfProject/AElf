@@ -1,7 +1,7 @@
 syntax = "proto3";
 
 import "aelf/options.proto";
-import "acs2.proto";
+import public "acs2.proto";
 
 option csharp_namespace = "AElf.Kernel.SmartContractExecution.Parallel.Tests.TestContract";
 

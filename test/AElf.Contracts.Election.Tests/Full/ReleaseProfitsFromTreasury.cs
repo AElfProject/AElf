@@ -20,7 +20,6 @@ namespace AElf.Contracts.Election
             var updatedBackupSubsidy = 0L;
             var updatedBasicReward = 0L;
             var updatedVotesWeightReward = 0L;
-            var updatedReElectionReward = 0L;
             var updatedCitizenWelfare = 0L;
 
             var treasuryScheme =

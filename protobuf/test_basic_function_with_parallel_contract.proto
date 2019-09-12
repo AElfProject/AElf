@@ -3,8 +3,7 @@ syntax = "proto3";
 import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
-import "acs2.proto";
+import public "acs2.proto";
 
 option csharp_namespace = "AElf.Contracts.TestContract.BasicFunctionWithParallel";
 

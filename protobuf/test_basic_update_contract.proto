@@ -3,7 +3,7 @@ syntax = "proto3";
 import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
+import public "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.TestContract.BasicUpdate";
 
