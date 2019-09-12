@@ -1,10 +1,12 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -103,6 +105,20 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
             context.Services.AddTransient(provider =>
             {
+                var mockService = new Mock<IBlockExtraDataService>();
+                mockService.Setup(m => m.GetExtraDataFromBlockHeader("Consensus", It.IsAny<BlockHeader>()))
+                    .Returns(ByteString.CopyFrom(new AElfConsensusHeaderInformation
+                    {
+                        Behaviour = AElfConsensusBehaviour.UpdateValue,
+                        SenderPubkey = ByteString.CopyFromUtf8("real-pubkey"),
+                        Round = new Round()
+                    }.ToByteArray()));
+
+                return mockService.Object;
+            });
+
+            context.Services.AddTransient(provider =>
+            {
                 var mockService = new Mock<IConsensusService>();
                 mockService.Setup(m => m.GetInformationToUpdateConsensusAsync(It.IsAny<ChainContext>())).Returns(
                     Task.FromResult(ByteString.CopyFromUtf8("test").ToByteArray()));
@@ -136,6 +152,29 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 
                 return mockService.Object;
             });
+
+            context.Services
+                .AddTransient(provider =>
+                {
+                    var service = new Mock<ISystemTransactionMethodNameListProvider>();
+                    service.Setup(m => m.GetSystemTransactionMethodNameList())
+                        .Returns(new List<string>
+                            {
+                                nameof(AEDPoSContract.InitialAElfConsensusContract),
+                                nameof(AEDPoSContract.FirstRound),
+                                nameof(AEDPoSContract.NextRound),
+                                nameof(AEDPoSContract.NextTerm),
+                                nameof(AEDPoSContract.UpdateValue),
+                                nameof(AEDPoSContract.UpdateTinyBlockInformation),
+                            }
+                        );
+
+                    return service.Object;
+                });
+            
+            context.Services
+                .AddTransient<IConstrainedTransactionValidationProvider, ConstrainedAEDPoSTransactionValidationProvider
+                >();
         }
     }
 }

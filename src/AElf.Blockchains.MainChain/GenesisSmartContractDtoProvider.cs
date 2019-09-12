@@ -4,6 +4,7 @@ using AElf.Blockchains.BasicBaseChain;
 using AElf.Contracts.Deployer;
 using AElf.Kernel.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract;
+using AElf.OS;
 using AElf.OS.Node.Application;
 using AElf.Types;
 using Microsoft.Extensions.Options;

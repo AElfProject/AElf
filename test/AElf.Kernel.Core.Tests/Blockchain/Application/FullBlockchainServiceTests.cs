@@ -48,7 +48,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             foreach (var tx in transactions)
             {
-                var existTransaction = await _transactionManager.GetTransaction(tx.GetHash());
+                var existTransaction = await _transactionManager.GetTransactionAsync(tx.GetHash());
                 existTransaction.ShouldBe(tx);
             }
         }
