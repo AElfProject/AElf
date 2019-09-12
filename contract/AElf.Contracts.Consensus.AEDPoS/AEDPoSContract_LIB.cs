@@ -5,26 +5,35 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSContract
     {
-        private long CalculateLastIrreversibleBlockHeight()
+        private class LastIrreversibleBlockHeightCalculator
         {
-            if (TryToGetCurrentRoundInformation(out var currentRound) &&
-                TryToGetPreviousRoundInformation(out var previousRound))
+            private readonly Round _currentRound;
+            private readonly Round _previousRound;
+
+            public LastIrreversibleBlockHeightCalculator(Round currentRound, Round previousRound)
             {
-                var minedMiners = currentRound.GetMinedMiners().Select(m => m.Pubkey).ToList();
-                var impliedIrreversibleHeights = previousRound.GetSortedImpliedIrreversibleBlockHeights(minedMiners);
-                var minimumMinersCount = currentRound.GetMinimumMinersCount();
-                Context.LogDebug(() => $"impliedIrreversibleHeights count: {impliedIrreversibleHeights.Count}");
-                if (impliedIrreversibleHeights.Count < minimumMinersCount) return 0;
-                var libHeight = impliedIrreversibleHeights[impliedIrreversibleHeights.Count.Sub(1).Div(3)];
-                if (State.LastIrreversibleBlockHeight.Value < libHeight)
-                {
-                    State.LastIrreversibleBlockHeight.Value = libHeight;
-                    Context.LogDebug(() => $"lib height confirmed: {libHeight}");
-                    return libHeight;
-                }
+                _currentRound = currentRound;
+                _previousRound = previousRound;
             }
 
-            return 0;
+            public void Deconstruct(out long libHeight)
+            {
+                if (_currentRound.IsEmpty || _previousRound.IsEmpty)
+                {
+                    libHeight = 0;
+                }
+
+                var minedMiners = _currentRound.GetMinedMiners().Select(m => m.Pubkey).ToList();
+                var impliedIrreversibleHeights = _previousRound.GetSortedImpliedIrreversibleBlockHeights(minedMiners);
+                var minimumMinersCount = _currentRound.GetMinimumMinersCount();
+                if (impliedIrreversibleHeights.Count < minimumMinersCount)
+                {
+                    libHeight = 0;
+                    return;
+                }
+
+                libHeight = impliedIrreversibleHeights[impliedIrreversibleHeights.Count.Sub(1).Div(3)];
+            }
         }
     }
 }

@@ -8,6 +8,7 @@ using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.TestKit;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
@@ -26,6 +27,7 @@ using Org.BouncyCastle.Utilities.Encoders;
 using Shouldly;
 using Xunit;
 using Xunit.Abstractions;
+using SampleAddress = AElf.Kernel.SampleAddress;
 
 namespace AElf.WebApp.Application.Chain.Tests
 {
@@ -562,8 +564,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 $"/api/blockChain/transactionResult?transactionId={transactionHex}");
 
             response.TransactionId.ShouldBe(transactionHex);
-            response.Status.ShouldBe(TransactionResultStatus.Failed.ToString().ToUpper());
-            response.Error.Contains("Token already exists.").ShouldBeTrue();
+            response.Status.ShouldBe(TransactionResultStatus.NotExisted.ToString());
         }
 
         [Fact]
@@ -1243,7 +1244,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        private async Task GetMerklePathByTransactionId_Success_Test()
+        public async Task GetMerklePathByTransactionId_Success_Test()
         {
             var transactionList = new List<Transaction>();
             for (var i = 0; i < 3; i++)
@@ -1282,7 +1283,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        private async Task GetMerklePathByTransactionId_Failed_Test()
+        public async Task GetMerklePathByTransactionId_Failed_Test()
         {
             string hex = "5a7d71da020cae179a0dfe82bd3c967e1573377578f4cc87bc21f74f2556c0ef";
 

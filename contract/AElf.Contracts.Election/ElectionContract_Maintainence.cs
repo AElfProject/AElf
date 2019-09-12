@@ -29,8 +29,6 @@ namespace AElf.Contracts.Election
 
             State.TimeEachTerm.Value = input.TimeEachTerm;
 
-            State.MinerIncreaseInterval.Value = input.MinerIncreaseInterval;
-
             State.MinersCount.Value = input.MinerList.Count;
             State.InitialMiners.Value = new PubkeyList
             {
