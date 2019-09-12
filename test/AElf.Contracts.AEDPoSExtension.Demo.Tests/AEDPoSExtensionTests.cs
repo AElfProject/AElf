@@ -144,7 +144,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             }
 
             // 5 more blocks will end second round.
-            for (var i = 1; i < AEDPoSExtensionConstants.TinyBlocksNumber * 5; i++)
+            for (var i = 0; i < AEDPoSExtensionConstants.TinyBlocksNumber * 6; i++)
             {
                 await BlockMiningService.MineBlockAsync(new List<Transaction>());
             }
@@ -152,7 +152,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             // Check round number.
             {
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
-                round.RoundNumber.ShouldBeGreaterThanOrEqualTo(3);
+                round.RoundNumber.ShouldBe(3);
             }
         }
         

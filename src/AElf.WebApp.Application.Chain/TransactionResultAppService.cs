@@ -106,7 +106,7 @@ namespace AElf.WebApp.Application.Chain
             var block = await _blockchainService.GetBlockByHashAsync(HashHelper.HexStringToHash(blockHash));
 
             var transactionResult = await _transactionResultManager.GetTransactionResultAsync(HashHelper.HexStringToHash(transactionId), HashHelper.HexStringToHash(blockHash));
-            var transaction = await _transactionManager.GetTransaction(transactionResult.TransactionId);
+            var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
 
             var output = JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
             if (transactionResult.Status == TransactionResultStatus.Mined)
