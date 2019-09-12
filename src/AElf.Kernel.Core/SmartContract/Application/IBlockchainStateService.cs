@@ -9,25 +9,25 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public interface IBlockchainStateMergingService
+    public interface IBlockchainStateService
     {
         Task MergeBlockStateAsync(long lastIrreversibleBlockHeight, Hash lastIrreversibleBlockHash);
         
         Task SetBlockStateSetAsync(BlockStateSet blockStateSet);
     }
 
-    public class BlockchainStateMergingService : IBlockchainStateMergingService
+    public class BlockchainStateService : IBlockchainStateService
     {
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockchainStateManager _blockchainStateManager;
-        public ILogger<BlockchainStateMergingService> Logger { get; set; }
+        public ILogger<BlockchainStateService> Logger { get; set; }
 
-        public BlockchainStateMergingService(IBlockchainService blockchainService,
+        public BlockchainStateService(IBlockchainService blockchainService,
             IBlockchainStateManager blockchainStateManager)
         {
             _blockchainService = blockchainService;
             _blockchainStateManager = blockchainStateManager;
-            Logger = NullLogger<BlockchainStateMergingService>.Instance;
+            Logger = NullLogger<BlockchainStateService>.Instance;
         }
 
         public async Task MergeBlockStateAsync(long lastIrreversibleBlockHeight, Hash lastIrreversibleBlockHash)

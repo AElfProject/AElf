@@ -18,15 +18,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
     public class BlockExecutingService : IBlockExecutingService, ITransientDependency
     {
         private readonly ITransactionExecutingService _executingService;
-        private readonly IBlockchainStateMergingService _blockchainStateMergingService;
+        private readonly IBlockchainStateService _blockchainStateService;
         public ILocalEventBus EventBus { get; set; }
         public ILogger<BlockExecutingService> Logger { get; set; }
 
         public BlockExecutingService(ITransactionExecutingService executingService,
-            IBlockchainStateMergingService blockchainStateMergingService)
+            IBlockchainStateService blockchainStateService)
         {
             _executingService = executingService;
-            _blockchainStateMergingService = blockchainStateMergingService;
+            _blockchainStateService = blockchainStateService;
             EventBus = NullLocalEventBus.Instance;
         }
 
@@ -130,7 +130,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             blockBody.BlockHeader = blockHash;
             blockStateSet.BlockHash = blockHash;
 
-            await _blockchainStateMergingService.SetBlockStateSetAsync(blockStateSet);
+            await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
 
             return block;
         }

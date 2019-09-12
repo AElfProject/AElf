@@ -42,7 +42,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITxHub _txHub;
-        private readonly IBlockchainStateMergingService _blockchainStateMergingService;
+        private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly OSTestHelper _osTestHelper;
         private readonly IAccountService _accountService;
@@ -53,7 +53,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             _blockchainService = GetRequiredService<IBlockchainService>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _txHub = GetRequiredService<ITxHub>();
-            _blockchainStateMergingService = GetRequiredService<IBlockchainStateMergingService>();
+            _blockchainStateService = GetRequiredService<IBlockchainStateService>();
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _accountService = GetRequiredService<IAccountService>();
@@ -834,7 +834,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             blockState.Changes.ShouldNotBeNull();
 
             var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
-            await _blockchainStateMergingService.MergeBlockStateAsync(blockStateSet.BlockHeight,
+            await _blockchainStateService.MergeBlockStateAsync(blockStateSet.BlockHeight,
                 blockStateSet.BlockHash);
 
             var errorResponse = await GetResponseAsObjectAsync<WebAppErrorResponse>(
