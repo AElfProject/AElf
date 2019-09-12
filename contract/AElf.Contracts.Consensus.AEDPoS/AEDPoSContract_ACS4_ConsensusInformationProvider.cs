@@ -18,13 +18,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             _processingBlockMinerPubkey = input.Value.ToHex();
 
-            if (Context.CurrentHeight < 2) return ConsensusCommandProviderBase.InvalidConsensusCommand;
+            if (Context.CurrentHeight < 2) return ConsensusCommandProvider.InvalidConsensusCommand;
 
             if (!TryToGetCurrentRoundInformation(out var currentRound))
-                return ConsensusCommandProviderBase.InvalidConsensusCommand;
+                return ConsensusCommandProvider.InvalidConsensusCommand;
 
             if (!currentRound.IsInMinerList(_processingBlockMinerPubkey))
-                return ConsensusCommandProviderBase.InvalidConsensusCommand;
+                return ConsensusCommandProvider.InvalidConsensusCommand;
 
             if (!TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp))
             {
@@ -42,7 +42,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Context.LogDebug(() => $"{currentRound.ToString(_processingBlockMinerPubkey)}\nArranged behaviour: {behaviour.ToString()}");
 
             return behaviour == AElfConsensusBehaviour.Nothing
-                ? ConsensusCommandProviderBase.InvalidConsensusCommand
+                ? ConsensusCommandProvider.InvalidConsensusCommand
                 //: new ConsensusCommandProviderBase().GetConsensusCommand();
                 : GetConsensusCommand(behaviour, currentRound, _processingBlockMinerPubkey);
         }

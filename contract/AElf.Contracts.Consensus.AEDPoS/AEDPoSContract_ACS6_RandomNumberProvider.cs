@@ -180,7 +180,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     var randomHash = provider.GetRandomNumber(round);
                     if (randomHash != Hash.Empty)
                     {
-                        return randomHash;
+                        return Hash.FromTwoHashes(randomHash, input);
                     }
 
                     roundNumber = roundNumber.Add(1);

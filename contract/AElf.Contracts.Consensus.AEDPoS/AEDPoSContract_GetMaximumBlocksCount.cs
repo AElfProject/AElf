@@ -74,7 +74,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         internal class BlockchainMiningStatusEvaluator
         {
-            private const int CachedBlocksCount = 1024; // Stands for Y
+            private const int AbnormalThresholdRoundsCount = 2;
+            private const int SevereThresholdBlocksCount = 1024; // Stands for Y
+            private const int SevereThresholdRoundsCount = 10;
 
             /// <summary>
             /// Stands for R_LIB
@@ -109,14 +111,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 status = BlockchainMiningStatus.Normal;
 
-                if (_libRoundNumber.Add(2) < _currentRoundNumber && _currentRoundNumber <= _libRoundNumber.Add(10) &&
-                    _currentBlockHeight <= _libBlockHeight.Add(CachedBlocksCount))
+                if (_libRoundNumber.Add(AbnormalThresholdRoundsCount) < _currentRoundNumber &&
+                    _currentRoundNumber <= _libRoundNumber.Add(SevereThresholdRoundsCount) &&
+                    _currentBlockHeight <= _libBlockHeight.Add(SevereThresholdBlocksCount))
                 {
                     status = BlockchainMiningStatus.Abnormal;
                 }
 
-                if (_currentRoundNumber > _libRoundNumber.Add(10) ||
-                    _currentBlockHeight > _libBlockHeight.Add(CachedBlocksCount))
+                if (_currentRoundNumber > _libRoundNumber.Add(SevereThresholdRoundsCount) ||
+                    _currentBlockHeight > _libBlockHeight.Add(SevereThresholdBlocksCount))
                 {
                     status = BlockchainMiningStatus.Severe;
                 }

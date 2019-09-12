@@ -8,9 +8,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        protected class ConsensusCommandProviderBase : IConsensusCommandProvider
+        protected class ConsensusCommandProvider : IConsensusCommandProvider
         {
-            private readonly AElfConsensusBehaviour _behaviour;
+            private readonly ICommandStrategy _commandStrategy;
 
             /// <summary>
             /// No, you can't mine blocks.
@@ -26,14 +26,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 NextBlockMiningLeftMilliseconds = int.MaxValue
             };
 
-            public ConsensusCommandProviderBase(AElfConsensusBehaviour behaviour)
+            public ConsensusCommandProvider(ICommandStrategy commandStrategy)
             {
-                _behaviour = behaviour;
+                _commandStrategy = commandStrategy;
             }
 
             public ConsensusCommand GetConsensusCommand()
             {
-                throw new System.NotImplementedException();
+                return _commandStrategy.GetConsensusCommand();
             }
         }
     }
