@@ -138,7 +138,7 @@ namespace AElf.WebApp.Application.Chain
                 var transactionIds = block.Body.TransactionIds.ToList().GetRange(offset, limit);
                 foreach (var transactionId in transactionIds)
                 {
-                    var transactionResult = await GetTransactionResultAsync(transactionId, block.GetHash());
+                    var transactionResult = await GetTransactionResultAsync(transactionId, realBlockHash);
                     var transactionResultDto =
                         JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
                     var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
