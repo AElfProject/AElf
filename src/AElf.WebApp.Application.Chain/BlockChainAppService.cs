@@ -210,8 +210,8 @@ namespace AElf.WebApp.Application.Chain
             var blockState = await _blockchainStateManager.GetBlockStateSetAsync(HashHelper.HexStringToHash(blockHash));
             if (blockState == null)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-            var dto = JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
-            return dto;
+            
+            return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
         }
 
         /// <summary>
