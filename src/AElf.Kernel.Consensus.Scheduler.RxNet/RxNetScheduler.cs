@@ -34,6 +34,7 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
             Logger.LogDebug("Disposed previous consensus event.");
             _observables?.Dispose();
         }
+
         public IDisposable Subscribe(int countingMilliseconds, ConsensusRequestMiningEventData consensusRequestMiningEventData)
         {
             Logger.LogDebug($"Will produce block after {countingMilliseconds} ms - " +

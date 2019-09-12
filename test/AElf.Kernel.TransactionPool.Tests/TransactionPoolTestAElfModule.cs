@@ -1,4 +1,5 @@
-﻿using AElf.Kernel.TransactionPool.Infrastructure;
+﻿using AElf.Kernel.SmartContract;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
@@ -7,7 +8,8 @@ namespace AElf.Kernel.TransactionPool
 {
     [DependsOn(
         typeof(TransactionPoolAElfModule),
-        typeof(KernelCoreTestAElfModule)
+        typeof(KernelCoreTestAElfModule),
+        typeof(SmartContractAElfModule)
     )]
     public class TransactionPoolTestAElfModule: AElfModule
     {

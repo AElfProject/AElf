@@ -36,7 +36,7 @@ service TokenContract {
     rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {
     }
     rpc RegisterNativeTokenInfo(RegisterNativeTokenInfoInput) returns (google.protobuf.Empty) {
-    }  
+    }
     rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
     }
     rpc CrossChainReceiveToken (CrossChainReceiveTokenInput) returns (google.protobuf.Empty) {
@@ -91,6 +91,9 @@ service TokenContract {
     rpc GetVirtualAddressForLocking (GetVirtualAddressForLockingInput) returns (aelf.Address) {
         option (aelf.is_view) = true;
     }
+    rpc GetCrossChainTransferTokenContractAddress (GetCrossChainTransferTokenContractAddressInput) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message TokenInfo {
@@ -103,6 +106,7 @@ message TokenInfo {
     bool is_burnable = 7;
     bool is_transfer_disabled = 8;
     sint32 issue_chain_id = 9;
+    sint64 burned = 10;
 }
 
 message CreateInput {
@@ -325,7 +329,6 @@ message RegisterCrossChainTokenContractAddressInput{
     aelf.Address token_contract_address = 5;
 }
 
-// EventsCreateInput
 message Transferred {
     option (aelf.is_event) = true;
     aelf.Address from = 1 [(aelf.is_indexed) = true];
@@ -357,4 +360,8 @@ message Burned
     aelf.Address burner = 1 [(aelf.is_indexed) = true];
     string symbol = 2 [(aelf.is_indexed) = true];
     sint64 amount = 3;
+}
+
+message GetCrossChainTransferTokenContractAddressInput {
+    int32 chainId = 1;
 }

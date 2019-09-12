@@ -75,7 +75,7 @@ namespace AElf.Contract.TestContract
                 contractAddress = Address.Parser.ParseFrom(transactionResult.ReturnValue);
                 blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
 
-                 var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
+                var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
                 {
                     First = SampleAddress.AddressList[0],
                     Second = SampleAddress.AddressList[1]
@@ -88,7 +88,7 @@ namespace AElf.Contract.TestContract
 
                  var queryTwoUserWinMoneyTransactionResult =
                     await _transactionResultManager.GetTransactionResultAsync(queryTwoUserWinMoneyTransaction
-                        .GetHash(),branchOneBlock.Header.GetPreMiningHash());
+                        .GetHash(),branchOneBlock.Header.GetHash());
                 queryTwoUserWinMoneyTransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 

@@ -1,4 +1,5 @@
 using AElf.Kernel;
+using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS.Network;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,8 @@ namespace AElf.OS
             var configuration = context.Services.GetConfiguration();
 
             Configure<NetworkOptions>(configuration.GetSection("Network"));
+
+            context.Services.AddSingleton<INativeTokenSymbolProvider, NativeTokenSymbolProvider>();
         }
         
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)

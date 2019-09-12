@@ -193,9 +193,6 @@ namespace AElf.Contracts.Vote
                 Assert(votingRecord.Voter == Context.Sender, "No permission to withdraw votes of others.");
             }
 
-            Assert(votingItem.CurrentSnapshotNumber > votingRecord.SnapshotNumber,
-                "Cannot withdraw votes of on-going voting item.");
-
             // Update VotingRecord.
             votingRecord.IsWithdrawn = true;
             votingRecord.WithdrawTimestamp = Context.CurrentBlockTime;
