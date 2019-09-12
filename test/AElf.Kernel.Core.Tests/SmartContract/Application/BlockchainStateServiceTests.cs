@@ -7,15 +7,15 @@ using Xunit;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public class BlockchainStateMergingServiceTests : AElfKernelTestBase
+    public sealed class BlockchainStateServiceTests : AElfKernelTestBase
     {
-        private IBlockchainStateManager _blockchainStateManager;
-        private IBlockchainStateMergingService _blockchainStateMergingService;
+        private readonly IBlockchainStateManager _blockchainStateManager;
+        private readonly IBlockchainStateService _blockchainStateService;
 
-        public BlockchainStateMergingServiceTests()
+        public BlockchainStateServiceTests()
         {
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
-            _blockchainStateMergingService = GetRequiredService<IBlockchainStateMergingService>();
+            _blockchainStateService = GetRequiredService<IBlockchainStateService>();
         }
 
         [Fact]
@@ -24,7 +24,7 @@ namespace AElf.Kernel.SmartContract.Application
             var lastIrreversibleBlockHeight = -2;
             var lastIrreversibleBlockHash = Hash.FromString("hash");
 
-            await _blockchainStateMergingService.MergeBlockStateAsync(lastIrreversibleBlockHeight,
+            await _blockchainStateService.MergeBlockStateAsync(lastIrreversibleBlockHeight,
                 lastIrreversibleBlockHash);
 
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
@@ -38,7 +38,7 @@ namespace AElf.Kernel.SmartContract.Application
             var lastIrreversibleBlockHeight = 1;
             var lastIrreversibleBlockHash = Hash.FromString("hash");
 
-            await Should.ThrowAsync<InvalidOperationException>(()=>_blockchainStateMergingService.MergeBlockStateAsync(lastIrreversibleBlockHeight,
+            await Should.ThrowAsync<InvalidOperationException>(()=>_blockchainStateService.MergeBlockStateAsync(lastIrreversibleBlockHeight,
                 lastIrreversibleBlockHash));
             
             var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
@@ -72,7 +72,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet1);
 
-                await _blockchainStateMergingService.MergeBlockStateAsync(blockStateSet1.BlockHeight,
+                await _blockchainStateService.MergeBlockStateAsync(blockStateSet1.BlockHeight,
                     blockStateSet1.BlockHash);
 
                 var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
@@ -83,7 +83,7 @@ namespace AElf.Kernel.SmartContract.Application
             //test merge block height 2
             {
                 await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet2);
-                await _blockchainStateMergingService.MergeBlockStateAsync(blockStateSet2.BlockHeight,
+                await _blockchainStateService.MergeBlockStateAsync(blockStateSet2.BlockHeight,
                     blockStateSet2.BlockHash);
 
                 var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();
@@ -93,7 +93,7 @@ namespace AElf.Kernel.SmartContract.Application
 
             //test merge height 3 without block state set before
             {
-                await Should.ThrowAsync<InvalidOperationException>(()=> _blockchainStateMergingService.MergeBlockStateAsync(blockStateSet3.BlockHeight,
+                await Should.ThrowAsync<InvalidOperationException>(()=> _blockchainStateService.MergeBlockStateAsync(blockStateSet3.BlockHeight,
                     blockStateSet3.BlockHash));
 
                 var chainStateInfo = await _blockchainStateManager.GetChainStateInfoAsync();

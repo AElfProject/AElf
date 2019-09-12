@@ -67,6 +67,10 @@ namespace AElf.Blockchains.SideChain
                 _codes.Single(kv=>kv.Key.Contains("ParliamentAuth")).Value,
                 ParliamentAuthSmartContractAddressNameProvider.Name,
                 GenerateParliamentInitializationCallList(chainInitializationData));
+                
+            genesisSmartContractDtoList.AddGenesisSmartContract(
+                _codes.Single(kv => kv.Key.Contains("Configuration")).Value,
+                ConfigurationSmartContractAddressNameProvider.Name);
 
             return genesisSmartContractDtoList;
         }

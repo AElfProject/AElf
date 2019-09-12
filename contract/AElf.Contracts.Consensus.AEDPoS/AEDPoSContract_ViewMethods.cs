@@ -116,35 +116,39 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private Round GenerateFirstRoundOfNextTerm(string senderPublicKey, int miningInterval)
         {
-            Round round;
-            if (TryToGetTermNumber(out var termNumber) &&
-                TryToGetRoundNumber(out var roundNumber) &&
-                TryToGetVictories(out var victories))
+            Round newRound;
+            TryToGetCurrentRoundInformation(out var currentRound);
+
+            if (TryToGetVictories(out var victories))
             {
                 Context.LogDebug(() => "Got victories successfully.");
-                round = victories.GenerateFirstRoundOfNewTerm(miningInterval, Context.CurrentBlockTime, roundNumber,
-                    termNumber);
+                newRound = victories.GenerateFirstRoundOfNewTerm(miningInterval, Context.CurrentBlockTime,
+                    currentRound);
             }
-            else if (TryToGetCurrentRoundInformation(out round))
+            else
             {
+                // Miners of new round are same with current round.
                 var miners = new MinerList();
-                miners.Pubkeys.AddRange(round.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
-                round = miners.GenerateFirstRoundOfNewTerm(round.GetMiningInterval(), Context.CurrentBlockTime,
-                    round.RoundNumber, termNumber);
+                miners.Pubkeys.AddRange(currentRound.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
+                newRound = miners.GenerateFirstRoundOfNewTerm(currentRound.GetMiningInterval(),
+                    Context.CurrentBlockTime, currentRound);
             }
 
-            round.BlockchainAge = GetBlockchainAge();
+            newRound.ConfirmedIrreversibleBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;
+            newRound.ConfirmedIrreversibleBlockRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber;
 
-            if (round.RealTimeMinersInformation.ContainsKey(senderPublicKey))
+            newRound.BlockchainAge = GetBlockchainAge();
+
+            if (newRound.RealTimeMinersInformation.ContainsKey(senderPublicKey))
             {
-                round.RealTimeMinersInformation[senderPublicKey].ProducedBlocks = 1;
+                newRound.RealTimeMinersInformation[senderPublicKey].ProducedBlocks = 1;
             }
             else
             {
                 UpdateCandidateInformation(senderPublicKey, 1, 0);
             }
 
-            return round;
+            return newRound;
         }
 
         private long GetBlockchainAge()
@@ -172,18 +176,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool GenerateNextRoundInformation(Round currentRound, Timestamp currentBlockTime, out Round nextRound)
         {
-            if (!State.IsMainChain.Value && IsMainChainMinerListChanged(currentRound))
+            TryToGetPreviousRoundInformation(out var previousRound);
+            if (!IsMainChain && IsMainChainMinerListChanged(currentRound))
             {
                 Context.LogDebug(() => "About to change miners.");
                 nextRound = State.MainChainCurrentMinerList.Value.GenerateFirstRoundOfNewTerm(
                     currentRound.GetMiningInterval(), currentBlockTime, currentRound.RoundNumber);
+                nextRound.ConfirmedIrreversibleBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;
+                nextRound.ConfirmedIrreversibleBlockRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber;
                 Context.LogDebug(() => "Round of new miners generated.");
                 return true;
             }
 
             TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
-            if (TryToGetPreviousRoundInformation(out var previousRound) &&
-                previousRound.TermNumber + 1 != currentRound.TermNumber)
+            if (previousRound.TermNumber + 1 != currentRound.TermNumber)
             {
                 var evilMinersPublicKey = GetEvilMinersPublicKey(currentRound, previousRound);
                 var evilMinersCount = evilMinersPublicKey.Count;
@@ -222,10 +228,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool IsMainChainMinerListChanged(Round currentRound)
         {
-            Context.LogDebug(() => "Entered IsMainChainMinerListChanged.");
-            return State.MainChainCurrentMinerList.Value.Pubkeys.Any() &&
-                   GetMinerListHash(currentRound.RealTimeMinersInformation.Keys) !=
-                   GetMinerListHash(State.MainChainCurrentMinerList.Value.Pubkeys.Select(p => p.ToHex()));
+            var result = State.MainChainCurrentMinerList.Value.Pubkeys.Any() &&
+                         GetMinerListHash(currentRound.RealTimeMinersInformation.Keys) !=
+                         GetMinerListHash(State.MainChainCurrentMinerList.Value.Pubkeys.Select(p => p.ToHex()));
+            Context.LogDebug(() => $"IsMainChainMinerListChanged: {result}");
+            return result;
         }
 
         private Hash GetMinerListHash(IEnumerable<string> minerList)
@@ -310,12 +317,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private int GetMinersCount(Round input)
         {
             if (!TryToGetRoundInformation(1, out _)) return 0;
-            // TODO: the configuration about the minercountinterval should become a const when online;
-            return input.RealTimeMinersInformation.Count < AEDPoSContractConstants.InitialMinersCount
+            return Math.Min(input.RealTimeMinersInformation.Count < AEDPoSContractConstants.InitialMinersCount
                 ? AEDPoSContractConstants.InitialMinersCount
                 : AEDPoSContractConstants.InitialMinersCount.Add(
                     (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
-                    .Div(State.MinerIncreaseInterval.Value).Mul(2));
+                    .Div(State.MinerIncreaseInterval.Value).Mul(2)), State.MaximumMinersCount.Value);
         }
 
         public override SInt64Value GetCurrentWelfareReward(Empty input)
