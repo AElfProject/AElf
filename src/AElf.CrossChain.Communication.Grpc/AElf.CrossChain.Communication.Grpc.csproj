@@ -4,6 +4,7 @@
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.CrossChain.Communication.Grpc</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Protobuf_NoWarnMissingExpected>true</Protobuf_NoWarnMissingExpected>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
