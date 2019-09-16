@@ -157,13 +157,12 @@ namespace AElf.Sdk.CSharp.Tests
             var balance = Contract.BalanceOf(AddressList[1]);
             Contract.TotalSupply().ShouldBe(999000UL);
             balance.ShouldBe(999000UL);
-        }
-
-        [Fact]
-        public void Burn_Over_Token_Test()
-        {
-            Init_Test();
-            Should.Throw<AssertionException>(() => { Contract.Burn(100000000UL); });
+            
+            //over token
+            Should.Throw<AssertionException>(() =>
+            {
+                Contract.Burn(100000000UL);
+            });
         }
 
         [Fact]
