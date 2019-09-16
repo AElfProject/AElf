@@ -64,9 +64,23 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public string GetCurrentMinerPubkey(Timestamp currentBlockTime)
         {
-            return RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m =>
+            var pubkey = RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m =>
                 m.ExpectedMiningTime <= currentBlockTime &&
                 currentBlockTime < m.ExpectedMiningTime.AddMilliseconds(GetMiningInterval()))?.Pubkey;
+            if (pubkey != null)
+            {
+                return pubkey;
+            }
+
+            var extraBlockProducer = RealTimeMinersInformation.Values.First(m => m.IsExtraBlockProducer).Pubkey;
+            var extraBlockMiningTime = GetExtraBlockMiningTime();
+            if (extraBlockMiningTime <= currentBlockTime &&
+                currentBlockTime <= extraBlockMiningTime.AddMilliseconds(GetMiningInterval()))
+            {
+                return extraBlockProducer;
+            }
+
+            return RealTimeMinersInformation.Keys.First(k => IsInCorrectFutureMiningSlot(k, currentBlockTime));
         }
 
         /// <summary>

@@ -37,6 +37,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return command;
             }
             
+            // ReSharper disable once InconsistentNaming
             public virtual ConsensusCommand GetAEDPoSConsensusCommand()
             {
                 return ConsensusCommandProvider.InvalidConsensusCommand;

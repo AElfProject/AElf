@@ -18,8 +18,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             public override ConsensusCommand GetAEDPoSConsensusCommand()
             {
-                var arrangedMiningTime = CurrentRound.GetExpectedMiningTime(Pubkey);
-                var miningDueTime = arrangedMiningTime.AddMilliseconds(MiningInterval);
+                var arrangedMiningTime =
+                    MiningTimeArrangingService.ArrangeNormalBlockMiningTime(CurrentRound, Pubkey, CurrentBlockTime);
 
                 return new ConsensusCommand
                 {
@@ -30,7 +30,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                             : AElfConsensusBehaviour.UpdateValue
                     }.ToByteString(),
                     ArrangedMiningTime = arrangedMiningTime,
-                    MiningDueTime = miningDueTime,
+                    // Cancel mining after time slot of current miner because of the task queue.
+                    MiningDueTime = CurrentRound.GetExpectedMiningTime(Pubkey).AddMilliseconds(TinyBlockSlotInterval),
                     LimitMillisecondsOfMiningBlock = DefaultBlockMiningLimit
                 };
             }

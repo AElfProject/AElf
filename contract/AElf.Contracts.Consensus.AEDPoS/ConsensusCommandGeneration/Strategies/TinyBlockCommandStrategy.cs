@@ -23,26 +23,41 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             public override ConsensusCommand GetAEDPoSConsensusCommand()
             {
-                var firstBlockMiningTime = MinerInRound.ActualMiningTimes.First();
-                var arrangedMiningTime = CurrentBlockTime.AddMilliseconds(TinyBlockMinimumInterval);
-                var miningDueTime = firstBlockMiningTime.AddMilliseconds(MiningInterval);
-                var producedBlocksOfCurrentRound = MinerInRound.ProducedTinyBlocks;
+                var arrangedMiningTime =
+                    MiningTimeArrangingService.ArrangeMiningTimeBasedOnOffset(CurrentBlockTime,
+                        TinyBlockMinimumInterval);
 
-                if (arrangedMiningTime > miningDueTime)
+                var miningDueTime = MinerInRound.ActualMiningTimes
+                    .OrderBy(t => t)
+                    .Last()
+                    .AddMilliseconds(MiningInterval);
+
+                return arrangedMiningTime > miningDueTime
+                    ? new TerminateRoundCommandStrategy(CurrentRound, Pubkey, CurrentBlockTime, false)
+                        .GetAEDPoSConsensusCommand()
+                    : new ConsensusCommand
+                    {
+                        Hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.TinyBlock}.ToByteString(),
+                        ArrangedMiningTime = arrangedMiningTime,
+                        MiningDueTime = miningDueTime,
+                        LimitMillisecondsOfMiningBlock = IsLastTinyBlockOfCurrentSlot()
+                            ? LastTinyBlockMiningLimit
+                            : DefaultBlockMiningLimit
+                    };
+            }
+
+            private bool IsLastTinyBlockOfCurrentSlot()
+            {
+                var producedBlocksOfCurrentRound = MinerInRound.ProducedTinyBlocks;
+                var roundStartTime = CurrentRound.GetRoundStartTime();
+
+                if (CurrentBlockTime < roundStartTime)
                 {
-                    return new TerminateRoundCommandStrategy(CurrentRound, Pubkey, CurrentBlockTime, false)
-                        .GetAEDPoSConsensusCommand();
+                    return producedBlocksOfCurrentRound == _maximumBlocksCount;
                 }
 
-                return new ConsensusCommand
-                {
-                    Hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.TinyBlock}.ToByteString(),
-                    ArrangedMiningTime = arrangedMiningTime,
-                    MiningDueTime = miningDueTime,
-                    LimitMillisecondsOfMiningBlock = producedBlocksOfCurrentRound % _maximumBlocksCount == 0
-                        ? LastTinyBlockMiningLimit
-                        : DefaultBlockMiningLimit
-                };
+                var blocksBeforeCurrentRound = MinerInRound.ActualMiningTimes.Count(t => t < roundStartTime);
+                return producedBlocksOfCurrentRound == blocksBeforeCurrentRound.Add(_maximumBlocksCount);
             }
         }
     }

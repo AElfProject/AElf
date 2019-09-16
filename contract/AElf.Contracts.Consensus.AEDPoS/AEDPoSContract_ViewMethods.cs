@@ -85,16 +85,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override StringValue GetCurrentMinerPubkey(Empty input)
         {
-            if (TryToGetCurrentRoundInformation(out var round))
-            {
-                var currentMinerPubkey = round.GetCurrentMinerPubkey(Context.CurrentBlockTime);
-                if (currentMinerPubkey != null)
-                {
-                    return new StringValue {Value = currentMinerPubkey};
-                }
-            }
-
-            return new StringValue();
+            if (!TryToGetCurrentRoundInformation(out var round)) return new StringValue();
+            var currentMinerPubkey = round.GetCurrentMinerPubkey(Context.CurrentBlockTime);
+            return currentMinerPubkey != null ? new StringValue {Value = currentMinerPubkey} : new StringValue();
         }
 
         public override BoolValue IsCurrentMiner(Address input)

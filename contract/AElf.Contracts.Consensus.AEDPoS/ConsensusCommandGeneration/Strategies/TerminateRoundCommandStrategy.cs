@@ -22,7 +22,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             public override ConsensusCommand GetAEDPoSConsensusCommand()
             {
-                var arrangedMiningTime = CurrentRound.ArrangeAbnormalMiningTime(Pubkey, CurrentBlockTime);
+                var arrangedMiningTime =
+                    MiningTimeArrangingService.ArrangeExtraBlockMiningTime(CurrentRound, Pubkey, CurrentBlockTime);
+                //CurrentRound.ArrangeAbnormalMiningTime(Pubkey, CurrentBlockTime);
                 var miningDueTime = arrangedMiningTime.AddMilliseconds(MiningInterval);
                 return new ConsensusCommand
                 {

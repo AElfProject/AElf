@@ -1,3 +1,4 @@
+using System.Linq;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
 
@@ -51,17 +52,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         return AElfConsensusBehaviour.TinyBlock;
                     }
 
+                    var blocksBeforeCurrentRound =
+                        MinerInRound.ActualMiningTimes.Count(t => t < CurrentRound.GetRoundStartTime());
+
                     if (CurrentRound.ExtraBlockProducerOfPreviousRound == Pubkey &&
                         !CurrentRound.IsMinerListJustChanged &&
-                        MinerInRound.ProducedTinyBlocks < MaximumBlocksCount.Mul(2))
+                        MinerInRound.ProducedTinyBlocks < MaximumBlocksCount.Add(blocksBeforeCurrentRound))
                     {
-                        if (CurrentRound.IsMinerListJustChanged &&
-                            MinerInRound.ProducedTinyBlocks > MaximumBlocksCount.Add(1))
-                        {
-                            // Because NextTerm time slot only produces one block.
-                            return AElfConsensusBehaviour.NextRound;
-                        }
-
                         return AElfConsensusBehaviour.TinyBlock;
                     }
                 }
