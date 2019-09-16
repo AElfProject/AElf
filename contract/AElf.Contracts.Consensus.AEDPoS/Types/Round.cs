@@ -116,7 +116,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// Actually the expected mining time of the miner whose order is 1.
         /// </summary>
         /// <returns></returns>
-        public Timestamp GetStartTime()
+        public Timestamp GetRoundStartTime()
         {
             return FirstMiner().ExpectedMiningTime;
         }
@@ -167,22 +167,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return RealTimeMinersInformation.Keys.Contains(pubkey);
         }
 
-        public bool IsTimeToChangeTerm(Round previousRound, Timestamp blockchainStartTimestamp,
-            long termNumber, long timeEachTerm)
-        {
-            var minersCount = previousRound.RealTimeMinersInformation.Values.Count(m => m.OutValue != null);
-            var minimumCount = minersCount.Mul(2).Div(3).Add(1);
-            var approvalsCount = RealTimeMinersInformation.Values.Where(m => m.ActualMiningTimes.Any())
-                .Select(m => m.ActualMiningTimes.Last())
-                .Count(actualMiningTimestamp =>
-                    IsTimeToChangeTerm(blockchainStartTimestamp, actualMiningTimestamp, termNumber, timeEachTerm));
-            return approvalsCount >= minimumCount;
-        }
-
         public MinerInRound FirstMiner()
         {
             return RealTimeMinersInformation.Count > 0
                 ? RealTimeMinersInformation.Values.First(m => m.Order == 1)
+                // Unlikely.
                 : new MinerInRound();
         }
 
@@ -214,25 +203,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 .Where(m => m.MissedTimeSlots >= AEDPoSContractConstants.MaximumMissedBlocksCount)
                 .Select(m => m.Pubkey).ToList();
             return evilMiners.Count > 0;
-        }
-
-        /// <summary>
-        /// If daysEachTerm == 7:
-        /// 1, 1, 1 => 0 != 1 - 1 => false
-        /// 1, 2, 1 => 0 != 1 - 1 => false
-        /// 1, 8, 1 => 1 != 1 - 1 => true => term number will be 2
-        /// 1, 9, 2 => 1 != 2 - 1 => false
-        /// 1, 15, 2 => 2 != 2 - 1 => true => term number will be 3.
-        /// </summary>
-        /// <param name="blockchainStartTimestamp"></param>
-        /// <param name="termNumber"></param>
-        /// <param name="blockProducedTimestamp"></param>
-        /// <param name="timeEachTerm"></param>
-        /// <returns></returns>
-        private bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp,
-            long termNumber, long timeEachTerm)
-        {
-            return (blockProducedTimestamp - blockchainStartTimestamp).Seconds.Div(timeEachTerm) != termNumber - 1;
         }
 
         private byte[] GetCheckableRound(bool isContainPreviousInValue = true)

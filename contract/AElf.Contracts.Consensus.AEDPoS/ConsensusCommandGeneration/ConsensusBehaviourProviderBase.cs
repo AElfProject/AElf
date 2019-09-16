@@ -95,7 +95,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     // If this miner is extra block producer of previous round,
                     CurrentRound.ExtraBlockProducerOfPreviousRound == Pubkey &&
                     // and currently the time is ahead of current round,
-                    CurrentBlockTime < CurrentRound.GetStartTime() &&
+                    CurrentBlockTime < CurrentRound.GetRoundStartTime() &&
                     // make this miner produce some tiny blocks.
                     MinerInRound.ProducedTinyBlocks < MaximumBlocksCount
                 )

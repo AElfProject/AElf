@@ -30,7 +30,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            var distanceToRoundStartTime = (currentBlockTime - GetStartTime()).Milliseconds();
+            var distanceToRoundStartTime = (currentBlockTime - GetRoundStartTime()).Milliseconds();
             var missedRoundsCount = distanceToRoundStartTime.Div(TotalMilliseconds(miningInterval));
             var expectedEndTime = GetExpectedEndTime(missedRoundsCount, miningInterval);
             return expectedEndTime.AddMilliseconds(minerInRound.Order.Mul(miningInterval));
@@ -56,7 +56,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var totalMilliseconds = TotalMilliseconds(miningInterval);
-            return GetStartTime().AddMilliseconds(totalMilliseconds)
+            return GetRoundStartTime().AddMilliseconds(totalMilliseconds)
                 // Arrange an ending time if this node missed so many rounds.
                 .AddMilliseconds(missedRoundsCount.Mul(totalMilliseconds));
         }
