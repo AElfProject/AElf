@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -40,6 +41,16 @@ namespace AElf.Kernel.SmartContract.Parallel
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
             CancellationToken cancellationToken, bool throwException = false)
         {
+            int b = 100;
+            try
+            {
+                b = await TestFUn().WithCancellation(cancellationToken);
+            }
+            catch
+            {
+                b = 200;
+            }
+            Logger.LogTrace($"test b is {b}");
             Logger.LogTrace($"Entered parallel ExecuteAsync.");
             var transactions = transactionExecutingDto.Transactions.ToList();
             Logger.LogTrace($"all transaction count is {transactions.Count}");
@@ -57,36 +68,45 @@ namespace AElf.Kernel.SmartContract.Parallel
                 BlockHeight = blockHeader.Height - 1
             };
             var groupedTransactions = await _grouper.GroupAsync(chainContext, transactions);
-            var addedInfo = $"###===### group parallel tansaction count is {groupedTransactions.Parallelizables.Count}, non para is {groupedTransactions.NonParallelizables.Count},   transaction without contract is {groupedTransactions.TransactionsWithoutContract.Count}";
-            var tasks = groupedTransactions.Parallelizables.AsParallel().Select(
-                txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
-                {
-                    BlockHeader = blockHeader,
-                    Transactions = txns,
-                    PartialBlockStateSet = transactionExecutingDto.PartialBlockStateSet
-                }, cancellationToken, throwException));
-//            var tasks2 = new List<Task<(List<ExecutionReturnSet>,HashSet<string>)>>();
-//            foreach (var transaction in groupedTransactions.Parallelizables)
-//            {
-//                Task<(List<ExecutionReturnSet>, HashSet<string>)> transactionTask = null;
-//                try
+            //var addedInfo = $"###===### group parallel tansaction count is {groupedTransactions.Parallelizables.Count}, non para is {groupedTransactions.NonParallelizables.Count},   transaction without contract is {groupedTransactions.TransactionsWithoutContract.Count}";
+//            var tasks = groupedTransactions.Parallelizables.AsParallel().Select(
+//                txns => ExecuteAndPreprocessResult(new TransactionExecutingDto
 //                {
-//                    transactionTask = ExecuteAndPreprocessResult(new TransactionExecutingDto
-//                    {
-//                        BlockHeader = blockHeader,
-//                        Transactions = transaction,
-//                        PartialBlockStateSet = transactionExecutingDto.PartialBlockStateSet
-//                    }, cancellationToken, throwException);
-//                }
-//                catch
-//                {
-//                    break;
-//                }
-//                tasks2.Add(transactionTask);
-//            }
-            var results = await Task.WhenAll(tasks);
+//                    BlockHeader = blockHeader,
+//                    Transactions = txns,
+//                    PartialBlockStateSet = transactionExecutingDto.PartialBlockStateSet
+//                }, cancellationToken, throwException));
+            var results = new List<(List<ExecutionReturnSet>,HashSet<string>)>();
+            var watch = new Stopwatch();
+            watch.Start();
+            if (cancellationToken.IsCancellationRequested)
+            {
+                Logger.LogTrace($"before Parallelizables 可以取消了， 其count为{groupedTransactions.Parallelizables.Count}");
+            }
 
-            Logger.LogTrace("Executed parallelizables." + addedInfo);
+            Logger.LogTrace($"Parallelizables count为{groupedTransactions.Parallelizables.Count}");
+            foreach (var transaction in groupedTransactions.Parallelizables)
+            {
+                try
+                {
+                    Logger.LogTrace($"this group include transaction {transaction.Count} ");
+                    var set = await ExecuteAndPreprocessResult(new TransactionExecutingDto
+                    {
+                        BlockHeader = blockHeader,
+                        Transactions = transaction,
+                        PartialBlockStateSet = transactionExecutingDto.PartialBlockStateSet
+                    }, cancellationToken, throwException).WithCancellation(cancellationToken);
+                    results.Add(set);
+                }
+                catch
+                {
+                    Logger.LogTrace("timeout in parallelizables");
+                    break;
+                }
+            }
+            watch.Stop();
+            //var results = await Task.WhenAll(tasks);
+            Logger.LogTrace("Executed parallelizables." + $"elapsed time is {watch.ElapsedMilliseconds}");
 
             var returnSets = MergeResults(results, out var conflictingSets).Item1;
             var returnSetCollection = new ReturnSetCollection(returnSets);
@@ -103,19 +123,39 @@ namespace AElf.Kernel.SmartContract.Parallel
             }
 
             Logger.LogTrace("Merged results from parallelizables.");
-
-            var nonParallelizableReturnSets = await _plainExecutingService.ExecuteAsync(
-                new TransactionExecutingDto
-                {
-                    BlockHeader = blockHeader,
-                    Transactions = groupedTransactions.NonParallelizables,
-                    PartialBlockStateSet = updatedPartialBlockStateSet
-                },
-                cancellationToken, throwException);
-
-            Logger.LogTrace("Merged results from non-parallelizables.");
-            returnSets.AddRange(nonParallelizableReturnSets);
-
+            if (cancellationToken.IsCancellationRequested)
+            {
+                Logger.LogTrace($"after Merged results from parallelizables. 可以取消了, 其count为{groupedTransactions.NonParallelizables.Count}");
+            }
+            watch.Start();
+            int a = 100;
+            try
+            {
+                a = await TestFUn().WithCancellation(cancellationToken);
+            }
+            catch
+            {
+                a = 200;
+            }
+            Logger.LogTrace($"test a is {a} , befrore ret include {returnSets.Count}");
+            try
+            {
+                var nonParallelizableReturnSets = await _plainExecutingService.ExecuteAsync(
+                    new TransactionExecutingDto
+                    {
+                        BlockHeader = blockHeader,
+                        Transactions = groupedTransactions.NonParallelizables,
+                        PartialBlockStateSet = updatedPartialBlockStateSet
+                    },
+                    cancellationToken, throwException).WithCancellation(cancellationToken);
+                returnSets.AddRange(nonParallelizableReturnSets);
+            }
+            catch
+            {
+                Logger.LogTrace("timeout within nonparallelizable");
+            }
+            watch.Stop();
+            Logger.LogTrace("Merged results from non-parallelizables." + $"elapsed time is {watch.ElapsedMilliseconds}   after none parallel ret is {returnSets.Count}  next is merge transaction without contranct, its count is {groupedTransactions.TransactionsWithoutContract.Count}");
             var transactionWithoutContractReturnSets = await ProcessTransactionsWithoutContract(
                 groupedTransactions.TransactionsWithoutContract, blockHeader);
             
@@ -132,6 +172,12 @@ namespace AElf.Kernel.SmartContract.Parallel
             }
 
             return returnSets;
+        }
+
+        private async Task<int> TestFUn()
+        {
+            await Task.Delay(1);
+            return 1;
         }
         
         private async Task<List<ExecutionReturnSet>> ProcessTransactionsWithoutContract(List<Transaction> transactions,
@@ -165,20 +211,21 @@ namespace AElf.Kernel.SmartContract.Parallel
             TransactionExecutingDto transactionExecutingDto, CancellationToken cancellationToken,
             bool throwException = false)
         {
-            Logger.LogTrace("###====###  start ExecuteAndPreprocessResult");
-            List<ExecutionReturnSet> executionReturnSets = null;
+            if(cancellationToken.IsCancellationRequested)
+                Logger.LogTrace("it should be cancelled in this method");
             try
             {
-                executionReturnSets = await _plainExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken, throwException).WithCancellation(cancellationToken);
+                var executionReturnSets =
+                    await _plainExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken,
+                        throwException).WithCancellation(cancellationToken);
+                var keys = new HashSet<string>(
+                    executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateAccesses.Keys)));
+                return (executionReturnSets, keys);
             }
             catch
             {
-                executionReturnSets = new List<ExecutionReturnSet>();
-                Logger.LogTrace("###====###  timeout in ExecuteAndPreprocessResult");
+                return new Tuple<List<ExecutionReturnSet>, HashSet<string>>(new List<ExecutionReturnSet>(),new HashSet<string>()).ToValueTuple();
             }
-            var keys = new HashSet<string>(
-                executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateAccesses.Keys)));
-            return (executionReturnSets, keys);
         }
 
         private (List<ExecutionReturnSet>, HashSet<string>) MergeResults(

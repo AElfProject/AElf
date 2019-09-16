@@ -93,7 +93,7 @@ namespace AElf.Kernel.Miner.Application
             using (var cts = new CancellationTokenSource())
             {
                 //cts.CancelAfter((int) requestMiningDto.BlockExecutionTime.Milliseconds());
-                cts.CancelAfter(10);
+                cts.CancelAfter(1000);
                 var watch =new Stopwatch();
                 watch.Start();
                 var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
@@ -106,8 +106,8 @@ namespace AElf.Kernel.Miner.Application
                 int systemCount = systemTransactions.Count;
                 block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                     systemTransactions, pending, cts.Token);
-                await SignBlockAsync(block);
                 watch.Stop();
+                await SignBlockAsync(block);
                 var addedInfo = $"###===###system transactions count is {systemCount} pending transactions in miningservice: {pendingCount}  and elapsed {watch.ElapsedMilliseconds}";
                 Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
                                       $"previous: {block.Header.PreviousBlockHash}, " +

@@ -52,13 +52,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 await _executingService.ExecuteAsync(
                     new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = nonCancellable},
                     CancellationToken.None, true);
-            var addInfo = $" deal time is {stopWatch.ElapsedMilliseconds}";
+            var addInfo = $" noncancellable total elapsed time is {stopWatch.ElapsedMilliseconds}";
             stopWatch.Stop();
             Logger.LogTrace("Executed non-cancellable txs" + addInfo);
 
             var returnSetCollection = new ReturnSetCollection(nonCancellableReturnSets);
             List<ExecutionReturnSet> cancellableReturnSets = new List<ExecutionReturnSet>();
-           stopWatch.Start();
+            stopWatch.Start();
+            string addedInfo = string.Empty;
             if (cancellable.Count > 0)
             {
                 cancellableReturnSets = await _executingService.ExecuteAsync(new TransactionExecutingDto 
@@ -69,12 +70,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     },
                     cancellationToken, false);
                 returnSetCollection.AddRange(cancellableReturnSets);
+                addedInfo = $"###===###handled transaction count is {cancellableReturnSets.Count}" +
+                            $"###===###elapsed milliseconds is {stopWatch.ElapsedMilliseconds}";
             }
             stopWatch.Stop();
-            var addedInfo = $"###===###handled transaction count is {cancellableReturnSets.Count}" +
-                            $"###===###elapsed milliseconds is {stopWatch.ElapsedMilliseconds}";
             Logger.LogTrace("Executed cancellable txs" + addedInfo);
-
             Logger.LogTrace("Handled return set");
 
             if (returnSetCollection.Unexecutable.Count > 0)
