@@ -68,8 +68,6 @@ namespace AElf.OS.Network.Grpc.Connection
 
             if (peer == null)
                 return false;
-            
-            Logger.LogDebug($"Dialed peer: in {peer.InboundSessionId.ToHex()}, out {peer.OutboundSessionId.ToHex()}.");Logger.LogWarning($"Dialed peer: in {peer.InboundSessionId.ToHex()}, out {peer.OutboundSessionId.ToHex()}.");
 
             if (!_peerPool.TryAddPeer(peer))
             {
@@ -77,6 +75,8 @@ namespace AElf.OS.Network.Grpc.Connection
                 await peer.DisconnectAsync(false);
                 return false;
             }
+
+            Logger.LogDebug($"Added to pool {endpoint} - {peer.Info.Pubkey}.");
 
             try
             {
@@ -91,9 +91,11 @@ namespace AElf.OS.Network.Grpc.Connection
             }
 
             peer.IsConnected = true;
-
-            Logger.LogTrace($"Connected to {peer} - LIB height {peer.LastKnownLibHeight}, " +
-                            $"best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}].");
+            
+            Logger.LogWarning($"Connected to: {peer.RemoteEndpoint} - {peer.Info.Pubkey.Substring(0, 45)}" +
+                              $" - in-token {peer.InboundSessionId?.ToHex()}, out-token {peer.OutboundSessionId?.ToHex()}" +
+                              $" - LIB height {peer.LastKnownLibHeight}" +
+                              $" - best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}]");
 
             FireConnectionEvent(peer);
 
@@ -121,17 +123,17 @@ namespace AElf.OS.Network.Grpc.Connection
 
             var pubkey = handshake.HandshakeData.Pubkey.ToHex();
             
+            // remove any remaining connection to the peer (before the check
+            // that we have room for more connections)
+            var currentPeer = _peerPool.FindPeerByPublicKey(pubkey);
+            if (currentPeer != null)
+            {
+                _peerPool.RemovePeer(pubkey);
+                await currentPeer.DisconnectAsync(false);
+            }
+            
             try
             {
-                // remove any remaining connection to the peer (before the check
-                // that we have room for more connections)
-                var currentPeer = _peerPool.FindPeerByPublicKey(pubkey);
-                if (currentPeer != null)
-                {
-                    _peerPool.RemovePeer(pubkey);
-                    await currentPeer.DisconnectAsync(false);
-                }
-
                 // mark the (IP; pubkey) pair as currently handshaking
                 if (!_peerPool.AddHandshakingPeer(endpoint.Address, pubkey))
                     return new HandshakeReply {Error = HandshakeError.ConnectionRefused};
@@ -148,13 +150,11 @@ namespace AElf.OS.Network.Grpc.Connection
                     return new HandshakeReply {Error = HandshakeError.RepeatedConnection};
                 }
 
-                Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
+                Logger.LogDebug($"Added to pool {endpoint} - {grpcPeer.Info.Pubkey}.");
 
                 // send back our handshake
                 var replyHandshake = await _handshakeProvider.GetHandshakeAsync();
                 grpcPeer.InboundSessionId = replyHandshake.SessionId.ToByteArray();
-            
-                Logger.LogWarning($"Just dialed back peer: inbound token {grpcPeer.InboundSessionId?.ToHex()}, out {grpcPeer.OutboundSessionId?.ToHex()}.");
 
                 return new HandshakeReply { Handshake = replyHandshake, Error = HandshakeError.HandshakeOk };
             }
@@ -199,6 +199,11 @@ namespace AElf.OS.Network.Grpc.Connection
                 Logger.LogWarning($"Cannot find Peer {peerPubkey} in the pool.");
                 return;
             }
+            
+            Logger.LogWarning($"Connected to: {peer.RemoteEndpoint} - {peer.Info.Pubkey.Substring(0, 45)}" +
+                              $" - in-token {peer.InboundSessionId?.ToHex()}, out-token {peer.OutboundSessionId?.ToHex()}" +
+                              $" - LIB height {peer.LastKnownLibHeight}" +
+                              $" - best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}]");
 
             peer.IsConnected = true;
         }

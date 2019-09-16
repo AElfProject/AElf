@@ -39,36 +39,6 @@ namespace AElf.OS.Network.Infrastructure
             return NetworkOptions.MaxPeers != 0 && peerCount >= NetworkOptions.MaxPeers;
         }
 
-        public bool AddHandshakingPeer(IPAddress ipAddress, string pubkey)
-        {
-            if (IsFull())
-            {
-                Logger.LogWarning("Peer pool is full.");
-                return false;
-            }
-
-            // check if the we've reached the maximum number of connections from this IP
-            if (IsOverIpLimit(ipAddress))
-                return false;
-            
-            bool added = true;
-            HandshakingPeers.AddOrUpdate(ipAddress, new ConcurrentDictionary<string, string> { [pubkey] = pubkey },
-                (key, handshakes) =>
-                {
-                    if (IsOverIpLimit(ipAddress))
-                    {
-                        added = false;
-                        return handshakes;
-                    }
-
-                    handshakes.TryAdd(pubkey, pubkey);
-                    
-                    return handshakes;
-                });
-
-            return added;
-        }
-
         private bool IsOverIpLimit(IPAddress ipAddress)
         {
             if (NetworkOptions.MaxPeersPerIpAddress == 0 || ipAddress.Equals(IPAddress.Loopback))
@@ -90,6 +60,38 @@ namespace AElf.OS.Network.Infrastructure
             return false;
         }
 
+        public bool AddHandshakingPeer(IPAddress ipAddress, string pubkey)
+        {
+            // check if we have room for a new peer
+            if (IsFull() || IsOverIpLimit(ipAddress))
+            {
+                Logger.LogWarning($"{ipAddress} - peer pool is full.");
+                return false;
+            }
+
+            bool added = true;
+            HandshakingPeers.AddOrUpdate(ipAddress, new ConcurrentDictionary<string, string> { [pubkey] = pubkey },
+                (key, handshakes) =>
+                {
+                    if (IsOverIpLimit(ipAddress))
+                    {
+                        added = false;
+                        Logger.LogWarning($"{ipAddress} - peer pool is full.");
+                        return handshakes;
+                    }
+
+                    if (!handshakes.TryAdd(pubkey, pubkey))
+                    {
+                        added = false;
+                        Logger.LogWarning($"{ipAddress} - pubkey {pubkey} is already handshaking.");
+                    }
+                    
+                    return handshakes;
+                });
+
+            return added;
+        }
+
         public bool RemoveHandshakingPeer(IPAddress address, string pubkey)
         {
             bool removed = false;
@@ -98,15 +100,10 @@ namespace AElf.OS.Network.Infrastructure
                 removed = pubkeys.TryRemove(pubkey, out _);
 
                 if (pubkeys.IsNullOrEmpty())
-                    CleanHandshakes(address);
+                    HandshakingPeers.TryRemove(address, out _);
             }
 
             return removed;
-        }
-
-        private void CleanHandshakes(IPAddress ipAddress)
-        {
-            HandshakingPeers.TryRemove(ipAddress, out _);
         }
 
         public List<IPeer> GetPeers(bool includeFailing = false)
@@ -153,16 +150,28 @@ namespace AElf.OS.Network.Infrastructure
 
         public bool TryAddPeer(IPeer peer)
         {
-            // clear invalid peer
+            CleanInvalidPeers();
+            return Peers.TryAdd(peer.Info.Pubkey, peer);
+        }
+
+        private void CleanInvalidPeers()
+        {
             var invalidPeers = Peers.Where(p => p.Value.IsInvalid).ToList();
 
             foreach (var invalidPeer in invalidPeers)
             {
                 var removedPeer = RemovePeer(invalidPeer.Key);
-                removedPeer?.DisconnectAsync(false);
-            }
 
-            return Peers.TryAdd(peer.Info.Pubkey, peer);
+                if (removedPeer != null)
+                {
+                    removedPeer.DisconnectAsync(false);
+                    Logger.LogDebug($"Removed invalid peer {invalidPeer}.");
+                }
+                else
+                {
+                    Logger.LogDebug($"Could not find invalid peer {invalidPeer}.");
+                }
+            }
         }
     }
 }

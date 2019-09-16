@@ -42,12 +42,12 @@ namespace AElf.OS.Network.Grpc
         /// further communications.
         /// </summary>
         /// <returns>The created peer</returns>
-        public async Task<GrpcPeer> DialPeerAsync(IPEndPoint endpoint)
+        public async Task<GrpcPeer> DialPeerAsync(IPEndPoint remoteEndPoint)
         {
             var handshake = await _handshakeProvider.GetHandshakeAsync();
-            var client = CreateClient(endpoint);
+            var client = CreateClient(remoteEndPoint);
 
-            var handshakeReply = await CallDoHandshakeAsync(client, endpoint, handshake);
+            var handshakeReply = await CallDoHandshakeAsync(client, remoteEndPoint, handshake);
 
             // verify handshake
             if (handshakeReply.Error != HandshakeError.HandshakeOk)
@@ -64,7 +64,7 @@ namespace AElf.OS.Network.Grpc
                 return null;
             }
 
-            var peer = new GrpcPeer(client, endpoint, new PeerInfo
+            var peer = new GrpcPeer(client, remoteEndPoint, new PeerInfo
             {
                 Pubkey = handshakeReply.Handshake.HandshakeData.Pubkey.ToHex(),
                 ConnectionTime = TimestampHelper.GetUtcNow(),
@@ -83,7 +83,7 @@ namespace AElf.OS.Network.Grpc
         /// Calls the server side DoHandshake RPC method, in order to establish a 2-way connection.
         /// </summary>
         /// <returns>The reply from the server.</returns>
-        private async Task<HandshakeReply> CallDoHandshakeAsync(GrpcClient client, IPEndPoint ipAddress,
+        private async Task<HandshakeReply> CallDoHandshakeAsync(GrpcClient client, IPEndPoint remoteEndPoint,
             Handshake handshake)
         {
             HandshakeReply handshakeReply;
@@ -100,7 +100,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, $"Could not connect to {ipAddress}.");
+                Logger.LogError(ex, $"Could not connect to {remoteEndPoint}.");
                 await client.Channel.ShutdownAsync();
                 throw;
             }
