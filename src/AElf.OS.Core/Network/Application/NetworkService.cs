@@ -260,8 +260,8 @@ namespace AElf.OS.Network.Application
                 .ToList();
             
             peers.AddRange(randomPeers);
-            
-            Logger.LogDebug($"Selected {peers.Count} for the request.");
+
+            Logger.LogDebug($"Selected {string.Join(",", peers.Select(p => p.IpAddress))} for the request.");
 
             return peers;
         }
