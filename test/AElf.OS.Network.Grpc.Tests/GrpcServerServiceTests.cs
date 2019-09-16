@@ -80,7 +80,8 @@ namespace AElf.OS.Network
             result = await _service.DoHandshake(request, context);
             result.Error.ShouldBe(HandshakeError.WrongSignature);
 
-            var handshake = await _handshakeProvider.GetHandshakeAsync();
+            var peerKeyPair = CryptoHelper.GenerateKeyPair();
+            var handshake = NetworkTestHelper.CreateValidHandshake(peerKeyPair, 10, ChainHelper.ConvertBase58ToChainId("AELF"), 2000);
             request = new HandshakeRequest {Handshake = handshake};
             result = await _service.DoHandshake(request, context);
             result.Error.ShouldBe(HandshakeError.HandshakeOk);

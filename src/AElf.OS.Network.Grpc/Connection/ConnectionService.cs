@@ -182,6 +182,7 @@ namespace AElf.OS.Network.Grpc.Connection
                     handshakeError = HandshakeError.WrongSignature;
                     break;
                 case HandshakeValidationResult.Unauthorized:
+                case HandshakeValidationResult.SelfConnection:
                     handshakeError = HandshakeError.ConnectionRefused;
                     break;
                 default:

@@ -1,41 +1,20 @@
-using System.Collections.Generic;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
-using AElf.OS.Network.Grpc;
 using AElf.Types;
 using Google.Protobuf;
 
 namespace AElf.OS.Network
 {
-    public class NetworkTestContextHelpers
+    public static class NetworkTestHelper
     {
-        // When mocking the dialer, this list contains the mocks of all the peers. 
-        public List<GrpcPeer> DialedPeers { get; } = new List<GrpcPeer>();
-
-        public void AddDialedPeer(GrpcPeer peer)
-        {
-            DialedPeers.Add(peer);
-        }
-
-        public bool AllPeersWhereCleaned()
-        {
-            foreach (var peer in DialedPeers)
-            {
-                if (!peer.IsShutdown)
-                    return false;
-            }
-
-            return true;
-        }
-        
-        public Handshake CreateValidHandshake(ECKeyPair producer, long bestChainHeight, int chainId = NetworkTestConstants.DefaultChainId)
+        public static Handshake CreateValidHandshake(ECKeyPair producer, long bestChainHeight, int chainId = NetworkTestConstants.DefaultChainId, int port = 0)
         {
             var data = new HandshakeData
             {
                 ChainId = chainId,
                 Version = KernelConstants.ProtocolVersion,
-                ListeningPort = 0,
+                ListeningPort = port,
                 Pubkey = ByteString.CopyFrom(producer.PublicKey),
                 BestChainHash = Hash.FromString("BestChainHash"),
                 BestChainHeight = bestChainHeight,
@@ -49,7 +28,7 @@ namespace AElf.OS.Network
             return new Handshake { HandshakeData = data, Signature = ByteString.CopyFrom(signature) };
         }
 
-        public BlockHeader CreateFakeBlockHeader(int chainId, long height, ECKeyPair producer)
+        public static BlockHeader CreateFakeBlockHeader(int chainId, long height, ECKeyPair producer)
         {
             return new BlockHeader
             {

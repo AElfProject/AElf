@@ -13,12 +13,14 @@ namespace AElf.OS.Network
         private readonly IPeerDialer _peerDialer;
         private readonly IBlockchainService _blockchainService;
         private readonly IHandshakeProvider _handshakeProvider;
+        private readonly NetworkTestContext _networkTestContext;
 
         public PeerDialerTests()
         {
             _peerDialer = GetRequiredService<IPeerDialer>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _handshakeProvider = GetRequiredService<IHandshakeProvider>();
+            _networkTestContext = GetRequiredService<NetworkTestContext>();
         }
 
         [Fact]
@@ -29,10 +31,10 @@ namespace AElf.OS.Network
             
             grpcPeer.ShouldNotBeNull();
 
-            var chain = await _blockchainService.GetChainAsync();
-            grpcPeer.CurrentBlockHash.ShouldBe(chain.BestChainHash);
-            grpcPeer.CurrentBlockHeight.ShouldBe(chain.BestChainHeight);
-            grpcPeer.LastKnownLibHeight.ShouldBe(chain.LastIrreversibleBlockHeight);
+            var peersHandshake = _networkTestContext.GeneratedHandshakes[endpoint.Address.ToString()];
+            grpcPeer.CurrentBlockHash.ShouldBe(peersHandshake.HandshakeData.BestChainHash);
+            grpcPeer.CurrentBlockHeight.ShouldBe(peersHandshake.HandshakeData.BestChainHeight);
+            grpcPeer.LastKnownLibHeight.ShouldBe(peersHandshake.HandshakeData.LastIrreversibleBlockHeight);
         }
 
         [Fact]

@@ -17,14 +17,14 @@ namespace AElf.OS.Network
         private readonly ILocalEventBus _eventBus;
         private readonly IPeerPool _peerPool;
 
-        private readonly NetworkTestContextHelpers _netTestHelpers;
+        private readonly NetworkTestContext _testContext;
 
         public GrpcNetworkServerTests()
         {
             _networkServer = GetRequiredService<IAElfNetworkServer>();
             _eventBus = GetRequiredService<ILocalEventBus>();
             _peerPool = GetRequiredService<IPeerPool>();
-            _netTestHelpers = GetRequiredService<NetworkTestContextHelpers>();
+            _testContext = GetRequiredService<NetworkTestContext>();
         }
         
         private GrpcPeer AddPeerToPool(string ip = NetworkTestConstants.FakeIpEndpoint, 
@@ -99,7 +99,7 @@ namespace AElf.OS.Network
             var added = await _networkServer.ConnectAsync(endpoint);
             
             added.ShouldBeFalse();
-            _netTestHelpers.AllPeersWhereCleaned().ShouldBeTrue();
+            _testContext.AllPeersWhereCleaned().ShouldBeTrue();
         }
         
         [Fact] 

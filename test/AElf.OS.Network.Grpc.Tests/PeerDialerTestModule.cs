@@ -1,5 +1,6 @@
 using System.Net;
 using System.Threading.Tasks;
+using AElf.Cryptography;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Protocol;
@@ -17,15 +18,16 @@ namespace AElf.OS.Network
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            var handshakeProvider = services.GetServiceLazy<IHandshakeProvider>();
+            var netTestContext = new NetworkTestContext();
 
             services.AddTransient(provider =>
             {
                 var mockService = new Mock<IConnectionService>();
                 mockService.Setup(m => m.DoHandshakeAsync(It.IsAny<IPEndPoint>(), It.IsAny<Handshake>()))
-                    .Returns(async () =>
+                    .Returns<IPEndPoint, Handshake>(async (pe, hsk) =>
                     {
-                        var handshake = await handshakeProvider.Value.GetHandshakeAsync();
+                        var handshake = NetworkTestHelper.CreateValidHandshake(CryptoHelper.GenerateKeyPair(), 10, hsk.HandshakeData.ChainId);
+                        netTestContext.GeneratedHandshakes[pe.Address.ToString()] = handshake;
 
                         return new HandshakeReply
                         {
@@ -36,6 +38,8 @@ namespace AElf.OS.Network
 
                 return mockService.Object;
             });
+
+            services.AddSingleton<NetworkTestContext>(netTestContext);
         }
     }
 
