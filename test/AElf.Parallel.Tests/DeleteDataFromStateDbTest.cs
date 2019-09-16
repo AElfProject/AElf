@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -31,7 +32,7 @@ namespace AElf.Parallel.Tests
         private readonly IAccountService _accountService;
         private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly IStateStore<VersionedState> _versionedStates;
-        private readonly IBlockchainStateMergingService _blockchainStateMergingService;
+        private readonly IBlockchainStateService _blockchainStateService;
         private readonly ITransactionGrouper _transactionGrouper;
         private readonly ICodeRemarksManager _codeRemarksManager;
         private readonly ParallelTestHelper _parallelTestHelper;
@@ -45,10 +46,1037 @@ namespace AElf.Parallel.Tests
             _accountService = GetRequiredService<IAccountService>();
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _versionedStates = GetRequiredService<IStateStore<VersionedState>>();
-            _blockchainStateMergingService = GetRequiredService<IBlockchainStateMergingService>();
+            _blockchainStateService = GetRequiredService<IBlockchainStateService>();
             _transactionGrouper = GetRequiredService<ITransactionGrouper>();
             _codeRemarksManager = GetRequiredService<ICodeRemarksManager>();
             _parallelTestHelper = GetRequiredService<ParallelTestHelper>();
+        }
+
+        [Fact]
+        public async Task Set_Value()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            const string otherKey = "OtherKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            value = await GetValueAsync(accountAddress, otherKey, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            var transactions = new List<Transaction>();
+
+            var increaseValueInput = new IncreaseValueInput
+            {
+                Key = key,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            var otherKeyInput = new IncreaseValueInput
+            {
+                Key = otherKey,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            var transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValue), increaseValueInput);
+            transactions.Add(transaction);
+            
+            transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValue), otherKeyInput);
+            transactions.Add(transaction);
+            
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var messageValue = new MessageValue
+            {
+                Int64Value = 1,
+                StringValue = "1"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var otherMessageValue = new MessageValue
+            {
+                Int64Value = 1,
+                StringValue = "1"
+            };
+            value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
+            CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(6);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value,
+                messageValue.StringValue, messageValue);
+            await CheckValueInVersionStateAsync(otherKey, otherMessageValue.Int64Value,
+                otherMessageValue.StringValue, otherMessageValue);
+        }
+        
+        [Fact]
+        public async Task Set_Value_With_Inline()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            const string otherKey = "OtherKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            value = await GetValueAsync(accountAddress, otherKey, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            var transactions = new List<Transaction>();
+
+            var increaseValueInput = new IncreaseValueInput
+            {
+                Key = key,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            var otherKeyInput = new IncreaseValueInput
+            {
+                Key = otherKey,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            //NonParallel System Transaction
+            var transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithInline), increaseValueInput);
+            transactions.Add(transaction);
+            
+            transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithInline), otherKeyInput);
+            transactions.Add(transaction);
+            
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var messageValue = new MessageValue
+            {
+                Int64Value = 2,
+                StringValue = "2"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var otherMessageValue = new MessageValue
+            {
+                Int64Value = 2,
+                StringValue = "2"
+            };
+            value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
+            CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(6);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value,
+                messageValue.StringValue, messageValue);
+            await CheckValueInVersionStateAsync(otherKey, otherMessageValue.Int64Value,
+                otherMessageValue.StringValue, otherMessageValue);
+        }
+        
+        [Fact]
+        public async Task Set_Value_With_PrePlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            const string otherKey = "OtherKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            value = await GetValueAsync(accountAddress, otherKey, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            var transactions = new List<Transaction>();
+
+            var increaseValueInput = new IncreaseValueInput
+            {
+                Key = key,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            var otherKeyInput = new IncreaseValueInput
+            {
+                Key = otherKey,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            //NonParallel System Transaction
+            var transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithPrePlugin), increaseValueInput);
+            transactions.Add(transaction);
+            
+            transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithPrePlugin), otherKeyInput);
+            transactions.Add(transaction);
+            
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var messageValue = new MessageValue
+            {
+                Int64Value = 2,
+                StringValue = "2"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var otherMessageValue = new MessageValue
+            {
+                Int64Value = 2,
+                StringValue = "2"
+            };
+            value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
+            CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(6);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value,
+                messageValue.StringValue, messageValue);
+            await CheckValueInVersionStateAsync(otherKey, otherMessageValue.Int64Value,
+                otherMessageValue.StringValue, otherMessageValue);
+        }
+        
+        [Fact]
+        public async Task Set_Value_With_PostPlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            const string otherKey = "OtherKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            value = await GetValueAsync(accountAddress, otherKey, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            var transactions = new List<Transaction>();
+
+            var increaseValueInput = new IncreaseValueInput
+            {
+                Key = key,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            var otherKeyInput = new IncreaseValueInput
+            {
+                Key = otherKey,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            //NonParallel System Transaction
+            var transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithPostPlugin), increaseValueInput);
+            transactions.Add(transaction);
+            
+            transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithPostPlugin), otherKeyInput);
+            transactions.Add(transaction);
+            
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var messageValue = new MessageValue
+            {
+                Int64Value = 2,
+                StringValue = "2"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var otherMessageValue = new MessageValue
+            {
+                Int64Value = 2,
+                StringValue = "2"
+            };
+            value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
+            CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(6);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value,
+                messageValue.StringValue, messageValue);
+            await CheckValueInVersionStateAsync(otherKey, otherMessageValue.Int64Value,
+                otherMessageValue.StringValue, otherMessageValue);
+        }
+        
+        [Fact]
+        public async Task Set_Value_With_Inline_And_PrePlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            const string otherKey = "OtherKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            value = await GetValueAsync(accountAddress, otherKey, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            var transactions = new List<Transaction>();
+
+            var increaseValueInput = new IncreaseValueInput
+            {
+                Key = key,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            var otherKeyInput = new IncreaseValueInput
+            {
+                Key = otherKey,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            //NonParallel System Transaction
+            var transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPrePlugin), increaseValueInput);
+            transactions.Add(transaction);
+            
+            transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPrePlugin), otherKeyInput);
+            transactions.Add(transaction);
+            
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var messageValue = new MessageValue
+            {
+                Int64Value = 3,
+                StringValue = "3"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var otherMessageValue = new MessageValue
+            {
+                Int64Value = 3,
+                StringValue = "3"
+            };
+            value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
+            CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(6);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value,
+                messageValue.StringValue, messageValue);
+            await CheckValueInVersionStateAsync(otherKey, otherMessageValue.Int64Value,
+                otherMessageValue.StringValue, otherMessageValue);
+        }
+        
+        [Fact]
+        public async Task Set_Value_With_Inline_And_PostPlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            const string otherKey = "OtherKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            value = await GetValueAsync(accountAddress, otherKey, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            var transactions = new List<Transaction>();
+
+            var increaseValueInput = new IncreaseValueInput
+            {
+                Key = key,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            var otherKeyInput = new IncreaseValueInput
+            {
+                Key = otherKey,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            //NonParallel System Transaction
+            var transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPostPlugin), increaseValueInput);
+            transactions.Add(transaction);
+            
+            transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPostPlugin), otherKeyInput);
+            transactions.Add(transaction);
+            
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var messageValue = new MessageValue
+            {
+                Int64Value = 3,
+                StringValue = "3"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var otherMessageValue = new MessageValue
+            {
+                Int64Value = 3,
+                StringValue = "3"
+            };
+            value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
+            CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(6);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value,
+                messageValue.StringValue, messageValue);
+            await CheckValueInVersionStateAsync(otherKey, otherMessageValue.Int64Value,
+                otherMessageValue.StringValue, otherMessageValue);
+        }
+        
+        [Fact]
+        public async Task Set_Value_With_Plugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            const string otherKey = "OtherKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            value = await GetValueAsync(accountAddress, otherKey, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            var transactions = new List<Transaction>();
+
+            var increaseValueInput = new IncreaseValueInput
+            {
+                Key = key,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            var otherKeyInput = new IncreaseValueInput
+            {
+                Key = otherKey,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            //NonParallel System Transaction
+            var transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithPlugin), increaseValueInput);
+            transactions.Add(transaction);
+            
+            transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithPlugin), otherKeyInput);
+            transactions.Add(transaction);
+            
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var messageValue = new MessageValue
+            {
+                Int64Value = 3,
+                StringValue = "3"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var otherMessageValue = new MessageValue
+            {
+                Int64Value = 3,
+                StringValue = "3"
+            };
+            value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
+            CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(6);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value,
+                messageValue.StringValue, messageValue);
+            await CheckValueInVersionStateAsync(otherKey, otherMessageValue.Int64Value,
+                otherMessageValue.StringValue, otherMessageValue);
+        }
+        
+        [Fact]
+        public async Task Set_Value_With_Inline_And_Plugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            const string otherKey = "OtherKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            value = await GetValueAsync(accountAddress, otherKey, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            var transactions = new List<Transaction>();
+
+            var increaseValueInput = new IncreaseValueInput
+            {
+                Key = key,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            var otherKeyInput = new IncreaseValueInput
+            {
+                Key = otherKey,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            //NonParallel System Transaction
+            var transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+            transactions.Add(transaction);
+            
+            transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), otherKeyInput);
+            transactions.Add(transaction);
+            
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var messageValue = new MessageValue
+            {
+                Int64Value = 4,
+                StringValue = "4"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var otherMessageValue = new MessageValue
+            {
+                Int64Value = 4,
+                StringValue = "4"
+            };
+            value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
+            CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(6);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value,
+                messageValue.StringValue, messageValue);
+            await CheckValueInVersionStateAsync(otherKey, otherMessageValue.Int64Value,
+                otherMessageValue.StringValue, otherMessageValue);
+        }
+        
+        [Fact]
+        public async Task Set_Value_Parallel_With_Inline_And_Plugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            const string otherKey = "OtherKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            value = await GetValueAsync(accountAddress, otherKey, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            var transactions = new List<Transaction>();
+
+            var increaseValueInput = new IncreaseValueInput
+            {
+                Key = key,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            var otherKeyInput = new IncreaseValueInput
+            {
+                Key = otherKey,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            var transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin), increaseValueInput);
+            transactions.Add(transaction);
+            
+            transaction = await GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin), otherKeyInput);
+            transactions.Add(transaction);
+            
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var messageValue = new MessageValue
+            {
+                Int64Value = 4,
+                StringValue = "4"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var otherMessageValue = new MessageValue
+            {
+                Int64Value = 4,
+                StringValue = "4"
+            };
+            value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
+            CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(6);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value,
+                messageValue.StringValue, messageValue);
+            await CheckValueInVersionStateAsync(otherKey, otherMessageValue.Int64Value,
+                otherMessageValue.StringValue, otherMessageValue);
+        }
+        
+        [Fact]
+        public async Task Set_Value_In_Blocks()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            const string otherKey = "OtherKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            value = await GetValueAsync(accountAddress, otherKey, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            var increaseValueInput = new IncreaseValueInput
+            {
+                Key = key,
+                Memo = Guid.NewGuid().ToString()
+            };
+            
+            var otherKeyInput = new IncreaseValueInput
+            {
+                Key = otherKey,
+                Memo = Guid.NewGuid().ToString()
+            };
+
+            MessageValue messageValue;
+            MessageValue otherMessageValue;
+
+            //First block
+            {
+                var systemTransactions = new List<Transaction>();
+                var transactions = new List<Transaction>();
+
+                //NonParallel System Transaction
+                {
+                    var systemTransaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                    systemTransactions.Add(systemTransaction);
+
+                    systemTransaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), otherKeyInput);
+                    systemTransactions.Add(systemTransaction);
+                }
+                
+                //Parallel System Transaction
+                {
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    var systemTransaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin),
+                        increaseValueInput);
+                    systemTransactions.Add(systemTransaction);
+
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    systemTransaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin),
+                        increaseValueInput);
+                    systemTransactions.Add(systemTransaction);
+
+                    otherKeyInput.Memo = Guid.NewGuid().ToString();
+                    systemTransaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin), otherKeyInput);
+                    systemTransactions.Add(systemTransaction);
+                }
+                
+                var groupedSystemTransactions = await _transactionGrouper.GroupAsync(new ChainContext
+                {
+                    BlockHash = chain.BestChainHash,
+                    BlockHeight = chain.BestChainHeight
+                }, systemTransactions);
+                groupedSystemTransactions.Parallelizables.Count.ShouldBe(2);
+                groupedSystemTransactions.Parallelizables[0].Count.ShouldBe(2);
+                groupedSystemTransactions.Parallelizables[1].Count.ShouldBe(1);
+                groupedSystemTransactions.NonParallelizables.Count.ShouldBe(2);
+                
+                //NonParallel Normal Transaction
+                {
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    var transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                    transactions.Add(transaction);
+
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                    transactions.Add(transaction);
+
+                    otherKeyInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), otherKeyInput);
+                    transactions.Add(transaction);
+                }
+
+                //Parallel Normal Transaction
+                {
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    var transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin),
+                        increaseValueInput);
+                    transactions.Add(transaction);
+
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin),
+                        increaseValueInput);
+                    transactions.Add(transaction);
+
+                    otherKeyInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin), otherKeyInput);
+                    transactions.Add(transaction);
+                }
+                
+                var groupedNormalTransactions = await _transactionGrouper.GroupAsync(new ChainContext
+                {
+                    BlockHash = chain.BestChainHash,
+                    BlockHeight = chain.BestChainHeight
+                }, transactions);
+                groupedNormalTransactions.Parallelizables.Count.ShouldBe(2);
+                groupedNormalTransactions.Parallelizables[0].Count.ShouldBe(2);
+                groupedNormalTransactions.Parallelizables[1].Count.ShouldBe(1);
+                groupedNormalTransactions.NonParallelizables.Count.ShouldBe(3);
+                
+                var allTransactions = systemTransactions.Concat(transactions).ToList();
+                var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
+                    allTransactions);
+                block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions, transactions,
+                    CancellationToken.None);
+                await _blockchainService.AddTransactionsAsync(allTransactions);
+                await _blockchainService.AddBlockAsync(block);
+                await _blockAttachService.AttachBlockAsync(block);
+
+                var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
+                transactionResults.ShouldAllBe(t => t.Status == TransactionResultStatus.Mined);
+
+                var codeRemarks =
+                    await _codeRemarksManager.GetCodeRemarksAsync(
+                        Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
+                codeRemarks.ShouldBeNull();
+                    
+                messageValue = new MessageValue
+                {
+                    Int64Value = 28,
+                    StringValue = "28"
+                };
+                value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+                CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+
+                otherMessageValue = new MessageValue
+                {
+                    Int64Value = 16,
+                    StringValue = "16"
+                };
+                value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
+                CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
+
+                var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+                blockStateSet.Changes.Count.ShouldBe(6);
+                blockStateSet.Deletes.Count.ShouldBe(0);
+            }
+
+            {
+                chain = await _blockchainService.GetChainAsync();
+                var systemTransactions = new List<Transaction>();
+                var transactions = new List<Transaction>();
+
+                //NonParallel System Transaction
+                {
+                    var systemTransaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                    systemTransactions.Add(systemTransaction);
+
+                    systemTransaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), otherKeyInput);
+                    systemTransactions.Add(systemTransaction);
+                }
+                
+
+                //Parallel System Transaction
+                {
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    var systemTransaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin),
+                        increaseValueInput);
+                    systemTransactions.Add(systemTransaction);
+
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    systemTransaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin),
+                        increaseValueInput);
+                    systemTransactions.Add(systemTransaction);
+
+                    otherKeyInput.Memo = Guid.NewGuid().ToString();
+                    systemTransaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin), otherKeyInput);
+                    systemTransactions.Add(systemTransaction);
+                }
+                
+                var groupedSystemTransactions = await _transactionGrouper.GroupAsync(new ChainContext
+                {
+                    BlockHash = chain.BestChainHash,
+                    BlockHeight = chain.BestChainHeight
+                }, systemTransactions);
+                groupedSystemTransactions.Parallelizables.Count.ShouldBe(2);
+                groupedSystemTransactions.Parallelizables[0].Count.ShouldBe(2);
+                groupedSystemTransactions.Parallelizables[1].Count.ShouldBe(1);
+                groupedSystemTransactions.NonParallelizables.Count.ShouldBe(2);
+
+                //NonParallel Normal Transaction
+                {
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    var transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                    transactions.Add(transaction);
+
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                    transactions.Add(transaction);
+
+                    otherKeyInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), otherKeyInput);
+                    transactions.Add(transaction);
+                }
+                
+                //Parallel Normal Transaction
+                {
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    var transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin),
+                        increaseValueInput);
+                    transactions.Add(transaction);
+
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin),
+                        increaseValueInput);
+                    transactions.Add(transaction);
+
+                    otherKeyInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin), otherKeyInput);
+                    transactions.Add(transaction);
+                }
+                
+                var groupedNormalTransactions = await _transactionGrouper.GroupAsync(new ChainContext
+                {
+                    BlockHash = chain.BestChainHash,
+                    BlockHeight = chain.BestChainHeight
+                }, transactions);
+                groupedNormalTransactions.Parallelizables.Count.ShouldBe(2);
+                groupedNormalTransactions.Parallelizables[0].Count.ShouldBe(2);
+                groupedNormalTransactions.Parallelizables[1].Count.ShouldBe(1);
+                groupedNormalTransactions.NonParallelizables.Count.ShouldBe(3);
+                
+                var allTransactions = systemTransactions.Concat(transactions).ToList();
+                var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
+                    allTransactions);
+                block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions, transactions,
+                    CancellationToken.None);
+                await _blockchainService.AddTransactionsAsync(allTransactions);
+                await _blockchainService.AddBlockAsync(block);
+                await _blockAttachService.AttachBlockAsync(block);
+
+                var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
+                transactionResults.ShouldAllBe(t => t.Status == TransactionResultStatus.Mined);
+                
+                var codeRemarks =
+                    await _codeRemarksManager.GetCodeRemarksAsync(
+                        Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
+                codeRemarks.ShouldBeNull();
+
+                messageValue = new MessageValue
+                {
+                    Int64Value = 56,
+                    StringValue = "56"
+                };
+                value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+                CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+
+                otherMessageValue = new MessageValue
+                {
+                    Int64Value = 32,
+                    StringValue = "32"
+                };
+                value = await GetValueAsync(accountAddress, otherKey, block.GetHash(), block.Height);
+                CheckValue(value, otherMessageValue.StringValue, otherMessageValue.Int64Value, otherMessageValue);
+
+                var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+                blockStateSet.Changes.Count.ShouldBe(6);
+                blockStateSet.Deletes.Count.ShouldBe(0);
+            }
+
+
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value,
+                messageValue.StringValue, messageValue);
+            await CheckValueInVersionStateAsync(otherKey, otherMessageValue.Int64Value,
+                otherMessageValue.StringValue, otherMessageValue);
         }
         
         [Fact]
@@ -64,7 +1092,7 @@ namespace AElf.Parallel.Tests
             CheckValueNotExisted(value);
 
             var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                nameof(BasicFunctionWithParallelContract.RemoveValueParallel), new RemoveValueInput
+                nameof(BasicFunctionWithParallelContract.RemoveValue), new RemoveValueInput
                 {
                     Key = key
                 });
@@ -83,7 +1111,7 @@ namespace AElf.Parallel.Tests
             
             var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(0);
-            blockStateSet.Deletes.Count.ShouldBe(4);
+            blockStateSet.Deletes.Count.ShouldBe(3);
             
             chain = await _blockchainService.GetChainAsync();
             await SetIrreversibleBlockAsync(chain);
@@ -91,7 +1119,7 @@ namespace AElf.Parallel.Tests
         }
 
         [Fact]
-        public async Task Delete_After_Set_Key()
+        public async Task Remove_After_Set_Key()
         {
             const string key = "TestKey";
             var accountAddress = await _accountService.GetAccountAsync();
@@ -105,13 +1133,10 @@ namespace AElf.Parallel.Tests
                 nameof(BasicFunctionWithParallelContract.RemoveAfterSetValue), new RemoveAfterSetValueInput
                 {
                     Key = key,
-                    BoolValue = true,
                     Int64Value = 10,
                     StringValue = "test",
                     MessageValue = new MessageValue
                     {
-                        AddressValue = SampleAddress.AddressList[1],
-                        BoolValue = true,
                         Int64Value = 20,
                         StringValue = "MessageTest",
                     }
@@ -131,7 +1156,7 @@ namespace AElf.Parallel.Tests
             
             var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
             blockStateSet.Changes.Count.ShouldBe(0);
-            blockStateSet.Deletes.Count.ShouldBe(4);
+            blockStateSet.Deletes.Count.ShouldBe(3);
             
             chain = await _blockchainService.GetChainAsync();
             await SetIrreversibleBlockAsync(chain);
@@ -139,7 +1164,7 @@ namespace AElf.Parallel.Tests
         }
 
         [Fact]
-        public async Task Set_After_Delete_Key()
+        public async Task Set_After_Remove_Key()
         {
             const string key = "TestKey";
             var accountAddress = await _accountService.GetAccountAsync();
@@ -152,13 +1177,10 @@ namespace AElf.Parallel.Tests
             var setValueInput = new SetValueInput
             {
                 Key = key,
-                BoolValue = true,
                 Int64Value = 10,
                 StringValue = "test",
                 MessageValue = new MessageValue
                 {
-                    AddressValue = SampleAddress.AddressList[1],
-                    BoolValue = true,
                     Int64Value = 20,
                     StringValue = "MessageTest",
                 }
@@ -173,19 +1195,16 @@ namespace AElf.Parallel.Tests
             await _blockAttachService.AttachBlockAsync(block);
             
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
-            CheckValue(value, setValueInput.BoolValue, setValueInput.StringValue, setValueInput.Int64Value,
+            CheckValue(value, setValueInput.StringValue, setValueInput.Int64Value,
                 setValueInput.MessageValue);
             
             var setAfterRemoveValueInput = new SetAfterRemoveValueInput
             {
                 Key = key,
-                BoolValue = false,
                 Int64Value = 20,
                 StringValue = "test2",
                 MessageValue = new MessageValue
                 {
-                    AddressValue = SampleAddress.AddressList[1],
-                    BoolValue = false,
                     Int64Value = 10,
                     StringValue = "MessageTest2",
                 }
@@ -200,78 +1219,35 @@ namespace AElf.Parallel.Tests
             await _blockAttachService.AttachBlockAsync(block);
             
             value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
-            CheckValue(value, setAfterRemoveValueInput.BoolValue, setAfterRemoveValueInput.StringValue,
+            CheckValue(value, setAfterRemoveValueInput.StringValue,
                 setAfterRemoveValueInput.Int64Value, setAfterRemoveValueInput.MessageValue);
             
             var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
-            blockStateSet.Changes.Count.ShouldBe(4);
+            blockStateSet.Changes.Count.ShouldBe(3);
             blockStateSet.Deletes.Count.ShouldBe(0);
             
             chain = await _blockchainService.GetChainAsync();
             await SetIrreversibleBlockAsync(chain);
-            await CheckValueInVersionStateAsync(key, setAfterRemoveValueInput.BoolValue,
+            await CheckValueInVersionStateAsync(key,
                 setAfterRemoveValueInput.Int64Value, setAfterRemoveValueInput.StringValue,
                 setAfterRemoveValueInput.MessageValue);
         }
-        
+
         [Fact]
-        public async Task Set_With_Plugin()
+        public async Task Remove_Value_From_PrePlugin()
         {
+            await Set_Value();
+            
             var accountAddress = await _accountService.GetAccountAsync();
             var chain = await _blockchainService.GetChainAsync();
-            await SetIrreversibleBlockAsync(chain);
 
             const string key = "TestKey";
-            var prePluginKey = $"{key}_pre_plugin_key";
-            var prePluginMessageValue = new MessageValue
-            {
-                AddressValue = SampleAddress.AddressList[1],
-                BoolValue = true,
-                Int64Value = 1,
-                StringValue = $"{key}_pre_plugin_message_string"
-            };
 
-            var postPluginKey = $"{key}_post_plugin_key";
-            var postPluginMessageValue = new MessageValue
-            {
-                AddressValue = SampleAddress.AddressList[3],
-                BoolValue = true,
-                Int64Value = 2,
-                StringValue = $"{key}_post_plugin_message_string"
-            };
-
-            var prePluginKeyForDelete = $"{key}_pre_plugin_key_for_delete";
-            
-            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
-            CheckValueNotExisted(value);
-            
-            value = await GetValueAsync(accountAddress, prePluginKey, chain.BestChainHash, chain.BestChainHeight);
-            CheckValueNotExisted(value);
-            
-            value = await GetValueAsync(accountAddress, prePluginKeyForDelete, chain.BestChainHash, chain.BestChainHeight);
-            CheckValueNotExisted(value);
-            
-            value = await GetValueAsync(accountAddress, postPluginKey, chain.BestChainHash, chain.BestChainHeight);
-            CheckValueNotExisted(value);
-
-            var setValueInput = new SetValueInput
-            {
-                Key = key,
-                BoolValue = true,
-                Int64Value = 10,
-                StringValue = "test",
-                MessageValue = new MessageValue
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.RemoveValueFromPrePlugin), new RemoveValueInput
                 {
-                    AddressValue = SampleAddress.AddressList[1],
-                    BoolValue = true,
-                    Int64Value = 20,
-                    StringValue = "MessageTest",
-                }
-            };
-
-            var transaction = await GenerateTransactionAsync(accountAddress,
-                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                nameof(BasicFunctionWithParallelContract.SetValueWithPlugin), setValueInput);
+                    Key = key
+                });
             var transactions = new[] {transaction};
             var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
             block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
@@ -282,204 +1258,537 @@ namespace AElf.Parallel.Tests
             var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
             transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
-            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
-            CheckValue(value, setValueInput.BoolValue, setValueInput.StringValue, setValueInput.Int64Value,
-                setValueInput.MessageValue);
+            var messageValue = new MessageValue
+            {
+                Int64Value = 3,
+                StringValue = "3"
+            };
             
-            value = await GetValueAsync(accountAddress, prePluginKey, block.GetHash(), block.Height);
-            CheckValue(value, true, $"{key}_pre_plugin_string", 1, prePluginMessageValue);
-            
-            value = await GetValueAsync(accountAddress, prePluginKeyForDelete, block.GetHash(), block.Height);
-            CheckValueNotExisted(value);
-            
-            value = await GetValueAsync(accountAddress, postPluginKey, block.GetHash(), block.Height);
-            CheckValue(value, true, $"{key}_post_plugin_string", 2, postPluginMessageValue);
+            var value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
             var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
-            blockStateSet.Changes.Count.ShouldBe(12);
-            blockStateSet.Deletes.Count.ShouldBe(4);
+            blockStateSet.Changes.Count.ShouldBe(3);
+            blockStateSet.Deletes.Count.ShouldBe(0);
             
             chain = await _blockchainService.GetChainAsync();
             await SetIrreversibleBlockAsync(chain);
-            await CheckValueInVersionStateAsync(key, setValueInput.BoolValue, setValueInput.Int64Value,
-                setValueInput.StringValue, setValueInput.MessageValue);
-            await CheckValueNotExistedInVersionStateAsync(prePluginKeyForDelete);
-            await CheckValueInVersionStateAsync(prePluginKey, true, 1, $"{key}_pre_plugin_string",
-                prePluginMessageValue);
-            await CheckValueInVersionStateAsync(postPluginKey, true, 2, $"{key}_post_plugin_string",
-                postPluginMessageValue);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value, messageValue.StringValue, messageValue);
         }
-        
+
         [Fact]
-        public async Task Set_And_Delete_With_Parallel()
+        public async Task Remove_Value_With_Plugin()
         {
-            var keys = new[] {"TestKey1", "TestKey2", "TestKey3", "TestKey4"};
+            await Set_Value();
+            
             var accountAddress = await _accountService.GetAccountAsync();
             var chain = await _blockchainService.GetChainAsync();
-            await SetIrreversibleBlockAsync(chain);
-            
-            var value = await GetValueAsync(accountAddress, keys[0], chain.BestChainHash, chain.BestChainHeight);
-            CheckValueNotExisted(value);
-            value = await GetValueAsync(accountAddress, keys[1], chain.BestChainHash, chain.BestChainHeight);
-            CheckValueNotExisted(value);
-            
-            var setValueInputs = new List<SetValueInput>();
-            
-            setValueInputs.Add(new SetValueInput
-            {
-                Key = keys[0],
-                BoolValue = true,
-                Int64Value = 30,
-                StringValue = "test",
-                MessageValue = new MessageValue
-                {
-                    AddressValue = SampleAddress.AddressList[0],
-                    BoolValue = true,
-                    Int64Value = 60,
-                    StringValue = "MessageTest",
-                }
-            });
-            
-            var systemTransaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                nameof(BasicFunctionWithParallelContract.SetValueWithPlugin), setValueInputs[0]);
 
-            var systemTransactions = new List<Transaction> {systemTransaction};
-            setValueInputs.Add(new SetValueInput
-            {
-                Key = keys[1],
-                BoolValue = true,
-                Int64Value = 10,
-                StringValue = "test",
-                MessageValue = new MessageValue
-                {
-                    AddressValue = SampleAddress.AddressList[1],
-                    BoolValue = true,
-                    Int64Value = 20,
-                    StringValue = "MessageTest",
-                }
-            });
+            const string key = "TestKey";
+            
+            var transactions = new List<Transaction>();
+            
             var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                nameof(BasicFunctionWithParallelContract.SetValueWithPlugin), setValueInputs[1]);
-            var transactions = new List<Transaction> {transaction};
-            transaction = await GenerateTransactionAsync(accountAddress,
-                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
                 nameof(BasicFunctionWithParallelContract.RemoveValueWithPlugin), new RemoveValueInput
                 {
-                    Key = keys[1]
+                    Key = key
                 });
             transactions.Add(transaction);
-            transaction = await GenerateTransactionAsync(accountAddress,
-                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                nameof(BasicFunctionWithParallelContract.RemoveValueWithPlugin), new RemoveValueInput
-                {
-                    Key = keys[2]
-                });
-            transactions.Add(transaction);
-            setValueInputs.Add(new SetValueInput
-            {
-                Key = keys[2],
-                BoolValue = true,
-                Int64Value = 20,
-                StringValue = "test",
-                MessageValue = new MessageValue
-                {
-                    AddressValue = SampleAddress.AddressList[2],
-                    BoolValue = true,
-                    Int64Value = 40,
-                    StringValue = "MessageTest",
-                }
-            });
-            transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                nameof(BasicFunctionWithParallelContract.SetValueWithPlugin), setValueInputs[2]);
-            transactions.Add(transaction);
-            
-            transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                nameof(BasicFunctionWithParallelContract.RemoveValueWithPlugin), new RemoveValueInput
-                {
-                    Key = keys[0]
-                });
-            transactions.Add(transaction);
-            
-            setValueInputs.Add(new SetValueInput
-            {
-                Key = keys[3],
-                BoolValue = true,
-                Int64Value = 20,
-                StringValue = "test",
-                MessageValue = new MessageValue
-                {
-                    AddressValue = SampleAddress.AddressList[3],
-                    BoolValue = true,
-                    Int64Value = 40,
-                    StringValue = "MessageTest",
-                }
-            });
-            transaction = await GenerateTransactionAsync(accountAddress,
-                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                nameof(BasicFunctionWithParallelContract.SetValueWithPlugin), setValueInputs[3]);
-            transactions.Add(transaction);
-            
-            var setAfterRemoveValueInput = new SetAfterRemoveValueInput
-            {
-                Key = keys[3],
-                BoolValue = true,
-                Int64Value = 60,
-                StringValue = "test",
-                MessageValue = new MessageValue
-                {
-                    AddressValue = SampleAddress.AddressList[4],
-                    BoolValue = true,
-                    Int64Value = 120,
-                    StringValue = "MessageTest",
-                }
-            };
-            transaction = await GenerateTransactionAsync(accountAddress,
-                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                nameof(BasicFunctionWithParallelContract.SetAfterRemoveValueWithPlugin), setAfterRemoveValueInput);
-            transactions.Add(transaction);
-
-            var groupedTransactions = await _transactionGrouper.GroupAsync(new ChainContext{BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight}, transactions);
-            groupedTransactions.Parallelizables.Count.ShouldBe(4);
-            groupedTransactions.NonParallelizables.Count.ShouldBe(1);
-            groupedTransactions.TransactionsWithoutContract.Count.ShouldBe(0);
-
-            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,systemTransactions.Concat(transactions));
-            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions, transactions,
-                CancellationToken.None);
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
             await _blockchainService.AddTransactionsAsync(transactions);
             await _blockchainService.AddBlockAsync(block);
             await _blockAttachService.AttachBlockAsync(block);
 
-            var codeRemarks =await _codeRemarksManager.GetCodeRemarksAsync(
-                Hash.FromRawBytes(_parallelTestHelper.BasicFunctionWithParallelContractCode));
-            codeRemarks.ShouldBeNull();
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
-            value = await GetValueAsync(accountAddress, keys[0], block.GetHash(), block.Height);
-            CheckValueNotExisted(value);
-            value = await GetValueAsync(accountAddress, keys[1], block.GetHash(), block.Height);
-            CheckValueNotExisted(value);
-            value = await GetValueAsync(accountAddress, keys[2], block.GetHash(), block.Height);
-            CheckValue(value, setValueInputs[2].BoolValue, setValueInputs[2].StringValue, setValueInputs[2].Int64Value,
-                setValueInputs[2].MessageValue);
-            value = await GetValueAsync(accountAddress, keys[3], block.GetHash(), block.Height);
-            CheckValue(value, setAfterRemoveValueInput.BoolValue, setAfterRemoveValueInput.StringValue, setAfterRemoveValueInput.Int64Value,
-                setAfterRemoveValueInput.MessageValue);
+            var messageValue = new MessageValue
+            {
+                Int64Value = 2,
+                StringValue = "2"
+            };
+            
+            var value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
             
             var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
-            blockStateSet.Changes.Count.ShouldBe(40);
-            blockStateSet.Deletes.Count.ShouldBe(24);
+            blockStateSet.Changes.Count.ShouldBe(3);
+            blockStateSet.Deletes.Count.ShouldBe(0);
             
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value, messageValue.StringValue, messageValue);
+        }
+        
+        [Fact]
+        public async Task Remove_Value_From_Inline_With_Plugin()
+        {
+            await Set_Value();
+            
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+
+            const string key = "TestKey";
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.RemoveValueFromInlineWithPlugin), new RemoveValueInput
+                {
+                    Key = key
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            var messageValue = new MessageValue
+            {
+                Int64Value = 1,
+                StringValue = "1"
+            };
+            
+            var value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(3);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value, messageValue.StringValue, messageValue);
+        }
+        
+        [Fact]
+        public async Task Remove_Value_From_PostPlugin()
+        {
+            await Set_Value();
+            
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+
+            const string key = "TestKey";
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.RemoveValueFromPostPlugin), new RemoveValueInput
+                {
+                    Key = key
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            var value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValueNotExisted(value);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(0);
+            blockStateSet.Deletes.Count.ShouldBe(3);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueNotExistedInVersionStateAsync(key);
+        }
+
+        [Fact]
+        public async Task Remove_Value_In_Blocks()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            var keys = new[] {"TestKeyOne", "TestKeyTwo", "TestKeyThree", "TestKeyFour", "TestKeyFive", "TestKeySix", "TestKeySeven"};
+            
+            var value = await GetValueAsync(accountAddress, keys[0], chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+            
+            value = await GetValueAsync(accountAddress, keys[1], chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var tasks = keys.Select(key => GenerateTransactionAsync(accountAddress,
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                }));
+            var transactions = await Task.WhenAll(tasks);
+            
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
+            transactionResults.ShouldAllBe(t=>t.Status == TransactionResultStatus.Mined);
+
+            var messageValue = new MessageValue
+            {
+                Int64Value = 4,
+                StringValue = "4"
+            };
+            foreach (var key in keys)
+            {
+                value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+                CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            }
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            //First Block
+            {
+                var systemTransactions = new List<Transaction>();
+                var normalTransactions = new List<Transaction>();
+
+                //System Transaction
+                {
+                    var increaseValueInput = new IncreaseValueInput
+                    {
+                        Key = keys[0],
+                        Memo = Guid.NewGuid().ToString()
+                    };
+
+                    var transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                    systemTransactions.Add(transaction);
+
+                    var removeValueInput = new RemoveValueInput
+                    {
+                        Key = keys[0],
+                        Memo = Guid.NewGuid().ToString()
+                    };
+
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.RemoveValueFromPostPlugin), removeValueInput);
+                    systemTransactions.Add(transaction);
+
+                    increaseValueInput.Key = keys[1];
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                    systemTransactions.Add(transaction);
+
+                    increaseValueInput.Key = keys[2];
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                    systemTransactions.Add(transaction);
+
+                    increaseValueInput.Key = keys[3];
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin),
+                        increaseValueInput);
+                    systemTransactions.Add(transaction);
+
+                    increaseValueInput.Key = keys[4];
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin),
+                        increaseValueInput);
+                    systemTransactions.Add(transaction);
+
+                    removeValueInput.Key = keys[3];
+                    removeValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.RemoveValueParallelFromPostPlugin), removeValueInput);
+                    systemTransactions.Add(transaction);
+
+                    removeValueInput.Key = keys[4];
+                    removeValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.RemoveValueFromPostPlugin), removeValueInput);
+                    systemTransactions.Add(transaction);
+                }
+
+                //Normal Transaction
+                {
+                    var removeValueInput = new RemoveValueInput
+                    {
+                        Key = keys[2],
+                        Memo = Guid.NewGuid().ToString()
+                    };
+
+                    var transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.RemoveValueFromPostPlugin), removeValueInput);
+                    normalTransactions.Add(transaction);
+
+                    removeValueInput.Key = keys[5];
+                    removeValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.RemoveValueParallelFromPostPlugin), removeValueInput);
+                    normalTransactions.Add(transaction);
+
+                    removeValueInput.Key = keys[6];
+                    removeValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.RemoveValueParallelFromPostPlugin), removeValueInput);
+                    normalTransactions.Add(transaction);
+
+                    var increaseValueInput = new IncreaseValueInput
+                    {
+                        Key = keys[5],
+                        Memo = Guid.NewGuid().ToString()
+                    };
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                    normalTransactions.Add(transaction);
+
+                    increaseValueInput.Key = keys[6];
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                    normalTransactions.Add(transaction);
+                }
+
+                var allTransactions = systemTransactions.Concat(normalTransactions).ToList();
+                block = _parallelTestHelper.GenerateBlock(block.GetHash(), block.Height, allTransactions);
+                block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
+                    normalTransactions,
+                    CancellationToken.None);
+                await _blockchainService.AddTransactionsAsync(systemTransactions);
+                await _blockchainService.AddBlockAsync(block);
+                await _blockAttachService.AttachBlockAsync(block);
+
+                transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
+                transactionResults.ShouldAllBe(t => t.Status == TransactionResultStatus.Mined);
+
+                value = await GetValueAsync(accountAddress, keys[0], block.GetHash(), block.Height);
+                CheckValueNotExisted(value);
+
+                var newMessageValue = new MessageValue
+                {
+                    Int64Value = 8,
+                    StringValue = "8"
+                };
+                value = await GetValueAsync(accountAddress, keys[1], block.GetHash(), block.Height);
+                CheckValue(value, newMessageValue.StringValue, newMessageValue.Int64Value, newMessageValue);
+
+                value = await GetValueAsync(accountAddress, keys[2], block.GetHash(), block.Height);
+                CheckValueNotExisted(value);
+
+                value = await GetValueAsync(accountAddress, keys[3], block.GetHash(), block.Height);
+                CheckValueNotExisted(value);
+
+                value = await GetValueAsync(accountAddress, keys[4], block.GetHash(), block.Height);
+                CheckValueNotExisted(value);
+
+                value = await GetValueAsync(accountAddress, keys[5], block.GetHash(), block.Height);
+                CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+
+                value = await GetValueAsync(accountAddress, keys[6], block.GetHash(), block.Height);
+                CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+
+                var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+                blockStateSet.Changes.Count.ShouldBe(9);
+                blockStateSet.Deletes.Count.ShouldBe(12);
+            }
+            
+            //Second Block
+            {
+                var systemTransactions = new List<Transaction>();
+                var normalTransactions = new List<Transaction>();
+
+                //System Transaction
+                {
+                    var increaseValueInput = new IncreaseValueInput
+                    {
+                        Key = keys[0],
+                        Memo = Guid.NewGuid().ToString()
+                    };
+
+                    var transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                    systemTransactions.Add(transaction);
+
+                    var removeValueInput = new RemoveValueInput
+                    {
+                        Key = keys[0],
+                        Memo = Guid.NewGuid().ToString()
+                    };
+
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.RemoveValueFromPostPlugin), removeValueInput);
+                    systemTransactions.Add(transaction);
+
+                    increaseValueInput.Key = keys[1];
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                    systemTransactions.Add(transaction);
+
+                    increaseValueInput.Key = keys[2];
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                    systemTransactions.Add(transaction);
+
+                    increaseValueInput.Key = keys[3];
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin),
+                        increaseValueInput);
+                    systemTransactions.Add(transaction);
+
+                    increaseValueInput.Key = keys[4];
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin),
+                        increaseValueInput);
+                    systemTransactions.Add(transaction);
+
+                    removeValueInput.Key = keys[3];
+                    removeValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.RemoveValueParallelFromPostPlugin), removeValueInput);
+                    systemTransactions.Add(transaction);
+
+                    removeValueInput.Key = keys[4];
+                    removeValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.RemoveValueFromPostPlugin), removeValueInput);
+                    systemTransactions.Add(transaction);
+                }
+
+                //Normal Transaction
+                {
+                    var removeValueInput = new RemoveValueInput
+                    {
+                        Key = keys[2],
+                        Memo = Guid.NewGuid().ToString()
+                    };
+
+                    var transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.RemoveValueFromPostPlugin), removeValueInput);
+                    normalTransactions.Add(transaction);
+                    
+                    removeValueInput = new RemoveValueInput
+                    {
+                        Key = keys[1],
+                        Memo = Guid.NewGuid().ToString()
+                    };
+
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.RemoveValueParallelFromPostPlugin), removeValueInput);
+                    normalTransactions.Add(transaction);
+
+                    removeValueInput.Key = keys[5];
+                    removeValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.RemoveValueParallelFromPostPlugin), removeValueInput);
+                    normalTransactions.Add(transaction);
+
+                    removeValueInput.Key = keys[6];
+                    removeValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.RemoveValueParallelFromPostPlugin), removeValueInput);
+                    normalTransactions.Add(transaction);
+
+                    var increaseValueInput = new IncreaseValueInput
+                    {
+                        Key = keys[5],
+                        Memo = Guid.NewGuid().ToString()
+                    };
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                    normalTransactions.Add(transaction);
+
+                    increaseValueInput.Key = keys[6];
+                    increaseValueInput.Memo = Guid.NewGuid().ToString();
+                    transaction = await GenerateTransactionAsync(accountAddress,
+                        ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                    normalTransactions.Add(transaction);
+                }
+
+                var allTransactions = systemTransactions.Concat(normalTransactions).ToList();
+                block = _parallelTestHelper.GenerateBlock(block.GetHash(), block.Height, allTransactions);
+                block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
+                    normalTransactions,
+                    CancellationToken.None);
+                await _blockchainService.AddTransactionsAsync(systemTransactions);
+                await _blockchainService.AddBlockAsync(block);
+                await _blockAttachService.AttachBlockAsync(block);
+
+                transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
+                transactionResults.ShouldAllBe(t => t.Status == TransactionResultStatus.Mined);
+
+                value = await GetValueAsync(accountAddress, keys[0], block.GetHash(), block.Height);
+                CheckValueNotExisted(value);
+                
+                value = await GetValueAsync(accountAddress, keys[1], block.GetHash(), block.Height);
+                CheckValueNotExisted(value);
+                
+                value = await GetValueAsync(accountAddress, keys[2], block.GetHash(), block.Height);
+                CheckValueNotExisted(value);
+
+                value = await GetValueAsync(accountAddress, keys[3], block.GetHash(), block.Height);
+                CheckValueNotExisted(value);
+
+                value = await GetValueAsync(accountAddress, keys[4], block.GetHash(), block.Height);
+                CheckValueNotExisted(value);
+
+                value = await GetValueAsync(accountAddress, keys[5], block.GetHash(), block.Height);
+                CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+
+                value = await GetValueAsync(accountAddress, keys[6], block.GetHash(), block.Height);
+                CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+
+                var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+                blockStateSet.Changes.Count.ShouldBe(6);
+                blockStateSet.Deletes.Count.ShouldBe(15);
+            }
+
             chain = await _blockchainService.GetChainAsync();
             await SetIrreversibleBlockAsync(chain);
             await CheckValueNotExistedInVersionStateAsync(keys[0]);
             await CheckValueNotExistedInVersionStateAsync(keys[1]);
-            await CheckValueInVersionStateAsync(keys[2], setValueInputs[2].BoolValue,
-                setValueInputs[2].Int64Value, setValueInputs[2].StringValue,
-                setValueInputs[2].MessageValue);
-            await CheckValueInVersionStateAsync(keys[3], setAfterRemoveValueInput.BoolValue,
-                setAfterRemoveValueInput.Int64Value, setAfterRemoveValueInput.StringValue,
-                setAfterRemoveValueInput.MessageValue);
-            
+            await CheckValueNotExistedInVersionStateAsync(keys[2]);
+            await CheckValueNotExistedInVersionStateAsync(keys[3]);
+            await CheckValueNotExistedInVersionStateAsync(keys[4]);
+            await CheckValueInVersionStateAsync(keys[5], messageValue.Int64Value,
+                messageValue.StringValue, messageValue);
+            await CheckValueInVersionStateAsync(keys[6], messageValue.Int64Value,
+                messageValue.StringValue, messageValue);
         }
 
         #region private
@@ -489,8 +1798,8 @@ namespace AElf.Parallel.Tests
             var transactionHash = transaction.GetHash();
             var signature = await _accountService.SignAsync(transactionHash.ToByteArray());
             transaction.Signature = ByteString.CopyFrom(signature);
-            //var transactions = new[] {transaction};
-            //await _parallelTestHelper.BroadcastTransactions(transactions);
+            var transactions = new[] {transaction};
+            await _parallelTestHelper.BroadcastTransactions(transactions);
             return transaction;
         }
 
@@ -513,12 +1822,11 @@ namespace AElf.Parallel.Tests
         private async Task SetIrreversibleBlockAsync(Chain chain)
         {
             await _blockchainService.SetIrreversibleBlockAsync(chain, chain.BestChainHeight, chain.BestChainHash);
-            await _blockchainStateMergingService.MergeBlockStateAsync(chain.BestChainHeight, chain.BestChainHash);
+            await _blockchainStateService.MergeBlockStateAsync(chain.BestChainHeight, chain.BestChainHash);
         }
 
         private void CheckValueNotExisted(GetValueOutput output)
         {
-            output.BoolValue.ShouldBeFalse();
             output.StringValue.ShouldBeEmpty();
             output.Int64Value.ShouldBe(0);
             output.MessageValue.ShouldBeNull();
@@ -567,20 +1875,9 @@ namespace AElf.Parallel.Tests
             state.ShouldBeNull();
         }
         
-        private async Task CheckValueInVersionStateAsync(string key,bool boolValue,long longValue,string stringValue,MessageValue messageValue)
+        private async Task CheckValueInVersionStateAsync(string key,long longValue,string stringValue,MessageValue messageValue)
         {
             var state = await _versionedStates.GetAsync(new ScopedStatePath()
-            {
-                Address = ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                Path = new StatePath
-                {
-                    Parts = {"BoolValueMap", key}
-                }
-            }.ToStateKey());
-            SerializationHelper.Deserialize<bool>(state.Value.ToByteArray())
-                .ShouldBe(boolValue);
-            
-            state = await _versionedStates.GetAsync(new ScopedStatePath()
             {
                 Address = ParallelTestHelper.BasicFunctionWithParallelContractAddress,
                 Path = new StatePath
@@ -614,21 +1911,36 @@ namespace AElf.Parallel.Tests
                 .ShouldBe(messageValue);
         }
 
-        private void CheckValue(GetValueOutput output,bool boolValue,string stringValue,long longValue,MessageValue messageValue)
+        private void CheckValue(GetValueOutput output,string stringValue,long longValue,MessageValue messageValue)
         {
-            output.BoolValue.ShouldBe(boolValue);
             output.StringValue.ShouldBe(stringValue);
             output.Int64Value.ShouldBe(longValue);
             output.MessageValue.ShouldBe(messageValue);
         }
-
-        private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, BlockHeader blockHeader)
+        
+        private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId,BlockHeader blockHeader)
         {
             var transactionResult = await _transactionResultManager.GetTransactionResultAsync(transactionId,
                 blockHeader.GetHash());
             if (transactionResult != null) return transactionResult;
             return await _transactionResultManager.GetTransactionResultAsync(transactionId,
                 blockHeader.GetPreMiningHash());
+        }
+
+        private async Task<List<TransactionResult>> GetTransactionResultsAsync(List<Hash> transactionIds,BlockHeader blockHeader)
+        {
+            var transactionResults = new List<TransactionResult>();
+            foreach (var transactionId in transactionIds)
+            {
+                var transactionResult = await _transactionResultManager.GetTransactionResultAsync(transactionId,
+                    blockHeader.GetHash());
+                if (transactionResult != null) transactionResults.Add(transactionResult);
+                transactionResult = await _transactionResultManager.GetTransactionResultAsync(transactionId,
+                    blockHeader.GetPreMiningHash());
+                if(transactionResult != null) transactionResults.Add(transactionResult);
+            }
+
+            return transactionResults;
         }
         #endregion
     }

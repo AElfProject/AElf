@@ -53,7 +53,6 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
         {
             return new GetValueOutput
             {
-                BoolValue = State.BoolValueMap[input.Key],
                 StringValue = State.StringValueMap[input.Key] ?? string.Empty,
                 Int64Value = State.LongValueMap[input.Key],
                 MessageValue = State.MessageValueMap[input.Key]

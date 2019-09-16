@@ -1,8 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.TestContract.BasicFunctionWithParallel;
-using AElf.Contracts.TestKit;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
@@ -29,88 +29,80 @@ namespace AElf.Parallel.Tests
             }
 
             if (transactionContext.Transaction.To == ParallelTestHelper.BasicFunctionWithParallelContractAddress &&
-                !transactionContext.Transaction.MethodName.EndsWith("WithPlugin"))
+                !transactionContext.Transaction.MethodName.EndsWith("Plugin"))
             {
                 return Task.FromResult(new List<Transaction>().AsEnumerable());
             }
 
             var context = _contextService.Create();
             context.TransactionContext = transactionContext;
-
-            var key = "TestKey";
+            
+            var transactions = new List<Transaction>();
             switch (transactionContext.Transaction.MethodName)
             {
-                case nameof(BasicFunctionWithParallelContract.SetValueWithPlugin):
-                {
-                    var input = SetValueInput.Parser.ParseFrom(transactionContext.Transaction.Params);
-                    key = input.Key;
-                    break;
-                }
-
+                case nameof(BasicFunctionWithParallelContract.RemoveValueFromInlineWithPlugin):
+                case nameof(BasicFunctionWithParallelContract.RemoveValueFromPrePlugin):
                 case nameof(BasicFunctionWithParallelContract.RemoveValueWithPlugin):
                 {
                     var input = RemoveValueInput.Parser.ParseFrom(transactionContext.Transaction.Params);
-                    key = input.Key;
+                    transactions.Add(new Transaction
+                    {
+                        From = transactionContext.Transaction.From,
+                        To = ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        Params = new IncreaseValueInput
+                        {
+                            Key = input.Key,
+                            Memo = Guid.NewGuid().ToString()
+                        }.ToByteString(),
+                        MethodName = nameof(BasicFunctionWithParallelContract.IncreaseValue),
+                        RefBlockNumber = transactionContext.BlockHeight - 1,
+                        RefBlockPrefix =
+                            ByteString.CopyFrom(transactionContext.PreviousBlockHash.Value.Take(4).ToArray())
+                    });
                     break;
                 }
 
-                case nameof(BasicFunctionWithParallelContract.SetAfterRemoveValueWithPlugin):
+                case nameof(BasicFunctionWithParallelContract.RemoveValueFromPostPlugin):
+                case nameof(BasicFunctionWithParallelContract.RemoveValueParallelFromPostPlugin):
                 {
-                    var input = SetAfterRemoveValueInput.Parser.ParseFrom(transactionContext.Transaction.Params);
-                    key = input.Key;
+                    var input = RemoveValueInput.Parser.ParseFrom(transactionContext.Transaction.Params);
+                    transactions.Add(new Transaction
+                    {
+                        From = transactionContext.Transaction.From,
+                        To = ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        Params = input.ToByteString(),
+                        MethodName = nameof(BasicFunctionWithParallelContract.RemoveValue),
+                        RefBlockNumber = transactionContext.BlockHeight - 1,
+                        RefBlockPrefix =
+                            ByteString.CopyFrom(transactionContext.PreviousBlockHash.Value.Take(4).ToArray())
+                    });
                     break;
                 }
-
-                case nameof(BasicFunctionWithParallelContract.RemoveAfterSetValueWithPlugin):
+                
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithPostPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPostPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin):
                 {
-                    var input = RemoveAfterSetValueInput.Parser.ParseFrom(transactionContext.Transaction.Params);
-                    key = input.Key;
+                    var input = IncreaseValueInput.Parser.ParseFrom(transactionContext.Transaction.Params);
+                    transactions.Add(new Transaction
+                    {
+                        From = transactionContext.Transaction.From,
+                        To = ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        Params = new IncreaseValueInput
+                        {
+                            Key = input.Key,
+                            Memo = Guid.NewGuid().ToString()
+                        }.ToByteString(),
+                        MethodName = nameof(BasicFunctionWithParallelContract.IncreaseValue),
+                        RefBlockNumber = transactionContext.BlockHeight - 1,
+                        RefBlockPrefix =
+                            ByteString.CopyFrom(transactionContext.PreviousBlockHash.Value.Take(4).ToArray())
+                    });
                     break;
                 }
             }
-
-            var transaction = new Transaction
-            {
-                From = transactionContext.Transaction.From,
-                To = ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                Params = new SetValueInput
-                {
-                    Key = $"{key}_post_plugin_key",
-                    BoolValue = true,
-                    Int64Value = 2,
-                    StringValue = $"{key}_post_plugin_string",
-                    MessageValue = new MessageValue
-                    {
-                        AddressValue = SampleAddress.AddressList[3],
-                        BoolValue = true,
-                        Int64Value = 2,
-                        StringValue = $"{key}_post_plugin_message_string"
-                    }
-                }.ToByteString(),
-                MethodName = nameof(BasicFunctionWithParallelContract.SetValue),
-                RefBlockNumber = transactionContext.BlockHeight-1,
-                RefBlockPrefix = ByteString.CopyFrom(transactionContext.PreviousBlockHash.Value.Take(4).ToArray())
-            };
-            
-            var transactions = new List<Transaction>
-            {
-                transaction
-            };
-            
-            transaction = new Transaction
-            {
-                From = transactionContext.Transaction.From,
-                To = ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                Params = new RemoveValueInput
-                {
-                    Key = $"{key}_pre_plugin_key_for_delete"
-                }.ToByteString(),
-                MethodName = nameof(BasicFunctionWithParallelContract.RemoveValueParallel),
-                RefBlockNumber = transactionContext.BlockHeight-1,
-                RefBlockPrefix = ByteString.CopyFrom(transactionContext.PreviousBlockHash.Value.Take(4).ToArray())
-            };
-            
-            transactions.Add(transaction);
             
             return Task.FromResult(transactions.AsEnumerable());
         

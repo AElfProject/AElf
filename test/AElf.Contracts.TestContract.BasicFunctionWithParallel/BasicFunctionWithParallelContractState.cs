@@ -21,8 +21,6 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
         public MappedState<string,string> StringValueMap { get; set; }
         
         public MappedState<string,long> LongValueMap { get; set; }
-        
-        public MappedState<string,bool> BoolValueMap { get; set; }
 
         public MappedState<string, MessageValue> MessageValueMap { get; set; }
     }

@@ -24,27 +24,45 @@ service BasicFunctionWithParallelContract {
     }
     rpc ValidateOrigin(aelf.Address) returns (google.protobuf.Empty) {
     }
-    rpc SetValue(SetValueInput) returns (google.protobuf.Empty) {
-    }
-    rpc SetValueWithPlugin(SetValueInput) returns (google.protobuf.Empty) {
-    }
-    rpc RemoveValue(RemoveValueInput) returns (google.protobuf.Empty) {
-    }
-    rpc RemoveValueWithPlugin(RemoveValueInput) returns (google.protobuf.Empty) {
-    }
-    rpc SetAfterRemoveValue(SetAfterRemoveValueInput) returns (google.protobuf.Empty) {
-    }
-    rpc SetAfterRemoveValueWithPlugin(SetAfterRemoveValueInput) returns (google.protobuf.Empty){
-    }
-    rpc RemoveAfterSetValue(RemoveAfterSetValueInput) returns (google.protobuf.Empty){
-    }
-    rpc RemoveAfterSetValueWithPlugin(RemoveAfterSetValueInput) returns (google.protobuf.Empty){
-    }
     rpc IncreaseValue(IncreaseValueInput) returns (google.protobuf.Empty){
     }
     rpc IncreaseValueParallel(IncreaseValueInput) returns (google.protobuf.Empty){
     }
+    rpc IncreaseValueWithInline(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithPrePlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithInlineAndPrePlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithInlineAndPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithInlineAndPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueParallelWithInlineAndPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc RemoveValue(RemoveValueInput) returns (google.protobuf.Empty) {
+    }
     rpc RemoveValueParallel(RemoveValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc RemoveValueFromInlineWithPlugin(RemoveValueInput) returns (google.protobuf.Empty){
+    }
+    rpc RemoveValueFromPrePlugin(RemoveValueInput) returns (google.protobuf.Empty){
+    }
+    rpc RemoveValueFromPostPlugin(RemoveValueInput) returns (google.protobuf.Empty){
+    }
+    rpc RemoveValueParallelFromPostPlugin(RemoveValueInput) returns (google.protobuf.Empty){
+    }
+    rpc RemoveValueWithPlugin(RemoveValueInput) returns (google.protobuf.Empty){
+    }
+    rpc SetValue(SetValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc SetAfterRemoveValue(SetAfterRemoveValueInput) returns (google.protobuf.Empty) {
+    }
+    rpc RemoveAfterSetValue(RemoveAfterSetValueInput) returns (google.protobuf.Empty){
     }
 
     //View
@@ -64,9 +82,7 @@ service BasicFunctionWithParallelContract {
 
 message MessageValue{
     string string_value = 1;
-    bool bool_value = 2;
-    int64 int64_value = 3;
-    aelf.Address address_value = 4;
+    int64 int64_value = 2;
 }
 
 //Input
@@ -112,8 +128,7 @@ message SetValueInput{
     string key = 1;
     int64 int64_value = 2;
     string string_value = 3;
-    bool bool_value = 4;
-    MessageValue message_value = 5;
+    MessageValue message_value = 4;
 }
 
 message RemoveValueInput{
@@ -125,16 +140,14 @@ message SetAfterRemoveValueInput{
     string key = 1;
     int64 int64_value = 2;
     string string_value = 3;
-    bool bool_value = 4;
-    MessageValue message_value = 5;
+    MessageValue message_value = 4;
 }
 
 message RemoveAfterSetValueInput{
     string key =1;
     int64 int64_value = 2;
     string string_value = 3;
-    bool bool_value = 4;
-    MessageValue message_value = 5;
+    MessageValue message_value = 4;
 }
 
 message GetValueInput{
@@ -163,7 +176,6 @@ message TwoUserMoneyOut{
 message GetValueOutput{
     int64 int64_value = 1;
     string string_value = 2;
-    bool bool_value = 3;
-    MessageValue message_value = 4;
+    MessageValue message_value = 3;
 }
 
