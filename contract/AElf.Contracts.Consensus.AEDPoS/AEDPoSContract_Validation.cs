@@ -62,7 +62,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // Is sender produce too many continuous blocks?
             // Skip first two rounds.
-            if (providedRound.RoundNumber > 2)
+            if (providedRound.RoundNumber > 2 && baseRound.RealTimeMinersInformation.Count != 1)
             {
                 var latestProviderToTinyBlocksCount = State.LatestProviderToTinyBlocksCount.Value;
                 if (latestProviderToTinyBlocksCount != null && latestProviderToTinyBlocksCount.Pubkey == pubkey &&

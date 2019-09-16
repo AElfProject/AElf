@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain.Communication.Grpc;
 using AElf.Kernel;
@@ -77,6 +78,11 @@ namespace AElf.Blockchains.BasicBaseChain
             });
             
             Configure<ContractOptions>(configuration.GetSection("Contract"));
+            Configure<ContractOptions>(options =>
+            {
+                options.GenesisContractDir = Path.Combine(context.Services.GetHostingEnvironment().ContentRootPath,
+                    "genesis");
+            });
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
