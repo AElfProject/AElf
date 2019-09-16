@@ -10,6 +10,7 @@ namespace AElf.OS.Network
         public const string DialExceptionIpEndpoint = "127.0.0.1:1234";
         public const string HandshakeWithNetExceptionIp = "127.0.0.1:1235";
         public const string BadHandshakeIp = "127.0.0.1:1236";
+        public const string HandshakeWithDataExceptionIp = "127.0.0.1:1237";
         
         public const string GoodPeerEndpoint = "127.0.0.1:1335";
         

@@ -1,3 +1,4 @@
+using AElf.Kernel.Token;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -12,6 +13,7 @@ namespace AElf.Kernel
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            context.Services.AddSingleton<INativeTokenSymbolProvider, DefaultNativeTokenSymbolProvider>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

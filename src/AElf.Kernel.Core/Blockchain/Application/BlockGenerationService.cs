@@ -1,26 +1,18 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Infrastructure;
-using AElf.Kernel.SmartContract.Domain;
-using AElf.Types;
-using Google.Protobuf;
+
 namespace AElf.Kernel.Blockchain.Application
 {
     public class BlockGenerationService : IBlockGenerationService
     {
         private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly IStaticChainInformationProvider _staticChainInformationProvider;
-        private readonly IBlockchainStateManager _blockchainStateManager;
 
         public BlockGenerationService(IBlockExtraDataService blockExtraDataService,
-            IStaticChainInformationProvider staticChainInformationProvider, IBlockchainStateManager blockchainStateManager)
+            IStaticChainInformationProvider staticChainInformationProvider)
         {
             _blockExtraDataService = blockExtraDataService;
             _staticChainInformationProvider = staticChainInformationProvider;
-            _blockchainStateManager = blockchainStateManager;
         }
 
         public async Task<Block> GenerateBlockBeforeExecutionAsync(GenerateBlockDto generateBlockDto)
@@ -44,108 +36,6 @@ namespace AElf.Kernel.Blockchain.Application
             return block;
         }
 
-        public async Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader, List<Transaction> transactions,
-            List<ExecutionReturnSet> blockExecutionReturnSet)
-        {
-            var bloom = new Bloom();
-            var blockStateSet = new BlockStateSet
-            {
-                BlockHeight = blockHeader.Height,
-                PreviousHash = blockHeader.PreviousBlockHash
-            };
-            foreach (var returnSet in blockExecutionReturnSet)
-            {
-                foreach (var change in returnSet.StateChanges)
-                {
-                    blockStateSet.Changes[change.Key] = change.Value;
-                }
-
-                if (returnSet.Status == TransactionResultStatus.Mined)
-                {
-                    bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});    
-                }
-            }
-
-            blockHeader.Bloom = ByteString.CopyFrom(bloom.Data);
-            blockHeader.MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet);
-            
-            var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
-            blockExecutionReturnSet = blockExecutionReturnSet.AsParallel()
-                .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
-            blockHeader.MerkleTreeRootOfTransactionStatus =
-                CalculateTransactionStatusMerkleTreeRoot(blockExecutionReturnSet);
-            
-            blockHeader.MerkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds);
-            
-            var blockHash = blockHeader.GetHashWithoutCache();
-            var blockBody = new BlockBody();
-            blockBody.TransactionIds.AddRange(allExecutedTransactionIds);
-            
-            var block = new Block
-            {
-                Header = blockHeader,
-                Body = blockBody
-            };
-            blockStateSet.BlockHash = blockHash;
-
-            await _blockchainStateManager.SetBlockStateSetAsync(blockStateSet);
-
-            return block;
-        }
-
-        private Hash CalculateWorldStateMerkleTreeRoot(BlockStateSet blockStateSet)
-        {
-            Hash merkleTreeRootOfWorldState;
-            var byteArrays = GetDeterministicByteArrays(blockStateSet);
-            using (var hashAlgorithm = SHA256.Create())
-            {
-                foreach (var bytes in byteArrays)
-                {
-                    hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
-                }
-
-                hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
-                merkleTreeRootOfWorldState = Hash.FromByteArray(hashAlgorithm.Hash);
-            }
-
-            return merkleTreeRootOfWorldState;
-        }
         
-        private IEnumerable<byte[]> GetDeterministicByteArrays(BlockStateSet blockStateSet)
-        {
-            var keys = blockStateSet.Changes.Keys;
-            foreach (var k in new SortedSet<string>(keys))
-            {
-                yield return Encoding.UTF8.GetBytes(k);
-                yield return blockStateSet.Changes[k].ToByteArray();
-            }
-        }
-        
-        private Hash CalculateTransactionStatusMerkleTreeRoot(List<ExecutionReturnSet> blockExecutionReturnSet)
-        {
-            var executionReturnSet = blockExecutionReturnSet.Select(executionReturn =>
-                (executionReturn.TransactionId, executionReturn.Status));
-            var nodes = new List<Hash>();
-            foreach (var (transactionId, status) in executionReturnSet)
-            {
-                nodes.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
-            }
-
-            return BinaryMerkleTree.FromLeafNodes(nodes).Root;
-        }
-
-        private Hash CalculateTransactionMerkleTreeRoot(IEnumerable<Hash> transactionIds)
-        {
-            return BinaryMerkleTree.FromLeafNodes(transactionIds).Root;
-        }
-        
-        private Hash GetHashCombiningTransactionAndStatus(Hash txId,
-            TransactionResultStatus executionReturnStatus)
-        {
-            // combine tx result status
-            var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
-                .ToArray();
-            return Hash.FromRawBytes(rawBytes);
-        }
     }
 }
