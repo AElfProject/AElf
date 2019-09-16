@@ -207,6 +207,8 @@ namespace AElf.OS.Network.Grpc.Connection
                               $" - best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}]");
 
             peer.IsConnected = true;
+            
+            FireConnectionEvent(peer);
         }
 
         public async Task DisconnectPeersAsync(bool gracefulDisconnect)
