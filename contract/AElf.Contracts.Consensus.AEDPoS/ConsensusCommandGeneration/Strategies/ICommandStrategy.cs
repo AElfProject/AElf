@@ -6,7 +6,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        public interface ICommandStrategy
+        protected interface ICommandStrategy
         {
             ConsensusCommand GetConsensusCommand();
         }

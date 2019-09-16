@@ -26,11 +26,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (!currentRound.IsInMinerList(_processingBlockMinerPubkey))
                 return ConsensusCommandProvider.InvalidConsensusCommand;
 
-            if (!TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp))
-            {
-                // Unlikely.
-                Assert(false, "Failed to get blockchain start timestamp.");
-            }
+            var blockchainStartTimestamp = GetBlockchainStartTimestamp();
 
             var behaviour = IsMainChain
                 ? new MainChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey, GetMaximumBlocksCount(),
@@ -43,7 +39,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return behaviour == AElfConsensusBehaviour.Nothing
                 ? ConsensusCommandProvider.InvalidConsensusCommand
-                //: new ConsensusCommandProviderBase().GetConsensusCommand();
                 : GetConsensusCommand(behaviour, currentRound, _processingBlockMinerPubkey);
         }
 

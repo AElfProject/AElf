@@ -19,7 +19,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 _consensusBehaviour = consensusBehaviour;
             }
 
-            public override ConsensusCommand GetConsensusCommand()
+            public override ConsensusCommand GetAEDPoSConsensusCommand()
             {
                 var miningInterval = MiningInterval;
                 if (_consensusBehaviour == AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue)
@@ -27,25 +27,30 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     if (Order == 1)
                     {
                         // The boot miner can produce block immediately.
+                        var arrangedMiningTime = CurrentBlockTime.AddMilliseconds(miningInterval);
+                        var miningDueTime = arrangedMiningTime.AddMilliseconds(miningInterval);
                         return new ConsensusCommand
                         {
                             Hint = new AElfConsensusHint {Behaviour = _consensusBehaviour}.ToByteString(),
-                            ArrangedMiningTime = CurrentBlockTime.AddMilliseconds(miningInterval),
-                            MiningDueTime = CurrentBlockTime.AddMilliseconds(miningInterval)
-                                .AddMilliseconds(miningInterval),
+                            ArrangedMiningTime = arrangedMiningTime,
+                            MiningDueTime = miningDueTime,
                             LimitMillisecondsOfMiningBlock = DefaultBlockMiningLimit
                         };
                     }
                 }
 
-                var offset = Order.Add(MinersCount).Sub(1).Mul(miningInterval);
-                return new ConsensusCommand
                 {
-                    Hint = new AElfConsensusHint {Behaviour = _consensusBehaviour}.ToByteString(),
-                    ArrangedMiningTime = CurrentBlockTime.AddMilliseconds(offset),
-                    MiningDueTime = CurrentBlockTime.AddMilliseconds(offset).AddMilliseconds(miningInterval),
-                    LimitMillisecondsOfMiningBlock = DefaultBlockMiningLimit
-                };
+                    var offset = Order.Add(MinersCount).Sub(1).Mul(miningInterval);
+                    var arrangedMiningTime = CurrentBlockTime.AddMilliseconds(offset);
+                    var miningDueTime = arrangedMiningTime.AddMilliseconds(miningInterval);
+                    return new ConsensusCommand
+                    {
+                        Hint = new AElfConsensusHint {Behaviour = _consensusBehaviour}.ToByteString(),
+                        ArrangedMiningTime = arrangedMiningTime,
+                        MiningDueTime = miningDueTime,
+                        LimitMillisecondsOfMiningBlock = DefaultBlockMiningLimit
+                    };
+                }
             }
         }
     }

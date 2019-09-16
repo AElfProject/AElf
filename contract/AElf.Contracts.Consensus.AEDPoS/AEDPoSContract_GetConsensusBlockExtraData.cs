@@ -34,6 +34,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     information = GetConsensusExtraDataToPublishOutValue(currentRound, publicKey,
                         triggerInformation);
                     break;
+
                 case AElfConsensusBehaviour.TinyBlock:
                     information = GetConsensusExtraDataForTinyBlock(currentRound, publicKey,
                         triggerInformation);

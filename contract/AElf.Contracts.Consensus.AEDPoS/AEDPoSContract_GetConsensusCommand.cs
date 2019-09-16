@@ -25,7 +25,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var currentBlockTime = Context.CurrentBlockTime;
 
-            if (currentRound.RoundNumber == 1)
+            if (currentRound.RoundNumber == 1 && behaviour != AElfConsensusBehaviour.TinyBlock)
                 return new ConsensusCommandProvider(new FirstRoundCommandStrategy(currentRound, publicKey,
                     currentBlockTime, behaviour)).GetConsensusCommand();
 
@@ -33,14 +33,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                 case AElfConsensusBehaviour.UpdateValue:
-                    return new ConsensusCommandProvider(new NormalBlockCommandStrategy()).GetConsensusCommand();
+                    return new ConsensusCommandProvider(new NormalBlockCommandStrategy(currentRound, publicKey,
+                        currentBlockTime)).GetConsensusCommand();
 
                 case AElfConsensusBehaviour.NextRound:
                 case AElfConsensusBehaviour.NextTerm:
-                    return new ConsensusCommandProvider(new TerminateRoundCommandStrategy()).GetConsensusCommand();
+                    return new ConsensusCommandProvider(
+                            new TerminateRoundCommandStrategy(currentRound, publicKey, currentBlockTime,
+                                behaviour == AElfConsensusBehaviour.NextTerm))
+                        .GetConsensusCommand();
 
                 case AElfConsensusBehaviour.TinyBlock:
-                    return new ConsensusCommandProvider(new TinyBlockCommandStrategy()).GetConsensusCommand();
+                {
+                    return new ConsensusCommandProvider(new TinyBlockCommandStrategy(currentRound, publicKey,
+                            currentBlockTime))
+                        .GetConsensusCommand();
+                }
             }
 
             return ConsensusCommandProvider.InvalidConsensusCommand;

@@ -19,10 +19,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        private bool TryToGetBlockchainStartTimestamp(out Timestamp startTimestamp)
+        private Timestamp GetBlockchainStartTimestamp()
         {
-            startTimestamp = State.BlockchainStartTimestamp.Value;
-            return startTimestamp != null;
+            return State.BlockchainStartTimestamp.Value ?? new Timestamp();
         }
 
         private bool IsFirstRoundOfCurrentTerm(out long termNumber)

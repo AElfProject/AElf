@@ -13,7 +13,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             protected readonly Timestamp CurrentBlockTime;
 
             protected const int TinyBlocksCount = 8;
+            protected const int TinyBlockMinimumInterval = 100;
 
+            protected MinerInRound MinerInRound => CurrentRound.RealTimeMinersInformation[Pubkey];
             protected int Order => CurrentRound.GetMiningOrder(Pubkey);
             protected int MiningInterval => CurrentRound.GetMiningInterval();
             protected int TinyBlockSlotInterval => MiningInterval.Div(TinyBlocksCount);
@@ -29,7 +31,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 CurrentBlockTime = currentBlockTime;
             }
 
-            public virtual ConsensusCommand GetConsensusCommand()
+            public ConsensusCommand GetConsensusCommand()
+            {
+                var command = GetAEDPoSConsensusCommand();
+                return command;
+            }
+            
+            public virtual ConsensusCommand GetAEDPoSConsensusCommand()
             {
                 return ConsensusCommandProvider.InvalidConsensusCommand;
             }

@@ -186,6 +186,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 : new MinerInRound();
         }
 
+        public MinerInRound FirstActualMiner()
+        {
+            return RealTimeMinersInformation.Count > 0
+                ? RealTimeMinersInformation.Values.First(m => m.OutValue != null)
+                : null;
+        }
+
         public Timestamp GetExpectedMiningTime(string publicKey)
         {
             return RealTimeMinersInformation.ContainsKey(publicKey)

@@ -187,7 +187,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return true;
             }
 
-            TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
+            var blockchainStartTimestamp = GetBlockchainStartTimestamp();
             if (previousRound.TermNumber + 1 != currentRound.TermNumber)
             {
                 var evilMinersPublicKey = GetEvilMinersPublicKey(currentRound, previousRound);

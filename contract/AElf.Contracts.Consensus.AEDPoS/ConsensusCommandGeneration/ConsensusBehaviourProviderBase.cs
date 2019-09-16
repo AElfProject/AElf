@@ -79,21 +79,25 @@ namespace AElf.Contracts.Consensus.AEDPoS
             /// <returns></returns>
             private AElfConsensusBehaviour HandleMinerInNewRound()
             {
-                if (CurrentRound.RoundNumber ==
-                    1 && // For first round, the expected mining time is incorrect (due to configuration),
-                    MinerInRound.Order !=
-                    1 && // so we'd better prevent miners' ain't first order (meanwhile he isn't boot miner) from mining fork blocks
-                    CurrentRound.FirstMiner().OutValue == null // by postpone their mining time
+                if (
+                    // For first round, the expected mining time is incorrect (due to configuration),
+                    CurrentRound.RoundNumber == 1 &&
+                    // so we'd better prevent miners' ain't first order (meanwhile he isn't boot miner) from mining fork blocks
+                    MinerInRound.Order != 1 &&
+                    // by postpone their mining time
+                    CurrentRound.FirstMiner().OutValue == null
                 )
                 {
                     return AElfConsensusBehaviour.NextRound;
                 }
 
-                if (CurrentRound.ExtraBlockProducerOfPreviousRound ==
-                    Pubkey && // If this miner is extra block producer of previous round,
-                    CurrentBlockTime <
-                    CurrentRound.GetStartTime() && // and currently the time is ahead of current round,
-                    MinerInRound.ProducedTinyBlocks < MaximumBlocksCount // make this miner produce some tiny blocks.
+                if (
+                    // If this miner is extra block producer of previous round,
+                    CurrentRound.ExtraBlockProducerOfPreviousRound == Pubkey &&
+                    // and currently the time is ahead of current round,
+                    CurrentBlockTime < CurrentRound.GetStartTime() &&
+                    // make this miner produce some tiny blocks.
+                    MinerInRound.ProducedTinyBlocks < MaximumBlocksCount
                 )
                 {
                     return AElfConsensusBehaviour.TinyBlock;
