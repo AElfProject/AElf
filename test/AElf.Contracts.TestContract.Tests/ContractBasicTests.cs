@@ -76,7 +76,7 @@ namespace AElf.Contract.TestContract
                 contractAddress = Address.Parser.ParseFrom(transactionResult.ReturnValue);
                 blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
 
-                 var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
+                var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
                 {
                     First = SampleAddress.AddressList[0],
                     Second = SampleAddress.AddressList[1]
@@ -89,7 +89,7 @@ namespace AElf.Contract.TestContract
 
                  var queryTwoUserWinMoneyTransactionResult =
                     await _transactionResultManager.GetTransactionResultAsync(queryTwoUserWinMoneyTransaction
-                        .GetHash(),branchOneBlock.Header.GetPreMiningHash());
+                        .GetHash(),branchOneBlock.Header.GetHash());
                 queryTwoUserWinMoneyTransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
@@ -134,43 +134,45 @@ namespace AElf.Contract.TestContract
 
 
         [Fact]
-        public async Task UpdateContract_WithOwner_Success_Test()
+        public async Task UpdateContract_WithOwner_Test()
         {
-            var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
-                new Acs0.ContractUpdateInput
-                {
-                    Address = BasicFunctionContractAddress,
-                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicUpdate")).Value)
-                }
-            )).TransactionResult;
+            //update with same code
+            {
+                var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
+                    new Acs0.ContractUpdateInput
+                    {
+                        Address = BasicFunctionContractAddress,
+                        Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicFunction")).Value)
+                    }
+                )).TransactionResult;
 
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("Code is not changed").ShouldBeTrue();
+            }
+            
+            //different code
+            {
+                var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
+                    new Acs0.ContractUpdateInput
+                    {
+                        Address = BasicFunctionContractAddress,
+                        Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicUpdate")).Value)
+                    }
+                )).TransactionResult;
 
-            var basic11ContractStub = GetTestBasicUpdateContractStub(DefaultSenderKeyPair);
-            //execute new action method
-            var transactionResult1 = (await basic11ContractStub.UpdateStopBet.SendAsync(
-                new Empty())).TransactionResult;
-            transactionResult1.Status.ShouldBe(TransactionResultStatus.Mined);
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            //call new view method
-            var result = (await basic11ContractStub.QueryBetStatus.CallAsync(
-                new Empty())).BoolValue;
-            result.ShouldBeTrue();
-        }
+                var basic11ContractStub = GetTestBasicUpdateContractStub(DefaultSenderKeyPair);
+                //execute new action method
+                var transactionResult1 = (await basic11ContractStub.UpdateStopBet.SendAsync(
+                    new Empty())).TransactionResult;
+                transactionResult1.Status.ShouldBe(TransactionResultStatus.Mined);
 
-        [Fact]
-        public async Task UpdateContract_WithSameCode_Failed_Test()
-        {
-            var transactionResult = (await BasicContractZeroStub.UpdateSmartContract.SendAsync(
-                new Acs0.ContractUpdateInput
-                {
-                    Address = BasicFunctionContractAddress,
-                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicFunction")).Value)
-                }
-            )).TransactionResult;
-
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("Code is not changed").ShouldBeTrue();
+                //call new view method
+                var result = (await basic11ContractStub.QueryBetStatus.CallAsync(
+                    new Empty())).BoolValue;
+                result.ShouldBeTrue();
+            }
         }
 
         [Fact]
@@ -221,39 +223,42 @@ namespace AElf.Contract.TestContract
         }
 
         [Fact]
-        public async Task ChangeAuthor_Without_Permission_Failed_Test()
+        public async Task ChangeContractAuthor_Test()
         {
-            var otherUser = SampleECKeyPairs.KeyPairs[2];
-            var otherZeroStub = GetContractZeroTester(otherUser);
-            var transactionResult = (await otherZeroStub.ChangeContractAuthor.SendAsync(
-                new Acs0.ChangeContractAuthorInput()
-                {
-                    ContractAddress = BasicFunctionContractAddress,
-                    NewAuthor = SampleAddress.AddressList[1]
-                }
-            )).TransactionResult;
+            //without permission
+            {
+                var testUser = SampleECKeyPairs.KeyPairs[2];
+                var otherZeroStub = GetContractZeroTester(testUser);
+                var transactionResult = (await otherZeroStub.ChangeContractAuthor.SendAsync(
+                    new Acs0.ChangeContractAuthorInput()
+                    {
+                        ContractAddress = BasicFunctionContractAddress,
+                        NewAuthor = SampleAddress.AddressList[1]
+                    }
+                )).TransactionResult;
 
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            transactionResult.Error.Contains("no permission").ShouldBeTrue();
-        }
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResult.Error.Contains("no permission").ShouldBeTrue();
+            }
+            
+            //with permission
+            {
+                var otherUser = SampleAddress.AddressList[2];
+                var transactionResult = (await BasicContractZeroStub.ChangeContractAuthor.SendAsync(
+                    new Acs0.ChangeContractAuthorInput()
+                    {
+                        ContractAddress = BasicFunctionContractAddress,
+                        NewAuthor = otherUser
+                    }
+                )).TransactionResult;
 
-        [Fact]
-        public async Task ChangeAuthor_With_Permission_Success_Test()
-        {
-            var otherUser = SampleAddress.AddressList[2];
-            var transactionResult = (await BasicContractZeroStub.ChangeContractAuthor.SendAsync(
-                new Acs0.ChangeContractAuthorInput()
-                {
-                    ContractAddress = BasicFunctionContractAddress,
-                    NewAuthor = otherUser
-                }
-            )).TransactionResult;
+                transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
-            var ownerAddress = (await BasicContractZeroStub.GetContractAuthor.CallAsync(BasicFunctionContractAddress))
-                .GetFormatted();
-            ownerAddress.ShouldBe(otherUser.GetFormatted());
+                var ownerAddress =
+                    (await BasicContractZeroStub.GetContractAuthor.CallAsync(BasicFunctionContractAddress))
+                    .GetFormatted();
+                ownerAddress.ShouldBe(otherUser.GetFormatted());
+            }
         }
         
         [Fact]

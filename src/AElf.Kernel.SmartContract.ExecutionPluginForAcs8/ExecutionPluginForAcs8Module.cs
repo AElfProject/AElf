@@ -6,7 +6,7 @@ using Volo.Abp.Modularity;
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 {
     [DependsOn(typeof(SmartContractAElfModule))]
-    public class ExecutionPluginForAcs8Module : AElfModule<ExecutionPluginForAcs8Module>
+    public class ExecutionPluginForAcs8Module : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {

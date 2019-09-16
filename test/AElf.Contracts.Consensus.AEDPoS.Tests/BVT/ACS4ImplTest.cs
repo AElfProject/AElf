@@ -30,7 +30,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var consensusCommand = await AEDPoSContractStub.GetConsensusCommand.CallAsync(triggerForCommand);
 
-            consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBe(EconomicContractsTestConstants.MiningInterval);
+            consensusCommand.NextBlockMiningLeftMilliseconds.ShouldBeLessThanOrEqualTo(EconomicContractsTestConstants.MiningInterval);
             consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractTestConstants
                 .SmallBlockMiningInterval);
             var hint = new AElfConsensusHint
@@ -116,7 +116,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var usingKeyPair = InitialCoreDataCenterKeyPairs[1];
             KeyPairProvider.SetKeyPair(usingKeyPair);
 
-            BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
+            var blockchainStartTimestamp = BlockchainStartTimestamp;
+            BlockTimeProvider.SetBlockTime(blockchainStartTimestamp + new Duration
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Div(1000)
             });
@@ -133,7 +134,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue}
                 .ToByteString();
             consensusCommand.Hint.ShouldBe(hint);
-            consensusCommand.ExpectedMiningTime.ShouldBe(BlockchainStartTimestamp + new Duration
+            consensusCommand.ExpectedMiningTime.ShouldBe(blockchainStartTimestamp + new Duration
             {
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(3).Div(1000)
             });
@@ -208,7 +209,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var updateValueInput = new UpdateValueInput();
             updateValueInput.MergeFrom(transaction.Params);
 
-            var stub = GetAEDPoSContractTester(usingKeyPair);
+            var stub = GetAEDPoSContractStub(usingKeyPair);
             await stub.UpdateValue.SendAsync(updateValueInput);
 
             var currentRound = await stub.GetCurrentRoundInformation.CallAsync(new Empty());
@@ -362,7 +363,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             
             await NextTerm(BootMinerKeyPair);
             
-            var otherUser = GetAEDPoSContractTester(usingKeyPair);
+            var otherUser = GetAEDPoSContractStub(usingKeyPair);
             var validateBeforeResult =
                 await otherUser.ValidateConsensusBeforeExecution.CallAsync(extraDataBytes);
             validateBeforeResult.Success.ShouldBeFalse();

@@ -244,7 +244,7 @@ namespace AElf.Contracts.Election
             return validCandidates;
         }
 
-        private async Task<List<string>> ElectionContract_GetVictories_ValidCandidatesEnough_Test()
+        public async Task<List<string>> ElectionContract_GetVictories_ValidCandidatesEnough_Test()
         {
             await NextRound(BootMinerKeyPair);
 

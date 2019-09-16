@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography;
 using AElf.Kernel.Account.Infrastructure;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -14,13 +15,15 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         private readonly IBlockTimeProvider _blockTimeProvider;
         private readonly ITransactionListProvider _transactionListProvider;
         private readonly IAElfAsymmetricCipherKeyPairProvider _keyPairProvider;
+        private readonly IBlockchainService _blockchainService;
 
         public TestDataProvider(IBlockTimeProvider blockTimeProvider, ITransactionListProvider transactionListProvider,
-            IAElfAsymmetricCipherKeyPairProvider keyPairProvider)
+            IAElfAsymmetricCipherKeyPairProvider keyPairProvider, IBlockchainService blockchainService)
         {
             _blockTimeProvider = blockTimeProvider;
             _transactionListProvider = transactionListProvider;
             _keyPairProvider = keyPairProvider;
+            _blockchainService = blockchainService;
         }
 
         public Timestamp GetBlockTime()
@@ -56,6 +59,11 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         public IAElfAsymmetricCipherKeyPair GetKeyPair()
         {
             return _keyPairProvider.GetKeyPair();
+        }
+
+        public async Task<long> GetCurrentBlockHeight()
+        {
+            return (await _blockchainService.GetChainAsync()).BestChainHeight;
         }
     }
 }

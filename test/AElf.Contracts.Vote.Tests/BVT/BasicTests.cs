@@ -122,21 +122,6 @@ namespace AElf.Contracts.Vote
                 beforeBalance.ShouldBe(afterBalance); // Stay same
             }
 
-            //vote but not expire
-            {
-                var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
-
-                var voteUser = SampleECKeyPairs.KeyPairs[1];
-
-                await Vote(voteUser, registerItem.VotingItemId, registerItem.Options[1], 100);
-
-                var voteIds = await GetVoteIds(voteUser, registerItem.VotingItemId);
-                var transactionResult = await Withdraw(voteUser, voteIds.ActiveVotes.First());
-
-                transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult.Error.Contains("Cannot withdraw votes of on-going voting item").ShouldBeTrue();
-            }
-
             //success
             {
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
@@ -371,12 +356,12 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_GetVotingResult_Test()
+        public async Task VoteContract_VotesAndGetVotedItems_Test()
         {
             var voteUser = SampleECKeyPairs.KeyPairs[2];
             var votingItem = await RegisterVotingItemAsync(10, 3, true, DefaultSender, 2);
+            
             await Vote(voteUser, votingItem.VotingItemId, votingItem.Options.First(), 1000L);
-
             var votingResult = await VoteContractStub.GetVotingResult.CallAsync(new GetVotingResultInput
             {
                 VotingItemId = votingItem.VotingItemId,
@@ -386,17 +371,8 @@ namespace AElf.Contracts.Vote
             votingResult.VotingItemId.ShouldBe(votingItem.VotingItemId);
             votingResult.VotersCount.ShouldBe(1);
             votingResult.Results.Values.First().ShouldBe(1000L);
-        }
-
-        [Fact]
-        public async Task VoteContract_VotesAndGetVotedItems_Test()
-        {
-            var voteUser = SampleECKeyPairs.KeyPairs[2];
-            var votingItem = await RegisterVotingItemAsync(10, 3, true, DefaultSender, 2);
             
-            await Vote(voteUser, votingItem.VotingItemId, votingItem.Options.First(), 1000L);
             await Vote(voteUser, votingItem.VotingItemId, votingItem.Options.Last(), 500L);
-
             var votedResult = await GetVotedItems(Address.FromPublicKey(voteUser.PublicKey));
             votedResult.VotedItemVoteIds[votingItem.VotingItemId.ToHex()].ActiveVotes.Count.ShouldBe(2);
         }

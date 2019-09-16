@@ -209,6 +209,15 @@ namespace AElf.Sdk.CSharp.Tests
             address2.ShouldNotBe(address);
         }
 
+        [Fact]
+        public void CannotResetNativeTokenSymbol_Test()
+        {
+            const string newSymbol = "TEST";
+            Init_Test();
+            Contract.ResetNativeTokenSymbol(newSymbol);
+            Contract.NativeTokenSymbol().ShouldNotBe(newSymbol);
+        }
+
         private void SwitchOwner(Address address)
         {
             var transactionContext = new TransactionContext()

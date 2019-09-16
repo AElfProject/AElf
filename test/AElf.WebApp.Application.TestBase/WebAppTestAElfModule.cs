@@ -1,12 +1,13 @@
-using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContractExecution.Application;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using AElf.Sdk.CSharp;
 using AElf.WebApp.Web;
@@ -32,7 +33,7 @@ namespace AElf.WebApp.Application
         {
             context.Services.Replace(ServiceDescriptor.Singleton<INetworkService, NetworkService>());
             
-            context.Services.Replace(ServiceDescriptor.Singleton<IAElfNetworkServer>(o =>
+            context.Services.Replace(ServiceDescriptor.Singleton(o =>
             {
                 var pool = o.GetService<IPeerPool>();
                 var serverMock = new Mock<IAElfNetworkServer>();
@@ -77,6 +78,26 @@ namespace AElf.WebApp.Application
 
                 return mockService.Object;
             });
+
+            context.Services.AddTransient(provider =>
+            {
+                var mockService = new Mock<ISystemTransactionMethodNameListProvider>();
+                mockService.Setup(m => m.GetSystemTransactionMethodNameList())
+                    .Returns(new List<string>
+                    {
+                        "InitialAElfConsensusContract",
+                        "FirstRound",
+                        "NextRound",
+                        "NextTerm",
+                        "UpdateValue",
+                        "UpdateTinyBlockInformation"
+                    });
+                return mockService.Object;
+            });
+
+            context.Services
+                .AddTransient<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
+            context.Services.AddTransient<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
         }
     }
 }
