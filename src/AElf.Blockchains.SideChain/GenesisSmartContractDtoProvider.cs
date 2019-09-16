@@ -17,8 +17,7 @@ namespace AElf.Blockchains.SideChain
 {
     public partial class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
-        private readonly IReadOnlyDictionary<string, byte[]> _codes =
-            ContractsDeployer.GetContractCodes<GenesisSmartContractDtoProvider>();
+        private readonly IReadOnlyDictionary<string, byte[]> _codes;
         
         private readonly ContractOptions _contractOptions;
         private readonly ConsensusOptions _consensusOptions;
@@ -32,6 +31,8 @@ namespace AElf.Blockchains.SideChain
             _sideChainInitializationDataProvider = sideChainInitializationDataProvider;
             _consensusOptions = consensusOptions.Value;
             _contractOptions = contractOptions.Value;
+            _codes = ContractsDeployer.GetContractCodes<GenesisSmartContractDtoProvider>(_contractOptions
+                .GenesisContractDir);
         }
 
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress)
@@ -66,6 +67,10 @@ namespace AElf.Blockchains.SideChain
                 _codes.Single(kv=>kv.Key.Contains("ParliamentAuth")).Value,
                 ParliamentAuthSmartContractAddressNameProvider.Name,
                 GenerateParliamentInitializationCallList(chainInitializationData));
+                
+            genesisSmartContractDtoList.AddGenesisSmartContract(
+                _codes.Single(kv => kv.Key.Contains("Configuration")).Value,
+                ConfigurationSmartContractAddressNameProvider.Name);
 
             return genesisSmartContractDtoList;
         }

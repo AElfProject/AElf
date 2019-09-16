@@ -2,6 +2,7 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.OS.Network";
 
+import "google/protobuf/timestamp.proto";
 import "aelf/core.proto";
 import "kernel.proto";
 
@@ -40,34 +41,6 @@ message TransactionList {
     repeated aelf.Transaction transactions = 1;
 }
 
-// Messages related to connection
-
-message ConnectionInfo {
-    int32 chain_id = 1;
-    int32 version = 2;
-    int32 listening_port = 3;
-    bytes pubkey = 4;
-}
-
-enum ConnectError {
-    CONNECT_OK = 0;
-    UNKNOWN_CONNECT_ERROR = 1;
-    INCORRECT_PORT = 2;
-    INVALID_PEER = 3;
-    CHAIN_MISMATCH = 4;
-    PROTOCOL_MISMATCH = 5;
-    CONNECTION_REFUSED = 6;
-}
-
-message ConnectRequest {
-    ConnectionInfo info = 1;
-}
-
-message ConnectReply {
-    ConnectionInfo info = 1;
-    ConnectError error = 2;
-}
-
 // Messages related to handshaking
 
 message Handshake {
@@ -76,9 +49,15 @@ message Handshake {
 }
 
 message HandshakeData {
-    bytes pubkey = 1;
-    aelf.BlockHeader best_chain_head = 2;
-    sint64 lib_block_height = 3;
+    int32 chain_id = 1;
+    int32 version = 2;
+    int32 listening_port = 3;
+    bytes pubkey = 4;
+    aelf.Hash best_chain_hash = 5;
+    int64 best_chain_height = 6;
+    aelf.Hash last_irreversible_block_hash = 7;
+    int64 last_irreversible_block_height = 8;
+    google.protobuf.Timestamp time = 9;
 }
 
 message HandshakeRequest {
@@ -92,12 +71,15 @@ message HandshakeReply {
 
 enum HandshakeError {
     HANDSHAKE_OK = 0;
-    UNKNOWN_HANDSHAKE_ERROR = 1;
-    INVALID_KEY = 2;
+    CHAIN_MISMATCH = 1;
+    PROTOCOL_MISMATCH = 2;
     WRONG_SIGNATURE = 3;
-    INVALID_HANDSHAKE = 4;
-    NOT_LISTED = 5;
-    WRONG_CONNECTION = 6;
+    REPEATED_CONNECTION = 4;
+    CONNECTION_REFUSED = 5;
+    INVALID_CONNECTION = 6;
+}
+
+message ConfirmHandshakeRequest {
 }
 
 // Messages related to disconnection

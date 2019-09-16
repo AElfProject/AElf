@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using AElf.Contracts.Deployer;
 using AElf.TestBase;

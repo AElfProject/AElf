@@ -26,7 +26,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         /// Distribute treasury after first term and check each profit scheme.
         /// </summary>
         /// <returns></returns>
-        [Fact]
+        [Fact(Skip = "Skip for saving time.")]
         public async Task<long> TreasuryDistribution_FirstTerm_Test()
         {
             const long period = 1;

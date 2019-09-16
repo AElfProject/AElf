@@ -130,7 +130,7 @@ namespace AElf.OS.BlockSync.Worker
             var downloadResult = new DownloadBlocksResult();
             if (jobInfo.CurrentTargetBlockHeight > 0)
             {
-                if (jobInfo.CurrentTargetBlockHeight <= chain.BestChainHeight || await BlockIsInBestChain(chain,
+                if (jobInfo.CurrentTargetBlockHeight <= chain.BestChainHeight + 8 || await BlockIsInBestChain(chain,
                         jobInfo.CurrentTargetBlockHash, jobInfo.CurrentTargetBlockHeight))
                 {
                     downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -46,28 +47,26 @@ namespace AElf.OS.Network.Grpc
             Logger = NullLogger<GrpcServerService>.Instance;
         }
 
-        /// <summary>
-        /// First step of the connect/auth process. Used to initiate a connection. The provided payload should be the
-        /// clients authentication information. When receiving this call, protocol dictates you send the client your auth
-        /// information. The response says whether or not you can connect.
-        /// </summary>
-        public override async Task<ConnectReply> Connect(ConnectRequest connectionRequest, ServerCallContext context)
-        {
-            Logger.LogTrace($"{context.Peer} has initiated a connection.");
-
-            if (!UriHelper.TryParsePrefixedEndpoint(context.Peer, out IPEndPoint peerEndpoint))
-                return new ConnectReply {Error = ConnectError.InvalidPeer};
-
-            return await _connectionService.DialBackAsync(peerEndpoint, connectionRequest.Info);
-        }
-
         public override async Task<HandshakeReply> DoHandshake(HandshakeRequest request, ServerCallContext context)
         {
             Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a handshake.");
-            return await _connectionService.CheckIncomingHandshakeAsync(context.GetPublicKey(), request.Handshake);
+            
+            if(!UriHelper.TryParsePrefixedEndpoint(context.Peer, out IPEndPoint peerEndpoint))
+                return new HandshakeReply { Error = HandshakeError.InvalidConnection};
+            
+            return await _connectionService.DoHandshakeAsync(peerEndpoint, request.Handshake);
         }
 
-        public override async Task<VoidReply> BlockBroadcastStream(IAsyncStreamReader<BlockWithTransactions> requestStream, ServerCallContext context)
+        public override async Task<VoidReply> ConfirmHandshake(ConfirmHandshakeRequest request,
+            ServerCallContext context)
+        {
+            Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a confirm handshake.");
+            _connectionService.ConfirmHandshake(context.GetPublicKey());
+            return new VoidReply();
+        }
+
+        public override async Task<VoidReply> BlockBroadcastStream(
+            IAsyncStreamReader<BlockWithTransactions> requestStream, ServerCallContext context)
         {
             await requestStream.ForEachAsync(r =>
             {
@@ -78,7 +77,8 @@ namespace AElf.OS.Network.Grpc
             return new VoidReply();
         }
 
-        public override async Task<VoidReply> AnnouncementBroadcastStream(IAsyncStreamReader<BlockAnnouncement> requestStream, ServerCallContext context)
+        public override async Task<VoidReply> AnnouncementBroadcastStream(
+            IAsyncStreamReader<BlockAnnouncement> requestStream, ServerCallContext context)
         {
             await requestStream.ForEachAsync(async r => await ProcessAnnouncement(r, context));
             return new VoidReply();
@@ -95,14 +95,19 @@ namespace AElf.OS.Network.Grpc
             Logger.LogDebug($"Received announce {announcement.BlockHash} from {context.GetPeerInfo()}.");
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
-            peer?.AddKnowBlock(announcement);
 
-            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(announcement, context.GetPublicKey()));
+            if (peer != null)
+            {
+                peer.AddKnowBlock(announcement);
+
+                _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(announcement, context.GetPublicKey()));
+            }
 
             return Task.CompletedTask;
         }
 
-        public override async Task<VoidReply> TransactionBroadcastStream(IAsyncStreamReader<TransactionList> requestStream, ServerCallContext context)
+        public override async Task<VoidReply> TransactionBroadcastStream(IAsyncStreamReader<TransactionList> requestStream,
+            ServerCallContext context)
         {
             await requestStream.ForEachAsync(async transactionList => await ProcessTransaction(transactionList, context));
             return new VoidReply();
@@ -120,7 +125,6 @@ namespace AElf.OS.Network.Grpc
         private async Task ProcessTransaction(TransactionList transactionList, ServerCallContext context)
         {
             var chain = await _blockchainService.GetChainAsync();
-
             foreach (var transaction in transactionList.Transactions)
             {
                 // if this transaction's ref block is a lot higher than our chain 
@@ -160,6 +164,7 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogDebug($"Could not find block {request.Hash} for {context.GetPeerInfo()}.");
                 return new BlockReply();
             }
+
             if (NetworkOptions.CompressBlocksOnRequest)
             {
                 var headers = new Metadata
@@ -174,13 +179,17 @@ namespace AElf.OS.Network.Grpc
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
         {
-            if (request == null || request.PreviousBlockHash == null || _syncStateService.SyncState != SyncState.Finished)
+            if (request == null || request.PreviousBlockHash == null ||
+                _syncStateService.SyncState != SyncState.Finished)
                 return new BlockList();
 
-            Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.Count} blocks from {request.PreviousBlockHash}.");
+            Logger.LogDebug(
+                $"Peer {context.GetPeerInfo()} requested {request.Count} blocks from {request.PreviousBlockHash}.");
 
             var blockList = new BlockList();
+
             var blocks = await _blockchainService.GetBlocksWithTransactions(request.PreviousBlockHash, request.Count);
+
             if (blocks == null)
                 return blockList;
 
@@ -192,9 +201,7 @@ namespace AElf.OS.Network.Grpc
             if (NetworkOptions.CompressBlocksOnRequest)
             {
                 var headers = new Metadata
-                {
-                    new Metadata.Entry(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst)
-                };
+                    {new Metadata.Entry(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst)};
                 await context.WriteResponseHeadersAsync(headers);
             }
 
