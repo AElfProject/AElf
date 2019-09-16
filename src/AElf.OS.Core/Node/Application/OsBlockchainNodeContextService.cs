@@ -7,11 +7,13 @@ using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Kernel.Node.Application;
 using AElf.Kernel.Node.Infrastructure;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Domain;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.OS.Node.Application
@@ -22,15 +24,17 @@ namespace AElf.OS.Node.Application
         private readonly IAElfNetworkServer _networkServer;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IServiceContainer<INodePlugin> _nodePlugins;
+        private readonly ContractOptions _contractOptions;
 
         public OsBlockchainNodeContextService(IBlockchainNodeContextService blockchainNodeContextService,
             IAElfNetworkServer networkServer, ISmartContractAddressService smartContractAddressService,
-            IServiceContainer<INodePlugin> nodePlugins)
+            IServiceContainer<INodePlugin> nodePlugins,IOptionsSnapshot<ContractOptions> contractOptions)
         {
             _blockchainNodeContextService = blockchainNodeContextService;
             _networkServer = networkServer;
             _smartContractAddressService = smartContractAddressService;
             _nodePlugins = nodePlugins;
+            _contractOptions = contractOptions.Value;
         }
 
         public async Task<OsBlockchainNodeContext> StartAsync(OsBlockchainNodeContextStartDto dto)
@@ -79,7 +83,10 @@ namespace AElf.OS.Node.Application
             int category,
             SystemContractDeploymentInput.Types.SystemTransactionMethodCallList transactionMethodCallList = null)
         {
-            var code = File.ReadAllBytes(contractType.Assembly.Location);
+            var dllPath = Directory.Exists(_contractOptions.GenesisContractDir)
+                ? Path.Combine(_contractOptions.GenesisContractDir, $"{contractType.Assembly.GetName().Name}.dll")
+                : contractType.Assembly.Location;
+            var code = File.ReadAllBytes(dllPath);
 
             return GetTransactionForDeployment(code, systemContractName, category, transactionMethodCallList);
         }

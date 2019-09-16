@@ -28,6 +28,9 @@ namespace AElf.Contracts.Genesis
 
         internal ACS0Container.ACS0Stub DefaultTester =>
             GetTester<ACS0Container.ACS0Stub>(ContractZeroAddress, DefaultSenderKeyPair);
+        
+        internal AElf.Contracts.GenesisUpdate.BasicContractZeroContainer.BasicContractZeroStub DefaultUpdateTester =>
+            GetTester<AElf.Contracts.GenesisUpdate.BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, DefaultSenderKeyPair);
 
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs.First();
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
