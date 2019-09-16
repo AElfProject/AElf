@@ -167,5 +167,20 @@ namespace AElf.Contracts.Genesis
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             result.TransactionResult.Error.Contains("no permission.").ShouldBeTrue();
         }
+
+        [Fact]
+        public async Task Update_ZeroContract_Test()
+        {
+            var result = await DefaultTester.UpdateSmartContract.SendAsync(new ContractUpdateInput
+            {
+                Address = ContractZeroAddress,
+                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("GenesisUpdate")).Value),
+            });
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            result.Output.ShouldBe(ContractZeroAddress);
+            var callResult = await DefaultUpdateTester.GetContractDeploymentAuthorityRequired.SendAsync(new Empty());
+            callResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            callResult.Output.Value.ShouldBeFalse();
+        }
     }
 }

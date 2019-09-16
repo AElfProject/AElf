@@ -3,6 +3,7 @@ using System.IO;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Infrastructure
@@ -21,10 +22,13 @@ namespace AElf.Kernel.SmartContract.Infrastructure
     public class DefaultContractZeroCodeProvider : IDefaultContractZeroCodeProvider, ISingletonDependency
     {
         private readonly IStaticChainInformationProvider _staticChainInformationProvider;
+        private readonly ContractOptions _contractOptions;
 
-        public DefaultContractZeroCodeProvider(IStaticChainInformationProvider staticChainInformationProvider)
+        public DefaultContractZeroCodeProvider(IStaticChainInformationProvider staticChainInformationProvider,
+            IOptionsSnapshot<ContractOptions> contractOptions)
         {
             _staticChainInformationProvider = staticChainInformationProvider;
+            _contractOptions = contractOptions.Value;
         }
 
         public SmartContractRegistration DefaultContractZeroRegistration { get; set; }
@@ -32,7 +36,10 @@ namespace AElf.Kernel.SmartContract.Infrastructure
 
         public void SetDefaultContractZeroRegistrationByType(Type defaultZero)
         {
-            var code = File.ReadAllBytes(defaultZero.Assembly.Location);
+            var dllPath = Directory.Exists(_contractOptions.GenesisContractDir)
+                ? Path.Combine(_contractOptions.GenesisContractDir, $"{defaultZero.Assembly.GetName().Name}.dll")
+                : defaultZero.Assembly.Location;
+            var code = File.ReadAllBytes(dllPath);
             DefaultContractZeroRegistration = new SmartContractRegistration()
             {
                 Category = KernelConstants.DefaultRunnerCategory,
