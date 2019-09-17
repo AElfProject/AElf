@@ -245,6 +245,8 @@ namespace AElf.CrossChain
         {
             if (!_transactionInclusivenessProvider.IsTransactionPackable)
                 return null;
+
+            Logger.LogTrace("Try get cross chain data for mining.");
             
             var sideChainBlockData = await GetNonIndexedSideChainBlockDataAsync(blockHash, blockHeight);
             var parentChainBlockData = await GetNonIndexedParentChainBlockDataAsync(blockHash, blockHeight);
