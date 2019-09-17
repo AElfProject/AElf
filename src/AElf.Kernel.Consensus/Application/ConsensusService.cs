@@ -67,6 +67,9 @@ namespace AElf.Kernel.Consensus.Application
             // Update next mining time, also block time of both getting consensus extra data and txs.
             _nextMiningTime = _consensusCommand.ArrangedMiningTime;
             var leftMilliseconds = _consensusCommand.ArrangedMiningTime - TimestampHelper.GetUtcNow();
+            leftMilliseconds = leftMilliseconds.Seconds > ConsensusConstants.MaximumLeftMillisecondsForNextBlock
+                ? new Duration {Seconds = ConsensusConstants.MaximumLeftMillisecondsForNextBlock}
+                : leftMilliseconds;
 
             // Initial consensus scheduler.
             var blockMiningEventData = new ConsensusRequestMiningEventData(chainContext.BlockHash,
@@ -75,7 +78,7 @@ namespace AElf.Kernel.Consensus.Application
                 TimestampHelper.DurationFromMilliseconds(_consensusCommand.LimitMillisecondsOfMiningBlock),
                 _consensusCommand.MiningDueTime);
             _consensusScheduler.CancelCurrentEvent();
-            _consensusScheduler.NewEvent((int) leftMilliseconds.Milliseconds(), blockMiningEventData);
+            _consensusScheduler.NewEvent(leftMilliseconds.Milliseconds(), blockMiningEventData);
 
             Logger.LogTrace($"Set next mining time to: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}");
         }
