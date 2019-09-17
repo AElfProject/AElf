@@ -17,7 +17,19 @@ namespace AElf.Kernel.Miner.Application
 {
     public class MiningService : IMiningService
     {
-        public ILogger<MiningService> Logger { get; set; }
+        public ILogger<MiningService> Logger
+        {
+            get => _logger;
+            set
+            {
+                int a = 10;
+                int b = a;
+                _logger = value;
+            }
+        }
+
+        private ILogger<MiningService> _logger;
+        //public ILogger<MiningService> Logger { get; set; }
         private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly IAccountService _accountService;
@@ -93,7 +105,7 @@ namespace AElf.Kernel.Miner.Application
             using (var cts = new CancellationTokenSource())
             {
                 //cts.CancelAfter((int) requestMiningDto.BlockExecutionTime.Milliseconds());
-                cts.CancelAfter(1000);
+                cts.CancelAfter(200);
                 var watch =new Stopwatch();
                 watch.Start();
                 var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,

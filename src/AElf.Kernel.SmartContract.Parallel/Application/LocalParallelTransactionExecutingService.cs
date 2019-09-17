@@ -20,8 +20,21 @@ namespace AElf.Kernel.SmartContract.Parallel
         private readonly ITransactionGrouper _grouper;
         private readonly ITransactionExecutingService _plainExecutingService;
         private readonly ITransactionResultService _transactionResultService;
-        public ILogger<LocalParallelTransactionExecutingService> Logger { get; set; }
+        public ILogger<LocalParallelTransactionExecutingService> Logger
+        {
+            get => _logger;
+            set
+            {
+                var transactionService = _plainExecutingService as TransactionExecutingService;
+                if (transactionService != null)
+                {
+                    transactionService.Logger = value;
+                }
+                _logger = value;
+            } 
+        }
 
+        private ILogger<LocalParallelTransactionExecutingService> _logger;
         public ILocalEventBus EventBus { get; set; }
 
         public LocalParallelTransactionExecutingService(ITransactionGrouper grouper,
@@ -147,7 +160,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                         Transactions = groupedTransactions.NonParallelizables,
                         PartialBlockStateSet = updatedPartialBlockStateSet
                     },
-                    cancellationToken, throwException).WithCancellation(cancellationToken);
+                    cancellationToken, throwException);//.WithCancellation(cancellationToken);
                 returnSets.AddRange(nonParallelizableReturnSets);
             }
             catch
