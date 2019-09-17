@@ -132,7 +132,6 @@ namespace AElf.Contract.TestContract
             }
         }
 
-
         [Fact]
         public async Task UpdateContract_WithOwner_Test()
         {
