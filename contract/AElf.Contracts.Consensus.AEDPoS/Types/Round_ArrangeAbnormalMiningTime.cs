@@ -41,7 +41,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var miningInterval = GetMiningInterval();
 
             var arrangedMiningTime =
-                ArrangeAbnormalMiningTime(pubkey, currentBlockTime.AddMilliseconds(TotalMilliseconds(miningInterval)));
+                ArrangeAbnormalMiningTime(pubkey, currentBlockTime.AddMilliseconds(-TotalMilliseconds(miningInterval)));
 
             return arrangedMiningTime <= currentBlockTime &&
                    currentBlockTime <= arrangedMiningTime.AddMilliseconds(miningInterval);
