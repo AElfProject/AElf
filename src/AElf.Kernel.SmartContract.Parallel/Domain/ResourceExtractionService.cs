@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -24,8 +25,8 @@ namespace AElf.Kernel.SmartContract.Parallel
         private readonly ICodeRemarksManager _codeRemarksManager;
         public ILogger<ResourceExtractionService> Logger { get; set; }
 
-        private readonly Dictionary<Hash, TransactionResourceCache> _resourceCache =
-            new Dictionary<Hash, TransactionResourceCache>();
+        private readonly ConcurrentDictionary<Hash, TransactionResourceCache> _resourceCache =
+            new ConcurrentDictionary<Hash, TransactionResourceCache>();
 
         public ResourceExtractionService(IBlockchainService blockchainService,
             ISmartContractExecutiveService smartContractExecutiveService, ICodeRemarksManager codeRemarksManager)
@@ -125,7 +126,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             var transaction = eventData.Transaction;
 
             var resourceInfo = await GetResourcesForOneAsync(chainContext, transaction, CancellationToken.None);
-            _resourceCache.Add(transaction.GetHash(), new TransactionResourceCache(resourceInfo, transaction.To));
+            _resourceCache.TryAdd(transaction.GetHash(), new TransactionResourceCache(resourceInfo, transaction.To));
         }
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
@@ -173,7 +174,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             foreach (var transactionId in transactions)
             {
-                _resourceCache.Remove(transactionId);
+                _resourceCache.TryRemove(transactionId, out _);
             }
 
             Logger.LogTrace($"Resource cache size after cleanup: {_resourceCache.Count}");
