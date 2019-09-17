@@ -43,31 +43,11 @@ namespace AElf.Contracts.Election
 
             var candidateVotesAmount = UpdateCandidateInformation(input.CandidatePubkey, input.Amount);
 
-            State.TokenContract.Lock.Send(new LockInput
-            {
-                Address = Context.Sender,
-                Symbol = Context.Variables.NativeSymbol,
-                LockId = Context.TransactionId,
-                Amount = GetElfAmount(input.Amount),
-                Usage = "Voting for Main Chain Miner Election."
-            });
+            LockNativeSymbolOfSender(input);
 
-            State.TokenContract.Issue.Send(new IssueInput
-            {
-                Symbol = ElectionContractConstants.VoteSymbol,
-                To = Context.Sender,
-                Amount = input.Amount,
-                Memo = "Issue VOTEs."
-            });
+            IssueVoteSymbol(input);
 
-            State.VoteContract.Vote.Send(new VoteInput
-            {
-                Voter = Context.Sender,
-                VotingItemId = State.MinerElectionVotingItemId.Value,
-                Amount = input.Amount,
-                Option = input.CandidatePubkey,
-                VoteId = Context.TransactionId
-            });
+            VoteFor(input);
 
             var votesWeight = GetVotesWeight(input.Amount, lockSeconds);
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
@@ -96,6 +76,41 @@ namespace AElf.Contracts.Election
             }
 
             return new Empty();
+        }
+
+        private void LockNativeSymbolOfSender(VoteMinerInput input)
+        {
+            State.TokenContract.Lock.Send(new LockInput
+            {
+                Address = Context.Sender,
+                Symbol = Context.Variables.NativeSymbol,
+                LockId = Context.TransactionId,
+                Amount = GetElfAmount(input.Amount),
+                Usage = "Voting for Main Chain Miner Election."
+            });
+        }
+
+        private void IssueVoteSymbol(VoteMinerInput input)
+        {
+            State.TokenContract.Issue.Send(new IssueInput
+            {
+                Symbol = ElectionContractConstants.VoteSymbol,
+                To = Context.Sender,
+                Amount = input.Amount,
+                Memo = "Issue VOTEs."
+            });
+        }
+
+        private void VoteFor(VoteMinerInput input)
+        {
+            State.VoteContract.Vote.Send(new VoteInput
+            {
+                Voter = Context.Sender,
+                VotingItemId = State.MinerElectionVotingItemId.Value,
+                Amount = input.Amount,
+                Option = input.CandidatePubkey,
+                VoteId = Context.TransactionId
+            });
         }
 
         private void TryToBecomeAValidationDataCenter(VoteMinerInput input, long candidateVotesAmount,

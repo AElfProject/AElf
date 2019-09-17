@@ -89,18 +89,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return new ValidationResult {Message = "Incorrect confirmed lib information."};
             }
 
-            switch (extraData.Behaviour)
-            {
-                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
-                case AElfConsensusBehaviour.UpdateValue:
-                    return ValidationForUpdateValue(extraData);
-                case AElfConsensusBehaviour.NextRound:
-                    return ValidationForNextRound(extraData);
-                case AElfConsensusBehaviour.NextTerm:
-                    return ValidationForNextTerm(extraData);
-            }
-
-            return new ValidationResult {Success = true};
+            return GetValidationResult(extraData);
         }
 
         private bool CheckMinerTimeSlot(Round round, string publicKey)
@@ -124,6 +113,22 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return latestActualMiningTime < endOfExpectedTimeSlot;
         }
 
+        private ValidationResult GetValidationResult(AElfConsensusHeaderInformation extraData)
+        {
+            switch (extraData.Behaviour)
+            {
+                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
+                case AElfConsensusBehaviour.UpdateValue:
+                    return ValidationForUpdateValue(extraData);
+                case AElfConsensusBehaviour.NextRound:
+                    return ValidationForNextRound(extraData);
+                case AElfConsensusBehaviour.NextTerm:
+                    return ValidationForNextTerm(extraData);
+            }
+            
+            return new ValidationResult {Success = true};
+        }
+        
         private ValidationResult ValidationForUpdateValue(AElfConsensusHeaderInformation extraData)
         {
             // Need to check round id when updating current round information.

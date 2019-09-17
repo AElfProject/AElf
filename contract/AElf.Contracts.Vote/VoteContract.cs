@@ -67,24 +67,7 @@ namespace AElf.Contracts.Vote
         /// <returns></returns>
         public override Empty Vote(VoteInput input)
         {
-            //the VotingItem is exist in state.
-            var votingItem = AssertVotingItem(input.VotingItemId);
-            Assert(votingItem.Options.Contains(input.Option), $"Option {input.Option} not found.");
-            Assert(votingItem.CurrentSnapshotNumber <= votingItem.TotalSnapshotNumber,
-                "Current voting item already ended.");
-            if (!votingItem.IsLockToken)
-            {
-                Assert(votingItem.Sponsor == Context.Sender, "Sender of delegated voting event must be the Sponsor.");
-                Assert(input.Voter != null, "Voter cannot be null if voting event is delegated.");
-                Assert(input.VoteId != null, "Vote Id cannot be null if voting event is delegated.");
-            }
-            else
-            {
-                //Voter just is the transaction sponsor
-                input.Voter = Context.Sender;
-                //VoteId just is the transaction ID;
-                input.VoteId = Context.TransactionId;
-            }
+            var votingItem = AssertValidVoteInput(input);
 
             var votingRecord = new VotingRecord
             {
@@ -365,6 +348,29 @@ namespace AElf.Contracts.Vote
                 VotingItemId = votingItemId,
                 SnapshotNumber = snapshotNumber
             }.GetHash();
+        }
+
+        private VotingItem AssertValidVoteInput(VoteInput input)
+        {
+            var votingItem = AssertVotingItem(input.VotingItemId);
+            Assert(votingItem.Options.Contains(input.Option), $"Option {input.Option} not found.");
+            Assert(votingItem.CurrentSnapshotNumber <= votingItem.TotalSnapshotNumber,
+                "Current voting item already ended.");
+            if (!votingItem.IsLockToken)
+            {
+                Assert(votingItem.Sponsor == Context.Sender, "Sender of delegated voting event must be the Sponsor.");
+                Assert(input.Voter != null, "Voter cannot be null if voting event is delegated.");
+                Assert(input.VoteId != null, "Vote Id cannot be null if voting event is delegated.");
+            }
+            else
+            {
+                //Voter just is the transaction sponsor
+                input.Voter = Context.Sender;
+                //VoteId just is the transaction ID;
+                input.VoteId = Context.TransactionId;
+            }
+
+            return votingItem;
         }
     }
 }

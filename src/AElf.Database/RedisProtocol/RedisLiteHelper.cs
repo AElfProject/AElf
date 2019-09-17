@@ -135,10 +135,7 @@ namespace AElf.Database.RedisProtocol
         
         public static RedisEndpoint ToRedisEndpoint(this string connectionString, int? defaultPort = null)
         {
-            if (connectionString == null)
-                throw new ArgumentNullException("connectionString");
-            if (connectionString.StartsWith("redis://"))
-                connectionString = connectionString.Substring("redis://".Length);
+            HandleConnectionString(ref connectionString);
 
             var domainParts = connectionString.SplitOnLast('@');
             var qsParts = domainParts.Last().SplitOnFirst('?');
@@ -171,46 +168,59 @@ namespace AElf.Database.RedisProtocol
                     if (value == null) continue;
 
                     var name = entry[0].ToLower();
-                    switch (name)
-                    {
-                        case "db":
-                            endpoint.Db = int.Parse(value);
-                            break;
-                        case "ssl":
-                            endpoint.Ssl = bool.Parse(value);
-                            if (useDefaultPort)
-                                endpoint.Port = RedisConfig.DefaultPortSsl;
-                            break;
-                        case "client":
-                            endpoint.Client = value;
-                            break;
-                        case "password":
-                            endpoint.Password = value;
-                            break;
-                        case "namespaceprefix":
-                            endpoint.NamespacePrefix = value;
-                            break;
-                        case "connecttimeout":
-                            endpoint.ConnectTimeout = int.Parse(value);
-                            break;
-                        case "sendtimeout":
-                            endpoint.SendTimeout = int.Parse(value);
-                            break;
-                        case "receivetimeout":
-                            endpoint.ReceiveTimeout = int.Parse(value);
-                            break;
-                        case "retrytimeout":
-                            endpoint.RetryTimeout = int.Parse(value);
-                            break;
-                        case "idletimeout":
-                        case "idletimeoutsecs":
-                            endpoint.IdleTimeOutSecs = int.Parse(value);
-                            break;
-                    }
+                    HandleEndpointByName(endpoint, useDefaultPort, name, value);
                 }
             }
 
             return endpoint;
+        }
+
+        private static void HandleConnectionString(ref string connectionString)
+        {
+            if (connectionString == null)
+                throw new ArgumentNullException("connectionString");
+            if (connectionString.StartsWith("redis://"))
+                connectionString = connectionString.Substring("redis://".Length);
+        }
+        
+        private static void HandleEndpointByName(RedisEndpoint endpoint, bool useDefaultPort, string name, string value)
+        {
+            switch (name)
+            {
+                case "db":
+                    endpoint.Db = int.Parse(value);
+                    break;
+                case "ssl":
+                    endpoint.Ssl = bool.Parse(value);
+                    if (useDefaultPort)
+                        endpoint.Port = RedisConfig.DefaultPortSsl;
+                    break;
+                case "client":
+                    endpoint.Client = value;
+                    break;
+                case "password":
+                    endpoint.Password = value;
+                    break;
+                case "namespaceprefix":
+                    endpoint.NamespacePrefix = value;
+                    break;
+                case "connecttimeout":
+                    endpoint.ConnectTimeout = int.Parse(value);
+                    break;
+                case "sendtimeout":
+                    endpoint.SendTimeout = int.Parse(value);
+                    break;
+                case "receivetimeout":
+                    endpoint.ReceiveTimeout = int.Parse(value);
+                    break;
+                case "retrytimeout":
+                    endpoint.RetryTimeout = int.Parse(value);
+                    break;
+                case "idletimeout":
+                case "idletimeoutsecs":
+                    endpoint.IdleTimeOutSecs = int.Parse(value);
+                    break;
+            }
         }
     }
 

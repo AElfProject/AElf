@@ -169,9 +169,7 @@ namespace AElf.Contracts.Profit
 
         public override Empty AddBeneficiary(AddBeneficiaryInput input)
         {
-            Assert(input.SchemeId != null, "Invalid scheme id.");
-            Assert(input.BeneficiaryShare?.Beneficiary != null, "Invalid beneficiary address.");
-            Assert(input.BeneficiaryShare?.Shares >= 0, "Invalid share.");
+            AssertValidInput(input);
             if (input.BeneficiaryShare == null) return new Empty();
 
             if (input.EndPeriod == 0)
@@ -231,6 +229,13 @@ namespace AElf.Contracts.Profit
                 $"Added {input.BeneficiaryShare.Shares} weights to scheme {input.SchemeId.ToHex()}: {profitDetail}");
 
             return new Empty();
+        }
+
+        private void AssertValidInput(AddBeneficiaryInput input)
+        {
+            Assert(input.SchemeId != null, "Invalid scheme id.");
+            Assert(input.BeneficiaryShare?.Beneficiary != null, "Invalid beneficiary address.");
+            Assert(input.BeneficiaryShare?.Shares >= 0, "Invalid share.");
         }
 
         public override Empty RemoveBeneficiary(RemoveBeneficiaryInput input)
