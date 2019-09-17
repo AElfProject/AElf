@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
@@ -87,19 +88,6 @@ namespace AElf.OS.Network
             _networkServer.ConnectAsync(endpoint).ShouldThrow<Exception>();
             
             _peerPool.PeerCount.ShouldBe(0);
-        }
-        
-        [Fact] 
-        public async Task DialPeerAsync_KeyAlreadyInPool_ShouldReturnFalse()
-        {
-            // two different hosts with the same pubkey.
-            AddPeerToPool();
-            
-            IpEndPointHelper.TryParse(NetworkTestConstants.FakeIpEndpoint2, out var endpoint);
-            var added = await _networkServer.ConnectAsync(endpoint);
-            
-            added.ShouldBeFalse();
-            _testContext.AllPeersWhereCleaned().ShouldBeTrue();
         }
         
         [Fact] 

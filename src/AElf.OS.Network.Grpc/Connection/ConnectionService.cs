@@ -60,44 +60,79 @@ namespace AElf.OS.Network.Grpc.Connection
 
             if (_peerPool.FindPeerByEndpoint(endpoint) != null)
             {
-                Logger.LogWarning($"Peer {endpoint} is already in the pool.");
+                Logger.LogWarning($"Peer with endpoint {endpoint} is already in the pool.");
                 return false;
             }
 
             var peer = await _peerDialer.DialPeerAsync(endpoint);
 
             if (peer == null)
-                return false;
-
-            if (!_peerPool.TryAddPeer(peer))
             {
-                Logger.LogWarning($"Peer {peer.Info.Pubkey} is already in the pool.");
-                await peer.DisconnectAsync(false);
+                Logger.LogWarning($"Error dialing {endpoint}.");
                 return false;
             }
 
-            Logger.LogDebug($"Added to pool {endpoint} - {peer.Info.Pubkey}.");
+            var existingPeer = _peerPool.FindPeerByPublicKey(peer.Info.Pubkey) as GrpcPeer;
+            
+            // A connection already exists, this can happen when both peers dial each other at the same time. To make
+            // sure both sides close the same connection, they both decide based on the times of the handshakes.
+            GrpcPeer currentPeer = peer;
+            if (existingPeer != null)
+            {
+                Logger.LogWarning("Duplicate peer connection detected: " +
+                                  $"{peer} ({existingPeer.LastReceivedHandshakeTime}) " +
+                                  $"vs {existingPeer} ({peer.LastReceivedHandshakeTime}).");
+
+                if (existingPeer.LastReceivedHandshakeTime > peer.LastReceivedHandshakeTime)
+                {
+                    // close the other peers connection
+                    _peerPool.RemovePeer(existingPeer.Info.Pubkey);
+                    await existingPeer.DisconnectAsync(false);
+
+                    Logger.LogWarning($"Removed and disconnected {existingPeer} .");
+                }
+                else
+                {
+                    // keep the dialed connection
+                    await peer.DisconnectAsync(false);
+                    currentPeer = existingPeer;
+
+                    Logger.LogWarning($"Disconnected dialed peer {peer}.");
+                }
+            }
+
+            if (existingPeer == null || currentPeer == peer)
+            {
+                if (!_peerPool.TryAddPeer(peer))
+                {
+                    Logger.LogWarning($"Peer add to the failed {peer.Info.Pubkey}.");
+                    await peer.DisconnectAsync(false);
+                    return false;
+                }
+
+                Logger.LogDebug($"Added to pool {peer.RemoteEndpoint} - {peer.Info.Pubkey}.");
+            }
 
             try
             {
-                await peer.ConfirmHandshakeAsync();
+                await currentPeer.ConfirmHandshakeAsync();
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Confirm handshake error. Peer: {peer.Info.Pubkey}.");
-                _peerPool.RemovePeer(peer.Info.Pubkey);
-                await peer.DisconnectAsync(false);
+                Logger.LogError(e, $"Confirm handshake error. Peer: {currentPeer.Info.Pubkey}.");
+                _peerPool.RemovePeer(currentPeer.Info.Pubkey);
+                await currentPeer.DisconnectAsync(false);
                 throw;
             }
 
-            peer.IsConnected = true;
+            currentPeer.IsConnected = true;
             
-            Logger.LogWarning($"Connected to: {peer.RemoteEndpoint} - {peer.Info.Pubkey.Substring(0, 45)}" +
-                              $" - in-token {peer.InboundSessionId?.ToHex()}, out-token {peer.OutboundSessionId?.ToHex()}" +
-                              $" - LIB height {peer.LastKnownLibHeight}" +
-                              $" - best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}]");
+            Logger.LogWarning($"Connected to: {currentPeer.RemoteEndpoint} - {currentPeer.Info.Pubkey.Substring(0, 45)}" +
+                              $" - in-token {currentPeer.InboundSessionId?.ToHex()}, out-token {currentPeer.OutboundSessionId?.ToHex()}" +
+                              $" - LIB height {currentPeer.LastKnownLibHeight}" +
+                              $" - best chain [{currentPeer.CurrentBlockHeight}, {currentPeer.CurrentBlockHash}]");
 
-            FireConnectionEvent(peer);
+            FireConnectionEvent(currentPeer);
 
             return true;
         }
@@ -150,7 +185,7 @@ namespace AElf.OS.Network.Grpc.Connection
                     return new HandshakeReply {Error = HandshakeError.RepeatedConnection};
                 }
 
-                Logger.LogDebug($"Added to pool {endpoint} - {grpcPeer.Info.Pubkey}.");
+                Logger.LogDebug($"Added to pool {grpcPeer.RemoteEndpoint} - {grpcPeer.Info.Pubkey}.");
 
                 // send back our handshake
                 var replyHandshake = await _handshakeProvider.GetHandshakeAsync();

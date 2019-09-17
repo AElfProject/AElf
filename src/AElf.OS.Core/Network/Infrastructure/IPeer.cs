@@ -6,6 +6,7 @@ using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Metrics;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.OS.Network.Infrastructure
 {
@@ -15,6 +16,7 @@ namespace AElf.OS.Network.Infrastructure
         bool IsReady { get; }
         bool IsInvalid { get; }
         long LastKnownLibHeight { get; }
+        Timestamp LastReceivedHandshakeTime { get; }
         IPEndPoint RemoteEndpoint { get; }
 
         int BufferedTransactionsCount { get; }
