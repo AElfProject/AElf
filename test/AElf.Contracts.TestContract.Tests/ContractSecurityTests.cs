@@ -49,12 +49,12 @@ namespace AElf.Contract.TestContract
             var transactionResult = (await TestBasicSecurityContractStub.TestInt32State.SendAsync(
                 new Int32Input
                 {
-                    Int32Value = Int32.MinValue
+                    Int32Value = int.MinValue
                 })).TransactionResult;
 
             var resultValue = (await TestBasicSecurityContractStub.QueryInt32State.CallAsync(
                 new Empty())).Int32Value;
-            resultValue.ShouldBe(Int32.MinValue);
+            resultValue.ShouldBe(int.MinValue);
 
             transactionResult = (await TestBasicSecurityContractStub.TestInt32State.SendAsync(
                 new Int32Input
@@ -67,7 +67,7 @@ namespace AElf.Contract.TestContract
             //state not change
             var resultValue1 = (await TestBasicSecurityContractStub.QueryInt32State.CallAsync(
                 new Empty())).Int32Value;
-            resultValue1.ShouldBe(Int32.MinValue);
+            resultValue1.ShouldBe(int.MinValue);
         }
 
         [Fact]
@@ -103,12 +103,12 @@ namespace AElf.Contract.TestContract
             var transactionResult = (await TestBasicSecurityContractStub.TestInt64State.SendAsync(
                 new Int64Input()
                 {
-                    Int64Value = Int64.MinValue
+                    Int64Value = long.MinValue
                 })).TransactionResult;
 
             var resultValue = (await TestBasicSecurityContractStub.QueryInt64State.CallAsync(
                 new Empty())).Int64Value;
-            resultValue.ShouldBe(Int64.MinValue);
+            resultValue.ShouldBe(long.MinValue);
 
             transactionResult = (await TestBasicSecurityContractStub.TestInt64State.SendAsync(
                 new Int64Input
@@ -121,7 +121,7 @@ namespace AElf.Contract.TestContract
             //state not change
             var resultValue1 = (await TestBasicSecurityContractStub.QueryInt64State.CallAsync(
                 new Empty())).Int64Value;
-            resultValue1.ShouldBe(Int64.MinValue);
+            resultValue1.ShouldBe(long.MinValue);
         }
     }
 }

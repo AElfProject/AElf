@@ -24,6 +24,13 @@ namespace AElf.Contracts.ReferendumAuth
         [Fact]
         public async Task Get_Organization_Test()
         {
+            //not exist
+            {
+                var organization =
+                    await ReferendumAuthContractStub.GetOrganization.CallAsync(SampleAddress.AddressList[0]);
+                organization.ShouldBe(new Organization());
+            }
+            
             var createOrganizationInput =  new CreateOrganizationInput
             {
                 ReleaseThreshold = 5000,
@@ -39,16 +46,14 @@ namespace AElf.Contracts.ReferendumAuth
         }
         
         [Fact]
-        public async Task Get_OrganizationFailed_Test()
-        {
-            var organization =
-                await ReferendumAuthContractStub.GetOrganization.CallAsync(SampleAddress.AddressList[0]);
-            organization.ShouldBe(new Organization());
-        }
-        
-        [Fact]
         public async Task Get_Proposal_Test()
         {
+            //not exist
+            {
+                var proposal = await ReferendumAuthContractStub.GetProposal.CallAsync(Hash.FromString("Test"));
+                proposal.ShouldBe(new ProposalOutput());
+            }
+            
             var organizationAddress = await CreateOrganizationAsync();
             var createInput = new CreateInput()
             {
@@ -68,13 +73,6 @@ namespace AElf.Contracts.ReferendumAuth
             getProposal.Output.OrganizationAddress.ShouldBe(organizationAddress);
             getProposal.Output.ToAddress.ShouldBe(TokenContractAddress);
             getProposal.Output.Params.ShouldBe(createInput.ToByteString());
-        }
-        
-        [Fact]
-        public async Task Get_ProposalFailed_Test()
-        {
-            var proposal = await ReferendumAuthContractStub.GetProposal.CallAsync(Hash.FromString("Test"));
-            proposal.ShouldBe(new ProposalOutput());
         }
         
         [Fact]
