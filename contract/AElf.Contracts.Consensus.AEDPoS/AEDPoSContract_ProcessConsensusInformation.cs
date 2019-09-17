@@ -11,6 +11,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         private void ProcessConsensusInformation(dynamic input, [CallerMemberName] string caller = null)
         {
+            Context.LogDebug(() => $"Processing {caller}");
             /* Privilege check. */
             if (!PreCheck())
             {
@@ -34,6 +35,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             ResetLatestProviderToTinyBlocksCount();
+            ClearCachedFields();
         }
 
         private void ProcessNextRound(Round nextRound)
@@ -65,6 +67,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (currentRound.TryToDetectEvilMiners(out var evilMiners))
             {
+                Context.LogDebug(() => "Evil miners detected.");
                 foreach (var evilMiner in evilMiners)
                 {
                     // Mark these evil miners.
@@ -77,6 +80,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             Assert(TryToAddRoundInformation(nextRound), "Failed to add round information.");
+            
             Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
 
             ClearExpiredRandomNumberTokens();
@@ -148,11 +152,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void RecordMinedMinerListOfCurrentRound()
         {
-            TryToGetCurrentRoundInformation(out var currentRound, true);
-            State.MinedMinerListMap[currentRound.RoundNumber] = new MinerList
+            TryToGetCurrentRoundInformation(out var currentRound);
+
+            State.MinedMinerListMap.Set(currentRound.RoundNumber, new MinerList
             {
                 Pubkeys = {currentRound.GetMinedMiners().Select(m => m.Pubkey.ToByteString())}
-            };
+            });
         }
 
         private void ProcessUpdateValue(UpdateValueInput updateValueInput)
@@ -191,10 +196,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     out var libHeight);
                 Context.LogDebug(() => $"Finished calculation of lib height: {libHeight}");
                 // LIB height can't be available if it is lower than last time.
-                if (State.LastIrreversibleBlockHeight.Value < libHeight)
+                if (currentRound.ConfirmedIrreversibleBlockHeight < libHeight)
                 {
                     Context.LogDebug(() => $"New lib height: {libHeight}");
-                    State.LastIrreversibleBlockHeight.Value = libHeight;
                     Context.Fire(new IrreversibleBlockFound
                     {
                         IrreversibleBlockHeight = libHeight
@@ -241,8 +245,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // Though we've already prevented related transactions from inserting to the transaction pool
             // via ConstrainedAEDPoSTransactionValidationProvider,
             // this kind of permission check is still useful.
-            if (!currentRound.IsInMinerList(_processingBlockMinerPubkey) && 
-                !previousRound.IsInMinerList(_processingBlockMinerPubkey))// Case a failed miner performing NextTerm
+            if (!currentRound.IsInMinerList(_processingBlockMinerPubkey) &&
+                !previousRound.IsInMinerList(_processingBlockMinerPubkey)) // Case a failed miner performing NextTerm
             {
                 return false;
             }
@@ -282,6 +286,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     };
                 }
             }
+        }
+
+        private void ClearCachedFields()
+        {
+            _rounds.Clear();
+            _processingBlockMinerPubkey = null;
         }
     }
 }

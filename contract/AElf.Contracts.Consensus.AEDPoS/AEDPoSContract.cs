@@ -48,8 +48,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             State.MaximumMinersCount.Value = int.MaxValue;
 
-            State.LastIrreversibleBlockHeight.Value = 0;
-
             return new Empty();
         }
 

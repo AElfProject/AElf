@@ -22,19 +22,19 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         private readonly IBlockchainService _blockchainService;
 
-        private readonly IIsPackageNormalTransactionProvider _isPackageNormalTransactionProvider;
+        private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
 
         public ILogger<BestChainFoundEventHandler> Logger { get; set; }
 
         public BestChainFoundEventHandler(
             IIrreversibleBlockRelatedEventsDiscoveryService irreversibleBlockRelatedEventsDiscoveryService,
             ITaskQueueManager taskQueueManager, IBlockchainService blockchainService,
-            IIsPackageNormalTransactionProvider isPackageNormalTransactionProvider)
+            ITransactionInclusivenessProvider transactionInclusivenessProvider)
         {
             _irreversibleBlockRelatedEventsDiscoveryService = irreversibleBlockRelatedEventsDiscoveryService;
             _taskQueueManager = taskQueueManager;
             _blockchainService = blockchainService;
-            _isPackageNormalTransactionProvider = isPackageNormalTransactionProvider;
+            _transactionInclusivenessProvider = transactionInclusivenessProvider;
 
             Logger = NullLogger<BestChainFoundEventHandler>.Instance;
         }
@@ -51,19 +51,15 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var distanceToLib = await _irreversibleBlockRelatedEventsDiscoveryService
                 .GetUnacceptableDistanceToLastIrreversibleBlockHeightAsync(eventData.BlockHash);
 
-            if (distanceToLib > 1024)
+            if (distanceToLib > 0)
             {
                 Logger.LogDebug($"Distance to lib height: {distanceToLib}");
-                _isPackageNormalTransactionProvider.IsPackage = false;
-            }
-            else if (distanceToLib > 0)
-            {
-                _isPackageNormalTransactionProvider.IsPackage = true;
+                _transactionInclusivenessProvider.IsTransactionPackable = false;
             }
 
             if (index != null)
             {
-                _isPackageNormalTransactionProvider.IsPackage = true;
+                _transactionInclusivenessProvider.IsTransactionPackable = true;
                 _taskQueueManager.Enqueue(
                     async () =>
                     {

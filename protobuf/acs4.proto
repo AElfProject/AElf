@@ -32,6 +32,7 @@ message ConsensusCommand {
     int32 limit_milliseconds_of_mining_block = 2;// Time limit of mining next block.
     bytes hint = 3;// Context of Hint is diverse according to the consensus protocol we choose, so we use bytes.
     google.protobuf.Timestamp expected_mining_time = 4;
+    google.protobuf.Timestamp mining_due_time = 5;
 }
 
 message ValidationResult {

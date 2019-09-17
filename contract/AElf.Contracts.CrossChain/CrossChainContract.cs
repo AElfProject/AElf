@@ -133,9 +133,10 @@ namespace AElf.Contracts.CrossChain
         #endregion Side chain lifetime actions
 
         #region Cross chain actions
-        
+
         public override Empty RecordCrossChainData(CrossChainBlockData crossChainBlockData)
         {
+            Context.LogDebug(() => "Start RecordCrossChainData.");
             //Assert(IsMiner(), "Not authorized to do this.");
             var indexedCrossChainData = State.IndexedSideChainBlockData[Context.CurrentHeight];
             Assert(indexedCrossChainData == null); // This should not fail.
@@ -147,13 +148,15 @@ namespace AElf.Contracts.CrossChain
                 State.LastIndexedParentChainBlockData.Value = indexedParentChainBlockData;
                 Context.Fire(new ParentChainBlockDataIndexed());
             }
-            
+
             var indexedSideChainBlockData = IndexSideChainBlockData(crossChainBlockData.SideChainBlockData);
-            State.IndexedSideChainBlockData[Context.CurrentHeight] = indexedSideChainBlockData;
-            
+            State.IndexedSideChainBlockData.Set(Context.CurrentHeight, indexedSideChainBlockData);
+
             if (indexedSideChainBlockData.SideChainBlockData.Count > 0)
                 Context.Fire(new SideChainBlockDataIndexed());
-            
+
+            Context.LogDebug(() => "Finished RecordCrossChainData.");
+
             return new Empty();
         }
 
@@ -191,7 +194,8 @@ namespace AElf.Contracts.CrossChain
                 }
 
                 // send consensus data shared from main chain  
-                if (i == parentChainBlockData.Count - 1 && blockInfo.ExtraData.TryGetValue(ConsensusExtraDataName, out var bytes))
+                if (i == parentChainBlockData.Count - 1 &&
+                    blockInfo.ExtraData.TryGetValue(ConsensusExtraDataName, out var bytes))
                 {
                     Context.LogDebug(() => "Updating consensus information..");
                     UpdateCurrentMiners(bytes);
