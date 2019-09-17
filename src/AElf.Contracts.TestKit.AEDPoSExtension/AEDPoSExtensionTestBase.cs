@@ -39,6 +39,9 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         protected IBlockchainService BlockchainService =>
             Application.ServiceProvider.GetRequiredService<IBlockchainService>();
 
+        protected ITransactionTraceProvider TransactionTraceProvider =>
+            Application.ServiceProvider.GetRequiredService<ITransactionTraceProvider>();
+
         public Dictionary<Hash, Address> ContractAddresses;
 
         /// <summary>

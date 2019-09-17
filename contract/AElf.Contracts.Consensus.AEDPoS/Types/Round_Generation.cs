@@ -8,7 +8,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class Round
     {
-        public bool GenerateNextRoundInformation(Timestamp currentBlockTimestamp, Timestamp blockchainStartTimestamp, out Round nextRound)
+        public bool GenerateNextRoundInformation(Timestamp currentBlockTimestamp, Timestamp blockchainStartTimestamp,
+            out Round nextRound)
         {
             nextRound = new Round();
 
@@ -68,6 +69,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             BreakContinuousMining(ref nextRound);
 
+            nextRound.ConfirmedIrreversibleBlockHeight = ConfirmedIrreversibleBlockHeight;
+            nextRound.ConfirmedIrreversibleBlockRoundNumber = ConfirmedIrreversibleBlockRoundNumber;
+
             return true;
         }
 
@@ -89,7 +93,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 secondMinerOfNextRound.ExpectedMiningTime = firstMinerOfNextRound.ExpectedMiningTime;
                 firstMinerOfNextRound.ExpectedMiningTime = tempTimestamp;
             }
-            
+
             // Last miner of next round != Extra block producer of next round
             var lastMinerOfNextRound = nextRound.RealTimeMinersInformation.Values.First(i => i.Order == minersCount);
             var extraBlockProducerOfNextRound = nextRound.GetExtraBlockProducerInformation();
@@ -104,7 +108,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 lastMinerOfNextRound.ExpectedMiningTime = tempTimestamp;
             }
         }
-        
+
         private int CalculateNextExtraBlockProducerOrder()
         {
             var firstPlaceInfo = RealTimeMinersInformation.Values.OrderBy(m => m.Order)

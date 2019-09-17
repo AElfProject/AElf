@@ -93,7 +93,7 @@ namespace AElf.OS.BlockSync.Application
             var block = _osTestHelper.GenerateBlockWithTransactions(chain.LastIrreversibleBlockHash,
                 chain.LastIrreversibleBlockHeight);
 
-            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block, GetEncodedPubKeyString());
+            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block, null);
 
             validateResult.ShouldBeTrue();
         }
@@ -106,7 +106,7 @@ namespace AElf.OS.BlockSync.Application
             var block = _osTestHelper.GenerateBlockWithTransactions(Hash.FromString("SyncBlockHash"),
                 chain.LastIrreversibleBlockHeight - 1);
 
-            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block, GetEncodedPubKeyString());
+            var validateResult = await _blockSyncValidationService.ValidateBlockAsync(chain, block, null);
 
             validateResult.ShouldBeFalse();
         }

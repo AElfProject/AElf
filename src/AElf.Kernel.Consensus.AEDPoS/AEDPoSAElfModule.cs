@@ -21,12 +21,10 @@ namespace AElf.Kernel.Consensus.AEDPoS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<IIrreversibleBlockDiscoveryService, IrreversibleBlockDiscoveryService>();
-            context.Services.AddSingleton<IAEDPoSInformationProvider, AEDPoSInformationProvider>();
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();
-            context.Services.AddSingleton<IRandomHashCacheService, RandomHashCacheService>();
-            context.Services.AddSingleton<Application.BestChainFoundEventHandler>();
-            context.Services.AddSingleton<ConsensusValidationFailedEventHandler>();
+            context.Services.AddTransient<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
+            context.Services
+                .AddSingleton<IBroadcastPrivilegedPubkeyListProvider, AEDPoSBroadcastPrivilegedPubkeyListProvider>();
 
             var configuration = context.Services.GetConfiguration();
 

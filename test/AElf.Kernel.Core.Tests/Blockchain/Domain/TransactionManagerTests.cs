@@ -44,11 +44,11 @@ namespace AElf.Kernel.Blockchain.Domain
             var key1 = await _transactionManager.AddTransactionAsync(t1);
             var key2 = await _transactionManager.AddTransactionAsync(t2);
 
-            var td1 = await _transactionManager.GetTransaction(key1);
+            var td1 = await _transactionManager.GetTransactionAsync(key1);
             Assert.Equal(t1, td1);
 
-            await _transactionManager.RemoveTransaction(key2);
-            var td2 = await _transactionManager.GetTransaction(key2);
+            await _transactionManager.RemoveTransactionAsync(key2);
+            var td2 = await _transactionManager.GetTransactionAsync(key2);
             Assert.Null(td2);
         }
     }

@@ -12,18 +12,21 @@ namespace AElf.Contracts.ParliamentAuth
         public override Organization GetOrganization(Address address)
         {
             var organization = State.Organisations[address];
-            Assert(organization != null, "No registered organization.");
-            return organization;
+            return organization ?? new Organization();
         }
-        
+
         public override ProposalOutput GetProposal(Hash proposalId)
         {
             var proposal = State.Proposals[proposalId];
-            Assert(proposal != null, "Not found proposal.");
+            if (proposal == null)
+            {
+                return new ProposalOutput();
+            }
             var organization = State.Organisations[proposal.OrganizationAddress];
             var minerList = GetCurrentMinerList();
-            var readyToRelease = IsReadyToRelease(proposal, organization, minerList);
-            var result = new ProposalOutput
+            var readyToRelease = IsReleaseThresholdReached(proposal, organization, minerList);
+
+            return new ProposalOutput
             {
                 ProposalId = proposalId,
                 ContractMethodName = proposal.ContractMethodName,
@@ -34,8 +37,6 @@ namespace AElf.Contracts.ParliamentAuth
                 ToAddress = proposal.ToAddress,
                 ToBeReleased = readyToRelease
             };
-
-            return result;
         }
 
         public override Address GetGenesisOwnerAddress(Empty input)
@@ -63,74 +64,60 @@ namespace AElf.Contracts.ParliamentAuth
             State.GenesisContract.ChangeGenesisOwner.Send(State.GenesisOwnerAddress.Value);
             return new Empty();
         }
-        
+
         public override Address CreateOrganization(CreateOrganizationInput input)
         {
-            Assert(input.ReleaseThreshold > 0 && input.ReleaseThreshold <= 10000, "Invalid organization.");
-            var organizationHash = GenerateOrganizationVirtualHash(input);
-            Address organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
+            var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
+            var organizationAddress = Context.ConvertVirtualAddressToContractAddress(organizationHash);
+            var organization = new Organization
+            {
+                ReleaseThreshold = input.ReleaseThreshold,
+                OrganizationAddress = organizationAddress,
+                OrganizationHash = organizationHash,
+                ProposerAuthorityRequired = input.ProposerAuthorityRequired,
+                ProposerWhiteList = {input.ProposerWhiteList}
+            };
+            Assert(Validate(organization), "Invalid organization.");
             if (State.Organisations[organizationAddress] == null)
             {
-                var organization = new Organization
-                {
-                    ReleaseThreshold = input.ReleaseThreshold,
-                    OrganizationAddress = organizationAddress,
-                    OrganizationHash = organizationHash,
-                    ProposerAuthorityRequired = input.ProposerAuthorityRequired,
-                    ProposerWhiteList = {input.ProposerWhiteList}
-                };
-                
                 State.Organisations[organizationAddress] = organization;
             }
-            
+
             return organizationAddress;
         }
-        
-        public override Hash CreateProposal(CreateProposalInput proposal)
+
+        public override Hash CreateProposal(CreateProposalInput input)
         {
-            var organization = State.Organisations[proposal.OrganizationAddress];
+            var organization = State.Organisations[input.OrganizationAddress];
             Assert(organization != null, "No registered organization.");
-            CheckProposerAuthority(organization);
-            Assert(
-                !string.IsNullOrWhiteSpace(proposal.ContractMethodName)
-                && proposal.ToAddress != null
-                && proposal.OrganizationAddress != null
-                && proposal.ExpiredTime != null, "Invalid proposal.");
-            Assert(Context.CurrentBlockTime < proposal.ExpiredTime, "Expired proposal.");
-            Hash hash = Hash.FromMessage(proposal);
-            Assert(State.Proposals[hash] == null, "Proposal already exists.");
-            State.Proposals[hash] = new ProposalInfo
+            AssertSenderIsAuthorizedProposer(organization);
+
+            Hash hash = Hash.FromMessage(input);
+            var proposal = new ProposalInfo
             {
-                ContractMethodName = proposal.ContractMethodName,
-                ExpiredTime = proposal.ExpiredTime,
-                Params = proposal.Params,
-                ToAddress = proposal.ToAddress,
-                OrganizationAddress = proposal.OrganizationAddress,
+                ContractMethodName = input.ContractMethodName,
+                ExpiredTime = input.ExpiredTime,
+                Params = input.Params,
+                ToAddress = input.ToAddress,
+                OrganizationAddress = input.OrganizationAddress,
                 ProposalId = hash,
                 Proposer = Context.Sender
             };
-            return Hash.FromMessage(proposal);
+            Assert(Validate(proposal), "Invalid proposal.");
+            Assert(State.Proposals[hash] == null, "Proposal already exists.");
+            State.Proposals[hash] = proposal;
+            return hash;
         }
 
         public override BoolValue Approve(ApproveInput approvalInput)
         {
-            var proposalInfo = State.Proposals[approvalInput.ProposalId];
-            Assert(proposalInfo != null, "Not found proposal.");
-            if (Context.CurrentBlockTime > proposalInfo.ExpiredTime)
-            {
-                // expired proposal
-                // TODO: Set null to delete data from state db.
-                //State.Proposals[approvalInput.ProposalId] = null;
-                return new BoolValue{Value = false};
-            }
-            
-            // check approval not existed
-            Assert(!proposalInfo.ApprovedRepresentatives.Contains(Context.Sender),
-                "Approval already existed.");
-            var minerList = GetCurrentMinerList();
-            Assert(IsValidRepresentative(minerList), "Not authorized approval.");
-            proposalInfo.ApprovedRepresentatives.Add(Context.Sender);
-            State.Proposals[approvalInput.ProposalId] = proposalInfo;
+            var proposal = GetValidProposal(approvalInput.ProposalId);
+            AssertProposalNotYetApprovedBySender(proposal);
+            var currentParliament = GetCurrentMinerList();
+            AssertSenderIsParliementMember(currentParliament);
+
+            proposal.ApprovedRepresentatives.Add(Context.Sender);
+            State.Proposals[approvalInput.ProposalId] = proposal;
 
             return new BoolValue {Value = true};
         }
@@ -141,8 +128,8 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(proposalInfo != null, "Proposal not found.");
             Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
             var organization = State.Organisations[proposalInfo.OrganizationAddress];
-            var minerList = GetCurrentMinerList();
-            Assert(IsReadyToRelease(proposalInfo, organization, minerList), "Not approved.");
+            var currentParliament = GetCurrentMinerList();
+            Assert(IsReleaseThresholdReached(proposalInfo, organization, currentParliament), "Not approved.");
             Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
                 proposalInfo.ContractMethodName, proposalInfo.Params);
             

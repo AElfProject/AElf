@@ -67,7 +67,7 @@ namespace AElf.Benchmark
 
             foreach (var transaction in _transactions)
             {
-                _transactionManager.RemoveTransaction(transaction.GetHash());
+                _transactionManager.RemoveTransactionAsync(transaction.GetHash());
             }
         }
     }
