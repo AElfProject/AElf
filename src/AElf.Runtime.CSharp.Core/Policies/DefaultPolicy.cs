@@ -89,6 +89,7 @@ namespace AElf.Runtime.CSharp.Policies
                     .Type(typeof(decimal).Name, Permission.Allowed)
                     .Type(typeof(string).Name, Permission.Allowed, member => member
                         .Constructor(Permission.Denied))
+                        // TODO: Disallow string.Concat to enforce string extensions in AElf SDK
                     .Type(typeof(Byte[]).Name, Permission.Allowed)
                 );
         }
@@ -128,10 +129,6 @@ namespace AElf.Runtime.CSharp.Policies
                 .Namespace("System.Runtime.CompilerServices", Permission.Denied, type => type
                     .Type(nameof(RuntimeHelpers), Permission.Denied, member => member
                         .Member(nameof(RuntimeHelpers.InitializeArray), Permission.Allowed)))
-                
-                // TODO: Allow System.Text only for system contracts
-                // Used for logging and other string operations, conversions
-                .Namespace("System.Text", Permission.Allowed)
                 ;
         }
 
