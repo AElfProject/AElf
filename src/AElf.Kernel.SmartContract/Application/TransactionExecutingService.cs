@@ -220,9 +220,9 @@ namespace AElf.Kernel.SmartContract.Application
             ChainContextWithTieredStateCache internalChainContext, CancellationToken cancellationToken)
         {
             var trace = txCtxt.Trace;
-            internalStateCache.Update(txCtxt.Trace.GetStateSets());
-            if (txCtxt.Trace.IsSuccessful() && txCtxt.Trace.InlineTransactions.Count > 0)
+            if (txCtxt.Trace.IsSuccessful())
             {
+                internalStateCache.Update(txCtxt.Trace.GetStateSets());
                 foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                 {
                     var inlineTrace = await ExecuteOneAsync(depth + 1, internalChainContext, inlineTx,
