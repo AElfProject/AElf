@@ -144,7 +144,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private long GetBlockchainAge()
         {
-            return (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds;
+            return State.BlockchainStartTimestamp.Value == null
+                ? 0
+                : (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds;
         }
 
         private bool TryToGetVictories(out MinerList victories)
@@ -307,6 +309,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private int GetMinersCount(Round input)
         {
+            if (State.BlockchainStartTimestamp.Value == null)
+            {
+                return AEDPoSContractConstants.InitialMinersCount;
+            }
+
             if (!TryToGetRoundInformation(1, out _)) return 0;
             return Math.Min(input.RealTimeMinersInformation.Count < AEDPoSContractConstants.InitialMinersCount
                 ? AEDPoSContractConstants.InitialMinersCount

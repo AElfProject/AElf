@@ -21,9 +21,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Hint = ByteString.CopyFrom(new AElfConsensusHint
                 {
                     Behaviour = AElfConsensusBehaviour.Nothing
-                }.ToByteArray()),
-                LimitMillisecondsOfMiningBlock = 0,
-                NextBlockMiningLeftMilliseconds = int.MaxValue
+                }.ToByteArray())
             };
 
             public ConsensusCommandProvider(ICommandStrategy commandStrategy)

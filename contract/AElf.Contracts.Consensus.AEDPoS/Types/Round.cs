@@ -184,7 +184,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public MinerInRound FirstMiner()
         {
             return RealTimeMinersInformation.Count > 0
-                ? RealTimeMinersInformation.Values.First(m => m.Order == 1)
+                ? RealTimeMinersInformation.Values.FirstOrDefault(m => m.Order == 1)
                 // Unlikely.
                 : new MinerInRound();
         }
@@ -192,7 +192,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public MinerInRound FirstActualMiner()
         {
             return RealTimeMinersInformation.Count > 0
-                ? RealTimeMinersInformation.Values.First(m => m.OutValue != null)
+                ? RealTimeMinersInformation.Values.FirstOrDefault(m => m.OutValue != null)
                 : null;
         }
 
@@ -201,7 +201,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return RealTimeMinersInformation.ContainsKey(publicKey)
                 ? RealTimeMinersInformation[publicKey].ExpectedMiningTime
                 : new Timestamp {Seconds = long.MaxValue};
-            ;
         }
 
         public int GetMiningOrder(string publicKey)

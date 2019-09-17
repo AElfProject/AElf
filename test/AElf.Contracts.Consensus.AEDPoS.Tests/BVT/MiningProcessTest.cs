@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         [Fact]
         public async Task Candidates_NotEnough_Test()
         {
-            await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(new Empty());
+            //await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(new Empty());
 
             //await InitializeVoters();
             await InitializeCandidates(EconomicContractsTestConstants.InitialCoreDataCenterCount);

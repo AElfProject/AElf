@@ -6,7 +6,7 @@ using Xunit;
 
 namespace AElf.Kernel.Consensus.Application
 {
-    public class ConsensusServiceTests : ConsensusTestBase
+    public sealed class ConsensusServiceTests : ConsensusTestBase
     {
         private readonly IConsensusService _consensusService;
         private readonly IBlockchainService _blockchainService;
@@ -42,7 +42,7 @@ namespace AElf.Kernel.Consensus.Application
         }
 
         [Fact]
-        public async Task GetInformationToUpdateConsensusAsync_Test()
+        public async Task GetConsensusExtraDataAsyncAsync_Test()
         {
             var chainContext = await GetDefaultChainContext();
 
