@@ -188,6 +188,12 @@ namespace AElf.Contracts.CrossChain
             ByteString nativeTokenInformation = GetNativeTokenInfo().ToByteString();
             res.ExtraInformation.Add(nativeTokenInformation);
 
+            ByteString resourceTokenInformation = GetResourceTokenInfo().ToByteString();
+            res.ExtraInformation.Add(resourceTokenInformation);
+
+            ByteString sideChainTokenInformation = GetTokenInfo(sideChainInfo.SideChainCreationRequest.SideChainTokenInfo.Symbol)
+                .ToByteString();
+            res.ExtraInformation.Add(sideChainTokenInformation);
             return res;
         }
     }

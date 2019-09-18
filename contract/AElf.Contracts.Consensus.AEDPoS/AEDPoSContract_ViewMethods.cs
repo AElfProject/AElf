@@ -86,7 +86,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override StringValue GetCurrentMinerPubkey(Empty input)
         {
             if (!TryToGetCurrentRoundInformation(out var round)) return new StringValue();
-            Context.LogDebug(() => $"Based on round: \n{round}");
+            Context.LogDebug(() => $"Based on round: \n{round.GetSimpleRound()}");
             Context.LogDebug(() => $"Based on block time: {Context.CurrentBlockTime}");
             var currentMinerPubkey = GetCurrentMinerPubkey(round, Context.CurrentBlockTime);
             Context.LogDebug(() => $"Current miner pubkey: {currentMinerPubkey}");
@@ -102,15 +102,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 pubkey = round.RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m =>
                     m.ExpectedMiningTime <= currentBlockTime &&
                     currentBlockTime < m.ExpectedMiningTime.AddMilliseconds(miningInterval))?.Pubkey;
-                Context.LogDebug(() => $"Checked normal block time slot: {pubkey}");
                 if (pubkey != null)
                 {
+                    Context.LogDebug(() => $"Checked normal block time slot: {pubkey}");
                     return pubkey;
                 }
             }
 
-            var extraBlockProducer = round.RealTimeMinersInformation.Values.First(m => m.IsExtraBlockProducer).Pubkey;
-            var extraBlockMiningTime = round.GetExtraBlockMiningTime();
+            if (!TryToGetPreviousRoundInformation(out var previousRound)) return null;
+
+            Context.LogDebug(() => $"Now based on round: \n{previousRound.GetSimpleRound()}");
+
+            var extraBlockProducer = previousRound.RealTimeMinersInformation.Values.First(m => m.IsExtraBlockProducer)
+                .Pubkey;
+            var extraBlockMiningTime = previousRound.GetExtraBlockMiningTime();
             if (extraBlockMiningTime <= currentBlockTime &&
                 currentBlockTime <= extraBlockMiningTime.AddMilliseconds(miningInterval))
             {
@@ -118,8 +123,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return extraBlockProducer;
             }
 
-            pubkey = round.RealTimeMinersInformation.Keys.FirstOrDefault(k =>
-                round.IsInCorrectFutureMiningSlot(k, round.GetExpectedMiningTime(k).AddMilliseconds(miningInterval)));
+            pubkey = previousRound.RealTimeMinersInformation.Keys.FirstOrDefault(k =>
+                previousRound.IsInCorrectFutureMiningSlot(k,
+                    previousRound.GetExpectedMiningTime(k).AddMilliseconds(miningInterval)));
 
             Context.LogDebug(() => $"Checked abnormal extra block time slot: {pubkey}");
 

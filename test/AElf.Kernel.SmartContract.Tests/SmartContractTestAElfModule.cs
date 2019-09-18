@@ -1,8 +1,11 @@
+using System.Collections.Generic;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.SmartContract
@@ -21,6 +24,25 @@ namespace AElf.Kernel.SmartContract
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
             });
+            
+            context.Services
+                .AddTransient(provider =>
+                {
+                    var service = new Mock<ISystemTransactionMethodNameListProvider>();
+                    service.Setup(m => m.GetSystemTransactionMethodNameList())
+                        .Returns(new List<string>
+                            {
+                                "InitialAElfConsensusContract",
+                                "FirstRound",
+                                "NextRound",
+                                "NextTerm",
+                                "UpdateValue",
+                                "UpdateTinyBlockInformation"
+                            }
+                        );
+
+                    return service.Object;
+                });
         }
     }
 }

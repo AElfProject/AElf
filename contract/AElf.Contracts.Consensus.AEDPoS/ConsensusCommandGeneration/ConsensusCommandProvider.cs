@@ -8,7 +8,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        protected class ConsensusCommandProvider : IConsensusCommandProvider
+        protected class ConsensusCommandProvider
         {
             private readonly ICommandStrategy _commandStrategy;
 
