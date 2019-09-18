@@ -26,15 +26,15 @@ namespace AElf.Contracts.Election
             var recoveredPublicKey = Context.RecoverPublicKey();
             AnnounceElection(recoveredPublicKey);
 
-            var publicKey = recoveredPublicKey.ToHex();
+            var pubkey = recoveredPublicKey.ToHex();
 
             LockCandidateNativeToken();
 
-            AddCandidateAsOption(publicKey);
+            AddCandidateAsOption(pubkey);
 
             if (State.Candidates.Value.Value.Count <= GetValidationDataCenterCount())
             {
-                State.DataCentersRankingList.Value.DataCenters.Add(publicKey, 0);
+                State.DataCentersRankingList.Value.DataCenters.Add(pubkey, 0);
                 RegisterCandidateToSubsidyProfitScheme();
             }
 
@@ -43,36 +43,36 @@ namespace AElf.Contracts.Election
 
         private void AnnounceElection(byte[] recoveredPublicKey)
         {
-            var publicKey = recoveredPublicKey.ToHex();
-            var publicKeyByteString = ByteString.CopyFrom(recoveredPublicKey);
+            var pubkey = recoveredPublicKey.ToHex();
+            var pubkeyByteString = ByteString.CopyFrom(recoveredPublicKey);
 
-            Assert(!State.InitialMiners.Value.Value.Contains(publicKeyByteString),
+            Assert(!State.InitialMiners.Value.Value.Contains(pubkeyByteString),
                 "Initial miner cannot announce election.");
 
-            var candidateInformation = State.CandidateInformationMap[publicKey];
+            var candidateInformation = State.CandidateInformationMap[pubkey];
 
             if (candidateInformation != null)
             {
                 Assert(!candidateInformation.IsCurrentCandidate,
-                    $"This public key already announced election. {publicKey}");
+                    $"This public key already announced election. {pubkey}");
                 candidateInformation.AnnouncementTransactionId = Context.TransactionId;
                 candidateInformation.IsCurrentCandidate = true;
                 // In this way we can keep history of current candidate, like terms, missed time slots, etc.
-                State.CandidateInformationMap[publicKey] = candidateInformation;
+                State.CandidateInformationMap[pubkey] = candidateInformation;
             }
             else
             {
-                Assert(!State.BlackList.Value.Value.Contains(publicKeyByteString),
+                Assert(!State.BlackList.Value.Value.Contains(pubkeyByteString),
                     "This candidate already marked as evil node before.");
-                State.CandidateInformationMap[publicKey] = new CandidateInformation
+                State.CandidateInformationMap[pubkey] = new CandidateInformation
                 {
-                    Pubkey = publicKey,
+                    Pubkey = pubkey,
                     AnnouncementTransactionId = Context.TransactionId,
                     IsCurrentCandidate = true
                 };
             }
 
-            State.Candidates.Value.Value.Add(publicKeyByteString);
+            State.Candidates.Value.Value.Add(pubkeyByteString);
         }
 
         private void LockCandidateNativeToken()
@@ -139,9 +139,9 @@ namespace AElf.Contracts.Election
         {
             var recoveredPublicKey = Context.RecoverPublicKey();
             QuitElection(recoveredPublicKey);
-            var publicKey = recoveredPublicKey.ToHex();
+            var pubkey = recoveredPublicKey.ToHex();
 
-            var candidateInformation = State.CandidateInformationMap[publicKey];
+            var candidateInformation = State.CandidateInformationMap[pubkey];
 
             // Unlock candidate's native token.
             State.TokenContract.Unlock.Send(new UnlockInput
@@ -156,13 +156,13 @@ namespace AElf.Contracts.Election
             // Update candidate information.
             candidateInformation.IsCurrentCandidate = false;
             candidateInformation.AnnouncementTransactionId = Hash.Empty;
-            State.CandidateInformationMap[publicKey] = candidateInformation;
+            State.CandidateInformationMap[pubkey] = candidateInformation;
 
             // Remove candidate public key from the Voting Item options.
             State.VoteContract.RemoveOption.Send(new RemoveOptionInput
             {
                 VotingItemId = State.MinerElectionVotingItemId.Value,
-                Option = publicKey
+                Option = pubkey
             });
 
             // Remove this candidate from subsidy profit item.

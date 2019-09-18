@@ -35,7 +35,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 .SmallBlockMiningInterval);
             var hint = new AElfConsensusHint
             {
-                Behaviour = AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue
+                Behaviour = AElfConsensusBehaviour.UpdateValue
             }.ToByteString();
             consensusCommand.Hint.ShouldBe(hint);
 
@@ -132,7 +132,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             consensusCommand.LimitMillisecondsOfMiningBlock.ShouldBe(AEDPoSContractTestConstants
                 .SmallBlockMiningInterval);
-            var hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue}
+            var hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.UpdateValue}
                 .ToByteString();
             consensusCommand.Hint.ShouldBe(hint);
             consensusCommand.ArrangedMiningTime.ShouldBe(blockchainStartTimestamp + new Duration

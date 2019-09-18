@@ -167,7 +167,6 @@ enum AElfConsensusBehaviour {
     UPDATE_VALUE = 0;
     NEXT_ROUND = 1;
     NEXT_TERM = 2;
-    UPDATE_VALUE_WITHOUT_PREVIOUS_IN_VALUE = 3;
     NOTHING = 4;
     TINY_BLOCK = 5;
 }

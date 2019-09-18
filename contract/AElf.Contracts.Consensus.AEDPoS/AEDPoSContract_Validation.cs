@@ -91,7 +91,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             switch (extraData.Behaviour)
             {
-                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                 case AElfConsensusBehaviour.UpdateValue:
                     return ValidationForUpdateValue(extraData);
                 case AElfConsensusBehaviour.NextRound:
@@ -208,16 +207,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
         
         private bool ValidatePreviousInValue(AElfConsensusHeaderInformation extraData)
         {
-            var publicKey = extraData.SenderPubkey.ToHex();
+            var pubkey = extraData.SenderPubkey.ToHex();
 
             if (!TryToGetPreviousRoundInformation(out var previousRound)) return true;
 
-            if (!previousRound.RealTimeMinersInformation.ContainsKey(publicKey)) return true;
+            if (!previousRound.RealTimeMinersInformation.ContainsKey(pubkey)) return true;
 
-            if (extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue == null) return true;
+            if (extraData.Round.RealTimeMinersInformation[pubkey].PreviousInValue == null) return true;
 
-            var previousOutValue = previousRound.RealTimeMinersInformation[publicKey].OutValue;
-            var previousInValue = extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue;
+            var previousOutValue = previousRound.RealTimeMinersInformation[pubkey].OutValue;
+            var previousInValue = extraData.Round.RealTimeMinersInformation[pubkey].PreviousInValue;
             if (previousInValue == Hash.Empty) return true;
 
             return Hash.FromMessage(previousInValue) == previousOutValue;

@@ -410,12 +410,12 @@ namespace AElf.Contracts.Election
         {
             await ElectionContract_AnnounceElection_Test();
 
-            var publicKey = ValidationDataCenterKeyPairs.First().PublicKey.ToHex();
+            var pubkey = ValidationDataCenterKeyPairs.First().PublicKey.ToHex();
             var transactionResult = (await ElectionContractStub.UpdateCandidateInformation.SendAsync(
                 new UpdateCandidateInformationInput
                 {
                     IsEvilNode = true,
-                    Pubkey = publicKey,
+                    Pubkey = pubkey,
                     RecentlyProducedBlocks = 10,
                     RecentlyMissedTimeSlots = 100
                 })).TransactionResult;
@@ -425,7 +425,7 @@ namespace AElf.Contracts.Election
             //get candidate information
             var candidateInformation = await ElectionContractStub.GetCandidateInformation.CallAsync(new StringInput
             {
-                Value = publicKey
+                Value = pubkey
             });
 
             candidateInformation.ShouldBe(new CandidateInformation());

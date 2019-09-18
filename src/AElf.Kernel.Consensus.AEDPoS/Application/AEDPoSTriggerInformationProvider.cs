@@ -50,8 +50,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var command = consensusCommandBytes.ToConsensusCommand();
             var behaviour = command.Hint.ToAElfConsensusHint().Behaviour;
  
-            if (behaviour == AElfConsensusBehaviour.UpdateValue ||
-                behaviour == AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue)
+            if (behaviour == AElfConsensusBehaviour.UpdateValue)
             {
                 var bestChainLastBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
                 var bestChainLastBlockHash = bestChainLastBlockHeader.GetHash();
@@ -93,8 +92,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var behaviour = command.Hint.ToAElfConsensusHint().Behaviour;
             var bestChainLastBlockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
 
-            if (behaviour == AElfConsensusBehaviour.UpdateValue ||
-                behaviour == AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue)
+            if (behaviour == AElfConsensusBehaviour.UpdateValue)
             {
                 var trigger = new AElfConsensusTriggerInformation
                 {

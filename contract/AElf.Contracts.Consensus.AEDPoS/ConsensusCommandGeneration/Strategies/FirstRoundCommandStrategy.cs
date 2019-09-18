@@ -23,10 +23,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var miningInterval = MiningInterval;
                 var offset =
-                    _consensusBehaviour == AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue && Order == 1
+                    _consensusBehaviour == AElfConsensusBehaviour.UpdateValue && Order == 1
                         ? miningInterval
                         : Order.Add(MinersCount).Sub(1).Mul(miningInterval);
-                var arrangedMiningTime = MiningTimeArrangingService.ArrangeMiningTimeBasedOnOffset(CurrentBlockTime, offset);
+                var arrangedMiningTime =
+                    MiningTimeArrangingService.ArrangeMiningTimeBasedOnOffset(CurrentBlockTime, offset);
                 return new ConsensusCommand
                 {
                     Hint = new AElfConsensusHint {Behaviour = _consensusBehaviour}.ToByteString(),

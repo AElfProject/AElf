@@ -22,31 +22,30 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var publicKeyBytes = triggerInformation.Pubkey;
-            var publicKey = publicKeyBytes.ToHex();
+            var pubkey = publicKeyBytes.ToHex();
 
-            LogIfPreviousMinerHasNotProduceEnoughTinyBlocks(currentRound, publicKey);
+            LogIfPreviousMinerHasNotProduceEnoughTinyBlocks(currentRound, pubkey);
 
             var information = new AElfConsensusHeaderInformation();
             switch (triggerInformation.Behaviour)
             {
-                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                 case AElfConsensusBehaviour.UpdateValue:
-                    information = GetConsensusExtraDataToPublishOutValue(currentRound, publicKey,
+                    information = GetConsensusExtraDataToPublishOutValue(currentRound, pubkey,
                         triggerInformation);
                     break;
 
                 case AElfConsensusBehaviour.TinyBlock:
-                    information = GetConsensusExtraDataForTinyBlock(currentRound, publicKey,
+                    information = GetConsensusExtraDataForTinyBlock(currentRound, pubkey,
                         triggerInformation);
                     break;
 
                 case AElfConsensusBehaviour.NextRound:
-                    information = GetConsensusExtraDataForNextRound(currentRound, publicKey,
+                    information = GetConsensusExtraDataForNextRound(currentRound, pubkey,
                         triggerInformation);
                     break;
 
                 case AElfConsensusBehaviour.NextTerm:
-                    information = GetConsensusExtraDataForNextTerm(publicKey, triggerInformation);
+                    information = GetConsensusExtraDataForNextTerm(pubkey, triggerInformation);
                     break;
             }
 

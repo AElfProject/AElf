@@ -69,7 +69,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             /// <summary>
             /// If this miner come to a new round, normally, there are three possible behaviour:
             /// UpdateValue (most common)
-            /// UpdateValueWithoutPreviousInValue (happens if current round is the first round of current term)
             /// TinyBlock (happens if this miner is mining blocks for extra block time slot of previous round)
             /// NextRound (only happens in first round)
             /// </summary>
@@ -98,11 +97,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 )
                 {
                     return AElfConsensusBehaviour.TinyBlock;
-                }
-
-                if (CurrentRound.IsMinerListJustChanged)
-                {
-                    return AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue;
                 }
 
                 return !IsTimeSlotPassed ? AElfConsensusBehaviour.UpdateValue : AElfConsensusBehaviour.Nothing;
