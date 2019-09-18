@@ -268,7 +268,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                     var stateSets = preTrace.GetStateSets().ToList();
                     internalStateCache.Update(stateSets);
-                    var parentStateCache = txCtxt.StateCache as TieredStateCache;
+                    var parentStateCache = txContext.StateCache as TieredStateCache;
                     parentStateCache?.Update(stateSets);
                 }
             }
