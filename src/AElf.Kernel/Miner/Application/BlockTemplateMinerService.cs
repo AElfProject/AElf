@@ -41,13 +41,11 @@ namespace AElf.Kernel.Miner.Application
                 block.Header.MerkleTreeRootOfTransactions != blockHeader.MerkleTreeRootOfTransactions ||
                 block.Header.Time != blockHeader.Time)
                 throw new InvalidOperationException("template cache not match");
-            //same block
 
+            //same block
             block.Header = blockHeader;
             block.Header.Signature =
                 ByteString.CopyFrom(await _accountService.SignAsync(block.GetHash().ToByteArray()));
-
-            block.Body.BlockHeader = blockHeader.GetHash();
 
             return block;
         }

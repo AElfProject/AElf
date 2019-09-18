@@ -41,7 +41,8 @@ namespace AElf.Contracts.Genesis
 
         public override Address GetContractAddressByName(Hash input)
         {
-            return State.NameAddressMapping[input];
+            var address = State.NameAddressMapping[input];
+            return address;
         }
 
         public override SmartContractRegistration GetSmartContractRegistrationByAddress(Address input)

@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <RootNamespace>AElf.Contract.AssociationAuth</RootNamespace>
-        <IsPackable>true</IsPackable>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
     <PropertyGroup>
         <NoWarn>0436</NoWarn>
