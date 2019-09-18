@@ -245,6 +245,25 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return checkableRound.ToByteArray();
         }
 
+        public Round GetSimpleRound()
+        {
+            var minersInformation = new Dictionary<string, MinerInRound>();
+            foreach (var minerInRound in RealTimeMinersInformation.Clone())
+            {
+                var checkableMinerInRound = minerInRound.Value.Clone();
+                checkableMinerInRound.EncryptedInValues.Clear();
+                checkableMinerInRound.DecryptedPreviousInValues.Clear();
+                checkableMinerInRound.ActualMiningTimes.Clear();
+                minersInformation.Add(minerInRound.Key, checkableMinerInRound);
+            }
+
+            return new Round
+            {
+                RoundNumber = RoundNumber,
+                RealTimeMinersInformation = {minersInformation},
+            };
+        }
+
         private static int GetAbsModulus(long longValue, int intValue)
         {
             return (int) Math.Abs(longValue % intValue);
