@@ -271,7 +271,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                        .Select(m => m.ActualMiningTimes.Last())
                        .Count(t => IsTimeToChangeTerm(blockchainStartTimestamp,
                            t, currentTermNumber, timeEachTerm))
-                   > MinersCountOfConsent;
+                   >= MinersCountOfConsent;
         }
 
         /// <summary>
