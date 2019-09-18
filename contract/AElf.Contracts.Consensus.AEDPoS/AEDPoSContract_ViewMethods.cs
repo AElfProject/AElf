@@ -86,8 +86,44 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override StringValue GetCurrentMinerPubkey(Empty input)
         {
             if (!TryToGetCurrentRoundInformation(out var round)) return new StringValue();
-            var currentMinerPubkey = round.GetCurrentMinerPubkey(Context.CurrentBlockTime);
+            Context.LogDebug(() => $"Based on round: \n{round}");
+            Context.LogDebug(() => $"Based on block time: {Context.CurrentBlockTime}");
+            var currentMinerPubkey = GetCurrentMinerPubkey(round, Context.CurrentBlockTime);
+            Context.LogDebug(() => $"Current miner pubkey: {currentMinerPubkey}");
             return currentMinerPubkey != null ? new StringValue {Value = currentMinerPubkey} : new StringValue();
+        }
+
+        private string GetCurrentMinerPubkey(Round round, Timestamp currentBlockTime)
+        {
+            var miningInterval = round.GetMiningInterval();
+            string pubkey;
+            if (currentBlockTime < round.GetExtraBlockMiningTime())
+            {
+                pubkey = round.RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m =>
+                    m.ExpectedMiningTime <= currentBlockTime &&
+                    currentBlockTime < m.ExpectedMiningTime.AddMilliseconds(miningInterval))?.Pubkey;
+                Context.LogDebug(() => $"Checked normal block time slot: {pubkey}");
+                if (pubkey != null)
+                {
+                    return pubkey;
+                }
+            }
+
+            var extraBlockProducer = round.RealTimeMinersInformation.Values.First(m => m.IsExtraBlockProducer).Pubkey;
+            var extraBlockMiningTime = round.GetExtraBlockMiningTime();
+            if (extraBlockMiningTime <= currentBlockTime &&
+                currentBlockTime <= extraBlockMiningTime.AddMilliseconds(miningInterval))
+            {
+                Context.LogDebug(() => $"Checked extra block time slot: {extraBlockProducer}");
+                return extraBlockProducer;
+            }
+
+            pubkey = round.RealTimeMinersInformation.Keys.FirstOrDefault(k =>
+                round.IsInCorrectFutureMiningSlot(k, round.GetExpectedMiningTime(k).AddMilliseconds(miningInterval)));
+
+            Context.LogDebug(() => $"Checked abnormal extra block time slot: {pubkey}");
+
+            return pubkey;
         }
 
         public override BoolValue IsCurrentMiner(Address input)
@@ -95,11 +131,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var currentMinerPubkey = GetCurrentMinerPubkey(new Empty());
             if (currentMinerPubkey.Value.Any())
             {
-                return new BoolValue
+                var isCurrentMiner = new BoolValue
                 {
                     Value = input == Address.FromPublicKey(
                                 ByteArrayHelper.HexStringToByteArray(currentMinerPubkey.Value))
                 };
+                Context.LogDebug(() => $"Current miner: {currentMinerPubkey}. {isCurrentMiner}");
+                return isCurrentMiner;
             }
 
             return new BoolValue {Value = false};

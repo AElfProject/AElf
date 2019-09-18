@@ -36,12 +36,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return arrangedMiningTime.AddMilliseconds(minerInRound.Order.Mul(miningInterval));
         }
 
-        private bool IsInCorrectFutureMiningSlot(string pubkey, Timestamp currentBlockTime)
+        public bool IsInCorrectFutureMiningSlot(string pubkey, Timestamp currentBlockTime)
         {
             var miningInterval = GetMiningInterval();
 
-            var arrangedMiningTime =
-                ArrangeAbnormalMiningTime(pubkey, currentBlockTime.AddMilliseconds(-TotalMilliseconds(miningInterval)));
+            var arrangedMiningTime = ArrangeAbnormalMiningTime(pubkey, currentBlockTime);
 
             return arrangedMiningTime <= currentBlockTime &&
                    currentBlockTime <= arrangedMiningTime.AddMilliseconds(miningInterval);
