@@ -150,7 +150,7 @@ namespace AElf.OS.BlockSync.Worker
                     UseSuggestedPeer = true
                 });
                 // Download blocks from best chain
-                if (downloadResult.DownloadBlockCount == 0)
+                if (downloadResult.Success && downloadResult.DownloadBlockCount == 0)
                 {
                     downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
                     {
@@ -164,7 +164,7 @@ namespace AElf.OS.BlockSync.Worker
                 }
 
                 // Download blocks from LIB
-                if (downloadResult.DownloadBlockCount == 0)
+                if (downloadResult.Success && downloadResult.DownloadBlockCount == 0)
                 {
                     Logger.LogDebug($"Resynchronize from lib, lib height: {chain.LastIrreversibleBlockHeight}.");
                     downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
