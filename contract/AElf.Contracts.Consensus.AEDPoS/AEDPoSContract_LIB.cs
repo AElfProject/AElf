@@ -3,6 +3,7 @@ using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         private class LastIrreversibleBlockHeightCalculator
