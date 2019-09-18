@@ -13,10 +13,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
             }
 
-            protected override AElfConsensusBehaviour GetConsensusBehaviourToTerminateCurrentRound()
-            {
-                return AElfConsensusBehaviour.NextRound;
-            }
+            protected override AElfConsensusBehaviour GetConsensusBehaviourToTerminateCurrentRound() =>
+                AElfConsensusBehaviour.NextRound;
         }
     }
 }

@@ -264,6 +264,35 @@ namespace AElf.Contracts.Consensus.AEDPoS
             };
         }
 
+        public bool NeedToChangeTerm(Timestamp blockchainStartTimestamp, long currentTermNumber, long timeEachTerm)
+        {
+            return RealTimeMinersInformation.Values
+                       .Where(m => m.ActualMiningTimes.Any())
+                       .Select(m => m.ActualMiningTimes.Last())
+                       .Count(t => IsTimeToChangeTerm(blockchainStartTimestamp,
+                           t, currentTermNumber, timeEachTerm))
+                   > GetMinimumMinersCount();
+        }
+
+        /// <summary>
+        /// If timeEachTerm == 7:
+        /// 1, 1, 1 => 0 != 1 - 1 => false
+        /// 1, 2, 1 => 0 != 1 - 1 => false
+        /// 1, 8, 1 => 1 != 1 - 1 => true => term number will be 2
+        /// 1, 9, 2 => 1 != 2 - 1 => false
+        /// 1, 15, 2 => 2 != 2 - 1 => true => term number will be 3.
+        /// </summary>
+        /// <param name="blockchainStartTimestamp"></param>
+        /// <param name="termNumber"></param>
+        /// <param name="blockProducedTimestamp"></param>
+        /// <param name="timeEachTerm"></param>
+        /// <returns></returns>
+        private static bool IsTimeToChangeTerm(Timestamp blockchainStartTimestamp, Timestamp blockProducedTimestamp,
+            long termNumber, long timeEachTerm)
+        {
+            return (blockProducedTimestamp - blockchainStartTimestamp).Seconds.Div(timeEachTerm) != termNumber - 1;
+        }
+
         private static int GetAbsModulus(long longValue, int intValue)
         {
             return (int) Math.Abs(longValue % intValue);
