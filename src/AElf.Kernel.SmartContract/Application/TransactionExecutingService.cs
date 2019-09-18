@@ -131,29 +131,7 @@ namespace AElf.Kernel.SmartContract.Application
                 };
             }
 
-            if (singleTxExecutingDto.Transaction.To == null || singleTxExecutingDto.Transaction.From == null)
-            {
-                throw new Exception($"error tx: {singleTxExecutingDto.Transaction}");
-            }
-
-            var trace = new TransactionTrace
-            {
-                TransactionId = singleTxExecutingDto.Transaction.GetHash()
-            };
-
-            var txContext = new TransactionContext
-            {
-                PreviousBlockHash = singleTxExecutingDto.ChainContext.BlockHash,
-                CurrentBlockTime = singleTxExecutingDto.CurrentBlockTime,
-                Transaction = singleTxExecutingDto.Transaction,
-                BlockHeight = singleTxExecutingDto.ChainContext.BlockHeight + 1,
-                Trace = trace,
-                CallDepth = singleTxExecutingDto.Depth,
-                StateCache = singleTxExecutingDto.ChainContext.StateCache,
-                Origin = singleTxExecutingDto.Origin != null 
-                    ? singleTxExecutingDto.Origin 
-                    : singleTxExecutingDto.Transaction.From
-            };
+            var txContext = CreateTransactionContext(singleTxExecutingDto, out var trace);
 
             var internalStateCache = new TieredStateCache(singleTxExecutingDto.ChainContext.StateCache);
             var internalChainContext = new ChainContextWithTieredStateCache(singleTxExecutingDto.ChainContext, internalStateCache);
@@ -318,7 +296,6 @@ namespace AElf.Kernel.SmartContract.Application
                         Transaction = postTx,
                         CurrentBlockTime = currentBlockTime,
                         IsCancellable = false
-                        
                     };
                     var postTrace = await ExecuteOneAsync(singleTxExecutingDto,
                         cancellationToken);
@@ -425,6 +402,35 @@ namespace AElf.Kernel.SmartContract.Application
         {
             // One instance per type
             return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
+        }
+
+        private TransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto,
+            out TransactionTrace trace)
+        {
+            if (singleTxExecutingDto.Transaction.To == null || singleTxExecutingDto.Transaction.From == null)
+            {
+                throw new Exception($"error tx: {singleTxExecutingDto.Transaction}");
+            }
+
+            trace = new TransactionTrace
+            {
+                TransactionId = singleTxExecutingDto.Transaction.GetHash()
+            };
+            var txContext = new TransactionContext
+            {
+                PreviousBlockHash = singleTxExecutingDto.ChainContext.BlockHash,
+                CurrentBlockTime = singleTxExecutingDto.CurrentBlockTime,
+                Transaction = singleTxExecutingDto.Transaction,
+                BlockHeight = singleTxExecutingDto.ChainContext.BlockHeight + 1,
+                Trace = trace,
+                CallDepth = singleTxExecutingDto.Depth,
+                StateCache = singleTxExecutingDto.ChainContext.StateCache,
+                Origin = singleTxExecutingDto.Origin != null
+                    ? singleTxExecutingDto.Origin
+                    : singleTxExecutingDto.Transaction.From
+            };
+
+            return txContext;
         }
     }
 }
