@@ -9,7 +9,7 @@ namespace AElf.OS.BlockSync
 
         public const int BlockSyncModeHeightOffset = 12;
         public const int DefaultBlockDownloadTimerPeriod = 1000;
-        public const int DefaultMaxBlockDownloadCount = 200;
+        public const int DefaultMaxBlockDownloadCount = 50;
         public const int DefaultMaxBatchRequestBlockCount = 10;
     }
 }
