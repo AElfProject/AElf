@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using AElf.Cryptography;
 using AElf.Contracts.Genesis;
 using AElf.Database;
@@ -12,6 +13,7 @@ using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.TransactionPool;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
 using AElf.OS.Network.Application;
@@ -60,7 +62,7 @@ namespace AElf.Contracts.TestKit
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             var services = context.Services;
-            
+
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
@@ -95,12 +97,32 @@ namespace AElf.Contracts.TestKit
 //            context.Services.AddSingleton(o => Mock.Of<IConsensusInformationGenerationService>());
 //            context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
             context.Services.AddTransient(o => Mock.Of<IConsensusService>());
+
             #endregion
 
             context.Services.AddTransient<IAccount, Account>();
             context.Services.AddTransient<IContractTesterFactory, ContractTesterFactory>();
             context.Services.AddTransient<ITransactionExecutor, TransactionExecutor>();
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
+
+            context.Services
+                .AddTransient(provider =>
+                {
+                    var service = new Mock<ISystemTransactionMethodNameListProvider>();
+                    service.Setup(m => m.GetSystemTransactionMethodNameList())
+                        .Returns(new List<string>
+                            {
+                                "InitialAElfConsensusContract",
+                                "FirstRound",
+                                "NextRound",
+                                "NextTerm",
+                                "UpdateValue",
+                                "UpdateTinyBlockInformation"
+                            }
+                        );
+
+                    return service.Object;
+                });
         }
 
         public int ChainId { get; } = 500;
@@ -108,14 +130,15 @@ namespace AElf.Contracts.TestKit
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            context.ServiceProvider.GetService<IAElfAsymmetricCipherKeyPairProvider>().SetKeyPair(CryptoHelper.GenerateKeyPair());
+            context.ServiceProvider.GetService<IAElfAsymmetricCipherKeyPairProvider>()
+                .SetKeyPair(CryptoHelper.GenerateKeyPair());
 
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = ChainId,
                 ZeroSmartContract = typeof(BasicContractZero),
                 SmartContractRunnerCategory = SmartContractTestConstants.TestRunnerCategory,
-            };            
+            };
             var contractOptions = context.ServiceProvider.GetService<IOptionsSnapshot<ContractOptions>>().Value;
             dto.ContractDeploymentAuthorityRequired = contractOptions.ContractDeploymentAuthorityRequired;
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
