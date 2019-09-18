@@ -10,5 +10,6 @@ namespace AElf.OS
         public double DividendPoolRatio { get; set; } = 0.12;
         public long MaximumLockTime { get; set; } = 1080 * 86400;
         public long MinimumLockTime { get; set; } = 90 * 86400;
+        public string ResourceTokenSymbolList { get; set; } = "RAM,STO,CPU,NET";
     }
 }
