@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
-        <IsPackable>false</IsPackable>
         <AssemblyName>AElf.Contracts.CrossChain.Tests</AssemblyName>
         <RootNamespace>AElf.Contracts.CrossChain.Tests</RootNamespace>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.msbuild" Version="2.5.1" />

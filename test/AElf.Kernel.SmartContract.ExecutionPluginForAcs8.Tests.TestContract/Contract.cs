@@ -42,7 +42,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract
             }
 
             State.Map[sum.ToString()] = sum.ToString();
-
             return new Empty();
         }
 
@@ -57,7 +56,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract
             {
                 State.Map[i.ToString()] = i.ToString();
             }
-
+            
             return new Empty();
         }
 

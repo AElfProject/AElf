@@ -13,6 +13,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.EventBus.Local;
@@ -41,6 +43,8 @@ namespace AElf.WebApp.Application.Chain
         private readonly IBlockchainService _blockchainService;
 
         public ILocalEventBus LocalEventBus { get; set; }
+        
+        public ILogger Logger { get; set; }
 
         public TransactionAppService(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             IBlockchainService blockchainService)
@@ -49,6 +53,7 @@ namespace AElf.WebApp.Application.Chain
             _blockchainService = blockchainService;
 
             LocalEventBus = NullLocalEventBus.Instance;
+            Logger = NullLogger<TransactionAppService>.Instance;
         }
 
         /// <summary>
@@ -72,6 +77,7 @@ namespace AElf.WebApp.Application.Chain
             }
             catch(Exception e)
             {
+                Logger.LogError(e, e.Message); //for debug
                 throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
                     Error.InvalidTransaction.ToString());
             }
@@ -93,8 +99,9 @@ namespace AElf.WebApp.Application.Chain
                 var response = await CallReadOnlyReturnReadableValueAsync(transaction);
                 return response;
             }
-            catch
+            catch(Exception e)
             {
+                Logger.LogError(e, e.Message); //for debug
                 throw new UserFriendlyException(Error.Message[Error.InvalidTransaction],
                     Error.InvalidTransaction.ToString());
             }

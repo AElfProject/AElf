@@ -21,12 +21,13 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
     [DependsOn(
         typeof(KernelTestAElfModule),
         typeof(AEDPoSAElfModule))]
+    // ReSharper disable once InconsistentNaming
     public class AEDPoSTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var _interestedEvent = new IrreversibleBlockFound();
-            var _logEvent = _interestedEvent.ToLogEvent(SampleAddress.AddressList[0]);
+            var interestedEvent = new IrreversibleBlockFound();
+            var logEvent = interestedEvent.ToLogEvent(SampleAddress.AddressList[0]);
             
             context.Services.AddTransient(provider =>
             {
@@ -47,7 +48,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                     {
                         Header = new BlockHeader
                         {
-                            Bloom = ByteString.CopyFrom(_logEvent.GetBloom().Data),
+                            Bloom = ByteString.CopyFrom(logEvent.GetBloom().Data),
                             Height = 15
                         },
                         Body = new BlockBody
@@ -83,11 +84,11 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                     .Returns(Task.FromResult(new TransactionResult
                     {
                         Status = TransactionResultStatus.Mined,
-                        Bloom = ByteString.CopyFrom(_logEvent.GetBloom().Data),
+                        Bloom = ByteString.CopyFrom(logEvent.GetBloom().Data),
                         Logs = { new LogEvent
                         {
                             Address = SampleAddress.AddressList[0],
-                            Name = _logEvent.Name
+                            Name = logEvent.Name
                         }}
                     }));
                 
@@ -152,25 +153,6 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 
                 return mockService.Object;
             });
-
-            context.Services
-                .AddTransient(provider =>
-                {
-                    var service = new Mock<ISystemTransactionMethodNameListProvider>();
-                    service.Setup(m => m.GetSystemTransactionMethodNameList())
-                        .Returns(new List<string>
-                            {
-                                nameof(AEDPoSContract.InitialAElfConsensusContract),
-                                nameof(AEDPoSContract.FirstRound),
-                                nameof(AEDPoSContract.NextRound),
-                                nameof(AEDPoSContract.NextTerm),
-                                nameof(AEDPoSContract.UpdateValue),
-                                nameof(AEDPoSContract.UpdateTinyBlockInformation),
-                            }
-                        );
-
-                    return service.Object;
-                });
             
             context.Services
                 .AddTransient<IConstrainedTransactionValidationProvider, ConstrainedAEDPoSTransactionValidationProvider

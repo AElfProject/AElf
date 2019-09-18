@@ -10,6 +10,9 @@ namespace AElf.WebApp.Application.Chain.Dto
         public long RoundId { get; set; }
         public Dictionary<string, MinerInRoundDto> RealTimeMinerInformation { get; set; }
         public string ExtraBlockProducerOfPreviousRound { get; set; }
+        public long ConfirmedIrreversibleBlockRoundNumber { get; set; }
+        public long ConfirmedIrreversibleBlockHeight { get; set; }
+        public bool IsMinerListJustChanged { get; set; }
     }
 
     public class MinerInRoundDto
@@ -23,5 +26,6 @@ namespace AElf.WebApp.Application.Chain.Dto
         public string OutValue { get; set; }
         public long ProducedBlocks { get; set; }
         public long MissedBlocks { get; set; }
+        public long ImpliedIrreversibleBlockHeight { get; set; }
     }
 }
