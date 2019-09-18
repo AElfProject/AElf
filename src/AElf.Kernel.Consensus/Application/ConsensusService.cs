@@ -162,6 +162,8 @@ namespace AElf.Kernel.Consensus.Application
                 generatedTransaction.RefBlockPrefix =
                     ByteString.CopyFrom(chainContext.BlockHash.Value.Take(4).ToArray());
             }
+            
+            Logger.LogTrace("Consensus transaction generated.");
 
             return generatedTransactions;
         }
