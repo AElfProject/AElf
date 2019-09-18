@@ -29,7 +29,7 @@ namespace AElf.Contracts.Economic.TestBase
             context.Services.AddSingleton<IPreExecutionPlugin, ResourceConsumptionPreExecutionPlugin>();
             context.Services.AddSingleton<IPostExecutionPlugin, ResourceConsumptionPostExecutionPlugin>();
             context.Services.AddSingleton<IRandomHashCacheService, MockRandomHashCacheService>();
-            context.Services.AddSingleton<IIsPackageNormalTransactionProvider, IsPackageNormalTransactionProvider>();
+            context.Services.AddSingleton<ITransactionInclusivenessProvider, TransactionInclusivenessProvider>();
         }
     }
     

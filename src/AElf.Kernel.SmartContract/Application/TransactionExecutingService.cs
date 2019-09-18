@@ -130,16 +130,16 @@ namespace AElf.Kernel.SmartContract.Application
             Address origin = null, bool isCancellable = true)
         {
             await Task.Yield();
-//            if (cancellationToken.IsCancellationRequested && isCancellable)
-//            {
-//                return new TransactionTrace
-//                {
-//                    TransactionId = transaction.GetHash(),
-//                    ExecutionStatus = ExecutionStatus.Canceled,
-//                    Error = "Execution cancelled"
-//                };
-//            }
-            Logger.LogTrace("###====### smart contract prepared");
+            if (cancellationToken.IsCancellationRequested && isCancellable)
+            {
+                return new TransactionTrace
+                {
+                    TransactionId = transaction.GetHash(),
+                    ExecutionStatus = ExecutionStatus.Canceled,
+                    Error = "Execution cancelled"
+                };
+            }
+            
             if (transaction.To == null || transaction.From == null)
             {
                 throw new Exception($"error tx: {transaction}");
@@ -383,18 +383,8 @@ namespace AElf.Kernel.SmartContract.Application
                 var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txCtxt);
                 foreach (var postTx in transactions)
                 {
-                    TransactionTrace postTrace;
-                    postTrace = await ExecuteOneAsync(0, internalChainContext, postTx, currentBlockTime,
-                        cancellationToken).WithCancellation(cancellationToken);
-//                    try
-//                    {
-//                        postTrace = await ExecuteOneAsync(0, internalChainContext, postTx, currentBlockTime,
-//                            cancellationToken).WithCancellation(cancellationToken);
-//                    }
-//                    catch
-//                    {
-//                        return false;
-//                    }
+                    var postTrace = await ExecuteOneAsync(0, internalChainContext, postTx, currentBlockTime,
+                        cancellationToken, isCancellable: false);
                     trace.PostTransactions.Add(postTx);
                     trace.PostTraces.Add(postTrace);
                     if (!postTrace.IsSuccessful())
@@ -417,7 +407,12 @@ namespace AElf.Kernel.SmartContract.Application
         {
             if (trace.ExecutionStatus == ExecutionStatus.Undefined)
             {
-                return null;
+                return new TransactionResult
+                {
+                    TransactionId = trace.TransactionId,
+                    Status = TransactionResultStatus.Unexecutable,
+                    Error = ExecutionStatus.Undefined.ToString()
+                };
             }
 
             if (trace.ExecutionStatus == ExecutionStatus.Prefailed)

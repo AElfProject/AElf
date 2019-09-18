@@ -1,14 +1,15 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Domain;
 using AElf.Types;
+using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
@@ -18,17 +19,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
     public class BlockExecutingService : IBlockExecutingService, ITransientDependency
     {
         private readonly ITransactionExecutingService _executingService;
-        private readonly IBlockManager _blockManager;
-        private readonly IBlockGenerationService _blockGenerationService;
+        private readonly IBlockchainStateService _blockchainStateService;
         public ILocalEventBus EventBus { get; set; }
         public ILogger<BlockExecutingService> Logger { get; set; }
 
-        public BlockExecutingService(ITransactionExecutingService executingService, IBlockManager blockManager,
-            IBlockGenerationService blockGenerationService)
+        public BlockExecutingService(ITransactionExecutingService executingService,
+            IBlockchainStateService blockchainStateService)
         {
             _executingService = executingService;
-            _blockManager = blockManager;
-            _blockGenerationService = blockGenerationService;
+            _blockchainStateService = blockchainStateService;
             EventBus = NullLocalEventBus.Instance;
         }
 
@@ -58,9 +57,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var returnSetCollection = new ReturnSetCollection(nonCancellableReturnSets);
             List<ExecutionReturnSet> cancellableReturnSets = new List<ExecutionReturnSet>();
-            stopWatch.Start();
-            string addedInfo = string.Empty;
-            if (cancellable.Count > 0)
+
+            if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
             {
                 cancellableReturnSets = await _executingService.ExecuteAsync(new TransactionExecutingDto 
                     {
@@ -70,12 +68,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     },
                     cancellationToken, false);
                 returnSetCollection.AddRange(cancellableReturnSets);
-                addedInfo = $"###===###handled transaction count is {cancellableReturnSets.Count}" +
-                            $"###===###elapsed milliseconds is {stopWatch.ElapsedMilliseconds}";
+                Logger.LogTrace("Executed cancellable txs");
             }
-            stopWatch.Stop();
-            Logger.LogTrace("Executed cancellable txs" + addedInfo);
-            Logger.LogTrace("Handled return set");
 
             if (returnSetCollection.Unexecutable.Count > 0)
             {
@@ -83,15 +77,121 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     new UnexecutableTransactionsFoundEvent(blockHeader, returnSetCollection.Unexecutable));
             }
 
-            var executed = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
+            var executedCancellableTransactions = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
             var allExecutedTransactions =
-                nonCancellable.Concat(cancellable.Where(x => executed.Contains(x.GetHash()))).ToList();
-            var block = await _blockGenerationService.FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
+                nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash())))
+                    .ToList();
+            var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
                 returnSetCollection.Executed);
+            return block;
+        }
+        
+        private async Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader, List<Transaction> transactions,
+            List<ExecutionReturnSet> blockExecutionReturnSet)
+        {
+            var bloom = new Bloom();
+            var blockStateSet = new BlockStateSet
+            {
+                BlockHeight = blockHeader.Height,
+                PreviousHash = blockHeader.PreviousBlockHash
+            };
+            foreach (var returnSet in blockExecutionReturnSet)
+            {
+                foreach (var change in returnSet.StateChanges)
+                {
+                    blockStateSet.Changes[change.Key] = change.Value;
+                }
 
-            Logger.LogTrace("Filled block");
+                if (returnSet.Status == TransactionResultStatus.Mined)
+                {
+                    bloom.Combine(new[] {new Bloom(returnSet.Bloom.ToByteArray())});    
+                }
+            }
+
+            blockHeader.Bloom = ByteString.CopyFrom(bloom.Data);
+            blockHeader.MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet);
+            
+            var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
+            blockExecutionReturnSet = blockExecutionReturnSet.AsParallel()
+                .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
+            blockHeader.MerkleTreeRootOfTransactionStatus =
+                CalculateTransactionStatusMerkleTreeRoot(blockExecutionReturnSet);
+            
+            blockHeader.MerkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds);
+            
+            var blockHash = blockHeader.GetHashWithoutCache();
+            var blockBody = new BlockBody
+            {
+                BlockHeader = blockHash
+            };
+            blockBody.TransactionIds.AddRange(allExecutedTransactionIds);
+            
+            var block = new Block
+            {
+                Header = blockHeader,
+                Body = blockBody
+            };
+            blockBody.BlockHeader = blockHash;
+            blockStateSet.BlockHash = blockHash;
+
+            await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
 
             return block;
+        }
+
+        private Hash CalculateWorldStateMerkleTreeRoot(BlockStateSet blockStateSet)
+        {
+            Hash merkleTreeRootOfWorldState;
+            var byteArrays = GetDeterministicByteArrays(blockStateSet);
+            using (var hashAlgorithm = SHA256.Create())
+            {
+                foreach (var bytes in byteArrays)
+                {
+                    hashAlgorithm.TransformBlock(bytes, 0, bytes.Length, null, 0);
+                }
+
+                hashAlgorithm.TransformFinalBlock(new byte[0], 0, 0);
+                merkleTreeRootOfWorldState = Hash.FromByteArray(hashAlgorithm.Hash);
+            }
+
+            return merkleTreeRootOfWorldState;
+        }
+        
+        private IEnumerable<byte[]> GetDeterministicByteArrays(BlockStateSet blockStateSet)
+        {
+            var keys = blockStateSet.Changes.Keys;
+            foreach (var k in new SortedSet<string>(keys))
+            {
+                yield return Encoding.UTF8.GetBytes(k);
+                yield return blockStateSet.Changes[k].ToByteArray();
+            }
+        }
+        
+        private Hash CalculateTransactionStatusMerkleTreeRoot(List<ExecutionReturnSet> blockExecutionReturnSet)
+        {
+            var executionReturnSet = blockExecutionReturnSet.Select(executionReturn =>
+                (executionReturn.TransactionId, executionReturn.Status));
+            var nodes = new List<Hash>();
+            foreach (var (transactionId, status) in executionReturnSet)
+            {
+                nodes.Add(GetHashCombiningTransactionAndStatus(transactionId, status));
+            }
+
+            return BinaryMerkleTree.FromLeafNodes(nodes).Root;
+        }
+
+        private Hash CalculateTransactionMerkleTreeRoot(IEnumerable<Hash> transactionIds)
+        {
+            return BinaryMerkleTree.FromLeafNodes(transactionIds).Root;
+        }
+        
+        private Hash GetHashCombiningTransactionAndStatus(Hash txId,
+            TransactionResultStatus executionReturnStatus)
+        {
+            // combine tx result status
+            var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
+                .ToArray();
+            return Hash.FromRawBytes(rawBytes);
         }
     }
 }
