@@ -20,7 +20,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         private readonly ITransactionGrouper _grouper;
         private readonly ITransactionExecutingService _plainExecutingService;
         private readonly ITransactionResultService _transactionResultService;
-        public ILogger<LocalParallelTransactionExecutingService> Logger
+        public ILogger<ITransactionExecutingService> Logger
         {
             get => _logger;
             set
@@ -34,7 +34,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             } 
         }
 
-        private ILogger<LocalParallelTransactionExecutingService> _logger;
+        private ILogger<ITransactionExecutingService> _logger;
         public ILocalEventBus EventBus { get; set; }
 
         public LocalParallelTransactionExecutingService(ITransactionGrouper grouper,
@@ -56,7 +56,6 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             Logger.LogTrace($"Entered parallel ExecuteAsync.");
             var transactions = transactionExecutingDto.Transactions.ToList();
-            Logger.LogTrace($"all transaction count is {transactions.Count}");
             var blockHeader = transactionExecutingDto.BlockHeader;
             // TODO: Is it reasonable to allow throwing exception here
 //            if (throwException)

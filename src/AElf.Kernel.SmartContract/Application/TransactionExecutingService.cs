@@ -21,7 +21,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly List<IPreExecutionPlugin> _prePlugins;
         private readonly List<IPostExecutionPlugin> _postPlugins;
         private readonly ITransactionResultService _transactionResultService;
-        public ILogger Logger { get; set; }
+        public ILogger<ITransactionExecutingService> Logger { get; set; }
         
         public ILocalEventBus LocalEventBus { get; set; }
 
@@ -49,26 +49,20 @@ namespace AElf.Kernel.SmartContract.Application
                 transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);
 
             var returnSets = new List<ExecutionReturnSet>();
-            Logger.LogTrace($"###=======### start enumerating transactions and transaction count is {transactionExecutingDto.Transactions.Count()}");
             foreach (var transaction in transactionExecutingDto.Transactions)
             {
                 TransactionTrace trace;
-//                if (cancellationToken.IsCancellationRequested)
-//                {
-//                    break;
-//                }
-//                trace = await ExecuteOneAsync(0, groupChainContext, transaction, 
-//                    transactionExecutingDto.BlockHeader.Time,
-//                    cancellationToken);
+                if (cancellationToken.IsCancellationRequested)
+                    break;
                 try
                 {
                     trace = await ExecuteOneAsync(0, groupChainContext, transaction, 
                         transactionExecutingDto.BlockHeader.Time,
                         cancellationToken).WithCancellation(cancellationToken);
                 }
-                catch(Exception e)
+                catch(OperationCanceledException)
                 {
-                    Logger.LogTrace("###=======###canceled in executeAsync  in foreach transaction");
+                    Logger.LogTrace("canceled in executeAsync");
                     break;
                 }
                 if (trace == null)
@@ -165,29 +159,14 @@ namespace AElf.Kernel.SmartContract.Application
             var internalChainContext = new ChainContextWithTieredStateCache(chainContext, internalStateCache);
 
             IExecutive executive;
-//            try
-//            {
-//                executive = await _smartContractExecutiveService.GetExecutiveAsync(
-//                    internalChainContext,
-//                    transaction.To).WithCancellation(cancellationToken);
-//            }
-//            catch (SmartContractFindRegistrationException e)
-//            {
-//                txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-//                txCtxt.Trace.Error += "Invalid contract address.\n";
-//                return trace;
-//            }
             try
             {
-                Logger.LogTrace("######=======####### prepare to execute smart contract");//get, cancel directly
                 executive = await _smartContractExecutiveService.GetExecutiveAsync(
                     internalChainContext,
-                    transaction.To);//.WithCancellation(cancellationToken);
+                    transaction.To);
             }
             catch (Exception e)
             {
-                Logger.LogTrace("######=======####### cancel in 158");
-                trace.ExecutionStatus = ExecutionStatus.Canceled;
                 txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                 txCtxt.Trace.Error += "Invalid contract address.\n";
                 return trace;
@@ -207,52 +186,18 @@ namespace AElf.Kernel.SmartContract.Application
                 }
 
                 #endregion
-                //await executive.ApplyAsync(txCtxt);
-                try
-                {
-                    await executive.ApplyAsync(txCtxt); //.WithCancellation(cancellationToken);
-                }
-                catch
-                {
-                    Logger.LogTrace("timeout in execute one async in executive.ApplyAsync(txCtxt)");
-                    trace.ExecutionStatus = ExecutionStatus.Canceled;
-                    return trace;
-                }
-//                await ExecuteInlineTransactions(depth, currentBlockTime, txCtxt, internalStateCache,
-//                    internalChainContext, cancellationToken);
-                try
-                {
-                    await ExecuteInlineTransactions(depth, currentBlockTime, txCtxt, internalStateCache,
-                        internalChainContext, cancellationToken); //.WithCancellation(cancellationToken);
-                }
-                catch
-                {
-                    Logger.LogTrace("timeout in execute one async in ExecuteInlineTransactions");
-                    trace.ExecutionStatus = ExecutionStatus.Canceled;
-                    return trace;
-                }
+                await executive.ApplyAsync(txCtxt);
+                
+                await ExecuteInlineTransactions(depth, currentBlockTime, txCtxt, internalStateCache,
+                    internalChainContext, cancellationToken);
 
                 #region PostTransaction
 
                 if (depth == 0)
                 {
-//                    bool isSuccess = await ExecutePluginOnPostTransactionStageAsync(executive, txCtxt,
-//                        currentBlockTime,
-//                        internalChainContext, internalStateCache, cancellationToken);
-                    bool isSuccess;
-                    try
-                    {
-                        isSuccess = await ExecutePluginOnPostTransactionStageAsync(executive, txCtxt,
-                            currentBlockTime,
-                            internalChainContext, internalStateCache,
-                            cancellationToken); //.WithCancellation(cancellationToken);
-                    }
-                    catch
-                    {
-                        Logger.LogTrace("######=======####### canceled in plugin post transaction");
-                        trace.ExecutionStatus = ExecutionStatus.Canceled;
-                        return trace;
-                    }
+                    bool isSuccess = await ExecutePluginOnPostTransactionStageAsync(executive, txCtxt,
+                        currentBlockTime,
+                        internalChainContext, internalStateCache, cancellationToken);
                     if (!isSuccess)
                     {
                         return trace;
@@ -290,18 +235,15 @@ namespace AElf.Kernel.SmartContract.Application
                 foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
                 {
                     TransactionTrace inlineTrace = null;
-                    inlineTrace = await ExecuteOneAsync(depth + 1, internalChainContext, inlineTx,
-                        currentBlockTime, cancellationToken, txCtxt.Origin).WithCancellation(cancellationToken);
-//                    try
-//                    {
-//                        inlineTrace = await ExecuteOneAsync(depth + 1, internalChainContext, inlineTx,
-//                            currentBlockTime, cancellationToken, txCtxt.Origin).WithCancellation(cancellationToken);
-//                    }
-//                    catch
-//                    {
-//                        Logger.LogDebug("canceled in inline transaction");
-//                        break;
-//                    }
+                    try
+                    {
+                        inlineTrace = await ExecuteOneAsync(depth + 1, internalChainContext, inlineTx,
+                            currentBlockTime, cancellationToken, txCtxt.Origin).WithCancellation(cancellationToken);
+                    }
+                    catch(OperationCanceledException)
+                    {
+                        break;
+                    }
                     trace.InlineTraces.Add(inlineTrace);
                     if (!inlineTrace.IsSuccessful())
                     {
@@ -327,30 +269,19 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 IEnumerable<Transaction> transactions = null;
                 transactions = await plugin.GetPreTransactionsAsync(executive.Descriptors, txCtxt);
-//                try
-//                {
-//                    transactions = await plugin.GetPreTransactionsAsync(executive.Descriptors, txCtxt)
-//                        .WithCancellation(cancellationToken);
-//                }
-//                catch
-//                {
-//                    Logger.LogTrace("timeout in async plugin");
-//                }
                 foreach (var preTx in transactions)
                 {
                     TransactionTrace preTrace;
-                    preTrace = await ExecuteOneAsync(0, internalChainContext, preTx, currentBlockTime,
-                        cancellationToken);
-//                    try
-//                    {
-//                        preTrace = await ExecuteOneAsync(0, internalChainContext, preTx, currentBlockTime,
-//                            cancellationToken).WithCancellation(cancellationToken);
-//                    }
-//                    catch
-//                    {
-//                        Logger.LogDebug("canceled in ExecutePluginOnPreTransactionStageAsync");
-//                        return false;
-//                    }
+                    try
+                    {
+                        preTrace = await ExecuteOneAsync(0, internalChainContext, preTx, currentBlockTime,
+                            cancellationToken).WithCancellation(cancellationToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        return false;
+                    }
+                    
                     trace.PreTransactions.Add(preTx);
                     trace.PreTraces.Add(preTrace);
                     if (!preTrace.IsSuccessful())
@@ -383,8 +314,16 @@ namespace AElf.Kernel.SmartContract.Application
                 var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txCtxt);
                 foreach (var postTx in transactions)
                 {
-                    var postTrace = await ExecuteOneAsync(0, internalChainContext, postTx, currentBlockTime,
-                        cancellationToken, isCancellable: false);
+                    TransactionTrace postTrace = null;
+                    try
+                    {
+                        postTrace = await ExecuteOneAsync(0, internalChainContext, postTx, currentBlockTime,
+                            cancellationToken, isCancellable: false).WithCancellation(cancellationToken);
+                    }
+                    catch(OperationCanceledException)
+                    {
+                        return false;
+                    }
                     trace.PostTransactions.Add(postTx);
                     trace.PostTraces.Add(postTrace);
                     if (!postTrace.IsSuccessful())
@@ -488,34 +427,6 @@ namespace AElf.Kernel.SmartContract.Application
         {
             // One instance per type
             return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
-        }
-    }
-    public static class ObjExt{
-        private struct Void { }
-        public static async Task<TResult> WithCancellation<TResult>(this Task<TResult> originalTask, CancellationToken ct) 
-        {
-            var cancelTask = new TaskCompletionSource<Void>();
-            using (ct.Register(t => ((TaskCompletionSource<Void>)t).TrySetResult(new Void()), cancelTask)) 
-            {
-                var any = await Task.WhenAny(originalTask, cancelTask.Task);
-                if (any == cancelTask.Task) {
-                    ct.ThrowIfCancellationRequested();                 
-                }
-            }
-            return await originalTask;
-        }
-        public static async Task WithCancellation(this Task originalTask, CancellationToken ct)
-        {
-            var cancelTask = new TaskCompletionSource<Void>();
-            using (ct.Register(t => ((TaskCompletionSource<Void>)t).TrySetResult(new Void()), cancelTask))
-            {
-                Task any = await Task.WhenAny(originalTask, cancelTask.Task);
-                if (any == cancelTask.Task)
-                {
-                    ct.ThrowIfCancellationRequested();
-                }
-            }
-            await originalTask;
         }
     }
 }
