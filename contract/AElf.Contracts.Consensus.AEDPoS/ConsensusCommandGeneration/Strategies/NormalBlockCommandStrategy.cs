@@ -31,7 +31,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     }.ToByteString(),
                     ArrangedMiningTime = arrangedMiningTime,
                     // Cancel mining after time slot of current miner because of the task queue.
-                    MiningDueTime = CurrentRound.GetExpectedMiningTime(Pubkey).AddMilliseconds(TinyBlockSlotInterval),
+                    MiningDueTime = CurrentRound.GetExpectedMiningTime(Pubkey).AddMilliseconds(MiningInterval),
                     LimitMillisecondsOfMiningBlock = DefaultBlockMiningLimit
                 };
             }

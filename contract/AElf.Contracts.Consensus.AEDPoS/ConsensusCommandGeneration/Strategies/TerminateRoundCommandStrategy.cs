@@ -24,8 +24,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var arrangedMiningTime =
                     MiningTimeArrangingService.ArrangeExtraBlockMiningTime(CurrentRound, Pubkey, CurrentBlockTime);
-                //CurrentRound.ArrangeAbnormalMiningTime(Pubkey, CurrentBlockTime);
-                var miningDueTime = arrangedMiningTime.AddMilliseconds(MiningInterval);
                 return new ConsensusCommand
                 {
                     Hint = new AElfConsensusHint
@@ -34,7 +32,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         }
                         .ToByteString(),
                     ArrangedMiningTime = arrangedMiningTime,
-                    MiningDueTime = miningDueTime,
+                    MiningDueTime = arrangedMiningTime.AddMilliseconds(MiningInterval),
                     LimitMillisecondsOfMiningBlock =
                         _isNewTerm ? LastBlockOfCurrentTermMiningLimit : DefaultBlockMiningLimit
                 };
