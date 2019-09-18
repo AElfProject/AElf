@@ -26,8 +26,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 var minedMiners = _currentRound.GetMinedMiners().Select(m => m.Pubkey).ToList();
                 var impliedIrreversibleHeights = _previousRound.GetSortedImpliedIrreversibleBlockHeights(minedMiners);
-                var minimumMinersCount = _currentRound.GetMinimumMinersCount();
-                if (impliedIrreversibleHeights.Count < minimumMinersCount)
+                if (impliedIrreversibleHeights.Count < _currentRound.MinersCountOfConsent)
                 {
                     libHeight = 0;
                     return;
