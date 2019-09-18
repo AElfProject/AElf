@@ -2,8 +2,8 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
-        <IsPackable>true</IsPackable>
         <RootNamespace>AElf.Contract.TestContract</RootNamespace>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
     
     <PropertyGroup>

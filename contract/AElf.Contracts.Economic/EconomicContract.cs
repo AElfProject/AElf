@@ -56,7 +56,8 @@ namespace AElf.Contracts.Economic
                     Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName),
                     Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName),
                     Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName)
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
+                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
                 }
             });
         }
@@ -81,6 +82,8 @@ namespace AElf.Contracts.Economic
 
         private void CreateResourceTokens()
         {
+            var tokenConverter =
+                Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
             foreach (var resourceTokenSymbol in EconomicContractConstants.ResourceTokenSymbols)
             {
                 State.TokenContract.Create.Send(new CreateInput
@@ -90,8 +93,20 @@ namespace AElf.Contracts.Economic
                     TotalSupply = EconomicContractConstants.ResourceTokenTotalSupply,
                     Decimals = EconomicContractConstants.ResourceTokenDecimals,
                     Issuer = Context.Self,
+                    LockWhiteList =
+                    {
+                        Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
+                        Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
+                    },
                     IsBurnable = true // TODO: TBD,
-
+                });
+                
+                State.TokenContract.Issue.Send(new IssueInput
+                {
+                    Symbol = resourceTokenSymbol,
+                    Amount = EconomicContractConstants.ResourceTokenTotalSupply,
+                    To = tokenConverter,
+                    Memo = "Initialize for resource trade"
                 });
             }
         }
