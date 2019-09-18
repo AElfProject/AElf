@@ -19,7 +19,7 @@ namespace AElf.Kernel.TransactionPool.Application
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ITokenContractReaderFactory _tokenContractReaderFactory;
-        private readonly INativeTokenSymbolProvider _nativeTokenSymbolProvider;
+        private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
         private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISystemTransactionMethodNameListProvider _coreTransactionMethodNameListProvider;
@@ -28,14 +28,14 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public TransactionFromAddressBalanceValidationProvider(IBlockchainService blockchainService,
             ITokenContractReaderFactory tokenContractReaderFactory,
-            INativeTokenSymbolProvider nativeTokenSymbolProvider,
+            IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
             IDeployedContractAddressProvider deployedContractAddressProvider,
             ISmartContractAddressService smartContractAddressService,
             ISystemTransactionMethodNameListProvider coreTransactionMethodNameListProvider)
         {
             _blockchainService = blockchainService;
             _tokenContractReaderFactory = tokenContractReaderFactory;
-            _nativeTokenSymbolProvider = nativeTokenSymbolProvider;
+            _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
             _deployedContractAddressProvider = deployedContractAddressProvider;
             _smartContractAddressService = smartContractAddressService;
             _coreTransactionMethodNameListProvider = coreTransactionMethodNameListProvider;
@@ -73,7 +73,7 @@ namespace AElf.Kernel.TransactionPool.Application
             var balance = (await tokenStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = transaction.From,
-                Symbol = _nativeTokenSymbolProvider.GetNativeTokenSymbol()
+                Symbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol()
             }))?.Balance;
             // balance == null means token contract hasn't deployed.
             if (balance == null || balance > 0) return true;
