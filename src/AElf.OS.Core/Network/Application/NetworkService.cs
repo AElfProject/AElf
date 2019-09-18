@@ -303,6 +303,10 @@ namespace AElf.OS.Network.Application
             catch (NetworkException ex)
             {
                 Logger.LogError(ex, $"Error while requesting block(s) from {peer.RemoteEndpoint}.");
+                
+                if (ex.ExceptionType == NetworkExceptionType.HandlerException)
+                    return new Response<T>(default(T));
+                
                 await HandleNetworkException(peer, ex);
             }
 

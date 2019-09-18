@@ -478,11 +478,20 @@ namespace AElf.OS.Network.Grpc
             else
             {
                 // there was an exception, not related to connectivity.
-                if (exception.InnerException is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Cancelled)
+                if (exception.InnerException is RpcException rpcEx)
                 {
-                    message = $"Request was cancelled {this}: {errorMessage}";
-                    type = NetworkExceptionType.Unrecoverable;
+                    if (rpcEx.StatusCode == StatusCode.Cancelled)
+                    {
+                        message = $"Request was cancelled {this}: {errorMessage}";
+                        type = NetworkExceptionType.Unrecoverable;
+                    }
+                    else if (rpcEx.StatusCode == StatusCode.Unknown)
+                    {
+                        message = $"Exception in handler {this}: {errorMessage}";
+                        type = NetworkExceptionType.HandlerException;
+                    }
                 }
+                
             }
 
             return new NetworkException(message, exception, type);
