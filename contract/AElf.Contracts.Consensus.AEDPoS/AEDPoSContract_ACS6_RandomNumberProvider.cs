@@ -4,6 +4,7 @@ using System.Linq;
 using Acs6;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
@@ -110,7 +111,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override RandomNumberOrder RequestRandomNumber(RequestRandomNumberInput input)
+        public override RandomNumberOrder RequestRandomNumber(Empty input)
         {
             var tokenHash = Context.TransactionId;
             if (TryToGetCurrentRoundInformation(out var currentRound))
@@ -118,7 +119,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var information = new RandomNumberRequestHandler(currentRound, Context.CurrentHeight)
                     .GetRandomNumberRequestInformation();
 
-                information.ExpectedBlockHeight = Math.Max(input.MinimumBlockHeight, information.ExpectedBlockHeight);
                 State.RandomNumberInformationMap[tokenHash] = information;
 
                 // For clear usage.

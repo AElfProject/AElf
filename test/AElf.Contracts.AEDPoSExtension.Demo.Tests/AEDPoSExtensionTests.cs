@@ -161,10 +161,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         {
             const long minimumBlockHeight = 40;
 
-            var transaction = ConsensusStub.RequestRandomNumber.GetTransaction(new RequestRandomNumberInput
-            {
-                MinimumBlockHeight = minimumBlockHeight
-            });
+            var transaction = ConsensusStub.RequestRandomNumber.GetTransaction(new Empty());
             await BlockMiningService.MineBlockAsync(new List<Transaction>
             {
                 transaction
