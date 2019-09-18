@@ -72,14 +72,6 @@ namespace AElf.Contracts.CrossChain.Tests
                 Assert.True(transactionResult.Status == TransactionResultStatus.Failed);
                 Assert.Contains("Invalid chain creation request.", transactionResult.Error);
             }
-            {
-                var proposalId = await CreateSideChainProposalAsync(1, lockedTokenAmount, ByteString.Empty);
-                await ApproveWithMinersAsync(proposalId);
-
-                var transactionResult = await ReleaseProposalAsync(proposalId);
-                Assert.True(transactionResult.Status == TransactionResultStatus.Failed);
-                Assert.Contains("Invalid chain creation request.", transactionResult.Error);
-            }
         }
 
         [Fact]

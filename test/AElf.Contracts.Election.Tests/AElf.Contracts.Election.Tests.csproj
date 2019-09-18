@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
-        <IsPackable>true</IsPackable>
         <RootNamespace>AElf.Contracts.Election</RootNamespace>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
     <PropertyGroup>
         <NoWarn>0436</NoWarn>

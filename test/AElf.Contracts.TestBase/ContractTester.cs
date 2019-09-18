@@ -706,18 +706,32 @@ namespace AElf.Contracts.TestBase
                 TotalSupply = TokenTotalSupply,
                 IssueChainId = ChainHelper.ConvertBase58ToChainId("AELF")
             };
+            var chainOptions = Application.ServiceProvider.GetService<IOptionsSnapshot<ChainOptions>>().Value;
             var tokenInitializationCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             tokenInitializationCallList.Add(
-                nameof(TokenContractContainer.TokenContractStub.RegisterNativeTokenInfo),
-                new RegisterNativeTokenInfoInput
+                nameof(TokenContractContainer.TokenContractStub.RegisterNativeAndResourceTokenInfo),
+                new RegisterNativeAndResourceTokenInfoInput
                 {
-                    Decimals = nativeTokenInfo.Decimals,
-                    IssueChainId = nativeTokenInfo.IssueChainId,
-                    Issuer = nativeTokenInfo.Issuer,
-                    IsBurnable = nativeTokenInfo.IsBurnable,
-                    Symbol = nativeTokenInfo.Symbol,
-                    TokenName = nativeTokenInfo.TokenName,
-                    TotalSupply = nativeTokenInfo.TotalSupply
+                    NativeTokenInfo = new RegisterNativeTokenInfoInput
+                    {
+                        Decimals = nativeTokenInfo.Decimals,
+                        IssueChainId = nativeTokenInfo.IssueChainId,
+                        Issuer = nativeTokenInfo.Issuer,
+                        IsBurnable = nativeTokenInfo.IsBurnable,
+                        Symbol = nativeTokenInfo.Symbol,
+                        TokenName = nativeTokenInfo.TokenName,
+                        TotalSupply = nativeTokenInfo.TotalSupply
+                    },
+                    ChainPrimaryToken = new TokenInfo
+                    {
+                        Decimals = 2,
+                        IsBurnable = true,
+                        Issuer = Address.FromPublicKey(KeyPair.PublicKey),
+                        TotalSupply = 1_000_000_000,
+                        Symbol = "TE",
+                        TokenName = "TEST",
+                        IssueChainId = chainOptions.ChainId
+                    },
                 });
 
             var parliamentContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();

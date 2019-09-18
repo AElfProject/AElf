@@ -18,6 +18,18 @@ namespace AElf.Contracts.MultiToken
             return State.TokenInfos[State.NativeTokenSymbol.Value];
         }
 
+        public override TokenInfoList GetResourceTokenInfo(Empty input)
+        {
+            return new TokenInfoList
+            {
+                Value =
+                {
+                    TokenContractConstants.ResourceTokenSymbols.Select(symbol =>
+                        State.TokenInfos[symbol] ?? new TokenInfo())
+                }
+            };
+        }
+
         [View]
         public override GetBalanceOutput GetBalance(GetBalanceInput input)
         {
@@ -78,6 +90,11 @@ namespace AElf.Contracts.MultiToken
         public override Address GetCrossChainTransferTokenContractAddress(GetCrossChainTransferTokenContractAddressInput input)
         {
             return State.CrossChainTransferWhiteList[input.ChainId];
+        }
+        
+        public override StringValue GetPrimaryTokenSymbol(Empty input)
+        {
+            return new StringValue {Value = State.ChainPrimaryTokenSymbol.Value ?? State.NativeTokenSymbol.Value};
         }
 
         #region ForTests

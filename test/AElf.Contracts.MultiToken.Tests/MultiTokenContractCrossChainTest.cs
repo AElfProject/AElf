@@ -781,7 +781,17 @@ namespace AElf.Contracts.MultiToken
                     To = SideChainTester.GetCallOwnerAddress()
                 });
             Assert.True(sideIssue.Status == TransactionResultStatus.Failed);
-            Assert.Contains("Total supply exceeded", sideIssue.Error);
+            Assert.Contains("Unable to issue token with wrong chainId", sideIssue.Error);
+            
+            var mainIssue = await MainChainTester.ExecuteContractWithMiningAsync(TokenContractAddress,
+                nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
+                {
+                    Symbol = SymbolForTesting,
+                    Amount = _totalSupply,
+                    To = MainChainTester.GetCallOwnerAddress()
+                });
+            Assert.True(mainIssue.Status == TransactionResultStatus.Failed);
+            Assert.Contains("Total supply exceeded", mainIssue.Error);
         }
 
         [Fact]
