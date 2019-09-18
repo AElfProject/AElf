@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using AElf.Contracts.Election;
+using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -165,8 +167,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Assert(!State.IsMainChain.Value, "Only side chain can update consensus information.");
             // For now we just extract the miner list from main chain consensus information, then update miners list.
-            if (input == null || input.Value.IsEmpty)
-                return new Empty();
+            if (input == null || input.Value.IsEmpty) return new Empty();
+
             var consensusInformation = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Value);
 
             // check round number of shared consensus, not term number
@@ -175,11 +177,43 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Context.LogDebug(() => $"Shared miner list of round {consensusInformation.Round.RoundNumber}");
             var minersKeys = consensusInformation.Round.RealTimeMinersInformation.Keys;
             State.MainChainRoundNumber.Value = consensusInformation.Round.RoundNumber;
+            DistributeResourceTokensToPreviousMiners();
             State.MainChainCurrentMinerList.Value = new MinerList
             {
                 Pubkeys = {minersKeys.Select(k => k.ToByteString())}
             };
             return new Empty();
+        }
+
+        private void DistributeResourceTokensToPreviousMiners()
+        {
+            if (State.TokenContract.Value == null)
+            {
+                State.TokenContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
+            }
+
+            var minerList = State.MainChainCurrentMinerList.Value.Pubkeys;
+            foreach (var symbol in new List<string> {"RAM", "STO", "CPU", "NET"})
+            {
+                var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
+                {
+                    Owner = Context.Self,
+                    Symbol = symbol
+                }).Balance;
+                if (balance <= 0) continue;
+                var amount = balance.Div(minerList.Count);
+                foreach (var pubkey in minerList)
+                {
+                    var address = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(pubkey.ToHex()));
+                    State.TokenContract.Transfer.Send(new TransferInput
+                    {
+                        To = address,
+                        Amount = amount,
+                        Symbol = symbol
+                    });
+                }
+            }
         }
 
         #endregion
