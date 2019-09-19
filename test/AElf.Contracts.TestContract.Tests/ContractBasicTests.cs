@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using System.Threading.Tasks;
 using AElf.Contracts.TestContract.BasicFunctionWithParallel;
 using AElf.Contracts.TestKit;
@@ -531,45 +529,6 @@ namespace AElf.Contract.TestContract
                 await _blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
             await _blockchainService.AddBlockAsync(block);
             return block;
-        }
-        [Fact]
-        //[Theory]
-        public async Task MiningService_Timeout()
-        {
-            int a = 10;
-            var blockHeader = await _blockchainService.GetBestChainLastBlockHeaderAsync();
-            var startBlockHeight = blockHeader.Height;
-            var startBlockHash = blockHeader.GetHash();
-            var input = new Acs0.ContractUpdateInput
-            {
-                Address = BasicFunctionContractAddress,
-                Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.EndsWith("BasicFunctionWithParallel")).Value)
-            }.ToByteString();
-            var transaction = CreateTransaction(DefaultSender, ContractZeroAddress,
-                nameof(BasicContractZeroStub.UpdateSmartContract), input, startBlockHeight, startBlockHash);
-            ///await ExecuteAsync(transaction, startBlockHeight, startBlockHash);
-            var transactionList = new List<Transaction>();
-            if(transaction!=null) transactionList.Add(transaction);
-            try
-            {
-                await _miningService.MineAsync(
-                    new RequestMiningDto
-                    {
-                        PreviousBlockHash = startBlockHash, PreviousBlockHeight = startBlockHeight,
-                        BlockExecutionTime = TimestampHelper.DurationFromMilliseconds(int.MaxValue)
-                    },
-                    transactionList,
-                    DateTime.UtcNow.ToTimestamp()).ToObservable().Timeout(TimeSpan.FromMilliseconds(3000));
-            }
-            catch
-            {
-
-                Console.WriteLine("test out of time");
-            }
-            //Console.WriteLine("finish in time");
-//            if (transaction != null)
-//                await _blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
-            //await _blockchainService.AddBlockAsync(block);
         }
     }
 }
