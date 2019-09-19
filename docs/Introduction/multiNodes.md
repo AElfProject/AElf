@@ -1,4 +1,6 @@
-# multiNodes
+# QuickStart
+
+## Manual build & run the sources
 
 How to run multiNodes system
 
