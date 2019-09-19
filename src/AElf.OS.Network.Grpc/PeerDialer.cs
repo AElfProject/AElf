@@ -73,8 +73,10 @@ namespace AElf.OS.Network.Grpc
                 IsInbound = false,
             });
 
-            peer.InboundSessionId = handshake.SessionId.ToByteArray();
             peer.UpdateLastReceivedHandshake(handshakeReply.Handshake);
+            
+            peer.InboundSessionId = handshake.SessionId.ToByteArray();
+            peer.UpdateLastSentHandshake(handshake);
 
             return peer;
         }

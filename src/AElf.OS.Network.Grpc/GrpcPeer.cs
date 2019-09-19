@@ -65,6 +65,7 @@ namespace AElf.OS.Network.Grpc
 
         public long LastKnownLibHeight { get; private set; }
         public Timestamp LastReceivedHandshakeTime { get; private set; }
+        public Timestamp LastSentHandshakeTime { get; private set; }
 
         public bool IsBest { get; set; }
         public bool IsConnected { get; set; }
@@ -179,6 +180,11 @@ namespace AElf.OS.Network.Grpc
             CurrentBlockHash = handshake.HandshakeData.BestChainHash;
             CurrentBlockHeight = handshake.HandshakeData.BestChainHeight;
             LastReceivedHandshakeTime = handshake.HandshakeData.Time;
+        }
+
+        public void UpdateLastSentHandshake(Handshake handshake)
+        {
+            LastSentHandshakeTime = handshake.HandshakeData.Time;
         }
 
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
