@@ -49,6 +49,7 @@ namespace AElf.CrossChain
             ref List<Transaction> generatedTransactions)
         {
             generatedTransactions.AddRange(GenerateCrossChainIndexingTransaction(from, preBlockHeight, previousBlockHash));
+            Logger.LogTrace("Cross chain transaction generated.");
         }
 
         /// <summary>
