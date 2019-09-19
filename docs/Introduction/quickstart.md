@@ -17,13 +17,13 @@ Navigate into the newly created **aelf** directory.
 
 ### Generating the nodes account
 
-Installing *aelf-command*:
+Installing **aelf-command**:
 
 ```bash
 npm i -g aelf-command # please install Nodejs before this
 ```
 
-After installing *aelf-command* you can use the following command to create an account/key-pair:
+After installing **aelf-command** you can use the following command to create an account/key-pair:
 
 ```bash
 aelf-command create
