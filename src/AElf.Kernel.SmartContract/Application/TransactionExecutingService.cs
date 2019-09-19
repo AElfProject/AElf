@@ -21,7 +21,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly List<IPreExecutionPlugin> _prePlugins;
         private readonly List<IPostExecutionPlugin> _postPlugins;
         private readonly ITransactionResultService _transactionResultService;
-        public ILogger<ITransactionExecutingService> Logger { get; set; }
+        public ILogger<TransactionExecutingService> Logger { get; set; }
         
         public ILocalEventBus LocalEventBus { get; set; }
 

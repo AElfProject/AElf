@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,21 +19,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         private readonly ITransactionGrouper _grouper;
         private readonly ITransactionExecutingService _plainExecutingService;
         private readonly ITransactionResultService _transactionResultService;
-        public ILogger<ITransactionExecutingService> Logger
-        {
-            get => _logger;
-            set
-            {
-                var transactionService = _plainExecutingService as TransactionExecutingService;
-                if (transactionService != null)
-                {
-                    transactionService.Logger = value;
-                }
-                _logger = value;
-            } 
-        }
-
-        private ILogger<ITransactionExecutingService> _logger;
+        public ILogger<ITransactionExecutingService> Logger { get; set; }
         public ILocalEventBus EventBus { get; set; }
 
         public LocalParallelTransactionExecutingService(ITransactionGrouper grouper,
@@ -157,21 +142,12 @@ namespace AElf.Kernel.SmartContract.Parallel
             TransactionExecutingDto transactionExecutingDto, CancellationToken cancellationToken,
             bool throwException = false)
         {
-            if(cancellationToken.IsCancellationRequested)
-                Logger.LogTrace("it should be cancelled in this method");
-            try
-            {
-                var executionReturnSets =
-                    await _plainExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken,
-                        throwException).WithCancellation(cancellationToken);
-                var keys = new HashSet<string>(
-                    executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateAccesses.Keys)));
-                return (executionReturnSets, keys);
-            }
-            catch
-            {
-                return new Tuple<List<ExecutionReturnSet>, HashSet<string>>(new List<ExecutionReturnSet>(),new HashSet<string>()).ToValueTuple();
-            }
+            var executionReturnSets =
+                await _plainExecutingService.ExecuteAsync(transactionExecutingDto, cancellationToken,
+                    throwException);
+            var keys = new HashSet<string>(
+                executionReturnSets.SelectMany(s => s.StateChanges.Keys.Concat(s.StateAccesses.Keys)));
+            return (executionReturnSets, keys);
         }
 
         private (List<ExecutionReturnSet>, HashSet<string>) MergeResults(
