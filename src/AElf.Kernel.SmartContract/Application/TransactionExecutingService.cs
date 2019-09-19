@@ -62,7 +62,7 @@ namespace AElf.Kernel.SmartContract.Application
                 }
                 catch(OperationCanceledException)
                 {
-                    Logger.LogTrace("canceled in executeAsync");
+                    Logger.LogTrace("be canceled in executeAsync because of timeout");
                     break;
                 }
                 if (trace == null)
@@ -234,7 +234,7 @@ namespace AElf.Kernel.SmartContract.Application
                     .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
                 foreach (var inlineTx in txContext.Trace.InlineTransactions)
                 {
-                    TransactionTrace inlineTrace = null;
+                    TransactionTrace inlineTrace;
                     try
                     {
                         inlineTrace = await ExecuteOneAsync(depth + 1, internalChainContext, inlineTx,
@@ -242,9 +242,11 @@ namespace AElf.Kernel.SmartContract.Application
                     }
                     catch(OperationCanceledException)
                     {
+                        Logger.LogTrace("execute transaction timeout");
                         break;
                     }
-                    
+                    if(inlineTrace == null)
+                        break;
                     trace.InlineTraces.Add(inlineTrace);
                     if (!inlineTrace.IsSuccessful())
                     {
@@ -280,9 +282,11 @@ namespace AElf.Kernel.SmartContract.Application
                     }
                     catch (OperationCanceledException)
                     {
+                        Logger.LogTrace("execute transaction timeout");
                         return false;
                     }
-                    
+                    if (preTrace == null)
+                        return false;
                     trace.PreTransactions.Add(preTx);
                     trace.PreTraces.Add(preTrace);
                     if (!preTrace.IsSuccessful())
@@ -314,7 +318,7 @@ namespace AElf.Kernel.SmartContract.Application
                 var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txContext);
                 foreach (var postTx in transactions)
                 {
-                    TransactionTrace postTrace = null;
+                    TransactionTrace postTrace;
                     try
                     {
                         postTrace = await ExecuteOneAsync(0, internalChainContext, postTx, currentBlockTime,
@@ -322,8 +326,11 @@ namespace AElf.Kernel.SmartContract.Application
                     }
                     catch(OperationCanceledException)
                     {
+                        Logger.LogTrace("execute transaction timeout");
                         return false;
                     }
+                    if (postTrace == null)
+                        return false;
                     trace.PostTransactions.Add(postTx);
                     trace.PostTraces.Add(postTrace);
                     if (!postTrace.IsSuccessful())
