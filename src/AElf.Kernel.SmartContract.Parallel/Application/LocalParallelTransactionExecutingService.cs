@@ -21,14 +21,14 @@ namespace AElf.Kernel.SmartContract.Parallel
     public class LocalParallelTransactionExecutingService : ILocalParallelTransactionExecutingService, ISingletonDependency
     {
         private readonly ITransactionGrouper _grouper;
-        private readonly ITransactionExecutingService _plainExecutingService;
+        private readonly ILocalTransactionExecutingService _plainExecutingService;
         private readonly ITransactionResultService _transactionResultService;
-        public ILogger<ITransactionExecutingService> Logger { get; set; }
+        public ILogger<LocalParallelTransactionExecutingService> Logger { get; set; }
         public ILocalEventBus EventBus { get; set; }
 
         public LocalParallelTransactionExecutingService(ITransactionGrouper grouper,
             ITransactionResultService transactionResultService,
-            LocalTransactionExecutingService localTransactionExecutingService)
+            ILocalTransactionExecutingService localTransactionExecutingService)
         {
             _grouper = grouper;
             _plainExecutingService =localTransactionExecutingService;
