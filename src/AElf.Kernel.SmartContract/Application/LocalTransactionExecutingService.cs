@@ -11,29 +11,35 @@ using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public class TransactionExecutingService : ITransactionExecutingService
+    public interface ILocalTransactionExecutingService : ITransactionExecutingService
+    {
+    }
+
+    public class LocalTransactionExecutingService : ILocalTransactionExecutingService, ISingletonDependency
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly List<IPreExecutionPlugin> _prePlugins;
         private readonly List<IPostExecutionPlugin> _postPlugins;
         private readonly ITransactionResultService _transactionResultService;
-        public ILogger<TransactionExecutingService> Logger { get; set; }
-        
+        public ILogger<LocalTransactionExecutingService> Logger { get; set; }
+
         public ILocalEventBus LocalEventBus { get; set; }
 
-        public TransactionExecutingService(ITransactionResultService transactionResultService,
-            ISmartContractExecutiveService smartContractExecutiveService, IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins
-            )
+        public LocalTransactionExecutingService(ITransactionResultService transactionResultService,
+            ISmartContractExecutiveService smartContractExecutiveService,
+            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins
+        )
         {
             _transactionResultService = transactionResultService;
             _smartContractExecutiveService = smartContractExecutiveService;
             _prePlugins = GetUniquePrePlugins(prePlugins);
             _postPlugins = GetUniquePostPlugins(postPlugins);
-            Logger = NullLogger<TransactionExecutingService>.Instance;
+            Logger = NullLogger<LocalTransactionExecutingService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
 

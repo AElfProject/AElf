@@ -14,7 +14,11 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Parallel
 {
-    public class LocalParallelTransactionExecutingService : ITransactionExecutingService, ISingletonDependency
+    public interface ILocalParallelTransactionExecutingService : ITransactionExecutingService
+    {
+    }
+
+    public class LocalParallelTransactionExecutingService : ILocalParallelTransactionExecutingService, ISingletonDependency
     {
         private readonly ITransactionGrouper _grouper;
         private readonly ITransactionExecutingService _plainExecutingService;
@@ -24,13 +28,10 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public LocalParallelTransactionExecutingService(ITransactionGrouper grouper,
             ITransactionResultService transactionResultService,
-            ISmartContractExecutiveService smartContractExecutiveService, IEnumerable<IPreExecutionPlugin> prePlugins,
-            IEnumerable<IPostExecutionPlugin> postPlugins)
+            LocalTransactionExecutingService localTransactionExecutingService)
         {
             _grouper = grouper;
-            _plainExecutingService =
-                new TransactionExecutingService(transactionResultService, smartContractExecutiveService, postPlugins,prePlugins
-                    );
+            _plainExecutingService =localTransactionExecutingService;
             _transactionResultService = transactionResultService;
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<LocalParallelTransactionExecutingService>.Instance;
