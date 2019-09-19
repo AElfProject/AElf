@@ -80,8 +80,8 @@ namespace AElf.OS.Network.Grpc.Connection
             if (existingPeer != null)
             {
                 Logger.LogWarning("Duplicate peer connection detected: " +
-                                  $"{peer} ({existingPeer.LastReceivedHandshakeTime}) " +
-                                  $"vs {existingPeer} ({peer.LastReceivedHandshakeTime}).");
+                                  $"{existingPeer} ({existingPeer.LastReceivedHandshakeTime}) " +
+                                  $"vs {peer} ({peer.LastReceivedHandshakeTime}).");
 
                 if (existingPeer.LastReceivedHandshakeTime > peer.LastReceivedHandshakeTime)
                 {
