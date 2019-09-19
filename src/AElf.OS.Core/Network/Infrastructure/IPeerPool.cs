@@ -21,6 +21,7 @@ namespace AElf.OS.Network.Infrastructure
 
         List<IPeer> GetPeersByIpAddress(IPAddress ipAddress);
 
+        bool TryReplace(string pubkey, IPeer oldPeer, IPeer newPeer);
         bool TryAddPeer(IPeer peer);
         IPeer RemovePeer(string publicKey);
     }

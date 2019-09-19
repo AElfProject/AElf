@@ -74,8 +74,16 @@ namespace AElf.OS.Network.Grpc.Connection
 
             var inboundPeer = _peerPool.FindPeerByPublicKey(dialedPeer.Info.Pubkey) as GrpcPeer;
             
-            // A connection already exists, this can happen when both peers dial each other at the same time. To make
-            // sure both sides close the same connection, they both decide based on the times of the handshakes.
+            /* A connection already exists, this can happen when both peers dial each other at the same time. To make
+             sure both sides close the same connection, they both decide based on the times of the handshakes.
+             Scenario steps, chronologically:
+                1) P1 (hsk_time: t1) --> dials P2 --and-- P1 <-- P2 dials (hsk_time: t2)
+                2) P2 receives P1s dial with t1 (in the hsk) and add to the pool
+                3) P1 receives P2s dial with and adds to pool
+                4) both dials finish and find that the pool already contains the dialed node.
+            To resolve this situation, both peers will choose the connection that was initiated the earliest, 
+            so either P1s dial or P2s. */
+            
             GrpcPeer currentPeer = dialedPeer;
             if (inboundPeer != null)
             {
@@ -85,23 +93,24 @@ namespace AElf.OS.Network.Grpc.Connection
 
                 if (inboundPeer.LastReceivedHandshakeTime > dialedPeer.LastSentHandshakeTime)
                 {
-                    // close the other peers connection
-                    _peerPool.RemovePeer(inboundPeer.Info.Pubkey);
+                    // we started the dial first, replace the inbound connection with the dialed 
+                    if (!_peerPool.TryReplace(inboundPeer.Info.Pubkey, inboundPeer, dialedPeer))
+                        Logger.LogWarning("Replacing the inbound connection failed.");
+                    
                     await inboundPeer.DisconnectAsync(false);
 
-                    Logger.LogWarning($"Removed and disconnected {inboundPeer} .");
+                    Logger.LogWarning($"Replaced the inbound connection with the dialed peer {inboundPeer} .");
                 }
                 else
                 {
-                    // keep the dialed connection
+                    // keep the inbound connection
                     await dialedPeer.DisconnectAsync(false);
                     currentPeer = inboundPeer;
-
+                    
                     Logger.LogWarning($"Disconnected dialed peer {dialedPeer}.");
                 }
             }
-
-            if (inboundPeer == null || currentPeer == dialedPeer)
+            else
             {
                 if (!_peerPool.TryAddPeer(dialedPeer))
                 {

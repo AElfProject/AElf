@@ -153,6 +153,11 @@ namespace AElf.OS.Network.Infrastructure
             CleanInvalidPeers();
             return Peers.TryAdd(peer.Info.Pubkey, peer);
         }
+        
+        public bool TryReplace(string pubKey, IPeer oldPeer, IPeer newPeer)
+        {
+            return Peers.TryUpdate(pubKey, newPeer, oldPeer);
+        }
 
         private void CleanInvalidPeers()
         {

@@ -83,6 +83,23 @@ namespace AElf.OS.Network
             _peerPool.FindPeerByEndpoint(peer.RemoteEndpoint).ShouldNotBeNull();
             _peerPool.FindPeerByPublicKey(peer.Info.Pubkey).ShouldNotBeNull();
         }
+        
+        [Fact]
+        public void ReplacePeer_Test()
+        {
+            var peer = CreatePeer();
+            var otherPeer = CreatePeer(NetworkTestConstants.FakeIpEndpoint, peer.Info.Pubkey);
+            
+            _peerPool.TryAddPeer(peer);
+            
+            peer.Equals(otherPeer).ShouldBeFalse();
+            _peerPool.FindPeerByPublicKey(peer.Info.Pubkey).ShouldNotBeNull();
+
+            _peerPool.TryReplace(peer.Info.Pubkey, peer, otherPeer);
+            var replaced = _peerPool.FindPeerByPublicKey(peer.Info.Pubkey);
+            replaced.ShouldNotBeNull();
+            replaced.Equals(otherPeer).ShouldBeTrue();
+        }
 
         [Fact]
         public async Task RemovePeerByPublicKey_ShouldNotBeFindable()
@@ -123,12 +140,10 @@ namespace AElf.OS.Network
             _peerPool.IsFull().ShouldBeTrue();
         }
         
-        private static IPeer CreatePeer(string ipEndpoint = NetworkTestConstants.FakeIpEndpoint)
+        private static IPeer CreatePeer(string ipEndpoint = NetworkTestConstants.FakeIpEndpoint, string pubKey = null)
         {
             var peerMock = new Mock<IPeer>();
-                
-            var keyPair = CryptoHelper.GenerateKeyPair();
-            var pubkey = keyPair.PublicKey.ToHex();
+            var pubkey = pubKey ?? CryptoHelper.GenerateKeyPair().PublicKey.ToHex();
             
             var peerInfo = new PeerInfo
             {
