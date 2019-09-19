@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
-        <IsPackable>false</IsPackable>
         <RootNamespace>AElf.OS</RootNamespace>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Moq" Version="4.13.0"/>

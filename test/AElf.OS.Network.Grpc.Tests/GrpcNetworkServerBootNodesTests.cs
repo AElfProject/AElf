@@ -32,7 +32,7 @@ namespace AElf.OS.Network
             await _networkServer.StartAsync();
             
             received.ShouldNotBeNull();
-
+            
             await _networkServer.StopAsync();
         }
     }

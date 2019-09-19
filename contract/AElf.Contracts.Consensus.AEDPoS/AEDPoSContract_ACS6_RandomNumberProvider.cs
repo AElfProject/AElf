@@ -130,6 +130,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     State.RandomNumberTokenMap[currentRound.RoundNumber].Values.Add(tokenHash);
                 }
 
+                Context.Fire(new RandomNumberRequestHandled
+                {
+                    Requester = Context.Sender,
+                    BlockHeight = information.ExpectedBlockHeight,
+                    TokenHash = tokenHash
+                });
+
                 return new RandomNumberOrder
                 {
                     BlockHeight = information.ExpectedBlockHeight,
@@ -179,6 +186,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     var randomHash = provider.GetRandomNumber(round);
                     if (randomHash != Hash.Empty)
                     {
+                        Context.Fire(new RandomNumberGenerated {TokenHash = input, RandomHash = randomHash});
                         return randomHash;
                     }
 

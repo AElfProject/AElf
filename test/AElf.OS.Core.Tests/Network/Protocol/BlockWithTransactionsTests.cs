@@ -41,7 +41,6 @@ namespace AElf.OS.Network.Protocol
             
             blockWithTransactions.FullTransactionList.ShouldBe(transactions);
             blockWithTransactions.TransactionIds.ShouldBe(transactions.Select(o=>o.GetHash()));
-            blockWithTransactions.Body.BlockHeader.ShouldBe(blockWithTransactions.Header.GetHash());
         }
     }
 }
