@@ -8,6 +8,7 @@
         * [Use JS SDK](tutorials/dapp/jssdk.md)
         * [Use browser extension](tutorials/dapp/browserExtension.md)
     * [Enterprise development](tutorials/enterprise.md)
+    * [Running on Google cloud](tutorials/GCP.md)
 * [Getting started](Introduction/main.md)
     * [Before you start](Introduction/before.md)
     * [Running a node](Introduction/quickstart.md)
