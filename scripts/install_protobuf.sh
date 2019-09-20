@@ -14,7 +14,7 @@ fi
 echo "Install protobuf on ${osn}"
 
 if [[ ${osn} == "macosx" ]]; then
-    version=`HOMEBREW_NO_AUTO_UPDATE=1 brew search protobuf@3.7`
+    version=`HOMEBREW_NO_AUTO_UPDATE=1 brew search protobuf@3.7 |grep protobuf`
     HOMEBREW_NO_AUTO_UPDATE=1 brew install ${version}
     HOMEBREW_NO_AUTO_UPDATE=1 brew link --force --overwrite protobuf@3.7
 elif [[ ${osn} == "linux" ]]; then
