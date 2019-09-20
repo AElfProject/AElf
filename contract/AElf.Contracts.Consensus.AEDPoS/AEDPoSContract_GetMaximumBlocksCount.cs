@@ -36,10 +36,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return AEDPoSContractConstants.MaximumTinyBlocksCount;
             }
 
-            new BlockchainMiningStatusEvaluator(
-                    libRoundNumber,
-                    currentRoundNumber, AEDPoSContractConstants.MaximumTinyBlocksCount)
-                .Deconstruct(out var blockchainMiningStatus);
+            var blockchainMiningStatusEvaluator = new BlockchainMiningStatusEvaluator(libRoundNumber,
+                currentRoundNumber, AEDPoSContractConstants.MaximumTinyBlocksCount);
+            blockchainMiningStatusEvaluator.Deconstruct(out var blockchainMiningStatus);
 
             Context.LogDebug(() => $"Current blockchain mining status: {blockchainMiningStatus.ToString()}");
 
@@ -51,7 +50,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var minersOfLastTwoRounds = previousRoundMinedMinerList
                     .Intersect(previousPreviousRoundMinedMinerList).Count();
                 var factor = minersOfLastTwoRounds.Mul(
-                    Math.Max(8, AEDPoSContractConstants.MaximumTinyBlocksCount).Sub(
+                    blockchainMiningStatusEvaluator.SevereStatusRoundsThreshold.Sub(
                         (int) currentRoundNumber.Sub(libRoundNumber)));
                 var count = Math.Min(AEDPoSContractConstants.MaximumTinyBlocksCount,
                     Ceiling(factor, currentRound.RealTimeMinersInformation.Count));
