@@ -27,10 +27,10 @@ namespace AElf.CrossChain.Cache
         [Fact]
         public void TryTake_NotExistChain()
         {
-            int chainIdA = 123;
-            var dict = new Dictionary<int, BlockCacheEntityProvider>
+            int chainId = 123;
+            var dict = new Dictionary<int, ChainCacheEntity>
             {
-                {chainIdA, new BlockCacheEntityProvider(1)}
+                {chainId, new ChainCacheEntity(chainId, 1)}
             };
             CreateFakeCache(dict);
             int chainIdB = 124;
@@ -42,10 +42,10 @@ namespace AElf.CrossChain.Cache
         public void TryTake_WrongIndex()
         {
             int chainId = 123;
-            var blockInfoCache = new BlockCacheEntityProvider(1);
+            var blockInfoCache = new ChainCacheEntity(chainId, 1);
             var sideChainBlockData = CreateSideChainBlockData(chainId, 1);
             blockInfoCache.TryAdd(sideChainBlockData);
-            var dict = new Dictionary<int, BlockCacheEntityProvider>
+            var dict = new Dictionary<int, ChainCacheEntity>
             {
                 {chainId, blockInfoCache}
             };
