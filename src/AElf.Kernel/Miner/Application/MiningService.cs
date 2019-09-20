@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
@@ -17,17 +16,7 @@ namespace AElf.Kernel.Miner.Application
 {
     public class MiningService : IMiningService
     {
-        public ILogger<MiningService> Logger
-        {
-            get => _logger;
-            set
-            {
-                _logger = value;
-            }
-        }
-
-        private ILogger<MiningService> _logger;
-        //public ILogger<MiningService> Logger { get; set; }
+        public ILogger<MiningService> Logger { get; set; }
         private readonly ISystemTransactionGenerationService _systemTransactionGenerationService;
         private readonly IBlockGenerationService _blockGenerationService;
         private readonly IAccountService _accountService;

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -18,12 +17,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
 {
     public class BlockExecutingService : IBlockExecutingService, ITransientDependency
     {
-        private readonly ITransactionExecutingService _executingService;
+        private readonly ILocalParallelTransactionExecutingService _executingService;
         private readonly IBlockchainStateService _blockchainStateService;
         public ILocalEventBus EventBus { get; set; }
         public ILogger<BlockExecutingService> Logger { get; set; }
 
-        public BlockExecutingService(ITransactionExecutingService executingService,
+        public BlockExecutingService(ILocalParallelTransactionExecutingService executingService,
             IBlockchainStateService blockchainStateService)
         {
             _executingService = executingService;
@@ -45,22 +44,19 @@ namespace AElf.Kernel.SmartContractExecution.Application
             Logger.LogTrace("Entered ExecuteBlockAsync");
             var nonCancellable = nonCancellableTransactions.ToList();
             var cancellable = cancellableTransactions.ToList();
-            var stopWatch = new Stopwatch();
-            stopWatch.Start();
             var nonCancellableReturnSets =
                 await _executingService.ExecuteAsync(
                     new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = nonCancellable},
                     CancellationToken.None, true);
-            var addInfo = $" noncancellable total elapsed time is {stopWatch.ElapsedMilliseconds}";
-            stopWatch.Stop();
-            Logger.LogTrace("Executed non-cancellable txs" + addInfo);
+            Logger.LogTrace("Executed non-cancellable txs");
 
             var returnSetCollection = new ReturnSetCollection(nonCancellableReturnSets);
             List<ExecutionReturnSet> cancellableReturnSets = new List<ExecutionReturnSet>();
 
             if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
             {
-                cancellableReturnSets = await _executingService.ExecuteAsync(new TransactionExecutingDto 
+                cancellableReturnSets = await _executingService.ExecuteAsync(
+                    new TransactionExecutingDto 
                     {
                         BlockHeader = blockHeader,
                         Transactions = cancellable,

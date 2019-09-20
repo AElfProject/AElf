@@ -16,10 +16,6 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public interface ILocalTransactionExecutingService : ITransactionExecutingService
-    {
-    }
-
     public class LocalTransactionExecutingService : ILocalTransactionExecutingService, ISingletonDependency
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
@@ -129,7 +125,6 @@ namespace AElf.Kernel.SmartContract.Application
             Transaction transaction, Timestamp currentBlockTime, CancellationToken cancellationToken,
             Address origin = null, bool isCancellable = true)
         {
-            await Task.Yield();
             if (isCancellable && cancellationToken.IsCancellationRequested)
             {
                 return new TransactionTrace
@@ -165,6 +160,7 @@ namespace AElf.Kernel.SmartContract.Application
             var internalChainContext = new ChainContextWithTieredStateCache(chainContext, internalStateCache);
 
             IExecutive executive;
+            await Task.Yield();        // put the next code into a new thread
             try
             {
                 executive = await _smartContractExecutiveService.GetExecutiveAsync(
