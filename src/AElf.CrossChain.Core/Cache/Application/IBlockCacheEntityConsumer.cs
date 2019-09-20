@@ -19,8 +19,8 @@ namespace AElf.CrossChain.Cache.Application
 
         public T Take<T>(int crossChainId, long height, bool isCacheSizeLimited) where T : IMessage, new()
         {
-            var chainCacheCollection = _crossChainCacheEntityProvider.GetChainCacheEntity(crossChainId);
-            if (chainCacheCollection == null || !chainCacheCollection.TryTake(height, out var blockCacheEntity, isCacheSizeLimited))
+            var chainCacheEntity = _crossChainCacheEntityProvider.GetChainCacheEntity(crossChainId);
+            if (chainCacheEntity == null || !chainCacheEntity.TryTake(height, out var blockCacheEntity, isCacheSizeLimited))
                 return default(T);
             var t = new T();
             t.MergeFrom(blockCacheEntity.ToByteString());

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +8,7 @@ namespace AElf.CrossChain.Cache
     public interface ICrossChainCacheEntityProvider
     {
         void AddChainCacheEntity(int remoteChainId, long initialTargetHeight);
-        BlockCacheEntityProvider GetChainCacheEntity(int remoteChainId);
+        IChainCacheEntity GetChainCacheEntity(int remoteChainId);
 
         int Size { get; }
         List<int> GetCachedChainIds();
@@ -17,9 +16,16 @@ namespace AElf.CrossChain.Cache
     
     public class CrossChainCacheEntityProvider : ICrossChainCacheEntityProvider, ISingletonDependency
     {
-        private readonly ConcurrentDictionary<int, BlockCacheEntityProvider> _chainCacheEntities =
-            new ConcurrentDictionary<int, BlockCacheEntityProvider>();
+        private readonly IChainCacheEntityFactory _chainCacheEntityFactory;
         
+        private readonly ConcurrentDictionary<int, IChainCacheEntity> _chainCacheEntities =
+            new ConcurrentDictionary<int, IChainCacheEntity>();
+
+        public CrossChainCacheEntityProvider(IChainCacheEntityFactory chainCacheEntityFactory)
+        {
+            _chainCacheEntityFactory = chainCacheEntityFactory;
+        }
+
         public int Size => _chainCacheEntities.Count;
         
         public List<int> GetCachedChainIds()
@@ -29,14 +35,15 @@ namespace AElf.CrossChain.Cache
 
         public void AddChainCacheEntity(int remoteChainId, long initialTargetHeight)
         {
-//            if (blockCacheEntityProvider == null)
-//                throw new ArgumentNullException(nameof(blockCacheEntityProvider)); 
-            _chainCacheEntities.TryAdd(remoteChainId, new BlockCacheEntityProvider(initialTargetHeight));
+            var chainCacheEntity = _chainCacheEntityFactory.CreateChainCacheEntity(remoteChainId, initialTargetHeight);
+            _chainCacheEntities.TryAdd(remoteChainId, chainCacheEntity);
         }
 
-        public BlockCacheEntityProvider GetChainCacheEntity(int remoteChainId)
+        public IChainCacheEntity GetChainCacheEntity(int remoteChainId)
         {
-            return !_chainCacheEntities.TryGetValue(remoteChainId, out var blockCacheEntityProvider) ? null : blockCacheEntityProvider;
+            return !_chainCacheEntities.TryGetValue(remoteChainId, out var blockCacheEntityProvider)
+                ? null
+                : blockCacheEntityProvider;
         }
     }
 }

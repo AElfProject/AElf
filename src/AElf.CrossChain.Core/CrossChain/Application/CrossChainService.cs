@@ -32,7 +32,12 @@ namespace AElf.CrossChain
             if (!isReadyToCreateChainCache)
                 return;
             var libIdHeight = await _irreversibleBlockStateProvider.GetLastIrreversibleBlockHashAndHeightAsync();
-            _ = RegisterNewChainsAsync(libIdHeight.BlockHash, libIdHeight.BlockHeight);
+            var chainIdHeightPairs = await GetAllChainIdHeightPairsAsync(libIdHeight.BlockHash, libIdHeight.BlockHeight);
+            foreach (var chainIdHeight in chainIdHeightPairs.IdHeightDict)
+            {
+                // register new chain
+                _crossChainCacheEntityService.RegisterNewChain(chainIdHeight.Key, chainIdHeight.Value);
+            }
         }
 
         public Dictionary<int, long> GetNeededChainIdAndHeightPairs()
@@ -61,25 +66,29 @@ namespace AElf.CrossChain
                 Value = chainId
             });
         }
-        
-        private async Task<SideChainIdAndHeightDict> GetAllChainIdHeightPairsAsync(Hash blockHash, long blockHeight)
-        {
-            return await _readerFactory.Create(blockHash, blockHeight).GetAllChainsIdAndHeight
-                .CallAsync(new Empty());
-        }
-        
-        public async Task RegisterNewChainsAsync(Hash blockHash, long blockHeight)
+
+        public async Task UpdateWithLib(Hash blockHash, long blockHeight)
         {
             if (CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored
                 || blockHeight <= Constants.GenesisBlockHeight)
                 return;
             
-            var sideChainIdHeightPairs = await GetAllChainIdHeightPairsAsync(blockHash, blockHeight);
+            var chainIdHeightPairs = await GetAllChainIdHeightPairsAsync(blockHash, blockHeight);
 
-            foreach (var chainIdHeightPair in sideChainIdHeightPairs.IdHeightDict)
+            foreach (var chainIdHeight in chainIdHeightPairs.IdHeightDict)
             {
-                _crossChainCacheEntityService.RegisterNewChain(chainIdHeightPair.Key, chainIdHeightPair.Value);
+                // register new chain
+                _crossChainCacheEntityService.RegisterNewChain(chainIdHeight.Key, chainIdHeight.Value);
+            
+                // clear cross chain cache
+                _crossChainCacheEntityService.ClearOutOfDateCrossChainCache(chainIdHeight.Key, chainIdHeight.Value);   
             }
+        }
+
+        private async Task<SideChainIdAndHeightDict> GetAllChainIdHeightPairsAsync(Hash blockHash, long blockHeight)
+        {
+            return await _readerFactory.Create(blockHash, blockHeight).GetAllChainsIdAndHeight
+                .CallAsync(new Empty());
         }
     }
 }

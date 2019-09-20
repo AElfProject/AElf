@@ -11,11 +11,10 @@ namespace AElf.CrossChain
         Task FinishInitialSyncAsync();
 
         Dictionary<int, long> GetNeededChainIdAndHeightPairs();
-
-        Task RegisterNewChainsAsync(Hash blockHash, long blockHeight);
         
         Task<Block> GetNonIndexedBlockAsync(long height);
         
         Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId);
+        Task UpdateWithLib(Hash blockHash, long blockHeight);
     }
 }
