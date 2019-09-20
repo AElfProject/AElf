@@ -12,7 +12,7 @@ jobs:
   - script: choco install protoc --version 3.6.0 -y
   - script: choco install unzip
   - task: BatchScript@1
-    input:
+    inputs:
       filename: 'scripts/download_binary.bat'
   - task: DotNetCoreCLI@2
     inputs:
