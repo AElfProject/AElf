@@ -137,6 +137,5 @@ dotnet ../AElf.Launcher.dll
 
 todo: get block height
 
-** How to run a node and join the existing system **
 
 

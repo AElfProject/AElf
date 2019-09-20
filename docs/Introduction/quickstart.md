@@ -103,7 +103,7 @@ cd ..
 You now should have a node that's running, to check this run the following command that will query the node for its current block height:
 
 ```bash
-aelf-command get-blk-height -e http://127.0.0.1:1728
+aelf-command get-blk-height -e http://127.0.0.1:8000
 ```
 
 ### Cleanup
