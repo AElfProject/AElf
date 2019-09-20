@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 d="Darwin"
 l="Linux"
 if [[ "$(uname -s | grep ${d})" != "" ]]; then
