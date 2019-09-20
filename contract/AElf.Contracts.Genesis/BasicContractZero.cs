@@ -110,7 +110,7 @@ namespace AElf.Contracts.Genesis
                 Author = Context.Origin,
                 Category = category,
                 CodeHash = codeHash,
-                IsSystemContrct = isSystemContract
+                IsSystemContract = isSystemContract
             };
             State.ContractInfos[contractAddress] = info;
 
@@ -169,7 +169,7 @@ namespace AElf.Contracts.Genesis
             var info = State.ContractInfos[contractAddress];
             Assert(info != null, "Contract does not exist.");
 
-            if (info.IsSystemContrct)
+            if (info.IsSystemContract)
             {
                 Assert(Context.Sender == State.GenesisOwner.Value, "Only genesis owner can update system contract.");
             }

@@ -55,7 +55,7 @@ message ContractInfo
     aelf.Address author = 2;
     int32 category = 3;
     aelf.Hash code_hash = 4;
-    bool is_system_contrct = 5;
+    bool is_system_contract = 5;
 }
 
 message ContractDeploymentInput {
