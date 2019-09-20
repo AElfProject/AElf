@@ -34,6 +34,7 @@ namespace AElf.Kernel.Blockchain.Domain
         int GetChainId();
         Task<List<Hash>> CleanBranchesAsync(Chain chain, Hash irreversibleBlockHash, long irreversibleBlockHeight);
         Task RemoveLongestBranchAsync(Chain chain);
+        Task<Chain> ResetChainToLibAsync(Chain chain);
     }
 
     public class ChainManager : IChainManager, ISingletonDependency
@@ -428,6 +429,42 @@ namespace AElf.Kernel.Blockchain.Domain
                 $"Switch Longest chain to height: {chain.LongestChainHeight}, hash: {chain.LongestChainHash}.");
 
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+        }
+
+        public async Task<Chain> ResetChainToLibAsync(Chain chain)
+        {
+            var libHash = chain.LastIrreversibleBlockHash;
+            var libHeight = chain.LastIrreversibleBlockHeight;
+
+            foreach (var branch in chain.Branches)
+            {
+                var hash = HashHelper.Base64ToHash(branch.Key);
+                var chainBlockLink = await GetChainBlockLinkAsync(hash);
+
+                while (chainBlockLink != null && chainBlockLink.Height > libHeight)
+                {
+                    chainBlockLink.ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone;
+                    chainBlockLink.IsLinked = false;
+                    await SetChainBlockLinkAsync(chainBlockLink);
+                    
+                    chainBlockLink = await GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
+                }
+            }
+            
+            chain.Branches.Clear();
+            chain.NotLinkedBlocks.Clear();
+            
+            chain.Branches[libHash.ToStorageKey()] = libHeight;
+
+            chain.BestChainHash = libHash;
+            chain.BestChainHeight = libHeight;
+            chain.LongestChainHash = libHash;
+            chain.LongestChainHeight = libHeight;
+
+            Logger.LogTrace($"Rollback to height {chain.BestChainHeight}, hash {chain.BestChainHash}.");
+            await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+
+            return chain;
         }
     }
 }
