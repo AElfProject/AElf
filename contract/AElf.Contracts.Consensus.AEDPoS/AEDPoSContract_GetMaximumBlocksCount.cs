@@ -51,7 +51,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var previousPreviousRoundMinedMinerList = State.MinedMinerListMap[currentRoundNumber.Sub(2)].Pubkeys;
                 var minersOfLastTwoRounds = previousRoundMinedMinerList
                     .Intersect(previousPreviousRoundMinedMinerList).Count();
-                var count = Math.Min(AEDPoSContractConstants.MaximumTinyBlocksCount, minersOfLastTwoRounds
+                var count = Math.Min(AEDPoSContractConstants.MaximumTinyBlocksCount, minersOfLastTwoRounds.Mul(2)
                     .Div((int) currentRound.RoundNumber.Sub(libRoundNumber))
                     .Add(1));
                 Context.LogDebug(() => $"Maximum blocks count tune to {count}");
@@ -74,7 +74,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         internal class BlockchainMiningStatusEvaluator
         {
-            private const int AbnormalThresholdRoundsCount = 2;
+            private const int AbnormalThresholdRoundsCount = 5;
             private const int SevereThresholdBlocksCount = 1024; // Stands for Y
             private const int SevereThresholdRoundsCount = 10;
 
