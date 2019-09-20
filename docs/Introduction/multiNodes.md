@@ -90,6 +90,17 @@ Only two options will be needed for this tutorial, **BootNodes** and **Listening
 
 Note that with this configuration you will see an error printed in the logs. This is normal, when the first node comes online the second is probably not started.
 
+#### Redis
+
+Each node will need it's own database, so in miner2 you'll need to change the database number (here 2):
+
+```json
+  "ConnectionStrings": {
+    "BlockchainDb": "redis://localhost:6379?db=2",
+    "StateDb": "redis://localhost:6379?db=2"
+  },
+```
+
 #### RPC endpoint
 
 The last configuration option we need to change is the RPC endpoint at which the node's API is reachable.
@@ -106,11 +117,25 @@ The last configuration option we need to change is the RPC endpoint at which the
 
 The example shows that the port is 8000, for miner1 you can keep this value but since we're running this tutorial on a single machine, miner2 port must be different, lets say 8001.
 
-### 
+### Build and launch
 
+First you will need to build/publish AElf. In the **MultiNodeTutorial** create a directory named **aelf-build**, we will use this folder as the target of the build (the executable and all dependencies will be placed in this).
 
-- publish AElf (another folder).
+Now use the following command to build, by modifying the path to the cloned repository (**aelf-repo**) and the path to the tutorials workspace (**MultiNodeTutorial**):
 
+```bash
+dotnet build ~/**aelf-repo**/src/AElf.Launcher/AElf.Launcher.csproj --configuration Debug -o ~/**MultiNodeTutorial**/aelf-build/
+```
+
+You should see a build message indicating "0 Error(s)", you can safely ignore any warnings.
+
+Next open 2 terminals, in the first navigate to miner1's directory and in the second navigate to miner2's directory. In the first then in the second launch the following command:
+
+```bash
+dotnet ../AElf.Launcher.dll
+```
+
+todo: get block height
 
 ** How to run a node and join the existing system **
 
