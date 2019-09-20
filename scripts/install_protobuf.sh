@@ -14,9 +14,9 @@ fi
 echo "Install protobuf on ${osn}"
 
 if [[ ${osn} == "macosx" ]]; then
-    version=`HOMEBREW_NO_AUTO_UPDATE=1 brew search protobuf@3.7 |grep protobuf`
-    HOMEBREW_NO_AUTO_UPDATE=1 brew install ${version}
-    HOMEBREW_NO_AUTO_UPDATE=1 brew link --force --overwrite protobuf@3.7
+    brew search protobuf
+    brew install protobuf@3.7
+    brew link --force --overwrite protobuf@3.7
 elif [[ ${osn} == "linux" ]]; then
     # Make sure you grab the latest version
     curl -OL https://github.com/google/protobuf/releases/download/v3.7.0/protoc-3.7.0-linux-x86_64.zip
