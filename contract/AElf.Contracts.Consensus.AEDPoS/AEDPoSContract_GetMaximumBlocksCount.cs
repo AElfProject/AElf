@@ -75,7 +75,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private static int Ceiling(int num1, int num2)
         {
-            var flag = num1 & num2;
+            var flag = num1 % num2;
             return flag == 0 ? num1.Div(num2) : num1.Div(num2).Add(1);
         }
 
