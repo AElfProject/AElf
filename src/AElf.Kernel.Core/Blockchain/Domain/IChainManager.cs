@@ -461,6 +461,7 @@ namespace AElf.Kernel.Blockchain.Domain
             chain.LongestChainHash = libHash;
             chain.LongestChainHeight = libHeight;
 
+            Logger.LogTrace($"Rollback to height {chain.BestChainHeight}, hash {chain.BestChainHash}.");
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
 
             return chain;
