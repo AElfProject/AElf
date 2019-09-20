@@ -36,16 +36,24 @@ namespace AElf.Contracts.CrossChain
             CheckOwnerAuthority();
 
             Assert(sideChainCreationRequest.LockedTokenAmount > 0
-                   && sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice
-                   && sideChainCreationRequest.SideChainTokenInfo != null,
+                   && sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice,
                 "Invalid chain creation request.");
 
+            var sideChainTokenInfo = new SideChainTokenInfo
+            {
+                TokenName = sideChainCreationRequest.SideChainTokenName,
+                Symbol = sideChainCreationRequest.SideChainTokenSymbol,
+                TotalSupply = sideChainCreationRequest.SideChainTokenTotalSupply,
+                Decimals = sideChainCreationRequest.SideChainTokenDecimals,
+                IsBurnable = sideChainCreationRequest.IsSideChainTokenBurnable
+            };
+            AssertSideChainTokenInfo(sideChainTokenInfo);
             State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value.Add(1);
             var serialNumber = State.SideChainSerialNumber.Value;
             int chainId = ChainHelper.GetChainId(serialNumber);
 
             // lock token and resource
-            CreateSideChainToken(sideChainCreationRequest, chainId);
+            CreateSideChainToken(sideChainCreationRequest, sideChainTokenInfo, chainId);
             var sideChainInfo = new SideChainInfo
             {
                 Proposer = Context.Origin,
@@ -71,6 +79,15 @@ namespace AElf.Contracts.CrossChain
                 Creator = Context.Origin
             });
             return new SInt32Value() {Value = chainId};
+        }
+
+        private void AssertSideChainTokenInfo(SideChainTokenInfo sideChainTokenInfo)
+        {
+            Assert(
+                !string.IsNullOrEmpty(sideChainTokenInfo.Symbol) 
+                && !string.IsNullOrEmpty(sideChainTokenInfo.TokenName),
+                "Invalid side chain token name,");
+            Assert(sideChainTokenInfo.TotalSupply > 0, "Invalid side chain token supply.");
         }
 
         /// <summary>

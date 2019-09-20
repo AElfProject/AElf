@@ -54,18 +54,18 @@ namespace AElf.Contracts.CrossChain
             State.TxRootMerklePathInParentChain[height] = path;
         }
 
-        private void CreateSideChainToken(SideChainCreationRequest sideChainInfo, int chainId)
+        private void CreateSideChainToken(SideChainCreationRequest sideChainCreationRequest, SideChainTokenInfo sideChainTokenInfo, int chainId)
         {
             TransferFrom(new TransferFromInput
             {
                 From = Context.Origin,
                 To = Context.Self,
-                Amount = sideChainInfo.LockedTokenAmount,
+                Amount = sideChainCreationRequest.LockedTokenAmount,
                 Symbol = Context.Variables.NativeSymbol
             });
-            State.IndexingBalance[chainId] = sideChainInfo.LockedTokenAmount;
+            State.IndexingBalance[chainId] = sideChainCreationRequest.LockedTokenAmount;
             
-            CreateSideChainToken(sideChainInfo.SideChainTokenInfo, chainId);   
+            CreateSideChainToken(sideChainTokenInfo, chainId);   
             // Todo: enable resource
         }
 

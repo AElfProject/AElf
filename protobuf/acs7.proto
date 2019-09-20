@@ -140,13 +140,17 @@ message SideChainCreationRequest {
     int64 locked_token_amount = 2;
     bytes contract_code = 3;
     bool is_privilege_preserved = 4;
-    SideChainTokenInfo side_chain_token_info = 5;
+    string side_chain_token_symbol = 5;
+    string side_chain_token_name = 6;
+    sint64 side_chain_token_total_supply = 7;
+    sint32 side_chain_token_decimals = 8;
+    bool is_side_chain_token_burnable = 9;
 }
 
 message SideChainTokenInfo {
     string symbol = 1;
-    string tokenName = 2;
-    sint64 totalSupply = 3;
+    string token_name = 2;
+    sint64 total_supply = 3;
     sint32 decimals = 4;
     aelf.Address issuer = 5;
     bool is_burnable = 6;
