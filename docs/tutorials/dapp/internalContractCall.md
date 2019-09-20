@@ -1,4 +1,4 @@
-# Internal contract interaction
+# Internal contract interactions
 
 Generally, there are two reasons for us to write code to interact with other contracts (sometimes even the contract you're writing).
 
@@ -7,21 +7,19 @@ Generally, there are two reasons for us to write code to interact with other con
 
 Both of the two operations can be done in two ways:
 
-1. Using *CSharpSmartContract.Context*.
-2. Adding a *Contract Reference State*, then using *CSharpSmartContract.State*.
+1. Using **CSharpSmartContract.Context**.
+2. Adding a **Contract Reference State** to the contract, then using **CSharpSmartContract.State** to call methods.
 
 ## Using the Context
 
-### Query a state from other contracts
+### Query state from other contracts
 
-Let's see how to call the **GetCandidates** method of **Election Contract** and get return value directly in your contract code. The **Context** property is available for every smart contract.
+Let's see how to call the **GetCandidates** method of the **Election Contract** and get the return value directly in your contract code with the **Context** property that is available in every smart contract.
 
 ```csharp
 using AElf.Sdk.CSharp;
 using AElf.Contracts.Election;
-
 ...
-
 // your contract code needs the candidates
 var electionContractAddress =
     Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName);
@@ -32,7 +30,7 @@ var candidates = Context.Call<PubkeyList>(electionContractAddress, "GetCandidate
 // use **candidates** to do other stuff...
 ```
 
-There are several things to know before writing such code.
+There are several things to know before writing such code:
 
 - Because this code references a type (**PubkeyList**) originally defined in the Election Contract (types are defined in a proto file, in this case  **election_contract.proto**), you at least need to reference messages defined in the .proto file in your contracts project.
 
@@ -94,14 +92,14 @@ Let's see a demo that implement these steps: check the balance of ELF token of c
 
 First, reference proto files related to `MultiToken Contract` and `acs6.proto` (random number generation).
 ```C#
-    <ItemGroup>
-        <ContractReference Include="..\..\protobuf\acs6.proto">
-            <Link>Protobuf\Proto\reference\acs6.proto</Link>
-        </ContractReference>
-        <ContractReference Include="..\..\protobuf\token_contract.proto">
-            <Link>Protobuf\Proto\reference\token_contract.proto</Link>
-        </ContractReference>
-    </ItemGroup>
+<ItemGroup>
+    <ContractReference Include="..\..\protobuf\acs6.proto">
+        <Link>Protobuf\Proto\reference\acs6.proto</Link>
+    </ContractReference>
+    <ContractReference Include="..\..\protobuf\token_contract.proto">
+        <Link>Protobuf\Proto\reference\token_contract.proto</Link>
+    </ContractReference>
+</ItemGroup>
 ```
 After rebuilding the contract project, we'll see following files appear in the Protobuf/Generated folder:
 - Acs6.c.cs
