@@ -8,6 +8,9 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf
 {
+    /// <summary>
+    /// Convention: Use ',' as separator.
+    /// </summary>
     public class ContextVariableDictionary : ReadOnlyDictionary<string, string>
     {
         public ContextVariableDictionary(IDictionary<string, string> dictionary) : base(dictionary)
@@ -15,7 +18,7 @@ namespace AElf
         }
 
         public string NativeSymbol => this[nameof(NativeSymbol)];
-        public List<string> ResourceTokenSymbolNameList => this[nameof(ResourceTokenSymbolList)].Split(',').ToList();
+        public List<string> ResourceTokenSymbolNameList => this[nameof(ResourceTokenSymbolNameList)].Split(',').ToList();
 
         public const string NativeSymbolName = nameof(NativeSymbol);
         public const string ResourceTokenSymbolList = nameof(ResourceTokenSymbolNameList);

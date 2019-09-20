@@ -159,16 +159,15 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
         [Fact(Skip = "Redo this later.")]
         public async Task<Hash> RequestRandomNumber_Test()
         {
-            const long minimumBlockHeight = 40;
-
             var transaction = ConsensusStub.RequestRandomNumber.GetTransaction(new Empty());
             await BlockMiningService.MineBlockAsync(new List<Transaction>
             {
                 transaction
             });
 
-            // TODO: Need to query result of transaction, this feature implemented in another PR.
-            return Hash.Empty;
+            var transactionTrace = TransactionTraceProvider.GetTransactionTrace(transaction.GetHash());
+
+            return Hash.Parser.ParseFrom(transactionTrace.ReturnValue);
         }
 
         [Fact(Skip = "Redo this later.")]
