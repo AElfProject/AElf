@@ -1,10 +1,10 @@
 # Getting started with Google cloud 
 
-To run AElf on Google cloud:
+To run an AElf node on Google cloud, follow these steps:
 
-1) Launch an vm instance using this image. 
-2) Login launched vm instance via SSH. 
-3) Next launch the chain. There's two ways to start the node:
+1. Launch an vm instance using this image. 
+2. Login launched vm instance via SSH. 
+3. Next launch the chain. There's two ways to start the node:
     - run in the foreground: 
       - root@test:/# cd /opt/aelf-node && docker-compose up
     - run in the background:
@@ -16,7 +16,7 @@ It will start redis and an aelf node.Once deployed go to the directory containin
     <img src="docker-compose.png">
 </p>
 
-4) Finally to verify if the node is correctly working, enter the following command: curl -X GET "http://127.0.0.1:8001/api/blockChain/chainStatus" -H "accept: text/plain; v=1.0"
+4. Finally to verify if the node is correctly working, enter the following command: curl -X GET "http://127.0.0.1:8001/api/blockChain/chainStatus" -H "accept: text/plain; v=1.0"
 
 <p align="center">
     <img src="curl-chain-stat.png">
