@@ -135,7 +135,15 @@ Next open 2 terminals, in the first navigate to miner1's directory and in the se
 dotnet ../AElf.Launcher.dll
 ```
 
-todo: get block height
+In both terminals you should be able to see the logs. The corresponding log files a available in miner1 and miner2's folders.
+
+You can try out a few commands to check if everything is fine, for example:
+
+```bash
+aelf-command get-blk-height -e http://127.0.0.1:8000
+```
+
+Reminder: change the RPC port (here 8000) according to the node you want to reach and don't confuse this port with the P2P port: this one is the port under the "Kestrel" section of the configuration.
 
 
 
