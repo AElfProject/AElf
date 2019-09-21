@@ -1,19 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
-
     <ItemGroup>
         <ProjectReference Include="..\AElf.BenchBase\AElf.BenchBase.csproj"/>
         <ProjectReference Include="..\..\test\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj"/>
     </ItemGroup>
-
     <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0"/>
         <PackageReference Include="Volo.Abp.Core" Version="0.19.0"/>
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1"/>
     </ItemGroup>
-
     <Import Project="..\..\test\AllContracts.props"/>
 </Project>
