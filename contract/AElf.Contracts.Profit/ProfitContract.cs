@@ -2,6 +2,7 @@
 using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -37,11 +38,7 @@ namespace AElf.Contracts.Profit
         /// <returns></returns>
         public override Hash CreateScheme(CreateSchemeInput input)
         {
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
+            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
 
             if (input.ProfitReceivingDuePeriodCount == 0)
             {
@@ -333,11 +330,7 @@ namespace AElf.Contracts.Profit
 
             Assert(Context.Sender == scheme.Manager, "Only manager can distribute profits.");
 
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
+            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
 
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
@@ -758,6 +751,13 @@ namespace AElf.Contracts.Profit
             profitDetail.LastProfitPeriod = lastProfitPeriod;
 
             return totalAmount;
+        }
+        
+        private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)
+        {
+            if (state.Value != null)
+                return;
+            state.Value = Context.GetContractAddressByName(contractSystemName);
         }
     }
 }

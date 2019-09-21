@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 
@@ -140,27 +141,7 @@ namespace AElf.WebApp.Application.Chain
                 var transactionIds = block.Body.TransactionIds.ToList().GetRange(offset, limit);
                 foreach (var transactionId in transactionIds)
                 {
-                    var transactionResult = await GetTransactionResultAsync(transactionId, realBlockHash);
-                    var transactionResultDto =
-                        JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
-                    var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
-                    transactionResultDto.BlockHash = block.GetHash().ToHex();
-                    transactionResultDto.ReturnValue = transactionResult.ReturnValue.ToHex();
-
-                    if (transactionResult.Status == TransactionResultStatus.Failed)
-                        transactionResultDto.Error = transactionResult.Error;
-
-                    transactionResultDto.Transaction =
-                        JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
-
-                    var methodDescriptor =
-                        await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(_blockchainService,
-                            _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
-
-                    transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(
-                        methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
-
-                    transactionResultDto.Status = transactionResult.Status.ToString();
+                    var transactionResultDto = await GetTransactionResultDto(transactionId, realBlockHash, block);
                     output.Add(transactionResultDto);
                 }
             }
@@ -273,6 +254,33 @@ namespace AElf.WebApp.Application.Chain
                 TransactionId = transactionId,
                 Status = TransactionResultStatus.NotExisted
             };
+        }
+        
+        private async Task<TransactionResultDto> GetTransactionResultDto(Hash transactionId, Hash realBlockHash, Block block)
+        {
+            var transactionResult = await GetTransactionResultAsync(transactionId, realBlockHash);
+            var transactionResultDto =
+                JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
+            var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
+            transactionResultDto.BlockHash = block.GetHash().ToHex();
+            transactionResultDto.ReturnValue = transactionResult.ReturnValue.ToHex();
+
+            if (transactionResult.Status == TransactionResultStatus.Failed)
+                transactionResultDto.Error = transactionResult.Error;
+
+            transactionResultDto.Transaction =
+                JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
+
+            var methodDescriptor =
+                await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(_blockchainService,
+                    _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
+
+            transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(
+                methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
+
+            transactionResultDto.Status = transactionResult.Status.ToString();
+
+            return transactionResultDto;
         }
         
         private Hash GetHashCombiningTransactionAndStatus(Hash txId,

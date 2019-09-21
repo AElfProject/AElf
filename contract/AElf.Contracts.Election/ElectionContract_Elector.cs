@@ -304,34 +304,10 @@ namespace AElf.Contracts.Election
             candidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
             State.CandidateVotes[votingRecord.Option] = candidateVotes;
 
-            State.TokenContract.Unlock.Send(new UnlockInput
-            {
-                Address = Context.Sender,
-                Symbol = Context.Variables.NativeSymbol,
-                Amount = GetElfAmount(votingRecord.Amount),
-                LockId = input,
-                Usage = "Withdraw votes for Main Chain Miner Election."
-            });
-
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
-            {
-                From = Context.Sender,
-                To = Context.Self,
-                Amount = votingRecord.Amount,
-                Symbol = ElectionContractConstants.VoteSymbol,
-                Memo = "Return VOTE tokens."
-            });
-
-            State.VoteContract.Withdraw.Send(new WithdrawInput
-            {
-                VoteId = input
-            });
-
-            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
-            {
-                SchemeId = State.WelfareHash.Value,
-                Beneficiary = Context.Sender
-            });
+            CallTokenContractUnlock(input, votingRecord);
+            CallTokenContractTransferFrom(votingRecord);
+            CallVoteContractWithdraw(input);
+            CallProfitContractRemoveBeneficiary();
 
             var rankingList = State.DataCentersRankingList.Value;
             if (State.DataCentersRankingList.Value.DataCenters.ContainsKey(votingRecord.Option))
@@ -357,6 +333,45 @@ namespace AElf.Contracts.Election
             }
 
             return elfAmount;
+        }
+
+        private void CallTokenContractUnlock(Hash input, VotingRecord votingRecord)
+        {
+            State.TokenContract.Unlock.Send(new UnlockInput
+            {
+                Address = Context.Sender,
+                Symbol = Context.Variables.NativeSymbol,
+                Amount = GetElfAmount(votingRecord.Amount),
+                LockId = input,
+                Usage = "Withdraw votes for Main Chain Miner Election."
+            });
+        }
+        private void CallTokenContractTransferFrom(VotingRecord votingRecord)
+        {
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = Context.Self,
+                Amount = votingRecord.Amount,
+                Symbol = ElectionContractConstants.VoteSymbol,
+                Memo = "Return VOTE tokens."
+            });
+        }
+
+        private void CallVoteContractWithdraw(Hash input)
+        {
+            State.VoteContract.Withdraw.Send(new WithdrawInput
+            {
+                VoteId = input
+            });
+        }
+        private void CallProfitContractRemoveBeneficiary()
+        {
+            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+            {
+                SchemeId = State.WelfareHash.Value,
+                Beneficiary = Context.Sender
+            });
         }
     }
 }
