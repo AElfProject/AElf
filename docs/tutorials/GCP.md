@@ -2,7 +2,7 @@
 
 To run an AElf node on Google cloud, follow these steps:
 
-1. From the [Google Cloud Market Place](https://console.cloud.google.com/marketplace) search search for "aelf enterprise image" and launch a VM instance using the image. 
+1. From the [Google Cloud Market Place](https://console.cloud.google.com/marketplace) search search for "aelf enterprise" and launch a VM instance using the image. 
 2. Login launched vm instance via SSH. 
 3. Next launch the chain. There's two ways to start the node:
     - run in the foreground: 
