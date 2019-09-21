@@ -47,7 +47,7 @@
 * [Architecture](Architecture/main.md)
     * [Introduction](Architecture/introduction.md)
     * [Implementations](Architecture/implementations.md)
-* [Performance](perf/perf.md)
+<!-- * [Performance](perf/perf.md) -->
 * [Contribution](contributions/readme.md)
     * [DevOps](devops/devops.md)
 <!-- * [Advanced guides](advanced/main.md) -->
