@@ -16,11 +16,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public interface ILocalTransactionExecutingService : ITransactionExecutingService
-    {
-    }
-
-    public class LocalTransactionExecutingService : ILocalTransactionExecutingService, ISingletonDependency
+    public class LocalTransactionExecutingService : ITransactionExecutingService, ISingletonDependency
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly List<IPreExecutionPlugin> _prePlugins;
@@ -62,7 +58,7 @@ namespace AElf.Kernel.SmartContract.Application
                     break;
                 try
                 {
-                    trace = await ExecuteOneAsync(0, groupChainContext, transaction, 
+                    trace = await ExecuteOneAsync(0, groupChainContext, transaction,
                         transactionExecutingDto.BlockHeader.Time,
                         cancellationToken).WithCancellation(cancellationToken);
                 }
@@ -129,7 +125,6 @@ namespace AElf.Kernel.SmartContract.Application
             Transaction transaction, Timestamp currentBlockTime, CancellationToken cancellationToken,
             Address origin = null, bool isCancellable = true)
         {
-            await Task.Yield();
             if (isCancellable && cancellationToken.IsCancellationRequested)
             {
                 return new TransactionTrace
@@ -144,7 +139,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 throw new Exception($"error tx: {transaction}");
             }
-
+            await Task.Yield();        // put the next code into a new thread
             var trace = new TransactionTrace
             {
                 TransactionId = transaction.GetHash()
@@ -163,7 +158,6 @@ namespace AElf.Kernel.SmartContract.Application
             };
             var internalStateCache = new TieredStateCache(chainContext.StateCache);
             var internalChainContext = new ChainContextWithTieredStateCache(chainContext, internalStateCache);
-
             IExecutive executive;
             try
             {
