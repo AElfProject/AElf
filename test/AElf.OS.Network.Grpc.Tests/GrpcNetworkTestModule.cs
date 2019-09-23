@@ -52,10 +52,10 @@ namespace AElf.OS.Network
                 IsInbound = true
             };
             
-            if (!IpEndPointHelper.TryParse(NetworkTestConstants.FakeIpEndpoint, out var peerEnpdoint))
+            if (!IpEndPointHelper.TryParse(NetworkTestConstants.FakeIpEndpoint, out var peerEndpoint))
                 throw new Exception($"Ip {NetworkTestConstants.FakeIpEndpoint} is invalid.");
             
-            pool.TryAddPeer(new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), peerEnpdoint, connectionInfo));
+            pool.TryAddPeer(new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), peerEndpoint, connectionInfo));
         }
     }
 }
