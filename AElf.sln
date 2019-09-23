@@ -325,6 +325,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.GenesisUpdat
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.Events", "test\AElf.Contracts.TestContract.Events\AElf.Contracts.TestContract.Events.csproj", "{10E13977-D3B0-4CA4-964A-76D2E9575936}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AElf.Contracts.TestContract.TransactionFees", "test\AElf.Contracts.TestContract.TransactionFees\AElf.Contracts.TestContract.TransactionFees.csproj", "{5A32215C-CE76-44B0-BD72-712CFD146852}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -927,6 +929,10 @@ Global
 		{10E13977-D3B0-4CA4-964A-76D2E9575936}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10E13977-D3B0-4CA4-964A-76D2E9575936}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10E13977-D3B0-4CA4-964A-76D2E9575936}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A32215C-CE76-44B0-BD72-712CFD146852}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A32215C-CE76-44B0-BD72-712CFD146852}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A32215C-CE76-44B0-BD72-712CFD146852}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A32215C-CE76-44B0-BD72-712CFD146852}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1091,5 +1097,6 @@ Global
 		{215B8624-528C-47BE-BF5B-650B41098129} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{E208B51B-AD0E-4925-86B3-E35199BFF5C1} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 		{10E13977-D3B0-4CA4-964A-76D2E9575936} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
+		{5A32215C-CE76-44B0-BD72-712CFD146852} = {D3950CC9-808F-4ED8-946A-79A992F3F8EF}
 	EndGlobalSection
 EndGlobal

@@ -24,7 +24,7 @@ Finally here is the Protobuf message we use for representing an address, it is o
 option csharp_namespace = "AElf.Common";
 message Address
 {
-    bytes Value = 1;
+    bytes value = 1;
 }
 ```
 
