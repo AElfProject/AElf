@@ -184,7 +184,10 @@ namespace AElf.Contracts.Election
 
             await NextRound(BootMinerKeyPair);
 
-            ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+            foreach (var keyPair in ValidationDataCenterKeyPairs)
+            {
+                await AnnounceElectionAsync(keyPair);
+            }
 
             var candidates = (await ElectionContractStub.GetCandidates.CallAsync(new Empty())).Value;
             foreach (var fullNodesKeyPair in ValidationDataCenterKeyPairs)
@@ -193,8 +196,10 @@ namespace AElf.Contracts.Election
             }
 
             var validCandidates = ValidationDataCenterKeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount - 1).ToList();
-            validCandidates.ForEach(async kp =>
-                await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, amount));
+            foreach (var keyPair in validCandidates)
+            {
+                await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, amount);
+            }
 
             foreach (var votedFullNodeKeyPair in ValidationDataCenterKeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount - 1))
             {
@@ -227,11 +232,16 @@ namespace AElf.Contracts.Election
         {
             await NextRound(BootMinerKeyPair);
 
-            ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+            foreach (var keyPair in ValidationDataCenterKeyPairs)
+            {
+                await AnnounceElectionAsync(keyPair);
+            }
 
             var validCandidates = ValidationDataCenterKeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
-            validCandidates.ForEach(async kp =>
-                await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 100));
+            foreach (var keyPair in validCandidates)
+            {
+                await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 100);
+            }
 
             var victories = (await ElectionContractStub.GetVictories.CallAsync(new Empty())).Value
                 .Select(p => p.ToHex()).ToList();
@@ -248,11 +258,16 @@ namespace AElf.Contracts.Election
         {
             await NextRound(BootMinerKeyPair);
 
-            ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+            foreach (var keyPair in ValidationDataCenterKeyPairs)
+            {
+                await AnnounceElectionAsync(keyPair);
+            }
 
             var moreVotesCandidates = ValidationDataCenterKeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
-            moreVotesCandidates.ForEach(async kp =>
-                await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 2));
+            foreach (var keyPair in moreVotesCandidates)
+            {
+                await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 2);
+            }
 
             var lessVotesCandidates = ValidationDataCenterKeyPairs.Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount).Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
             lessVotesCandidates.ForEach(async kp =>
