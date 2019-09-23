@@ -55,8 +55,7 @@ namespace AElf.Contracts.MultiToken
             result.Error.Contains($"Insufficient balance").ShouldBeTrue();
         }
 
-        [Fact(DisplayName = "[MultiToken] Approve token test")]
-        public async Task MultiTokenContract_Approve_Test()
+        private async Task MultiTokenContract_Approve_Test()
         {
             await MultiTokenContract_Issue_Test();
 
