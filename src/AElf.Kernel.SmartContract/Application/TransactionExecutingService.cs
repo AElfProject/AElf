@@ -8,6 +8,7 @@ using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.SmartContractExecution.Events;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -383,6 +384,21 @@ namespace AElf.Kernel.SmartContract.Application
                 }
 
                 returnSet.ReturnValue = trace.ReturnValue;
+            }
+            else
+            {
+                var writes = new List<KeyValuePair<string, ByteString>>();
+                foreach (var preTrace in trace.PreTraces)
+                {
+                    if (preTrace.IsSuccessful())
+                    {
+                        writes.AddRange(preTrace.GetFlattenedWrites());
+                    }
+                }
+                foreach (var write in writes)
+                {
+                    returnSet.StateChanges[write.Key] = write.Value;
+                }
             }
 
             var reads = trace.GetFlattenedReads();
