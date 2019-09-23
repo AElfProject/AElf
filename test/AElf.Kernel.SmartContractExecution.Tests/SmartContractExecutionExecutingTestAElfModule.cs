@@ -31,7 +31,7 @@ namespace AElf.Kernel.SmartContractExecution
             var services = context.Services;
             services.AddTransient(p =>
             {
-                var mockService = new Mock<ILocalParallelTransactionExecutingService>();
+                var mockService = new Mock<ITransactionExecutingService>();
                 mockService.Setup(m => m.ExecuteAsync(It.IsAny<TransactionExecutingDto>(),
                         It.IsAny<CancellationToken>(), It.IsAny<bool>()))
                     .Returns<TransactionExecutingDto, CancellationToken, bool>(
