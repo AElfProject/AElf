@@ -12,6 +12,7 @@ namespace AElf.OS.Application
         {
             _nodeEnvironmentService = GetRequiredService<INodeEnvironmentService>();
         }
+        
         [Fact]
         public void GetAppDataPath_Test()
         {
