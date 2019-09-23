@@ -179,7 +179,9 @@ namespace AElf.CrossChain
                         $"Side chain data not found, chainId: {ChainHelper.ConvertChainIdToBase58(sideChainBlockData.ChainId)}, side chain height: {targetHeight}.");
                 if (!cachedSideChainBlockData.Equals(sideChainBlockData))
                     return false;
-                
+
+                Logger.LogTrace(
+                    $"Validated cross chain block data at height {cachedSideChainBlockData.Height} from chain {cachedSideChainBlockData.ChainId}");
                 sideChainValidatedHeightDict[sideChainBlockData.ChainId] = sideChainBlockData.Height;
             }
 

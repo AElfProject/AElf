@@ -115,9 +115,7 @@ namespace AElf.Contracts.CrossChain
                 IssueChainId = chainId,
                 IsTransferDisabled = false,
                 Symbol = sideChainTokenInfo.Symbol,
-                TotalSupply = sideChainTokenInfo.TotalSupply,
-                LockWhiteList =
-                    {Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)}
+                TotalSupply = sideChainTokenInfo.TotalSupply
             });
         }
 
