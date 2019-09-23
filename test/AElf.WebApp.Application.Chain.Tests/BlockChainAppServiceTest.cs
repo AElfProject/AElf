@@ -1209,28 +1209,6 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             var count = response.Count;
             response.Count.ShouldBeGreaterThan(0);
-
-            const string testQueueOneName = "testQueueOneName";
-            const string testQueueTwoName = "testQueueTwoName";
-
-            _taskQueueManager.CreateQueue(testQueueOneName);
-            _taskQueueManager.CreateQueue(testQueueTwoName);
-
-            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueOneName);
-            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueOneName);
-
-            response = await GetResponseAsObjectAsync<List<TaskQueueInfoDto>>("/api/blockChain/taskQueueStatus");
-            response.Count.ShouldBe(2 + count);
-            response.Any(info => info.Name == testQueueOneName).ShouldBeTrue();
-            response.First(info => info.Name == testQueueOneName).Size.ShouldBe(1);
-            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
-            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
-            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
-
-            response = await GetResponseAsObjectAsync<List<TaskQueueInfoDto>>("/api/blockChain/taskQueueStatus");
-            response.Count.ShouldBe(2 + count);
-            response.First(info => info.Name == testQueueTwoName).Size.ShouldBe(2);
-            response.Any(info => info.Name == testQueueTwoName).ShouldBeTrue();
         }
 
         [Fact]
