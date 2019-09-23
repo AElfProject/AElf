@@ -156,6 +156,7 @@ namespace AElf.Contracts.TokenConverter
                     To = Context.Sender,
                     Amount = input.Amount
                 });
+            
             Context.Fire(new TokenBought
             {
                 Symbol = input.Symbol,
