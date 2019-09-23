@@ -30,7 +30,7 @@ namespace AElf.OS.Network.Grpc.Connection
             EventBus = NullLocalEventBus.Instance;
         }
 
-        public async Task DisconnectAsync(IPeer peer, bool sendDisconnect = false)
+        public async Task DisconnectAsync(IPeer peer, bool sendDisconnect = false, bool recover = true)
         {
             if (peer == null)
                 throw new ArgumentNullException(nameof(peer));
@@ -41,8 +41,17 @@ namespace AElf.OS.Network.Grpc.Connection
 
             // clean the peer
             await peer.DisconnectAsync(sendDisconnect);
+            
+            if (recover && !peer.Info.IsInbound) // todo should maybe be based on bootnodes and RPC added
+                FireDisconnectionEvent(peer as GrpcPeer);
 
             Logger.LogDebug($"Removed peer {peer}");
+        }
+        
+        private void FireDisconnectionEvent(GrpcPeer peer)
+        {
+            var nodeInfo = new NodeInfo { Endpoint = peer.RemoteEndpoint.ToString(), Pubkey = peer.Info.Pubkey.ToByteString() };
+            _ = EventBus.PublishAsync(new PeerDisconnectedEventData(nodeInfo));
         }
 
         public GrpcPeer GetPeerByPubkey(string pubkey)

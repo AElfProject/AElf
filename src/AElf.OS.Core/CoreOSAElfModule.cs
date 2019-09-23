@@ -2,9 +2,11 @@ using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.Modularity;
 using AElf.OS.Network;
+using AElf.OS.Network.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.BackgroundJobs;
+using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Modularity;
 
 namespace AElf.OS
@@ -28,6 +30,9 @@ namespace AElf.OS
             taskQueueManager.CreateQueue(NetworkConstants.BlockBroadcastQueueName);
             taskQueueManager.CreateQueue(NetworkConstants.AnnouncementBroadcastQueueName);
             taskQueueManager.CreateQueue(NetworkConstants.TransactionBroadcastQueueName);
+            
+            var backgroundWorkerManager = context.ServiceProvider.GetRequiredService<IBackgroundWorkerManager>();
+            backgroundWorkerManager.Add(context.ServiceProvider.GetService<PeerReconnectionWorker>());
         }
     }
 }

@@ -59,8 +59,8 @@ namespace AElf.OS.Network.Application
                 Logger.LogWarning($"Could not find peer at address {address}");
                 return false;
             }
-            
-            await _networkServer.DisconnectAsync(peer);
+
+            await _networkServer.DisconnectAsync(peer, recover: false);
 
             return true;
         }
