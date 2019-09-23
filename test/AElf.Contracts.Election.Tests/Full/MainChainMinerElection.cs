@@ -13,7 +13,10 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task UserVote_And_GetProfitAmount_Test()
         {
-            ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+            foreach (var keyPair in ValidationDataCenterKeyPairs)
+            {
+                await AnnounceElectionAsync(keyPair);
+            }
 
             var candidates = await ElectionContractStub.GetCandidates.CallAsync(new Empty());
             candidates.Value.Count.ShouldBe(ValidationDataCenterKeyPairs.Count);
