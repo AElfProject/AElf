@@ -35,7 +35,6 @@ namespace AElf.OS.Consensus.DPos
                         await Task.FromResult(new []{
                             OSConsensusDPosTestConstants.Bp1PublicKey,
                             OSConsensusDPosTestConstants.Bp2PublicKey,
-                            _keyPair.PublicKey.ToHex()
                         }));
                 return mockService.Object;
             });

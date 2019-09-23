@@ -42,7 +42,7 @@ namespace AElf.OS.Consensus.DPos
             blockIndex.ShouldBeNull();
         }
 
-        [Fact(Skip ="Need to adopt mock methods and data")]
+        [Fact]
         public async Task Find_LIB_With_Two_BP_Peers_Return_Block_Index()
         {
             var blocks = _osTestHelper.BestBranchBlockList;
