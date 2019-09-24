@@ -122,15 +122,8 @@ namespace AElf.Kernel.SmartContract.Application
         private async Task<TransactionTrace> ExecuteOneAsync(SingleTransactionExecutingDto singleTxExecutingDto, 
             CancellationToken cancellationToken)
         {
-            if (singleTxExecutingDto.IsCancellable && cancellationToken.IsCancellationRequested)
-            {
-                return new TransactionTrace
-                {
-                    TransactionId = singleTxExecutingDto.Transaction.GetHash(),
-                    ExecutionStatus = ExecutionStatus.Canceled,
-                    Error = "Execution cancelled"
-                };
-            }
+            var validationResult = ValidateCancellationRequest(singleTxExecutingDto, cancellationToken.IsCancellationRequested);
+            if (validationResult != null) return validationResult;
 
             var txContext = CreateTransactionContext(singleTxExecutingDto, out var trace);
 
@@ -418,6 +411,22 @@ namespace AElf.Kernel.SmartContract.Application
         {
             // One instance per type
             return plugins.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
+        }
+
+        private TransactionTrace ValidateCancellationRequest(SingleTransactionExecutingDto singleTxExecutingDto,
+            bool isCancellationRequested)
+        {
+            if (singleTxExecutingDto.IsCancellable && isCancellationRequested)
+            {
+                return new TransactionTrace
+                {
+                    TransactionId = singleTxExecutingDto.Transaction.GetHash(),
+                    ExecutionStatus = ExecutionStatus.Canceled,
+                    Error = "Execution cancelled"
+                };
+            }
+
+            return null;
         }
 
         private TransactionContext CreateTransactionContext(SingleTransactionExecutingDto singleTxExecutingDto,
