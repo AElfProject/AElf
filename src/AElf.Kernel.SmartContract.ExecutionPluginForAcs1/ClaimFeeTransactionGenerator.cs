@@ -8,6 +8,7 @@ using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 {
@@ -15,6 +16,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
+        public ILogger<ClaimFeeTransactionGenerator> Logger { get; set; }
 
         public ClaimFeeTransactionGenerator(ISmartContractAddressService smartContractAddressService,
             ITransactionInclusivenessProvider transactionInclusivenessProvider)
@@ -50,6 +52,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     Params = new Empty().ToByteString()
                 }
             });
+            
+            Logger.LogTrace("FeeClaim transaction generated.");
         }
     }
 }
