@@ -52,7 +52,6 @@ namespace AElf.Contracts.TestBase
     /// etc.
     /// </summary>
     /// <typeparam name="TContractTestAElfModule"></typeparam>
-    //[Obsolete("Deprecated. Use AElf.Contracts.TestKit for contract testing.")]
     public class ContractTester<TContractTestAElfModule> : ITransientDependency
         where TContractTestAElfModule : ContractTestAElfModule
     {

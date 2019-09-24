@@ -66,7 +66,7 @@ namespace AElf.Contracts.MultiToken
             };
 
             RegisterTokenInfo(nativeTokenInfo);
-            
+
             Assert(input.ChainPrimaryToken.IssueChainId == Context.ChainId, "Invalid primary token info.");
             State.ChainPrimaryTokenSymbol.Value = input.ChainPrimaryToken.Symbol;
             RegisterTokenInfo(input.ChainPrimaryToken);
@@ -81,7 +81,7 @@ namespace AElf.Contracts.MultiToken
             }
 
             Context.Fire(new ChainPrimaryTokenSymbolSet {TokenSymbol = input.ChainPrimaryToken.Symbol});
-            
+
             return new Empty();
         }
 
@@ -375,7 +375,7 @@ namespace AElf.Contracts.MultiToken
                 State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key] =
                     State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key].Add(pair.Value);
             }
-            
+
             Context.LogDebug(() => "Finished executing ChargeResourceToken.");
 
             return new Empty();
@@ -543,7 +543,7 @@ namespace AElf.Contracts.MultiToken
                         State.ChargedResourceTokens[caller][contractAddress][symbol] = 0;
                     }
                 }
-                
+
                 Context.LogDebug(() => $"Charged resource token {symbol}: {totalAmount}");
 
                 if (totalAmount > 0)
@@ -735,7 +735,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty AdvanceResourceToken(AdvanceResourceTokenInput input)
         {
-            Assert( Context.Variables.ResourceTokenSymbolNameList.Contains(input.ResourceTokenSymbol),
+            Assert(Context.Variables.ResourceTokenSymbolNameList.Contains(input.ResourceTokenSymbol),
                 "Invalid resource token symbol.");
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
                 State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol]

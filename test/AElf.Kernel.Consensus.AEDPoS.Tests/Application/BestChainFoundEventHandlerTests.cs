@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Types;
@@ -7,7 +8,7 @@ using Xunit;
 
 namespace AElf.Kernel.Consensus.DPoS.Tests.Application
 {
-    public class BestChainFoundEventHandlerTests : AEDPoSTestBase
+    public sealed class BestChainFoundEventHandlerTests : AEDPoSTestBase
     {
         private readonly BestChainFoundEventHandler _foundEventHandler;
 

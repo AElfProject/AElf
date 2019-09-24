@@ -9,7 +9,7 @@ namespace AElf.Sdk.CSharp
     {
         public static LogEvent ToLogEvent<T>(this T eventData, Address self = null) where T : IEvent<T>
         {
-            var le = new LogEvent()
+            var logEvent = new LogEvent
             {
                 Address = self,
                 Name = eventData.Descriptor.Name
@@ -23,19 +23,20 @@ namespace AElf.Sdk.CSharp
                     continue;
                 }
 
-                le.Indexed.Add(byteString);
+                logEvent.Indexed.Add(byteString);
             }
 
-            le.NonIndexed = eventData.GetNonIndexed().ToByteString();
-            return le;
+            logEvent.NonIndexed = eventData.GetNonIndexed().ToByteString();
+            return logEvent;
         }
 
         public static void MergeFrom<T>(this T eventData, LogEvent log) where T : IEvent<T>
         {
             foreach (var bs in log.Indexed)
             {
-                eventData.MergeFrom(bs);    
+                eventData.MergeFrom(bs);
             }
+
             eventData.MergeFrom(log.NonIndexed);
         }
     }

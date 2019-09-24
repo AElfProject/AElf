@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
+using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.Consensus.AEDPoS
 {
@@ -25,6 +26,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services.AddTransient<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
             context.Services
                 .AddSingleton<IBroadcastPrivilegedPubkeyListProvider, AEDPoSBroadcastPrivilegedPubkeyListProvider>();
+            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
 
             var configuration = context.Services.GetConfiguration();
 

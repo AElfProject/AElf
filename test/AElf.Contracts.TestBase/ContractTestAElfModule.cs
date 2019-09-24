@@ -15,7 +15,6 @@ using Volo.Abp.Modularity;
 
 namespace AElf.Contracts.TestBase
 {
-    [Obsolete("Deprecated. Use AElf.Contracts.TestKit for contract testing.")]
     [DependsOn(
         typeof(CSharpRuntimeAElfModule),
         typeof(CoreOSAElfModule),
