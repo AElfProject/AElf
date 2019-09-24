@@ -88,8 +88,9 @@ namespace AElf.Runtime.CSharp.Policies
                     .Type(typeof(ulong).Name, Permission.Allowed)
                     .Type(typeof(decimal).Name, Permission.Allowed)
                     .Type(typeof(string).Name, Permission.Allowed, member => member
-                        .Constructor(Permission.Denied))
-                        // TODO: Disallow string.Concat to enforce string extensions in AElf SDK
+                        .Constructor(Permission.Denied)
+                        .Member(nameof(string.Concat), Permission.Denied))
+                    // TODO: Disallow string.Concat to enforce string extensions in AElf SDK
                     .Type(typeof(Byte[]).Name, Permission.Allowed)
                 );
         }
