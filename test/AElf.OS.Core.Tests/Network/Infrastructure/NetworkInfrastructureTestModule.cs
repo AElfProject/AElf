@@ -37,8 +37,6 @@ namespace AElf.OS.Network
 
                 return mockService.Object;
             });
-
-            services.AddSingleton<IPeerReconnectionStateProvider>();
         }
     }
 }

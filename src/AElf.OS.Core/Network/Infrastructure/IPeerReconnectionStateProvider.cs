@@ -42,7 +42,7 @@ namespace AElf.OS.Network.Infrastructure
 
         public List<ReconnectingPeer> GetPeersReadyForReconnection(Timestamp maxTime)
         {
-            return _reconnectingPeers.Values.Where(rp => rp.NextAttempt.ToDateTime() < maxTime.ToDateTime()).ToList();
+            return _reconnectingPeers.Values.Where(rp => rp.NextAttempt < maxTime).ToList();
         }
     }
 }

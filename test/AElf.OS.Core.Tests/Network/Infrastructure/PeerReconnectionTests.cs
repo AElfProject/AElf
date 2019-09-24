@@ -10,27 +10,20 @@ namespace AElf.OS.Network
     {
         private readonly IPeerReconnectionStateProvider _reconnectionProvider;
 
-        public PeerReconnectionTests(IPeerReconnectionStateProvider reconnectionProvider)
+        public PeerReconnectionTests()
         {
-            _reconnectionProvider = reconnectionProvider;
+            _reconnectionProvider = GetRequiredService<IPeerReconnectionStateProvider>();
         }
         
         [Fact]
-        public void AddedPeer_IsFindable_ByAddressAndPubkey()
+        public void AddConnecting_ShouldAddPeers()
         {
-            int period = 5_000;
+            var utcNow = TimestampHelper.GetUtcNow();
 
-            var deconnectionPeriod = TimestampHelper.GetUtcNow();
+            _reconnectionProvider.AddReconnectingPeer("a-peer", new ReconnectingPeer { Endpoint = "a-peer", NextAttempt = utcNow });
 
-            _reconnectionProvider.AddReconnectingPeer("ipport",
-                new ReconnectingPeer {Endpoint = "ipport", NextAttempt = deconnectionPeriod });
-
-
-            var nowAfter = deconnectionPeriod.AddMilliseconds(2 * period);
-
-            var r = _reconnectionProvider.GetPeersReadyForReconnection(nowAfter);
-            
-            r.Count.ShouldBe(1);
+            _reconnectionProvider.GetPeersReadyForReconnection(utcNow.AddSeconds(-1)).Count.ShouldBe(0);
+            _reconnectionProvider.GetPeersReadyForReconnection(utcNow.AddSeconds(1)).Count.ShouldBe(1);
         }
     }
 }
