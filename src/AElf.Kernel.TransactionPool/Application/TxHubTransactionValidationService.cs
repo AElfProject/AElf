@@ -11,15 +11,14 @@ namespace AElf.Kernel.TransactionPool.Application
     {
         private readonly IEnumerable<ITransactionValidationProvider> _transactionValidationProviders;
 
-        private readonly IEnumerable<IConstrainedTransactionValidationProvider>
-            _constrainedTransactionValidationProviders;
+        private readonly IConstrainedTransactionValidationService _constrainedTransactionValidationService;
 
         public TxHubTransactionValidationService(
             IEnumerable<ITransactionValidationProvider> transactionValidationProviders,
-            IEnumerable<IConstrainedTransactionValidationProvider> constrainedTransactionValidationProviders)
+            IConstrainedTransactionValidationService constrainedTransactionValidationService)
         {
             _transactionValidationProviders = transactionValidationProviders;
-            _constrainedTransactionValidationProviders = constrainedTransactionValidationProviders;
+            _constrainedTransactionValidationService = constrainedTransactionValidationService;
         }
 
         public async Task<bool> ValidateTransactionAsync(Transaction transaction)
@@ -37,8 +36,7 @@ namespace AElf.Kernel.TransactionPool.Application
 
         public bool ValidateConstrainedTransaction(Transaction transaction, Hash blockHash)
         {
-            return _constrainedTransactionValidationProviders.All(provider =>
-                provider.ValidateTransaction(transaction, blockHash));
+            return _constrainedTransactionValidationService.ValidateTransaction(transaction, blockHash);
         }
     }
 }
