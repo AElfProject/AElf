@@ -42,7 +42,7 @@ namespace AElf.OS.Network.Grpc.Connection
             // clean the peer
             await peer.DisconnectAsync(sendDisconnect);
             
-            if (recover && !peer.Info.IsInbound) // todo should maybe be based on bootnodes and RPC added
+            if (recover)
                 FireDisconnectionEvent(peer as GrpcPeer);
 
             Logger.LogDebug($"Removed peer {peer}");
@@ -51,7 +51,7 @@ namespace AElf.OS.Network.Grpc.Connection
         private void FireDisconnectionEvent(GrpcPeer peer)
         {
             var nodeInfo = new NodeInfo { Endpoint = peer.RemoteEndpoint.ToString(), Pubkey = peer.Info.Pubkey.ToByteString() };
-            _ = EventBus.PublishAsync(new PeerDisconnectedEventData(nodeInfo));
+            _ = EventBus.PublishAsync(new PeerDisconnectedEventData(nodeInfo, peer.Info.IsInbound));
         }
 
         public GrpcPeer GetPeerByPubkey(string pubkey)

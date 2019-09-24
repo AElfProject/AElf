@@ -3,10 +3,12 @@ namespace AElf.OS.Network.Events
     public class PeerDisconnectedEventData
     {
         public NodeInfo NodeInfo { get; }
+        public bool IsInbound { get; }
 
-        public PeerDisconnectedEventData(NodeInfo _nodeInfo)
+        public PeerDisconnectedEventData(NodeInfo nodeInfo, bool isInbound)
         {
-            NodeInfo = _nodeInfo;
+            NodeInfo = nodeInfo;
+            IsInbound = isInbound;
         }
     }
 }

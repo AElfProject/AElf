@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
+using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -36,6 +37,8 @@ namespace AElf.OS.Network
 
                 return mockService.Object;
             });
+
+            services.AddSingleton<IPeerReconnectionStateProvider>();
         }
     }
 }
