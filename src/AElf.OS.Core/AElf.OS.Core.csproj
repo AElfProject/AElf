@@ -13,7 +13,7 @@
         <PackageReference Include="Volo.Abp.BackgroundJobs" Version="0.19.0" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.BackgroundJobs.Abstractions" Version="0.19.0" />
+        <PackageReference Include="Volo.Abp.BackgroundJobs.Abstractions" Version="0.21.0" />
     </ItemGroup>
     <ItemGroup>
         <CommonMessage Include="..\..\protobuf\network_types.proto">
