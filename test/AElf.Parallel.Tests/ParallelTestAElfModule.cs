@@ -1,3 +1,4 @@
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Modularity;
 using AElf.OS;
@@ -18,6 +19,7 @@ namespace AElf.Parallel.Tests
         {
             base.ConfigureServices(context);
             context.Services.AddSingleton<ParallelTestHelper>();
+            context.Services.AddSingleton<ILocalParallelTransactionExecutingService, LocalParallelTransactionExecutingService>();
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

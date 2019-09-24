@@ -362,13 +362,17 @@ namespace AElf.Contracts.Election
 
             // Profit
             var voter = GetProfitContractTester(voterKeyPair);
-            await voter.ClaimProfits.SendAsync(new ClaimProfitsInput
-                {SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare]});
+            var claimResult = await voter.ClaimProfits.SendAsync(new ClaimProfitsInput
+            {
+                SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
+                Symbol = "ELF"
+            });
+            claimResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             // Check ELF token balance
             {
                 var balance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
-                balance.ShouldBe(beforeBalance);
+                balance.ShouldBe(beforeBalance - 1_00000000);
             }
 
             // Check VOTE token balance.
