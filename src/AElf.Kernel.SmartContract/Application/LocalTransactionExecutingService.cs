@@ -16,7 +16,7 @@ using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public class LocalTransactionExecutingService : ITransactionExecutingService, ISingletonDependency
+    public class LocalTransactionExecutingService : ILocalTransactionExecutingService, ISingletonDependency
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly List<IPreExecutionPlugin> _prePlugins;

@@ -4,19 +4,12 @@ using System.Threading.Tasks;
 
 namespace AElf.Kernel.SmartContract.Application
 {
-    public interface ITransactionExecutingService
+    public interface ILocalTransactionExecutingService: ILocalParallelTransactionExecutingService
+    {
+    }
+    public interface ILocalParallelTransactionExecutingService
     {
         Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
             CancellationToken cancellationToken, bool throwException = false);
     }
-//    public interface ILocalTransactionExecutingService
-//    {
-//        Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
-//            CancellationToken cancellationToken, bool throwException = false);
-//    }
-//    public interface ILocalParallelTransactionExecutingService
-//    {
-//        Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
-//            CancellationToken cancellationToken, bool throwException = false);
-//    }
 }

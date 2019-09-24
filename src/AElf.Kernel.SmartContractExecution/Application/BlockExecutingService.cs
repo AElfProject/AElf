@@ -17,12 +17,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
 {
     public class BlockExecutingService : IBlockExecutingService, ITransientDependency
     {
-        private readonly ITransactionExecutingService _executingService;
+        private readonly ILocalParallelTransactionExecutingService _executingService;
         private readonly IBlockchainStateService _blockchainStateService;
         public ILocalEventBus EventBus { get; set; }
         public ILogger<BlockExecutingService> Logger { get; set; }
 
-        public BlockExecutingService(ITransactionExecutingService executingService,
+        public BlockExecutingService(ILocalParallelTransactionExecutingService executingService,
             IBlockchainStateService blockchainStateService)
         {
             _executingService = executingService;

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
@@ -25,7 +26,8 @@ namespace AElf.WebApp.Application
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreTestBaseModule),
         typeof(WebWebAppAElfModule),
-        typeof(OSCoreWithChainTestAElfModule)
+        typeof(OSCoreWithChainTestAElfModule),
+        typeof(TransactionExecutingDependencyTestModule)
     )]
     public class WebAppTestAElfModule : AElfModule
     {
