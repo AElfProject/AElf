@@ -45,7 +45,7 @@ namespace AElf.Sdk.CSharp
         public static string ValidatedString(string str)
         {
             if (str.Length > 10240)
-                throw new AssertionException("String size is too big to concatenate further!");
+                throw new AssertionException($"String size {str.Length} is too big to concatenate further!");
             return str;
         }
     }
