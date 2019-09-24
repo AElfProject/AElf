@@ -1208,7 +1208,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await GetResponseAsObjectAsync<List<TaskQueueInfoDto>>("/api/blockChain/taskQueueStatus");
 
             var count = response.Count;
-            response.Count.ShouldBeGreaterThan(0);
+            count.ShouldBeGreaterThan(0);
         }
 
         [Fact]
