@@ -47,6 +47,8 @@ namespace AElf
 
         bool VerifySignature(Transaction tx);
 
+        byte[] PatchContract(byte[] code, int category);
+
         void DeployContract(Address address, SmartContractRegistration registration, Hash name);
 
         void UpdateContract(Address address, SmartContractRegistration registration, Hash name);

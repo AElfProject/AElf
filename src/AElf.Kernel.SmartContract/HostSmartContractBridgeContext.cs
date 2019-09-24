@@ -221,6 +221,11 @@ namespace AElf.Kernel.SmartContract
             return tx.VerifySignature();
         }
 
+        public byte[] PatchContract(byte[] code, int category)
+        {
+            return AsyncHelper.RunSync(() => _smartContractBridgeService.PatchContractAsync(code, category));
+        }
+
         public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
         {
             if (!Self.Equals(_smartContractBridgeService.GetZeroSmartContractAddress()))

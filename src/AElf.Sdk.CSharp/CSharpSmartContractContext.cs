@@ -62,6 +62,11 @@ namespace AElf.Sdk.CSharp
             return _smartContractBridgeContextImplementation.VerifySignature(tx);
         }
 
+        public byte[] PatchContract(byte[] code, int category)
+        {
+            return _smartContractBridgeContextImplementation.PatchContract(code, category);
+        }
+
         public void DeployContract(Address address, SmartContractRegistration registration, Hash name)
         {
             _smartContractBridgeContextImplementation.DeployContract(address, registration, name);

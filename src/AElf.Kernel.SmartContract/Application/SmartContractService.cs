@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
+using Google.Protobuf;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -20,6 +21,12 @@ namespace AElf.Kernel.SmartContract.Application
             _smartContractRunnerContainer = smartContractRunnerContainer;
             _smartContractAddressService = smartContractAddressService;
             _smartContractExecutiveService = smartContractExecutiveService;
+        }
+
+        public async Task<byte[]> PatchContractAsync(byte[] code, int category)
+        {
+            var runner = _smartContractRunnerContainer.GetRunner(category);
+            return await Task.Run(() => runner.CodePatch(code));
         }
 
         /// <inheritdoc/>

@@ -100,7 +100,9 @@ namespace AElf.Contracts.Genesis
             // Increment
             State.ContractSerialNumber.Value = serialNumber + 1;
             var contractAddress = AddressHelper.BuildContractAddress(Context.ChainId, serialNumber);
-
+            
+            code = Context.PatchContract(code, category);
+            
             var codeHash = Hash.FromRawBytes(code);
 
             var info = new ContractInfo
@@ -169,6 +171,8 @@ namespace AElf.Contracts.Genesis
             Assert(info.Author == Context.Self || info.Author == Context.Origin,
                 "Only author can propose contract update.");
 
+            code = Context.PatchContract(code, info.Category);
+            
             var oldCodeHash = info.CodeHash;
             var newCodeHash = Hash.FromRawBytes(code);
             Assert(!oldCodeHash.Equals(newCodeHash), "Code is not changed.");

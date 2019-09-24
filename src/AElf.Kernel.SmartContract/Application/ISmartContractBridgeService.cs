@@ -14,6 +14,8 @@ namespace AElf.Kernel.SmartContract.Application
     {
         void LogDebug(Func<string> func);
 
+        Task<byte[]> PatchContractAsync(byte[] code, int category);
+        
         Task DeployContractAsync(ContractDto contractDto);
 
         Task UpdateContractAsync(ContractDto contractDto);
@@ -58,6 +60,11 @@ namespace AElf.Kernel.SmartContract.Application
 #if DEBUG
             Logger.LogDebug(func());
 #endif
+        }
+
+        public async Task<byte[]> PatchContractAsync(byte[] code, int category)
+        {
+            return await _smartContractService.PatchContractAsync(code, category);
         }
 
         public async Task DeployContractAsync(ContractDto contractDto)

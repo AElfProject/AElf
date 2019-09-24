@@ -72,7 +72,12 @@ namespace AElf.Runtime.CSharp
 
             return await Task.FromResult(executive);
         }
-        
+
+        public byte[] CodePatch(byte[] code)
+        {
+            return ContractPatcher.Patch(code);
+        }
+
         /// <summary>
         /// Performs code checks.
         /// </summary>
