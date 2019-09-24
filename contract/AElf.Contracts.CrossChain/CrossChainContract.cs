@@ -81,15 +81,6 @@ namespace AElf.Contracts.CrossChain
             return new SInt32Value() {Value = chainId};
         }
 
-        private void AssertSideChainTokenInfo(SideChainTokenInfo sideChainTokenInfo)
-        {
-            Assert(
-                !string.IsNullOrEmpty(sideChainTokenInfo.Symbol) 
-                && !string.IsNullOrEmpty(sideChainTokenInfo.TokenName),
-                "Invalid side chain token name,");
-            Assert(sideChainTokenInfo.TotalSupply > 0, "Invalid side chain token supply.");
-        }
-
         /// <summary>
         /// Recharge for side chain.
         /// </summary>

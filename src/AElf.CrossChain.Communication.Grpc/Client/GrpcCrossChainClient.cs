@@ -122,7 +122,6 @@ namespace AElf.CrossChain.Communication.Grpc
             catch (RpcException)
             {
                 IsConnected = false;
-                throw;
             }
         }
 

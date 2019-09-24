@@ -41,9 +41,9 @@ namespace AElf.CrossChain.Cache
 
         public IChainCacheEntity GetChainCacheEntity(int remoteChainId)
         {
-            return !_chainCacheEntities.TryGetValue(remoteChainId, out var blockCacheEntityProvider)
+            return !_chainCacheEntities.TryGetValue(remoteChainId, out var chainCacheEntity)
                 ? null
-                : blockCacheEntityProvider;
+                : chainCacheEntity;
         }
     }
 }

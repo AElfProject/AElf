@@ -180,8 +180,8 @@ namespace AElf.CrossChain
                 if (!cachedSideChainBlockData.Equals(sideChainBlockData))
                     return false;
 
-                Logger.LogTrace(
-                    $"Validated cross chain block data at height {cachedSideChainBlockData.Height} from chain {cachedSideChainBlockData.ChainId}");
+//                Logger.LogTrace(
+//                    $"Validated cross chain block data at height {cachedSideChainBlockData.Height} from chain {cachedSideChainBlockData.ChainId}");
                 sideChainValidatedHeightDict[sideChainBlockData.ChainId] = sideChainBlockData.Height;
             }
 

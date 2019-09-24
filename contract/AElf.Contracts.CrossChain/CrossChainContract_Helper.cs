@@ -83,6 +83,15 @@ namespace AElf.Contracts.CrossChain
                 });
             State.IndexingBalance[chainId] = 0;
         }
+        
+        private void AssertSideChainTokenInfo(SideChainTokenInfo sideChainTokenInfo)
+        {
+            Assert(
+                !string.IsNullOrEmpty(sideChainTokenInfo.Symbol) 
+                && !string.IsNullOrEmpty(sideChainTokenInfo.TokenName),
+                "Invalid side chain token name,");
+            Assert(sideChainTokenInfo.TotalSupply > 0, "Invalid side chain token supply.");
+        }
 
         private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)
         {
