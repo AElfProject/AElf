@@ -8,5 +8,7 @@ namespace AElf.Kernel.TransactionPool.Application
         Task<bool> ValidateTransactionAsync(Transaction transaction);
 
         bool ValidateConstrainedTransaction(Transaction transaction, Hash blockHash);
+
+        void ClearConstrainedTransactionValidationProvider(Hash blockHash);
     }
 }
