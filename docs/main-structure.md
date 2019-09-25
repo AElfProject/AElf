@@ -51,7 +51,7 @@
 * [Contribution](contributions/readme.md)
     * [DevOps](devops/devops.md)
 <!-- * [Advanced guides](advanced/main.md) -->
-* [Web api reference](Web/main.md)
+* [Web api reference](WebApiReference/reference.md)
 <!-- * [RPC api reference](RPC/main.md)
     * [Wallet](RPC/wallet.md)
     * [Chain](RPC/chain.md) -->
