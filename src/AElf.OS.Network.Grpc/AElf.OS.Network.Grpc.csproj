@@ -9,7 +9,7 @@
     <ItemGroup>
       <PackageReference Include="Grpc" Version="1.21.0" />
       <PackageReference Include="Grpc.Tools" Version="1.21.0" />
-      <PackageReference Include="Volo.Abp.EventBus" Version="0.19.0" />
+      <PackageReference Include="Volo.Abp.EventBus" Version="0.21.0" />
     </ItemGroup>
 
     <ItemGroup>
