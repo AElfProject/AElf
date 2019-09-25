@@ -11,14 +11,13 @@ using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.BackgroundWorkers;
-using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
 [assembly: InternalsVisibleTo("AElf.OS.Tests")]
 
 namespace AElf.OS.BlockSync.Worker
 {
-    public class BlockDownloadWorker : PeriodicBackgroundWorkerBase, ISingletonDependency
+    public class BlockDownloadWorker : PeriodicBackgroundWorkerBase
     {
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockDownloadService _blockDownloadService;
