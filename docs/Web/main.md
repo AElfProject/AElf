@@ -1,6 +1,5 @@
 # AELF API 1.0
 
-Click to get the [swagger.json](#swagger-json)
 
 <a name="overview"></a>
 ## Overview
@@ -14,7 +13,7 @@ Click to get the [swagger.json](#swagger-json)
 <a name="paths"></a>
 ## Paths
 
-<a name="getblock"></a>
+<a name="getblockasync"></a>
 ### Get information about a given block by block hash. Otionally with the list of its transactions.
 ```
 GET /api/blockChain/block
@@ -49,7 +48,7 @@ GET /api/blockChain/block
 * BlockChain
 
 
-<a name="getblockbyheight"></a>
+<a name="getblockbyheightasync"></a>
 ### Get information about a given block by block height. Otionally with the list of its transactions.
 ```
 GET /api/blockChain/blockByHeight
@@ -84,7 +83,7 @@ GET /api/blockChain/blockByHeight
 * BlockChain
 
 
-<a name="getblockheight"></a>
+<a name="getblockheightasync"></a>
 ### Get the height of the current chain.
 ```
 GET /api/blockChain/blockHeight
@@ -111,7 +110,7 @@ GET /api/blockChain/blockHeight
 * BlockChain
 
 
-<a name="getblockstate"></a>
+<a name="getblockstateasync"></a>
 ### Get the current state about a given block
 ```
 GET /api/blockChain/blockState
@@ -145,109 +144,7 @@ GET /api/blockChain/blockState
 * BlockChain
 
 
-<a name="broadcasttransaction"></a>
-### Broadcast a transaction
-```
-POST /api/blockChain/broadcastTransaction
-```
-
-
-#### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Query**|**rawTransaction**  <br>*optional*|raw transaction|string|
-
-
-#### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[BroadcastTransactionOutput](#broadcasttransactionoutput)|
-
-
-#### Produces
-
-* `text/plain; v=1.0`
-* `application/json; v=1.0`
-* `text/json; v=1.0`
-* `application/x-protobuf; v=1.0`
-
-
-#### Tags
-
-* BlockChain
-
-
-<a name="broadcasttransactions"></a>
-### Broadcast multiple transactions
-```
-POST /api/blockChain/broadcastTransactions
-```
-
-
-#### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Query**|**rawTransactions**  <br>*optional*|raw transactions|string|
-
-
-#### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|< string > array|
-
-
-#### Produces
-
-* `text/plain; v=1.0`
-* `application/json; v=1.0`
-* `text/json; v=1.0`
-* `application/x-protobuf; v=1.0`
-
-
-#### Tags
-
-* BlockChain
-
-
-<a name="call"></a>
-### Call a read-only method on a contract.
-```
-POST /api/blockChain/call
-```
-
-
-#### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Query**|**rawTransaction**  <br>*optional*|raw transaction|string|
-
-
-#### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|string|
-
-
-#### Produces
-
-* `text/plain; v=1.0`
-* `application/json; v=1.0`
-* `text/json; v=1.0`
-* `application/x-protobuf; v=1.0`
-
-
-#### Tags
-
-* BlockChain
-
-
-<a name="getchainstatus"></a>
+<a name="getchainstatusasync"></a>
 ### Get the current status of the block chain.
 ```
 GET /api/blockChain/chainStatus
@@ -274,7 +171,7 @@ GET /api/blockChain/chainStatus
 * BlockChain
 
 
-<a name="getcontractfiledescriptorset"></a>
+<a name="getcontractfiledescriptorsetasync"></a>
 ### Get the protobuf definitions related to a contract
 ```
 GET /api/blockChain/contractFileDescriptorSet
@@ -308,7 +205,375 @@ GET /api/blockChain/contractFileDescriptorSet
 * BlockChain
 
 
-<a name="gettransactionpoolstatus"></a>
+<a name="getcurrentroundinformationasync"></a>
+### Get AEDPoS latest round information from last block header's consensus extra data of best chain.
+```
+GET /api/blockChain/currentRoundInformation
+```
+
+
+#### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[RoundDto](#rounddto)|
+
+
+#### Produces
+
+* `text/plain; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Tags
+
+* BlockChain
+
+
+<a name="executerawtransactionasync"></a>
+### POST /api/blockChain/executeRawTransaction
+
+#### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Body**|**input**  <br>*optional*|[ExecuteRawTransactionDto](#executerawtransactiondto)|
+
+
+#### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|string|
+
+
+#### Consumes
+
+* `application/json-patch+json; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/*+json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Produces
+
+* `text/plain; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Tags
+
+* BlockChain
+
+
+<a name="executetransactionasync"></a>
+### Call a read-only method on a contract.
+```
+POST /api/blockChain/executeTransaction
+```
+
+
+#### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Body**|**input**  <br>*optional*|[ExecuteTransactionDto](#executetransactiondto)|
+
+
+#### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|string|
+
+
+#### Consumes
+
+* `application/json-patch+json; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/*+json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Produces
+
+* `text/plain; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Tags
+
+* BlockChain
+
+
+<a name="getmerklepathbytransactionidasync"></a>
+### Get the merkle path of a transaction.
+```
+GET /api/blockChain/merklePathByTransactionId
+```
+
+
+#### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Query**|**transactionId**  <br>*optional*|string|
+
+
+#### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[MerklePathDto](#merklepathdto)|
+
+
+#### Produces
+
+* `text/plain; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Tags
+
+* BlockChain
+
+
+<a name="createrawtransactionasync"></a>
+### Creates an unsigned serialized transaction
+```
+POST /api/blockChain/rawTransaction
+```
+
+
+#### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Body**|**input**  <br>*optional*|[CreateRawTransactionInput](#createrawtransactioninput)|
+
+
+#### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[CreateRawTransactionOutput](#createrawtransactionoutput)|
+
+
+#### Consumes
+
+* `application/json-patch+json; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/*+json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Produces
+
+* `text/plain; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Tags
+
+* BlockChain
+
+
+<a name="getroundfrombase64"></a>
+### GET /api/blockChain/roundFromBase64
+
+#### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Query**|**str**  <br>*optional*|string|
+
+
+#### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[RoundDto](#rounddto)|
+
+
+#### Produces
+
+* `text/plain; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Tags
+
+* Deserialization
+
+
+<a name="sendrawtransactionasync"></a>
+### send a transaction
+```
+POST /api/blockChain/sendRawTransaction
+```
+
+
+#### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Body**|**input**  <br>*optional*|[SendRawTransactionInput](#sendrawtransactioninput)|
+
+
+#### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[SendRawTransactionOutput](#sendrawtransactionoutput)|
+
+
+#### Consumes
+
+* `application/json-patch+json; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/*+json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Produces
+
+* `text/plain; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Tags
+
+* BlockChain
+
+
+<a name="sendtransactionasync"></a>
+### Broadcast a transaction
+```
+POST /api/blockChain/sendTransaction
+```
+
+
+#### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Body**|**input**  <br>*optional*|[SendTransactionInput](#sendtransactioninput)|
+
+
+#### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[SendTransactionOutput](#sendtransactionoutput)|
+
+
+#### Consumes
+
+* `application/json-patch+json; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/*+json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Produces
+
+* `text/plain; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Tags
+
+* BlockChain
+
+
+<a name="sendtransactionsasync"></a>
+### Broadcast multiple transactions
+```
+POST /api/blockChain/sendTransactions
+```
+
+
+#### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Body**|**input**  <br>*optional*|[SendTransactionsInput](#sendtransactionsinput)|
+
+
+#### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|< string > array|
+
+
+#### Consumes
+
+* `application/json-patch+json; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/*+json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Produces
+
+* `text/plain; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Tags
+
+* BlockChain
+
+
+<a name="gettaskqueuestatusasync"></a>
+### GET /api/blockChain/taskQueueStatus
+
+#### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|< [TaskQueueInfoDto](#taskqueueinfodto) > array|
+
+
+#### Produces
+
+* `text/plain; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Tags
+
+* BlockChain
+
+
+<a name="gettransactionpoolstatusasync"></a>
 ### Get the transaction pool status.
 ```
 GET /api/blockChain/transactionPoolStatus
@@ -335,7 +600,7 @@ GET /api/blockChain/transactionPoolStatus
 * BlockChain
 
 
-<a name="gettransactionresult"></a>
+<a name="gettransactionresultasync"></a>
 ### Get the current status of a transaction
 ```
 GET /api/blockChain/transactionResult
@@ -369,7 +634,7 @@ GET /api/blockChain/transactionResult
 * BlockChain
 
 
-<a name="gettransactionresults"></a>
+<a name="gettransactionresultsasync"></a>
 ### Get multiple transaction results.
 ```
 GET /api/blockChain/transactionResults
@@ -405,25 +670,18 @@ GET /api/blockChain/transactionResults
 * BlockChain
 
 
-<a name="addpeer"></a>
-### Attempts to add a node to the connected network nodes
+<a name="getnetworkinfoasync"></a>
+### Get information about the node’s connection to the network.
 ```
-POST /api/net/peer
+GET /api/net/networkInfo
 ```
-
-
-#### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Query**|**address**  <br>*optional*|ip address|string|
 
 
 #### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|boolean|
+|**200**|Success|[GetNetworkInfoOutput](#getnetworkinfooutput)|
 
 
 #### Produces
@@ -439,7 +697,50 @@ POST /api/net/peer
 * Net
 
 
-<a name="removepeer"></a>
+<a name="addpeerasync"></a>
+### Attempts to add a node to the connected network nodes
+```
+POST /api/net/peer
+```
+
+
+#### Parameters
+
+|Type|Name|Schema|
+|---|---|---|
+|**Body**|**input**  <br>*optional*|[AddPeerInput](#addpeerinput)|
+
+
+#### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|boolean|
+
+
+#### Consumes
+
+* `application/json-patch+json; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/*+json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Produces
+
+* `text/plain; v=1.0`
+* `application/json; v=1.0`
+* `text/json; v=1.0`
+* `application/x-protobuf; v=1.0`
+
+
+#### Tags
+
+* Net
+
+
+<a name="removepeerasync"></a>
 ### Attempts to remove a node from the connected network nodes
 ```
 DELETE /api/net/peer
@@ -474,17 +775,24 @@ DELETE /api/net/peer
 
 
 <a name="getpeers"></a>
-### Get ip addresses about the connected network nodes
+### Get peer info about the connected network nodes
 ```
 GET /api/net/peers
 ```
+
+
+#### Parameters
+
+|Type|Name|Schema|Default|
+|---|---|---|---|
+|**Query**|**withMetrics**  <br>*optional*|boolean|`"false"`|
 
 
 #### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|< string > array|
+|**200**|Success|< [PeerDto](#peerdto) > array|
 
 
 #### Produces
@@ -504,6 +812,14 @@ GET /api/net/peers
 
 <a name="definitions"></a>
 ## Definitions
+
+<a name="addpeerinput"></a>
+### AddPeerInput
+
+|Name|Description|Schema|
+|---|---|---|
+|**Address**  <br>*optional*|ip address|string|
+
 
 <a name="blockbodydto"></a>
 ### BlockBodyDto
@@ -536,6 +852,7 @@ GET /api/net/peers
 |**MerkleTreeRootOfTransactions**  <br>*optional*|string|
 |**MerkleTreeRootOfWorldState**  <br>*optional*|string|
 |**PreviousBlockHash**  <br>*optional*|string|
+|**SignerPubkey**  <br>*optional*|string|
 |**Time**  <br>*optional*|string (date-time)|
 
 
@@ -548,14 +865,6 @@ GET /api/net/peers
 |**BlockHeight**  <br>*optional*|integer (int64)|
 |**Changes**  <br>*optional*|< string, string > map|
 |**PreviousHash**  <br>*optional*|string|
-
-
-<a name="broadcasttransactionoutput"></a>
-### BroadcastTransactionOutput
-
-|Name|Schema|
-|---|---|
-|**TransactionId**  <br>*optional*|string|
 
 
 <a name="chainstatusdto"></a>
@@ -573,7 +882,55 @@ GET /api/net/peers
 |**LastIrreversibleBlockHeight**  <br>*optional*|integer (int64)|
 |**LongestChainHash**  <br>*optional*|string|
 |**LongestChainHeight**  <br>*optional*|integer (int64)|
-|**NotLinkedBlocks**  <br>*optional*|< [NotLinkedBlockDto](#notlinkedblockdto) > array|
+|**NotLinkedBlocks**  <br>*optional*|< string, string > map|
+
+
+<a name="createrawtransactioninput"></a>
+### CreateRawTransactionInput
+
+|Name|Description|Schema|
+|---|---|---|
+|**From**  <br>*required*|from address|string|
+|**MethodName**  <br>*required*|contract method name|string|
+|**Params**  <br>*required*|contract method parameters|string|
+|**RefBlockHash**  <br>*required*|refer block hash|string|
+|**RefBlockNumber**  <br>*required*|refer block height|integer (int64)|
+|**To**  <br>*required*|to address|string|
+
+
+<a name="createrawtransactionoutput"></a>
+### CreateRawTransactionOutput
+
+|Name|Schema|
+|---|---|
+|**RawTransaction**  <br>*optional*|string|
+
+
+<a name="executerawtransactiondto"></a>
+### ExecuteRawTransactionDto
+
+|Name|Description|Schema|
+|---|---|---|
+|**RawTransaction**  <br>*optional*|raw transaction|string|
+|**Signature**  <br>*optional*|signature|string|
+
+
+<a name="executetransactiondto"></a>
+### ExecuteTransactionDto
+
+|Name|Description|Schema|
+|---|---|---|
+|**RawTransaction**  <br>*optional*|raw transaction|string|
+
+
+<a name="getnetworkinfooutput"></a>
+### GetNetworkInfoOutput
+
+|Name|Description|Schema|
+|---|---|---|
+|**Connections**  <br>*optional*|total number of open connections between this node and other nodes|integer (int32)|
+|**ProtocolVersion**  <br>*optional*|network protocol version|integer (int32)|
+|**Version**  <br>*optional*|node version|string|
 
 
 <a name="gettransactionpoolstatusoutput"></a>
@@ -582,6 +939,7 @@ GET /api/net/peers
 |Name|Schema|
 |---|---|
 |**Queued**  <br>*optional*|integer (int32)|
+|**Validated**  <br>*optional*|integer (int32)|
 
 
 <a name="logeventdto"></a>
@@ -595,14 +953,140 @@ GET /api/net/peers
 |**NonIndexed**  <br>*optional*|string|
 
 
-<a name="notlinkedblockdto"></a>
-### NotLinkedBlockDto
+<a name="merklepathdto"></a>
+### MerklePathDto
 
 |Name|Schema|
 |---|---|
-|**BlockHash**  <br>*optional*|string|
-|**Height**  <br>*optional*|integer (int64)|
-|**PreviousBlockHash**  <br>*optional*|string|
+|**MerklePathNodes**  <br>*optional*|< [MerklePathNodeDto](#merklepathnodedto) > array|
+
+
+<a name="merklepathnodedto"></a>
+### MerklePathNodeDto
+
+|Name|Schema|
+|---|---|
+|**Hash**  <br>*optional*|string|
+|**IsLeftChildNode**  <br>*optional*|boolean|
+
+
+<a name="minerinrounddto"></a>
+### MinerInRoundDto
+
+|Name|Schema|
+|---|---|
+|**ActualMiningTimes**  <br>*optional*|< string (date-time) > array|
+|**ExpectedMiningTime**  <br>*optional*|string (date-time)|
+|**ImpliedIrreversibleBlockHeight**  <br>*optional*|integer (int64)|
+|**InValue**  <br>*optional*|string|
+|**MissedBlocks**  <br>*optional*|integer (int64)|
+|**Order**  <br>*optional*|integer (int32)|
+|**OutValue**  <br>*optional*|string|
+|**PreviousInValue**  <br>*optional*|string|
+|**ProducedBlocks**  <br>*optional*|integer (int64)|
+|**ProducedTinyBlocks**  <br>*optional*|integer (int32)|
+
+
+<a name="peerdto"></a>
+### PeerDto
+
+|Name|Schema|
+|---|---|
+|**BufferedAnnouncementsCount**  <br>*optional*|integer (int32)|
+|**BufferedBlocksCount**  <br>*optional*|integer (int32)|
+|**BufferedTransactionsCount**  <br>*optional*|integer (int32)|
+|**ConnectionTime**  <br>*optional*|integer (int64)|
+|**Inbound**  <br>*optional*|boolean|
+|**IpAddress**  <br>*optional*|string|
+|**ProtocolVersion**  <br>*optional*|integer (int32)|
+|**RequestMetrics**  <br>*optional*|< [RequestMetric](#requestmetric) > array|
+
+
+<a name="requestmetric"></a>
+### RequestMetric
+
+|Name|Schema|
+|---|---|
+|**Info**  <br>*optional*|string|
+|**MethodName**  <br>*optional*|string|
+|**RequestTime**  <br>*optional*|[Timestamp](#timestamp)|
+|**RoundTripTime**  <br>*optional*|integer (int64)|
+
+
+<a name="rounddto"></a>
+### RoundDto
+
+|Name|Schema|
+|---|---|
+|**ConfirmedIrreversibleBlockHeight**  <br>*optional*|integer (int64)|
+|**ConfirmedIrreversibleBlockRoundNumber**  <br>*optional*|integer (int64)|
+|**ExtraBlockProducerOfPreviousRound**  <br>*optional*|string|
+|**IsMinerListJustChanged**  <br>*optional*|boolean|
+|**RealTimeMinerInformation**  <br>*optional*|< string, [MinerInRoundDto](#minerinrounddto) > map|
+|**RoundId**  <br>*optional*|integer (int64)|
+|**RoundNumber**  <br>*optional*|integer (int64)|
+|**TermNumber**  <br>*optional*|integer (int64)|
+
+
+<a name="sendrawtransactioninput"></a>
+### SendRawTransactionInput
+
+|Name|Description|Schema|
+|---|---|---|
+|**ReturnTransaction**  <br>*optional*|return transaction detail or not|boolean|
+|**Signature**  <br>*optional*|signature|string|
+|**Transaction**  <br>*optional*|raw transaction|string|
+
+
+<a name="sendrawtransactionoutput"></a>
+### SendRawTransactionOutput
+
+|Name|Schema|
+|---|---|
+|**Transaction**  <br>*optional*|[TransactionDto](#transactiondto)|
+|**TransactionId**  <br>*optional*|string|
+
+
+<a name="sendtransactioninput"></a>
+### SendTransactionInput
+
+|Name|Description|Schema|
+|---|---|---|
+|**RawTransaction**  <br>*optional*|raw transaction|string|
+
+
+<a name="sendtransactionoutput"></a>
+### SendTransactionOutput
+
+|Name|Schema|
+|---|---|
+|**TransactionId**  <br>*optional*|string|
+
+
+<a name="sendtransactionsinput"></a>
+### SendTransactionsInput
+
+|Name|Description|Schema|
+|---|---|---|
+|**RawTransactions**  <br>*optional*|raw transactions|string|
+
+
+<a name="taskqueueinfodto"></a>
+### TaskQueueInfoDto
+
+|Name|Schema|
+|---|---|
+|**Name**  <br>*optional*|string|
+|**Size**  <br>*optional*|integer (int32)|
+
+
+<a name="timestamp"></a>
+### Timestamp
+
+|Name|Schema|
+|---|---|
+|**Nanos**  <br>*optional*|integer (int32)|
+|**Seconds**  <br>*optional*|integer (int64)|
 
 
 <a name="transactiondto"></a>
@@ -615,7 +1099,7 @@ GET /api/net/peers
 |**Params**  <br>*optional*|string|
 |**RefBlockNumber**  <br>*optional*|integer (int64)|
 |**RefBlockPrefix**  <br>*optional*|string|
-|**Sigs**  <br>*optional*|< string > array|
+|**Signature**  <br>*optional*|string|
 |**To**  <br>*optional*|string|
 
 
@@ -630,942 +1114,12 @@ GET /api/net/peers
 |**Error**  <br>*optional*|string|
 |**Logs**  <br>*optional*|< [LogEventDto](#logeventdto) > array|
 |**ReadableReturnValue**  <br>*optional*|string|
+|**ReturnValue**  <br>*optional*|string|
 |**Status**  <br>*optional*|string|
 |**Transaction**  <br>*optional*|[TransactionDto](#transactiondto)|
 |**TransactionId**  <br>*optional*|string|
 
-## Swagger.json
 
-You can input it into online Swagger Editor: http://editor.swagger.io/
 
-```json
-{
-    "swagger": "2.0",
-    "info": {
-        "version": "1.0",
-        "title": "AELF API 1.0"
-    },
-    "paths": {
-        "/api/blockChain/call": {
-            "post": {
-                "tags": [
-                    "BlockChain"
-                ],
-                "summary": "Call a read-only method on a contract.",
-                "operationId": "Call",
-                "consumes": [],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [
-                    {
-                        "name": "rawTransaction",
-                        "in": "query",
-                        "description": "raw transaction",
-                        "required": false,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/blockChain/contractFileDescriptorSet": {
-            "get": {
-                "tags": [
-                    "BlockChain"
-                ],
-                "summary": "Get the protobuf definitions related to a contract",
-                "operationId": "GetContractFileDescriptorSet",
-                "consumes": [],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [
-                    {
-                        "name": "address",
-                        "in": "query",
-                        "description": "contract address",
-                        "required": false,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "format": "byte",
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/blockChain/rawTransaction": {
-            "post": {
-                "tags": [
-                    "BlockChain"
-                ],
-                "summary": "Creates an unsigned serialized transaction",
-                "operationId": "CreateRawTransaction",
-                "consumes": [
-                    "application/json-patch+json; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/*+json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [
-                    {
-                        "name": "input",
-                        "in": "body",
-                        "description": "",
-                        "required": false,
-                        "schema": {
-                            "$ref": "#/definitions/CreateRawTransactionInput"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/CreateRawTransactionOutput"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/blockChain/sendRawTransaction": {
-            "post": {
-                "tags": [
-                    "BlockChain"
-                ],
-                "summary": "send a transaction",
-                "operationId": "SendRawTransaction",
-                "consumes": [
-                    "application/json-patch+json; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/*+json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [
-                    {
-                        "name": "input",
-                        "in": "body",
-                        "description": "",
-                        "required": false,
-                        "schema": {
-                            "$ref": "#/definitions/SendRawTransactionInput"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/SendRawTransactionOutput"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/blockChain/broadcastTransaction": {
-            "post": {
-                "tags": [
-                    "BlockChain"
-                ],
-                "summary": "Broadcast a transaction",
-                "operationId": "BroadcastTransaction",
-                "consumes": [],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [
-                    {
-                        "name": "rawTransaction",
-                        "in": "query",
-                        "description": "raw transaction",
-                        "required": false,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/BroadcastTransactionOutput"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/blockChain/broadcastTransactions": {
-            "post": {
-                "tags": [
-                    "BlockChain"
-                ],
-                "summary": "Broadcast multiple transactions",
-                "operationId": "BroadcastTransactions",
-                "consumes": [],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [
-                    {
-                        "name": "rawTransactions",
-                        "in": "query",
-                        "description": "raw transactions",
-                        "required": false,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "uniqueItems": false,
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/blockChain/transactionResult": {
-            "get": {
-                "tags": [
-                    "BlockChain"
-                ],
-                "summary": "Get the current status of a transaction",
-                "operationId": "GetTransactionResult",
-                "consumes": [],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [
-                    {
-                        "name": "transactionId",
-                        "in": "query",
-                        "description": "transaction id",
-                        "required": false,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/TransactionResultDto"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/blockChain/transactionResults": {
-            "get": {
-                "tags": [
-                    "BlockChain"
-                ],
-                "summary": "Get multiple transaction results.",
-                "operationId": "GetTransactionResults",
-                "consumes": [],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [
-                    {
-                        "name": "blockHash",
-                        "in": "query",
-                        "description": "block hash",
-                        "required": false,
-                        "type": "string"
-                    },
-                    {
-                        "name": "offset",
-                        "in": "query",
-                        "description": "offset",
-                        "required": false,
-                        "type": "integer",
-                        "format": "int32",
-                        "default": 0
-                    },
-                    {
-                        "name": "limit",
-                        "in": "query",
-                        "description": "limit",
-                        "required": false,
-                        "type": "integer",
-                        "format": "int32",
-                        "default": 10
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "uniqueItems": false,
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/TransactionResultDto"
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/api/blockChain/blockHeight": {
-            "get": {
-                "tags": [
-                    "BlockChain"
-                ],
-                "summary": "Get the height of the current chain.",
-                "operationId": "GetBlockHeight",
-                "consumes": [],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "format": "int64",
-                            "type": "integer"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/blockChain/block": {
-            "get": {
-                "tags": [
-                    "BlockChain"
-                ],
-                "summary": "Get information about a given block by block hash. Otionally with the list of its transactions.",
-                "operationId": "GetBlock",
-                "consumes": [],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [
-                    {
-                        "name": "blockHash",
-                        "in": "query",
-                        "description": "block hash",
-                        "required": false,
-                        "type": "string"
-                    },
-                    {
-                        "name": "includeTransactions",
-                        "in": "query",
-                        "description": "include transactions or not",
-                        "required": false,
-                        "type": "boolean",
-                        "default": false
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/BlockDto"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/blockChain/blockByHeight": {
-            "get": {
-                "tags": [
-                    "BlockChain"
-                ],
-                "summary": "Get information about a given block by block height. Otionally with the list of its transactions.",
-                "operationId": "GetBlockByHeight",
-                "consumes": [],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [
-                    {
-                        "name": "blockHeight",
-                        "in": "query",
-                        "description": "block height",
-                        "required": false,
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    {
-                        "name": "includeTransactions",
-                        "in": "query",
-                        "description": "include transactions or not",
-                        "required": false,
-                        "type": "boolean",
-                        "default": false
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/BlockDto"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/blockChain/transactionPoolStatus": {
-            "get": {
-                "tags": [
-                    "BlockChain"
-                ],
-                "summary": "Get the transaction pool status.",
-                "operationId": "GetTransactionPoolStatus",
-                "consumes": [],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/GetTransactionPoolStatusOutput"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/blockChain/chainStatus": {
-            "get": {
-                "tags": [
-                    "BlockChain"
-                ],
-                "summary": "Get the current status of the block chain.",
-                "operationId": "GetChainStatus",
-                "consumes": [],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/ChainStatusDto"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/blockChain/blockState": {
-            "get": {
-                "tags": [
-                    "BlockChain"
-                ],
-                "summary": "Get the current state about a given block",
-                "operationId": "GetBlockState",
-                "consumes": [],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [
-                    {
-                        "name": "blockHash",
-                        "in": "query",
-                        "description": "block hash",
-                        "required": false,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "$ref": "#/definitions/BlockStateDto"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/net/peer": {
-            "post": {
-                "tags": [
-                    "Net"
-                ],
-                "summary": "Attempts to add a node to the connected network nodes",
-                "operationId": "AddPeer",
-                "consumes": [],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [
-                    {
-                        "name": "address",
-                        "in": "query",
-                        "description": "ip address",
-                        "required": false,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "type": "boolean"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "tags": [
-                    "Net"
-                ],
-                "summary": "Attempts to remove a node from the connected network nodes",
-                "operationId": "RemovePeer",
-                "consumes": [],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [
-                    {
-                        "name": "address",
-                        "in": "query",
-                        "description": "ip address",
-                        "required": false,
-                        "type": "string"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "type": "boolean"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/net/peers": {
-            "get": {
-                "tags": [
-                    "Net"
-                ],
-                "summary": "Get ip addresses about the connected network nodes",
-                "operationId": "GetPeers",
-                "consumes": [],
-                "produces": [
-                    "text/plain; v=1.0",
-                    "application/json; v=1.0",
-                    "text/json; v=1.0",
-                    "application/x-protobuf; v=1.0"
-                ],
-                "parameters": [],
-                "responses": {
-                    "200": {
-                        "description": "Success",
-                        "schema": {
-                            "uniqueItems": false,
-                            "type": "array",
-                            "items": {
-                                "type": "string"
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    },
-    "definitions": {
-        "CreateRawTransactionInput": {
-            "required": [
-                "From",
-                "To",
-                "RefBlockNumber",
-                "RefBlockHash",
-                "MethodName",
-                "Params"
-            ],
-            "type": "object",
-            "properties": {
-                "From": {
-                    "description": "from address",
-                    "type": "string"
-                },
-                "To": {
-                    "description": "to address",
-                    "type": "string"
-                },
-                "RefBlockNumber": {
-                    "format": "int64",
-                    "description": "refer block height",
-                    "type": "integer"
-                },
-                "RefBlockHash": {
-                    "description": "refer block hash",
-                    "type": "string"
-                },
-                "MethodName": {
-                    "description": "contract method name",
-                    "type": "string"
-                },
-                "Params": {
-                    "description": "contract method parameters",
-                    "type": "string"
-                }
-            }
-        },
-        "CreateRawTransactionOutput": {
-            "type": "object",
-            "properties": {
-                "RawTransaction": {
-                    "type": "string"
-                }
-            }
-        },
-        "SendRawTransactionInput": {
-            "type": "object",
-            "properties": {
-                "Transaction": {
-                    "description": "raw transaction",
-                    "type": "string"
-                },
-                "Signature": {
-                    "description": "signature",
-                    "type": "string"
-                },
-                "ReturnTransaction": {
-                    "description": "return transaction detail or not",
-                    "type": "boolean"
-                }
-            }
-        },
-        "SendRawTransactionOutput": {
-            "type": "object",
-            "properties": {
-                "TransactionId": {
-                    "type": "string"
-                },
-                "Transaction": {
-                    "$ref": "#/definitions/TransactionDto"
-                }
-            }
-        },
-        "TransactionDto": {
-            "type": "object",
-            "properties": {
-                "From": {
-                    "type": "string"
-                },
-                "To": {
-                    "type": "string"
-                },
-                "RefBlockNumber": {
-                    "format": "int64",
-                    "type": "integer"
-                },
-                "RefBlockPrefix": {
-                    "type": "string"
-                },
-                "MethodName": {
-                    "type": "string"
-                },
-                "Params": {
-                    "type": "string"
-                },
-                "Sigs": {
-                    "uniqueItems": false,
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "BroadcastTransactionOutput": {
-            "type": "object",
-            "properties": {
-                "TransactionId": {
-                    "type": "string"
-                }
-            }
-        },
-        "TransactionResultDto": {
-            "type": "object",
-            "properties": {
-                "TransactionId": {
-                    "type": "string"
-                },
-                "Status": {
-                    "type": "string"
-                },
-                "Logs": {
-                    "uniqueItems": false,
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/LogEventDto"
-                    }
-                },
-                "Bloom": {
-                    "type": "string"
-                },
-                "BlockNumber": {
-                    "format": "int64",
-                    "type": "integer"
-                },
-                "BlockHash": {
-                    "type": "string"
-                },
-                "Transaction": {
-                    "$ref": "#/definitions/TransactionDto"
-                },
-                "ReadableReturnValue": {
-                    "type": "string"
-                },
-                "Error": {
-                    "type": "string"
-                }
-            }
-        },
-        "LogEventDto": {
-            "type": "object",
-            "properties": {
-                "Address": {
-                    "type": "string"
-                },
-                "Name": {
-                    "type": "string"
-                },
-                "Indexed": {
-                    "uniqueItems": false,
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "NonIndexed": {
-                    "type": "string"
-                }
-            }
-        },
-        "BlockDto": {
-            "type": "object",
-            "properties": {
-                "BlockHash": {
-                    "type": "string"
-                },
-                "Header": {
-                    "$ref": "#/definitions/BlockHeaderDto"
-                },
-                "Body": {
-                    "$ref": "#/definitions/BlockBodyDto"
-                }
-            }
-        },
-        "BlockHeaderDto": {
-            "type": "object",
-            "properties": {
-                "PreviousBlockHash": {
-                    "type": "string"
-                },
-                "MerkleTreeRootOfTransactions": {
-                    "type": "string"
-                },
-                "MerkleTreeRootOfWorldState": {
-                    "type": "string"
-                },
-                "Extra": {
-                    "type": "string"
-                },
-                "Height": {
-                    "format": "int64",
-                    "type": "integer"
-                },
-                "Time": {
-                    "format": "date-time",
-                    "type": "string"
-                },
-                "ChainId": {
-                    "type": "string"
-                },
-                "Bloom": {
-                    "type": "string"
-                }
-            }
-        },
-        "BlockBodyDto": {
-            "type": "object",
-            "properties": {
-                "TransactionsCount": {
-                    "format": "int32",
-                    "type": "integer"
-                },
-                "Transactions": {
-                    "uniqueItems": false,
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                }
-            }
-        },
-        "GetTransactionPoolStatusOutput": {
-            "type": "object",
-            "properties": {
-                "Queued": {
-                    "format": "int32",
-                    "type": "integer"
-                }
-            }
-        },
-        "ChainStatusDto": {
-            "type": "object",
-            "properties": {
-                "ChainId": {
-                    "type": "string"
-                },
-                "Branches": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "format": "int64",
-                        "type": "integer"
-                    }
-                },
-                "NotLinkedBlocks": {
-                    "uniqueItems": false,
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/NotLinkedBlockDto"
-                    }
-                },
-                "LongestChainHeight": {
-                    "format": "int64",
-                    "type": "integer"
-                },
-                "LongestChainHash": {
-                    "type": "string"
-                },
-                "GenesisBlockHash": {
-                    "type": "string"
-                },
-                "GenesisContractAddress": {
-                    "type": "string"
-                },
-                "LastIrreversibleBlockHash": {
-                    "type": "string"
-                },
-                "LastIrreversibleBlockHeight": {
-                    "format": "int64",
-                    "type": "integer"
-                },
-                "BestChainHash": {
-                    "type": "string"
-                },
-                "BestChainHeight": {
-                    "format": "int64",
-                    "type": "integer"
-                }
-            }
-        },
-        "NotLinkedBlockDto": {
-            "type": "object",
-            "properties": {
-                "BlockHash": {
-                    "type": "string"
-                },
-                "Height": {
-                    "format": "int64",
-                    "type": "integer"
-                },
-                "PreviousBlockHash": {
-                    "type": "string"
-                }
-            }
-        },
-        "BlockStateDto": {
-            "type": "object",
-            "properties": {
-                "BlockHash": {
-                    "type": "string"
-                },
-                "PreviousHash": {
-                    "type": "string"
-                },
-                "BlockHeight": {
-                    "format": "int64",
-                    "type": "integer"
-                },
-                "Changes": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
-                }
-            }
-        }
-    }
-}
-```
+
+
