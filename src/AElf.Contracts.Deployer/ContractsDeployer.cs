@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using AElf.Runtime.CSharp;
 
 namespace AElf.Contracts.Deployer
 {
@@ -23,7 +24,7 @@ namespace AElf.Contracts.Deployer
             var dllPath = Directory.Exists(contractDir)
                 ? Path.Combine(contractDir, $"{dllName}.dll")
                 : Assembly.Load(dllName).Location;
-            return File.ReadAllBytes(dllPath);
+            return ContractPatcher.Patch(File.ReadAllBytes(dllPath));
         }
 
         private static IEnumerable<string> GetContractNames(Assembly assembly)
