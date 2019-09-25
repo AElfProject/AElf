@@ -107,7 +107,7 @@ namespace AElf.Kernel.SmartContract.Domain
             else
             {
                 //best chain state is null, it will find value in block state set
-                value = await GetStateInBlockStateAsync(key,blockHash);
+                value = await GetStateInBlockStateAsync(key,blockHash.ToStorageKey());
                 if (value != null) return value;
                 // retry versioned state in case conflict of get state during merging  
                 bestChainState = await _versionedStates.GetAsync(key);
@@ -117,11 +117,10 @@ namespace AElf.Kernel.SmartContract.Domain
             return value;
         }
 
-        private async Task<ByteString> GetStateInBlockStateAsync(string key, Hash blockHash)
+        private async Task<ByteString> GetStateInBlockStateAsync(string key, string blockStateKey)
         {
             ByteString value = null;
             
-            var blockStateKey = blockHash.ToStorageKey();
             var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
             while (blockStateSet != null)
             {

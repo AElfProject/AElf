@@ -141,7 +141,7 @@ namespace AElf.WebApp.Application.Chain
                 var transactionIds = block.Body.TransactionIds.ToList().GetRange(offset, limit);
                 foreach (var transactionId in transactionIds)
                 {
-                    var transactionResultDto = await GetTransactionResultDto(transactionId, realBlockHash, block);
+                    var transactionResultDto = await GetTransactionResultDto(transactionId, realBlockHash, block.GetHash());
                     output.Add(transactionResultDto);
                 }
             }
@@ -167,21 +167,7 @@ namespace AElf.WebApp.Application.Chain
                     Error.InvalidTransactionId.ToString());
             }
 
-            var transactionResult = await GetTransactionResultAsync(transactionIdHash);
-            switch (transactionResult.Status)
-            {
-                case TransactionResultStatus.Mined:
-                {
-                    var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
-                    transactionResult.BlockHash = block.GetHash();
-                    break;
-                }
-                case TransactionResultStatus.Failed:
-                    throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-                case TransactionResultStatus.NotExisted:
-                    throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-            }
-
+            var transactionResult = await GetMinedTransactionResultAsync(transactionIdHash);
             var blockHash = transactionResult.BlockHash;
             var blockInfo = await _blockchainService.GetBlockByHashAsync(blockHash);
             var transactionIds = blockInfo.Body.TransactionIds;
@@ -256,13 +242,13 @@ namespace AElf.WebApp.Application.Chain
             };
         }
         
-        private async Task<TransactionResultDto> GetTransactionResultDto(Hash transactionId, Hash realBlockHash, Block block)
+        private async Task<TransactionResultDto> GetTransactionResultDto(Hash transactionId, Hash realBlockHash, Hash blockHash)
         {
             var transactionResult = await GetTransactionResultAsync(transactionId, realBlockHash);
             var transactionResultDto =
                 JsonConvert.DeserializeObject<TransactionResultDto>(transactionResult.ToString());
             var transaction = await _transactionManager.GetTransactionAsync(transactionResult.TransactionId);
-            transactionResultDto.BlockHash = block.GetHash().ToHex();
+            transactionResultDto.BlockHash = blockHash.ToHex();
             transactionResultDto.ReturnValue = transactionResult.ReturnValue.ToHex();
 
             if (transactionResult.Status == TransactionResultStatus.Failed)
@@ -290,6 +276,26 @@ namespace AElf.WebApp.Application.Chain
             var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
                 .ToArray();
             return Hash.FromRawBytes(rawBytes);
+        }
+
+        private async Task<TransactionResult> GetMinedTransactionResultAsync(Hash transactionIdHash)
+        {
+            var transactionResult = await GetTransactionResultAsync(transactionIdHash);
+            switch (transactionResult.Status)
+            {
+                case TransactionResultStatus.Mined:
+                {
+                    var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
+                    transactionResult.BlockHash = block.GetHash();
+                    break;
+                }
+                case TransactionResultStatus.Failed:
+                    throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+                case TransactionResultStatus.NotExisted:
+                    throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+            }
+
+            return transactionResult;
         }
     }
 }
