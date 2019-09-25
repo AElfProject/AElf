@@ -32,7 +32,9 @@ namespace AElf.Sdk.CSharp
 
         public static long Milliseconds(this Duration duration)
         {
-            return duration.Seconds.Mul(1000).Add(duration.Nanos.Div(1000000));
+            return duration.Seconds > long.MaxValue.Div(1000)
+                ? long.MaxValue
+                : duration.Seconds.Mul(1000).Add(duration.Nanos.Div(1000000));
         }
     }
 }
