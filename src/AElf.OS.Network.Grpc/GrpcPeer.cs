@@ -31,10 +31,6 @@ namespace AElf.OS.Network.Grpc
         private const int UpdateHandshakeTimeout = 400;
         private const int StreamRecoveryWaitTimeInMilliseconds = 500;
 
-        private const int MaxDegreeOfParallelismForAnnouncementJobs = 3;
-        private const int MaxDegreeOfParallelismForTransactionJobs = 1;
-        private const int MaxDegreeOfParallelismForBlockJobs = 1;
-
         private enum MetricNames
         {
             Announce,
@@ -119,19 +115,16 @@ namespace AElf.OS.Network.Grpc
             _sendAnnouncementJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
                 new ExecutionDataflowBlockOptions
                 {
-                    MaxDegreeOfParallelism = MaxDegreeOfParallelismForAnnouncementJobs,
                     BoundedCapacity = NetworkConstants.DefaultMaxBufferedAnnouncementCount
                 });
             _sendBlockJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
                 new ExecutionDataflowBlockOptions
                 {
-                    MaxDegreeOfParallelism = MaxDegreeOfParallelismForBlockJobs,
                     BoundedCapacity = NetworkConstants.DefaultMaxBufferedBlockCount
                 });
             _sendTransactionJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
                 new ExecutionDataflowBlockOptions
                 {
-                    MaxDegreeOfParallelism = MaxDegreeOfParallelismForTransactionJobs,
                     BoundedCapacity = NetworkConstants.DefaultMaxBufferedTransactionCount
                 });
         }
@@ -291,6 +284,11 @@ namespace AElf.OS.Network.Grpc
                 await Task.Delay(StreamRecoveryWaitTimeInMilliseconds);
                 return;
             }
+            catch (Exception ex)
+            {
+                job.SendCallback?.Invoke(new NetworkException("Unknown exception during broadcast.", ex));
+                throw;
+            }
 
             job.SendCallback?.Invoke(null);
         }
@@ -332,13 +330,6 @@ namespace AElf.OS.Network.Grpc
                 _announcementStreamCall = null;
 
                 throw;
-            }
-            catch (InvalidOperationException)
-            {
-                _announcementStreamCall.Dispose();
-                _announcementStreamCall = null;
-
-                throw new RpcException(new Status(StatusCode.FailedPrecondition, "Invalid write."), "Invalid write.");
             }
         }
 
@@ -460,13 +451,6 @@ namespace AElf.OS.Network.Grpc
         {
             string message = $"Failed request to {this}: {errorMessage}";
             NetworkExceptionType type = NetworkExceptionType.Rpc;
-            
-            // temp special case
-            if (exception is RpcException ex && ex.StatusCode == StatusCode.FailedPrecondition)
-            {
-                message = $"Invalid write to {this}.";
-                return new NetworkException(message, exception, type);
-            }
 
             if (_channel.State != ChannelState.Ready)
             {
