@@ -121,7 +121,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             context.Services.AddTransient(provider =>
             {
                 var mockService = new Mock<IConsensusService>();
-                mockService.Setup(m => m.GetInformationToUpdateConsensusAsync(It.IsAny<ChainContext>())).Returns(
+                mockService.Setup(m => m.GetConsensusExtraDataAsync(It.IsAny<ChainContext>())).Returns(
                     Task.FromResult(ByteString.CopyFromUtf8("test").ToByteArray()));
 
                 mockService.Setup(m => m.TriggerConsensusAsync(It.IsAny<ChainContext>())).Returns(Task.CompletedTask);

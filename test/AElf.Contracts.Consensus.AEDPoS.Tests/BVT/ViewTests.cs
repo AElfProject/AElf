@@ -19,7 +19,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             roundInfo.TermNumber.ShouldBe(roundNumber.Value);
             
             //second round            
-            var nextTermInformation = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
+            var nextTermInformation = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.NextRound,

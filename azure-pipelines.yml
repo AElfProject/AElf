@@ -11,6 +11,9 @@ jobs:
       version: '2.2.300'
   - script: choco install protoc --version 3.6.0 -y
   - script: choco install unzip
+  - task: BatchScript@1
+    inputs:
+      filename: 'scripts/download_binary.bat'
   - task: DotNetCoreCLI@2
     inputs:
       command: 'build'
@@ -31,6 +34,7 @@ jobs:
     inputs:
       version: '2.2.300'
   - script: bash scripts/install_protobuf.sh
+  - script: bash scripts/download_binary.sh
   - task: DotNetCoreCLI@2
     inputs:
       command: 'build'
@@ -51,6 +55,7 @@ jobs:
     inputs:
       version: '2.2.300' 
   - script: bash scripts/install_protobuf.sh
+  - script: bash scripts/download_binary.sh
   - task: DotNetCoreCLI@2
     inputs:
       command: 'build'
