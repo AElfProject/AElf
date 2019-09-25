@@ -1,19 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
-      <TargetFramework>netstandard2.0</TargetFramework>
-      <AssemblyName>AElf.Runtime.CSharp.Tests.TestContract</AssemblyName>
-      <RootNamespace>AElf.Runtime.CSharp.Tests.TestContract</RootNamespace>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <AssemblyName>AElf.Runtime.CSharp.Tests.TestContract</AssemblyName>
+        <RootNamespace>AElf.Runtime.CSharp.Tests.TestContract</RootNamespace>
         <IsContract>true</IsContract>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
-
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
     </ItemGroup>
-
     <ItemGroup>
-      <ContractCode Include="..\..\protobuf\test_contract.proto">
-        <Link>Protobuf/proto/test_contract.proto</Link>
-      </ContractCode>
+        <ContractCode Include="..\..\protobuf\test_contract.proto">
+            <Link>Protobuf/proto/test_contract.proto</Link>
+        </ContractCode>
     </ItemGroup>
 </Project>

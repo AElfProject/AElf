@@ -253,13 +253,16 @@ namespace AElf.Contracts.CrossChain
 
                 State.SideChainInfo[chainId] = info;
 
-                Transfer(new TransferInput
+                if (indexingPrice > 0)
                 {
-                    To = Context.Sender,
-                    Symbol = Context.Variables.NativeSymbol,
-                    Amount = indexingPrice,
-                    Memo = "Index fee."
-                });
+                    Transfer(new TransferInput
+                    {
+                        To = Context.Sender,
+                        Symbol = Context.Variables.NativeSymbol,
+                        Amount = indexingPrice,
+                        Memo = "Index fee."
+                    });
+                }
 
                 State.CurrentSideChainHeight[chainId] = sideChainHeight;
                 indexedSideChainBlockData.SideChainBlockData.Add(blockInfo);
