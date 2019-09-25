@@ -51,8 +51,8 @@ namespace AElf.OS.Consensus.DPos
             
             var blockIndex = await _aedpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync(
                 OSConsensusDPosTestConstants.Bp2PublicKey);
-            blockIndex.Height.ShouldBe(blocks[4].Height);
-            blockIndex.Hash.ShouldBe(blocks[4].GetHash());
+            blockIndex.BlockHeight.ShouldBe(blocks[4].Height);
+            blockIndex.BlockHash.ShouldBe(blocks[4].GetHash());
         }
 
         [Fact] public async Task Find_LIB_With_One_BP_Peer_Return_Null()

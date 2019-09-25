@@ -45,7 +45,6 @@ namespace AElf.Kernel.Blockchain.Application
             var transactionBlockIndex =
                 await _transactionBlockIndexService.GetTransactionBlockIndexAsync(transactionId);
 
-            var chain = await _blockchainService.GetChainAsync();
             if (transactionBlockIndex != null)
                 return await _transactionResultManager.GetTransactionResultAsync(transactionId,
                     transactionBlockIndex.BlockHash);

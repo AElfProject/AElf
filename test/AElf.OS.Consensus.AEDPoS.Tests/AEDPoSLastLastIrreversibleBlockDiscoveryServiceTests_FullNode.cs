@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network;
@@ -6,7 +5,6 @@ using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.TestBase;
-using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Shouldly;
 using Xunit;
@@ -60,8 +58,8 @@ namespace AElf.OS.Consensus.DPos
             
             var blockIndex = await _aedpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync(
                 OSConsensusDPosTestConstants.Bp2PublicKey);
-            blockIndex.Height.ShouldBe(blocks[4].Height);
-            blockIndex.Hash.ShouldBe(blocks[4].GetHash());
+            blockIndex.BlockHeight.ShouldBe(blocks[4].Height);
+            blockIndex.BlockHash.ShouldBe(blocks[4].GetHash());
         }
         
         [Fact]

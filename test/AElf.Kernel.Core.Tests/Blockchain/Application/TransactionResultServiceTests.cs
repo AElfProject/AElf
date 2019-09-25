@@ -20,9 +20,11 @@ namespace AElf.Kernel.Blockchain.Application
         private readonly ITransactionResultManager _transactionResultManager;
         private readonly ITransactionBlockIndexManager _transacionBlockIndexManager;
         private readonly ILocalEventBus _localEventBus;
+        private readonly ITransactionBlockIndexService _transactionBlockIndexService;
         
         public TransactionResultServiceTests()
         {
+            _transactionBlockIndexService = GetRequiredService<ITransactionBlockIndexService>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _transactionResultService = GetRequiredService<ITransactionResultService>();
@@ -70,6 +72,16 @@ namespace AElf.Kernel.Blockchain.Application
 
             // Set best chain after execution
             await _blockchainService.SetBestChainAsync(chain, block.Height, block.GetHash());
+            
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height
+            };
+            foreach (var txId in block.Body.TransactionIds)
+            {
+                await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex);
+            }
         }
 
         private (Block, List<TransactionResult>) GetNextBlockWithTransactionAndResults(BlockHeader previous,
@@ -110,17 +122,33 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task Add_TransactionResult_With_PreMiningHash()
         {
             var tx = _kernelTestHelper.GenerateTransaction();
-            var (block, results) = GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last()
-            .Header, new[] {tx});
+            var (block, results) =
+                GetNextBlockWithTransactionAndResults(_kernelTestHelper.BestBranchBlockList.Last().Header, new[] {tx});
 
             var result = results.First();
             await AddTransactionResultsWithPreMiningAsync(block, new[] {result});
 
             var queried = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
-            queried.ShouldBe(result);
-            
+            queried.ShouldBe(null);
             var queried2 = await _transactionResultService.GetTransactionResultAsync(tx.GetHash(), block.GetHash());
             queried2.ShouldBe(result);
+            
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height
+            };
+            
+            foreach (var r in results)
+            {
+                // Add TransactionResult after completing and adding block
+                await _transactionResultService.AddTransactionResultAsync(result, block.Header);
+            }
+            
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(tx.GetHash(), blockIndex);
+            
+            var queried3 = await _transactionResultService.GetTransactionResultAsync(tx.GetHash());
+            queried3.ShouldBe(result);
         }
 
         [Fact]
@@ -272,8 +300,11 @@ namespace AElf.Kernel.Blockchain.Application
 
             var transactionBlockIndex = new TransactionBlockIndex()
             {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
+                BlockIndex = new BlockIndex
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Height   
+                }
             };
             await _transacionBlockIndexManager.SetTransactionBlockIndexAsync(tx.GetHash(), transactionBlockIndex);
 
