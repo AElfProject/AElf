@@ -63,22 +63,6 @@ namespace AElf.Kernel.Blockchain.Application
                 // Add TransactionBlockIndex
                 foreach (var txId in block.Body.TransactionIds)
                 {
-//                    var preTransactionBlockIndex =
-//                        await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(txId);
-//
-//                    var transactionBlockIndex = new TransactionBlockIndex
-//                    {
-//                        BlockIndex = blockIndex;
-//                    };
-//                    
-//                    if (preTransactionBlockIndex != null)
-//                    {
-//                        transactionBlockIndex.PreviousExecutionBlockIndexList.Add(preTransactionBlockIndex
-//                            .PreviousExecutionBlockIndexList);
-//                        transactionBlockIndex.PreviousExecutionBlockIndexList.Add(preTransactionBlockIndex.BlockIndex);
-//                    }
-//
-//                    await _transactionBlockIndexManager.SetTransactionBlockIndexAsync(txId, transactionBlockIndex);
                     if (withPreMiningHash != null)
                     {
                         await _transactionResultManager.RemoveTransactionResultAsync(txId, preMiningHash);
