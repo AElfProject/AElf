@@ -261,8 +261,11 @@ namespace AElf.Kernel.SmartContract.Application
                         return false;
                     }
 
-                    internalStateCache.Update(preTrace.GetFlattenedWrites()
-                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                    var changes = preTrace.GetFlattenedWrites()
+                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())).ToList();
+                    internalStateCache.Update(changes);
+                    var parentStateCache = txContext.StateCache as TieredStateCache;
+                    parentStateCache?.Update(changes);
                 }
             }
 

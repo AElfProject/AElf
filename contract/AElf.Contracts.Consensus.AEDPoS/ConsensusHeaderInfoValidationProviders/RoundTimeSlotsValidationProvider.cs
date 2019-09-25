@@ -48,7 +48,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (latestActualMiningTime < expectedMiningTime)
             {
                 // Which means this miner is producing tiny blocks for previous extra block slot.
-                return latestActualMiningTime < round.GetStartTime();
+                return latestActualMiningTime < round.GetRoundStartTime();
             }
 
             return latestActualMiningTime < endOfExpectedTimeSlot;

@@ -7,6 +7,7 @@ using AElf.Types;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         private void ProcessConsensusInformation(dynamic input, [CallerMemberName] string caller = null)
@@ -48,8 +49,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (currentRound.RoundNumber == 1)
             {
                 // Set blockchain start timestamp.
-                var actualBlockchainStartTimestamp = nextRound.GetStartTime();
+                var actualBlockchainStartTimestamp = currentRound.FirstActualMiner()?.ActualMiningTimes.FirstOrDefault() ??
+                                                     Context.CurrentBlockTime;
                 SetBlockchainStartTimestamp(actualBlockchainStartTimestamp);
+                //currentRound.RealTimeMinersInformation.First().Value.ActualMiningTimes.First();
 
                 // Initialize current miners' information in Election Contract.
                 if (State.IsMainChain.Value)

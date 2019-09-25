@@ -3,6 +3,7 @@ using Acs4;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         /// <summary>
