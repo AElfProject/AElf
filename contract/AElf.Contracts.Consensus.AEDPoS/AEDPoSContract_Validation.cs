@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs4;
@@ -7,6 +6,7 @@ using AElf.Types;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         /// <summary>
@@ -115,8 +115,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 // Which means this miner is producing tiny blocks for previous extra block slot.
                 Context.LogDebug(() =>
-                    $"latest actual mining time: {latestActualMiningTime}, round start time: {round.GetStartTime()}");
-                return latestActualMiningTime < round.GetStartTime();
+                    $"latest actual mining time: {latestActualMiningTime}, round start time: {round.GetRoundStartTime()}");
+                return latestActualMiningTime < round.GetRoundStartTime();
             }
 
             Context.LogDebug(() =>
