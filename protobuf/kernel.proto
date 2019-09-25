@@ -180,9 +180,14 @@ message ChainBlockIndex {
     Hash block_hash = 1;
 }
 
-message TransactionBlockIndex {
+message BlockIndex{
     Hash block_hash = 1;
     int64 block_height = 2;
+}
+
+message TransactionBlockIndex {
+    BlockIndex block_index = 1;
+    repeated BlockIndex previous_execution_block_index_list = 2;
 }
 
 message ChainContractInfo{
