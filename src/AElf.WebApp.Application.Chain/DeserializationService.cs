@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.WebApp.Application.Chain.Dto;

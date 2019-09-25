@@ -232,3 +232,12 @@ message IrreversibleBlockHeightUnacceptable {
     option (aelf.is_event) = true;
     sint64 distance_to_irreversible_block_height = 1;
 }
+
+message MiningInformationUpdated {
+    option (aelf.is_event) = true;
+    string pubkey = 1;
+    google.protobuf.Timestamp mining_time = 2;
+    AElfConsensusBehaviour behaviour = 3;
+    sint64 block_height = 4;
+    aelf.Hash previous_block_hash = 5;
+}

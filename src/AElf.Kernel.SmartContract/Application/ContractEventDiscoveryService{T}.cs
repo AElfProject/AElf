@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.CSharp.Core;
@@ -63,7 +64,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                 foreach (var log in transactionExecutingResult.Logs)
                 {
-                    if (contractAddress != null && (log.Address != contractAddress || log.Name != _logEvent.Name))
+                    if (log.Address != contractAddress || log.Name != _logEvent.Name)
                         continue;
 
                     var message = new T();

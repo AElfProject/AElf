@@ -19,23 +19,41 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return;
             }
 
+            var behaviour = AElfConsensusBehaviour.Nothing;
+
             switch (input)
             {
                 case Round round when caller == nameof(NextRound):
                     ProcessNextRound(round);
+                    behaviour = AElfConsensusBehaviour.NextRound;
                     break;
                 case Round round when caller == nameof(NextTerm):
                     ProcessNextTerm(round);
+                    behaviour = AElfConsensusBehaviour.NextTerm;
                     break;
                 case UpdateValueInput updateValueInput:
                     ProcessUpdateValue(updateValueInput);
+                    behaviour = AElfConsensusBehaviour.UpdateValue;
                     break;
                 case TinyBlockInput tinyBlockInput:
                     ProcessTinyBlock(tinyBlockInput);
+                    behaviour = AElfConsensusBehaviour.TinyBlock;
                     break;
             }
 
+            var miningInformationUpdated = new MiningInformationUpdated
+            {
+                Pubkey = _processingBlockMinerPubkey,
+                Behaviour = behaviour,
+                MiningTime = Context.CurrentBlockTime,
+                BlockHeight = Context.CurrentHeight,
+                PreviousBlockHash = Context.PreviousBlockHash
+            };
+            Context.Fire(miningInformationUpdated);
+            Context.LogDebug(() => miningInformationUpdated.ToString());
+
             ResetLatestProviderToTinyBlocksCount();
+
             ClearCachedFields();
         }
 
