@@ -14,7 +14,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             
             //set basic1 contract reference
             Assert(input != null, "Basic1Contract address is not exist.");
-            State.BasicFunctionTestContract.Value = input;
+            State.BasicFunctionContract.Value = input;
             
             State.Initialized.Value = true;
             State.BoolInfo.Value = true;
@@ -156,7 +156,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
             var betValue = input.Int64Value.Sub(feeValue);
             
             State.Int64Info.Value.Add(feeValue);
-            State.BasicFunctionTestContract.UserPlayBet.Send(new BetInput
+            State.BasicFunctionContract.UserPlayBet.Send(new BetInput
             {
                 Int64Value = betValue
             });
@@ -166,7 +166,6 @@ namespace AElf.Contracts.TestContract.BasicSecurity
 
         public override Empty TestOriginAddress(Address address)
         {
-            State.BasicFunctionContract.Value = Context.GetContractAddressByName(Hash.FromString("AElf.ContractNames.TestContract.BasicFunction"));
             State.BasicFunctionContract.ValidateOrigin.Send(address);
             return new Empty();
         }

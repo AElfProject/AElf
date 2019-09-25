@@ -68,6 +68,29 @@ namespace AElf.Contracts.Genesis
             var newHash = CodeUpdated.Parser.ParseFrom(txResult2.Logs[0].NonIndexed).NewCodeHash;
             newHash.ShouldBe(codeHash);
         }
+        
+        [Fact]
+        public async Task Update_ZeroContract_Test()
+        {
+            var code = Codes.Single(kv => kv.Key.Contains("GenesisUpdate")).Value;
+            var contractUpdateInput = new ContractUpdateInput
+            {
+                Address = BasicContractZeroAddress,
+                Code = ByteString.CopyFrom(code)
+            };
+            const string methodName = nameof(BasicContractZero.UpdateSmartContract);
+            var proposalId = await CreateProposalAsync(methodName, contractUpdateInput);
+            var txResult1 = await ApproveWithMinersAsync(proposalId);
+            txResult1.Status.ShouldBe(TransactionResultStatus.Mined);
+            var txResult2 = await ReleaseProposalAsync(proposalId);
+            txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var contractAddress = CodeUpdated.Parser.ParseFrom(txResult2.Logs[0].Indexed[0]).Address;
+            contractAddress.ShouldBe(BasicContractZeroAddress);
+            var codeHash = Hash.FromRawBytes(code);
+            var newHash = CodeUpdated.Parser.ParseFrom(txResult2.Logs[0].NonIndexed).NewCodeHash;
+            newHash.ShouldBe(codeHash);
+        }
 
         [Fact]
         public async Task ChangeContractZeroOwner_Test()

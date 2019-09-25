@@ -1,7 +1,9 @@
 using Google.Protobuf.WellKnownTypes;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         public class SideChainConsensusBehaviourProvider : ConsensusBehaviourProviderBase
@@ -11,10 +13,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
             }
 
-            protected override AElfConsensusBehaviour GetConsensusBehaviourToTerminateCurrentRound()
-            {
-                return AElfConsensusBehaviour.NextRound;
-            }
+            protected override AElfConsensusBehaviour GetConsensusBehaviourToTerminateCurrentRound() =>
+                AElfConsensusBehaviour.NextRound;
         }
     }
 }

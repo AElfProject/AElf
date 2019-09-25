@@ -13,7 +13,7 @@ namespace AElf.CrossChain
 {
     public class ConstrainedCrossChainTransactionValidationProvider : IConstrainedTransactionValidationProvider
     {
-        private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly Address _crossChainContractAddress;
 
         public ILogger<ConstrainedCrossChainTransactionValidationProvider> Logger { get; set; }
 
@@ -23,19 +23,18 @@ namespace AElf.CrossChain
         public ConstrainedCrossChainTransactionValidationProvider(
             ISmartContractAddressService smartContractAddressService)
         {
-            _smartContractAddressService = smartContractAddressService;
+            _crossChainContractAddress =
+                smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
         }
 
         public bool ValidateTransaction(Transaction transaction, Hash blockHash)
         {
-            var crossChainContractAddress =
-                _smartContractAddressService.GetAddressByContractName(CrossChainSmartContractAddressNameProvider.Name);
             var constrainedTransaction = new Lazy<List<string>>(() =>
                 new List<string>
                 {
                     nameof(CrossChainContractContainer.CrossChainContractStub.RecordCrossChainData),
                 });
-            if (transaction.To == crossChainContractAddress &&
+            if (transaction.To == _crossChainContractAddress &&
                 constrainedTransaction.Value.Contains(transaction.MethodName))
             {
                 if (!_alreadyHas.ContainsKey(blockHash))
