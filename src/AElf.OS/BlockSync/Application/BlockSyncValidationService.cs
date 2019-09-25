@@ -84,8 +84,12 @@ namespace AElf.OS.BlockSync.Application
                     return false;
                 }
 
-                if (!_transactionValidationService.ValidateConstrainedTransaction(transaction,
-                    blockWithTransactions.GetHash()))
+                var constrainedTransactionValidationResult =
+                    _transactionValidationService.ValidateConstrainedTransaction(transaction,
+                        blockWithTransactions.GetHash());
+                _transactionValidationService.ClearConstrainedTransactionValidationProvider(blockWithTransactions
+                    .GetHash());
+                if (!constrainedTransactionValidationResult)
                 {
                     return false;
                 }

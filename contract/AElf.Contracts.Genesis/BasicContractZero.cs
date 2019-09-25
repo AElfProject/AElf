@@ -79,7 +79,7 @@ namespace AElf.Contracts.Genesis
             var category = input.Category;
             var code = input.Code.ToByteArray();
             var transactionMethodCallList = input.TransactionMethodCallList;
-            var address = PrivateDeploySystemSmartContract(name, category, code);
+            var address = PrivateDeploySystemSmartContract(name, category, code, true);
 
             if (transactionMethodCallList != null)
             {
@@ -92,7 +92,7 @@ namespace AElf.Contracts.Genesis
             return address;
         }
 
-        private Address PrivateDeploySystemSmartContract(Hash name, int category, byte[] code)
+        private Address PrivateDeploySystemSmartContract(Hash name, int category, byte[] code, bool isSystemContract)
         {
             if (name != null)
                 Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
@@ -109,7 +109,8 @@ namespace AElf.Contracts.Genesis
                 SerialNumber = serialNumber,
                 Author = Context.Origin,
                 Category = category,
-                CodeHash = codeHash
+                CodeHash = codeHash,
+                IsSystemContract = isSystemContract
             };
             State.ContractInfos[contractAddress] = info;
 
@@ -155,7 +156,7 @@ namespace AElf.Contracts.Genesis
         {
             RequireAuthority();
 
-            var address = PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray());
+            var address = PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray(), false);
             return address;
         }
 
@@ -167,8 +168,15 @@ namespace AElf.Contracts.Genesis
             var code = input.Code.ToByteArray();
             var info = State.ContractInfos[contractAddress];
             Assert(info != null, "Contract does not exist.");
-            Assert(info.Author == Context.Self || info.Author == Context.Origin,
-                "Only author can propose contract update.");
+
+            if (info.IsSystemContract)
+            {
+                Assert(Context.Sender == State.GenesisOwner.Value, "Only genesis owner can update system contract.");
+            }
+            else
+            {
+                Assert(info.Author == Context.Origin, "Only author can propose contract update.");
+            }
 
             var oldCodeHash = info.CodeHash;
             var newCodeHash = Hash.FromRawBytes(code);
