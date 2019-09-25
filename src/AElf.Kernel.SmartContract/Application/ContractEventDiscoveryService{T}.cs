@@ -64,7 +64,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                 foreach (var log in transactionExecutingResult.Logs)
                 {
-                    if (log.Address != contractAddress || log.Name != _logEvent.Name)
+                    if (contractAddress != null && (log.Address != contractAddress || log.Name != _logEvent.Name))
                         continue;
 
                     var message = new T();

@@ -164,6 +164,7 @@ message ElectorVote {
     repeated ElectionVotingRecord active_voting_records = 5;
     repeated ElectionVotingRecord withdrawn_votes_records = 6;
     bytes pubkey = 7;
+    aelf.Address address = 8;
 }
 
 message CandidateVote {
@@ -184,6 +185,7 @@ message CandidateInformation {
     sint64 continual_appointment_count = 5;
     aelf.Hash announcement_transaction_id = 6;
     bool is_current_candidate = 7;
+    aelf.Address address = 8;
 }
 
 message CandidateDetail {

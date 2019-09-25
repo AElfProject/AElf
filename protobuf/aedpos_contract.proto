@@ -40,6 +40,9 @@ service AEDPoSContract {
     rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
         option (aelf.is_view) = true;
     }
+    rpc GetCurrentMinerPubkeyList (google.protobuf.Empty) returns (PubkeyList) {
+        option (aelf.is_view) = true;
+    }
     rpc GetCurrentMinerListWithRoundNumber (google.protobuf.Empty) returns (MinerListWithRoundNumber) {
         option (aelf.is_view) = true;
     }
@@ -109,6 +112,10 @@ message MinerList {
     repeated bytes pubkeys = 1;
 }
 
+message PubkeyList {
+    repeated string pubkeys = 1;
+}
+
 // To query first round number of each term.
 message TermNumberLookUp {
     map<sint64, sint64> map = 1;// Term number -> Round number.
@@ -167,8 +174,8 @@ enum AElfConsensusBehaviour {
     UPDATE_VALUE = 0;
     NEXT_ROUND = 1;
     NEXT_TERM = 2;
-    NOTHING = 4;
-    TINY_BLOCK = 5;
+    NOTHING = 3;
+    TINY_BLOCK = 4;
 }
 
 message AElfConsensusTriggerInformation {
@@ -237,7 +244,7 @@ message MiningInformationUpdated {
     option (aelf.is_event) = true;
     string pubkey = 1;
     google.protobuf.Timestamp mining_time = 2;
-    AElfConsensusBehaviour behaviour = 3;
+    string behaviour = 3;
     sint64 block_height = 4;
     aelf.Hash previous_block_hash = 5;
 }

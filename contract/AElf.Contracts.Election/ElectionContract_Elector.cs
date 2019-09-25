@@ -152,6 +152,7 @@ namespace AElf.Contracts.Election
                 voterVotes = new ElectorVote
                 {
                     Pubkey = voterPublicKeyByteString,
+                    Address = Address.FromPublicKey(recoveredPublicKey),
                     ActiveVotingRecordIds = {Context.TransactionId},
                     ActiveVotedVotesAmount = amount,
                     AllVotedVotesAmount = amount

@@ -44,7 +44,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var miningInformationUpdated = new MiningInformationUpdated
             {
                 Pubkey = _processingBlockMinerPubkey,
-                Behaviour = behaviour,
+                Behaviour = behaviour.ToString(),
                 MiningTime = Context.CurrentBlockTime,
                 BlockHeight = Context.CurrentHeight,
                 PreviousBlockHash = Context.PreviousBlockHash

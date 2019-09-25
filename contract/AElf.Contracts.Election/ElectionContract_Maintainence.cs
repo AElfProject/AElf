@@ -36,7 +36,11 @@ namespace AElf.Contracts.Election
             };
             foreach (var pubkey in input.MinerList)
             {
-                State.CandidateInformationMap[pubkey] = new CandidateInformation {Pubkey = pubkey};
+                State.CandidateInformationMap[pubkey] = new CandidateInformation
+                {
+                    Pubkey = pubkey,
+                    Address = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(pubkey))
+                };
             }
 
             State.CurrentTermNumber.Value = 1;

@@ -42,7 +42,7 @@ namespace AElf.WebApp.Application.Chain.Application
                     _miningSequenceService.AddMiningInformation(new MiningSequenceDto
                     {
                         Pubkey = miningInformationUpdated.Pubkey,
-                        Behaviour = miningInformationUpdated.Behaviour.ToString(),
+                        Behaviour = miningInformationUpdated.Behaviour,
                         MiningTime = miningInformationUpdated.MiningTime,
                         BlockHeight = miningInformationUpdated.BlockHeight,
                         PreviousBlockHash = miningInformationUpdated.PreviousBlockHash

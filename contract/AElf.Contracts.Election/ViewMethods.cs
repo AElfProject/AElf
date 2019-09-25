@@ -128,7 +128,8 @@ namespace AElf.Contracts.Election
         {
             return State.ElectorVotes[input.Value] ?? new ElectorVote
             {
-                Pubkey = input.Value.ToByteString()
+                Pubkey = input.Value.ToByteString(),
+                Address = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Value))
             };
         }
 
@@ -138,7 +139,8 @@ namespace AElf.Contracts.Election
             if (votes == null)
                 return new ElectorVote
                 {
-                    Pubkey = input.Value.ToByteString()
+                    Pubkey = input.Value.ToByteString(),
+                    Address = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(input.Value))
                 };
 
             var votedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
