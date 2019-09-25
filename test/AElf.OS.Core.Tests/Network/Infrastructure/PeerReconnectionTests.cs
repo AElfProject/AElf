@@ -18,12 +18,25 @@ namespace AElf.OS.Network
         [Fact]
         public void AddConnecting_ShouldAddPeers()
         {
+            var endpoint = "127.0.0.1:5677";
             var utcNow = TimestampHelper.GetUtcNow();
 
-            _reconnectionProvider.AddReconnectingPeer("a-peer", new ReconnectingPeer { Endpoint = "a-peer", NextAttempt = utcNow });
+            _reconnectionProvider.AddReconnectingPeer(endpoint, new ReconnectingPeer { Endpoint = endpoint, NextAttempt = utcNow });
 
             _reconnectionProvider.GetPeersReadyForReconnection(utcNow.AddSeconds(-1)).Count.ShouldBe(0);
             _reconnectionProvider.GetPeersReadyForReconnection(utcNow.AddSeconds(1)).Count.ShouldBe(1);
+        }
+
+        [Fact]
+        public void Removed_ShouldNotBeInProvider()
+        {
+            var endpoint = "127.0.0.1:5677";
+            var utcNow = TimestampHelper.GetUtcNow();
+
+            _reconnectionProvider.AddReconnectingPeer(endpoint, new ReconnectingPeer { Endpoint = endpoint, NextAttempt = utcNow });
+            _reconnectionProvider.RemoveReconnectionPeer(endpoint);
+
+            _reconnectionProvider.GetPeersReadyForReconnection(utcNow.AddSeconds(1)).Count.ShouldBe(0);
         }
     }
 }
