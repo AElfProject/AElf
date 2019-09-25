@@ -333,6 +333,13 @@ namespace AElf.OS.Network.Grpc
 
                 throw;
             }
+            catch (InvalidOperationException)
+            {
+                _announcementStreamCall.Dispose();
+                _announcementStreamCall = null;
+
+                throw new RpcException(new Status(StatusCode.FailedPrecondition, "Invalid write."), "Invalid write.");
+            }
         }
 
         /// <summary>
@@ -453,6 +460,13 @@ namespace AElf.OS.Network.Grpc
         {
             string message = $"Failed request to {this}: {errorMessage}";
             NetworkExceptionType type = NetworkExceptionType.Rpc;
+            
+            // temp special case
+            if (exception is RpcException ex && ex.StatusCode == StatusCode.FailedPrecondition)
+            {
+                message = $"Invalid write to {this}.";
+                return new NetworkException(message, exception, type);
+            }
 
             if (_channel.State != ChannelState.Ready)
             {
