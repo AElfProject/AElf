@@ -119,7 +119,7 @@ Options:
   -e, --endpoint <URI>                                     The URI of an AElf node. Eg: http://127.0.0.1:8000
   -a, --account <account>                                  The address of AElf wallet
   -p, --password <password>                                The password of encrypted keyStore
-  -d, --datadir <directory>                                The directory that contains the AElf related files. Default to be Default to be `{home}/.local/share/aelf`
+  -d, --datadir <directory>                                The directory that contains the AElf related files. Default to be `{home}/.local/share/aelf`
   -h, --help                                               output usage information
 
 Commands:
