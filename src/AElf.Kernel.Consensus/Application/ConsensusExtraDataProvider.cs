@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Consensus.Application
 {
@@ -9,6 +10,7 @@ namespace AElf.Kernel.Consensus.Application
     public class ConsensusExtraDataProvider : IBlockExtraDataProvider
     {
         private readonly IConsensusService _consensusService;
+        public ILogger<ConsensusExtraDataProvider> Logger { get; set; }
 
         public ConsensusExtraDataProvider(IConsensusService consensusService)
         {
@@ -28,6 +30,7 @@ namespace AElf.Kernel.Consensus.Application
                 BlockHeight = blockHeader.Height - 1
             });
 
+            Logger.LogTrace("Consensus extra data generated.");
             return consensusInformation == null ? ByteString.Empty : ByteString.CopyFrom(consensusInformation);
         }
     }
