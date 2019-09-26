@@ -10,7 +10,7 @@ using TypeDefinition = Mono.Cecil.TypeDefinition;
 
 namespace AElf.Runtime.CSharp
 {
-    public class ContractPatcher
+    public static class ContractPatcher
     {
         private static readonly string Sdk = "AElf.Sdk.CSharp";
         private static readonly Dictionary<string, string> TargetMethods = new Dictionary<string, string>
@@ -23,14 +23,19 @@ namespace AElf.Runtime.CSharp
         {
             var contractAsmDef = AssemblyDefinition.ReadAssembly(new MemoryStream(code));
             
+            // Get the specific version of the SDK referenced by the contract
             var nameRefSdk = contractAsmDef.MainModule.AssemblyReferences.Single(r => r.Name == Sdk);
+            
+            // May cache all versions not to keep reloading for every contract deployment
             var refSdk = AssemblyDefinition.ReadAssembly(Assembly.Load(nameRefSdk.FullName).Location);
 
+            // Get the type definitions mapped for target methods from SDK
             var sdkTypes = TargetMethods.Select(kv => kv.Value).Distinct();
             var sdkTypeDefs = sdkTypes
                 .Select(t => contractAsmDef.MainModule.ImportReference(refSdk.MainModule.GetType(t)).Resolve())
                 .ToDictionary(def => def.FullName);
 
+            // Patch the types
             foreach (var typ in contractAsmDef.MainModule.Types)
             {
                 PatchType(contractAsmDef, typ, sdkTypeDefs);
@@ -43,11 +48,13 @@ namespace AElf.Runtime.CSharp
 
         private static void PatchType(AssemblyDefinition contractAsmDef, TypeDefinition typ, Dictionary<string, TypeDefinition> sdkTypeDefs)
         {
+            // Patch the methods in the type
             foreach (var method in typ.Methods)
             {
                 PatchMethod(contractAsmDef, method, sdkTypeDefs);
             }
 
+            // Patch if there is any nested type within the type
             foreach (var nestedType in typ.NestedTypes)
             {
                 PatchType(contractAsmDef, nestedType, sdkTypeDefs);
@@ -78,9 +85,10 @@ namespace AElf.Runtime.CSharp
         private static MethodReference GetSdkMethodReference(Dictionary<string, TypeDefinition> sdkTypeDefs, MethodReference methodRef)
         {
             // Find the right method that has the same set of parameters and return type
-            var methodDefinition = sdkTypeDefs[TargetMethods[$"{methodRef.DeclaringType}::{methodRef.Name}"]].Methods.Single(
+            var replaceFrom = TargetMethods[$"{methodRef.DeclaringType}::{methodRef.Name}"];
+            var methodDefinition = sdkTypeDefs[replaceFrom].Methods.Single(
                 m => m.ReturnType.FullName == methodRef.ReturnType.FullName && // Return type
-                     m.FullName.Split("::")[1] == methodRef.FullName.Split("::")[1] // Parameters
+                     m.FullName.Split("::")[1] == methodRef.FullName.Split("::")[1] // Method Name & Parameters
             );
 
             return methodDefinition;
