@@ -3,6 +3,7 @@ using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         private void LogIfPreviousMinerHasNotProduceEnoughTinyBlocks(Round currentRound, string publicKey)

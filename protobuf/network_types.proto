@@ -19,6 +19,11 @@ message BlockWithTransactions {
     repeated aelf.Transaction transactions = 2;
 }
 
+message LibAnnouncement{
+    aelf.Hash lib_hash = 1;
+    int64 lib_height = 2;
+}
+
 message BlocksRequest {
     aelf.Hash previous_block_hash = 1;
     int32 count = 2;
