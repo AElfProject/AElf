@@ -9,23 +9,15 @@ namespace AElf.CrossChain.Cache
     {
         void AddChainCacheEntity(int remoteChainId, long initialTargetHeight);
         IChainCacheEntity GetChainCacheEntity(int remoteChainId);
-
         int Size { get; }
         List<int> GetCachedChainIds();
     }
     
     public class CrossChainCacheEntityProvider : ICrossChainCacheEntityProvider, ISingletonDependency
     {
-        private readonly IChainCacheEntityFactory _chainCacheEntityFactory;
-        
         private readonly ConcurrentDictionary<int, IChainCacheEntity> _chainCacheEntities =
             new ConcurrentDictionary<int, IChainCacheEntity>();
-
-        public CrossChainCacheEntityProvider(IChainCacheEntityFactory chainCacheEntityFactory)
-        {
-            _chainCacheEntityFactory = chainCacheEntityFactory;
-        }
-
+        
         public int Size => _chainCacheEntities.Count;
         
         public List<int> GetCachedChainIds()
@@ -35,7 +27,7 @@ namespace AElf.CrossChain.Cache
 
         public void AddChainCacheEntity(int remoteChainId, long initialTargetHeight)
         {
-            var chainCacheEntity = _chainCacheEntityFactory.CreateChainCacheEntity(remoteChainId, initialTargetHeight);
+            var chainCacheEntity = new ChainCacheEntity(remoteChainId, initialTargetHeight);
             _chainCacheEntities.TryAdd(remoteChainId, chainCacheEntity);
         }
 
