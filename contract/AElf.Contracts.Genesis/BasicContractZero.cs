@@ -74,7 +74,7 @@ namespace AElf.Contracts.Genesis
 
         public override Address DeploySystemSmartContract(SystemContractDeploymentInput input)
         {
-            RequireAuthority();
+            RequireAuthority(State.GenesisOwner?.Value);
             var name = input.Name;
             var category = input.Category;
             var code = input.Code.ToByteArray();
@@ -164,8 +164,6 @@ namespace AElf.Contracts.Genesis
 
         public override Address UpdateSmartContract(ContractUpdateInput input)
         {
-            RequireAuthority();
-
             var contractAddress = input.Address;
             var code = input.Code.ToByteArray();
             var info = State.ContractInfos[contractAddress];
@@ -173,10 +171,11 @@ namespace AElf.Contracts.Genesis
 
             if (info.IsSystemContract)
             {
-                Assert(Context.Sender == State.GenesisOwner.Value, "Only genesis owner can update system contract.");
+                RequireAuthority(State.GenesisOwner.Value);
             }
             else
             {
+                RequireAuthority();
                 Assert(info.Author == Context.Origin, "Only author can propose contract update.");
             }
 
@@ -254,7 +253,7 @@ namespace AElf.Contracts.Genesis
 
         #endregion Actions
 
-        public void RequireAuthority()
+        public void RequireAuthority(Address requiredAddress = null)
         {
             var isGenesisOwnerAuthorityRequired = State.ContractDeploymentAuthorityRequired.Value;
             if (!State.Initialized.Value)
@@ -266,6 +265,10 @@ namespace AElf.Contracts.Genesis
             {
                 // genesis owner authority check is required
                 AssertSenderAddressWith(State.GenesisOwner.Value);
+            }
+            else if (requiredAddress != null)
+            {
+                AssertSenderAddressWith(requiredAddress);
             }
         }
 
