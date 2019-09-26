@@ -5,6 +5,9 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <TargetFramework>netcoreapp2.2</TargetFramework>
     </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <DefineConstants>TRACE;UNIT_TEST</DefineConstants>
+    </PropertyGroup>
     <ItemGroup Label="NuGet package assets">
         <None Pack="true" PackagePath="build\" Include="*.targets;" />
     </ItemGroup>

@@ -73,10 +73,10 @@ namespace AElf.Runtime.CSharp
         public byte[] CodePatch(byte[] code)
         {
             // Disabled due to timeout during unit tests
-#if UNIT_TEST
-            return code;
-#else
+#if !UNIT_TEST
             return ContractPatcher.Patch(code);
+#else
+            return code;
 #endif
         }
 
