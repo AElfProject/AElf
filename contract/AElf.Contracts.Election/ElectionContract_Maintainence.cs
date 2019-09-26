@@ -60,7 +60,7 @@ namespace AElf.Contracts.Election
                 AcceptedCurrency = Context.Variables.NativeSymbol,
                 TotalSnapshotNumber = long.MaxValue,
                 StartTimestamp = startTime.ToTimestamp(),
-                EndTimestamp = startTime.Add(DateTime.MaxValue - DateTime.MinValue).ToTimestamp()
+                EndTimestamp = startTime.AddTicks(DateTime.MaxValue.Ticks - DateTime.MinValue.Ticks).ToTimestamp()
             };
             State.VoteContract.Register.Send(votingRegisterInput);
 
