@@ -6,26 +6,22 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         private bool IsMainChain
         {
             get
             {
-                if (_isMainChain == null)
-                {
-                    _isMainChain = State.IsMainChain.Value;
-                    return (bool) _isMainChain;
-                }
-
+                if (_isMainChain != null) return (bool) _isMainChain;
+                _isMainChain = State.IsMainChain.Value;
                 return (bool) _isMainChain;
             }
         }
 
-        private bool TryToGetBlockchainStartTimestamp(out Timestamp startTimestamp)
+        private Timestamp GetBlockchainStartTimestamp()
         {
-            startTimestamp = State.BlockchainStartTimestamp.Value;
-            return startTimestamp != null;
+            return State.BlockchainStartTimestamp.Value ?? new Timestamp();
         }
 
         private bool IsFirstRoundOfCurrentTerm(out long termNumber)
@@ -127,14 +123,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return true;
         }
 
+        /// <summary>
+        /// Will force to generate a `Change` to tx executing result.
+        /// </summary>
+        /// <param name="round"></param>
+        /// <returns></returns>
         private bool TryToAddRoundInformation(Round round)
         {
             State.Rounds.Set(round.RoundNumber, round);
 
-            if (round.RoundNumber > AEDPoSContractConstants.KeepRounds)
+            // Only clear old round information when the mining status is Normal.
+            if (round.RoundNumber > AEDPoSContractConstants.KeepRounds &&
+                GetMaximumBlocksCount() == AEDPoSContractConstants.MaximumTinyBlocksCount)
             {
                 // TODO: Set to null.
-                //State.Rounds[round.RoundNumber.Sub(AEDPoSContractConstants.KeepRounds)] = new Round();
+                State.Rounds[round.RoundNumber.Sub(AEDPoSContractConstants.KeepRounds)] = new Round();
             }
 
             return true;
@@ -150,7 +153,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             State.Rounds[round.RoundNumber] = round;
-            
+
             return true;
         }
     }

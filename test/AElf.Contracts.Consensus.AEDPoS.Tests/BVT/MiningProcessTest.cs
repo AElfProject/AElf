@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         [Fact]
         public async Task Candidates_NotEnough_Test()
         {
-            await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(new Empty());
+            //await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(new Empty());
 
             //await InitializeVoters();
             await InitializeCandidates(EconomicContractsTestConstants.InitialCoreDataCenterCount);
@@ -60,7 +60,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 var tester = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation =
-                    (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
+                    (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggers[minerInRound.Pubkey]
                         .ToBytesValue())).ToConsensusHeaderInformation();
 
                 // Update consensus information.
@@ -72,7 +72,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 .AddMinutes(AEDPoSContractTestConstants.TimeEachTerm + 1);
             BlockTimeProvider.SetBlockTime(changeTermTime.ToTimestamp());
 
-            var nextTermInformation = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
+            var nextTermInformation = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.NextTerm,
@@ -85,7 +85,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var oneCandidate = GetAEDPoSContractStub(ValidationDataCenterKeyPairs[0]);
             var anotherCandidate = GetAEDPoSContractStub(ValidationDataCenterKeyPairs[1]);
             var randomHash = Hash.FromString("hash5");
-            var informationOfSecondRound = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
+            var informationOfSecondRound = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.UpdateValue,
@@ -99,7 +99,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var thirdRoundStartTime = changeTermTime.AddMinutes(AEDPoSContractTestConstants.TimeEachTerm + 2);
             BlockTimeProvider.SetBlockTime(thirdRoundStartTime.ToTimestamp());
-            var thirdRound = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
+            var thirdRound = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.NextRound,
@@ -108,7 +108,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             await oneCandidate.NextRound.SendAsync(thirdRound);
 
-            var cheatInformation = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
+            var cheatInformation = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.UpdateValue,

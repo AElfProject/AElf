@@ -80,7 +80,7 @@ namespace AElf.Contract.TestContract
             feesAfter["STO"].ShouldBeLessThan(feesBefore["STO"]);
         }
 
-        [Fact]
+        [Fact(Skip="Wait issue about execution order")]
         public async Task TransactionFee_Failed_Test()
         {
             var beforeBalance = await GetBalance(DefaultSender);
@@ -101,7 +101,7 @@ namespace AElf.Contract.TestContract
             feesAfter["STO"].ShouldBeLessThan(feesBefore["STO"]);
         }
 
-        [Fact]
+        [Fact(Skip = "Wait issue about execution order")]
         public async Task TransactionFee_InlineFailed_Test()
         {
             var beforeBalance = await GetBalance(DefaultSender);

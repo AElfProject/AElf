@@ -225,7 +225,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
                 if (_allTransactions.Count > _transactionOptions.PoolLimit)
                 {
-                    Logger.LogWarning($"TxStore is full, ignore tx {receipt.TransactionId}");
+                    //Logger.LogWarning($"TxStore is full, ignore tx {receipt.TransactionId}");
                     break;
                 }
 

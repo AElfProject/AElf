@@ -44,7 +44,7 @@ namespace AElf.OS
                             hash = block.GetHash();
                         }
 
-                        return Task.FromResult(result);
+                        return Task.FromResult(new Response<List<BlockWithTransactions>>(result));
                     });
                 
                 return networkServiceMock.Object;
