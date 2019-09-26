@@ -97,7 +97,7 @@ namespace AElf.OS.BlockSync.Application
                 chain.LastIrreversibleBlockHeight);
             var pubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
 
-            var validateResult = await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, block, GetEncodedPubKeyString());
+            var validateResult = await _blockSyncValidationService.ValidateBlockBeforeSyncAsync(chain, block, pubkey);
 
             validateResult.ShouldBeTrue();
         }
