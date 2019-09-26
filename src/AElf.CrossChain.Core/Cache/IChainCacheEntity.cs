@@ -8,7 +8,6 @@ namespace AElf.CrossChain.Cache
         bool TryAdd(IBlockCacheEntity blockCacheEntity);
         long TargetChainHeight();
         bool TryTake(long height, out IBlockCacheEntity blockCacheEntity, bool isCacheSizeLimited);
-
         void ClearOutOfDateCacheByHeight(long height);
     }
     
@@ -126,11 +125,7 @@ namespace AElf.CrossChain.Cache
             var res = BlockCacheEntities.TryTake(out blockCacheEntity,
                 CrossChainConstants.WaitingIntervalInMillisecond);
             if (res)
-            {
                 DequeuedBlockCacheEntities.Add(blockCacheEntity);
-//                if (DequeuedBlockCacheEntities.Count >= CrossChainConstants.ChainCacheEntityCapacity)
-//                    DequeuedBlockCacheEntities.Take();
-            }
 
             return res;
         }
