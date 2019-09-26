@@ -1,3 +1,4 @@
+using Acs1;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -50,5 +51,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public SingletonState<LatestProviderToTinyBlocksCount> LatestProviderToTinyBlocksCount { get; set; }
 
         public MappedState<long, MinerList> MinedMinerListMap { get; set; }
+        public MappedState<string, TokenAmounts> TransactionFees { get; set; }
     }
 }

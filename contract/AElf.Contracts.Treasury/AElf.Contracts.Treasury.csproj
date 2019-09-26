@@ -7,8 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ContractReference Include="..\..\protobuf\acs1.proto">
+        <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf/Proto/acs1.proto</Link>
+        </ContractBase>
+        <ContractReference Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\reference\acs3.proto</Link>
         </ContractReference>
         <ContractReference Include="..\..\protobuf\profit_contract.proto">
             <Link>Protobuf/Proto/profit_contract.proto</Link>
@@ -24,6 +27,9 @@
         </ContractReference>
         <ContractReference Include="..\..\protobuf\election_contract.proto">
             <Link>Protobuf/Proto/election_contract.proto</Link>
+        </ContractReference>
+        <ContractReference Include="..\..\protobuf\parliament_auth_contract.proto">
+            <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
         </ContractReference>
     </ItemGroup>
     <ItemGroup>

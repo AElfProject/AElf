@@ -11,6 +11,9 @@
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf/Proto/acs0.proto</Link>
         </ContractReference>
+        <ContractStub Include="..\..\protobuf\acs1.proto">
+            <Link>Protobuf/Proto/acs1.proto</Link>
+        </ContractStub>
         <ContractReference Include="..\..\protobuf\token_converter_contract.proto">
             <Link>Protobuf/Proto/token_converter_contract.proto</Link>
         </ContractReference>

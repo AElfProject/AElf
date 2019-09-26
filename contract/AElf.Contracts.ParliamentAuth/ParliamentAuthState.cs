@@ -1,4 +1,5 @@
 using Acs0;
+using Acs1;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
@@ -15,5 +16,6 @@ namespace AElf.Contracts.ParliamentAuth
         internal AEDPoSContractContainer.AEDPoSContractReferenceState ConsensusContract {get; set; }
         internal ACS0Container.ACS0ReferenceState GenesisContract { get; set; }
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }
+        public MappedState<string, TokenAmounts> TransactionFees { get; set; }
     }
 }

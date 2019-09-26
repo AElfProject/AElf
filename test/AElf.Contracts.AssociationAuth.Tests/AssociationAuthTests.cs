@@ -18,6 +18,7 @@ namespace AElf.Contracts.AssociationAuth
         public AssociationAuthTests()
         {
             DeployContracts();
+            TransferBalanceToBps();
         }
 
         [Fact]
@@ -383,7 +384,7 @@ namespace AElf.Contracts.AssociationAuth
                 Symbol = "ELF",
                 Owner = Reviewer1
             }).Result.Balance;
-            getBalance.ShouldBe(100);
+            getBalance.ShouldBe(10100);
         }
 
         private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair,Address organizationAddress)

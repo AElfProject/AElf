@@ -1,4 +1,5 @@
-﻿using AElf.Sdk.CSharp.State;
+﻿using Acs1;
+using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
 namespace AElf.Contracts.Treasury
@@ -20,5 +21,7 @@ namespace AElf.Contracts.Treasury
         public SingletonState<Hash> ReElectionRewardHash { get; set; }
 
         public SingletonState<MinerReElectionInformation> MinerReElectionInformation { get; set; }
+        
+        public MappedState<string, TokenAmounts> TransactionFees { get; set; }
     }
 }

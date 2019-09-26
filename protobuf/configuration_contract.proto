@@ -6,11 +6,13 @@ import "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
+import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.Configuration";
 
 service Configuration {
     option (aelf.csharp_state) = "AElf.Contracts.Configuration.ConfigurationState";
+    option (aelf.base) = "acs1.proto";
     // Actions
     rpc SetBlockTransactionLimit (google.protobuf.Int32Value) returns (google.protobuf.Empty) {
     }

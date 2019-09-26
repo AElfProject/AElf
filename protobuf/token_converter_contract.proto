@@ -4,12 +4,14 @@ import "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/empty.proto";
+import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.TokenConverter";
 
 service TokenConverterContract {
     
     option (aelf.csharp_state) = "AElf.Contracts.TokenConverter.TokenConverterContractState";
+    option (aelf.base) = "acs1.proto";
     
     // Actions
     rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {

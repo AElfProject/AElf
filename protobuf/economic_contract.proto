@@ -6,11 +6,13 @@ import "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
+import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.Economic";
 
 service EconomicContract {
     option (aelf.csharp_state) = "AElf.Contracts.Economic.EconomicContractState";
+    option (aelf.base) = "acs1.proto";
     rpc IssueNativeToken (IssueNativeTokenInput) returns (google.protobuf.Empty) {
     }
     rpc IssueResourceToken (IssueResourceTokenInput) returns (google.protobuf.Empty) {
