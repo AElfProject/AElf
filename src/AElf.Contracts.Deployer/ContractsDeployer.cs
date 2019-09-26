@@ -24,7 +24,11 @@ namespace AElf.Contracts.Deployer
             var dllPath = Directory.Exists(contractDir)
                 ? Path.Combine(contractDir, $"{dllName}.dll")
                 : Assembly.Load(dllName).Location;
+#if UNIT_TEST
+            return File.ReadAllBytes(dllPath);
+#else
             return ContractPatcher.Patch(File.ReadAllBytes(dllPath));
+#endif
         }
 
         private static IEnumerable<string> GetContractNames(Assembly assembly)
