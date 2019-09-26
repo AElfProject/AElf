@@ -29,7 +29,9 @@ namespace AElf.OS.BlockSync.Worker
             var chain = await _blockchainService.GetChainAsync();
             var originalBestChainHash = chain.BestChainHash;
             var originalBestChainHeight = chain.BestChainHeight;
-            var peerBlocks = await _networkService.GetBlocksAsync(chain.LastIrreversibleBlockHash, 30);
+            var response = await _networkService.GetBlocksAsync(chain.LastIrreversibleBlockHash, 30, null);
+            var peerBlocks = response.Payload;
+            
             var peerBlock = peerBlocks.Last();
 
             await _blockDownloadJobManager.EnqueueAsync(peerBlock.GetHash(), peerBlock.Height, 5, null);

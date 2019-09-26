@@ -44,13 +44,13 @@ namespace AElf.OS.BlockSync.Infrastructure
         public Task UpdateAsync(BlockDownloadJobInfo blockDownloadJobInfo)
         {
             _jobs[blockDownloadJobInfo.JobId] = blockDownloadJobInfo;
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
 
         public Task RemoveAsync(Hash jobId)
         {
             _jobs.TryRemove(jobId, out _);
-            return Task.FromResult(0);
+            return Task.CompletedTask;
         }
     }
 }
