@@ -67,11 +67,15 @@ namespace AElf.OS.Network.Grpc
         public override async Task<VoidReply> BlockBroadcastStream(
             IAsyncStreamReader<BlockWithTransactions> requestStream, ServerCallContext context)
         {
+            Logger.LogDebug($"Block stream started with {context.GetPeerInfo()} - {context.Peer}.");
+            
             await requestStream.ForEachAsync(r =>
             {
                 _ = EventBus.PublishAsync(new BlockReceivedEvent(r, context.GetPublicKey()));
                 return Task.CompletedTask;
             });
+            
+            Logger.LogDebug($"Block stream finished with {context.GetPeerInfo()} - {context.Peer}.");
 
             return new VoidReply();
         }
@@ -79,7 +83,12 @@ namespace AElf.OS.Network.Grpc
         public override async Task<VoidReply> AnnouncementBroadcastStream(
             IAsyncStreamReader<BlockAnnouncement> requestStream, ServerCallContext context)
         {
+            Logger.LogDebug($"Announcement stream started with {context.GetPeerInfo()} - {context.Peer}.");
+
             await requestStream.ForEachAsync(async r => await ProcessAnnouncement(r, context));
+            
+            Logger.LogDebug($"Announcement stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+            
             return new VoidReply();
         }
 
@@ -108,7 +117,12 @@ namespace AElf.OS.Network.Grpc
         public override async Task<VoidReply> TransactionBroadcastStream(IAsyncStreamReader<Transaction> requestStream,
             ServerCallContext context)
         {
+            Logger.LogDebug($"Transaction stream started with {context.GetPeerInfo()} - {context.Peer}.");
+            
             await requestStream.ForEachAsync(async tx => await ProcessTransaction(tx, context));
+            
+            Logger.LogDebug($"Transaction stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+            
             return new VoidReply();
         }
 
@@ -131,6 +145,28 @@ namespace AElf.OS.Network.Grpc
                 return;
 
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent {Transactions = new List<Transaction> {tx}});
+        }
+        
+        public override async Task<VoidReply> LibAnnouncementBroadcastStream(IAsyncStreamReader<LibAnnouncement> requestStream, ServerCallContext context)
+        {
+            await requestStream.ForEachAsync(async r => await ProcessLibAnnouncement(r, context));
+            return new VoidReply();
+        }
+
+        public Task ProcessLibAnnouncement(LibAnnouncement announcement, ServerCallContext context)
+        {
+            if (announcement?.LibHash == null)
+            {
+                Logger.LogError($"Received null or empty announcement from {context.GetPeerInfo()}.");
+                return Task.CompletedTask;
+            }
+            
+            Logger.LogDebug($"Received lib announce hash: {announcement.LibHash}, height {announcement.LibHeight} from {context.GetPeerInfo()}.");
+
+            var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
+            peer?.UpdateLastKnownLib(announcement);
+            
+            return Task.CompletedTask;
         }
 
         /// <summary>

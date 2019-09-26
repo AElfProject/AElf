@@ -35,42 +35,61 @@ namespace AElf.OS.BlockSync.Application
             _transactionValidationService = transactionValidationService;
         }
 
-        public async Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement,
-            string senderPubKey)
+        public Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement, string senderPubKey)
         {
             if (!TryCacheNewAnnouncement(blockAnnouncement.BlockHash, blockAnnouncement.BlockHeight, senderPubKey))
             {
-                return false;
+                return Task.FromResult(false);
             }
 
             if (blockAnnouncement.BlockHeight <= chain.LastIrreversibleBlockHeight)
             {
                 Logger.LogWarning(
                     $"Receive lower header {{ hash: {blockAnnouncement.BlockHash}, height: {blockAnnouncement.BlockHeight} }} ignore.");
-                return false;
+                return Task.FromResult(false);
             }
 
-            return true;
+            return Task.FromResult(true);
         }
 
-        public async Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions,
-            string senderPubKey)
+        public Task<bool> ValidateBlockBeforeSyncAsync(Chain chain, BlockWithTransactions blockWithTransactions, string senderPubKey)
         {
             if (blockWithTransactions.Height <= chain.LastIrreversibleBlockHeight)
             {
                 Logger.LogWarning($"Receive lower block {blockWithTransactions} ignore.");
+                return Task.FromResult(false);
+            }
+
+            if (blockWithTransactions.Header.SignerPubkey.ToHex() != senderPubKey)
+            {
+                Logger.LogWarning($"Sender {senderPubKey} of block {blockWithTransactions} is incorrect.");
+                return Task.FromResult(false);
+            }
+
+            return Task.FromResult(true);
+        }
+        
+        public async Task<bool> ValidateBlockBeforeAttachAsync(BlockWithTransactions blockWithTransactions)
+        {
+            if (!await _blockValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions))
+            {
+                return false;
+            }
+
+            if (!await ValidateTransactionAsync(blockWithTransactions))
+            {
                 return false;
             }
 
             return true;
         }
-
+        
         private bool TryCacheNewAnnouncement(Hash blockHash, long blockHeight, string senderPubkey)
         {
             return _announcementCacheProvider.TryAddOrUpdateAnnouncementCache(blockHash, blockHeight, senderPubkey);
         }
 
-        public async Task<bool> ValidateTransactionAsync(BlockWithTransactions blockWithTransactions)
+        private async Task<bool> ValidateTransactionAsync(BlockWithTransactions blockWithTransactions)
         {
             foreach (var transaction in blockWithTransactions.Transactions)
             {
@@ -84,19 +103,18 @@ namespace AElf.OS.BlockSync.Application
                     return false;
                 }
 
-                if (!_transactionValidationService.ValidateConstrainedTransaction(transaction,
-                    blockWithTransactions.GetHash()))
+                var constrainedTransactionValidationResult =
+                    _transactionValidationService.ValidateConstrainedTransaction(transaction,
+                        blockWithTransactions.GetHash());
+                _transactionValidationService.ClearConstrainedTransactionValidationProvider(blockWithTransactions
+                    .GetHash());
+                if (!constrainedTransactionValidationResult)
                 {
                     return false;
                 }
             }
 
             return true;
-        }
-
-        public async Task<bool> ValidateBlockBeforeAttachAsync(BlockWithTransactions blockWithTransactions)
-        {
-            return await _blockValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
         }
     }
 }

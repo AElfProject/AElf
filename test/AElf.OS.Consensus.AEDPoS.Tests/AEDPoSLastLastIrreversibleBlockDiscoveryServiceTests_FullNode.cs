@@ -5,6 +5,7 @@ using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Protocol.Types;
 using AElf.TestBase;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -79,7 +80,7 @@ namespace AElf.OS.Consensus.DPos
         {
             var channel = new Channel(OSConsensusDPosTestConstants.FakeIpEndpoint, ChannelCredentials.Insecure);
             
-            var connectionInfo = new PeerInfo
+            var connectionInfo = new PeerConnectionInfo
             {
                 Pubkey = publicKey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,

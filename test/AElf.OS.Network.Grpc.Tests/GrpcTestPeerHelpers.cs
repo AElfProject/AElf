@@ -1,6 +1,7 @@
 using AElf.Kernel;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
+using AElf.OS.Network.Protocol.Types;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 
@@ -15,7 +16,7 @@ namespace AElf.OS.Network
             return CreatePeerWithInfo(ip, new PeerInfo { Pubkey = pubkey, SessionId = new byte[] { 0, 1, 2}, ConnectionTime = TimestampHelper.GetUtcNow()});
         }
 
-        public static GrpcPeer CreatePeerWithInfo(string ip, PeerInfo info)
+        public static GrpcPeer CreatePeerWithInfo(string ip, PeerConnectionInfo info)
         {
             var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), null), IpEndPointHelper.Parse(ip), info);
             peer.InboundSessionId = new byte[] {0, 1, 2};
@@ -24,7 +25,7 @@ namespace AElf.OS.Network
 
         public static GrpcPeer CreatePeerWithClient(string ip, string pubkey, PeerService.PeerServiceClient client)
         {
-            var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), client), IpEndPointHelper.Parse(ip), new PeerInfo { Pubkey = pubkey, SessionId = new byte[] { 0, 1, 2} });
+            var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), client), IpEndPointHelper.Parse(ip), new PeerConnectionInfo { Pubkey = pubkey, SessionId = new byte[] { 0, 1, 2} });
             peer.InboundSessionId = new byte[] {0, 1, 2};
             return peer;
         }
@@ -45,7 +46,7 @@ namespace AElf.OS.Network
             else
                 client = new PeerService.PeerServiceClient(channel);
             
-            var connectionInfo = new PeerInfo
+            var connectionInfo = new PeerConnectionInfo
             {
                 Pubkey = pubkey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,

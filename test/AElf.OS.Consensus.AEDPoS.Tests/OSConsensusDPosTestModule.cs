@@ -6,6 +6,7 @@ using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Protocol.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
@@ -32,7 +33,7 @@ namespace AElf.OS.Consensus.DPos
             var peerList = new List<IPeer>();
             for (var i = 0; i < 3; i++)
             {
-                var connectionInfo = new PeerInfo
+                var connectionInfo = new PeerConnectionInfo
                 {
                     Pubkey = publicKeys[i],
                     ProtocolVersion = KernelConstants.ProtocolVersion,

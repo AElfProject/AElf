@@ -37,7 +37,7 @@ namespace AElf.Kernel.Consensus.Application
         /// data of new block.
         /// </summary>
         /// <returns></returns>
-        Task<byte[]> GetInformationToUpdateConsensusAsync(ChainContext chainContext);
+        Task<byte[]> GetConsensusExtraDataAsync(ChainContext chainContext);
 
         /// <summary>
         /// Generate consensus transactions from consensus contract.

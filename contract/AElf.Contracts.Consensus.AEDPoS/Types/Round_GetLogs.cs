@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 minerInformation.AppendLine($"Order:\t {minerInRound.Order}");
                 minerInformation.AppendLine(
                     $"Expect:\t {minerInRound.ExpectedMiningTime?.ToDateTime().ToUniversalTime():yyyy-MM-dd HH.mm.ss,ffffff}");
-                var roundStartTime = GetStartTime();
+                var roundStartTime = GetRoundStartTime();
                 var actualMiningTimes = minerInRound.ActualMiningTimes.OrderBy(t => t).Select(t =>
                 {
                     if (t < roundStartTime)

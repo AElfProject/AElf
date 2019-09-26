@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Metrics;
+using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -12,9 +12,9 @@ namespace AElf.OS.Network.Infrastructure
 {
     public interface IPeer
     {
-        bool IsBest { get; set; }
         bool IsReady { get; }
         bool IsInvalid { get; }
+        Hash LastKnownLibHash { get; }
         long LastKnownLibHeight { get; }
         Timestamp LastReceivedHandshakeTime { get; }
         IPEndPoint RemoteEndpoint { get; }
@@ -25,15 +25,17 @@ namespace AElf.OS.Network.Infrastructure
         
         byte[] InboundSessionId { get; }
 
-        PeerInfo Info { get; }
+        PeerConnectionInfo Info { get; }
 
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         
         void AddKnowBlock(BlockAnnouncement blockAnnouncement);
+        void UpdateLastKnownLib(LibAnnouncement libAnnouncement);
 
         void EnqueueAnnouncement(BlockAnnouncement transaction, Action<NetworkException> sendCallback);
         void EnqueueTransaction(Transaction transaction, Action<NetworkException> sendCallback);
         void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException> sendCallback);
+        void EnqueueLibAnnouncement(LibAnnouncement libAnnouncement,Action<NetworkException> sendCallback);
 
         Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash);
         Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);

@@ -11,6 +11,7 @@ using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Metrics;
+using AElf.OS.Network.Protocol.Types;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -25,14 +26,10 @@ namespace AElf.OS.Network.Grpc
     {
         private const int MaxMetricsPerMethod = 100;
         private const int BlockRequestTimeout = 500;
-        private const int BlocksRequestTimeout = 800;
+        private const int BlocksRequestTimeout = 2000;
         private const int GetNodesTimeout = 500;
         private const int UpdateHandshakeTimeout = 400;
         private const int StreamRecoveryWaitTimeInMilliseconds = 500;
-
-        private const int MaxDegreeOfParallelismForAnnouncementJobs = 3;
-        private const int MaxDegreeOfParallelismForTransactionJobs = 1;
-        private const int MaxDegreeOfParallelismForBlockJobs = 1;
 
         private enum MetricNames
         {
@@ -63,11 +60,12 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
+        public Hash LastKnownLibHash { get; private set; }
+
         public long LastKnownLibHeight { get; private set; }
         public Timestamp LastReceivedHandshakeTime { get; private set; }
         public Timestamp LastSentHandshakeTime { get; private set; }
 
-        public bool IsBest { get; set; }
         public bool IsConnected { get; set; }
         public bool IsShutdown { get; set; }
         public Hash CurrentBlockHash { get; private set; }
@@ -90,7 +88,7 @@ namespace AElf.OS.Network.Grpc
         public int BufferedBlocksCount => _sendBlockJobs.InputCount;
         public int BufferedAnnouncementsCount => _sendAnnouncementJobs.InputCount;
 
-        public PeerInfo Info { get; }
+        public PeerConnectionInfo Info { get; }
 
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
@@ -101,18 +99,19 @@ namespace AElf.OS.Network.Grpc
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
         private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
+        private AsyncClientStreamingCall<LibAnnouncement, VoidReply> _libAnnouncementStreamCall;
 
         private readonly ActionBlock<StreamJob> _sendAnnouncementJobs;
         private readonly ActionBlock<StreamJob> _sendBlockJobs;
         private readonly ActionBlock<StreamJob> _sendTransactionJobs;
 
-        public GrpcPeer(GrpcClient client, IPEndPoint remoteEndpoint, PeerInfo peerInfo)
+        public GrpcPeer(GrpcClient client, IPEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo)
         {
             _channel = client.Channel;
             _client = client.Client;
 
             RemoteEndpoint = remoteEndpoint;
-            Info = peerInfo;
+            Info = peerConnectionInfo;
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
@@ -128,19 +127,16 @@ namespace AElf.OS.Network.Grpc
             _sendAnnouncementJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
                 new ExecutionDataflowBlockOptions
                 {
-                    MaxDegreeOfParallelism = MaxDegreeOfParallelismForAnnouncementJobs,
                     BoundedCapacity = NetworkConstants.DefaultMaxBufferedAnnouncementCount
                 });
             _sendBlockJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
                 new ExecutionDataflowBlockOptions
                 {
-                    MaxDegreeOfParallelism = MaxDegreeOfParallelismForBlockJobs,
                     BoundedCapacity = NetworkConstants.DefaultMaxBufferedBlockCount
                 });
             _sendTransactionJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
                 new ExecutionDataflowBlockOptions
                 {
-                    MaxDegreeOfParallelism = MaxDegreeOfParallelismForTransactionJobs,
                     BoundedCapacity = NetworkConstants.DefaultMaxBufferedTransactionCount
                 });
         }
@@ -185,6 +181,17 @@ namespace AElf.OS.Network.Grpc
         public void UpdateLastSentHandshake(Handshake handshake)
         {
             LastSentHandshakeTime = handshake.HandshakeData.Time;
+        }
+
+        public void UpdateLastKnownLib(LibAnnouncement libAnnouncement)
+        {
+            if (libAnnouncement.LibHeight <= LastKnownLibHeight)
+            {
+                return;
+            }
+
+            LastKnownLibHash = libAnnouncement.LibHash;
+            LastKnownLibHeight = libAnnouncement.LibHeight;
         }
 
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
@@ -263,6 +270,19 @@ namespace AElf.OS.Network.Grpc
 
             _sendBlockJobs.Post(new StreamJob{BlockWithTransactions = blockWithTransactions, SendCallback = sendCallback});
         }
+        
+        public void EnqueueLibAnnouncement(LibAnnouncement libAnnouncement, Action<NetworkException> sendCallback)
+        {
+            if (!IsReady)
+                throw new NetworkException($"Dropping lib announcement, peer is not ready - {this}.",
+                    NetworkExceptionType.NotConnected);
+
+            _sendAnnouncementJobs.Post(new StreamJob
+            {
+                LibAnnouncement = libAnnouncement,
+                SendCallback = sendCallback
+            });
+        }
 
         private async Task SendStreamJobAsync(StreamJob job)
         {
@@ -283,12 +303,21 @@ namespace AElf.OS.Network.Grpc
                 {
                     await BroadcastBlockAsync(job.BlockWithTransactions);
                 }
+                else if (job.LibAnnouncement != null)
+                {
+                    await SendLibAnnouncementAsync(job.LibAnnouncement);
+                }
             }
             catch (RpcException ex)
             {
                 job.SendCallback?.Invoke(CreateNetworkException(ex, $"Error on broadcast to {this}: "));
                 await Task.Delay(StreamRecoveryWaitTimeInMilliseconds);
                 return;
+            }
+            catch (Exception ex)
+            {
+                job.SendCallback?.Invoke(new NetworkException("Unknown exception during broadcast.", ex));
+                throw;
             }
 
             job.SendCallback?.Invoke(null);
@@ -352,6 +381,28 @@ namespace AElf.OS.Network.Grpc
                 _transactionStreamCall.Dispose();
                 _transactionStreamCall = null;
 
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Send a lib announcement to the peer using the stream call.
+        /// Note: this method is not thread safe.
+        /// </summary>
+        public async Task SendLibAnnouncementAsync(LibAnnouncement libAnnouncement)
+        {
+            if (_libAnnouncementStreamCall == null)
+                _libAnnouncementStreamCall = _client.LibAnnouncementBroadcastStream();
+            
+            try
+            {
+                await _libAnnouncementStreamCall.RequestStream.WriteAsync(libAnnouncement);
+            }
+            catch (RpcException e)
+            {
+                _libAnnouncementStreamCall.Dispose();
+                _libAnnouncementStreamCall = null;
+                
                 throw;
             }
         }
@@ -456,11 +507,20 @@ namespace AElf.OS.Network.Grpc
             else
             {
                 // there was an exception, not related to connectivity.
-                if (exception.InnerException is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Cancelled)
+                if (exception.InnerException is RpcException rpcEx)
                 {
-                    message = $"Request was cancelled {this}: {errorMessage}";
-                    type = NetworkExceptionType.Unrecoverable;
+                    if (rpcEx.StatusCode == StatusCode.Cancelled)
+                    {
+                        message = $"Request was cancelled {this}: {errorMessage}";
+                        type = NetworkExceptionType.Unrecoverable;
+                    }
+                    else if (rpcEx.StatusCode == StatusCode.Unknown)
+                    {
+                        message = $"Exception in handler {this}: {errorMessage}";
+                        type = NetworkExceptionType.HandlerException;
+                    }
                 }
+                
             }
 
             return new NetworkException(message, exception, type);
