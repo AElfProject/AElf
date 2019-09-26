@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Domain;
+using AElf.Kernel.Infrastructure;
 using AElf.Types;
 using Shouldly;
 using Shouldly.ShouldlyExtensionMethods;
@@ -48,7 +49,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             foreach (var tx in transactions)
             {
-                var existTransaction = await _transactionManager.GetTransaction(tx.GetHash());
+                var existTransaction = await _transactionManager.GetTransactionAsync(tx.GetHash());
                 existTransaction.ShouldBe(tx);
             }
         }
@@ -733,6 +734,45 @@ namespace AElf.Kernel.Blockchain.Application
             await _fullBlockchainService.AddBlockAsync(linkedBlock);
             var status = await _fullBlockchainService.AttachBlockToChainAsync(chain, linkedBlock);
             status.ShouldBe(BlockAttachOperationStatus.NewBlockLinked);
+        }
+
+        [Fact]
+        public async Task ResetChainToLib_Test()
+        {
+            var chain = await _fullBlockchainService.GetChainAsync();
+            chain = await _fullBlockchainService.ResetChainToLibAsync(chain);
+
+            chain.BestChainHash.ShouldBe(chain.LastIrreversibleBlockHash);
+            chain.BestChainHeight.ShouldBe(chain.LastIrreversibleBlockHeight);
+            chain.LongestChainHash.ShouldBe(chain.LastIrreversibleBlockHash);
+            chain.LongestChainHeight.ShouldBe(chain.LastIrreversibleBlockHeight);
+
+            chain.Branches.Count.ShouldBe(1);
+            chain.Branches[chain.LastIrreversibleBlockHash.ToStorageKey()].ShouldBe(chain.LastIrreversibleBlockHeight);
+
+            chain.NotLinkedBlocks.ShouldBeEmpty();
+
+            foreach (var block in _kernelTestHelper.LongestBranchBlockList)
+            {
+                var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(block.GetHash());
+                chainBlockLink.IsLinked.ShouldBeFalse();
+                chainBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionNone);
+            }
+
+            foreach (var block in _kernelTestHelper.ForkBranchBlockList)
+            {
+                var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(block.GetHash());
+                chainBlockLink.IsLinked.ShouldBeFalse();
+                chainBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionNone);
+            }
+
+            foreach (var block in _kernelTestHelper.ForkBranchBlockList.TakeWhile(block =>
+                block.Height != chain.LastIrreversibleBlockHeight))
+            {
+                var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(block.GetHash());
+                chainBlockLink.IsLinked.ShouldBeFalse();
+                chainBlockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionNone);
+            }
         }
 
         private void BlocksShouldNotExist(List<Hash> blockHashes)

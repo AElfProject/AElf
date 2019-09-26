@@ -7,6 +7,7 @@ using AElf.Types;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         internal class RandomNumberRequestHandler
@@ -44,15 +45,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         TargetRoundNumber = _currentRound.RoundNumber,
                         ExpectedBlockHeight =
                             _currentHeight.Add(
-                                _minimumRequestMinersCount.Mul(AEDPoSContractConstants.TinyBlocksNumber)),
+                                _minimumRequestMinersCount.Mul(AEDPoSContractConstants.MaximumTinyBlocksCount)),
                         Order = minedMinersCount
                     };
                 }
 
                 var leftTinyBlocks = lastMinedMinerInformation == null
                     ? 0
-                    : AEDPoSContractConstants.TinyBlocksNumber.Sub(lastMinedMinerInformation.ActualMiningTimes.Count);
-                var leftBlocksCount = _currentHeight.Add(leftMinersCount.Mul(AEDPoSContractConstants.TinyBlocksNumber))
+                    : AEDPoSContractConstants.MaximumTinyBlocksCount.Sub(lastMinedMinerInformation.ActualMiningTimes
+                        .Count);
+                var leftBlocksCount = _currentHeight
+                    .Add(leftMinersCount.Mul(AEDPoSContractConstants.MaximumTinyBlocksCount))
                     .Add(leftTinyBlocks);
                 return new RandomNumberRequestInformation
                 {
@@ -128,6 +131,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     State.RandomNumberTokenMap[currentRound.RoundNumber].Values.Add(tokenHash);
                 }
 
+                Context.Fire(new RandomNumberRequestHandled
+                {
+                    Requester = Context.Sender,
+                    BlockHeight = information.ExpectedBlockHeight,
+                    TokenHash = tokenHash
+                });
+
                 return new RandomNumberOrder
                 {
                     BlockHeight = information.ExpectedBlockHeight,
@@ -148,9 +158,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Hash GetRandomNumber(Hash input)
         {
             var randomNumberRequestInformation = State.RandomNumberInformationMap[input];
-            if (randomNumberRequestInformation == null || randomNumberRequestInformation.TargetRoundNumber == 0)
+            if (randomNumberRequestInformation == null)
             {
                 Assert(false, "Random number token not found.");
+                // Won't reach here.
+                return Hash.Empty;
+            }
+
+            if (randomNumberRequestInformation.TargetRoundNumber == 0)
+            {
+                Assert(false, "Random number token was cleared.");
                 // Won't reach here.
                 return Hash.Empty;
             }
@@ -170,7 +187,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     var randomHash = provider.GetRandomNumber(round);
                     if (randomHash != Hash.Empty)
                     {
-                        return randomHash;
+                        var finalRandomHash = Hash.FromTwoHashes(randomHash, input);
+                        Context.Fire(new RandomNumberGenerated {TokenHash = input, RandomHash = finalRandomHash});
+                        return finalRandomHash;
                     }
 
                     roundNumber = roundNumber.Add(1);

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Cache.Application;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
@@ -18,18 +19,23 @@ namespace AElf.CrossChain
         private readonly IBlockCacheEntityConsumer _blockCacheEntityConsumer;
         private readonly IIndexedCrossChainBlockDataProvider _indexedCrossChainBlockDataProvider;
         private readonly IIrreversibleBlockStateProvider _irreversibleBlockStateProvider;
-
+        private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
+        
         public ILogger<CrossChainIndexingDataService> Logger { get; set; }
 
         public IOptionsSnapshot<CrossChainConfigOptions> CrossChainOptions { get; set; }
         
-        public CrossChainIndexingDataService(IReaderFactory readerFactory, IBlockCacheEntityConsumer blockCacheEntityConsumer, 
-            IIndexedCrossChainBlockDataProvider indexedCrossChainBlockDataProvider, IIrreversibleBlockStateProvider irreversibleBlockStateProvider)
+        public CrossChainIndexingDataService(IReaderFactory readerFactory, 
+            IBlockCacheEntityConsumer blockCacheEntityConsumer, 
+            IIndexedCrossChainBlockDataProvider indexedCrossChainBlockDataProvider, 
+            IIrreversibleBlockStateProvider irreversibleBlockStateProvider, 
+            ITransactionInclusivenessProvider transactionInclusivenessProvider)
         {
             _readerFactory = readerFactory;
             _blockCacheEntityConsumer = blockCacheEntityConsumer;
             _indexedCrossChainBlockDataProvider = indexedCrossChainBlockDataProvider;
             _irreversibleBlockStateProvider = irreversibleBlockStateProvider;
+            _transactionInclusivenessProvider = transactionInclusivenessProvider;
         }
 
         private async Task<List<SideChainBlockData>> GetNonIndexedSideChainBlockDataAsync(Hash blockHash, long blockHeight)
@@ -237,6 +243,11 @@ namespace AElf.CrossChain
         /// <returns></returns>
         public async Task<CrossChainBlockData> GetCrossChainBlockDataForNextMiningAsync(Hash blockHash, long blockHeight)
         {
+            if (!_transactionInclusivenessProvider.IsTransactionPackable)
+                return null;
+
+            Logger.LogTrace("Try get cross chain data for mining.");
+            
             var sideChainBlockData = await GetNonIndexedSideChainBlockDataAsync(blockHash, blockHeight);
             var parentChainBlockData = await GetNonIndexedParentChainBlockDataAsync(blockHash, blockHeight);
 

@@ -5,6 +5,7 @@ using Acs6;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
+using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -39,22 +40,36 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             // We can use this method process testing.
             // Basically this will produce one block with no transaction.
             await BlockMiningService.MineBlockAsync();
-            
+
             // And this will produce one block with one transaction.
             // This transaction will call Create method of Token Contract.
+            var createTokenTransaction = TokenStub.Create.GetTransaction(new CreateInput
+            {
+                Symbol = "ELF",
+                Decimals = 8,
+                TokenName = "Test",
+                Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
+                IsBurnable = true,
+                TotalSupply = 1_000_000_000_00000000
+            });
+            const long issueTokenAmount = 10_0000_00000000;
+            var issueToAddress = Address.FromPublicKey(MissionedECKeyPairs.InitialKeyPairs.First().PublicKey);
+            var issueTokenTransaction = TokenStub.Issue.GetTransaction(new IssueInput
+            {
+                Symbol = "ELF",
+                Amount = issueTokenAmount,
+                To = issueToAddress
+            });
             await BlockMiningService.MineBlockAsync(new List<Transaction>
             {
-                TokenStub.Create.GetTransaction(new CreateInput
-                {
-                    Symbol = "ELF",
-                    Decimals = 8,
-                    TokenName = "Test",
-                    Issuer = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[0].PublicKey),
-                    IsBurnable = true,
-                    TotalSupply = 1_000_000_000_00000000
-                })
+                createTokenTransaction,
+                issueTokenTransaction
             });
-            
+
+            var createTokenTransactionTrace =
+                TransactionTraceProvider.GetTransactionTrace(createTokenTransaction.GetHash());
+            createTokenTransactionTrace.ExecutionStatus.ShouldBe(ExecutionStatus.Executed);
+
             // Check whether previous Create transaction successfully executed.
             {
                 var tokenInfo = await TokenStub.GetTokenInfo.CallAsync(new GetTokenInfoInput {Symbol = "ELF"});
@@ -77,8 +92,19 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                     .ShouldBeTrue();
             }
 
+            var getBalanceTransaction = TokenStub.GetBalance.GetTransaction(new GetBalanceInput
+            {
+                Owner = issueToAddress,
+                Symbol = "ELF"
+            });
             // Miner of order 2 produce his first block.
-            await BlockMiningService.MineBlockAsync();
+            await BlockMiningService.MineBlockAsync(new List<Transaction> {getBalanceTransaction});
+
+            var getBalanceTransactionTrace =
+                TransactionTraceProvider.GetTransactionTrace(getBalanceTransaction.GetHash());
+            getBalanceTransactionTrace.ReadableReturnValue.ShouldNotBeNull();
+            getBalanceTransactionTrace.ReadableReturnValue.ShouldContain("balance");
+            getBalanceTransactionTrace.ReadableReturnValue.ShouldContain(issueTokenAmount.ToString());
 
             // Next steps will check whether the AEDPoS process is correct.
             // Now 2 miners produced block during first round, so there should be 2 miners' OutValue isn't null.
@@ -93,9 +119,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             }
 
             // Miner of order 3 produce his first block.
-            await BlockMiningService.MineBlockAsync();
-
             {
+                await BlockMiningService.MineBlockAsync();
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
                 round.RealTimeMinersInformation.Values.Count(m => m.OutValue != null).ShouldBe(3);
             }
@@ -118,7 +143,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 round.RoundNumber.ShouldBe(2);
             }
 
-            // 6 more blocks will end second round.
+            // 5 more blocks will end second round.
             for (var i = 0; i < AEDPoSExtensionConstants.TinyBlocksNumber * 6; i++)
             {
                 await BlockMiningService.MineBlockAsync(new List<Transaction>());

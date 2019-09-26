@@ -95,7 +95,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 ExecutedBlocks = successLinks.Select(p => p.BlockHash).ToList()
             });
         }
-        
+
         public async Task<List<ChainBlockLink>> ExecuteBlocksAttachedToLongestChain(Chain chain,
             BlockAttachOperationStatus status)
         {
@@ -123,8 +123,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
                         return null;
                     }
                     
-                    await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, 
-                        ChainBlockLinkExecutionStatus.ExecutionSuccess);
                     successLinks.Add(blockLink);
                     Logger.LogInformation($"Executed block {blockLink.BlockHash} at height {blockLink.Height}.");
                     await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
@@ -159,6 +157,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
             
             await SetBestChainAsync(successLinks, chain);
+            foreach (var blockLink in successLinks)
+            {
+                await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
+                    ChainBlockLinkExecutionStatus.ExecutionSuccess);
+            }
             
             Logger.LogInformation(
                 $"Attach blocks to best chain, status: {status}, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");

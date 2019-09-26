@@ -22,8 +22,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         private const long NewFeeAmount = 1_5000_0000;
         private const long CreateSchemeAmount = 10_00000000;
 
-        [Fact]
-        public async Task Vote_SetMethodFee_Test()
+        private async Task Vote_SetMethodFee_Test()
         {
             //default fee
             {
@@ -78,8 +77,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             beforeBalance.ShouldBe(afterBalance + NewFeeAmount);
         }
 
-        [Fact]
-        public async Task Profit_SetMethodFee_Test()
+        private async Task Profit_SetMethodFee_Test()
         {
             //default fee
             {

@@ -6,6 +6,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         /// <summary>
@@ -15,26 +16,33 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         public override ConsensusCommand GetConsensusCommand(BytesValue input)
         {
-            Assert(input.Value.Any(), "Invalid public key.");
+            _processingBlockMinerPubkey = input.Value.ToHex();
 
-            if (Context.CurrentHeight == 1) return GetInvalidConsensusCommand();
+            if (Context.CurrentHeight < 2) return ConsensusCommandProvider.InvalidConsensusCommand;
 
-            if (!TryToGetCurrentRoundInformation(out var currentRound)) return GetInvalidConsensusCommand();
+            if (!TryToGetCurrentRoundInformation(out var currentRound))
+                return ConsensusCommandProvider.InvalidConsensusCommand;
 
-            var publicKey = input.Value.ToHex();
+            if (!currentRound.IsInMinerList(_processingBlockMinerPubkey))
+                return ConsensusCommandProvider.InvalidConsensusCommand;
 
-            var behaviour = GetConsensusBehaviour(currentRound, publicKey);
+            var blockchainStartTimestamp = GetBlockchainStartTimestamp();
 
-            Context.LogDebug(() => currentRound.ToString(publicKey));
+            var behaviour = IsMainChain
+                ? new MainChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey, GetMaximumBlocksCount(),
+                        Context.CurrentBlockTime, blockchainStartTimestamp, State.TimeEachTerm.Value)
+                    .GetConsensusBehaviour()
+                : new SideChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey, GetMaximumBlocksCount(),
+                    Context.CurrentBlockTime).GetConsensusBehaviour();
 
-            Context.LogDebug(() => $"Current behaviour: {behaviour.ToString()}");
+            Context.LogDebug(() => $"{currentRound.ToString(_processingBlockMinerPubkey)}\nArranged behaviour: {behaviour.ToString()}");
 
             return behaviour == AElfConsensusBehaviour.Nothing
-                ? GetInvalidConsensusCommand() // Handle this situation previously.
-                : GetConsensusCommand(behaviour, currentRound, publicKey);
+                ? ConsensusCommandProvider.InvalidConsensusCommand
+                : GetConsensusCommand(behaviour, currentRound, _processingBlockMinerPubkey);
         }
 
-        public override BytesValue GetInformationToUpdateConsensus(BytesValue input)
+        public override BytesValue GetConsensusExtraData(BytesValue input)
         {
             return GetConsensusBlockExtraData(input);
         }

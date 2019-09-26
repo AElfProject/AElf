@@ -93,7 +93,7 @@ namespace AElf.Contracts.Election
 
         public override SInt32Value GetMinersCount(Empty input)
         {
-            return new SInt32Value {Value = State.MinersCount.Value};
+            return new SInt32Value {Value = State.MinersCount.Value };
         }
 
         public override ElectionResult GetElectionResult(GetElectionResultInput input)
@@ -233,10 +233,7 @@ namespace AElf.Contracts.Election
         {
             var votes = State.CandidateVotes[input.Value];
             if (votes == null)
-                return new CandidateVote
-                {
-                    Pubkey = input.Value.ToByteString()
-                };
+                return new CandidateVote();
 
             var obtainedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {

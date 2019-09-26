@@ -9,6 +9,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
+using Volo.Abp.Threading;
 using Xunit;
 
 namespace AElf.Contracts.Consensus.AEDPoS
@@ -24,8 +25,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             const int termIntervalMin = 31536000 / 60;
             
-            await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(new Empty());
-
             var maxCount = ValidationDataCenterKeyPairs.Count;
             await InitializeCandidates(maxCount);
 
@@ -62,7 +61,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 var tester = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation =
-                    (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
+                    (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggers[minerInRound.Pubkey]
                         .ToBytesValue())).ToConsensusHeaderInformation();
 
                 // Update consensus information.
@@ -73,7 +72,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var changeTermTime = BlockchainStartTimestamp.ToDateTime();
             BlockTimeProvider.SetBlockTime(changeTermTime.ToTimestamp());
 
-            var nextTermInformation = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
+            var nextTermInformation = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.NextRound,
@@ -84,7 +83,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             changeTermTime = BlockchainStartTimestamp.ToDateTime().AddMinutes(termIntervalMin).AddSeconds(10);
             BlockTimeProvider.SetBlockTime(changeTermTime.ToTimestamp());
 
-            nextTermInformation = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
+            nextTermInformation = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.NextTerm,
@@ -94,28 +93,41 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var transactionResult = await AEDPoSContractStub.NextTerm.SendAsync(nextTermInformation.Round);
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
+            var newMinerStub = GetAEDPoSContractStub(ValidationDataCenterKeyPairs[0]);
             var termCount = 0;
             var minerCount = 0;
             while (minerCount < maxCount)
             {
-                var currentRound = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
-
+                var currentRound = await newMinerStub.GetCurrentRoundInformation.CallAsync(new Empty());
+                var firstPubKey = currentRound.RealTimeMinersInformation.Keys.First();
+                newMinerStub = GetAEDPoSContractStub(ValidationDataCenterKeyPairs.First(o =>o.PublicKey.ToHex() == firstPubKey));
+                
                 minerCount = currentRound.RealTimeMinersInformation.Count;
                 Assert.Equal(9.Add(termCount.Mul(2)), minerCount);
 
                 changeTermTime = BlockchainStartTimestamp.ToDateTime()
                     .AddMinutes((termCount + 2).Mul(termIntervalMin)).AddSeconds(10);
                 BlockTimeProvider.SetBlockTime(changeTermTime.ToTimestamp());
-                var nextRoundInformation = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
+                var nextRoundInformation = (await newMinerStub.GetConsensusExtraData.CallAsync(
                     new AElfConsensusTriggerInformation
                     {
                         Behaviour = AElfConsensusBehaviour.NextTerm,
                         Pubkey = currentRound.RealTimeMinersInformation.ElementAt(0).Value.Pubkey.ToByteString()
                     }.ToBytesValue())).ToConsensusHeaderInformation();
 
-                await AEDPoSContractStub.NextTerm.SendAsync(nextRoundInformation.Round);
+                await newMinerStub.NextTerm.SendAsync(nextRoundInformation.Round);
                 termCount++;
             }
+        }
+
+        [Fact]
+        public async Task AEDPoSContract_SetMaximumMinersCount_NoPermission()
+        {
+            var transactionResult =
+                (await AEDPoSContractStub.SetMaximumMinersCount.SendAsync(new SInt32Value {Value = 100}))
+                .TransactionResult;
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.Error.ShouldContain("No permission");
         }
     }
 }

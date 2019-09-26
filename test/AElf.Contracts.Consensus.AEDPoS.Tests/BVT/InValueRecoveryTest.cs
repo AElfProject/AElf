@@ -96,7 +96,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var tester = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation = new AElfConsensusHeaderInformation();
                 headerInformation.MergeFrom(
-                    (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
+                    (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggers[minerInRound.Pubkey]
                         .ToBytesValue())).Value);
                 // Update consensus information.
                 var toUpdate = headerInformation.Round.ExtractInformationToUpdateConsensus(minerInRound.Pubkey);
@@ -138,7 +138,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 var tester = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation = new AElfConsensusHeaderInformation();
                 headerInformation.MergeFrom(
-                    (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
+                    (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggers[minerInRound.Pubkey]
                         .ToBytesValue())).Value);
 
                 // Update consensus information.

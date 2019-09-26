@@ -135,14 +135,7 @@ namespace AElf.Contracts.TokenConverter
             // Pay fee
             if (fee > 0)
             {
-                State.TokenContract.TransferFrom.Send(
-                    new TransferFromInput()
-                    {
-                        Symbol = State.BaseTokenSymbol.Value,
-                        From = Context.Sender,
-                        To = State.FeeReceiverAddress.Value,
-                        Amount = fee
-                    });
+                HandleFee(fee);
             }
 
             // Transfer base token
@@ -163,6 +156,7 @@ namespace AElf.Contracts.TokenConverter
                     To = Context.Sender,
                     Amount = input.Amount
                 });
+            
             Context.Fire(new TokenBought
             {
                 Symbol = input.Symbol,
@@ -198,13 +192,7 @@ namespace AElf.Contracts.TokenConverter
             // Pay fee
             if (fee > 0)
             {
-                State.TokenContract.Transfer.Send(
-                    new TransferInput()
-                    {
-                        Symbol = State.BaseTokenSymbol.Value,
-                        To = State.FeeReceiverAddress.Value,
-                        Amount = fee
-                    });
+                HandleFee(fee);
             }
 
             // Transfer base token
@@ -233,6 +221,38 @@ namespace AElf.Contracts.TokenConverter
                 FeeAmount = fee
             });
             return new Empty();
+        }
+
+        private void HandleFee(long fee)
+        {
+            var donateFee = fee.Div(2);
+            var burnFee = fee.Sub(donateFee);
+
+            // Transfer to fee receiver.
+            State.TokenContract.TransferFrom.Send(
+                new TransferFromInput
+                {
+                    Symbol = State.BaseTokenSymbol.Value,
+                    From = Context.Sender,
+                    To = State.FeeReceiverAddress.Value,
+                    Amount = donateFee
+                });
+
+            // Transfer to self contract then burn
+            State.TokenContract.TransferFrom.Send(
+                new TransferFromInput
+                {
+                    Symbol = State.BaseTokenSymbol.Value,
+                    From = Context.Sender,
+                    To = Context.Self,
+                    Amount = burnFee
+                });
+            State.TokenContract.Burn.Send(
+                new BurnInput
+                {
+                    Symbol = State.BaseTokenSymbol.Value,
+                    Amount = burnFee
+                });
         }
 
         public override Empty SetFeeRate(StringValue input)

@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj">
@@ -68,9 +69,6 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\resource_contract.proto">
             <Link>Protobuf\Proto\stub\resource_contract.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\fee_receiver_contract.proto">
-            <Link>Protobuf\Proto\stub\fee_receiver_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\stub\cross_chain_contract.proto</Link>

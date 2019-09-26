@@ -3,10 +3,12 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.OS.BlockSync.Events;
 using AElf.OS.Network;
 using AElf.OS.Network.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.BlockSync.Application
 {
@@ -17,6 +19,8 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockSyncQueueService _blockSyncQueueService;
         private readonly IBlockSyncValidationService _blockSyncValidationService;
 
+        public ILocalEventBus LocalEventBus { get; set; }
+
         public ILogger<BlockSyncAttachService> Logger { get; set; }
 
         public BlockSyncAttachService(IBlockchainService blockchainService,
@@ -25,6 +29,7 @@ namespace AElf.OS.BlockSync.Application
             IBlockSyncQueueService blockSyncQueueService)
         {
             Logger = NullLogger<BlockSyncAttachService>.Instance;
+            LocalEventBus = NullLocalEventBus.Instance;
 
             _blockchainService = blockchainService;
             _blockAttachService = blockAttachService;
@@ -33,19 +38,25 @@ namespace AElf.OS.BlockSync.Application
         }
 
         public async Task AttachBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions,
-            Func<Task> attachFinishedCallback =null)
+            string senderPubkey, Func<Task> attachFinishedCallback = null)
         {
-            var valid = await _blockSyncValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
-            if (!valid)
+            var blockValid = await _blockSyncValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
+            if (!blockValid)
             {
-                throw new InvalidOperationException(
-                    $"The block was invalid, block hash: {blockWithTransactions}.");
+                await LocalEventBus.PublishAsync(new BlockValidationFailedEventData
+                {
+                    BlockHash = blockWithTransactions.GetHash(),
+                    BlockHeight = blockWithTransactions.Height,
+                    BlockSenderPubkey = senderPubkey
+                });
+                
+                return;
             }
 
             await _blockchainService.AddTransactionsAsync(blockWithTransactions.Transactions);
             var block = blockWithTransactions.ToBlock();
             await _blockchainService.AddBlockAsync(block);
- 
+
             _blockSyncQueueService.Enqueue(async () =>
                 {
                     try

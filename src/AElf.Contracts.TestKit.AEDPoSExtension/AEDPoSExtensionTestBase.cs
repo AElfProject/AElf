@@ -26,6 +26,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             {TreasurySmartContractAddressNameProvider.Name, "Treasury"},
             {ConsensusSmartContractAddressNameProvider.Name, "AEDPoS"},
             {EconomicSmartContractAddressNameProvider.Name, "Economic"},
+            {ReferendumAuthSmartContractAddressNameProvider.Name, "ReferendumAuth"},
         };
 
         protected IBlockMiningService BlockMiningService =>
@@ -36,6 +37,9 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 
         protected IBlockchainService BlockchainService =>
             Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+
+        protected ITransactionTraceProvider TransactionTraceProvider =>
+            Application.ServiceProvider.GetRequiredService<ITransactionTraceProvider>();
 
         public Dictionary<Hash, Address> ContractAddresses;
 

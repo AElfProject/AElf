@@ -4,28 +4,38 @@ using AElf.Contracts.MultiToken;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 {
     public class DonateResourceTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
 
-        public DonateResourceTransactionGenerator(ISmartContractAddressService smartContractAddressService)
+        public ILogger<DonateResourceTransactionGenerator> Logger { get; set; }
+
+
+        public DonateResourceTransactionGenerator(ISmartContractAddressService smartContractAddressService,
+            ITransactionInclusivenessProvider transactionInclusivenessProvider)
         {
             _smartContractAddressService = smartContractAddressService;
+            _transactionInclusivenessProvider = transactionInclusivenessProvider;
         }
 
         public void GenerateTransactions(Address @from, long preBlockHeight, Hash preBlockHash,
             ref List<Transaction> generatedTransactions)
         {
-            if (preBlockHeight < Constants.GenesisBlockHeight)
-            {
+            if (!_transactionInclusivenessProvider.IsTransactionPackable)
                 return;
-            }
+
+            if (preBlockHeight < Constants.GenesisBlockHeight)
+                return;
+
 
             var tokenContractAddress = _smartContractAddressService.GetAddressByContractName(
                 TokenSmartContractAddressNameProvider.Name);
@@ -47,6 +57,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
                     Params = new Empty().ToByteString()
                 }
             });
+            
+            Logger.LogTrace("Donate resource transaction generated.");
         }
     }
 }

@@ -13,7 +13,7 @@ namespace AElf.Kernel.Core.Benches
 {
     public class BlockchainStateMergingTenBlocksTests: BenchBaseTest<KernelCoreBenchAElfModule>
     {
-        private IBlockchainStateMergingService _blockchainStateMergingService;
+        private IBlockchainStateService _blockchainStateService;
         private IBlockchainService _blockchainService;
         private IChainManager _chainManager;
         private OSTestHelper _osTestHelper;
@@ -29,7 +29,7 @@ namespace AElf.Kernel.Core.Benches
         [PerfSetup]
         public void Setup(BenchmarkContext context)
         {
-            _blockchainStateMergingService = GetRequiredService<IBlockchainStateMergingService>();
+            _blockchainStateService = GetRequiredService<IBlockchainStateService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _chainManager = GetRequiredService<IChainManager>();
@@ -59,7 +59,7 @@ namespace AElf.Kernel.Core.Benches
             AsyncHelper.RunSync(async () =>
             {
                 var chain = await _blockchainService.GetChainAsync();
-                await _blockchainStateMergingService.MergeBlockStateAsync(chain.BestChainHeight, chain.BestChainHash);
+                await _blockchainStateService.MergeBlockStateAsync(chain.BestChainHeight, chain.BestChainHash);
             });
             _counter.Increment();
         }

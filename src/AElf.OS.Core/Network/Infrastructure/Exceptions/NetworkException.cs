@@ -3,7 +3,7 @@ using System.Runtime.Serialization;
 
 namespace AElf.OS.Network.Application
 {
-    public enum NetworkExceptionType { Rpc, PeerUnstable, Unrecoverable, FullBuffer, NotConnected }
+    public enum NetworkExceptionType { Rpc, PeerUnstable, Unrecoverable, FullBuffer, NotConnected, HandlerException }
 
     [Serializable]
     public class NetworkException : Exception

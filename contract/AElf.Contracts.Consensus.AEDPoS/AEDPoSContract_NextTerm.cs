@@ -6,69 +6,12 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         public override Empty NextTerm(Round input)
         {
-            // Count missed time slot of current round.
-            CountMissedTimeSlots();
-
-            Assert(TryToGetTermNumber(out var termNumber), "Term number not found.");
-
-            // Update current term number and current round number.
-            Assert(TryToUpdateTermNumber(input.TermNumber), "Failed to update term number.");
-            Assert(TryToUpdateRoundNumber(input.RoundNumber), "Failed to update round number.");
-
-            UpdateMinersCountToElectionContract(input);
-
-            // Reset some fields of first two rounds of next term.
-            foreach (var minerInRound in input.RealTimeMinersInformation.Values)
-            {
-                minerInRound.MissedTimeSlots = 0;
-                minerInRound.ProducedBlocks = 0;
-            }
-
-            UpdateProducedBlocksNumberOfSender(input);
-
-            // Update miners list.
-            var miners = new MinerList();
-            miners.Pubkeys.AddRange(input.RealTimeMinersInformation.Keys.Select(k => k.ToByteString()));
-            if (!SetMinerList(miners, input.TermNumber))
-            {
-                Assert(false, "Failed to update miner list.");
-            }
-
-            // Update term number lookup. (Using term number to get first round number of related term.)
-            State.FirstRoundNumberOfEachTerm[input.TermNumber] = input.RoundNumber;
-
-            // Update rounds information of next two rounds.
-            Assert(TryToAddRoundInformation(input), "Failed to add round information.");
-
-            if (!TryToGetPreviousRoundInformation(out var previousRound))
-            {
-                Assert(false, "Failed to get previous round information.");
-            }
-
-            UpdateCurrentMinerInformationToElectionContract(previousRound);
-
-            DonateMiningReward(previousRound);
-
-            State.TreasuryContract.Release.Send(new ReleaseInput
-            {
-                TermNumber = termNumber
-            });
-
-            Context.LogDebug(() => $"Released treasury profit for term {termNumber}");
-
-            State.ElectionContract.TakeSnapshot.Send(new TakeElectionSnapshotInput
-            {
-                MinedBlocks = previousRound.GetMinedBlocks(),
-                TermNumber = termNumber,
-                RoundNumber = previousRound.RoundNumber
-            });
-
-            Context.LogDebug(() => $"Changing term number to {input.TermNumber}");
-
+            ProcessConsensusInformation(input);
             return new Empty();
         }
 
@@ -121,12 +64,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
+        /// <summary>
+        /// Only Main Chain can perform this action.
+        /// </summary>
+        /// <param name="minerList"></param>
+        /// <param name="termNumber"></param>
+        /// <param name="gonnaReplaceSomeone"></param>
+        /// <returns></returns>
         private bool SetMinerList(MinerList minerList, long termNumber, bool gonnaReplaceSomeone = false)
         {
             // Miners for one specific term should only update once.
             var minerListFromState = State.MinerListMap[termNumber];
             if (gonnaReplaceSomeone || minerListFromState == null)
             {
+                State.MainChainCurrentMinerList.Value = minerList;
                 State.MinerListMap[termNumber] = minerList;
                 return true;
             }

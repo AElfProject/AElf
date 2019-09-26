@@ -47,6 +47,8 @@ namespace AElf.Kernel.Blockchain.Application
         Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, Block block);
         Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
         Task SetIrreversibleBlockAsync(Chain chain, long irreversibleBlockHeight, Hash irreversibleBlockHash);
+
+        Task<Chain> ResetChainToLibAsync(Chain chain);
     }
 
     public static class BlockchainServiceExtensions
@@ -173,7 +175,7 @@ namespace AElf.Kernel.Blockchain.Application
             
             foreach (var transactionId in transactionIds)
             {
-                var transaction = await _transactionManager.GetTransaction(transactionId);
+                var transaction = await _transactionManager.GetTransactionAsync(transactionId);
                 transactions.Add(transaction);
             }
 
@@ -295,7 +297,14 @@ namespace AElf.Kernel.Blockchain.Application
                 eventDataToPublish.PreviousIrreversibleBlockHeight);
             await RemoveBlocksAsync(toCleanBlocks);
 
+            Logger.LogInformation($"Set lib: {irreversibleBlockHeight} - {irreversibleBlockHash}");
+
             await LocalEventBus.PublishAsync(eventDataToPublish);
+        }
+
+        public async Task<Chain> ResetChainToLibAsync(Chain chain)
+        {
+            return await _chainManager.ResetChainToLibAsync(chain);
         }
 
         public async Task<List<IBlockIndex>> GetReversedBlockIndexes(Hash lastBlockHash, int count)
