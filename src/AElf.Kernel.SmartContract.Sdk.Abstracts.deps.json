@@ -1,0 +1,92 @@
+{
+  "runtimeTarget": {
+    "name": ".NETStandard,Version=v2.0/",
+    "signature": "e364a7fa26a57cab661f18fe5e0ca070222e07d2"
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETStandard,Version=v2.0": {},
+    ".NETStandard,Version=v2.0/": {
+      "AElf.Kernel.SmartContract.Sdk.Abstracts/0.9.0-18163": {
+        "dependencies": {
+          "AElf.Kernel.Types": "0.9.0-18163",
+          "NETStandard.Library": "2.0.3"
+        },
+        "runtime": {
+          "AElf.Kernel.SmartContract.Sdk.Abstracts.dll": {}
+        }
+      },
+      "Google.Protobuf/3.7.0": {
+        "dependencies": {
+          "NETStandard.Library": "2.0.3"
+        },
+        "runtime": {
+          "lib/netstandard1.0/Google.Protobuf.dll": {
+            "assemblyVersion": "3.7.0.0",
+            "fileVersion": "3.7.0.0"
+          }
+        }
+      },
+      "Microsoft.NETCore.Platforms/1.1.0": {},
+      "NETStandard.Library/2.0.3": {
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "1.1.0"
+        }
+      },
+      "AElf.Kernel.Types/0.9.0-18163": {
+        "dependencies": {
+          "AElf.Types": "0.9.0-18163"
+        },
+        "runtime": {
+          "AElf.Kernel.Types.dll": {}
+        }
+      },
+      "AElf.Types/0.9.0-18163": {
+        "dependencies": {
+          "Google.Protobuf": "3.7.0"
+        },
+        "runtime": {
+          "AElf.Types.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "AElf.Kernel.SmartContract.Sdk.Abstracts/0.9.0-18163": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Google.Protobuf/3.7.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-OvssyqQTrpJgdH4fjztsCV9AhUo9jgGpDbZ5XAAqC+X6MIUsifHk8Woeom1HXlHdqo/XebiEMpYySE9AxybJ9g==",
+      "path": "google.protobuf/3.7.0",
+      "hashPath": "google.protobuf.3.7.0.nupkg.sha512"
+    },
+    "Microsoft.NETCore.Platforms/1.1.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-a/iSwnRZb+LHFk49hQOyThh/ZNC3vsbZsF65XwQIb863qF6msmhdQtxGXFL28Ob2NsCz/drEj28BJd/YPpLRBg==",
+      "path": "microsoft.netcore.platforms/1.1.0",
+      "hashPath": "microsoft.netcore.platforms.1.1.0.nupkg.sha512"
+    },
+    "NETStandard.Library/2.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-548M6mnBSJWxsIlkQHfbzoYxpiYFXZZSL00p4GHYv8PkiqFBnnT68mW5mGEsA/ch9fDO9GkPgkFQpWiXZN7mAQ==",
+      "path": "netstandard.library/2.0.3",
+      "hashPath": "netstandard.library.2.0.3.nupkg.sha512"
+    },
+    "AElf.Kernel.Types/0.9.0-18163": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "AElf.Types/0.9.0-18163": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

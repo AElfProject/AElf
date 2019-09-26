@@ -1,0 +1,500 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AElf.WebApp.Application.Chain</name>
+    </assembly>
+    <members>
+        <member name="M:AElf.WebApp.Application.Chain.BlockChainAppService.GetBlockHeightAsync">
+            <summary>
+            Get the height of the current chain.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:AElf.WebApp.Application.Chain.BlockChainAppService.GetBlockAsync(System.String,System.Boolean)">
+            <summary>
+            Get information about a given block by block hash. Otionally with the list of its transactions.
+            </summary>
+            <param name="blockHash">block hash</param>
+            <param name="includeTransactions">include transactions or not</param>
+            <returns></returns>
+        </member>
+        <member name="M:AElf.WebApp.Application.Chain.BlockChainAppService.GetBlockByHeightAsync(System.Int64,System.Boolean)">
+            <summary>
+            Get information about a given block by block height. Otionally with the list of its transactions.
+            </summary>
+            <param name="blockHeight">block height</param>
+            <param name="includeTransactions">include transactions or not</param>
+            <returns></returns>
+        </member>
+        <member name="M:AElf.WebApp.Application.Chain.BlockChainAppService.GetTransactionPoolStatusAsync">
+            <summary>
+            Get the transaction pool status.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:AElf.WebApp.Application.Chain.BlockChainAppService.GetBlockStateAsync(System.String)">
+            <summary>
+            Get the current state about a given block
+            </summary>
+            <param name="blockHash">block hash</param>
+            <returns></returns>
+        </member>
+        <member name="M:AElf.WebApp.Application.Chain.BlockChainAppService.GetCurrentRoundInformationAsync">
+            <summary>
+            Get AEDPoS latest round information from last block header's consensus extra data of best chain.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:AElf.WebApp.Application.Chain.ChainStatusAppService.GetChainStatusAsync">
+            <summary>
+            Get the current status of the block chain.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:AElf.WebApp.Application.Chain.ContractFileDescriptorSetAppService.GetContractFileDescriptorSetAsync(System.String)">
+            <summary>
+            Get the protobuf definitions related to a contract
+            </summary>
+            <param name="address">contract address</param>
+            <returns></returns>
+        </member>
+        <member name="P:AElf.WebApp.Application.Chain.Dto.CreateRawTransactionInput.From">
+            <summary>
+            from address
+            </summary>
+        </member>
+        <member name="P:AElf.WebApp.Application.Chain.Dto.CreateRawTransactionInput.To">
+            <summary>
+            to address
+            </summary>
+        </member>
+        <member name="P:AElf.WebApp.Application.Chain.Dto.CreateRawTransactionInput.RefBlockNumber">
+            <summary>
+            refer block height
+            </summary>
+        </member>
+        <member name="P:AElf.WebApp.Application.Chain.Dto.CreateRawTransactionInput.RefBlockHash">
+            <summary>
+            refer block hash
+            </summary>
+        </member>
+        <member name="P:AElf.WebApp.Application.Chain.Dto.CreateRawTransactionInput.MethodName">
+            <summary>
+            contract method name
+            </summary>
+        </member>
+        <member name="P:AElf.WebApp.Application.Chain.Dto.CreateRawTransactionInput.Params">
+            <summary>
+            contract method parameters
+            </summary>
+        </member>
+        <member name="P:AElf.WebApp.Application.Chain.Dto.ExecuteRawTransactionDto.RawTransaction">
+            <summary>
+            raw transaction
+            </summary>
+        </member>
+        <member name="P:AElf.WebApp.Application.Chain.Dto.ExecuteRawTransactionDto.Signature">
+            <summary>
+            signature
+            </summary>
+        </member>
+        <member name="P:AElf.WebApp.Application.Chain.Dto.ExecuteTransactionDto.RawTransaction">
+            <summary>
+            raw transaction
+            </summary>
+        </member>
+        <member name="P:AElf.WebApp.Application.Chain.Dto.SendRawTransactionInput.Transaction">
+            <summary>
+            raw transaction
+            </summary>
+        </member>
+        <member name="P:AElf.WebApp.Application.Chain.Dto.SendRawTransactionInput.Signature">
+            <summary>
+            signature
+            </summary>
+        </member>
+        <member name="P:AElf.WebApp.Application.Chain.Dto.SendRawTransactionInput.ReturnTransaction">
+            <summary>
+            return transaction detail or not
+            </summary>
+        </member>
+        <member name="P:AElf.WebApp.Application.Chain.Dto.SendTransactionInput.RawTransaction">
+            <summary>
+            raw transaction
+            </summary>
+        </member>
+        <member name="P:AElf.WebApp.Application.Chain.Dto.SendTransactionsInput.RawTransactions">
+            <summary>
+            raw transactions
+            </summary>
+        </member>
+        <member name="M:AElf.WebApp.Application.Chain.TransactionAppService.ExecuteTransactionAsync(AElf.WebApp.Application.Chain.Dto.ExecuteTransactionDto)">
+            <summary>
+            Call a read-only method on a contract.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:AElf.WebApp.Application.Chain.TransactionAppService.CreateRawTransactionAsync(AElf.WebApp.Application.Chain.Dto.CreateRawTransactionInput)">
+            <summary>
+            Creates an unsigned serialized transaction
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AElf.WebApp.Application.Chain.TransactionAppService.SendRawTransactionAsync(AElf.WebApp.Application.Chain.Dto.SendRawTransactionInput)">
+            <summary>
+            send a transaction
+            </summary>
+            <param name="input"></param>
+            <returns></returns>
+        </member>
+        <member name="M:AElf.WebApp.Application.Chain.TransactionAppService.SendTransactionAsync(AElf.WebApp.Application.Chain.Dto.SendTransactionInput)">
+            <summary>
+            Broadcast a transaction
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:AElf.WebApp.Application.Chain.TransactionAppService.SendTransactionsAsync(AElf.WebApp.Application.Chain.Dto.SendTransactionsInput)">
+            <summary>
+            Broadcast multiple transactions
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:AElf.WebApp.Application.Chain.TransactionResultAppService.GetTransactionResultAsync(System.String)">
+            <summary>
+            Get the current status of a transaction
+            </summary>
+            <param name="transactionId">transaction id</param>
+            <returns></returns>
+        </member>
+        <member name="M:AElf.WebApp.Application.Chain.TransactionResultAppService.GetTransactionResultsAsync(System.String,System.Int32,System.Int32)">
+            <summary>
+            Get multiple transaction results.
+            </summary>
+            <param name="blockHash">block hash</param>
+            <param name="offset">offset</param>
+            <param name="limit">limit</param>
+            <returns></returns>
+            <exception cref="T:Volo.Abp.UserFriendlyException"></exception>
+        </member>
+        <member name="M:AElf.WebApp.Application.Chain.TransactionResultAppService.GetMerklePathByTransactionIdAsync(System.String)">
+            <summary>
+            Get the merkle path of a transaction.
+            </summary>
+            <param name="transactionId"></param>
+            <returns></returns>
+        </member>
+        <member name="T:AElf.Contracts.Consensus.AEDPoS.AedposContractReflection">
+            <summary>Holder for reflection information generated from aedpos_contract.proto</summary>
+        </member>
+        <member name="P:AElf.Contracts.Consensus.AEDPoS.AedposContractReflection.Descriptor">
+            <summary>File descriptor for aedpos_contract.proto</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.InitialAElfConsensusContractInput.IsTermStayOneFieldNumber">
+            <summary>Field number for the "is_term_stay_one" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.InitialAElfConsensusContractInput.IsSideChainFieldNumber">
+            <summary>Field number for the "is_side_chain" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.InitialAElfConsensusContractInput.TimeEachTermFieldNumber">
+            <summary>Field number for the "time_each_term" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.InitialAElfConsensusContractInput.MinerIncreaseIntervalFieldNumber">
+            <summary>Field number for the "miner_increase_interval" field.</summary>
+        </member>
+        <member name="T:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput">
+            <summary>
+            Just used as parameter of consensus contract method.
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.OutValueFieldNumber">
+            <summary>Field number for the "out_value" field.</summary>
+        </member>
+        <member name="P:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.OutValue">
+            <summary>
+            Calculated from current in value.
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.SignatureFieldNumber">
+            <summary>Field number for the "signature" field.</summary>
+        </member>
+        <member name="P:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.Signature">
+            <summary>
+            Calculated from current in value and signatures of previous round.
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.RoundIdFieldNumber">
+            <summary>Field number for the "round_id" field.</summary>
+        </member>
+        <member name="P:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.RoundId">
+            <summary>
+            To ensure the values to update will be apply to correct round by comparing round id.
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.PreviousInValueFieldNumber">
+            <summary>Field number for the "previous_in_value" field.</summary>
+        </member>
+        <member name="P:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.PreviousInValue">
+            <summary>
+            Publish previous in value for validation previous signature and previous out value.
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.ActualMiningTimeFieldNumber">
+            <summary>Field number for the "actual_mining_time" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.SupposedOrderOfNextRoundFieldNumber">
+            <summary>Field number for the "supposed_order_of_next_round" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.TuneOrderInformationFieldNumber">
+            <summary>Field number for the "tune_order_information" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.EncryptedInValuesFieldNumber">
+            <summary>Field number for the "encrypted_in_values" field.</summary>
+        </member>
+        <member name="P:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.EncryptedInValues">
+            <summary>
+            For others to recover his in value of current round.
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.DecryptedPreviousInValuesFieldNumber">
+            <summary>Field number for the "decrypted_previous_in_values" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.ProducedBlocksFieldNumber">
+            <summary>Field number for the "produced_blocks" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.MinersPreviousInValuesFieldNumber">
+            <summary>Field number for the "miners_previous_in_values" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.UpdateValueInput.ImpliedIrreversibleBlockHeightFieldNumber">
+            <summary>Field number for the "implied_irreversible_block_height" field.</summary>
+        </member>
+        <member name="T:AElf.Contracts.Consensus.AEDPoS.MinerList">
+            <summary>
+            The miners public key list for each term.
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerList.PubkeysFieldNumber">
+            <summary>Field number for the "pubkeys" field.</summary>
+        </member>
+        <member name="T:AElf.Contracts.Consensus.AEDPoS.TermNumberLookUp">
+            <summary>
+            To query first round number of each term.
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.TermNumberLookUp.MapFieldNumber">
+            <summary>Field number for the "map" field.</summary>
+        </member>
+        <member name="P:AElf.Contracts.Consensus.AEDPoS.TermNumberLookUp.Map">
+            <summary>
+            Term number -> Round number.
+            </summary>
+        </member>
+        <member name="T:AElf.Contracts.Consensus.AEDPoS.Candidates">
+            <summary>
+            All the candidates.
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.Candidates.PubkeysFieldNumber">
+            <summary>Field number for the "pubkeys" field.</summary>
+        </member>
+        <member name="T:AElf.Contracts.Consensus.AEDPoS.Round">
+            <summary>
+            The information of a round.
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.Round.RoundNumberFieldNumber">
+            <summary>Field number for the "round_number" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.Round.RealTimeMinersInformationFieldNumber">
+            <summary>Field number for the "real_time_miners_information" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.Round.MainChainMinersRoundNumberFieldNumber">
+            <summary>Field number for the "main_chain_miners_round_number" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.Round.BlockchainAgeFieldNumber">
+            <summary>Field number for the "blockchain_age" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.Round.ExtraBlockProducerOfPreviousRoundFieldNumber">
+            <summary>Field number for the "extra_block_producer_of_previous_round" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.Round.TermNumberFieldNumber">
+            <summary>Field number for the "term_number" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.Round.ConfirmedIrreversibleBlockHeightFieldNumber">
+            <summary>Field number for the "confirmed_irreversible_block_height" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.Round.ConfirmedIrreversibleBlockRoundNumberFieldNumber">
+            <summary>Field number for the "confirmed_irreversible_block_round_number" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.Round.IsMinerListJustChangedFieldNumber">
+            <summary>Field number for the "is_miner_list_just_changed" field.</summary>
+        </member>
+        <member name="T:AElf.Contracts.Consensus.AEDPoS.MinerInRound">
+            <summary>
+            The information of a miner in a specific round.
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.OrderFieldNumber">
+            <summary>Field number for the "order" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.IsExtraBlockProducerFieldNumber">
+            <summary>Field number for the "is_extra_block_producer" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.InValueFieldNumber">
+            <summary>Field number for the "in_value" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.OutValueFieldNumber">
+            <summary>Field number for the "out_value" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.SignatureFieldNumber">
+            <summary>Field number for the "signature" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.ExpectedMiningTimeFieldNumber">
+            <summary>Field number for the "expected_mining_time" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.ProducedBlocksFieldNumber">
+            <summary>Field number for the "produced_blocks" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.MissedTimeSlotsFieldNumber">
+            <summary>Field number for the "missed_time_slots" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.PubkeyFieldNumber">
+            <summary>Field number for the "pubkey" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.PreviousInValueFieldNumber">
+            <summary>Field number for the "previous_in_value" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.SupposedOrderOfNextRoundFieldNumber">
+            <summary>Field number for the "supposed_order_of_next_round" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.FinalOrderOfNextRoundFieldNumber">
+            <summary>Field number for the "final_order_of_next_round" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.ActualMiningTimesFieldNumber">
+            <summary>Field number for the "actual_mining_times" field.</summary>
+        </member>
+        <member name="P:AElf.Contracts.Consensus.AEDPoS.MinerInRound.ActualMiningTimes">
+            <summary>
+            Miners must fill actual mining time when they do the mining.
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.EncryptedInValuesFieldNumber">
+            <summary>Field number for the "encrypted_in_values" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.DecryptedPreviousInValuesFieldNumber">
+            <summary>Field number for the "decrypted_previous_inValues" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.ProducedTinyBlocksFieldNumber">
+            <summary>Field number for the "produced_tiny_blocks" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerInRound.ImpliedIrreversibleBlockHeightFieldNumber">
+            <summary>Field number for the "implied_irreversible_block_height" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.AElfConsensusHeaderInformation.SenderPubkeyFieldNumber">
+            <summary>Field number for the "sender_pubkey" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.AElfConsensusHeaderInformation.RoundFieldNumber">
+            <summary>Field number for the "round" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.AElfConsensusHeaderInformation.BehaviourFieldNumber">
+            <summary>Field number for the "behaviour" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.AElfConsensusHint.BehaviourFieldNumber">
+            <summary>Field number for the "behaviour" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.AElfConsensusTriggerInformation.PubkeyFieldNumber">
+            <summary>Field number for the "pubkey" field.</summary>
+        </member>
+        <member name="P:AElf.Contracts.Consensus.AEDPoS.AElfConsensusTriggerInformation.Pubkey">
+            <summary>
+            A must-have.
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.AElfConsensusTriggerInformation.RandomHashFieldNumber">
+            <summary>Field number for the "random_hash" field.</summary>
+        </member>
+        <member name="P:AElf.Contracts.Consensus.AEDPoS.AElfConsensusTriggerInformation.RandomHash">
+            <summary>
+            To calculate In Value.
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.AElfConsensusTriggerInformation.PreviousRandomHashFieldNumber">
+            <summary>Field number for the "previous_random_hash" field.</summary>
+        </member>
+        <member name="P:AElf.Contracts.Consensus.AEDPoS.AElfConsensusTriggerInformation.PreviousRandomHash">
+            <summary>
+            Random hash of previous round for validation.
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.AElfConsensusTriggerInformation.BehaviourFieldNumber">
+            <summary>Field number for the "behaviour" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.TermInfo.TermNumberFieldNumber">
+            <summary>Field number for the "term_number" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.TermInfo.RoundNumberFieldNumber">
+            <summary>Field number for the "round_number" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerListWithRoundNumber.MinerListFieldNumber">
+            <summary>Field number for the "miner_list" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.MinerListWithRoundNumber.RoundNumberFieldNumber">
+            <summary>Field number for the "round_number" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.TinyBlockInput.RoundIdFieldNumber">
+            <summary>Field number for the "round_id" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.TinyBlockInput.ActualMiningTimeFieldNumber">
+            <summary>Field number for the "actual_mining_time" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.TinyBlockInput.ProducedBlocksFieldNumber">
+            <summary>Field number for the "produced_blocks" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.VoteMinersCountInput.MinersCountFieldNumber">
+            <summary>Field number for the "miners_count" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.VoteMinersCountInput.AmountFieldNumber">
+            <summary>Field number for the "amount" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.ConsensusInformation.ValueFieldNumber">
+            <summary>Field number for the "value" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.GetMinerListInput.TermNumberFieldNumber">
+            <summary>Field number for the "term_number" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.RandomNumberRequestInformation.TargetRoundNumberFieldNumber">
+            <summary>Field number for the "target_round_number" field.</summary>
+        </member>
+        <member name="P:AElf.Contracts.Consensus.AEDPoS.RandomNumberRequestInformation.TargetRoundNumber">
+            <summary>
+            The random hash is likely generated during this round.
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.RandomNumberRequestInformation.OrderFieldNumber">
+            <summary>Field number for the "order" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.RandomNumberRequestInformation.ExpectedBlockHeightFieldNumber">
+            <summary>Field number for the "expected_block_height" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.HashList.ValuesFieldNumber">
+            <summary>Field number for the "values" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.LatestProviderToTinyBlocksCount.PubkeyFieldNumber">
+            <summary>Field number for the "pubkey" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.LatestProviderToTinyBlocksCount.BlocksCountFieldNumber">
+            <summary>Field number for the "blocks_count" field.</summary>
+        </member>
+        <member name="T:AElf.Contracts.Consensus.AEDPoS.IrreversibleBlockFound">
+            <summary>
+            Events
+            </summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.IrreversibleBlockFound.IrreversibleBlockHeightFieldNumber">
+            <summary>Field number for the "irreversible_block_height" field.</summary>
+        </member>
+        <member name="F:AElf.Contracts.Consensus.AEDPoS.IrreversibleBlockHeightUnacceptable.DistanceToIrreversibleBlockHeightFieldNumber">
+            <summary>Field number for the "distance_to_irreversible_block_height" field.</summary>
+        </member>
+    </members>
+</doc>

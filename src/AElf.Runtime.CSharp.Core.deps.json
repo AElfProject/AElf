@@ -1,0 +1,475 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v2.2",
+    "signature": "f47c51dac6a779eb97c87e6f29f0afc6577f7060"
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v2.2": {
+      "AElf.Runtime.CSharp.Core/0.9.0-18163": {
+        "dependencies": {
+          "AElf.Sdk.CSharp": "0.9.0-18163",
+          "Hyperion": "0.9.8",
+          "Mono.Cecil": "0.11.0",
+          "Unofficial.CoreRT.ILVerify": "0.0.1"
+        },
+        "runtime": {
+          "AElf.Runtime.CSharp.Core.dll": {}
+        }
+      },
+      "BouncyCastle.NetCore/1.8.5": {
+        "runtime": {
+          "lib/netstandard2.0/BouncyCastle.Crypto.dll": {
+            "assemblyVersion": "1.8.5.0",
+            "fileVersion": "1.8.19031.1"
+          }
+        }
+      },
+      "Google.Protobuf/3.7.0": {
+        "runtime": {
+          "lib/netstandard1.0/Google.Protobuf.dll": {
+            "assemblyVersion": "3.7.0.0",
+            "fileVersion": "3.7.0.0"
+          }
+        }
+      },
+      "Hyperion/0.9.8": {
+        "dependencies": {
+          "Microsoft.CSharp": "4.5.0",
+          "System.Reflection.TypeExtensions": "4.3.0"
+        },
+        "runtime": {
+          "lib/netstandard1.6/Hyperion.dll": {
+            "assemblyVersion": "0.9.8.0",
+            "fileVersion": "0.9.8.0"
+          }
+        }
+      },
+      "Microsoft.CSharp/4.5.0": {},
+      "Microsoft.NETCore.Jit/1.0.2": {},
+      "Microsoft.NETCore.Portable.Compatibility/1.0.1": {
+        "dependencies": {
+          "Microsoft.NETCore.Runtime.CoreCLR": "1.0.2"
+        },
+        "runtime": {
+          "lib/netstandard1.0/System.ServiceModel.dll": {
+            "assemblyVersion": "2.0.5.0",
+            "fileVersion": "4.6.24214.0"
+          }
+        }
+      },
+      "Microsoft.NETCore.Runtime.CoreCLR/1.0.2": {
+        "dependencies": {
+          "Microsoft.NETCore.Jit": "1.0.2",
+          "Microsoft.NETCore.Windows.ApiSets": "1.0.1"
+        }
+      },
+      "Microsoft.NETCore.Windows.ApiSets/1.0.1": {},
+      "Mono.Cecil/0.11.0": {
+        "runtime": {
+          "lib/netstandard2.0/Mono.Cecil.Mdb.dll": {
+            "assemblyVersion": "0.11.0.0",
+            "fileVersion": "0.11.0.0"
+          },
+          "lib/netstandard2.0/Mono.Cecil.Pdb.dll": {
+            "assemblyVersion": "0.11.0.0",
+            "fileVersion": "0.11.0.0"
+          },
+          "lib/netstandard2.0/Mono.Cecil.Rocks.dll": {
+            "assemblyVersion": "0.11.0.0",
+            "fileVersion": "0.11.0.0"
+          },
+          "lib/netstandard2.0/Mono.Cecil.dll": {
+            "assemblyVersion": "0.11.0.0",
+            "fileVersion": "0.11.0.0"
+          }
+        }
+      },
+      "Secp256k1.Net/0.1.54": {
+        "dependencies": {
+          "System.Memory": "4.5.1"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Secp256k1.Net.dll": {
+            "assemblyVersion": "0.1.54.0",
+            "fileVersion": "0.1.54.0"
+          }
+        }
+      },
+      "System.IO/4.3.0": {
+        "dependencies": {
+          "System.Runtime": "4.3.0",
+          "System.Text.Encoding": "4.3.0",
+          "System.Threading.Tasks": "4.3.0"
+        }
+      },
+      "System.Memory/4.5.1": {},
+      "System.Reflection/4.3.0": {
+        "dependencies": {
+          "System.IO": "4.3.0",
+          "System.Reflection.Primitives": "4.3.0",
+          "System.Runtime": "4.3.0"
+        }
+      },
+      "System.Reflection.Primitives/4.3.0": {
+        "dependencies": {
+          "System.Runtime": "4.3.0"
+        }
+      },
+      "System.Reflection.TypeExtensions/4.3.0": {
+        "dependencies": {
+          "System.Reflection": "4.3.0",
+          "System.Runtime": "4.3.0"
+        }
+      },
+      "System.Runtime/4.3.0": {},
+      "System.Text.Encoding/4.3.0": {
+        "dependencies": {
+          "System.Runtime": "4.3.0"
+        }
+      },
+      "System.Threading.Tasks/4.3.0": {
+        "dependencies": {
+          "System.Runtime": "4.3.0"
+        }
+      },
+      "Unofficial.CoreRT.ILVerify/0.0.1": {
+        "runtime": {
+          "lib/netcoreapp2.0/ILVerification.dll": {
+            "assemblyVersion": "999.999.999.999",
+            "fileVersion": "1.0.27303.0"
+          },
+          "lib/netcoreapp2.0/ILVerify.dll": {
+            "assemblyVersion": "999.999.999.999",
+            "fileVersion": "1.0.27303.0"
+          }
+        }
+      },
+      "Virgil.Crypto/2.4.10": {
+        "dependencies": {
+          "Microsoft.NETCore.Portable.Compatibility": "1.0.1",
+          "Virgil.CryptoAPI": "1.0.2"
+        },
+        "runtime": {
+          "lib/netstandard1.1/Virgil.Crypto.dll": {
+            "assemblyVersion": "2.4.6.0",
+            "fileVersion": "2.4.6.0"
+          },
+          "lib/netstandard1.1/Virgil.CryptoImpl.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/linux-x64/lib/netstandard1.1/Virgil.Crypto.dll": {
+            "rid": "linux-x64",
+            "assetType": "runtime",
+            "assemblyVersion": "2.4.6.0",
+            "fileVersion": "2.4.6.0"
+          },
+          "runtimes/linux-x64/lib/netstandard1.1/Virgil.CryptoImpl.dll": {
+            "rid": "linux-x64",
+            "assetType": "runtime",
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          },
+          "runtimes/osx-x64/lib/netstandard1.1/Virgil.Crypto.dll": {
+            "rid": "osx-x64",
+            "assetType": "runtime",
+            "assemblyVersion": "2.4.6.0",
+            "fileVersion": "2.4.6.0"
+          },
+          "runtimes/osx-x64/lib/netstandard1.1/Virgil.CryptoImpl.dll": {
+            "rid": "osx-x64",
+            "assetType": "runtime",
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          },
+          "runtimes/win-x64/lib/netstandard1.1/Virgil.Crypto.dll": {
+            "rid": "win-x64",
+            "assetType": "runtime",
+            "assemblyVersion": "2.4.6.0",
+            "fileVersion": "2.4.6.0"
+          },
+          "runtimes/win-x64/lib/netstandard1.1/Virgil.CryptoImpl.dll": {
+            "rid": "win-x64",
+            "assetType": "runtime",
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          },
+          "runtimes/win-x86/lib/netstandard1.1/Virgil.Crypto.dll": {
+            "rid": "win-x86",
+            "assetType": "runtime",
+            "assemblyVersion": "2.4.6.0",
+            "fileVersion": "2.4.6.0"
+          },
+          "runtimes/win-x86/lib/netstandard1.1/Virgil.CryptoImpl.dll": {
+            "rid": "win-x86",
+            "assetType": "runtime",
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          },
+          "runtimes/linux-x64/native/virgil_crypto_net.so": {
+            "rid": "linux-x64",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/linux-x64/native/virgil_crypto_net.so.2": {
+            "rid": "linux-x64",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/linux-x64/native/virgil_crypto_net.so.2.4.6": {
+            "rid": "linux-x64",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/osx-x64/native/virgil_crypto_net.dylib": {
+            "rid": "osx-x64",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/virgil_crypto_net.dll": {
+            "rid": "win-x64",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x64/native/virgil_crypto_net.lib": {
+            "rid": "win-x64",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x86/native/virgil_crypto_net.dll": {
+            "rid": "win-x86",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          },
+          "runtimes/win-x86/native/virgil_crypto_net.lib": {
+            "rid": "win-x86",
+            "assetType": "native",
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "Virgil.CryptoAPI/1.0.2": {
+        "runtime": {
+          "lib/netstandard1.1/VirgilCryptoAPI.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "AElf.Cryptography/0.9.0-18163": {
+        "dependencies": {
+          "AElf.Types": "0.9.0-18163",
+          "BouncyCastle.NetCore": "1.8.5",
+          "Secp256k1.Net": "0.1.54",
+          "Virgil.Crypto": "2.4.10"
+        },
+        "runtime": {
+          "AElf.Cryptography.dll": {}
+        }
+      },
+      "AElf.CSharp.Core/0.9.0-18163": {
+        "dependencies": {
+          "AElf.Types": "0.9.0-18163",
+          "Microsoft.CSharp": "4.5.0"
+        },
+        "runtime": {
+          "AElf.CSharp.Core.dll": {}
+        }
+      },
+      "AElf.Sdk.CSharp/0.9.0-18163": {
+        "dependencies": {
+          "AElf.CSharp.Core": "0.9.0-18163",
+          "AElf.Cryptography": "0.9.0-18163"
+        },
+        "runtime": {
+          "AElf.Sdk.CSharp.dll": {}
+        }
+      },
+      "AElf.Types/0.9.0-18163": {
+        "dependencies": {
+          "Google.Protobuf": "3.7.0"
+        },
+        "runtime": {
+          "AElf.Types.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "AElf.Runtime.CSharp.Core/0.9.0-18163": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "BouncyCastle.NetCore/1.8.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-6uxsQw2UXrt82VQAWC2td3oBSJjUZ3P4u4DliagB8wf67KsU53V8sW9xwdF+IwZOOZFR0TCZuv/YKZ2BlrfAag==",
+      "path": "bouncycastle.netcore/1.8.5",
+      "hashPath": "bouncycastle.netcore.1.8.5.nupkg.sha512"
+    },
+    "Google.Protobuf/3.7.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-OvssyqQTrpJgdH4fjztsCV9AhUo9jgGpDbZ5XAAqC+X6MIUsifHk8Woeom1HXlHdqo/XebiEMpYySE9AxybJ9g==",
+      "path": "google.protobuf/3.7.0",
+      "hashPath": "google.protobuf.3.7.0.nupkg.sha512"
+    },
+    "Hyperion/0.9.8": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-K8TVlywPaLvDlc0erDD99M2d+kngK0sTANMrEME42pP2rUUCZy7H0NgsMLi9vAhZktZnirFFsYhb5KlUoFzocQ==",
+      "path": "hyperion/0.9.8",
+      "hashPath": "hyperion.0.9.8.nupkg.sha512"
+    },
+    "Microsoft.CSharp/4.5.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-EGoBmf3Na2ppbhPePDE9PlX81r1HuOZH5twBrq7couJZiPTjUnD3648balerQJO6EJ8Sj+43+XuRwQ7r+3tE3w==",
+      "path": "microsoft.csharp/4.5.0",
+      "hashPath": "microsoft.csharp.4.5.0.nupkg.sha512"
+    },
+    "Microsoft.NETCore.Jit/1.0.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Ok2vWofa6X8WD9vc4pfLHwvJz1/B6t3gOAoZcjrjrQf7lQOlNIuZIZtLn3wnWX28DuQGpPJkRlBxFj7Z5txNqw==",
+      "path": "microsoft.netcore.jit/1.0.2",
+      "hashPath": "microsoft.netcore.jit.1.0.2.nupkg.sha512"
+    },
+    "Microsoft.NETCore.Portable.Compatibility/1.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Vd+lvLcGwvkedxtKn0U8s9uR4p0Lm+0U2QvDsLaw7g4S1W4KfPDbaW+ROhhLCSOx/gMYC72/b+z+o4fqS/oxVg==",
+      "path": "microsoft.netcore.portable.compatibility/1.0.1",
+      "hashPath": "microsoft.netcore.portable.compatibility.1.0.1.nupkg.sha512"
+    },
+    "Microsoft.NETCore.Runtime.CoreCLR/1.0.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-A0x1xtTjYJWZr2DRzgfCOXgB0JkQg8twnmtTJ79wFje+IihlLbXtx6Z2AxyVokBM5ruwTedR6YdCmHk39QJdtQ==",
+      "path": "microsoft.netcore.runtime.coreclr/1.0.2",
+      "hashPath": "microsoft.netcore.runtime.coreclr.1.0.2.nupkg.sha512"
+    },
+    "Microsoft.NETCore.Windows.ApiSets/1.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-SaToCvvsGMxTgtLv/BrFQ5IFMPRE1zpWbnqbpwykJa8W5XiX82CXI6K2o7yf5xS7EP6t/JzFLV0SIDuWpvBZVw==",
+      "path": "microsoft.netcore.windows.apisets/1.0.1",
+      "hashPath": "microsoft.netcore.windows.apisets.1.0.1.nupkg.sha512"
+    },
+    "Mono.Cecil/0.11.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Oq/xuL4giwKo4yveCw+VVXILaylbyN2QakWRV/840mLCO9B6xvs+ADjSZagyU8C9aEiFFTZE2pNnobSrZWTVlw==",
+      "path": "mono.cecil/0.11.0",
+      "hashPath": "mono.cecil.0.11.0.nupkg.sha512"
+    },
+    "Secp256k1.Net/0.1.54": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-X0yEgdI4c9sew2/UOSONwtbg3kmdQ0uCOjQtJUivpKr8jcL9UtrVFAB7endtdsTJlWUvSEWH5P/y+EpAdxHFLQ==",
+      "path": "secp256k1.net/0.1.54",
+      "hashPath": "secp256k1.net.0.1.54.nupkg.sha512"
+    },
+    "System.IO/4.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-3qjaHvxQPDpSOYICjUoTsmoq5u6QJAFRUITgeT/4gqkF1bajbSmb1kwSxEA8AHlofqgcKJcM8udgieRNhaJ5Cg==",
+      "path": "system.io/4.3.0",
+      "hashPath": "system.io.4.3.0.nupkg.sha512"
+    },
+    "System.Memory/4.5.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-vcG3/MbfpxznMkkkaAblJi7RHOmuP7kawQMhDgLSuA1tRpRQYsFSCTxRSINDUgn2QNn2jWeLxv8er5BXbyACkw==",
+      "path": "system.memory/4.5.1",
+      "hashPath": "system.memory.4.5.1.nupkg.sha512"
+    },
+    "System.Reflection/4.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-KMiAFoW7MfJGa9nDFNcfu+FpEdiHpWgTcS2HdMpDvt9saK3y/G4GwprPyzqjFH9NTaGPQeWNHU+iDlDILj96aQ==",
+      "path": "system.reflection/4.3.0",
+      "hashPath": "system.reflection.4.3.0.nupkg.sha512"
+    },
+    "System.Reflection.Primitives/4.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-5RXItQz5As4xN2/YUDxdpsEkMhvw3e6aNveFXUn4Hl/udNTCNhnKp8lT9fnc3MhvGKh1baak5CovpuQUXHAlIA==",
+      "path": "system.reflection.primitives/4.3.0",
+      "hashPath": "system.reflection.primitives.4.3.0.nupkg.sha512"
+    },
+    "System.Reflection.TypeExtensions/4.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-7u6ulLcZbyxB5Gq0nMkQttcdBTx57ibzw+4IOXEfR+sXYQoHvjW5LTLyNr8O22UIMrqYbchJQJnos4eooYzYJA==",
+      "path": "system.reflection.typeextensions/4.3.0",
+      "hashPath": "system.reflection.typeextensions.4.3.0.nupkg.sha512"
+    },
+    "System.Runtime/4.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-JufQi0vPQ0xGnAczR13AUFglDyVYt4Kqnz1AZaiKZ5+GICq0/1MH/mO/eAJHt/mHW1zjKBJd7kV26SrxddAhiw==",
+      "path": "system.runtime/4.3.0",
+      "hashPath": "system.runtime.4.3.0.nupkg.sha512"
+    },
+    "System.Text.Encoding/4.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-BiIg+KWaSDOITze6jGQynxg64naAPtqGHBwDrLaCtixsa5bKiR8dpPOHA7ge3C0JJQizJE+sfkz1wV+BAKAYZw==",
+      "path": "system.text.encoding/4.3.0",
+      "hashPath": "system.text.encoding.4.3.0.nupkg.sha512"
+    },
+    "System.Threading.Tasks/4.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-LbSxKEdOUhVe8BezB/9uOGGppt+nZf6e1VFyw6v3DN6lqitm0OSn2uXMOdtP0M3W4iMcqcivm2J6UgqiwwnXiA==",
+      "path": "system.threading.tasks/4.3.0",
+      "hashPath": "system.threading.tasks.4.3.0.nupkg.sha512"
+    },
+    "Unofficial.CoreRT.ILVerify/0.0.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-6Grf6L76njFf1gQfOFalS7yjYo4JcyER50jMF90JM/da7sO1JhOrVRsOMsom6Hwdx+k2er/H8Q7mqYCzUan1ew==",
+      "path": "unofficial.corert.ilverify/0.0.1",
+      "hashPath": "unofficial.corert.ilverify.0.0.1.nupkg.sha512"
+    },
+    "Virgil.Crypto/2.4.10": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-LlFZXPxwN8c03pQ3YxA+riZw6AH1BfyftL9li9Kx5Ooq/pmm/k8W43y23hzdZShzqwaMm4VPdq4VeK7UULUvbg==",
+      "path": "virgil.crypto/2.4.10",
+      "hashPath": "virgil.crypto.2.4.10.nupkg.sha512"
+    },
+    "Virgil.CryptoAPI/1.0.2": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-rq7oJT9TgoMHV3tkYiIL/bIJxNW/lNkeseZ7X8b+pP83ejIK40nwW0OGUviIlIrydYlAJTNvwHI/6Wtk21oXLg==",
+      "path": "virgil.cryptoapi/1.0.2",
+      "hashPath": "virgil.cryptoapi.1.0.2.nupkg.sha512"
+    },
+    "AElf.Cryptography/0.9.0-18163": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "AElf.CSharp.Core/0.9.0-18163": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "AElf.Sdk.CSharp/0.9.0-18163": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "AElf.Types/0.9.0-18163": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

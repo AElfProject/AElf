@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>AElf.WebApp.Application.Net</name>
+    </assembly>
+    <members>
+        <member name="P:AElf.WebApp.Application.Net.Dto.AddPeerInput.Address">
+            <summary>
+            ip address
+            </summary>
+        </member>
+        <member name="P:AElf.WebApp.Application.Net.Dto.GetNetworkInfoOutput.Version">
+            <summary>
+            node version
+            </summary>
+        </member>
+        <member name="P:AElf.WebApp.Application.Net.Dto.GetNetworkInfoOutput.ProtocolVersion">
+            <summary>
+            network protocol version
+            </summary>
+        </member>
+        <member name="P:AElf.WebApp.Application.Net.Dto.GetNetworkInfoOutput.Connections">
+            <summary>
+            total number of open connections between this node and other nodes
+            </summary>
+        </member>
+        <member name="M:AElf.WebApp.Application.Net.NetAppService.AddPeerAsync(AElf.WebApp.Application.Net.Dto.AddPeerInput)">
+            <summary>
+            Attempts to add a node to the connected network nodes
+            </summary>
+            <returns>true/false</returns>
+        </member>
+        <member name="M:AElf.WebApp.Application.Net.NetAppService.RemovePeerAsync(System.String)">
+            <summary>
+            Attempts to remove a node from the connected network nodes
+            </summary>
+            <param name="address">ip address</param>
+            <returns></returns>
+        </member>
+        <member name="M:AElf.WebApp.Application.Net.NetAppService.GetPeers(System.Boolean)">
+            <summary>
+            Get peer info about the connected network nodes
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:AElf.WebApp.Application.Net.NetAppService.GetNetworkInfoAsync">
+            <summary>
+            Get information about the node’s connection to the network. 
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
