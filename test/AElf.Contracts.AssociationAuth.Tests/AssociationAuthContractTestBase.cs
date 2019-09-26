@@ -102,14 +102,6 @@ namespace AElf.Contracts.AssociationAuth
                 To = DefaultSender,
                 Memo = "Issue token to default user",
             });
-//            keyPairs.ForEach(creatorKeyPair => tokenContractCallList.Add(nameof(TokenContract.Issue),
-//                new IssueInput
-//                {
-//                    Symbol = symbol,
-//                    Amount = (long) (AssociationAuthContractTestConstants.NativeTokenTotalSupply * 0.1),
-//                    To = Address.FromPublicKey(creatorKeyPair.PublicKey),
-//                    Memo = "set bps few amount for calling method."
-//                }));
             
             return tokenContractCallList;
         }
@@ -122,7 +114,7 @@ namespace AElf.Contracts.AssociationAuth
                 var result = TokenContractStub.Transfer.SendAsync(new TransferInput()
                 {
                     Symbol = "ELF",
-                    Amount = (long) (AssociationAuthContractTestConstants.NativeTokenTotalSupply * 0.1),
+                    Amount = (long) (AssociationAuthContractTestConstants.NativeTokenTotalSupply),
                     To = Address.FromPublicKey(keyPair.PublicKey),
                     Memo = "set bps few amount for calling method."
                 });

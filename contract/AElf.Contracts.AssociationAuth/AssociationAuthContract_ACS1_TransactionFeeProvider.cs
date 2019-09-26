@@ -19,7 +19,7 @@ namespace AElf.Contracts.AssociationAuth
                 default:
                     return new TokenAmounts
                     {
-                        Amounts = {new TokenAmount {Symbol = Context.Variables.NativeSymbol, Amount = 1}}
+                        Amounts = {new TokenAmount {Symbol = Context.Variables.NativeSymbol, Amount = 100}}
                     };
             }
         }
