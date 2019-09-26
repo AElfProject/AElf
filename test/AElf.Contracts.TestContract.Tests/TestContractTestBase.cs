@@ -83,7 +83,7 @@ namespace AElf.Contract.TestContract
 
             //deploy test contract1
             BasicFunctionContractAddress = AsyncHelper.RunSync(async () =>
-                await DeploySystemSmartContract(
+                await DeployContractAsync(
                     KernelConstants.CodeCoverageRunnerCategory,
                     Codes.Single(kv => kv.Key.EndsWith("BasicFunction")).Value,
                     TestBasicFunctionContractSystemName,
@@ -93,7 +93,7 @@ namespace AElf.Contract.TestContract
 
             //deploy test contract2
             BasicSecurityContractAddress = AsyncHelper.RunSync(async () =>
-                await DeploySystemSmartContract(
+                await DeployContractAsync(
                     KernelConstants.CodeCoverageRunnerCategory,
                     Codes.Single(kv => kv.Key.EndsWith("BasicSecurity")).Value,
                     TestBasicSecurityContractSystemName,

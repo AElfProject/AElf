@@ -44,7 +44,7 @@ namespace AElf.OS.BlockSync.Application
                     return;
                 }
                 
-                EnqueueFetchBlockJob(syncAnnouncementDto, BlockSyncConstants.FetchBlockRetryTimes);
+                EnqueueFetchBlockJob(syncAnnouncementDto);
             }
             else
             {
@@ -59,7 +59,7 @@ namespace AElf.OS.BlockSync.Application
             if (syncBlockDto.BlockWithTransactions.Height <=
                 chain.LongestChainHeight + BlockSyncConstants.BlockSyncModeHeightOffset)
             {
-                EnqueueSyncBlockJob(syncBlockDto.BlockWithTransactions);
+                EnqueueSyncBlockJob(syncBlockDto.BlockWithTransactions, syncBlockDto.SuggestedPeerPubkey);
             }
             else
             {
@@ -68,7 +68,7 @@ namespace AElf.OS.BlockSync.Application
             }
         }
 
-        private void EnqueueFetchBlockJob(SyncAnnouncementDto syncAnnouncementDto, int retryTimes)
+        private void EnqueueFetchBlockJob(SyncAnnouncementDto syncAnnouncementDto)
         {
             _blockSyncQueueService.Enqueue(async () =>
             {
@@ -84,24 +84,20 @@ namespace AElf.OS.BlockSync.Application
 
                 if (fetchResult)
                     return;
-                if (retryTimes > 1)
-                {
-                    EnqueueFetchBlockJob(syncAnnouncementDto, retryTimes - 1);
-                }
-                else if (_announcementCacheProvider.TryGetAnnouncementNextSender(syncAnnouncementDto.SyncBlockHash, out var senderPubKey))
+                if (_announcementCacheProvider.TryGetAnnouncementNextSender(syncAnnouncementDto.SyncBlockHash, out var senderPubKey))
                 {
                     syncAnnouncementDto.SuggestedPeerPubkey = senderPubKey;
-                    EnqueueFetchBlockJob(syncAnnouncementDto, BlockSyncConstants.FetchBlockRetryTimes);
+                    EnqueueFetchBlockJob(syncAnnouncementDto);
                 }
             }, OSConstants.BlockFetchQueueName);
         }
 
-        private void EnqueueSyncBlockJob(BlockWithTransactions blockWithTransactions)
+        private void EnqueueSyncBlockJob(BlockWithTransactions blockWithTransactions, string senderPubkey)
         {
             _blockSyncQueueService.Enqueue(async () =>
             {
                 Logger.LogTrace($"Block sync: sync block, block: {blockWithTransactions}.");
-                await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions);
+                await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions, senderPubkey);
             }, OSConstants.BlockSyncAttachQueueName);
         }
 

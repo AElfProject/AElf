@@ -22,7 +22,7 @@ namespace AElf.OS
 
             context.Services.AddSingleton<IPrimaryTokenSymbolProvider, PrimaryTokenSymbolProvider>();
         }
-        
+
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
             var taskQueueManager = context.ServiceProvider.GetService<ITaskQueueManager>();

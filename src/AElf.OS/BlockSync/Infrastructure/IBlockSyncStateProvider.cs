@@ -17,5 +17,7 @@ namespace AElf.OS.BlockSync.Infrastructure
         bool TryGetDownloadJobTargetState(Hash targetHash, out bool value);
 
         bool TryRemoveDownloadJobTargetState(Hash targetHash);
+
+        string LastRequestPeerPubkey { get; set; }
     }
 }

@@ -39,19 +39,16 @@ namespace AElf.Blockchains.MainChain
                 });
 
             //TODO: Maybe should be removed after testing.
-            foreach (var tokenReceiver in _consensusOptions.InitialMinerList)
-            {
-                economicContractMethodCallList.Add(
-                    nameof(EconomicContractContainer.EconomicContractStub.IssueNativeToken), new IssueNativeTokenInput
-                    {
-                        Amount =
-                            Convert.ToInt64(_economicOptions.TotalSupply *
-                                            (1 - _economicOptions.DividendPoolRatio)) /
-                            _consensusOptions.InitialMinerList.Count,
-                        To = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(tokenReceiver)),
-                        Memo = "Set initial miner's balance."
-                    });
-            }
+            economicContractMethodCallList.Add(
+                nameof(EconomicContractContainer.EconomicContractStub.IssueNativeToken), new IssueNativeTokenInput
+                {
+                    Amount =
+                        Convert.ToInt64(_economicOptions.TotalSupply * (1 - _economicOptions.DividendPoolRatio)),
+                    To = Address.FromPublicKey(
+                        ByteArrayHelper.HexStringToByteArray(_consensusOptions.InitialMinerList[0])),
+                    Memo = "Issue native token"
+                });
+
 
             return economicContractMethodCallList;
         }
