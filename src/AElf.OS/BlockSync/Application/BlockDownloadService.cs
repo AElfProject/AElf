@@ -23,8 +23,8 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockSyncQueueService _blockSyncQueueService;
         private readonly IBlockSyncStateProvider _blockSyncStateProvider;
 
-        public readonly ILocalEventBus LocalEventBus;
-        
+        public ILocalEventBus LocalEventBus { get; set; }
+
         public ILogger<BlockDownloadService> Logger { get; set; }
 
         private const int PeerCheckMinimumCount = 15;

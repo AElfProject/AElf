@@ -20,7 +20,7 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockSyncQueueService _blockSyncQueueService;
         private readonly IBlockSyncValidationService _blockSyncValidationService;
 
-        public readonly ILocalEventBus LocalEventBus;
+        public ILocalEventBus LocalEventBus { get; set; }
 
         public ILogger<BlockSyncAttachService> Logger { get; set; }
 
