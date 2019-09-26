@@ -303,13 +303,28 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
         {
-            return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
-                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.Pubkey) &&
-                      minerInCurrentRound.PreviousInValue != null
-                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.Pubkey].OutValue
-                where previousOutValue != null &&
-                      Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
-                select minerInCurrentRound.Pubkey).ToList();
+            var evilMinersPubKey = new List<string>();
+            foreach (var minerInCurrentRound in currentRound.RealTimeMinersInformation.Values)
+            {
+                if (previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.Pubkey) &&
+                    minerInCurrentRound.PreviousInValue != null)
+                {
+                    var previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.Pubkey].OutValue;
+                    if (previousOutValue != null &&
+                        Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue)
+                        evilMinersPubKey.Add(minerInCurrentRound.Pubkey);
+                }
+            }
+            return evilMinersPubKey;
+
+            // Below LINQ-expression causes unchecked math instructions after compilation
+//            return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
+//                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.Pubkey) &&
+//                      minerInCurrentRound.PreviousInValue != null
+//                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.Pubkey].OutValue
+//                where previousOutValue != null &&
+//                      Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
+//                select minerInCurrentRound.Pubkey).ToList();
         }
 
         private bool TryToGetElectionSnapshot(long termNumber, out TermSnapshot snapshot)
