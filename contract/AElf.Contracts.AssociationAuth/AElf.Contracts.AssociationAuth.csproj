@@ -7,6 +7,14 @@
         <IsContract>true</IsContract>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
+
     <ItemGroup>
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>$(ProjectDir)\Protobuf\Proto\reference\acs0.proto</Link>
