@@ -82,8 +82,7 @@ namespace AElf.Kernel.Consensus
                         ExecutionStatus = ExecutionStatus.Executed,
                         ReturnValue = ByteString.CopyFrom(new ConsensusCommand
                         {
-                            NextBlockMiningLeftMilliseconds = 4000,
-                            ExpectedMiningTime = TimestampHelper.GetUtcNow(),
+                            ArrangedMiningTime = TimestampHelper.GetUtcNow(),
                             Hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.Nothing}.ToByteString(),
                             LimitMillisecondsOfMiningBlock = 400
                         }.ToByteArray())
@@ -121,7 +120,7 @@ namespace AElf.Kernel.Consensus
 
                 mockService.Setup(m =>
                         m.ExecuteAsync(It.IsAny<ChainContext>(),
-                            It.Is<Transaction>(tx => tx.MethodName == "GetInformationToUpdateConsensus"),
+                            It.Is<Transaction>(tx => tx.MethodName == "GetConsensusExtraData"),
                             It.IsAny<Timestamp>()))
                     .Returns(Task.FromResult(new TransactionTrace
                     {

@@ -28,8 +28,6 @@ namespace AElf.CrossChain
         {
             var generatedTransactions = new List<Transaction>();
             var previousBlockPrefix = previousBlockHash.Value.Take(4).ToArray();
-
-            //Logger.LogTrace($"Generate cross chain txn with hash {previousBlockHash}, height {refBlockNumber}");
             
             // should return the same data already filled in block header.
             var filledCrossChainBlockData =
@@ -42,6 +40,7 @@ namespace AElf.CrossChain
                     previousBlockPrefix, filledCrossChainBlockData));
             }
             
+            Logger.LogTrace($"{generatedTransactions.Count} Cross chain transaction generated.");
             return generatedTransactions;
         }
 

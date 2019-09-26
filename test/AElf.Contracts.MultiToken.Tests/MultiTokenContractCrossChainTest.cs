@@ -21,7 +21,6 @@ namespace AElf.Contracts.MultiToken
         private static long _totalSupply = 1000L;
         private int ParentChainHeightOfCreation = 10;
 
-        [Fact]
         public async Task MainChain_RegisterCrossChainTokenContractAddress_Test()
         {
             var sideChainId = await InitAndCreateSideChainAsync(ParentChainHeightOfCreation, MainChainId);
@@ -53,7 +52,6 @@ namespace AElf.Contracts.MultiToken
             Assert.True(result.Status == TransactionResultStatus.Mined);
         }
 
-        [Fact]
         public async Task SideChain_RegisterCrossChainTokenContractAddress_Test()
         {
             var sideChainId = await InitAndCreateSideChainAsync(ParentChainHeightOfCreation, MainChainId);
@@ -195,7 +193,6 @@ namespace AElf.Contracts.MultiToken
             Assert.Contains("Cross chain verification failed.", result.Error);
         }
 
-        [Fact]
         public async Task SideChain_CrossChainCreateToken_Test()
         {
             await SideChain_RegisterCrossChainTokenContractAddress_Test();

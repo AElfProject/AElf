@@ -68,9 +68,6 @@
         <ContractStub Include="..\..\protobuf\resource_contract.proto">
             <Link>Protobuf\Proto\stub\resource_contract.proto</Link>
         </ContractStub>
-        <ContractStub Include="..\..\protobuf\fee_receiver_contract.proto">
-            <Link>Protobuf\Proto\stub\fee_receiver_contract.proto</Link>
-        </ContractStub>
         <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\stub\cross_chain_contract.proto</Link>
         </ContractStub>

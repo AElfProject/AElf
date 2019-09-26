@@ -27,6 +27,7 @@ namespace AElf.Contract.TestContract
         private readonly IBlockAttachService _blockAttachService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         private readonly ITransactionResultManager _transactionResultManager;
+        
         public ContractBasicTests()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
@@ -130,7 +131,6 @@ namespace AElf.Contract.TestContract
                 queryTwoUserWinMoneyTransactionResult.Error.ShouldContain("Invalid contract address");
             }
         }
-
 
         [Fact]
         public async Task UpdateContract_WithOwner_Test()

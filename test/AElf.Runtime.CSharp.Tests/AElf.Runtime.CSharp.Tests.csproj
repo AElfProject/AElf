@@ -7,7 +7,7 @@
     <ItemGroup>
         <PackageReference Include="coverlet.msbuild" Version="2.5.1"/>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.2.1"/>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0"/>
         <PackageReference Include="Shouldly" Version="3.0.2"/>
         <PackageReference Include="xunit" Version="2.4.1"/>
         <PackageReference Include="xunit.runner.console" Version="2.4.1"/>
@@ -24,7 +24,6 @@
         <ProjectReference Include="..\..\contract\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj"/>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Profit\AElf.Contracts.Profit.csproj"/>
         <ProjectReference Include="..\..\contract\AElf.Contracts.ReferendumAuth\AElf.Contracts.ReferendumAuth.csproj"/>
-        <ProjectReference Include="..\..\contract\AElf.Contracts.Resource.FeeReceiver\AElf.Contracts.Resource.FeeReceiver.csproj"/>
         <ProjectReference Include="..\..\contract\AElf.Contracts.TokenConverter\AElf.Contracts.TokenConverter.csproj"/>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Vote\AElf.Contracts.Vote.csproj"/>
         <ProjectReference Include="..\..\src\AElf.Kernel.ChainController\AElf.Kernel.ChainController.csproj"/>
