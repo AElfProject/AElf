@@ -11,6 +11,8 @@ namespace AElf.OS.BlockSync.Infrastructure
 
         private readonly ConcurrentDictionary<Hash, bool> _downloadJobTargetState;
 
+        public string LastRequestPeerPubkey { get; set; }
+
         public BlockSyncStateProvider()
         {
             _enqueueTimes = new ConcurrentDictionary<string, Timestamp>();
