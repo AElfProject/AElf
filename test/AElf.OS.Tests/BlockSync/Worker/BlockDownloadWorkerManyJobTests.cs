@@ -36,7 +36,8 @@ namespace AElf.OS.BlockSync.Worker
         public async Task ProcessDownloadJob_ManyJob()
         {
             var chain = await _blockchainService.GetChainAsync();
-            var peerBlocks = await _networkService.GetBlocksAsync(chain.BestChainHash, 30);
+            var response = await _networkService.GetBlocksAsync(chain.BestChainHash, 30, null);
+            var peerBlocks = response.Payload;
 
             // Enqueue download job, from height 25 to 31
             for (int i = 13; i < 19; i++)
