@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.IO;
-using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -12,7 +10,6 @@ using AElf.OS.Node.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
-using Shouldly;
 using Volo.Abp.Threading;
 
 namespace AElf.Contracts.AssociationAuth
@@ -102,25 +99,7 @@ namespace AElf.Contracts.AssociationAuth
                 To = DefaultSender,
                 Memo = "Issue token to default user",
             });
-            
             return tokenContractCallList;
-        }
-
-        protected void TransferBalanceToBps()
-        {
-            var keyPairs = new List<ECKeyPair>{Reviewer1KeyPair, Reviewer2KeyPair, Reviewer3KeyPair};
-            foreach (var keyPair in keyPairs)
-            {
-                var result = TokenContractStub.Transfer.SendAsync(new TransferInput()
-                {
-                    Symbol = "ELF",
-                    Amount = (long) (AssociationAuthContractTestConstants.NativeTokenTotalSupply),
-                    To = Address.FromPublicKey(keyPair.PublicKey),
-                    Memo = "set bps few amount for calling method."
-                });
-                
-                result.Result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            }
         }
     }
 }
