@@ -27,8 +27,8 @@ Modify this config file by `aelf-command config`.
 
   - `set`: set and save config in the file, remember just set `datadir`, `endpoint`, `account`, `password` four keys.
     ```bash
-    aelf-command config set endpoint http://127.0.0.1:8000
-    aelf-command config -h
+    $ aelf-command config set endpoint http://127.0.0.1:8000
+    $ aelf-command config -h
 
     Usage: aelf-command config [options] <flag> [key] [value]
     
@@ -46,16 +46,16 @@ Modify this config file by `aelf-command config`.
     ``` 
   - `get`: get the value of given `key` from global `.aelfrc` file
     ```bash
-    aelf-command config get endpoint
+    $ aelf-command config get endpoint
     http://127.0.0.1:8000
     ```
   - `delete`: delete the `<key, value>` from global `.aelfrc` file by a given key
     ```bash
-    aelf-command config delete endpoint
+    $ aelf-command config delete endpoint
     ```
   - `list`: get the list of all configs stored in global `.aelfrc` file
     ```bash
-    aelf-command config list
+    $ aelf-command config list
     endpoint=http://127.0.0.1:8000
     ```
 
@@ -76,7 +76,7 @@ each line is `<key, value>` config and a whitespace is needed to separate them.
 You can give common options by passing them in CLI parameters.
 
 ```bash
-aelf-command console -a sadaf -p password -e http://127.0.0.1:8000
+$ aelf-command console -a sadaf -p password -e http://127.0.0.1:8000
 ```
 
 Notice the priority, the options given in higher priority will overwrite the lower priority.
@@ -86,6 +86,7 @@ Notice the priority, the options given in higher priority will overwrite the low
 This command will create a new account.
 
 ```bash
+$ aelf-command create -h
 Usage: aelf-command create [options] [save-to-file]
 
 create a new account
@@ -103,8 +104,8 @@ aelf-command create
 Example:
 
 * Specify the cipher way to encrypt account info by passing option `-c [cipher]`, such as:
-```shell script
-aelf-command create -c aes-128-cbc
+```bash
+$ aelf-command create -c aes-128-cbc
 ```
 
 ### load - load an account by a given `private key` or `mnemonic`
@@ -113,13 +114,24 @@ This command allow you load an account from backup.
 
 ```bash
 # load from mnemonic
-aelf-command load 'great mushroom loan crisp ... door juice embrace'
+$ aelf-command load 'great mushroom loan crisp ... door juice embrace'
 # load from private key
-aelf-command load 'e038eea7e151eb451ba2901f7...b08ba5b76d8f288'
+$ aelf-command load 'e038eea7e151eb451ba2901f7...b08ba5b76d8f288'
 # load from prompting
-aelf-command load
+$ aelf-command load
 ? Enter a private key or mnemonic › e038eea7e151eb451ba2901f7...b08ba5b76d8f288
 ...
+```
+
+### wallet - show wallet details which include `private key`, `address`, `public key` and `mnemonic`
+
+This command allow you print wallet info.
+
+```bash
+$ aelf-command wallet -a C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuw...8qYjGsESanXR
+⬡ AElf [Info]: Private Key         : 97ca9fbece296231f26bee0e493500810f...cbd984f69a8dc22ec9ec89ebb00 
+⬡ AElf [Info]: Public Key          : 04c30dd0c3b5abfc85a11b15dabd0de926...74fe04e92eaebf2e4fef6445d9b9b11efe6f4b70c8e86644b72621f9987dc00bb1eab44a9bd7512ea53f93937a5d0 
+⬡ AElf [Info]: Address             : C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuw...8qYjGsESanXR 
 ```
 
 ### proposal - create a proposal
@@ -216,7 +228,7 @@ $ aelf-command get-tx-result 09c8c824d2e3aea1d...cefe4e236c5b818d6a01d4f7ca0b60f
 Deploy a smart contract to the chain
 
 ```bash
-aelf-command deploy
+$ aelf-command deploy
 ✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
 ✔ Enter the password you typed when creating a wallet … ********
 ✔ Enter the category of the contract to be deployed … 0
@@ -226,7 +238,7 @@ aelf-command deploy
 ### send - send a transaction
 
 ```bash
-aelf-command send
+$ aelf-command send
 ✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
 ✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … D3vSjRYL8MpeRpvUDy85ktXijnBe2tHn8NTACsggUVteQCNGP
 ✔ Enter the password you typed when creating a wallet … ********
@@ -244,14 +256,14 @@ Result:
 ```
 
 ```bash
-aelf-command send AElf.ContractNames.Token GetTokenInfo '{"symbol":"ELF"}'
-aelf-command send WnV9Gv3gioSh3Vgaw8SSB96nV8fWUNxuVozCf6Y14e7RXyGaM GetTokenInfo '{"symbol":"ELF"}'
+$ aelf-command send AElf.ContractNames.Token GetTokenInfo '{"symbol":"ELF"}'
+$ aelf-command send WnV9Gv3gioSh3Vgaw8SSB96nV8fWUNxuVozCf6Y14e7RXyGaM GetTokenInfo '{"symbol":"ELF"}'
 ```
 
 ### call - call a read-only method on a contract
 
 ```bash
-aelf-command call
+$ aelf-command call
 ✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
 ✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … D3vSjRYL8MpeRpvUDy85ktXijnBe2tHn8NTACsggUVteQCNGP
 ✔ Enter the password you typed when creating a wallet … ********
@@ -275,8 +287,8 @@ Result:
 ```
 
 ```bash
-aelf-command call AElf.ContractNames.Token GetTokenInfo '{"symbol":"ELF"}'
-aelf-command call WnV9Gv3gioSh3Vgaw8SSB96nV8fWUNxuVozCf6Y14e7RXyGaM GetTokenInfo '{"symbol":"ELF"}'
+$ aelf-command call AElf.ContractNames.Token GetTokenInfo '{"symbol":"ELF"}'
+$ aelf-command call WnV9Gv3gioSh3Vgaw8SSB96nV8fWUNxuVozCf6Y14e7RXyGaM GetTokenInfo '{"symbol":"ELF"}'
 ```
 
 ### get-chain-status - get the current status of the block chain
@@ -304,6 +316,8 @@ $ aelf-command get-chain-status
 ### get-tx-result - get a transaction result
 
 ```bash
+$ aelf-command get-tx-result
+
 ✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
 ✔ Enter a valid transaction hash in hex format … 7b620a49ee9666c0c381fdb33f94bd31e1b5eb0fdffa081463c3954e9f734a02
 ✔ Succeed!
@@ -333,7 +347,7 @@ $ aelf-command get-chain-status
 ### get-blk-height - get the block height
 
 ```bash
-aelf-command get-blk-height
+$ aelf-command get-blk-height
 ✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
 > 7902091
 ```
@@ -379,7 +393,7 @@ $ aelf-command get-blk-info 12 true
 ### console - open an interactive console
 
 ```bash
-aelf-command console
+$ aelf-command console
 ✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
 ✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
 ✔ Enter the password you typed when creating a wallet … ********
