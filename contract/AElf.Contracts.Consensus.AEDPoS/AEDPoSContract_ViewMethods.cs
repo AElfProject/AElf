@@ -31,6 +31,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
                 : new MinerList();
 
+        public override PubkeyList GetCurrentMinerPubkeyList(Empty input) => new PubkeyList
+        {
+            Pubkeys = {GetCurrentMinerList(input).Pubkeys.Select(p => p.ToHex())}
+        };
+
         public override MinerListWithRoundNumber GetCurrentMinerListWithRoundNumber(Empty input) =>
             new MinerListWithRoundNumber
             {
