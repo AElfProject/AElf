@@ -1,8 +1,8 @@
 using Google.Protobuf.WellKnownTypes;
 
-namespace AElf.OS.Network.Grpc
+namespace AElf.OS.Network.Protocol.Types
 {
-    public class PeerInfo
+    public class PeerConnectionInfo
     {
         public string Pubkey { get; set; }
         public int ProtocolVersion { get; set; }

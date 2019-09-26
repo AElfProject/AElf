@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.OS.Network.Protocol;
+using AElf.OS.Network.Protocol.Types;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
 using Microsoft.Extensions.Logging;
@@ -64,7 +65,7 @@ namespace AElf.OS.Network.Grpc
                 return null;
             }
 
-            var peer = new GrpcPeer(client, endpoint, new PeerInfo
+            var peer = new GrpcPeer(client, endpoint, new PeerConnectionInfo
             {
                 Pubkey = handshakeReply.Handshake.HandshakeData.Pubkey.ToHex(),
                 ConnectionTime = TimestampHelper.GetUtcNow(),
@@ -111,7 +112,7 @@ namespace AElf.OS.Network.Grpc
             var client = CreateClient(endpoint);
             await PingNodeAsync(client, endpoint);
 
-            var peer = new GrpcPeer(client, endpoint, new PeerInfo
+            var peer = new GrpcPeer(client, endpoint, new PeerConnectionInfo
             {
                 Pubkey = handshake.HandshakeData.Pubkey.ToHex(),
                 ConnectionTime = TimestampHelper.GetUtcNow(),
