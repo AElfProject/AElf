@@ -6,13 +6,12 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract
     {
-        [View]
-        public override TokenAmounts GetMethodFee(MethodName input)
+/*        public override MethodFees GetMethodFee(StringValue input)
         {
-            return State.MethodFees[input.Name];
+            return State.MethodFees[input.Value];
         }
 
-        public override Empty SetMethodFee(TokenAmounts input)
+        public override Empty SetMethodFee(MethodFees input)
         {
             if (State.ParliamentAuthContract.Value == null)
             {
@@ -27,13 +26,13 @@ namespace AElf.Contracts.MultiToken
                 Assert(Context.Sender == genesisOwnerAddress, "No permission to set method fee.");
             }
 
-            foreach (var symbolToAmount in input.Amounts)
+            foreach (var symbolToAmount in input.Fee)
             {
-                AssertValidToken(symbolToAmount.Symbol, symbolToAmount.Amount);
+                AssertValidToken(symbolToAmount.Symbol, symbolToAmount.BasicFee);
             }
 
-            State.MethodFees[input.Method] = input;
+            State.MethodFees[input.MethodName] = input;
             return new Empty();
-        }
+        }*/
     }
 }

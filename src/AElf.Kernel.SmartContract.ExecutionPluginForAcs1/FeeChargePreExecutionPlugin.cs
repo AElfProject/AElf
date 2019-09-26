@@ -20,19 +20,23 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
         {
             _contextService = contextService;
         }
+
         private static bool IsAcs1(IReadOnlyList<ServiceDescriptor> descriptors)
         {
             return descriptors.Any(service => service.File.GetIndentity() == "acs1");
         }
 
-        public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
+        public async Task<IEnumerable<Transaction>> GetPreTransactionsAsync(
+            IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
-            if (!IsAcs1(descriptors))
+            var context = _contextService.Create();
+            var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
+
+            if (!IsAcs1(descriptors) && transactionContext.Transaction.To != tokenContractAddress)
             {
                 return new List<Transaction>();
             }
 
-            var context = _contextService.Create();
             context.TransactionContext = transactionContext;
             var selfStub = new FeeChargedContractContainer.FeeChargedContractStub()
             {
@@ -43,13 +47,12 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             {
                 Name = context.TransactionContext.Transaction.MethodName
             });
-            
+
             if (!fee.Amounts.Any())
             {
                 return new List<Transaction>();
             }
-            
-            var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
+
             if (tokenContractAddress == null)
             {
                 return new List<Transaction>();
