@@ -1,5 +1,4 @@
 using Acs0;
-using Acs1;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Treasury;
@@ -52,8 +51,6 @@ namespace AElf.Contracts.MultiToken
             get;
             set;
         }
-
-
 
         internal ACS0Container.ACS0ReferenceState ZeroContract { get; set; }
 
