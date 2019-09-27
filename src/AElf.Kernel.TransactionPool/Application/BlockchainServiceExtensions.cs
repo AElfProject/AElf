@@ -13,7 +13,7 @@ namespace AElf.Kernel.TransactionPool.Application
             if (firstHeight == 0)
                 return new List<IBlockIndex>();
             
-            var indexCount = bestChainHeight - firstHeight - 1;
+            var indexCount = bestChainHeight - firstHeight;
             var blockIndexes = await blockchainService.GetReversedBlockIndexes(bestChainHash, (int) indexCount);
 
             blockIndexes.Add(new BlockIndex
