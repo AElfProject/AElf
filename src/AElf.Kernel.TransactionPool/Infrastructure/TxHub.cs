@@ -148,7 +148,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private async Task<Dictionary<long, ByteString>> GetPrefixesByHeightAsync(IEnumerable<long> heights,
             Hash bestChainHash)
         {
-            Logger.LogTrace($"Get prefix -- Start.");
             var prefixes = new Dictionary<long, ByteString>();
             var chain = await _blockchainService.GetChainAsync();
             foreach (var h in heights)
@@ -156,8 +155,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 var prefix = await GetPrefixByHeightAsync(chain, h, bestChainHash);
                 prefixes.Add(h, prefix);
             }
-
-            Logger.LogTrace($"Get prefix -- Finish.");
 
             return prefixes;
         }
