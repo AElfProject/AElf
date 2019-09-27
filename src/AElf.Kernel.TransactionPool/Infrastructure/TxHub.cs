@@ -274,18 +274,20 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             Logger.LogDebug(
                 $"Handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
 
-            var minimumHeight = _allTransactions.Min(kv => kv.Value.Transaction.RefBlockNumber);
+            var minimumHeight = _allTransactions.Count == 0
+                ? 0
+                : _allTransactions.Min(kv => kv.Value.Transaction.RefBlockNumber);
             var prefixes = await GetPrefixesByHeightAsync(minimumHeight, eventData.BlockHash);
             ResetCurrentCollections();
             foreach (var kv in _allTransactions)
             {
-                var prefix = prefixes[kv.Value.Transaction.RefBlockNumber];
+                prefixes.TryGetValue(kv.Value.Transaction.RefBlockNumber, out var prefix);
                 CheckPrefixForOne(kv.Value, prefix, _bestChainHeight);
                 AddToRespectiveCurrentCollection(kv.Value);
             }
 
             CleanTransactions(_expiredByExpiryBlock, eventData.BlockHeight);
-            
+
             _bestChainHash = eventData.BlockHash;
             _bestChainHeight = eventData.BlockHeight;
 

@@ -11,6 +11,10 @@ namespace AElf.Kernel.TransactionPool.Application
             long firstHeight, Hash bestChainHash)
         {
             var result = new Dictionary<long, Hash>();
+
+            if (firstHeight == 0)
+                return result;
+
             var chain = await blockchainService.GetChainAsync();
             result.Add(chain.BestChainHeight, chain.BestChainHash);
 
