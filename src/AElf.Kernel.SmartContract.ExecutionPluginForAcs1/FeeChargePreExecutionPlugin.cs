@@ -39,20 +39,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             }
 
             context.TransactionContext = transactionContext;
-            var selfStub = new MethodFeeProviderContractContainer.MethodFeeProviderContractStub
-            {
-                __factory = new MethodStubFactory(context)
-            };
-
-            var fee = await selfStub.GetMethodFee.CallAsync(new StringValue
-            {
-                Value = context.TransactionContext.Transaction.MethodName
-            });
-
-            if (!fee.Fee.Any())
-            {
-                return new List<Transaction>();
-            }
 
             if (tokenContractAddress == null)
             {

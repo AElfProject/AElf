@@ -6,12 +6,12 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract
     {
-/*        public override MethodFees GetMethodFee(StringValue input)
+        private MethodFees GetMethodFee(string input)
         {
-            return State.MethodFees[input.Value];
+            return State.MethodFees[input];
         }
 
-        public override Empty SetMethodFee(MethodFees input)
+        internal Empty SetMethodFee(MethodFees input)
         {
             if (State.ParliamentAuthContract.Value == null)
             {
@@ -33,6 +33,6 @@ namespace AElf.Contracts.MultiToken
 
             State.MethodFees[input.MethodName] = input;
             return new Empty();
-        }*/
+        }
     }
 }

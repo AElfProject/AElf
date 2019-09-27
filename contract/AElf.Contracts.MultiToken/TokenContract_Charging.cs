@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Acs1;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -22,9 +23,17 @@ namespace AElf.Contracts.MultiToken
 
             State.MethodFeeProviderContract.Value = input.ContractAddress;
 
-            var fee = State.MethodFeeProviderContract.GetMethodFee.Call(new StringValue {Value = input.MethodName});
-            ChargeFirstSufficientToken(fee.Fee.ToDictionary(f => f.Symbol, f => f.BasicFee), out var symbol,
-                out var amount, out var existingBalance);
+            var fee = input.ContractAddress == Context.Self
+                ? GetMethodFee(input.MethodName)
+                : State.MethodFeeProviderContract.GetMethodFee.Call(new StringValue {Value = input.MethodName});
+
+            if (fee == null || !fee.Fee.Any()) return new Empty();
+
+            if (!ChargeFirstSufficientToken(fee.Fee.ToDictionary(f => f.Symbol, f => f.BasicFee), out var symbol,
+                out var amount, out var existingBalance))
+            {
+                Assert(false, "Failed to charge first sufficient token.");
+            }
 
             var bill = new TransactionFeeBill
             {
@@ -36,7 +45,8 @@ namespace AElf.Contracts.MultiToken
 
             var fromAddress = Context.Sender;
             State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
-            State.ChargedFees[fromAddress] = State.ChargedFees[fromAddress] + bill;
+            var oldBill = State.ChargedFees[fromAddress];
+            State.ChargedFees[fromAddress] = oldBill == null ? bill : oldBill + bill;
             return new Empty();
         }
 
@@ -69,10 +79,10 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        private void ChargeFirstSufficientToken(Dictionary<string, long> symbolToAmountMap, out string symbol,
+        private bool ChargeFirstSufficientToken(Dictionary<string, long> symbolToAmountMap, out string symbol,
             out long amount, out long existingBalance)
         {
-            symbol = Context.Variables.NativeSymbol;
+            symbol = null;
             amount = 0L;
             existingBalance = 0L;
             var fromAddress = Context.Sender;
@@ -95,6 +105,8 @@ namespace AElf.Contracts.MultiToken
 
             // Traversed all available tokens, can't find balance of any token enough to pay transaction fee.
             Assert(existingBalance >= amount, "Insufficient balance to pay transaction fee.");
+
+            return symbol != null;
         }
 
         public override Empty ClaimTransactionFees(Empty input)
@@ -117,7 +129,13 @@ namespace AElf.Contracts.MultiToken
             var totalBill = new TransactionFeeBill();
             foreach (var sender in senders)
             {
-                totalBill += State.ChargedFees[sender];
+                var oldBill = State.ChargedFees[sender];
+                if (oldBill != null)
+                {
+                    totalBill += oldBill;
+                }
+
+                // Clear
                 State.ChargedFees[sender] = new TransactionFeeBill();
             }
 
@@ -134,17 +152,19 @@ namespace AElf.Contracts.MultiToken
         /// Burn 10%
         /// </summary>
         /// <param name="symbol"></param>
-        /// <param name="totalFee"></param>
-        private void TransferTransactionFeesToFeeReceiver(string symbol, long totalFee)
+        /// <param name="totalAmount"></param>
+        private void TransferTransactionFeesToFeeReceiver(string symbol, long totalAmount)
         {
-            var burnAmount = totalFee.Div(10);
+            if (totalAmount <= 0) return;
+
+            var burnAmount = totalAmount.Div(10);
             Context.SendInline(Context.Self, nameof(Burn), new BurnInput
             {
                 Symbol = symbol,
                 Amount = burnAmount
             });
 
-            var transferAmount = totalFee.Sub(burnAmount);
+            var transferAmount = totalAmount.Sub(burnAmount);
             if (State.TreasuryContract.Value != null)
             {
                 // Main chain would donate tx fees to dividend pool.
