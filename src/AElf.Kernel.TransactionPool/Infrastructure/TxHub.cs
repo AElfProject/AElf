@@ -145,9 +145,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             return GetPrefixByHash(hash);
         }
 
-        private async Task<Dictionary<long, ByteString>> GetPrefixesByHeightAsync(long firstHeight, Hash bestChainHash)
+        private async Task<Dictionary<long, ByteString>> GetPrefixesByHeightAsync(long firstHeight, Hash bestChainHash,
+            long bestChainHeight)
         {
-            var blockIndexes = await _blockchainService.GetBlockIndexesAsync(firstHeight, bestChainHash);
+            var blockIndexes =
+                await _blockchainService.GetBlockIndexesAsync(firstHeight, bestChainHash, bestChainHeight);
 
             return blockIndexes.ToDictionary(blockIndex => blockIndex.Key,
                 blockIndex => GetPrefixByHash(blockIndex.Value));
@@ -277,7 +279,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var minimumHeight = _allTransactions.Count == 0
                 ? 0
                 : _allTransactions.Min(kv => kv.Value.Transaction.RefBlockNumber);
-            var prefixes = await GetPrefixesByHeightAsync(minimumHeight, eventData.BlockHash);
+            var prefixes = await GetPrefixesByHeightAsync(minimumHeight, eventData.BlockHash, eventData.BlockHeight);
             ResetCurrentCollections();
             foreach (var kv in _allTransactions)
             {
