@@ -10,7 +10,6 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Profit;
 using AElf.Contracts.ReferendumAuth;
-using AElf.Contracts.Resource.FeeReceiver;
 using AElf.Contracts.TokenConverter;
 using AElf.Runtime.CSharp.Policies;
 using AElf.Runtime.CSharp.Tests.BadContract;

@@ -61,7 +61,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 var tester = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation =
-                    (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
+                    (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggers[minerInRound.Pubkey]
                         .ToBytesValue())).ToConsensusHeaderInformation();
 
                 // Update consensus information.
@@ -72,7 +72,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var changeTermTime = BlockchainStartTimestamp.ToDateTime();
             BlockTimeProvider.SetBlockTime(changeTermTime.ToTimestamp());
 
-            var nextTermInformation = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
+            var nextTermInformation = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.NextRound,
@@ -83,7 +83,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             changeTermTime = BlockchainStartTimestamp.ToDateTime().AddMinutes(termIntervalMin).AddSeconds(10);
             BlockTimeProvider.SetBlockTime(changeTermTime.ToTimestamp());
 
-            nextTermInformation = (await AEDPoSContractStub.GetInformationToUpdateConsensus.CallAsync(
+            nextTermInformation = (await AEDPoSContractStub.GetConsensusExtraData.CallAsync(
                 new AElfConsensusTriggerInformation
                 {
                     Behaviour = AElfConsensusBehaviour.NextTerm,
@@ -108,7 +108,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 changeTermTime = BlockchainStartTimestamp.ToDateTime()
                     .AddMinutes((termCount + 2).Mul(termIntervalMin)).AddSeconds(10);
                 BlockTimeProvider.SetBlockTime(changeTermTime.ToTimestamp());
-                var nextRoundInformation = (await newMinerStub.GetInformationToUpdateConsensus.CallAsync(
+                var nextRoundInformation = (await newMinerStub.GetConsensusExtraData.CallAsync(
                     new AElfConsensusTriggerInformation
                     {
                         Behaviour = AElfConsensusBehaviour.NextTerm,

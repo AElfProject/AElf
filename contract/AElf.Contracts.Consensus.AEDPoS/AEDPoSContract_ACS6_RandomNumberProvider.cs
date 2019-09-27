@@ -7,6 +7,7 @@ using AElf.Types;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         internal class RandomNumberRequestHandler
@@ -186,8 +187,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     var randomHash = provider.GetRandomNumber(round);
                     if (randomHash != Hash.Empty)
                     {
-                        Context.Fire(new RandomNumberGenerated {TokenHash = input, RandomHash = randomHash});
-                        return randomHash;
+                        var finalRandomHash = Hash.FromTwoHashes(randomHash, input);
+                        Context.Fire(new RandomNumberGenerated {TokenHash = input, RandomHash = finalRandomHash});
+                        return finalRandomHash;
                     }
 
                     roundNumber = roundNumber.Add(1);
