@@ -91,16 +91,23 @@ namespace AElf.OS.Network.Grpc
             var taskList = NetworkOptions.BootNodes
                 .Select(async node =>
                 {
+                    bool dialed = false;
+                    
+                    if (!IpEndpointHelper.TryParse(node, out IPEndPoint endpoint))
+                        return;
+                    
                     try
                     {
-                        if (!IpEndpointHelper.TryParse(node, out IPEndPoint endpoint))
-                            return;
-                        await _connectionService.ConnectAsync(endpoint);
+                        dialed = await _connectionService.ConnectAsync(endpoint);
                     }
                     catch (Exception e)
                     {
                         Logger.LogError(e, $"Connect peer failed.{node}");
                     }
+
+                    if (!dialed)
+                        await _connectionService.SchedulePeerReconnection(endpoint);
+
                 }).ToList();
             
             await Task.WhenAll(taskList.ToArray<Task>());
@@ -123,7 +130,7 @@ namespace AElf.OS.Network.Grpc
 
         public async Task<bool> TryScheduleReconnection(IPeer peer)
         {
-            return await _connectionService.TryScheduleReconnection(peer);
+            return await _connectionService.TrySchedulePeerReconnectionAsync(peer);
         }
 
         public async Task StopAsync(bool gracefulDisconnect = true)

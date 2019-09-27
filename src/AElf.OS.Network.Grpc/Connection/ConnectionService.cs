@@ -55,7 +55,12 @@ namespace AElf.OS.Network.Grpc.Connection
             Logger.LogDebug($"Removed peer {peer}");
         }
 
-        public async Task<bool> TryScheduleReconnection(IPeer peer)
+        public async Task<bool> SchedulePeerReconnection(IPEndPoint endpoint)
+        {
+            return _reconnectionService.SchedulePeerForReconnection(endpoint.ToString());
+        }
+
+        public async Task<bool> TrySchedulePeerReconnectionAsync(IPeer peer)
         {
             await DisconnectAsync(peer);
             

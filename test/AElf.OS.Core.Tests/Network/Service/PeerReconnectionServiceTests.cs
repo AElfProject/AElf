@@ -25,7 +25,7 @@ namespace AElf.OS.Network.Service
         {
             var endpoint = "127.0.0.1:5677";
             
-            _reconnectionService.SchedulePeerForReconnection(endpoint, TimestampHelper.GetUtcNow());
+            _reconnectionService.SchedulePeerForReconnection(endpoint);
             var peers = _connectionStateProvider.GetPeersReadyForReconnection(TimestampHelper.GetUtcNow().AddSeconds(1));
             
             peers.Count.ShouldBe(1);
@@ -37,7 +37,7 @@ namespace AElf.OS.Network.Service
         {
             var endpoint = "127.0.0.1:5677";
             
-            _reconnectionService.SchedulePeerForReconnection(endpoint, TimestampHelper.GetUtcNow());
+            _reconnectionService.SchedulePeerForReconnection(endpoint);
             _reconnectionService.CancelReconnection(endpoint);
             
             var peers = _connectionStateProvider.GetPeersReadyForReconnection(TimestampHelper.GetUtcNow().AddSeconds(1));
