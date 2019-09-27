@@ -21,17 +21,47 @@ namespace AElf.OS.Network.Service
         }
 
         [Fact]
+        public async Task GetPeersReadyForReconnection_WithNull_ReturnsAll()
+        {
+            var endpoint = "127.0.0.1:5677";
+            var endpointBeforeNow = "127.0.0.1:5678";
+            var endpointAfterNow = "127.0.0.1:5679";
+            
+            _reconnectionService.SchedulePeerForReconnection(endpoint);
+            _reconnectionService.SchedulePeerForReconnection(endpointBeforeNow);
+            _reconnectionService.SchedulePeerForReconnection(endpointAfterNow);
+            
+            var peers = _connectionStateProvider.GetPeersReadyForReconnection(null);
+            
+            peers.Count.ShouldBe(3);
+        }
+        
+        [Fact]
+        public async Task ScheduledPeer_CannotAddPeerTwice()
+        {
+            var endpoint = "127.0.0.1:5677";
+            
+            _reconnectionService.SchedulePeerForReconnection(endpoint).ShouldBeTrue();
+            _reconnectionService.SchedulePeerForReconnection(endpoint).ShouldBeFalse();
+            
+            var peers = _connectionStateProvider.GetPeersReadyForReconnection(null);
+            
+            peers.Count.ShouldBe(1);
+            peers.First().Endpoint.ShouldBe(endpoint);
+        }
+
+        [Fact]
         public async Task ScheduledPeer_ShouldBeRetrievableWithTheProvider()
         {
             var endpoint = "127.0.0.1:5677";
             
             _reconnectionService.SchedulePeerForReconnection(endpoint);
-            var peers = _connectionStateProvider.GetPeersReadyForReconnection(TimestampHelper.GetUtcNow().AddSeconds(1));
+            var peers = _connectionStateProvider.GetPeersReadyForReconnection(TimestampHelper.GetUtcNow().AddMinutes(2));
             
             peers.Count.ShouldBe(1);
             peers.First().Endpoint.ShouldBe(endpoint);
         }
-        
+
         [Fact]
         public async Task RemovePeer_ShouldNotRetrievableWithTheProvider()
         {
