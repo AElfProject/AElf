@@ -36,13 +36,14 @@ namespace AElf.Kernel.SmartContract.Parallel
             var wrongTransactionIds = wrong.Select(t => t.GetHash()).ToArray();
             eventData.ConflictingSets.RemoveAll(t => !t.TransactionId.IsIn(wrongTransactionIds));
 
-            _resourceExtractionService.ClearConflictingTransactionsResourceCache(wrongTransactionIds);
-
-            var wrongTransactionAddresses = wrong.Select(t => t.To).Distinct();
+            var wrongTransactionAddresses = wrong.Select(t => t.To).Distinct().ToList();
             foreach (var address in wrongTransactionAddresses)
             {
                 await _codeRemarksService.MarkUnparallelizableAsync(chainContext, address);
             }
+
+            _resourceExtractionService.ClearConflictingTransactionsResourceCache(wrongTransactionIds,
+                wrongTransactionAddresses);
         }
     }
 }

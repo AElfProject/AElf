@@ -113,9 +113,16 @@ namespace AElf.Kernel.SmartContract.Parallel
             }
         }
 
-        public void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds)
+        public void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds,IEnumerable<Address> contractAddresses)
         {
             ClearResourceCache(transactionIds);
+            var keys = _resourceCache.Where(c =>
+                contractAddresses.Contains(c.Value.Address) &&
+                c.Value.ResourceInfo.ParallelType != ParallelType.NonParallelizable).Select(c => c.Key);
+            foreach (var key in keys)
+            {
+                _resourceCache[key].ResourceInfo.ParallelType = ParallelType.NonParallelizable;
+            }
         }
 
         #region Event Handler Methods

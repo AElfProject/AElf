@@ -164,9 +164,12 @@ namespace AElf.Parallel.Tests
             
             var otherTransactions =  _parallelTestHelper.GenerateBasicFunctionWithParallelTransactions(groupUsers, _transactionCount);
             await _parallelTestHelper.BroadcastTransactions(otherTransactions);
+            
+            var transferTransactions =  await _parallelTestHelper.GenerateTransferTransactions(16);
+            await _parallelTestHelper.BroadcastTransactions(transferTransactions);
 
             var poolSize = await _txHub.GetAllTransactionCountAsync();
-            poolSize.ShouldBe(transactions.Count * 2);
+            poolSize.ShouldBe(transactions.Count * 2 + transferTransactions.Count);
 
             var groupedTransactions = await _grouper.GroupAsync(
                 new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight},
@@ -183,6 +186,13 @@ namespace AElf.Parallel.Tests
                 otherTransactions);
             otherGroupedTransactions.Parallelizables.Count.ShouldBe(_transactionCount);
             otherGroupedTransactions.NonParallelizables.Count.ShouldBe(0);
+            
+            var groupedTransferTransactions = await _grouper.GroupAsync(
+                new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight},
+                transferTransactions);
+            groupedTransferTransactions.Parallelizables.Count.ShouldBe(1);
+            groupedTransferTransactions.Parallelizables[0].Count.ShouldBe(transferTransactions.Count);
+            groupedTransferTransactions.NonParallelizables.Count.ShouldBe(0);
 
             var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
             block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
@@ -233,14 +243,23 @@ namespace AElf.Parallel.Tests
 
             groupedTransactions.Parallelizables.Count.ShouldBe(0);
             groupedTransactions.NonParallelizables.Count.ShouldBe(_transactionCount);
+
+            otherGroupedTransactions = await _grouper.GroupAsync(
+                new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
+                otherTransactions);
+            otherGroupedTransactions.Parallelizables.Count.ShouldBe(0);
+            otherGroupedTransactions.NonParallelizables.Count.ShouldBe(_transactionCount);
+            
+            groupedTransferTransactions = await _grouper.GroupAsync(
+                new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight},
+                transferTransactions);
+            groupedTransferTransactions.Parallelizables.Count.ShouldBe(1);
+            groupedTransferTransactions.Parallelizables[0].Count.ShouldBe(transferTransactions.Count);
+            groupedTransferTransactions.NonParallelizables.Count.ShouldBe(0);
             
             poolSize = await _txHub.GetAllTransactionCountAsync();
 
-            poolSize.ShouldBe(transactions.Count * 2 - block.TransactionIds.Count());
-
-            block = await _minerService.MineAsync(block.GetHash(), block.Height, TimestampHelper.GetUtcNow(),
-                TimestampHelper.DurationFromSeconds(4));
-            block.TransactionIds.Count().ShouldBe(poolSize);
+            poolSize.ShouldBe(transactions.Count * 2 + transferTransactions.Count - block.TransactionIds.Count());
         }
 
         [Fact]
