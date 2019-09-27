@@ -57,7 +57,7 @@ namespace AElf.OS.Network
             {
                 Mock<IHandshakeProvider> mockHskPro = new Mock<IHandshakeProvider>();
                 mockHskPro.Setup(p => p.GetHandshakeAsync())
-                    .Returns(Task.FromResult(new Handshake {SessionId = ByteString.CopyFrom(new byte[] {0, 1, 2})}));
+                    .Returns(Task.FromResult(new Handshake {SessionId = ByteString.CopyFrom(new byte[] {0, 1, 2}), HandshakeData = new HandshakeData()}));
                 mockHskPro.Setup(p => p.ValidateHandshakeAsync(It.IsAny<Handshake>()))
                     .Returns(Task.FromResult(HandshakeValidationResult.Ok));
                 return mockHskPro.Object;
