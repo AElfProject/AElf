@@ -60,7 +60,7 @@ namespace AElf.OS.Worker
                     continue;
                 }
 
-                Logger.LogDebug($"Starting reconnection to {peerToConnect}.");
+                Logger.LogDebug($"Starting reconnection to {peerToConnect.Endpoint}.");
 
                 var connected = false;
                 
