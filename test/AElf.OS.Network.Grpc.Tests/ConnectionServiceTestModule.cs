@@ -43,7 +43,7 @@ namespace AElf.OS.Network
                         await Task.Delay(TimeSpan.FromSeconds(2));
                         
                         return new GrpcPeer(
-                            new GrpcClient(null, Mock.Of<PeerService.PeerServiceClient>()), ip, new PeerInfo
+                            new GrpcClient(null, Mock.Of<PeerService.PeerServiceClient>()), ip, new PeerConnectionInfo
                             {
                                 Pubkey = hsk.HandshakeData.Pubkey.ToHex(),
                                 ConnectionTime = TimestampHelper.GetUtcNow()
