@@ -54,7 +54,7 @@ namespace AElf.OS.Worker
                 {
                     Logger.LogDebug($"Peer {peerEndpoint} already in the pool, no need to reconnect.");
 
-                    if (!_reconnectionService.RemoveReconnectionPeer(peerEndpoint))
+                    if (!_reconnectionService.CancelReconnection(peerEndpoint))
                         Logger.LogDebug($"Could not find to {peerEndpoint}.");
                     
                     continue;
@@ -77,7 +77,7 @@ namespace AElf.OS.Worker
                 {
                     Logger.LogDebug($"Reconnection to {peerEndpoint} succeeded.");
 
-                    if (!_reconnectionService.RemoveReconnectionPeer(peerEndpoint))
+                    if (!_reconnectionService.CancelReconnection(peerEndpoint))
                         Logger.LogDebug($"Could not find {peerEndpoint}.");
                 }
                 else

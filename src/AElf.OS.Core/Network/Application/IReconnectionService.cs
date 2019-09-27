@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
 using AElf.Sdk.CSharp;
@@ -14,7 +13,6 @@ namespace AElf.OS.Network.Application
         bool SchedulePeerForReconnection(string endpoint);
         bool CancelReconnection(string endpoint);
         List<ReconnectingPeer> GetPeersReadyForReconnection(Timestamp maxTime);
-        bool RemoveReconnectionPeer(string peerEndpoint);
     }
 
     public class ReconnectionService : IReconnectionService
@@ -36,11 +34,6 @@ namespace AElf.OS.Network.Application
             return _reconnectionStateProvider.GetPeersReadyForReconnection(maxTime);
         }
 
-        public bool RemoveReconnectionPeer(string peerEndpoint)
-        {
-            return _reconnectionStateProvider.RemoveReconnectionPeer(peerEndpoint);
-        }
-        
         public bool SchedulePeerForReconnection(string endpoint)
         {
             var nextTry = TimestampHelper.GetUtcNow().AddMilliseconds(NetworkOptions.PeerReconnectionPeriod + 1000);
