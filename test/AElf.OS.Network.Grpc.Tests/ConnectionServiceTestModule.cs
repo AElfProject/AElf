@@ -6,6 +6,8 @@ using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Protocol;
+using AElf.OS.Network.Protocol.Types;
+using AElf.OS.Network.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -28,7 +30,7 @@ namespace AElf.OS.Network
                     .Returns<IPEndPoint, Handshake>((ip, hsk) =>
                     {
                         return Task.FromResult(new GrpcPeer(
-                                new GrpcClient(null, Mock.Of<PeerService.PeerServiceClient>()), ip, new PeerInfo
+                                new GrpcClient(null, Mock.Of<PeerService.PeerServiceClient>()), ip, new PeerConnectionInfo
                                 {
                                     Pubkey = hsk.HandshakeData.Pubkey.ToHex(),
                                     ConnectionTime = TimestampHelper.GetUtcNow()
