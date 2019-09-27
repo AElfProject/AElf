@@ -23,14 +23,12 @@ namespace AElf.WebApp.Application.Net
     public class NetAppService : INetAppService
     {
         private readonly INetworkService _networkService;
-        private readonly IReconnectionService _reconnectionService;
 
         private static readonly string Version = typeof(NetApplicationWebAppAElfModule).Assembly.GetName().Version.ToString();
 
-        public NetAppService(INetworkService networkService, IReconnectionService reconnectionService)
+        public NetAppService(INetworkService networkService)
         {
             _networkService = networkService;
-            _reconnectionService = reconnectionService;
         }
         
         /// <summary>
@@ -49,7 +47,6 @@ namespace AElf.WebApp.Application.Net
         /// <returns></returns>
         public async Task<bool> RemovePeerAsync(string address)
         {
-            _reconnectionService.RemovePeer(address);
             return await _networkService.RemovePeerAsync(address);
         }
         

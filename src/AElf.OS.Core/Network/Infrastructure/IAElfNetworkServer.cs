@@ -7,7 +7,8 @@ namespace AElf.OS.Network.Infrastructure
     public interface IAElfNetworkServer
     {
         Task<bool> ConnectAsync(IPEndPoint endpoint);
-        Task DisconnectAsync(IPeer peer, bool sendDisconnect = false, bool recover = true);
+        Task DisconnectAsync(IPeer peer, bool sendDisconnect = false);
+        Task<bool> TryScheduleReconnection(IPeer peer);
         Task StartAsync();
         Task StopAsync(bool gracefulDisconnect = true);
     }

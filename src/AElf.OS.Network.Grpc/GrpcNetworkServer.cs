@@ -116,9 +116,14 @@ namespace AElf.OS.Network.Grpc
             return await _connectionService.ConnectAsync(endpoint);
         }
 
-        public async Task DisconnectAsync(IPeer peer, bool sendDisconnect = false, bool recover = true)
+        public async Task DisconnectAsync(IPeer peer, bool sendDisconnect = false)
         {
-            await _connectionService.DisconnectAsync(peer, sendDisconnect, recover);
+            await _connectionService.DisconnectAsync(peer, sendDisconnect);
+        }
+
+        public async Task<bool> TryScheduleReconnection(IPeer peer)
+        {
+            return await _connectionService.TryScheduleReconnection(peer);
         }
 
         public async Task StopAsync(bool gracefulDisconnect = true)

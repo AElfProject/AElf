@@ -7,7 +7,8 @@ namespace AElf.OS.Network.Grpc
     public interface IConnectionService
     {
         GrpcPeer GetPeerByPubkey(string pubkey);
-        Task DisconnectAsync(IPeer peer, bool sendDisconnect = false, bool recover = true);
+        Task DisconnectAsync(IPeer peer, bool sendDisconnect = false);
+        Task<bool> TryScheduleReconnection(IPeer peer);
         Task<bool> ConnectAsync(IPEndPoint endpoint);
         Task<HandshakeReply> DoHandshakeAsync(IPEndPoint endpoint, Handshake handshake);
         void ConfirmHandshake(string peerPubkey);
