@@ -48,36 +48,6 @@ namespace AElf.Kernel.Blockchain.Application
             if (transactionBlockIndex != null)
                 return await _transactionResultManager.GetTransactionResultAsync(transactionId,
                     transactionBlockIndex.BlockHash);
-//
-//            var hash = chain.BestChainHash;
-//            var until = chain.LastIrreversibleBlockHeight > Constants.GenesisBlockHeight
-//                ? chain.BestChainHeight - 1
-//                : Constants.GenesisBlockHeight;
-//            while (true)
-//            {
-//                var result = await _transactionResultManager.GetTransactionResultAsync(transactionId, hash);
-//                if (result != null)
-//                {
-//                    return result;
-//                }
-//
-//                var header = await _blockchainService.GetBlockHeaderByHashAsync(hash);
-//                result = await _transactionResultManager.GetTransactionResultAsync(transactionId,
-//                    header.GetPreMiningHash());
-//                if (result != null)
-//                {
-//                    return result;
-//                }
-//
-//                if (header.Height <= until)
-//                {
-//                    // do until 1 block below LIB, in case the TransactionBlockIndex is not already added during
-//                    // NewIrreversibleBlockFoundEvent handling
-//                    break;
-//                }
-//
-//                hash = header.PreviousBlockHash;
-//            }
 
             return null;
         }
