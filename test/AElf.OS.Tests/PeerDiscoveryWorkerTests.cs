@@ -5,6 +5,7 @@ using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Protocol.Types;
 using AElf.OS.Worker;
 using Grpc.Core;
 using Shouldly;
@@ -54,7 +55,7 @@ namespace AElf.OS
             var channel = new Channel(ipAddress, ChannelCredentials.Insecure);
             var client = new PeerService.PeerServiceClient(channel);
 
-            var connectionInfo = new PeerInfo
+            var connectionInfo = new PeerConnectionInfo
             {
                 Pubkey = pubkey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,

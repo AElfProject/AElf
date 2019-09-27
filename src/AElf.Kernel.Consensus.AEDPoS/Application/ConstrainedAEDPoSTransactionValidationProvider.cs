@@ -13,8 +13,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     // ReSharper disable once InconsistentNaming
     public class ConstrainedAEDPoSTransactionValidationProvider : IConstrainedTransactionValidationProvider
     {
-        private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISystemTransactionMethodNameListProvider _coreTransactionMethodNameListProvider;
+        private readonly Address _consensusContractAddress;
 
         public ILogger<ConstrainedAEDPoSTransactionValidationProvider> Logger { get; set; }
 
@@ -24,17 +24,16 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public ConstrainedAEDPoSTransactionValidationProvider(ISmartContractAddressService smartContractAddressService,
             ISystemTransactionMethodNameListProvider coreTransactionMethodNameListProvider)
         {
-            _smartContractAddressService = smartContractAddressService;
             _coreTransactionMethodNameListProvider = coreTransactionMethodNameListProvider;
+            _consensusContractAddress =
+                smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
         }
 
         public bool ValidateTransaction(Transaction transaction, Hash blockHash)
         {
-            var consensusContractAddress =
-                _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
             var constrainedTransaction = new Lazy<List<string>>(() =>
                 _coreTransactionMethodNameListProvider.GetSystemTransactionMethodNameList());
-            if (transaction.To == consensusContractAddress &&
+            if (transaction.To == _consensusContractAddress &&
                 constrainedTransaction.Value.Contains(transaction.MethodName))
             {
                 if (!_alreadyHas.ContainsKey(blockHash))
@@ -45,7 +44,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
                 if (_alreadyHas[blockHash].GetHash() == transaction.GetHash())
                 {
-                    // Validate twice.
+                    // Validate twice or more.
                     return true;
                 }
 

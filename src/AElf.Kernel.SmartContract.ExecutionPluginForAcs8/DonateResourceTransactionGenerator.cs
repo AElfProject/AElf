@@ -8,6 +8,7 @@ using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
 {
@@ -15,6 +16,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
+
+        public ILogger<DonateResourceTransactionGenerator> Logger { get; set; }
 
 
         public DonateResourceTransactionGenerator(ISmartContractAddressService smartContractAddressService,
@@ -54,6 +57,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
                     Params = new Empty().ToByteString()
                 }
             });
+            
+            Logger.LogTrace("Donate resource transaction generated.");
         }
     }
 }
