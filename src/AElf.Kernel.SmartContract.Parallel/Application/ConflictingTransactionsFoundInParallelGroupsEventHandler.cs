@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Parallel.Domain;
@@ -31,7 +32,12 @@ namespace AElf.Kernel.SmartContract.Parallel
             };
             var wrong = await _conflictingTransactionIdentificationService.IdentifyConflictingTransactionsAsync(
                 chainContext, eventData.ExistingSets, eventData.ConflictingSets);
-            _resourceExtractionService.ClearConflictingTransactionsResourceCache(wrong.Select(t => t.GetHash()));
+            
+            var wrongTransactionIds = wrong.Select(t => t.GetHash()).ToArray();
+            eventData.ConflictingSets.RemoveAll(t => !t.TransactionId.IsIn(wrongTransactionIds));
+
+            _resourceExtractionService.ClearConflictingTransactionsResourceCache(wrongTransactionIds);
+
             var wrongTransactionAddresses = wrong.Select(t => t.To).Distinct();
             foreach (var address in wrongTransactionAddresses)
             {
