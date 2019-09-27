@@ -121,10 +121,10 @@ namespace AElf.Contracts.MultiToken
                 State.ChargedFees[sender] = new TransactionFeeBill();
             }
 
-            foreach (var bill in totalBill.TokenToAmount)
+            foreach (var (symbol, amount) in totalBill.TokenToAmount.Select(p => (p.Key, p.Value)))
             {
-                State.Balances[Context.Self][bill.Key] = State.Balances[Context.Self][bill.Key].Add(bill.Value);
-                TransferTransactionFeesToFeeReceiver(bill.Key, bill.Value);
+                State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(amount);
+                TransferTransactionFeesToFeeReceiver(symbol, amount);
             }
 
             return new Empty();

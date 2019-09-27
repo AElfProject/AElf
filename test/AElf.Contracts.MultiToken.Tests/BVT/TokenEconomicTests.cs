@@ -107,7 +107,8 @@ namespace AElf.Contracts.MultiToken
             await InitialEconomic();
             var result = (await TokenContractStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
             {
-                SymbolToAmount = {new Dictionary<string, long> {{AliceCoinTokenInfo.Symbol, 10L}}}
+                
+                //SymbolToAmount = {new Dictionary<string, long> {{AliceCoinTokenInfo.Symbol, 10L}}}
             })).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Mined);
             await TokenContractStub.Transfer.SendAsync(new TransferInput
@@ -129,35 +130,35 @@ namespace AElf.Contracts.MultiToken
         public async Task Set_And_Get_Method_Fee_Test()
         {
             await MultiTokenContract_Create_Test();
-            var feeChargerStub = GetTester<FeeChargedContractContainer.FeeChargedContractStub>(TokenContractAddress,
-                DefaultKeyPair);
+            var feeChargerStub = GetTester<MethodFeeProviderContractContainer.MethodFeeProviderContractStub>(
+                TokenContractAddress, DefaultKeyPair);
 
             // Fee not set yet.
             {
                 var fee = await feeChargerStub.GetMethodFee.CallAsync(
-                    new MethodName
+                    new StringValue
                     {
-                        Name = nameof(TokenContractContainer.TokenContractStub.Transfer)
+                        Value = nameof(TokenContractContainer.TokenContractStub.Transfer)
                     });
-                fee.Amounts.Select(a => a.Symbol).ShouldNotContain(AliceCoinTokenInfo.Symbol);
+                fee.Fee.Select(a => a.Symbol).ShouldNotContain(AliceCoinTokenInfo.Symbol);
             }
 
             // Set method fee.
-            var resultSet = (await feeChargerStub.SetMethodFee.SendAsync(new TokenAmounts
+            var resultSet = (await feeChargerStub.SetMethodFee.SendAsync(new MethodFees
             {
-                Method = nameof(TokenContractContainer.TokenContractStub.Transfer),
-                Amounts = {new TokenAmount {Symbol = AliceCoinTokenInfo.Symbol, Amount = 10L}}
+                MethodName = nameof(TokenContractContainer.TokenContractStub.Transfer),
+                Fee = {new MethodFee {Symbol = AliceCoinTokenInfo.Symbol, BasicFee = 10L}}
             })).TransactionResult;
             resultSet.Status.ShouldBe(TransactionResultStatus.Mined);
 
             // Check fee.
             {
                 var fee = await feeChargerStub.GetMethodFee.CallAsync(
-                    new MethodName
+                    new StringValue
                     {
-                        Name = nameof(TokenContractContainer.TokenContractStub.Transfer)
+                        Value = nameof(TokenContractContainer.TokenContractStub.Transfer)
                     });
-                fee.Amounts.First(a => a.Symbol == AliceCoinTokenInfo.Symbol).Amount.ShouldBe(10L);
+                fee.Fee.First(a => a.Symbol == AliceCoinTokenInfo.Symbol).BasicFee.ShouldBe(10L);
             }
         }
 
@@ -167,7 +168,7 @@ namespace AElf.Contracts.MultiToken
             await InitialEconomic();
             var result = (await TokenContractStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
             {
-                SymbolToAmount = {new Dictionary<string, long> {{DefaultSymbol, 10L}}}
+                //SymbolToAmount = {new Dictionary<string, long> {{DefaultSymbol, 10L}}}
             })).TransactionResult;
             result.Status.ShouldBe(TransactionResultStatus.Mined);
             await TokenContractStub.Transfer.SendAsync(new TransferInput

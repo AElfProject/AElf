@@ -98,16 +98,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
 
         private async Task SetMethodFee_Successful(long feeAmount)
         {
-            await DefaultTester.SetMethodFee.SendAsync(new TokenAmounts
+            await DefaultTester.SetMethodFee.SendAsync(new MethodFees
             {
-                Method = nameof(DefaultTester.DummyMethod),
-                Amounts = {new TokenAmount {Symbol = "ELF", Amount = feeAmount}}
+                MethodName = nameof(DefaultTester.DummyMethod),
+                Fee =
+                {
+                    new MethodFee {Symbol = "ELF", BasicFee = feeAmount}
+                }
             });
-            var fee = await DefaultTester.GetMethodFee.CallAsync(new MethodName
+            var fee = await DefaultTester.GetMethodFee.CallAsync(new StringValue
             {
-                Name = nameof(DefaultTester.DummyMethod)
+                Value = nameof(DefaultTester.DummyMethod)
             });
-            fee.Amounts.First(a => a.Symbol == "ELF").Amount.ShouldBe(feeAmount);
+            fee.Fee.First(a => a.Symbol == "ELF").BasicFee.ShouldBe(feeAmount);
         }
 
         [Fact]

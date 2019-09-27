@@ -8,6 +8,7 @@ using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
@@ -38,17 +39,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             }
 
             context.TransactionContext = transactionContext;
-            var selfStub = new FeeChargedContractContainer.FeeChargedContractStub()
+            var selfStub = new MethodFeeProviderContractContainer.MethodFeeProviderContractStub
             {
                 __factory = new MethodStubFactory(context)
             };
 
-            var fee = await selfStub.GetMethodFee.CallAsync(new MethodName
+            var fee = await selfStub.GetMethodFee.CallAsync(new StringValue
             {
-                Name = context.TransactionContext.Transaction.MethodName
+                Value = context.TransactionContext.Transaction.MethodName
             });
 
-            if (!fee.Amounts.Any())
+            if (!fee.Fee.Any())
             {
                 return new List<Transaction>();
             }
@@ -58,9 +59,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 return new List<Transaction>();
             }
 
-            var tokenStub = new TokenContractContainer.TokenContractStub()
+            var tokenStub = new TokenContractContainer.TokenContractStub
             {
-                __factory = new TransactionGeneratingOnlyMethodStubFactory()
+                __factory = new TransactionGeneratingOnlyMethodStubFactory
                 {
                     Sender = transactionContext.Transaction.From,
                     ContractAddress = tokenContractAddress
@@ -75,7 +76,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 
             var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
             {
-                SymbolToAmount = {fee.Amounts.ToDictionary(a => a.Symbol, a => a.Amount)}
+                MethodName = transactionContext.Transaction.MethodName,
+                ContractAddress = transactionContext.Transaction.To,
+                TransactionSize = transactionContext.Transaction.Size()
             })).Transaction;
             return new List<Transaction>
             {

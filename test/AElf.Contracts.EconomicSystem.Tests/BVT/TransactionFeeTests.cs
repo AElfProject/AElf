@@ -27,13 +27,13 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             //default fee
             {
-                var addOptionFeeAmount = await VoteContractStub.GetMethodFee.CallAsync(new MethodName
+                var addOptionFeeAmount = await VoteContractStub.GetMethodFee.CallAsync(new StringValue
                 {
-                    Name = nameof(VoteContractStub.AddOption)
+                    Value = nameof(VoteContractStub.AddOption)
                 });
-                addOptionFeeAmount.Method.ShouldBe(string.Empty); //default value is empty
-                addOptionFeeAmount.Amounts.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
-                addOptionFeeAmount.Amounts.First().Amount.ShouldBe(DefaultFeeAmount);
+                addOptionFeeAmount.MethodName.ShouldBe(string.Empty); //default value is empty
+                addOptionFeeAmount.Fee.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
+                addOptionFeeAmount.Fee.First().BasicFee.ShouldBe(DefaultFeeAmount);
             }
 
             //set transaction fee
@@ -41,13 +41,13 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 await Vote_SetMethodFee(nameof(VoteContractStub.AddOption), EconomicSystemTestConstants.NativeTokenSymbol, NewFeeAmount);
 
                 //query result
-                var addOptionFeeAmount = await VoteContractStub.GetMethodFee.CallAsync(new MethodName
+                var addOptionFeeAmount = await VoteContractStub.GetMethodFee.CallAsync(new StringValue
                 {
-                    Name = nameof(VoteContractStub.AddOption)
+                    Value = nameof(VoteContractStub.AddOption)
                 });
-                addOptionFeeAmount.Amounts.Count.ShouldBe(1);
-                addOptionFeeAmount.Amounts.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
-                addOptionFeeAmount.Amounts.First().Amount.ShouldBe(NewFeeAmount);
+                addOptionFeeAmount.Fee.Count.ShouldBe(1);
+                addOptionFeeAmount.Fee.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
+                addOptionFeeAmount.Fee.First().BasicFee.ShouldBe(NewFeeAmount);
             }
         }
         
@@ -83,13 +83,13 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         {
             //default fee
             {
-                var addOptionFeeAmount = await ProfitContractStub.GetMethodFee.CallAsync(new MethodName
+                var addOptionFeeAmount = await ProfitContractStub.GetMethodFee.CallAsync(new StringValue
                 {
-                    Name = nameof(ProfitContractStub.CreateScheme)
+                    Value = nameof(ProfitContractStub.CreateScheme)
                 });
-                addOptionFeeAmount.Method.ShouldBe(string.Empty); //default value is empty
-                addOptionFeeAmount.Amounts.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
-                addOptionFeeAmount.Amounts.First().Amount.ShouldBe(CreateSchemeAmount);
+                addOptionFeeAmount.MethodName.ShouldBe(string.Empty); //default value is empty
+                addOptionFeeAmount.Fee.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
+                addOptionFeeAmount.Fee.First().BasicFee.ShouldBe(CreateSchemeAmount);
             }
 
             //set transaction fee
@@ -97,13 +97,13 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 await Profit_SetMethodFee(nameof(ProfitContractStub.CreateScheme), EconomicSystemTestConstants.NativeTokenSymbol, NewFeeAmount);
 
                 //query result
-                var addOptionFeeAmount = await ProfitContractStub.GetMethodFee.CallAsync(new MethodName
+                var addOptionFeeAmount = await ProfitContractStub.GetMethodFee.CallAsync(new StringValue
                 {
-                    Name = nameof(ProfitContractStub.CreateScheme)
+                    Value = nameof(ProfitContractStub.CreateScheme)
                 });
-                addOptionFeeAmount.Amounts.Count.ShouldBe(1);
-                addOptionFeeAmount.Amounts.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
-                addOptionFeeAmount.Amounts.First().Amount.ShouldBe(NewFeeAmount);
+                addOptionFeeAmount.Fee.Count.ShouldBe(1);
+                addOptionFeeAmount.Fee.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
+                addOptionFeeAmount.Fee.First().BasicFee.ShouldBe(NewFeeAmount);
             }
         }
 
@@ -144,15 +144,15 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 OrganizationAddress = gensisOwner,
                 ContractMethodName = nameof(VoteContractStub.SetMethodFee),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = new TokenAmounts
+                Params = new MethodFees
                 {
-                    Method = method,
-                    Amounts =
+                    MethodName = method,
+                    Fee =
                     {
-                        new TokenAmount
+                        new MethodFee
                         {
                             Symbol = symbol,
-                            Amount = feeAmount
+                            BasicFee = feeAmount
                         }
                     }
                 }.ToByteString(),
@@ -180,15 +180,15 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 OrganizationAddress = gensisOwner,
                 ContractMethodName = nameof(ProfitContractStub.SetMethodFee),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = new TokenAmounts
+                Params = new MethodFees 
                 {
-                    Method = method,
-                    Amounts =
+                    MethodName = method,
+                    Fee =
                     {
-                        new TokenAmount
+                        new MethodFee
                         {
                             Symbol = symbol,
-                            Amount = feeAmount
+                            BasicFee = feeAmount
                         }
                     }
                 }.ToByteString(),
