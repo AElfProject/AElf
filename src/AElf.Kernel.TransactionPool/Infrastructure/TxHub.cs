@@ -158,6 +158,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
 
             Logger.LogTrace($"Get prefix -- Finish.");
+
+            return prefixes;
         }
 
         private void ResetCurrentCollections()
