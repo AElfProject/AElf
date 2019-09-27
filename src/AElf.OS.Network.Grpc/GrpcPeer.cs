@@ -60,8 +60,9 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public Hash LastKnownLibHash { get; private set; }
+        public string ConnectionStatus => _channel.State.ToString();
 
+        public Hash LastKnownLibHash { get; private set; }
         public long LastKnownLibHeight { get; private set; }
 
         public bool IsConnected { get; set; }

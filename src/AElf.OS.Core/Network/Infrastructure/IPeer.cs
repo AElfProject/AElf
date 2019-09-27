@@ -12,6 +12,7 @@ namespace AElf.OS.Network.Infrastructure
     public interface IPeer
     {
         bool IsReady { get; }
+        string ConnectionStatus { get; }
         bool IsInvalid { get; }
         Hash LastKnownLibHash { get; }
         long LastKnownLibHeight { get; }
