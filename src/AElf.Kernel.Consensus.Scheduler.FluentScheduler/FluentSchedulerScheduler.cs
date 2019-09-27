@@ -23,7 +23,7 @@ namespace AElf.Kernel.Consensus.Scheduler.FluentScheduler
             Logger = NullLogger<FluentSchedulerScheduler>.Instance;
         }
 
-        public void NewEvent(int countingMilliseconds, ConsensusRequestMiningEventData consensusRequestMiningEventData)
+        public void NewEvent(long countingMilliseconds, ConsensusRequestMiningEventData consensusRequestMiningEventData)
         {
             JobManager.UseUtcTime();
 

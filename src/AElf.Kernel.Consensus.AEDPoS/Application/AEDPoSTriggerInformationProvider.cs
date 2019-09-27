@@ -120,8 +120,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         /// <returns></returns>
         private Hash GetRandomHash(ConsensusCommand consensusCommand)
         {
-            var data = Hash.FromRawBytes(consensusCommand.NextBlockMiningLeftMilliseconds
-                .DumpByteArray());
+            var data = Hash.FromRawBytes(consensusCommand.ArrangedMiningTime.ToByteArray());
             var bytes = AsyncHelper.RunSync(() => _accountService.SignAsync(data.ToByteArray()));
             return Hash.FromRawBytes(bytes);
         }

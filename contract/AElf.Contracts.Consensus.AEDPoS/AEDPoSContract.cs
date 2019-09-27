@@ -8,6 +8,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract : AEDPoSContractImplContainer.AEDPoSContractImplBase
     {
         #region Initial
@@ -74,7 +75,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             State.CurrentTermNumber.Value = 1;
             State.CurrentRoundNumber.Value = 1;
             State.FirstRoundNumberOfEachTerm[1] = 1;
-            SetBlockchainStartTimestamp(input.GetStartTime());
             State.MiningInterval.Value = input.GetMiningInterval();
             SetMinerList(input.GetMinerList(), 1);
 

@@ -93,7 +93,7 @@ namespace AElf.Contracts.Election
 
         public override SInt32Value GetMinersCount(Empty input)
         {
-            return new SInt32Value {Value = State.MinersCount.Value};
+            return new SInt32Value {Value = State.MinersCount.Value };
         }
 
         public override ElectionResult GetElectionResult(GetElectionResultInput input)

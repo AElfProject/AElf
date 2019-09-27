@@ -119,7 +119,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
 
         public override Int64Output QueryExternalMethod1(Address input)
         {
-            var data = State.BasicFunctionTestContract.QueryUserWinMoney.Call(input);
+            var data = State.BasicFunctionContract.QueryUserWinMoney.Call(input);
             
             return new Int64Output
             {
@@ -129,7 +129,7 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         
         public override Int64Output QueryExternalMethod2(Address input)
         {
-            var data = State.BasicFunctionTestContract.QueryUserLoseMoney.Call(input);
+            var data = State.BasicFunctionContract.QueryUserLoseMoney.Call(input);
             
             return new Int64Output
             {
