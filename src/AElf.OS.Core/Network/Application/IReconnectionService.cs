@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Linq;
 using AElf.Kernel;
 using AElf.OS.Network.Infrastructure;
 using AElf.Sdk.CSharp;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -11,6 +13,8 @@ namespace AElf.OS.Network.Application
     {
         bool SchedulePeerForReconnection(string endpoint);
         bool CancelReconnection(string endpoint);
+        List<ReconnectingPeer> GetPeersReadyForReconnection(Timestamp maxTime);
+        bool RemoveReconnectionPeer(string peerEndpoint);
     }
 
     public class ReconnectionService : IReconnectionService
@@ -25,6 +29,16 @@ namespace AElf.OS.Network.Application
         public ReconnectionService(IPeerReconnectionStateProvider reconnectionStateProvider)
         {
             _reconnectionStateProvider = reconnectionStateProvider;
+        }
+
+        public List<ReconnectingPeer> GetPeersReadyForReconnection(Timestamp maxTime)
+        {
+            return _reconnectionStateProvider.GetPeersReadyForReconnection(maxTime);
+        }
+
+        public bool RemoveReconnectionPeer(string peerEndpoint)
+        {
+            return _reconnectionStateProvider.RemoveReconnectionPeer(peerEndpoint);
         }
         
         public bool SchedulePeerForReconnection(string endpoint)

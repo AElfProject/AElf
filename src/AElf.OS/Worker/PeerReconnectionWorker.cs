@@ -1,5 +1,6 @@
 using System;
 using AElf.Kernel;
+using AElf.OS.Network;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
@@ -10,12 +11,12 @@ using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
-namespace AElf.OS.Network.Worker
+namespace AElf.OS.Worker
 {
     public class PeerReconnectionWorker : PeriodicBackgroundWorkerBase, ISingletonDependency
     {
         private readonly IPeerPool _peerPool;
-        private readonly IPeerReconnectionStateProvider _reconnectionStateProvider;
+        private readonly IReconnectionService _reconnectionService;
         private readonly INetworkService _networkService;
 
         private readonly NetworkOptions _networkOptions;
@@ -23,11 +24,11 @@ namespace AElf.OS.Network.Worker
         public new ILogger<PeerReconnectionWorker> Logger { get; set; }
 
         public PeerReconnectionWorker(AbpTimer timer, IOptionsSnapshot<NetworkOptions> networkOptions, 
-            IPeerReconnectionStateProvider reconnectionStateProvider, INetworkService networkService, IPeerPool peerPool)
+            INetworkService networkService, IPeerPool peerPool, IReconnectionService reconnectionService)
             : base(timer)
         {
             _peerPool = peerPool;
-            _reconnectionStateProvider = reconnectionStateProvider;
+            _reconnectionService = reconnectionService;
             _networkService = networkService;
             _networkOptions = networkOptions.Value;
 
@@ -36,7 +37,7 @@ namespace AElf.OS.Network.Worker
 
         protected override async void DoWork()
         {
-            var peersToConnect = _reconnectionStateProvider.GetPeersReadyForReconnection(TimestampHelper.GetUtcNow());
+            var peersToConnect = _reconnectionService.GetPeersReadyForReconnection(TimestampHelper.GetUtcNow());
 
             if (peersToConnect.Count <= 0)
             {
@@ -53,7 +54,7 @@ namespace AElf.OS.Network.Worker
                 {
                     Logger.LogDebug($"Peer {peerEndpoint} already in the pool, no need to reconnect.");
 
-                    if (!_reconnectionStateProvider.RemoveReconnectionPeer(peerEndpoint))
+                    if (!_reconnectionService.RemoveReconnectionPeer(peerEndpoint))
                         Logger.LogDebug($"Could not find to {peerEndpoint}.");
                     
                     continue;
@@ -76,7 +77,7 @@ namespace AElf.OS.Network.Worker
                 {
                     Logger.LogDebug($"Reconnection to {peerEndpoint} succeeded.");
 
-                    if (!_reconnectionStateProvider.RemoveReconnectionPeer(peerEndpoint))
+                    if (!_reconnectionService.RemoveReconnectionPeer(peerEndpoint))
                         Logger.LogDebug($"Could not find {peerEndpoint}.");
                 }
                 else
