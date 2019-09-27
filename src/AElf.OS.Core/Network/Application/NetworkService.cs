@@ -319,7 +319,7 @@ namespace AElf.OS.Network.Application
             if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
             {
                 Logger.LogError(exception, $"Removing unrecoverable {peer}.");
-                await _networkServer.TryScheduleReconnection(peer);
+                await _networkServer.TrySchedulePeerReconnectionAsync(peer);
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
             {
@@ -336,7 +336,7 @@ namespace AElf.OS.Network.Application
             var success = await peer.TryRecoverAsync();
 
             if (!success)
-                await _networkServer.TryScheduleReconnection(peer);
+                await _networkServer.TrySchedulePeerReconnectionAsync(peer);
         }
         
         private void QueueNetworkTask(Func<Task> task)
