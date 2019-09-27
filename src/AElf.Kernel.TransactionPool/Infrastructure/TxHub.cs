@@ -151,8 +151,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var blockIndexes =
                 await _blockchainService.GetBlockIndexesAsync(firstHeight, bestChainHash, bestChainHeight);
 
-            return blockIndexes.ToDictionary(blockIndex => blockIndex.Key,
-                blockIndex => GetPrefixByHash(blockIndex.Value));
+            return blockIndexes.ToDictionary(blockIndex => blockIndex.Height,
+                blockIndex => GetPrefixByHash(blockIndex.Hash));
         }
 
         private void ResetCurrentCollections()
