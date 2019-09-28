@@ -47,6 +47,7 @@ message BlockReply {
 message Handshake {
     HandshakeData handshake_data = 1;
     bytes signature = 2;
+    bytes session_id = 3;
 }
 
 message HandshakeData {

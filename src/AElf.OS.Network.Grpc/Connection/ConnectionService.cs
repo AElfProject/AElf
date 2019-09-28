@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.OS.Network.Events;
@@ -17,7 +16,7 @@ namespace AElf.OS.Network.Grpc.Connection
         private readonly IPeerDialer _peerDialer;
         private readonly IHandshakeProvider _handshakeProvider;
         public ILocalEventBus EventBus { get; set; }
-        public ILogger<GrpcNetworkServer> Logger { get; set; }
+        public ILogger<ConnectionService> Logger { get; set; }
 
         public ConnectionService(IPeerPool peerPool, IPeerDialer peerDialer,
             IHandshakeProvider handshakeProvider)
@@ -26,7 +25,7 @@ namespace AElf.OS.Network.Grpc.Connection
             _peerDialer = peerDialer;
             _handshakeProvider = handshakeProvider;
 
-            Logger = NullLogger<GrpcNetworkServer>.Instance;
+            Logger = NullLogger<ConnectionService>.Instance;
             EventBus = NullLocalEventBus.Instance;
         }
 
@@ -61,40 +60,88 @@ namespace AElf.OS.Network.Grpc.Connection
 
             if (_peerPool.FindPeerByEndpoint(endpoint) != null)
             {
-                Logger.LogWarning($"Peer {endpoint} is already in the pool.");
+                Logger.LogWarning($"Peer with endpoint {endpoint} is already in the pool.");
                 return false;
             }
 
-            var peer = await _peerDialer.DialPeerAsync(endpoint);
+            var dialedPeer = await _peerDialer.DialPeerAsync(endpoint);
 
-            if (peer == null)
-                return false;
-
-            if (!_peerPool.TryAddPeer(peer))
+            if (dialedPeer == null)
             {
-                Logger.LogWarning($"Peer {peer.Info.Pubkey} is already in the pool.");
-                await peer.DisconnectAsync(false);
+                Logger.LogWarning($"Error dialing {endpoint}.");
                 return false;
+            }
+
+            var inboundPeer = _peerPool.FindPeerByPublicKey(dialedPeer.Info.Pubkey) as GrpcPeer;
+            
+            /* A connection already exists, this can happen when both peers dial each other at the same time. To make
+             sure both sides close the same connection, they both decide based on the times of the handshakes.
+             Scenario steps, chronologically:
+                1) P1 (hsk_time: t1) --> dials P2 --and-- P1 <-- P2 dials (hsk_time: t2)
+                2) P2 receives P1s dial with t1 (in the hsk) and add to the pool
+                3) P1 receives P2s dial with and adds to pool
+                4) both dials finish and find that the pool already contains the dialed node.
+            To resolve this situation, both peers will choose the connection that was initiated the earliest, 
+            so either P1s dial or P2s. */
+            
+            GrpcPeer currentPeer = dialedPeer;
+            if (inboundPeer != null)
+            {
+                Logger.LogWarning("Duplicate peer connection detected: " +
+                                  $"{inboundPeer} ({inboundPeer.LastReceivedHandshakeTime}) " +
+                                  $"vs {dialedPeer} ({dialedPeer.LastSentHandshakeTime}).");
+
+                if (inboundPeer.LastReceivedHandshakeTime > dialedPeer.LastSentHandshakeTime)
+                {
+                    // we started the dial first, replace the inbound connection with the dialed 
+                    if (!_peerPool.TryReplace(inboundPeer.Info.Pubkey, inboundPeer, dialedPeer))
+                        Logger.LogWarning("Replacing the inbound connection failed.");
+                    
+                    await inboundPeer.DisconnectAsync(false);
+
+                    Logger.LogWarning($"Replaced the inbound connection with the dialed peer {inboundPeer} .");
+                }
+                else
+                {
+                    // keep the inbound connection
+                    await dialedPeer.DisconnectAsync(false);
+                    currentPeer = inboundPeer;
+                    
+                    Logger.LogWarning($"Disconnected dialed peer {dialedPeer}.");
+                }
+            }
+            else
+            {
+                if (!_peerPool.TryAddPeer(dialedPeer))
+                {
+                    Logger.LogWarning($"Peer add to the failed {dialedPeer.Info.Pubkey}.");
+                    await dialedPeer.DisconnectAsync(false);
+                    return false;
+                }
+
+                Logger.LogDebug($"Added to pool {dialedPeer.RemoteEndpoint} - {dialedPeer.Info.Pubkey}.");
             }
 
             try
             {
-                await peer.ConfirmHandshakeAsync();
+                await currentPeer.ConfirmHandshakeAsync();
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Confirm handshake error. Peer: {peer.Info.Pubkey}.");
-                _peerPool.RemovePeer(peer.Info.Pubkey);
-                await peer.DisconnectAsync(false);
+                Logger.LogError(e, $"Confirm handshake error. Peer: {currentPeer.Info.Pubkey}.");
+                _peerPool.RemovePeer(currentPeer.Info.Pubkey);
+                await currentPeer.DisconnectAsync(false);
                 throw;
             }
 
-            peer.IsConnected = true;
+            currentPeer.IsConnected = true;
+            
+            Logger.LogWarning($"Connected to: {currentPeer.RemoteEndpoint} - {currentPeer.Info.Pubkey.Substring(0, 45)}" +
+                              $" - in-token {currentPeer.InboundSessionId?.ToHex()}, out-token {currentPeer.OutboundSessionId?.ToHex()}" +
+                              $" - LIB height {currentPeer.LastKnownLibHeight}" +
+                              $" - best chain [{currentPeer.CurrentBlockHeight}, {currentPeer.CurrentBlockHash}]");
 
-            Logger.LogTrace($"Connected to {peer} - LIB height {peer.LastKnownLibHeight}, " +
-                            $"best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}].");
-
-            FireConnectionEvent(peer);
+            FireConnectionEvent(currentPeer);
 
             return true;
         }
@@ -110,6 +157,7 @@ namespace AElf.OS.Network.Grpc.Connection
 
         public async Task<HandshakeReply> DoHandshakeAsync(IPEndPoint endpoint, Handshake handshake)
         {
+            // validate the handshake (signature, chain id...)
             var handshakeValidationResult = await _handshakeProvider.ValidateHandshakeAsync(handshake);
             if (handshakeValidationResult != HandshakeValidationResult.Ok)
             {
@@ -118,37 +166,48 @@ namespace AElf.OS.Network.Grpc.Connection
             }
 
             var pubkey = handshake.HandshakeData.Pubkey.ToHex();
+            
+            // remove any remaining connection to the peer (before the check
+            // that we have room for more connections)
             var currentPeer = _peerPool.FindPeerByPublicKey(pubkey);
             if (currentPeer != null)
             {
                 _peerPool.RemovePeer(pubkey);
                 await currentPeer.DisconnectAsync(false);
             }
-
-            if (_peerPool.IsFull())
+            
+            try
             {
-                Logger.LogWarning("Peer pool is full.");
-                return new HandshakeReply {Error = HandshakeError.ConnectionRefused};
+                // mark the (IP; pubkey) pair as currently handshaking
+                if (!_peerPool.AddHandshakingPeer(endpoint.Address, pubkey))
+                    return new HandshakeReply {Error = HandshakeError.ConnectionRefused};
+
+                // create the connection to the peer
+                var peerAddress = new IPEndPoint(endpoint.Address, handshake.HandshakeData.ListeningPort);
+                var grpcPeer = await _peerDialer.DialBackPeerAsync(peerAddress, handshake);
+
+                // add the new peer to the pool
+                if (!_peerPool.TryAddPeer(grpcPeer))
+                {
+                    Logger.LogWarning($"Stopping connection, peer already in the pool {grpcPeer.Info.Pubkey}.");
+                    await grpcPeer.DisconnectAsync(false);
+                    return new HandshakeReply {Error = HandshakeError.RepeatedConnection};
+                }
+
+                Logger.LogDebug($"Added to pool {grpcPeer.RemoteEndpoint} - {grpcPeer.Info.Pubkey}.");
+
+                // send back our handshake
+                var replyHandshake = await _handshakeProvider.GetHandshakeAsync();
+                grpcPeer.InboundSessionId = replyHandshake.SessionId.ToByteArray();
+                grpcPeer.UpdateLastSentHandshake(replyHandshake);
+
+                return new HandshakeReply { Handshake = replyHandshake, Error = HandshakeError.HandshakeOk };
             }
-
-            var peerAddress = new IPEndPoint(endpoint.Address, handshake.HandshakeData.ListeningPort);
-            var grpcPeer = await _peerDialer.DialBackPeerAsync(peerAddress, handshake);
-
-            if (!_peerPool.TryAddPeer(grpcPeer))
+            finally
             {
-                Logger.LogWarning($"Stopping connection, peer already in the pool {grpcPeer.Info.Pubkey}.");
-                await grpcPeer.DisconnectAsync(false);
-                return new HandshakeReply {Error = HandshakeError.RepeatedConnection};
+                // remove the handshaking mark (IP; pubkey)
+                _peerPool.RemoveHandshakingPeer(endpoint.Address, pubkey);
             }
-
-            Logger.LogDebug($"Added to pool {grpcPeer.Info.Pubkey}.");
-
-            var replyHandshake = await _handshakeProvider.GetHandshakeAsync();
-            return new HandshakeReply
-            {
-                Handshake = replyHandshake, 
-                Error = HandshakeError.HandshakeOk
-            };
         }
 
         private HandshakeError GetHandshakeError(HandshakeValidationResult handshakeValidationResult)
@@ -168,6 +227,7 @@ namespace AElf.OS.Network.Grpc.Connection
                     handshakeError = HandshakeError.WrongSignature;
                     break;
                 case HandshakeValidationResult.Unauthorized:
+                case HandshakeValidationResult.SelfConnection:
                     handshakeError = HandshakeError.ConnectionRefused;
                     break;
                 default:
@@ -185,8 +245,15 @@ namespace AElf.OS.Network.Grpc.Connection
                 Logger.LogWarning($"Cannot find Peer {peerPubkey} in the pool.");
                 return;
             }
+            
+            Logger.LogWarning($"Connected to: {peer.RemoteEndpoint} - {peer.Info.Pubkey.Substring(0, 45)}" +
+                              $" - in-token {peer.InboundSessionId?.ToHex()}, out-token {peer.OutboundSessionId?.ToHex()}" +
+                              $" - LIB height {peer.LastKnownLibHeight}" +
+                              $" - best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}]");
 
             peer.IsConnected = true;
+            
+            FireConnectionEvent(peer);
         }
 
         public async Task DisconnectPeersAsync(bool gracefulDisconnect)
