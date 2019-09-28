@@ -46,8 +46,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             });
         }
 
-        [Fact]
-        public async Task AdvanceResourceToken()
+        private async Task AdvanceResourceToken()
         {
             const long amount = 10_000_00000000;
             var resourceTokenList = new List<string> {"CPU", "STO", "NET"};

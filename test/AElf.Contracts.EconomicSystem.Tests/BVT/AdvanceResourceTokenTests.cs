@@ -12,8 +12,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         private const long Amount = 100;
         private const string ResourceTokenSymbol = "NET";
 
-        [Fact]
-        public async Task<Address> TokenContract_AdvanceResourceToken_Test()
+        private async Task<Address> TokenContract_AdvanceResourceToken_Test()
         {
             var contractAddress = SampleAddress.AddressList[0];
             var developerAddress = BootMinerAddress;

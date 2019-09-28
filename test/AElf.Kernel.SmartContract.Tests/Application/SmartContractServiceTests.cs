@@ -86,7 +86,6 @@ namespace AElf.Kernel.SmartContract.Application
                 IsPrivileged = false,
                 ContractName = null
             });
-
         }
     }
 }

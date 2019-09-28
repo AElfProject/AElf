@@ -44,7 +44,7 @@ namespace AElf.WebApp.Application.Chain
 
         public ILocalEventBus LocalEventBus { get; set; }
         
-        public ILogger Logger { get; set; }
+        public ILogger<TransactionAppService> Logger { get; set; }
 
         public TransactionAppService(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
             IBlockchainService blockchainService)

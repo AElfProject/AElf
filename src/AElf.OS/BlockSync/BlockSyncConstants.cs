@@ -8,8 +8,6 @@ namespace AElf.OS.BlockSync
         public const long BlockSyncAttachAndExecuteBlockAgeLimit = 4000;
 
         public const int BlockSyncModeHeightOffset = 12;
-        public const int FetchBlockRetryTimes = 3;
-        public const int SyncBlockRetryTimes = 3;
         public const int DefaultBlockDownloadTimerPeriod = 1000;
         public const int DefaultMaxBlockDownloadCount = 50;
         public const int DefaultMaxBatchRequestBlockCount = 10;

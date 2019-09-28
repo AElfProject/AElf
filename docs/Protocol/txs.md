@@ -7,24 +7,24 @@ option csharp_namespace = "AElf.Kernel";
 import "common.proto";
 
 message Transaction {
-    Address From = 1;
-    Address To = 2;
-    int64 RefBlockNumber = 3;
-    bytes RefBlockPrefix = 4;
-    string MethodName = 5;
-    bytes Params = 6;
-    bytes Signature = 10000;
+    Address from = 1;
+    Address to = 2;
+    int64 ref_block_number = 3;
+    bytes ref_block_prefix = 4;
+    string method_name = 5;
+    bytes params = 6;
+    bytes signature = 10000;
 }
 ```
 
 This is the protobuf definition we use to serialize Transactions. Some important fields:
-    - To: it is the address of the contract when calling a contract.
-    - RefBlockNumber/Prefix: this a security measure, it will be explained is the Advanced section.
-    - MethodName is the name of a method in the smart contract at the **To** address.
-    - Params: the parameters to pass to the method.
-    - Sigs: the signatures of this transaction.
+    - to: it is the address of the contract when calling a contract.
+    - ref_block_number/prefix: this a security measure, it will be explained is the Advanced section.
+    - method_name is the name of a method in the smart contract at the **to** address.
+    - params: the parameters to pass to the method.
+    - signature: the signatures of this transaction.
 
-Note that the **From** is not currently useful because we derive it from the signature.
+Note that the **from** is not currently useful because we derive it from the signature.
 
 In the js sdk theres multiple methods to work with transactions. One important method is the **getTransaction** method that will build a transaction object for you:
 

@@ -8,6 +8,7 @@ using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol;
+using AElf.OS.Network.Protocol.Types;
 using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -44,7 +45,7 @@ namespace AElf.OS.Network
             var pool = context.ServiceProvider.GetRequiredService<IPeerPool>();
             var channel = new Channel(NetworkTestConstants.FakeIpEndpoint, ChannelCredentials.Insecure);
             
-            var connectionInfo = new PeerInfo
+            var connectionInfo = new PeerConnectionInfo
             {
                 Pubkey = NetworkTestConstants.FakePubkey2,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
@@ -52,10 +53,10 @@ namespace AElf.OS.Network
                 IsInbound = true
             };
             
-            if (!IpEndpointHelper.TryParse(NetworkTestConstants.FakeIpEndpoint, out var peerEnpdoint))
+            if (!IpEndpointHelper.TryParse(NetworkTestConstants.FakeIpEndpoint, out var peerEndpoint))
                 throw new Exception($"Ip {NetworkTestConstants.FakeIpEndpoint} is invalid.");
             
-            pool.TryAddPeer(new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), peerEnpdoint, connectionInfo));
+            pool.TryAddPeer(new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), peerEndpoint, connectionInfo));
         }
     }
 }
