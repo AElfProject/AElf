@@ -261,6 +261,27 @@ namespace AElf.OS.Network.Application
             return Task.CompletedTask;
         }
 
+        public async Task SendHealthChecksAsync()
+        {
+            foreach (var peer in _peerPool.GetPeers())
+            {
+                Logger.LogDebug($"Health checking: {peer}");
+                
+                try
+                {
+                    await peer.CheckHealthAsync();
+                }
+                catch (NetworkException ex)
+                {
+                    if (ex.ExceptionType == NetworkExceptionType.Unrecoverable)
+                    {
+                        Logger.LogError(ex, $"Removing unhealthy peer {peer}.");
+                        await _networkServer.TrySchedulePeerReconnectionAsync(peer);
+                    }
+                }
+            }
+        }
+
         public async Task<Response<List<BlockWithTransactions>>> GetBlocksAsync(Hash previousBlock, int count, 
             string peerPubkey)
         {

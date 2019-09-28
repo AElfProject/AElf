@@ -37,6 +37,8 @@ namespace AElf.OS.Worker
 
         protected override async void DoWork()
         {
+            await _networkService.SendHealthChecksAsync();
+            
             var peersToConnect = _reconnectionService.GetPeersReadyForReconnection(TimestampHelper.GetUtcNow());
 
             if (peersToConnect.Count <= 0)

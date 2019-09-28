@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using AElf.Kernel;
@@ -26,6 +27,7 @@ namespace AElf.OS.Network.Grpc
     {
         private const int MaxMetricsPerMethod = 100;
         private const int BlockRequestTimeout = 500;
+        private const int HealthCheckTimeout = 3000;
         private const int BlocksRequestTimeout = 2000;
         private const int GetNodesTimeout = 500;
         private const int UpdateHandshakeTimeout = 400;
@@ -193,6 +195,19 @@ namespace AElf.OS.Network.Grpc
 
             LastKnownLibHash = libAnnouncement.LibHash;
             LastKnownLibHeight = libAnnouncement.LibHeight;
+        }
+
+        public async Task CheckHealthAsync()
+        {
+            GrpcRequest request = new GrpcRequest { ErrorMessage = $"Health check failed." };
+
+            Metadata data = new Metadata
+            {
+                { GrpcConstants.TimeoutMetadataKey, HealthCheckTimeout.ToString() },
+                { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
+            };
+
+            await RequestAsync(() => _client.CheckHealthAsync(new HealthCheckRequest(), data), request);
         }
 
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
