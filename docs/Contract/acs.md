@@ -2,11 +2,28 @@
 
 Description
 
+Think about **Interface Segregation Principle**. In AElf, one smart contract can choose to inherit from one or more ACS, for each ACS, add two lines of code.
+
+```Proto
+
+import "acs1.proto";
+
+...
+
+// service
+    option (aelf.base) = "acs1.proto";
+
+```
+
+
+
 ## ACS0
 
 [standard code link](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs0.proto)
 
 Description
+
+To deploy and update smart contracts.
 
 ## ACS1
 
@@ -14,11 +31,15 @@ Description
 
 Description
 
+For smart contract to set and provide method fee information.
+
 ## ACS2
 
 [standard code link](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs2.proto)
 
 Description
+
+For smart contract to set and provide resource information to support parallel executing.
 
 ## ACS3
 
@@ -26,11 +47,15 @@ Description
 
 Description
 
+
+
 ## ACS4
 
 [standard code link](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs4.proto)
 
 Description
+
+
 
 ## ACS5
 
@@ -59,3 +84,4 @@ Description
 [standard code link](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs8.proto)
 
 Description
+
