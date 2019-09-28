@@ -25,14 +25,14 @@ This Gitbook contains various different types of documentation and depending on 
 
 - [**protocol**](Protocol/main.md) - some articles about blockchain related concepts and how they are used and implemented in AElf.
 - [**smart contract**](Contract/main.md) - a more advanced section with more in-depth explanations of AElf smart contracts.
-- [**cross chain**](crosschain/main.md) - information about how AElf implements side chains.
-- [**public chain ecosystem**](PubliChain/main.md) - information related to AElf's public blockchain and ecosystem.
+- [**cross chain**](Crosschain/main.md) - information about how AElf implements side chains.
+- [**public chain ecosystem**](PublicChain/main.md) - information related to AElf's public blockchain and ecosystem.
 - [**architecture**](Architecture/main.md) - this section is for **advanced** users, it explains the architectural concepts behind the nodes design.
 
 #### References
 
-- [**command line**](cli/methods.md) - a reference for the available commands on AElf's CLI.
-- [**web api**](Web/main.md) - a reference for the available methods on AElf's web api.
+- [**command line**](CLI/methods.md) - a reference for the available commands on AElf's CLI.
+- [**web api**](WebApiReference/reference.md) - a reference for the available methods on AElf's web api.
 - [**js sdk**](SDK/javascript/js-sdk.md) - a reference for the available APIs in the js SDK.
 
 Finally we have a more complete API references for the Command Line Interface, the js-sdk and the nodes RPC interface.
