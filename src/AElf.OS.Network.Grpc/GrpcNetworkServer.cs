@@ -93,7 +93,7 @@ namespace AElf.OS.Network.Grpc
                 {
                     bool dialed = false;
                     
-                    if (!IpEndpointHelper.TryParse(node, out IPEndPoint endpoint))
+                    if (!IpEndPointHelper.TryParse(node, out IPEndPoint endpoint))
                         return;
                     
                     try

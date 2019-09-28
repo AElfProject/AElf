@@ -6,6 +6,7 @@ using AElf.OS.Network.Application;
 using AElf.OS.Network.Metrics;
 using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.OS.Network.Infrastructure
 {
@@ -16,12 +17,14 @@ namespace AElf.OS.Network.Infrastructure
         bool IsInvalid { get; }
         Hash LastKnownLibHash { get; }
         long LastKnownLibHeight { get; }
+        Timestamp LastReceivedHandshakeTime { get; }
         IPEndPoint RemoteEndpoint { get; }
-        string IpAddress { get; }
-        
+
         int BufferedTransactionsCount { get; }
         int BufferedBlocksCount { get; }
         int BufferedAnnouncementsCount { get; }
+        
+        byte[] InboundSessionId { get; }
 
         PeerConnectionInfo Info { get; }
 

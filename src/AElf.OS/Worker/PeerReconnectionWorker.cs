@@ -50,7 +50,7 @@ namespace AElf.OS.Worker
                 string peerEndpoint = peerToConnect.Endpoint;
                 
                 // check that we haven't already reconnected to this node
-                if (_peerPool.FindPeerByEndpoint(IpEndpointHelper.Parse(peerEndpoint)) != null)
+                if (_peerPool.FindPeerByEndpoint(IpEndPointHelper.Parse(peerEndpoint)) != null)
                 {
                     Logger.LogDebug($"Peer {peerEndpoint} already in the pool, no need to reconnect.");
 
