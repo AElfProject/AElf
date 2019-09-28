@@ -48,7 +48,7 @@ For smart contract to set and provide resource information to support parallel e
 
 Description
 
-
+For smart contract to implement proposal and approval functionalities. With ACS3, contract can design specific multi-sign mechanism.
 
 ## ACS4
 
@@ -83,6 +83,8 @@ The implementation of ACS6 in the `AEDPoS Contract` shows how commit-reveal sche
 [standard code link](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs7.proto)
 
 Description
+
+ACS7 defines methods for cross chain contract to provide cross chain data and indexing functionalities.
 
 ## ACS8
 
