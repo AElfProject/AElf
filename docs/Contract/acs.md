@@ -56,7 +56,7 @@ For smart contract to implement proposal and approval functionalities. With ACS3
 
 Description
 
-For anyone who want to custmize a new blockchain to implement a new consensus.
+For anyone who wants to customize a new blockchain to implement a new consensus.
 
 If one system contract deployed with it's contract address can be bind to `ConsensusContractSystemName` (by Contract Zero), then the consensus process of current blockchain will use the logic provided by this system contract.
 
@@ -74,7 +74,7 @@ For one contract to check the threshold for others of calling himself, either th
 
 Description
 
-ACS6 is aiming at providing two standard interfaces of requesting and getting random numbers. It implies using commit-reveal schema during random number generation and verification, though other solutions can also expose their services via these two interfaces.
+ACS6 is aiming at providing two standard interfaces for requesting and getting random numbers. It implies using commit-reveal schema during random number generation and verification, though other solutions can also expose their services via these two interfaces.
 In the commit-reveal schema, the user needs to call `RequestRandomNumberInput` on his initiative as well as provide a block height number as the minimum height to enable the query of random number. Then the contract implemented ACS6 needs to return 1) a hash value as the token for querying random number and 2) a negotiated block height to enable related query. When the block height reaches, the user can use that token, which is a hash value, call `GetRandomNumber` to query the random number.
 The implementation of ACS6 in the `AEDPoS Contract` shows how commit-reveal schema works.
 
