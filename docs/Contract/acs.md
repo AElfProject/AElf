@@ -2,7 +2,7 @@
 
 Description
 
-Think about **Interface Segregation Principle**. In AElf, one smart contract can choose to inherit from one or more ACS, for each ACS, add two lines of code.
+Think about **Interface Segregation Principle**. In AElf, one smart contract can choose to inherit from one or more *ACS*s. For each ACS, just add two lines of code.
 
 ```Proto
 
@@ -14,8 +14,7 @@ import "acs1.proto";
     option (aelf.base) = "acs1.proto";
 
 ```
-
-
+Thus you can `override` the methods defined in corresponding proto file in your contract implementation in C#.
 
 ## ACS0
 
@@ -23,7 +22,7 @@ import "acs1.proto";
 
 Description
 
-To deploy and update smart contracts.
+For Contract Zero to deploy, update and maintain other smart contracts.
 
 ## ACS1
 
@@ -32,6 +31,8 @@ To deploy and update smart contracts.
 Description
 
 For smart contract to set and provide method fee information.
+
+The `GetMethodFee` method will take effects before executing related transactions.
 
 ## ACS2
 
@@ -55,13 +56,17 @@ Description
 
 Description
 
+For anyone who want to custmize a new blockchain to implement a new consensus.
 
+If one system contract deployed with it's contract address can be bind to `ConsensusContractSystemName` (by Contract Zero), then the consensus process of current blockchain will use the logic provided by this system contract.
 
 ## ACS5
 
 [standard code link](https://github.com/AElfProject/AElf/blob/dev/protobuf/acs5.proto)
 
 Description
+
+For one contract to check the threshold for others of calling himself, either the sender's balance or sender's allowance to this contract.
 
 ## ACS6
 
@@ -85,3 +90,4 @@ Description
 
 Description
 
+If one contract choose to inherit from ACS8, the execution of every transaction of this contract will consume resource tokens of current contract.
