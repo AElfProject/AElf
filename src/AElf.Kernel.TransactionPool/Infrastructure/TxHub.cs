@@ -133,30 +133,26 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         #endregion
 
-        private async Task<ByteString> GetPrefixByHeightAsync(Chain chain, long height, Hash bestChainHash)
+        private ByteString GetPrefixByHash(Hash hash)
         {
-            var hash = await _blockchainService.GetBlockHashByHeightAsync(chain, height, bestChainHash);
             return hash == null ? null : ByteString.CopyFrom(hash.ToByteArray().Take(4).ToArray());
         }
 
         private async Task<ByteString> GetPrefixByHeightAsync(long height, Hash bestChainHash)
         {
             var chain = await _blockchainService.GetChainAsync();
-            return await GetPrefixByHeightAsync(chain, height, bestChainHash);
+            var hash = await _blockchainService.GetBlockHashByHeightAsync(chain, height, bestChainHash);
+            return GetPrefixByHash(hash);
         }
 
-        private async Task<Dictionary<long, ByteString>> GetPrefixesByHeightAsync(IEnumerable<long> heights,
-            Hash bestChainHash)
+        private async Task<Dictionary<long, ByteString>> GetPrefixesByHeightAsync(long firstHeight, Hash bestChainHash,
+            long bestChainHeight)
         {
-            var prefixes = new Dictionary<long, ByteString>();
-            var chain = await _blockchainService.GetChainAsync();
-            foreach (var h in heights)
-            {
-                var prefix = await GetPrefixByHeightAsync(chain, h, bestChainHash);
-                prefixes.Add(h, prefix);
-            }
+            var blockIndexes =
+                await _blockchainService.GetBlockIndexesAsync(firstHeight, bestChainHash, bestChainHeight);
 
-            return prefixes;
+            return blockIndexes.ToDictionary(blockIndex => blockIndex.Height,
+                blockIndex => GetPrefixByHash(blockIndex.Hash));
         }
 
         private void ResetCurrentCollections()
@@ -280,15 +276,19 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             Logger.LogDebug(
                 $"Handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
 
-            var heights = _allTransactions.Select(kv => kv.Value.Transaction.RefBlockNumber).Distinct();
-            var prefixes = await GetPrefixesByHeightAsync(heights, eventData.BlockHash);
+            var minimumHeight = _allTransactions.Count == 0
+                ? 0
+                : _allTransactions.Min(kv => kv.Value.Transaction.RefBlockNumber);
+            var prefixes = await GetPrefixesByHeightAsync(minimumHeight, eventData.BlockHash, eventData.BlockHeight);
             ResetCurrentCollections();
             foreach (var kv in _allTransactions)
             {
-                var prefix = prefixes[kv.Value.Transaction.RefBlockNumber];
+                prefixes.TryGetValue(kv.Value.Transaction.RefBlockNumber, out var prefix);
                 CheckPrefixForOne(kv.Value, prefix, _bestChainHeight);
                 AddToRespectiveCurrentCollection(kv.Value);
             }
+
+            CleanTransactions(_expiredByExpiryBlock, eventData.BlockHeight);
 
             _bestChainHash = eventData.BlockHash;
             _bestChainHeight = eventData.BlockHeight;
