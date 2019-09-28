@@ -8,10 +8,8 @@ namespace AElf.OS.BlockSync.Application
     {
         Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement, string senderPubKey);
 
-        Task<bool> ValidateBlockAsync(Chain chain, BlockWithTransactions blockWithTransactions, string senderPubKey);
-
-        Task<bool> ValidateTransactionAsync(BlockWithTransactions blockWithTransactions);
-
+        Task<bool> ValidateBlockBeforeSyncAsync(Chain chain, BlockWithTransactions blockWithTransactions, string senderPubKey);
+        
         Task<bool> ValidateBlockBeforeAttachAsync(BlockWithTransactions blockWithTransactions);
     }
 }

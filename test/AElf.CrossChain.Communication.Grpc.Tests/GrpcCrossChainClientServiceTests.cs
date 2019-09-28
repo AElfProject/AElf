@@ -60,9 +60,12 @@ namespace AElf.CrossChain.Communication.Grpc
 
             await _crossChainClientService.CreateClientAsync(fakeCrossChainClient);
             _grpcCrossChainClientProvider.TryGetClient(remoteChainId, out var client);
+            
             await client.ConnectAsync();
             Assert.True(client.IsConnected);
+            
             await _crossChainClientService.CloseClientsAsync();
+            _grpcCrossChainClientProvider.TryGetClient(remoteChainId, out client);
             Assert.False(client.IsConnected);
 
             Server.Dispose();

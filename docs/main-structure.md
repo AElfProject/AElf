@@ -8,10 +8,11 @@
         * [Use JS SDK](tutorials/dapp/jssdk.md)
         * [Use browser extension](tutorials/dapp/browserExtension.md)
     * [Enterprise development](tutorials/enterprise.md)
+    * [Running on Google cloud](tutorials/GCP.md)
 * [Getting started](Introduction/main.md)
     * [Before you start](Introduction/before.md)
     * [Running a node](Introduction/quickstart.md)
-    * [Running multiNodes](Introduction/multiNodes.md)
+    * [Running multiple nodes](Introduction/multiNodes.md)
     * [Configuration](Introduction/config.md)
     * [Command line interface](cli/cli.md)
         * [Introduction](cli/intro.md)
@@ -46,7 +47,7 @@
 * [Architecture](Architecture/main.md)
     * [Introduction](Architecture/introduction.md)
     * [Implementations](Architecture/implementations.md)
-* [Performance](perf/perf.md)
+<!-- * [Performance](perf/perf.md) -->
 * [Contribution](contributions/readme.md)
     * [DevOps](devops/devops.md)
 <!-- * [Advanced guides](advanced/main.md) -->

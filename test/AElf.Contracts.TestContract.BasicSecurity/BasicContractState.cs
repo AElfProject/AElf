@@ -17,8 +17,5 @@ namespace AElf.Contracts.TestContract.BasicSecurity
         
         public MappedState<long, string, ProtobufMessage> Complex3Info { get; set; }
         public MappedState<string, string, string, string, TradeMessage> Complex4Info { get; set; }
-        
-        //reference contract
-        internal BasicFunctionContractContainer.BasicFunctionContractReferenceState BasicFunctionTestContract { get; set; }
     }
 }

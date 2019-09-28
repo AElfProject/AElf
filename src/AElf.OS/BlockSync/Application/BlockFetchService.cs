@@ -38,7 +38,8 @@ namespace AElf.OS.BlockSync.Application
                 return true;
             }
 
-            var blockWithTransactions = await _networkService.GetBlockByHashAsync(blockHash, suggestedPeerPubKey);
+            var response = await _networkService.GetBlockByHashAsync(blockHash, suggestedPeerPubKey);
+            var blockWithTransactions = response.Payload;
 
             if (blockWithTransactions == null)
             {
@@ -46,7 +47,11 @@ namespace AElf.OS.BlockSync.Application
             }
 
             _blockSyncQueueService.Enqueue(
-                async () => { await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions); },
+                async () =>
+                {
+                    await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions,
+                        suggestedPeerPubKey);
+                },
                 OSConstants.BlockSyncAttachQueueName);
 
             return true;

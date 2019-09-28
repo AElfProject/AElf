@@ -3,11 +3,13 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
+using AElf.OS.BlockSync.Events;
 using AElf.OS.Network;
 using AElf.OS.Network.Extensions;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.BlockSync.Application
 {
@@ -16,37 +18,40 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockAttachService _blockAttachService;
         private readonly IBlockSyncQueueService _blockSyncQueueService;
-        private readonly IBlockSyncValidationService _validationService;
+        private readonly IBlockSyncValidationService _blockSyncValidationService;
+
+        public ILocalEventBus LocalEventBus { get; set; }
 
         public ILogger<BlockSyncAttachService> Logger { get; set; }
 
         public BlockSyncAttachService(IBlockchainService blockchainService,
             IBlockAttachService blockAttachService,
-            IBlockSyncValidationService validationService,
+            IBlockSyncValidationService blockSyncValidationService,
             IBlockSyncQueueService blockSyncQueueService)
         {
             Logger = NullLogger<BlockSyncAttachService>.Instance;
+            LocalEventBus = NullLocalEventBus.Instance;
 
             _blockchainService = blockchainService;
             _blockAttachService = blockAttachService;
-            _validationService = validationService;
+            _blockSyncValidationService = blockSyncValidationService;
             _blockSyncQueueService = blockSyncQueueService;
         }
 
         public async Task AttachBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions,
-            Func<Task> attachFinishedCallback = null)
+            string senderPubkey, Func<Task> attachFinishedCallback = null)
         {
-            var txsValid = await _validationService.ValidateTransactionAsync(blockWithTransactions);
-            if (!txsValid)
-            {
-                throw new InvalidOperationException($"Tx in this block was invalid: {blockWithTransactions}");
-            }
-
-            var blockValid = await _validationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
+            var blockValid = await _blockSyncValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
             if (!blockValid)
             {
-                throw new InvalidOperationException(
-                    $"The block was invalid: {blockWithTransactions}.");
+                await LocalEventBus.PublishAsync(new BlockValidationFailedEventData
+                {
+                    BlockHash = blockWithTransactions.GetHash(),
+                    BlockHeight = blockWithTransactions.Height,
+                    BlockSenderPubkey = senderPubkey
+                });
+                
+                return;
             }
 
             await _blockchainService.AddTransactionsAsync(blockWithTransactions.Transactions);
