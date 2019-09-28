@@ -1,4 +1,4 @@
-# AElf Contract Standard(ACS)
+# AElf Contract Standard (ACS)
 
 Description
 
@@ -30,7 +30,7 @@ For Contract Zero to deploy, update and maintain other smart contracts.
 
 Description
 
-For smart contract to set and provide method fee information.
+For smart contracts to set and provide method fee information.
 
 The `GetMethodFee` method will take effects before executing related transactions.
 
@@ -40,7 +40,7 @@ The `GetMethodFee` method will take effects before executing related transaction
 
 Description
 
-For smart contract to set and provide resource information to support parallel executing.
+For smart contracts to set and provide resource information to support parallel executing.
 
 ## ACS3
 

@@ -14,11 +14,11 @@ AElf will improve overall blockchain performance by executing transactions in pa
 
 This Gitbook contains various different types of documentation and depending on what you will use AElf for, you should navigate to different sections. Here are a few links you can follow to get you started:
 - [**how to start a node**](Introduction/quickstart.md)
-- [**how to develop dApp**](tutorials/dapp/main.md)
+- [**how to develop dApp**](Tutorials/dapp/main.md)
 
 #### Guides and tutorials
 
-- [**tutorials**](tutorials/main.md) - groups end-to-end guides and tutorials about various topics.
+- [**tutorials**](Tutorials/main.md) - groups end-to-end guides and tutorials about various topics.
 - [**getting started**](Introduction/main.md) - if you've never run an AElf node, we recommend you start with this section contains.
 
 #### AElf concepts
@@ -26,7 +26,7 @@ This Gitbook contains various different types of documentation and depending on 
 - [**protocol**](Protocol/main.md) - some articles about blockchain related concepts and how they are used and implemented in AElf.
 - [**smart contract**](Contract/main.md) - a more advanced section with more in-depth explanations of AElf smart contracts.
 - [**cross chain**](crosschain/main.md) - information about how AElf implements side chains.
-- [**public chain ecosystem**](publicchain/main.md) - information related to AElf's public blockchain and ecosystem.
+- [**public chain ecosystem**](PubliChain/main.md) - information related to AElf's public blockchain and ecosystem.
 - [**architecture**](Architecture/main.md) - this section is for **advanced** users, it explains the architectural concepts behind the nodes design.
 
 #### References
