@@ -408,7 +408,7 @@ namespace AElf.OS.Network.Grpc
         public async Task SendLibAnnouncementAsync(LibAnnouncement libAnnouncement)
         {
             if (_libAnnouncementStreamCall == null)
-                _libAnnouncementStreamCall = _client.LibAnnouncementBroadcastStream();
+                _libAnnouncementStreamCall = _client.LibAnnouncementBroadcastStream(new Metadata {{ GrpcConstants.SessionIdMetadataKey, OutboundSessionId }});
             
             try
             {

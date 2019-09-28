@@ -46,7 +46,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError("Auth interceptor error: ", e);
+                Logger.LogError(e, "Auth interceptor error: ");
                 throw;
             }
             
@@ -81,7 +81,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError("Auth stream interceptor error: ", e);
+                Logger.LogError(e, "Auth stream interceptor error: ");
                 return null;
             }
             

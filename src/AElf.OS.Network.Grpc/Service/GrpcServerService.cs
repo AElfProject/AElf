@@ -49,19 +49,36 @@ namespace AElf.OS.Network.Grpc
 
         public override async Task<HandshakeReply> DoHandshake(HandshakeRequest request, ServerCallContext context)
         {
-            Logger.LogDebug($"Peer {context.Peer} has requested a handshake.");
+            try
+            {
+                Logger.LogDebug($"Peer {context.Peer} has requested a handshake.");
             
-            if(!UriHelper.TryParsePrefixedEndpoint(context.Peer, out IPEndPoint peerEndpoint))
-                return new HandshakeReply { Error = HandshakeError.InvalidConnection};
+                if(!UriHelper.TryParsePrefixedEndpoint(context.Peer, out IPEndPoint peerEndpoint))
+                    return new HandshakeReply { Error = HandshakeError.InvalidConnection};
             
-            return await _connectionService.DoHandshakeAsync(peerEndpoint, request.Handshake);
+                return await _connectionService.DoHandshakeAsync(peerEndpoint, request.Handshake);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Handshake error: ");
+                throw;
+            }
         }
 
         public override async Task<VoidReply> ConfirmHandshake(ConfirmHandshakeRequest request,
             ServerCallContext context)
         {
-            Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a confirm handshake.");
-            _connectionService.ConfirmHandshake(context.GetPublicKey());
+            try
+            {
+                Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a confirm handshake.");
+                _connectionService.ConfirmHandshake(context.GetPublicKey());
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Confirm handshake error: ");
+                throw;
+            }
+
             return new VoidReply();
         }
 
@@ -70,11 +87,19 @@ namespace AElf.OS.Network.Grpc
         {
             Logger.LogDebug($"Block stream started with {context.GetPeerInfo()} - {context.Peer}.");
             
-            await requestStream.ForEachAsync(r =>
+            try
             {
-                _ = EventBus.PublishAsync(new BlockReceivedEvent(r, context.GetPublicKey()));
-                return Task.CompletedTask;
-            });
+                await requestStream.ForEachAsync(r =>
+                {
+                    _ = EventBus.PublishAsync(new BlockReceivedEvent(r, context.GetPublicKey()));
+                    return Task.CompletedTask;
+                });
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Block stream finished - error: ");
+                throw;
+            }
             
             Logger.LogDebug($"Block stream finished with {context.GetPeerInfo()} - {context.Peer}.");
 
@@ -86,7 +111,15 @@ namespace AElf.OS.Network.Grpc
         {
             Logger.LogDebug($"Announcement stream started with {context.GetPeerInfo()} - {context.Peer}.");
 
-            await requestStream.ForEachAsync(async r => await ProcessAnnouncement(r, context));
+            try
+            {
+                await requestStream.ForEachAsync(async r => await ProcessAnnouncement(r, context));
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Announcement stream finished - error: ");
+                throw;
+            }
             
             Logger.LogDebug($"Announcement stream finished with {context.GetPeerInfo()} - {context.Peer}.");
             
@@ -119,8 +152,16 @@ namespace AElf.OS.Network.Grpc
             ServerCallContext context)
         {
             Logger.LogDebug($"Transaction stream started with {context.GetPeerInfo()} - {context.Peer}.");
-            
-            await requestStream.ForEachAsync(async tx => await ProcessTransaction(tx, context));
+
+            try
+            {
+                await requestStream.ForEachAsync(async tx => await ProcessTransaction(tx, context));
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Transaction stream finished - error: ");
+                throw;
+            }
             
             Logger.LogDebug($"Transaction stream finished with {context.GetPeerInfo()} - {context.Peer}.");
             
@@ -132,7 +173,16 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override async Task<VoidReply> SendTransaction(Transaction tx, ServerCallContext context)
         {
-            await ProcessTransaction(tx, context);
+            try
+            {
+                await ProcessTransaction(tx, context);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "SendTransaction error: ");
+                throw;
+            }
+
             return new VoidReply();
         }
 
@@ -150,30 +200,35 @@ namespace AElf.OS.Network.Grpc
         
         public override async Task<VoidReply> LibAnnouncementBroadcastStream(IAsyncStreamReader<LibAnnouncement> requestStream, ServerCallContext context)
         {
-            await requestStream.ForEachAsync(async r => await ProcessLibAnnouncement(r, context));
+            Logger.LogDebug($"Lib announcement stream started with {context.GetPeerInfo()} - {context.Peer}.");
+            
+            try
+            {
+                await requestStream.ForEachAsync(async r => await ProcessLibAnnouncement(r, context));
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Lib announcement stream finished - error: ");
+                throw;
+            }
+
+            Logger.LogDebug($"Lib announcement stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+
             return new VoidReply();
         }
 
         public Task ProcessLibAnnouncement(LibAnnouncement announcement, ServerCallContext context)
         {
-            try
+            if (announcement?.LibHash == null)
             {
-                if (announcement?.LibHash == null)
-                {
-                    Logger.LogError($"Received null or empty announcement from {context.GetPeerInfo()}.");
-                    return Task.CompletedTask;
-                }
-            
-                Logger.LogDebug($"Received lib announce hash: {announcement.LibHash}, height {announcement.LibHeight} from {context.GetPeerInfo()}.");
+                Logger.LogError($"Received null or empty announcement from {context.GetPeerInfo()}.");
+                return Task.CompletedTask;
+            }
+        
+            Logger.LogDebug($"Received lib announce hash: {announcement.LibHash}, height {announcement.LibHeight} from {context.GetPeerInfo()}.");
 
-                var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
-                peer?.UpdateLastKnownLib(announcement);
-            }
-            catch (Exception e)
-            {
-                Logger.LogError("Lib announcement error: ", e);
-                throw;
-            }
+            var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
+            peer?.UpdateLastKnownLib(announcement);
             
             return Task.CompletedTask;
         }
