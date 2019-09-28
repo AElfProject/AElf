@@ -20,26 +20,34 @@ namespace AElf.OS.Network.Grpc
 
         public override Task<TResponse> UnaryServerHandler<TRequest, TResponse>(TRequest request, ServerCallContext context, UnaryServerMethod<TRequest, TResponse> continuation)
         {
-            if (context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake)))
+            try
             {
-                // a method other than DoHandshake is being called
-                
-                var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
-
-                if (peer == null && context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.Ping)))
+                if (context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake)))
                 {
-                    Logger.LogWarning($"Could not find peer {context.GetPublicKey()}");
-                    return Task.FromResult<TResponse>(null);
-                }
-
-                // check that the peers session is equal to one announced in the headers
-                if (peer != null && !peer.InboundSessionId.BytesEqual(context.GetSessionId()))
-                {
-                    Logger.LogWarning($"Wrong session id, ({peer.InboundSessionId.ToHex()} vs {context.GetSessionId().ToHex()}) {context.GetPublicKey()}");
-                    return Task.FromResult<TResponse>(null);
-                }
+                    // a method other than DoHandshake is being called
                 
-                context.RequestHeaders.Add(new Metadata.Entry(GrpcConstants.PeerInfoMetadataKey, $"{peer}"));
+                    var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+
+                    if (peer == null && context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.Ping)))
+                    {
+                        Logger.LogWarning($"Could not find peer {context.GetPublicKey()}");
+                        return Task.FromResult<TResponse>(null);
+                    }
+
+                    // check that the peers session is equal to one announced in the headers
+                    if (peer != null && !peer.InboundSessionId.BytesEqual(context.GetSessionId()))
+                    {
+                        Logger.LogWarning($"Wrong session id, ({peer.InboundSessionId.ToHex()} vs {context.GetSessionId().ToHex()}) {context.GetPublicKey()}");
+                        return Task.FromResult<TResponse>(null);
+                    }
+                
+                    context.RequestHeaders.Add(new Metadata.Entry(GrpcConstants.PeerInfoMetadataKey, $"{peer}"));
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError("Auth interceptor error: ", e);
+                throw;
             }
             
             return continuation(request, context);
@@ -73,7 +81,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError("Auth interceptor error: ", e);
+                Logger.LogError("Auth stream interceptor error: ", e);
                 return null;
             }
             

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
@@ -155,16 +156,24 @@ namespace AElf.OS.Network.Grpc
 
         public Task ProcessLibAnnouncement(LibAnnouncement announcement, ServerCallContext context)
         {
-            if (announcement?.LibHash == null)
+            try
             {
-                Logger.LogError($"Received null or empty announcement from {context.GetPeerInfo()}.");
-                return Task.CompletedTask;
-            }
+                if (announcement?.LibHash == null)
+                {
+                    Logger.LogError($"Received null or empty announcement from {context.GetPeerInfo()}.");
+                    return Task.CompletedTask;
+                }
             
-            Logger.LogDebug($"Received lib announce hash: {announcement.LibHash}, height {announcement.LibHeight} from {context.GetPeerInfo()}.");
+                Logger.LogDebug($"Received lib announce hash: {announcement.LibHash}, height {announcement.LibHeight} from {context.GetPeerInfo()}.");
 
-            var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
-            peer?.UpdateLastKnownLib(announcement);
+                var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
+                peer?.UpdateLastKnownLib(announcement);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError("Lib announcement error: ", e);
+                throw;
+            }
             
             return Task.CompletedTask;
         }
