@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 
@@ -10,6 +9,7 @@ namespace AElf.Kernel.SmartContract.Application
         private IStateCache _parent = new NullStateCache();
         private Dictionary<ScopedStatePath, byte[]> _originalValues = new Dictionary<ScopedStatePath, byte[]>();
         private Dictionary<string, byte[]> _currentValues = new Dictionary<string, byte[]>();
+        private Dictionary<string,byte[]> _tempValue = new Dictionary<string, byte[]>();
 
         public TieredStateCache() : this(new NullStateCache())
         {
@@ -33,7 +33,13 @@ namespace AElf.Kernel.SmartContract.Application
                 value = currentValue;
             }
 
-            return originalFound || currentFound;
+            var tempFound = _tempValue.TryGetValue(key.ToStateKey(), out var tempValue);
+            if (tempFound)
+            {
+                value = tempValue;
+            }
+
+            return originalFound || currentFound || tempFound;
         }
 
         public byte[] this[ScopedStatePath key]
@@ -54,6 +60,19 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 _currentValues[change.Key] = change.Value;
             }
+        }
+
+        public void SetTempValue(IEnumerable<KeyValuePair<string, byte[]>> changes)
+        {
+            foreach (var change in changes)
+            {
+                _tempValue[change.Key] = change.Value;
+            }
+        }
+
+        public void ClearTempValue()
+        {
+            _tempValue.Clear();
         }
 
         private bool TryGetOriginalValue(ScopedStatePath path, out byte[] value)

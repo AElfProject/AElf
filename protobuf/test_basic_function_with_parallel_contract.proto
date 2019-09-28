@@ -24,6 +24,16 @@ service BasicFunctionWithParallelContract {
     }
     rpc ValidateOrigin(aelf.Address) returns (google.protobuf.Empty) {
     }
+    rpc IncreaseWinMoney(IncreaseWinMoneyInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseWinMoneyFailed(IncreaseWinMoneyInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseWinMoneyWithPrePlugin(IncreaseWinMoneyInput) returns (google.protobuf.Empty) {
+    }
+    rpc IncreaseWinMoneyFailedWithPrePlugin(IncreaseWinMoneyInput) returns (google.protobuf.Empty) {
+    }
+    rpc IncreaseWinMoneyWithFailedPrePlugin(IncreaseWinMoneyInput) returns (google.protobuf.Empty) {
+    }
 
     //View
     rpc QueryWinMoney(google.protobuf.Empty) returns (MoneyOutput) {
@@ -91,3 +101,7 @@ message TwoUserMoneyOut{
     int64 second_int64_value = 2;
 }
 
+message IncreaseWinMoneyInput{
+    aelf.Address first = 1;
+    aelf.Address second = 2;
+}

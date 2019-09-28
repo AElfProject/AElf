@@ -1,3 +1,4 @@
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Modularity;
 using AElf.OS;
@@ -23,7 +24,11 @@ namespace AElf.Parallel.Tests
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
             var parallelTestHelper = context.ServiceProvider.GetService<ParallelTestHelper>();
+            var blockchainService = context.ServiceProvider.GetService<IBlockchainService>();
             AsyncHelper.RunSync(() => parallelTestHelper.DeployBasicFunctionWithParallelContract());
+            var chain = AsyncHelper.RunSync(() => blockchainService.GetChainAsync());
+            AsyncHelper.RunSync(() =>
+                blockchainService.SetIrreversibleBlockAsync(chain, chain.BestChainHeight, chain.BestChainHash));
         }
     }
 }

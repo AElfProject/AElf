@@ -96,6 +96,34 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
             return new Empty();
         }
 
+        public override Empty IncreaseWinMoney(IncreaseWinMoneyInput input)
+        {
+            State.WinerHistory[input.First] = State.WinerHistory[input.First] + 1;
+            State.WinerHistory[input.Second] = State.WinerHistory[input.Second] + 1;
+            return new Empty();
+        }
+
+        public override Empty IncreaseWinMoneyFailed(IncreaseWinMoneyInput input)
+        {
+            Assert(false);
+            return new Empty();
+        }
+
+        public override Empty IncreaseWinMoneyWithPrePlugin(IncreaseWinMoneyInput input)
+        {
+            return IncreaseWinMoney(input);
+        }
+
+        public override Empty IncreaseWinMoneyFailedWithPrePlugin(IncreaseWinMoneyInput input)
+        {
+            return IncreaseWinMoneyFailed(input);
+        }
+
+        public override Empty IncreaseWinMoneyWithFailedPrePlugin(IncreaseWinMoneyInput input)
+        {
+            return IncreaseWinMoney(input);
+        }
+
         private long WinOrLose(long betAmount)
         {
             var data = State.TotalBetBalance.Value.Sub(State.RewardBalance.Value);

@@ -207,6 +207,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
             finally
             {
+                (txContext.StateCache as TieredStateCache)?.ClearTempValue();
                 await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
                 await LocalEventBus.PublishAsync(new TransactionExecutedEventData
                 {
@@ -273,7 +274,7 @@ namespace AElf.Kernel.SmartContract.Application
                         .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())).ToList();
                     internalStateCache.Update(changes);
                     var parentStateCache = txContext.StateCache as TieredStateCache;
-                    parentStateCache?.Update(changes);
+                    parentStateCache?.SetTempValue(changes);
                 }
             }
 

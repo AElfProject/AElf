@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Contracts.TestContract.BasicFunctionWithParallel;
+using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -215,7 +217,7 @@ namespace AElf.Parallel.Tests
             prepareTransactions.Add(transactionWithoutContract);
 
             var cancellableTransaction = _parallelTestHelper.GenerateTransaction(accountAddress,
-                _parallelTestHelper.BasicFunctionWithParallelContractAddress, "QueryWinMoney",
+                ParallelTestHelper.BasicFunctionWithParallelContractAddress, "QueryWinMoney",
                 new Empty()); 
             signature = await _accountService.SignAsync(cancellableTransaction.GetHash().ToByteArray());
             cancellableTransaction.Signature = ByteString.CopyFrom(signature);
@@ -309,6 +311,142 @@ namespace AElf.Parallel.Tests
             
             var endBalance = await _parallelTestHelper.QueryBalanceAsync(accountAddress, "ELF", block.GetHash(), block.Height);
             (startBalance - endBalance).ShouldBe(20);
+        }
+
+        [Fact]
+        public async Task Transaction_Executing_Cache_Test()
+        {
+            Block block;
+            var accountAddress = await _accountService.GetAccountAsync();
+            
+            //Transaction with pre plugin transaction
+            {
+                var chain = await _blockchainService.GetChainAsync();
+                var input = new IncreaseWinMoneyInput
+                {
+                    First = accountAddress,
+                    Second = Address.FromPublicKey(CryptoHelper.GenerateKeyPair().PublicKey)
+                };
+                var transactions = new List<Transaction>();
+                var transaction = _parallelTestHelper.GenerateTransaction(accountAddress,
+                    ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                    nameof(BasicFunctionWithParallelContract.IncreaseWinMoneyWithPrePlugin), input);
+                transactions.Add(transaction);
+                transaction = _parallelTestHelper.GenerateTransaction(accountAddress,
+                    ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                    nameof(BasicFunctionWithParallelContract.IncreaseWinMoney), input);
+                transactions.Add(transaction);
+                block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+                block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+                var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
+                transactionResults[0].Status.ShouldBe(TransactionResultStatus.Mined);
+                transactionResults[1].Status.ShouldBe(TransactionResultStatus.Mined);
+                await _blockchainService.AddBlockAsync(block);
+                await _blockAttachService.AttachBlockAsync(block);
+                var param = IncreaseWinMoneyInput.Parser.ParseFrom(transaction.Params);
+                var queryTransaction = _parallelTestHelper.GenerateTransaction(accountAddress,
+                    ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                    nameof(BasicFunctionWithParallelContract.QueryTwoUserWinMoney), new QueryTwoUserWinMoneyInput
+                    {
+                        First = param.First,
+                        Second = param.Second
+                    });
+                var byteString = await _parallelTestHelper.ExecuteReadOnlyAsync(queryTransaction, block.GetHash(), block.Height);
+                var output = TwoUserMoneyOut.Parser.ParseFrom(byteString);
+                output.FirstInt64Value.ShouldBe(3);
+                output.SecondInt64Value.ShouldBe(3);
+            }
+
+            //Failed transaction with pre plugin transaction
+            {
+                var input = new IncreaseWinMoneyInput
+                {
+                    First = accountAddress,
+                    Second = Address.FromPublicKey(CryptoHelper.GenerateKeyPair().PublicKey)
+                };
+                var transactions = new List<Transaction>();
+                var transaction = _parallelTestHelper.GenerateTransaction(accountAddress,
+                    ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                    nameof(BasicFunctionWithParallelContract.IncreaseWinMoneyFailedWithPrePlugin), input);
+                transactions.Add(transaction);
+                transaction = _parallelTestHelper.GenerateTransaction(accountAddress,
+                    ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                    nameof(BasicFunctionWithParallelContract.IncreaseWinMoney), input);
+                transactions.Add(transaction);
+                block = _parallelTestHelper.GenerateBlock(block.GetHash(), block.Height, transactions);
+                block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+                var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
+                transactionResults[0].Status.ShouldBe(TransactionResultStatus.Failed);
+                transactionResults[1].Status.ShouldBe(TransactionResultStatus.Mined);
+                await _blockchainService.AddBlockAsync(block);
+                await _blockAttachService.AttachBlockAsync(block);
+            
+                var param = IncreaseWinMoneyInput.Parser.ParseFrom(transaction.Params);
+                var queryTransaction = _parallelTestHelper.GenerateTransaction(accountAddress,
+                    ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                    nameof(BasicFunctionWithParallelContract.QueryTwoUserWinMoney), new QueryTwoUserWinMoneyInput
+                    {
+                        First = param.First,
+                        Second = param.Second
+                    });
+                var byteString = await _parallelTestHelper.ExecuteReadOnlyAsync(queryTransaction, block.GetHash(), block.Height);
+                var output = TwoUserMoneyOut.Parser.ParseFrom(byteString);
+                output.FirstInt64Value.ShouldBe(4);
+                output.SecondInt64Value.ShouldBe(4);
+            }
+
+            //Transaction with failed pre plugin transaction
+            {
+                var input = new IncreaseWinMoneyInput
+                {
+                    First = accountAddress,
+                    Second = Address.FromPublicKey(CryptoHelper.GenerateKeyPair().PublicKey)
+                };
+                var transactions = new List<Transaction>();
+                var transaction = _parallelTestHelper.GenerateTransaction(accountAddress,
+                    ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                    nameof(BasicFunctionWithParallelContract.IncreaseWinMoneyWithFailedPrePlugin), input);
+                transactions.Add(transaction);
+                transaction = _parallelTestHelper.GenerateTransaction(accountAddress,
+                    ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                    nameof(BasicFunctionWithParallelContract.IncreaseWinMoney), input);
+                transactions.Add(transaction);
+                block = _parallelTestHelper.GenerateBlock(block.GetHash(), block.Height, transactions);
+                block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+                var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
+                transactionResults[0].Status.ShouldBe(TransactionResultStatus.Unexecutable);
+                transactionResults[1].Status.ShouldBe(TransactionResultStatus.Mined);
+                await _blockchainService.AddBlockAsync(block);
+                await _blockAttachService.AttachBlockAsync(block);
+            
+                var param = IncreaseWinMoneyInput.Parser.ParseFrom(transaction.Params);
+                var queryTransaction = _parallelTestHelper.GenerateTransaction(accountAddress,
+                    ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                    nameof(BasicFunctionWithParallelContract.QueryTwoUserWinMoney), new QueryTwoUserWinMoneyInput
+                    {
+                        First = param.First,
+                        Second = param.Second
+                    });
+                var byteString = await _parallelTestHelper.ExecuteReadOnlyAsync(queryTransaction, block.GetHash(), block.Height);
+                var output = TwoUserMoneyOut.Parser.ParseFrom(byteString);
+                output.FirstInt64Value.ShouldBe(5);
+                output.SecondInt64Value.ShouldBe(5);
+            }
+        }
+
+        private async Task<List<TransactionResult>> GetTransactionResultsAsync(List<Hash> transactionIds,BlockHeader blockHeader)
+        {
+            var transactionResults = new List<TransactionResult>();
+            foreach (var transactionId in transactionIds)
+            {
+                var result = await _transactionResultManager.GetTransactionResultAsync(transactionId, blockHeader.GetHash());
+                if(result != null) transactionResults.Add(result);
+                result = await _transactionResultManager.GetTransactionResultAsync(transactionId,
+                    blockHeader.GetPreMiningHash());
+                if(result!=null) transactionResults.Add(result);
+            }
+
+            return transactionResults;
         }
     }
 }
