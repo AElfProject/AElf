@@ -71,6 +71,7 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a confirm handshake.");
+
                 _connectionService.ConfirmHandshake(context.GetPublicKey());
             }
             catch (Exception e)
@@ -159,7 +160,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, "Transaction stream finished - error: ");
+                Logger.LogError(e, $"Transaction stream error - {context.GetPeerInfo()}: ");
                 throw;
             }
 
@@ -179,7 +180,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, "SendTransaction error: ");
+                Logger.LogError(e, $"SendTransaction error - {context.GetPeerInfo()}: ");
                 throw;
             }
 
@@ -238,7 +239,16 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override async Task<VoidReply> SendAnnouncement(BlockAnnouncement an, ServerCallContext context)
         {
-            await ProcessAnnouncement(an, context);
+            try
+            {
+                await ProcessAnnouncement(an, context);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, $"Process announcement error: {context.GetPeerInfo()}");
+                throw;
+            }
+
             return new VoidReply();
         }
 
@@ -303,7 +313,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Blocks request error - {context.GetPeerInfo()}: ");
+                Logger.LogError(e, $"Request blocks error - {context.GetPeerInfo()}: ");
                 throw;
             }
 
