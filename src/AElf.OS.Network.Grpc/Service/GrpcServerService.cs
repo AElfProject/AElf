@@ -60,7 +60,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, "Handshake error: ");
+                Logger.LogError(e, $"Handshake failed - {context.Peer}: ");
                 throw;
             }
         }
@@ -75,7 +75,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, "Confirm handshake error: ");
+                Logger.LogError(e, $"Confirm handshake error - {context.GetPeerInfo()}: ");
                 throw;
             }
 
@@ -97,7 +97,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, "Block stream finished - error: ");
+                Logger.LogError(e, $"Block stream error - {context.GetPeerInfo()}: ");
                 throw;
             }
             
@@ -117,12 +117,12 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, "Announcement stream finished - error: ");
+                Logger.LogError(e, $"Announcement stream error: {context.GetPeerInfo()}");
                 throw;
             }
-            
+
             Logger.LogDebug($"Announcement stream finished with {context.GetPeerInfo()} - {context.Peer}.");
-            
+
             return new VoidReply();
         }
 
@@ -162,9 +162,9 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogError(e, "Transaction stream finished - error: ");
                 throw;
             }
-            
+
             Logger.LogDebug($"Transaction stream finished with {context.GetPeerInfo()} - {context.Peer}.");
-            
+
             return new VoidReply();
         }
 
@@ -208,7 +208,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (Exception e)
             {
-                Logger.LogError(e, "Lib announcement stream finished - error: ");
+                Logger.LogError(e, $"Lib announcement stream error: {context.GetPeerInfo()}");
                 throw;
             }
 
@@ -254,10 +254,19 @@ namespace AElf.OS.Network.Grpc
 
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested block {request.Hash}.");
 
-            var block = await _blockchainService.GetBlockWithTransactionsByHash(request.Hash);
+            BlockWithTransactions block;
+            try
+            {
+                block = await _blockchainService.GetBlockWithTransactionsByHash(request.Hash);
 
-            if (block == null)
-                Logger.LogDebug($"Could not find block {request.Hash} for {context.GetPeerInfo()}.");
+                if (block == null)
+                    Logger.LogDebug($"Could not find block {request.Hash} for {context.GetPeerInfo()}.");
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, $"Request block error: {context.GetPeerInfo()}");
+                throw;
+            }
 
             return new BlockReply {Block = block};
         }
@@ -273,21 +282,29 @@ namespace AElf.OS.Network.Grpc
 
             var blockList = new BlockList();
 
-            var blocks = await _blockchainService.GetBlocksWithTransactions(request.PreviousBlockHash, request.Count);
-
-            if (blocks == null)
-                return blockList;
-
-            blockList.Blocks.AddRange(blocks);
-
-            if (blockList.Blocks.Count != request.Count)
-                Logger.LogTrace($"Replied with {blockList.Blocks.Count} blocks for request {request}");
-
-            if (NetworkOptions.CompressBlocksOnRequest)
+            try
             {
-                var headers = new Metadata
-                    {new Metadata.Entry(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst)};
-                await context.WriteResponseHeadersAsync(headers);
+                var blocks = await _blockchainService.GetBlocksWithTransactions(request.PreviousBlockHash, request.Count);
+
+                if (blocks == null)
+                    return blockList;
+
+                blockList.Blocks.AddRange(blocks);
+
+                if (blockList.Blocks.Count != request.Count)
+                    Logger.LogTrace($"Replied with {blockList.Blocks.Count} blocks for request {request}");
+
+                if (NetworkOptions.CompressBlocksOnRequest)
+                {
+                    var headers = new Metadata
+                        {new Metadata.Entry(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst)};
+                    await context.WriteResponseHeadersAsync(headers);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, $"Blocks request error - {context.GetPeerInfo()}: ");
+                throw;
             }
 
             return blockList;
@@ -300,7 +317,16 @@ namespace AElf.OS.Network.Grpc
 
             Logger.LogDebug($"Peer {context.GetPeerInfo()} requested {request.MaxCount} nodes.");
 
-            var nodes = await _peerDiscoveryService.GetNodesAsync(request.MaxCount);
+            NodeList nodes;
+            try
+            {
+                nodes = await _peerDiscoveryService.GetNodesAsync(request.MaxCount);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Get nodes error: ");
+                throw;
+            }
 
             Logger.LogDebug($"Sending {nodes.Nodes.Count} to {context.GetPeerInfo()}.");
 
@@ -318,7 +344,17 @@ namespace AElf.OS.Network.Grpc
         public override Task<VoidReply> Disconnect(DisconnectReason request, ServerCallContext context)
         {
             Logger.LogDebug($"Peer {context.GetPeerInfo()} has sent a disconnect request.");
-            _connectionService.RemovePeer(context.GetPublicKey());
+
+            try
+            {
+                _connectionService.RemovePeer(context.GetPublicKey());
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Disconnect error: ");
+                throw;
+            }
+
             return Task.FromResult(new VoidReply());
         }
     }
