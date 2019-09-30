@@ -48,18 +48,22 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             var index = await _irreversibleBlockRelatedEventsDiscoveryService.GetLastIrreversibleBlockIndexAsync(chain,
                 eventData.ExecutedBlocks);
 
-            var distanceToLib = await _irreversibleBlockRelatedEventsDiscoveryService
+            var unacceptableDistanceToLib = await _irreversibleBlockRelatedEventsDiscoveryService
                 .GetUnacceptableDistanceToLastIrreversibleBlockHeightAsync(eventData.BlockHash);
 
-            if (distanceToLib > 0)
+            if (unacceptableDistanceToLib > 0)
             {
-                Logger.LogDebug($"Distance to lib height: {distanceToLib}");
+                Logger.LogDebug($"Unacceptable distance to lib height: {unacceptableDistanceToLib}");
                 _transactionInclusivenessProvider.IsTransactionPackable = false;
+            }
+            else
+            {
+                _transactionInclusivenessProvider.IsTransactionPackable = true;
             }
 
             if (index != null)
             {
-                _transactionInclusivenessProvider.IsTransactionPackable = true;
+//                _transactionInclusivenessProvider.IsTransactionPackable = true;
                 _taskQueueManager.Enqueue(
                     async () =>
                     {
