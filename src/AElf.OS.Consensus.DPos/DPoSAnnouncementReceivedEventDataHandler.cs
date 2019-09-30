@@ -8,7 +8,6 @@ using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.Sdk.CSharp;
 using Microsoft.Extensions.Logging;
-using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
 namespace AElf.OS.Consensus.DPos
@@ -61,8 +60,7 @@ namespace AElf.OS.Consensus.DPos
         Task<IBlockIndex> FindLastLastIrreversibleBlockAsync(string senderPubKey);
     }
 
-    public class AEDPoSLastLastIrreversibleBlockDiscoveryService : IAEDPoSLastLastIrreversibleBlockDiscoveryService,
-        ISingletonDependency
+    public class AEDPoSLastLastIrreversibleBlockDiscoveryService : IAEDPoSLastLastIrreversibleBlockDiscoveryService
     {
         private readonly IPeerPool _peerPool;
         private readonly IAEDPoSInformationProvider _dpoSInformationProvider;

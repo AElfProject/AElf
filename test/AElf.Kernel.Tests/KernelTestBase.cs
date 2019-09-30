@@ -11,4 +11,9 @@ namespace AElf.Kernel
     {
 
     }
+    
+    public class KernelWithoutConsensusStaffTestBase : AElfIntegratedTest<KernelWithConsensusStaffTestAElfModule>
+    {
+
+    }
 }

@@ -1,10 +1,8 @@
 using System.Threading.Tasks;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Volo.Abp.BackgroundJobs;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
@@ -14,14 +12,14 @@ namespace AElf.Kernel
         ITransientDependency
     {
         private readonly ITaskQueueManager _taskQueueManager;
-        private readonly IBlockchainStateMergingService _blockchainStateMergingService;
+        private readonly IBlockchainStateService _blockchainStateService;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
-            IBlockchainStateMergingService blockchainStateMergingService)
+            IBlockchainStateService blockchainStateService)
         {
             _taskQueueManager = taskQueueManager;
-            _blockchainStateMergingService = blockchainStateMergingService;
+            _blockchainStateService = blockchainStateService;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
@@ -29,7 +27,7 @@ namespace AElf.Kernel
         {
             _taskQueueManager.Enqueue(async () =>
             {
-                await _blockchainStateMergingService.MergeBlockStateAsync(eventData.BlockHeight,
+                await _blockchainStateService.MergeBlockStateAsync(eventData.BlockHeight,
                     eventData.BlockHash);
             }, KernelConstants.MergeBlockStateQueueName);
         }

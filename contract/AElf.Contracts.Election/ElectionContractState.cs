@@ -51,8 +51,6 @@ namespace AElf.Contracts.Election
 
         public Int64State TimeEachTerm { get; set; }
 
-        public Int64State MinerIncreaseInterval { get; set; }
-
         public SingletonState<Hash> MinerElectionVotingItemId { get; set; }
     }
 }

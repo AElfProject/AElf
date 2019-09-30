@@ -3,6 +3,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Configuration;
@@ -21,12 +22,13 @@ namespace AElf.Kernel.Consensus.AEDPoS
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<IIrreversibleBlockDiscoveryService, IrreversibleBlockDiscoveryService>();
-            context.Services.AddSingleton<IAEDPoSInformationProvider, AEDPoSInformationProvider>();
             context.Services.AddSingleton<ITriggerInformationProvider, AEDPoSTriggerInformationProvider>();
-            context.Services.AddSingleton<IRandomHashCacheService, RandomHashCacheService>();
-            context.Services.AddSingleton<Application.BestChainFoundEventHandler>();
-            context.Services.AddSingleton<ConsensusValidationFailedEventHandler>();
+            context.Services.AddTransient<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
+            context.Services
+                .AddSingleton<IBroadcastPrivilegedPubkeyListProvider, AEDPoSBroadcastPrivilegedPubkeyListProvider>();
+            context.Services
+                .AddSingleton<IConstrainedTransactionValidationProvider,
+                    ConstrainedAEDPoSTransactionValidationProvider>();
 
             var configuration = context.Services.GetConfiguration();
 

@@ -58,7 +58,7 @@ namespace AElf.Contracts.Vote
         public async Task VoteContract_TakeSnapshot_Success_Test()
         {
             var registerItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 3);
-            for (int i = 0; i < 3; i++)
+            for (var i = 0; i < 3; i++)
             {
                 var transactionResult = (await VoteContractStub.TakeSnapshot.SendAsync(
                     new TakeSnapshotInput

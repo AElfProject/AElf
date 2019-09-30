@@ -4,6 +4,8 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
+    // ReSharper disable UnusedAutoPropertyAccessor.Global
     public partial class AEDPoSContractState : ContractState
     {
         public BoolState Initialized { get; set; }
@@ -11,17 +13,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <summary>
         /// Seconds.
         /// </summary>
-        public Int64State TimeEachTerm { get; set; }
+        public ReadonlyState<long> TimeEachTerm { get; set; }
 
         public Int64State CurrentRoundNumber { get; set; }
 
         public Int64State CurrentTermNumber { get; set; }
 
-        public SingletonState<Timestamp> BlockchainStartTimestamp { get; set; }
+        public ReadonlyState<Timestamp> BlockchainStartTimestamp { get; set; }
 
         public MappedState<long, Round> Rounds { get; set; }
 
-        public Int32State MiningInterval { get; set; }
+        public ReadonlyState<int> MiningInterval { get; set; }
 
         public MappedState<long, long> FirstRoundNumberOfEachTerm { get; set; }
 
@@ -33,7 +35,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public BoolState IsMainChain { get; set; }
 
-        public Int64State MinerIncreaseInterval { get; set; }
+        public ReadonlyState<long> MinerIncreaseInterval { get; set; }
 
         public MappedState<Hash, RandomNumberRequestInformation> RandomNumberInformationMap { get; set; }
 
@@ -43,6 +45,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         public MappedState<long, HashList> RandomNumberTokenMap { get; set; }
 
-        public Int64State LastIrreversibleBlockHeight { get; set; }
+        public Int32State MaximumMinersCount { get; set; }
+
+        public SingletonState<LatestProviderToTinyBlocksCount> LatestProviderToTinyBlocksCount { get; set; }
+
+        public MappedState<long, MinerList> MinedMinerListMap { get; set; }
     }
 }

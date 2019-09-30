@@ -30,7 +30,7 @@ namespace AElf.Kernel.Consensus.Application
             var result = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
             result.ShouldBeTrue();
 
-            block = _kernelTestHelper.GenerateBlock(9, Hash.FromString("test"));
+            block = _kernelTestHelper.GenerateBlock(8, Hash.FromString("test"));
             result = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
             result.ShouldBeFalse();
 
@@ -57,7 +57,7 @@ namespace AElf.Kernel.Consensus.Application
             var result = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             result.ShouldBeTrue();
 
-            block = _kernelTestHelper.GenerateBlock(9, Hash.FromString("test"));
+            block = _kernelTestHelper.GenerateBlock(8, Hash.FromString("test"));
             result = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             result.ShouldBeFalse();
 
@@ -80,7 +80,7 @@ namespace AElf.Kernel.Consensus.Application
             var result = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             result.ShouldBeTrue();
 
-            block = _kernelTestHelper.GenerateBlock(9, Hash.FromString("test"));
+            block = _kernelTestHelper.GenerateBlock(8, Hash.FromString("test"));
             result = await _blockValidationProvider.ValidateBlockAfterExecuteAsync(block);
             result.ShouldBeFalse();
 

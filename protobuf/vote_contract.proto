@@ -56,23 +56,6 @@ service VoteContract {
     }
 }
 
-// Events
-message Voted {
-    option (aelf.is_event) = true;
-    aelf.Hash voting_item_id = 1;
-    aelf.Address voter = 2;
-    sint64 snapshot_number = 3;
-    sint64 amount = 4;
-    google.protobuf.Timestamp vote_timestamp = 5;
-    string option = 6;
-    aelf.Hash vote_id = 7;
-}
-
-message Withdrawn {
-    option (aelf.is_event) = true;
-    aelf.Hash vote_id = 1;
-}
-
 // Messages
 message VotingRegisterInput {
     google.protobuf.Timestamp start_timestamp = 1;
@@ -184,4 +167,35 @@ message GetVotingRecordsInput {
 
 message VotingRecords {
     repeated VotingRecord records = 1;
+}
+
+// Events
+message Voted {
+    option (aelf.is_event) = true;
+    aelf.Hash voting_item_id = 1;
+    aelf.Address voter = 2;
+    sint64 snapshot_number = 3;
+    sint64 amount = 4;
+    google.protobuf.Timestamp vote_timestamp = 5;
+    string option = 6;
+    aelf.Hash vote_id = 7;
+}
+
+message Withdrawn {
+    option (aelf.is_event) = true;
+    aelf.Hash vote_id = 1;
+}
+
+message VotingItemRegistered {
+    option (aelf.is_event) = true;
+    aelf.Hash voting_item_id = 1;
+    string accepted_currency = 2;
+    bool is_lock_token = 3;
+    sint64 current_snapshot_number = 4;
+    sint64 total_snapshot_number = 5;
+    google.protobuf.Timestamp register_timestamp = 7;
+    google.protobuf.Timestamp start_timestamp = 8;
+    google.protobuf.Timestamp end_timestamp = 9;
+    google.protobuf.Timestamp current_snapshot_start_timestamp = 10;
+    aelf.Address sponsor = 11;
 }

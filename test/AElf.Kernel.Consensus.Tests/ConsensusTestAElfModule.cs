@@ -2,17 +2,14 @@ using System.Threading.Tasks;
 using Acs4;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
-using AElf.OS;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Volo.Abp;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.Consensus
@@ -63,6 +60,16 @@ namespace AElf.Kernel.Consensus
                 return mockService.Object;
             });
 
+            services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IConsensusExtraDataExtractor>();
+                mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height == 9)))
+                    .Returns(ByteString.Empty);
+                mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height != 9)))
+                    .Returns(ByteString.CopyFromUtf8("test"));
+                return mockService.Object;
+            });
+
             //mock consensus service transaction execution result
             services.AddTransient(provider =>
             {
@@ -75,8 +82,7 @@ namespace AElf.Kernel.Consensus
                         ExecutionStatus = ExecutionStatus.Executed,
                         ReturnValue = ByteString.CopyFrom(new ConsensusCommand
                         {
-                            NextBlockMiningLeftMilliseconds = 4000,
-                            ExpectedMiningTime = TimestampHelper.GetUtcNow(),
+                            ArrangedMiningTime = TimestampHelper.GetUtcNow(),
                             Hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.Nothing}.ToByteString(),
                             LimitMillisecondsOfMiningBlock = 400
                         }.ToByteArray())
@@ -114,7 +120,7 @@ namespace AElf.Kernel.Consensus
 
                 mockService.Setup(m =>
                         m.ExecuteAsync(It.IsAny<ChainContext>(),
-                            It.Is<Transaction>(tx => tx.MethodName == "GetInformationToUpdateConsensus"),
+                            It.Is<Transaction>(tx => tx.MethodName == "GetConsensusExtraData"),
                             It.IsAny<Timestamp>()))
                     .Returns(Task.FromResult(new TransactionTrace
                     {
@@ -151,7 +157,6 @@ namespace AElf.Kernel.Consensus
                 return mockService.Object;
             });
 
-            services.AddSingleton<IRandomHashCacheService, RandomHashCacheService>();
             services.AddTransient<IBlockValidationProvider, ConsensusValidationProvider>();
         }
     }

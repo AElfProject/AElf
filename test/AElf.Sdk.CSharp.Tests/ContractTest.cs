@@ -40,8 +40,7 @@ namespace AElf.Sdk.CSharp.Tests
             //StateProvider.TransactionContext = transactionContext;
         }
 
-        [Fact]
-        public void Init_Test()
+        private void Init_Test()
         {
             Contract.Initialize("ELF", "elf test token", 1000000, 9);
             Contract.Symbol().ShouldBe("ELF");
@@ -158,13 +157,12 @@ namespace AElf.Sdk.CSharp.Tests
             var balance = Contract.BalanceOf(AddressList[1]);
             Contract.TotalSupply().ShouldBe(999000UL);
             balance.ShouldBe(999000UL);
-        }
-
-        [Fact]
-        public void Burn_Over_Token_Test()
-        {
-            Init_Test();
-            Should.Throw<AssertionException>(() => { Contract.Burn(100000000UL); });
+            
+            //over token
+            Should.Throw<AssertionException>(() =>
+            {
+                Contract.Burn(100000000UL);
+            });
         }
 
         [Fact]
@@ -208,6 +206,15 @@ namespace AElf.Sdk.CSharp.Tests
             
             var address2 = Contract.GetVirtualAddress(100);
             address2.ShouldNotBe(address);
+        }
+
+        [Fact]
+        public void CannotResetNativeTokenSymbol_Test()
+        {
+            const string newSymbol = "TEST";
+            Init_Test();
+            Contract.ResetNativeTokenSymbol(newSymbol);
+            Contract.NativeTokenSymbol().ShouldNotBe(newSymbol);
         }
 
         private void SwitchOwner(Address address)

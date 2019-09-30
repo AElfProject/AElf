@@ -20,5 +20,7 @@ namespace AElf.OS.BlockSync.Types
         public long CurrentTargetBlockHeight { get; set; }
 
         public Timestamp Deadline { get; set; }
+
+        public bool IsFinished { get; set; }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -11,14 +12,14 @@ namespace AElf.Contracts.TokenConverter
 {
     public class TokenConverterContractTests : TokenConverterTestBase
     {
-        private string _nativeSymbol = "ELF";
+        private const string NativeSymbol = "ELF";
 
-        private string _ramSymbol = "RAM";
+        private const string RamSymbol = "RAM";
         
         //init connector
         private Connector ELFConnector = new Connector
         {
-            Symbol = "ELF",
+            Symbol = NativeSymbol,
             VirtualBalance = 100_0000,
             Weight = "0.5",
             IsPurchaseEnabled = true,
@@ -27,7 +28,7 @@ namespace AElf.Contracts.TokenConverter
 
         private Connector RamConnector = new Connector
         {
-            Symbol = "RAM",
+            Symbol = RamSymbol,
             VirtualBalance = 0,
             Weight = "0.5",
             IsPurchaseEnabled = true,
@@ -77,7 +78,7 @@ namespace AElf.Contracts.TokenConverter
             //init token converter
             var input = new InitializeInput
             {
-                BaseTokenSymbol = _nativeSymbol,
+                BaseTokenSymbol = NativeSymbol,
                 FeeRate = "0.005",
                 ManagerAddress = ManagerAddress,
                 TokenContractAddress = TokenContractAddress,
@@ -114,60 +115,61 @@ namespace AElf.Contracts.TokenConverter
         }
 
         [Fact]
-        public async Task Set_Connector_Success_Test()
+        public async Task Set_Connector_Test()
         {
             await DeployContractsAsync();
             await InitializeTokenConverterContract();
-            var testerForManager =
-                GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
-                    ManagerKeyPair);
-            var setConnectResult = await testerForManager.SetConnector.SendAsync(new Connector
-            {
-                Symbol = "RAM",
-                Weight = "0.5",
-                VirtualBalance = 0,
-                IsPurchaseEnabled = false,
-                IsVirtualBalanceEnabled = false
-            });
-            setConnectResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var ramNewInfo = await testerForManager.GetConnector.CallAsync(new TokenSymbol()
-            {
-                Symbol = "RAM"
-            });
-            ramNewInfo.IsPurchaseEnabled.ShouldBeFalse();
             
-            var connectorsInfo = await DefaultStub.GetConnector.CallAsync(new TokenSymbol() {Symbol = "CPU"});
-            connectorsInfo.Symbol.ShouldBeEmpty();
-
-            //add Connector
-            var result = (await testerForManager.SetConnector.SendAsync(new Connector
+            //not authority user
             {
-                Symbol = "CPU",
-                Weight = "0.5",
-                VirtualBalance = 0,
-                IsPurchaseEnabled = true,
-                IsVirtualBalanceEnabled = false
-            })).TransactionResult;
-            result.Status.ShouldBe(TransactionResultStatus.Mined);
-            var cpuInfo = await DefaultStub.GetConnector.CallAsync(new TokenSymbol() {Symbol = "CPU"});
-            cpuInfo.Symbol.ShouldBe("CPU");
-        }
-
-        [Fact]
-        public async Task Set_Connector_Failed_Test()
-        {
-            await DeployContractsAsync();
-            await InitializeTokenConverterContract();
-            var result = (await DefaultStub.SetConnector.SendAsync(
-                new Connector
+                var connectorResult = (await DefaultStub.SetConnector.SendAsync(
+                    new Connector
+                    {
+                        Symbol = "RAM",
+                        VirtualBalance = 0,
+                        IsPurchaseEnabled = false,
+                        IsVirtualBalanceEnabled = false
+                    })).TransactionResult;
+                connectorResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                connectorResult.Error.Contains("Only manager can perform this action.").ShouldBeTrue();
+            }
+            
+            //with authority user
+            {
+                var testerForManager =
+                    GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
+                        ManagerKeyPair);
+                var setConnectResult = await testerForManager.SetConnector.SendAsync(new Connector
                 {
                     Symbol = "RAM",
+                    Weight = "0.5",
                     VirtualBalance = 0,
                     IsPurchaseEnabled = false,
                     IsVirtualBalanceEnabled = false
+                });
+                setConnectResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                var ramNewInfo = await testerForManager.GetConnector.CallAsync(new TokenSymbol()
+                {
+                    Symbol = "RAM"
+                });
+                ramNewInfo.IsPurchaseEnabled.ShouldBeFalse();
+
+                var connectorsInfo = await DefaultStub.GetConnector.CallAsync(new TokenSymbol() {Symbol = "CPU"});
+                connectorsInfo.Symbol.ShouldBeEmpty();
+
+                //add Connector
+                var result = (await testerForManager.SetConnector.SendAsync(new Connector
+                {
+                    Symbol = "CPU",
+                    Weight = "0.5",
+                    VirtualBalance = 0,
+                    IsPurchaseEnabled = true,
+                    IsVirtualBalanceEnabled = false
                 })).TransactionResult;
-            result.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.Error.Contains("Only manager can perform this action.").ShouldBeTrue();
+                result.Status.ShouldBe(TransactionResultStatus.Mined);
+                var cpuInfo = await DefaultStub.GetConnector.CallAsync(new TokenSymbol() {Symbol = "CPU"});
+                cpuInfo.Symbol.ShouldBe("CPU");
+            }
         }
 
         [Fact]
@@ -181,7 +183,7 @@ namespace AElf.Contracts.TokenConverter
             //check the price and fee
             var fromConnectorBalance = ELFConnector.VirtualBalance;
             var fromConnectorWeight = decimal.Parse(ELFConnector.Weight);
-            var toConnectorBalance = await GetBalanceAsync(_ramSymbol, TokenConverterContractAddress);
+            var toConnectorBalance = await GetBalanceAsync(RamSymbol, TokenConverterContractAddress);
             var toConnectorWeight = decimal.Parse(RamConnector.Weight);
             
             var amountToPay = BancorHelper.GetAmountToPayFromReturn(fromConnectorBalance,fromConnectorWeight,toConnectorBalance,toConnectorWeight,1000L);
@@ -197,19 +199,19 @@ namespace AElf.Contracts.TokenConverter
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             //Verify the outcome of the transaction
-            var balanceOfTesterRam = await GetBalanceAsync(_ramSymbol,DefaultSender);
+            var balanceOfTesterRam = await GetBalanceAsync(RamSymbol,DefaultSender);
             balanceOfTesterRam.ShouldBe(1000L);
 
-            var balanceOfElfToken = await GetBalanceAsync(_nativeSymbol,TokenConverterContractAddress);
+            var balanceOfElfToken = await GetBalanceAsync(NativeSymbol,TokenConverterContractAddress);
             balanceOfElfToken.ShouldBe(amountToPay);
 
-            var balanceOfFeeReceiver = await GetBalanceAsync(_nativeSymbol,FeeReceiverAddress);
-            balanceOfFeeReceiver.ShouldBe(fee);
+            var balanceOfFeeReceiver = await GetBalanceAsync(NativeSymbol,FeeReceiverAddress);
+            balanceOfFeeReceiver.ShouldBe(fee.Div(2));
 
-            var balanceOfRamToken = await GetBalanceAsync(_ramSymbol,TokenConverterContractAddress);
+            var balanceOfRamToken = await GetBalanceAsync(RamSymbol,TokenConverterContractAddress);
             balanceOfRamToken.ShouldBe(100_0000L - 1000L);
 
-            var balanceOfTesterToken = await GetBalanceAsync(_nativeSymbol,DefaultSender);
+            var balanceOfTesterToken = await GetBalanceAsync(NativeSymbol,DefaultSender);
             balanceOfTesterToken.ShouldBe(100_0000L - amountToPay - fee);
             
         }
@@ -271,14 +273,14 @@ namespace AElf.Contracts.TokenConverter
             buyResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             //Balance  before Sell
-            var balanceOfFeeReceiver = await GetBalanceAsync(_nativeSymbol, FeeReceiverAddress);
-            var balanceOfElfToken = await GetBalanceAsync(_nativeSymbol,TokenConverterContractAddress);
-            var balanceOfTesterToken = await GetBalanceAsync(_nativeSymbol,DefaultSender);
+            var balanceOfFeeReceiver = await GetBalanceAsync(NativeSymbol, FeeReceiverAddress);
+            var balanceOfElfToken = await GetBalanceAsync(NativeSymbol,TokenConverterContractAddress);
+            var balanceOfTesterToken = await GetBalanceAsync(NativeSymbol,DefaultSender);
            
             //check the price and fee
             var toConnectorBalance = ELFConnector.VirtualBalance + balanceOfElfToken;
             var toConnectorWeight = decimal.Parse(ELFConnector.Weight);
-            var fromConnectorBalance = await GetBalanceAsync(_ramSymbol,TokenConverterContractAddress);
+            var fromConnectorBalance = await GetBalanceAsync(RamSymbol,TokenConverterContractAddress);
             var fromConnectorWeight = decimal.Parse(RamConnector.Weight);
             
             var amountToReceive = BancorHelper.GetReturnFromPaid(fromConnectorBalance,fromConnectorWeight,toConnectorBalance,toConnectorWeight,1000L);
@@ -293,20 +295,20 @@ namespace AElf.Contracts.TokenConverter
             sellResult.Status.ShouldBe(TransactionResultStatus.Mined);
             
             //Verify the outcome of the transaction
-            var balanceOfTesterRam = await GetBalanceAsync(_ramSymbol, DefaultSender);
+            var balanceOfTesterRam = await GetBalanceAsync(RamSymbol, DefaultSender);
             balanceOfTesterRam.ShouldBe(0L);
 
-            var balanceOfFeeReceiverAfterSell = await GetBalanceAsync(_nativeSymbol,FeeReceiverAddress);
-            balanceOfFeeReceiverAfterSell.ShouldBe(fee+balanceOfFeeReceiver);
+            var balanceOfFeeReceiverAfterSell = await GetBalanceAsync(NativeSymbol,FeeReceiverAddress);
+            balanceOfFeeReceiverAfterSell.ShouldBe(fee.Div(2) + balanceOfFeeReceiver);
 
-            var balanceOfElfTokenAfterSell = await GetBalanceAsync(_nativeSymbol, TokenConverterContractAddress);
-            balanceOfElfTokenAfterSell.ShouldBe(balanceOfElfToken-amountToReceive);
+            var balanceOfElfTokenAfterSell = await GetBalanceAsync(NativeSymbol, TokenConverterContractAddress);
+            balanceOfElfTokenAfterSell.ShouldBe(balanceOfElfToken-amountToReceive + fee);
 
-            var balanceOfRamToken = await GetBalanceAsync(_ramSymbol,TokenConverterContractAddress);
+            var balanceOfRamToken = await GetBalanceAsync(RamSymbol,TokenConverterContractAddress);
             balanceOfRamToken.ShouldBe(100_0000L);
 
-            var balanceOfTesterTokenAfterSell = await GetBalanceAsync(_nativeSymbol, DefaultSender);
-            balanceOfTesterTokenAfterSell.ShouldBe(balanceOfTesterToken + (amountToReceive - fee));
+            var balanceOfTesterTokenAfterSell = await GetBalanceAsync(NativeSymbol, DefaultSender);
+            balanceOfTesterTokenAfterSell.ShouldBe(balanceOfTesterToken + (amountToReceive - fee) - fee);
         }
 
         [Fact]

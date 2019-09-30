@@ -57,12 +57,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
             await InitializeContracts();
             await SetThresholdFee(feeAmount);
 
-            var before = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
-            {
-                Owner = DefaultSender,
-                Symbol = "ELF"
-            });
-
             var dummy = await DefaultTester.DummyMethod.SendAsync(new Empty());
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
         }

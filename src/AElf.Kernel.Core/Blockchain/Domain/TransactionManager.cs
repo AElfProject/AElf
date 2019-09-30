@@ -25,12 +25,12 @@ namespace AElf.Kernel.Blockchain.Domain
             return transactionId;
         }
 
-        public async Task<Transaction> GetTransaction(Hash txId)
+        public async Task<Transaction> GetTransactionAsync(Hash txId)
         {
             return await _transactionStore.GetAsync(GetStringKey(txId));
         }
 
-        public async Task RemoveTransaction(Hash txId)
+        public async Task RemoveTransactionAsync(Hash txId)
         {
             await _transactionStore.RemoveAsync(GetStringKey(txId));
         }

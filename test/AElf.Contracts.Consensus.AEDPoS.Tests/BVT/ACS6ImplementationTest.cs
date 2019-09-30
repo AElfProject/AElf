@@ -80,7 +80,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 var stub = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation =
-                    (await stub.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
+                    (await stub.GetConsensusExtraData.CallAsync(triggers[minerInRound.Pubkey]
                         .ToBytesValue())).ToConsensusHeaderInformation();
 
                 // Update consensus information.
@@ -114,16 +114,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 randomNumber.Value.ShouldNotBeEmpty();
             }
 
-            // Now we can get this random number again.
-            {
-                var randomNumber = (await AEDPoSContractStub.GetRandomNumber.SendAsync(order.TokenHash)).Output;
-                randomNumber.Value.ShouldNotBeEmpty();
-            }
-
             return order.TokenHash;
         }
 
-        [Fact]
+        [Fact(Skip = "Generated random token will be deleted after 1024 round")]
         internal async Task AEDPoSContract_GetRandomNumber_AfterSixRounds_Test()
         {
             var tokenHash = await AEDPoSContract_GetRandomNumber_Test();
@@ -165,7 +159,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                     var tester = GetAEDPoSContractStub(currentKeyPair);
                     var headerInformation =
-                        (await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
+                        (await tester.GetConsensusExtraData.CallAsync(triggers[minerInRound.Pubkey]
                             .ToBytesValue())).ToConsensusHeaderInformation();
 
                     // Update consensus information.

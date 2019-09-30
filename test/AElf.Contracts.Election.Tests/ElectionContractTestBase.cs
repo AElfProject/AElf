@@ -29,6 +29,7 @@ namespace AElf.Contracts.Election
             _ = ParliamentAuthContractAddress;
             _ = TokenConverterContractAddress;
             _ = ConsensusContractAddress;
+            _ = ReferendumAuthContractAddress;
         }
 
         protected void InitializeContracts()

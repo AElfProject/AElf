@@ -34,8 +34,7 @@ namespace AElf.OS.Network
             result1.ShouldBeFalse();
         }
 
-        [Fact]
-        public async Task AddNodes_Test()
+        private async Task AddNodes_Test()
         {
             var nodes = new NodeList
             {

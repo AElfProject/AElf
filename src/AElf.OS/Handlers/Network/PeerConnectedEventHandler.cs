@@ -27,8 +27,8 @@ namespace AElf.OS.Handlers
             await _peerDiscoveryService.AddNodeAsync(eventData.NodeInfo);
             
             var blockAnnouncement = new BlockAnnouncement {
-                BlockHash = eventData.BestChainHead.GetHash(),
-                BlockHeight = eventData.BestChainHead.Height
+                BlockHash = eventData.BestChainHash,
+                BlockHeight = eventData.BestChainHeight
             };
             
             var announcement = new AnnouncementReceivedEventData(blockAnnouncement, eventData.NodeInfo.Pubkey.ToHex());

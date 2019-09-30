@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using AElf.Types;
@@ -29,15 +28,15 @@ namespace AElf.Kernel.Types.Tests
             blockHeader = GenerateBlockHeader();
             blockHeader.SignerPubkey = ByteString.Empty;
             Should.Throw<InvalidOperationException>(() => { blockHeader.GetHash(); });
-            
+
             blockHeader = GenerateBlockHeader();
             blockHeader.PreviousBlockHash = null;
             Should.Throw<InvalidOperationException>(() => { blockHeader.GetHash(); });
-            
+
             blockHeader = GenerateBlockHeader();
             blockHeader.MerkleTreeRootOfTransactionStatus = null;
             Should.Throw<InvalidOperationException>(() => { blockHeader.GetHash(); });
-            
+
             blockHeader = GenerateBlockHeader();
             blockHeader.Time = null;
             Should.Throw<InvalidOperationException>(() => { blockHeader.GetHash(); });
@@ -46,11 +45,9 @@ namespace AElf.Kernel.Types.Tests
         [Fact]
         public void BlockBody_Test()
         {
-            var blockHeader = GenerateBlockHeader();
             var transactionItems = GenerateFakeTransactions(3);
             var blockBody = new BlockBody()
             {
-                BlockHeader = blockHeader.GetHash(),
                 TransactionIds = {transactionItems.Item2}
             };
             blockBody.TransactionsCount.ShouldBe(3);
@@ -60,22 +57,11 @@ namespace AElf.Kernel.Types.Tests
         public void CalculateBodyHash_Test()
         {
             //transaction count == 0
-            var blockBody = new BlockBody
-            {
-                BlockHeader = Hash.FromString("header")
-            };
-            Should.Throw<InvalidOperationException>(() => blockBody.GetHash());
-
-            //block header == null
-            blockBody = new BlockBody
-            {
-                TransactionIds = {Hash.FromString("tx1")},
-            };
+            var blockBody = new BlockBody();
             Should.Throw<InvalidOperationException>(() => blockBody.GetHash());
 
             blockBody = new BlockBody
             {
-                BlockHeader = Hash.FromString("header"),
                 TransactionIds =
                 {
                     new[]
@@ -147,7 +133,6 @@ namespace AElf.Kernel.Types.Tests
             block.Header.MerkleTreeRootOfTransactionStatus = Hash.Empty;
             block.Header.SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey");
             block.Header.ExtraData.Add(ByteString.Empty);
-            block.Body.BlockHeader = block.Header.GetHash();           
 
             return block;
         }

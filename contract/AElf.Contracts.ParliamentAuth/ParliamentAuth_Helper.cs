@@ -10,14 +10,14 @@ namespace AElf.Contracts.ParliamentAuth
     {
         private List<Address> GetCurrentMinerList()
         {
-            ValidateConsensusContract();
+            MaybeLoadConsensusContractAddress();
             var miner = State.ConsensusContract.GetCurrentMinerList.Call(new Empty());
-            var representatives = miner.Pubkeys.Select(publicKey =>
+            var members = miner.Pubkeys.Select(publicKey =>
                 Address.FromPublicKey(publicKey.ToByteArray())).ToList();
-            return representatives;
+            return members;
         }
 
-        private void CheckProposerAuthority(Organization organization)
+        private void AssertSenderIsAuthorizedProposer(Organization organization)
         {
             // It is a valid proposer if
             // authority check is disable,
@@ -30,31 +30,59 @@ namespace AElf.Contracts.ParliamentAuth
             var minerList = GetCurrentMinerList();
             Assert(minerList.Any(m => m == Context.Sender), "Not authorized to propose.");
         }
-        
-        private bool IsReadyToRelease(ProposalInfo proposal, Organization organization,
-            IEnumerable<Address> representatives)
+
+        private bool IsReleaseThresholdReached(ProposalInfo proposal, Organization organization,
+            IEnumerable<Address> currentRepresentatives)
         {
-            var validApprovalWeights = proposal.ApprovedRepresentatives.Aggregate(0,
-                (weights, address) =>
-                    weights + (representatives.FirstOrDefault(r => r.Equals(address)) == null ? 0 : 1));
-            return validApprovalWeights * 10000 >= organization.ReleaseThreshold * representatives.Count();
+            var currentParliament = new HashSet<Address>(currentRepresentatives);
+            var approvalsCollectedFromCurrentParliament =
+                proposal.ApprovedRepresentatives.Count(a => currentParliament.Contains(a));
+            // approved >= (threshold/max) * representativeCount
+            return approvalsCollectedFromCurrentParliament * MaxThreshold >=
+                   organization.ReleaseThreshold * currentParliament.Count;
         }
-        
-        private void ValidateConsensusContract()
+
+        private void MaybeLoadConsensusContractAddress()
         {
             if (State.ConsensusContract.Value != null)
                 return;
-            State.ConsensusContract.Value = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+            State.ConsensusContract.Value =
+                Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
         }
 
-        private bool IsValidRepresentative(IEnumerable<Address> representatives)
+        private void AssertSenderIsParliementMember(List<Address> currentParliament)
         {
-            return representatives.Any(r => r.Equals(Context.Sender));
+            Assert(currentParliament.Any(r => r.Equals(Context.Sender)), "Not authorized approval.");
         }
 
-        private Hash GenerateOrganizationVirtualHash(CreateOrganizationInput input)
+        private const int MaxThreshold = 10000;
+        private const int DefaultReleaseThreshold = 6666; // 2/3 for default parliament organization
+
+        private bool Validate(Organization organization)
         {
-            return Hash.FromTwoHashes(Hash.FromMessage(Context.Self), Hash.FromMessage(input));
+            return organization.ReleaseThreshold > 0 && organization.ReleaseThreshold <= MaxThreshold;
+        }
+
+        private bool Validate(ProposalInfo proposal)
+        {
+            var validDestinationAddress = proposal.ToAddress != null;
+            var validDestinationMethodName = !string.IsNullOrWhiteSpace(proposal.ContractMethodName);
+            var validExpiredTime = proposal.ExpiredTime != null && Context.CurrentBlockTime < proposal.ExpiredTime;
+            var hasOrganizationAddress = proposal.OrganizationAddress != null;
+            return validDestinationAddress && validDestinationMethodName && validExpiredTime & hasOrganizationAddress;
+        }
+
+        private ProposalInfo GetValidProposal(Hash proposalId)
+        {
+            var proposal = State.Proposals[proposalId];
+            Assert(proposal != null, "Invalid proposal id.");
+            Assert(Validate(proposal), "Invalid proposal.");
+            return proposal;
+        }
+
+        private void AssertProposalNotYetApprovedBySender(ProposalInfo proposal)
+        {
+            Assert(!proposal.ApprovedRepresentatives.Contains(Context.Sender), "Already approved.");
         }
     }
 }

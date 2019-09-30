@@ -6,7 +6,6 @@ namespace AElf.Contracts.ReferendumAuth
 {
     public class ReferendumAuthState : ContractState
     {
-        public BoolState Initialized { get; set; }
         public MappedState<Address, Hash, Receipt> LockedTokenAmount { get; set; }
         public MappedState<Hash, long> ApprovedTokenAmount { get; set; }
         public MappedState<Address, Organization> Organisations { get; set; }

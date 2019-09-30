@@ -90,4 +90,25 @@ namespace AElf.Kernel
                 });
         }
     }
+
+    [DependsOn(typeof(KernelWithChainTestAElfModule), typeof(ConsensusAElfModule))]
+    public class KernelWithConsensusStaffTestAElfModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
+
+            services.AddTransient(builder =>
+            {
+                var mockConsensusScheduler = new Mock<IConsensusScheduler>();
+                return mockConsensusScheduler.Object;
+            });
+
+            services.AddTransient(builder =>
+            {
+                var mockTriggerInformationProvider = new Mock<ITriggerInformationProvider>();
+                return mockTriggerInformationProvider.Object;
+            });
+        }
+    }
 }

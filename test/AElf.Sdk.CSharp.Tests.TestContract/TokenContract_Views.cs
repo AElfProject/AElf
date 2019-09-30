@@ -54,5 +54,10 @@ namespace AElf.Sdk.CSharp.Tests.TestContract
         {
             return Context.ConvertVirtualAddressToContractAddress(GetVirtualAddressHash(n));
         }
+        
+        public string NativeTokenSymbol()
+        {
+            return State.NativeTokenSymbol.Value;
+        }
     }
 }

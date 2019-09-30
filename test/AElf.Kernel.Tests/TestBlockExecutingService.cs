@@ -30,7 +30,8 @@ namespace AElf.Kernel
 
         private Block GenerateBlock(BlockHeader blockHeader, IEnumerable<Hash> transactionIds)
         {
-            blockHeader.MerkleTreeRootOfTransactions = BinaryMerkleTree.FromLeafNodes(transactionIds).Root;
+            var leafNodes = transactionIds as Hash[] ?? transactionIds.ToArray();
+            blockHeader.MerkleTreeRootOfTransactions = BinaryMerkleTree.FromLeafNodes(leafNodes).Root;
             blockHeader.MerkleTreeRootOfWorldState = Hash.Empty;
             blockHeader.MerkleTreeRootOfTransactionStatus = Hash.Empty;
             blockHeader.SignerPubkey = ByteString.CopyFromUtf8("SignerPubkey");
@@ -38,13 +39,10 @@ namespace AElf.Kernel
             var block = new Block
             {
                 Header = blockHeader,
-                Body = new BlockBody
-                {
-                    BlockHeader = blockHeader.GetHash()
-                }
+                Body = new BlockBody()
             };
             
-            block.Body.TransactionIds.AddRange(transactionIds);
+            block.Body.TransactionIds.AddRange(leafNodes);
 
             return block;
         }
