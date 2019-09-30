@@ -460,6 +460,10 @@ namespace AElf.OS.Network.Grpc
 
                 return response;
             }
+            catch (ObjectDisposedException ex)
+            {
+                throw new NetworkException("Peer is closed", ex, NetworkExceptionType.Unrecoverable);
+            }
             catch (AggregateException ex)
             {
                 throw CreateNetworkException(ex.Flatten(), requestParams.ErrorMessage);
