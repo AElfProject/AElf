@@ -326,7 +326,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (RpcException ex)
             {
-                job.SendCallback?.Invoke(CreateNetworkException(ex, $"Error on broadcast to {this}: "));
+                job.SendCallback?.Invoke(HandleRpcException(ex, $"Error on broadcast to {this}: "));
                 await Task.Delay(StreamRecoveryWaitTimeInMilliseconds);
                 return;
             }
@@ -464,9 +464,9 @@ namespace AElf.OS.Network.Grpc
             {
                 throw new NetworkException("Peer is closed", ex, NetworkExceptionType.Unrecoverable);
             }
-            catch (AggregateException ex)
+            catch (RpcException ex)
             {
-                throw CreateNetworkException(ex.Flatten(), requestParams.ErrorMessage);
+                throw HandleRpcException(ex, requestParams.ErrorMessage);
             }
             finally
             {
@@ -498,7 +498,7 @@ namespace AElf.OS.Network.Grpc
         /// This method handles the case where the peer is potentially down. If the Rpc call
         /// put the channel in TransientFailure or Connecting, we give the connection a certain time to recover.
         /// </summary>
-        private NetworkException CreateNetworkException(Exception exception, string errorMessage)
+        private NetworkException HandleRpcException(RpcException exception, string errorMessage)
         {
             string message = $"Failed request to {this}: {errorMessage}";
             NetworkExceptionType type = NetworkExceptionType.Rpc;
@@ -527,20 +527,16 @@ namespace AElf.OS.Network.Grpc
             else
             {
                 // there was an exception, not related to connectivity.
-                if (exception.InnerException is RpcException rpcEx)
+                if (exception.StatusCode == StatusCode.Cancelled)
                 {
-                    if (rpcEx.StatusCode == StatusCode.Cancelled)
-                    {
-                        message = $"Request was cancelled {this}: {errorMessage}";
-                        type = NetworkExceptionType.Unrecoverable;
-                    }
-                    else if (rpcEx.StatusCode == StatusCode.Unknown)
-                    {
-                        message = $"Exception in handler {this}: {errorMessage}";
-                        type = NetworkExceptionType.HandlerException;
-                    }
+                    message = $"Request was cancelled {this}: {errorMessage}";
+                    type = NetworkExceptionType.Unrecoverable;
                 }
-                
+                else if (exception.StatusCode == StatusCode.Unknown)
+                {
+                    message = $"Exception in handler {this}: {errorMessage}";
+                    type = NetworkExceptionType.HandlerException;
+                }
             }
 
             return new NetworkException(message, exception, type);

@@ -77,7 +77,7 @@ namespace AElf.OS.Network
                     {
                         var mockClient = new Mock<PeerService.PeerServiceClient>();
                         mockClient.Setup(m => m.DoHandshakeAsync(It.IsAny<HandshakeRequest>(), It.IsAny<Metadata>(), It.IsAny<DateTime?>(), CancellationToken.None))
-                            .Throws(new AggregateException());
+                            .Throws(new RpcException(Status.DefaultCancelled));
                         
                         var peer = GrpcTestPeerHelpers.CreatePeerWithClient(NetworkTestConstants.FakeIpEndpoint2, NetworkTestConstants.FakePubkey, 
                             mockClient.Object);
@@ -100,7 +100,7 @@ namespace AElf.OS.Network
                         mockClient.Setup(m => m.DoHandshakeAsync(It.IsAny<HandshakeRequest>(), It.IsAny<Metadata>(), It.IsAny<DateTime?>(), 
                             CancellationToken.None)).Returns(handshakeCall);
                         mockClient.Setup(m => m.ConfirmHandshakeAsync(It.IsAny<ConfirmHandshakeRequest>(), It.IsAny<Metadata>(),It.IsAny<DateTime?>(), 
-                            CancellationToken.None)).Throws(new AggregateException());
+                            CancellationToken.None)).Throws(new RpcException(Status.DefaultCancelled));
                         
                         var peer = GrpcTestPeerHelpers.CreatePeerWithClient(NetworkTestConstants.GoodPeerEndpoint,
                             NetworkTestConstants.FakePubkey, mockClient.Object);

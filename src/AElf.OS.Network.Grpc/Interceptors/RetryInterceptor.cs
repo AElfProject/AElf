@@ -34,13 +34,13 @@ namespace AElf.OS.Network.Grpc
                 // if no problem occured return
                 if (!response.IsFaulted)
                 {
-                    return response.Result;
+                    return await response;
                 }
 
                 // if a problem occured but reached the max retries
                 if (retryCount == _retryCount)
                 {
-                    return response.Result;
+                    return await response;
                 }
                 
                 retryCount++;

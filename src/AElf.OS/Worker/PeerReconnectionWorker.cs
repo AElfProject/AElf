@@ -76,9 +76,12 @@ namespace AElf.OS.Worker
                 {
                     connected = await _networkService.AddPeerAsync(peerEndpoint);
                 }
-                catch (AggregateException)
+                catch (Exception ex)
                 {
-                    Logger.LogDebug($"Could not re-connect to {peerEndpoint}.");
+                    // todo consider different handling of the exception in dialer 
+                    // down the stack the AddPeerAsync rethrows any exception,
+                    // in order to continue this job, Exception has to be catched for now.
+                    Logger.LogError(ex, $"Could not re-connect to {peerEndpoint}.");
                 }
 
                 if (connected)
