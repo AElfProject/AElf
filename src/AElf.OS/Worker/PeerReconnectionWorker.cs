@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
@@ -34,8 +35,13 @@ namespace AElf.OS.Worker
 
             timer.Period = _networkOptions.PeerReconnectionPeriod;
         }
+        
+        protected override void DoWork()
+        {
+            AsyncHelper.RunSync(DoReconnectionJobAsync);
+        }
 
-        protected override async void DoWork()
+        internal async Task DoReconnectionJobAsync()
         {
             await _networkService.SendHealthChecksAsync();
             
