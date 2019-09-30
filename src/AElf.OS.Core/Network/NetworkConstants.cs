@@ -6,7 +6,6 @@ namespace AElf.OS.Network
         public const int DefaultPeerRecoveryTimeoutInMilliSeconds = 3000;
         public const bool DefaultCompressBlocks = true;
         public const int DefaultMaxRequestRetryCount = 1;
-        public const int DefaultMaxRandomPeersPerRequest = 2;
         public const int DefaultMaxPeers = 25;
         public const int DefaultMaxPeersPerIpAddress = 0;
 
@@ -32,7 +31,6 @@ namespace AElf.OS.Network
         public const int DefaultMaxBufferedTransactionCount = 100;
         public const int DefaultMaxBufferedBlockCount = 50;
         public const int DefaultMaxBufferedAnnouncementCount = 200;
-        public const int DefaultMaxBufferedLibAnnouncementCount = 50;
 
         public const int DefaultPeerReconnectionPeriod = 60_000; // 1 min
     }
