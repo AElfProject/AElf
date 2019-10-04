@@ -242,9 +242,9 @@ message IrreversibleBlockHeightUnacceptable {
 
 message MiningInformationUpdated {
     option (aelf.is_event) = true;
-    string pubkey = 1;
-    google.protobuf.Timestamp mining_time = 2;
-    string behaviour = 3;
-    sint64 block_height = 4;
+    string pubkey = 1 [(aelf.is_indexed) = true];
+    google.protobuf.Timestamp mining_time = 2 [(aelf.is_indexed) = true];
+    string behaviour = 3 [(aelf.is_indexed) = true];
+    sint64 block_height = 4 [(aelf.is_indexed) = true];
     aelf.Hash previous_block_hash = 5;
 }

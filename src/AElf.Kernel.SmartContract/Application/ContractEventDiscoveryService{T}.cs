@@ -67,9 +67,17 @@ namespace AElf.Kernel.SmartContract.Application
                     if (contractAddress != null && (log.Address != contractAddress || log.Name != _logEvent.Name))
                         continue;
 
-                    var message = new T();
-                    message.MergeFrom(log);
-                    messages.Add(message);
+                    try
+                    {
+                        var message = new T();
+                        message.MergeFrom(log);
+                        messages.Add(message);
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.LogError($"Failed to generate message of type {messages.GetType().FullName}. {e}");
+                        throw;
+                    }
                 }
             }
 
