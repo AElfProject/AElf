@@ -78,10 +78,13 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 Logger.LogDebug($"Distance to lib height: {distanceToLib.DistanceToIrreversibleBlockHeight}");
                 _transactionInclusivenessProvider.IsTransactionPackable = false;
             }
+            else
+            {
+                _transactionInclusivenessProvider.IsTransactionPackable = true;
+            }
 
             if (blockIndex != null)
             {
-                _transactionInclusivenessProvider.IsTransactionPackable = true;
                 _taskQueueManager.Enqueue(
                     async () =>
                     {
