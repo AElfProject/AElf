@@ -8,6 +8,9 @@ namespace AElf.OS.Network
         public const int DefaultMaxRequestRetryCount = 1;
         public const int DefaultMaxRandomPeersPerRequest = 2;
         public const int DefaultMaxPeers = 25;
+        public const int DefaultMaxPeersPerIpAddress = 0;
+
+        public const int DefaultSessionIdSize = 5;
 
         public const int DefaultMaxBlockAgeToBroadcastInMinutes = 10;
 
@@ -29,5 +32,6 @@ namespace AElf.OS.Network
         public const int DefaultMaxBufferedTransactionCount = 100;
         public const int DefaultMaxBufferedBlockCount = 50;
         public const int DefaultMaxBufferedAnnouncementCount = 200;
+        public const int DefaultMaxBufferedLibAnnouncementCount = 50;
     }
 }
