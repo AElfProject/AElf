@@ -189,7 +189,7 @@ namespace AElf.OS.BlockSync.Application
             var lastDownloadBlockHeight = 0L;
 
             Logger.LogDebug(
-                $"Download blocks start with block hash: {lastDownloadBlockHash}, block height: {lastDownloadBlockHeight}, PeerPubkey: {peerPubkey}");
+                $"Download blocks start with block hash: {lastDownloadBlockHash}, PeerPubkey: {peerPubkey}");
 
             while (downloadBlockCount < maxBlockDownloadCount)
             {

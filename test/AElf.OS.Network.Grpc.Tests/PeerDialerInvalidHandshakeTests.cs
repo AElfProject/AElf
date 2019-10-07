@@ -18,7 +18,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task DialPeer_Test()
         {
-            var endpoint = IpEndpointHelper.Parse("127.0.0.1:2000");
+            var endpoint = IpEndPointHelper.Parse("127.0.0.1:2000");
             var grpcPeer = await _peerDialer.DialPeerAsync(endpoint);
             
             grpcPeer.ShouldBeNull();

@@ -45,6 +45,6 @@ Apart from the data in block, most cross chain data will be stored by the cross 
 Conceptually the node is like described in the following diagram:
 
 <p align="center">
-    <img src="archi-node.png" width="600" align="center" />
+    <img src="architecture-node.png" width="600" align="center" />
 </p>
 

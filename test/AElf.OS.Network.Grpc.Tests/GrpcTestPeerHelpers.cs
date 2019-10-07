@@ -13,18 +13,21 @@ namespace AElf.OS.Network
         
         public static GrpcPeer CreateBasicPeer(string ip, string pubkey)
         {
-            
-            return CreatePeerWithInfo(ip, new PeerConnectionInfo { Pubkey = pubkey, ConnectionTime = TimestampHelper.GetUtcNow() });
+            return CreatePeerWithInfo(ip, new PeerConnectionInfo { Pubkey = pubkey, SessionId = new byte[] { 0, 1, 2}, ConnectionTime = TimestampHelper.GetUtcNow()});
         }
 
         public static GrpcPeer CreatePeerWithInfo(string ip, PeerConnectionInfo info)
         {
-            return new GrpcPeer(new GrpcClient(CreateMockChannel(), null), IpEndpointHelper.Parse(ip), info);
+            var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), null), IpEndPointHelper.Parse(ip), info);
+            peer.InboundSessionId = new byte[] {0, 1, 2};
+            return peer;
         }
 
         public static GrpcPeer CreatePeerWithClient(string ip, string pubkey, PeerService.PeerServiceClient client)
         {
-            return new GrpcPeer(new GrpcClient(CreateMockChannel(), client), IpEndpointHelper.Parse(ip), new PeerConnectionInfo { Pubkey = pubkey });
+            var peer = new GrpcPeer(new GrpcClient(CreateMockChannel(), client), IpEndPointHelper.Parse(ip), new PeerConnectionInfo { Pubkey = pubkey, SessionId = new byte[] { 0, 1, 2} });
+            peer.InboundSessionId = new byte[] {0, 1, 2};
+            return peer;
         }
         
         public static GrpcPeer CreateNewPeer(string ipAddress = "127.0.0.1:2000", bool isValid = true, string publicKey = null)
@@ -48,10 +51,14 @@ namespace AElf.OS.Network
                 Pubkey = pubkey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
                 ConnectionTime = TimestampHelper.GetUtcNow(),
+                SessionId = new byte[] { 0, 1, 2},
                 IsInbound = true
             };
 
-            return new GrpcPeer(new GrpcClient(channel, client), IpEndpointHelper.Parse(ipAddress), connectionInfo);
+            var peer = new GrpcPeer(new GrpcClient(channel, client), IpEndPointHelper.Parse(ipAddress), connectionInfo);
+            peer.InboundSessionId = new byte[] {0, 1, 2};
+
+            return peer;
         }
     }
 }
