@@ -159,7 +159,7 @@ namespace AElf.Runtime.CSharp
                     var changes = _smartContractProxy.GetChanges();
 
                     var address = _hostSmartContractBridgeContext.Self.ToStorageKey();
-                    foreach (var (key, value) in changes.Writes)
+                    foreach (var key in changes.Writes.Keys)
                     {
                         if (!key.StartsWith(address))
                         {
@@ -175,7 +175,7 @@ namespace AElf.Runtime.CSharp
                         }
                     }
 
-                    foreach (var (key, value) in changes.Reads)
+                    foreach (var key in changes.Reads.Keys)
                     {
                         if (!key.StartsWith(address))
                         {

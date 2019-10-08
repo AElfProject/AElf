@@ -6,6 +6,7 @@ using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Protocol.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;
@@ -32,14 +33,14 @@ namespace AElf.OS.Consensus.DPos
             var peerList = new List<IPeer>();
             for (var i = 0; i < 3; i++)
             {
-                var connectionInfo = new PeerInfo
+                var connectionInfo = new PeerConnectionInfo
                 {
                     Pubkey = publicKeys[i],
                     ProtocolVersion = KernelConstants.ProtocolVersion,
                     ConnectionTime = TimestampHelper.GetUtcNow(),
                     IsInbound = true
                 };
-                peerList.Add(new GrpcPeer(new GrpcClient(null, null), IpEndpointHelper.Parse($"127.0.0.1:68{i + 1}0"), connectionInfo));
+                peerList.Add(new GrpcPeer(new GrpcClient(null, null), IpEndPointHelper.Parse($"127.0.0.1:68{i + 1}0"), connectionInfo));
             }
 
             services.AddTransient(o =>

@@ -6,6 +6,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         public override SInt32Value GetMaximumBlocksCount(Empty input)
@@ -35,29 +36,29 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return AEDPoSContractConstants.MaximumTinyBlocksCount;
             }
 
-            new BlockchainMiningStatusEvaluator(
-                libRoundNumber,
-                libBlockHeight,
-                currentRoundNumber,
-                currentHeight).Deconstruct(out var blockchainMiningStatus);
+            var blockchainMiningStatusEvaluator = new BlockchainMiningStatusEvaluator(libRoundNumber,
+                currentRoundNumber, AEDPoSContractConstants.MaximumTinyBlocksCount);
+            blockchainMiningStatusEvaluator.Deconstruct(out var blockchainMiningStatus);
 
             Context.LogDebug(() => $"Current blockchain mining status: {blockchainMiningStatus.ToString()}");
 
-            // If R_LIB + 2 < R <= R_LIB + 10 & H <= H_LIB + Y, CB goes to Min(L2 / (R - R_LIB), CB0), while CT stays same as before.
+            // If R_LIB + 2 < R < R_LIB + CB1, CB goes to Min(T(L2 * (CB1 - (R - R_LIB)) / A), CB0), while CT stays same as before.
             if (blockchainMiningStatus == BlockchainMiningStatus.Abnormal)
             {
                 var previousRoundMinedMinerList = State.MinedMinerListMap[currentRoundNumber.Sub(1)].Pubkeys;
                 var previousPreviousRoundMinedMinerList = State.MinedMinerListMap[currentRoundNumber.Sub(2)].Pubkeys;
                 var minersOfLastTwoRounds = previousRoundMinedMinerList
                     .Intersect(previousPreviousRoundMinedMinerList).Count();
-                var count = Math.Min(AEDPoSContractConstants.MaximumTinyBlocksCount, minersOfLastTwoRounds
-                    .Div((int) currentRound.RoundNumber.Sub(libRoundNumber))
-                    .Add(1));
+                var factor = minersOfLastTwoRounds.Mul(
+                    blockchainMiningStatusEvaluator.SevereStatusRoundsThreshold.Sub(
+                        (int) currentRoundNumber.Sub(libRoundNumber)));
+                var count = Math.Min(AEDPoSContractConstants.MaximumTinyBlocksCount,
+                    Ceiling(factor, currentRound.RealTimeMinersInformation.Count));
                 Context.LogDebug(() => $"Maximum blocks count tune to {count}");
                 return count;
             }
 
-            //If R > R_LIB + 10 || H > H_LIB + Y, CB goes to 1, and CT goes to 0
+            //If R >= R_LIB + CB1, CB goes to 1, and CT goes to 0
             if (blockchainMiningStatus == BlockchainMiningStatus.Severe)
             {
                 // Fire an event to notify miner not package normal transaction.
@@ -71,9 +72,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return AEDPoSContractConstants.MaximumTinyBlocksCount;
         }
 
+        private static int Ceiling(int num1, int num2)
+        {
+            var flag = num1 % num2;
+            return flag == 0 ? num1.Div(num2) : num1.Div(num2).Add(1);
+        }
+
         internal class BlockchainMiningStatusEvaluator
         {
-            private const int CachedBlocksCount = 1024; // Stands for Y
+            private const int AbnormalThresholdRoundsCount = 2;
 
             /// <summary>
             /// Stands for R_LIB
@@ -81,41 +88,39 @@ namespace AElf.Contracts.Consensus.AEDPoS
             private readonly long _libRoundNumber;
 
             /// <summary>
-            /// Stands for H_LIB
-            /// </summary>
-            private readonly long _libBlockHeight;
-
-            /// <summary>
             /// Stands for R
             /// </summary>
             private readonly long _currentRoundNumber;
 
             /// <summary>
-            /// Stands for H
+            /// Stands for CB0
             /// </summary>
-            private readonly long _currentBlockHeight;
+            private readonly int _maximumTinyBlocksCount;
+
+            /// <summary>
+            /// Stands for CB1
+            /// </summary>
+            public int SevereStatusRoundsThreshold => Math.Max(8, _maximumTinyBlocksCount);
 
             public BlockchainMiningStatusEvaluator(long currentConfirmedIrreversibleBlockRoundNumber,
-                long currentConfirmedIrreversibleBlockHeight, long currentRoundNumber, long currentBlockHeight)
+                long currentRoundNumber, int maximumTinyBlocksCount)
             {
                 _libRoundNumber = currentConfirmedIrreversibleBlockRoundNumber;
-                _libBlockHeight = currentConfirmedIrreversibleBlockHeight;
                 _currentRoundNumber = currentRoundNumber;
-                _currentBlockHeight = currentBlockHeight;
+                _maximumTinyBlocksCount = maximumTinyBlocksCount;
             }
 
             public void Deconstruct(out BlockchainMiningStatus status)
             {
                 status = BlockchainMiningStatus.Normal;
 
-                if (_libRoundNumber.Add(2) < _currentRoundNumber && _currentRoundNumber <= _libRoundNumber.Add(10) &&
-                    _currentBlockHeight <= _libBlockHeight.Add(CachedBlocksCount))
+                if (_libRoundNumber.Add(AbnormalThresholdRoundsCount) < _currentRoundNumber &&
+                    _currentRoundNumber < _libRoundNumber.Add(SevereStatusRoundsThreshold))
                 {
                     status = BlockchainMiningStatus.Abnormal;
                 }
 
-                if (_currentRoundNumber > _libRoundNumber.Add(10) ||
-                    _currentBlockHeight > _libBlockHeight.Add(CachedBlocksCount))
+                if (_currentRoundNumber >= _libRoundNumber.Add(SevereStatusRoundsThreshold))
                 {
                     status = BlockchainMiningStatus.Severe;
                 }

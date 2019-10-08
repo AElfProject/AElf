@@ -61,7 +61,7 @@ enum ExecutionStatus {
     PREFAILED = -99;
     
     // Post-failed
-    POSTFAILED = - 199;
+    POSTFAILED = -199;
 }
 
 message TransactionTrace {

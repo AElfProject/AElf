@@ -236,17 +236,17 @@ namespace AElf.OS.Network
 
             // setup mock announcement stream
             var announcementStreamCall = MockStreamCall<BlockAnnouncement, VoidReply>(testCompletionSource);
-            mockClient.Setup(m => m.AnnouncementBroadcastStream(null, null, CancellationToken.None))
+            mockClient.Setup(m => m.AnnouncementBroadcastStream(It.IsAny<Metadata>(), null, CancellationToken.None))
                 .Returns(announcementStreamCall);
             
             // setup mock transaction stream
             var transactionStreamCall = MockStreamCall<Transaction, VoidReply>(testCompletionSource);
-            mockClient.Setup(m => m.TransactionBroadcastStream(null, null, CancellationToken.None))
+            mockClient.Setup(m => m.TransactionBroadcastStream(It.IsAny<Metadata>(), null, CancellationToken.None))
                 .Returns(transactionStreamCall);
             
             // setup mock block stream
             var blockStreamCall = MockStreamCall<BlockWithTransactions, VoidReply>(testCompletionSource);
-            mockClient.Setup(m => m.BlockBroadcastStream(null, null, CancellationToken.None))
+            mockClient.Setup(m => m.BlockBroadcastStream(It.IsAny<Metadata>(), null, CancellationToken.None))
                 .Returns(blockStreamCall);
             
             // create peer

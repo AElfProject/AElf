@@ -2,8 +2,8 @@ using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel.Node.Events;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Protocol.Types;
 using Moq;
 using Shouldly;
 using Volo.Abp.EventBus.Local;
@@ -91,7 +91,7 @@ namespace AElf.OS.Network
             var peerMock = new Mock<IPeer>();
             
             peerMock.Setup(p => p.Info)
-                .Returns(new PeerInfo {Pubkey = CryptoHelper.GenerateKeyPair().PublicKey.ToHex()});
+                .Returns(new PeerConnectionInfo {Pubkey = CryptoHelper.GenerateKeyPair().PublicKey.ToHex()});
             
             peerMock.Setup(p => p.LastKnownLibHeight).Returns(libHeight);
             
