@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Grpc;
@@ -17,14 +18,14 @@ namespace AElf.OS.Network
         private readonly ILocalEventBus _eventBus;
         private readonly IPeerPool _peerPool;
 
-        private readonly NetworkTestContextHelpers _netTestHelpers;
+        private readonly NetworkTestContext _testContext;
 
         public GrpcNetworkServerTests()
         {
             _networkServer = GetRequiredService<IAElfNetworkServer>();
             _eventBus = GetRequiredService<ILocalEventBus>();
             _peerPool = GetRequiredService<IPeerPool>();
-            _netTestHelpers = GetRequiredService<NetworkTestContextHelpers>();
+            _testContext = GetRequiredService<NetworkTestContext>();
         }
         
         private GrpcPeer AddPeerToPool(string ip = NetworkTestConstants.FakeIpEndpoint, 
@@ -83,29 +84,16 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_ShouldThrowException()
         {
-            IpEndpointHelper.TryParse(NetworkTestConstants.DialExceptionIpEndpoint, out var endpoint);
+            IpEndPointHelper.TryParse(NetworkTestConstants.DialExceptionIpEndpoint, out var endpoint);
             _networkServer.ConnectAsync(endpoint).ShouldThrow<Exception>();
             
             _peerPool.PeerCount.ShouldBe(0);
         }
         
         [Fact] 
-        public async Task DialPeerAsync_KeyAlreadyInPool_ShouldReturnFalse()
-        {
-            // two different hosts with the same pubkey.
-            AddPeerToPool();
-            
-            IpEndpointHelper.TryParse(NetworkTestConstants.FakeIpEndpoint2, out var endpoint);
-            var added = await _networkServer.ConnectAsync(endpoint);
-            
-            added.ShouldBeFalse();
-            _netTestHelpers.AllPeersWhereCleaned().ShouldBeTrue();
-        }
-        
-        [Fact] 
         public async Task DialPeerAsync_GoodPeer_ShouldBeInPool()
         {
-            IpEndpointHelper.TryParse(NetworkTestConstants.GoodPeerEndpoint, out var endpoint);
+            IpEndPointHelper.TryParse(NetworkTestConstants.GoodPeerEndpoint, out var endpoint);
 
             // two different hosts with the same pubkey.
             var added = await _networkServer.ConnectAsync(endpoint);
@@ -125,7 +113,7 @@ namespace AElf.OS.Network
             });
             
             // two different hosts with the same pubkey.
-            IpEndpointHelper.TryParse(NetworkTestConstants.GoodPeerEndpoint, out var endpoint);
+            IpEndPointHelper.TryParse(NetworkTestConstants.GoodPeerEndpoint, out var endpoint);
             var added = await _networkServer.ConnectAsync(endpoint);
             
             added.ShouldBeTrue();
@@ -137,7 +125,7 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_HandshakeNetProblem_ShouldThrowException()
         {
-            IpEndpointHelper.TryParse(NetworkTestConstants.HandshakeWithNetExceptionIp, out var endpoint);
+            IpEndPointHelper.TryParse(NetworkTestConstants.HandshakeWithNetExceptionIp, out var endpoint);
             _networkServer.ConnectAsync(endpoint).ShouldThrow<Exception>();
             
             _peerPool.PeerCount.ShouldBe(0);
@@ -146,7 +134,7 @@ namespace AElf.OS.Network
         [Fact]
         public async Task DialPeerAsync_HandshakeDataProblem_ShouldThrowException()
         {
-            IpEndpointHelper.TryParse(NetworkTestConstants.HandshakeWithNetExceptionIp, out var endpoint);
+            IpEndPointHelper.TryParse(NetworkTestConstants.HandshakeWithNetExceptionIp, out var endpoint);
             _networkServer.ConnectAsync(endpoint).ShouldThrow<Exception>();
             
             _peerPool.PeerCount.ShouldBe(0);
@@ -155,7 +143,7 @@ namespace AElf.OS.Network
         [Fact] 
         public async Task DialPeerAsync_HandshakeError_ShouldThrowException()
         {
-            IpEndpointHelper.TryParse(NetworkTestConstants.BadHandshakeIp, out var endpoint);
+            IpEndPointHelper.TryParse(NetworkTestConstants.BadHandshakeIp, out var endpoint);
             _networkServer.ConnectAsync(endpoint).ShouldThrow<NetworkException>();
             
             _peerPool.PeerCount.ShouldBe(0);

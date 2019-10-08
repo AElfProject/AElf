@@ -2,7 +2,7 @@ using System.Net;
 
 namespace AElf.OS.Network.Helpers
 {
-    public static class IpEndpointHelper
+    public static class IpEndPointHelper
     {
         public static IPEndPoint Parse(string endpointString)
         {

@@ -27,10 +27,11 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services.AddTransient<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
             context.Services
                 .AddSingleton<IBroadcastPrivilegedPubkeyListProvider, AEDPoSBroadcastPrivilegedPubkeyListProvider>();
-            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
             context.Services
                 .AddSingleton<IConstrainedTransactionValidationProvider,
                     ConstrainedAEDPoSTransactionValidationProvider>();
+            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
+
 
             var configuration = context.Services.GetConfiguration();
 

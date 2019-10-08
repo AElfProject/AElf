@@ -210,7 +210,11 @@ namespace AElf.Contracts.Election
         {
             var output = new GetPageableCandidateInformationOutput();
             var candidates = State.Candidates.Value;
-            var length = Math.Min(Math.Min(input.Length, 20), candidates.Value.Count.Sub(input.Start));
+
+            var count = candidates.Value.Count;
+            if (count <= input.Start) return output;
+
+            var length = Math.Min(Math.Min(input.Length, 20), count.Sub(input.Start));
             foreach (var candidate in candidates.Value.Skip(input.Start).Take(length))
             {
                 output.Value.Add(new CandidateDetail
