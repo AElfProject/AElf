@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
-using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -32,7 +32,7 @@ namespace AElf.Launcher
             ILogger<Program> logger = NullLogger<Program>.Instance;
             try
             {
-                CreateHostBuilder(args).Build().Run();
+                CreateWebHostBuilder(args).Build().Run();
             }
             catch (Exception e)
             {
@@ -43,13 +43,9 @@ namespace AElf.Launcher
         }
 
         // create default https://github.com/aspnet/MetaPackages/blob/master/src/Microsoft.AspNetCore/WebHost.cs
-        private static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
+        private static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
+            WebHost.CreateDefaultBuilder(args)
                 .ConfigureLogging(builder => { builder.ClearProviders(); })
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.UseStartup<Startup>();
-                });
-                
+                .UseStartup<Startup>();
     }
 }

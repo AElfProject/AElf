@@ -55,19 +55,23 @@ namespace AElf.WebApp.Web
                 options.InputFormatters.Add(new ProtobufInputFormatter());
                 options.OutputFormatters.Add(new ProtobufOutputFormatter());
                 
-                var jsonFormatter = (JsonOutputFormatter) options.OutputFormatters.FirstOrDefault(f => f is JsonOutputFormatter);
-                if (jsonFormatter != null)
-                {
-                    var defaultContractResolver = new DefaultContractResolver
-                    {
-                        NamingStrategy = new UpperCamelCaseNamingStrategy()
-                    };
-                    jsonFormatter.PublicSerializerSettings.ContractResolver = defaultContractResolver;
-                }
+//                var jsonFormatter = (JsonOutputFormatter) options.OutputFormatters.FirstOrDefault(f => f is JsonOutputFormatter);
+//                if (jsonFormatter != null)
+//                {
+//                    var defaultContractResolver = new DefaultContractResolver
+//                    {
+//                        NamingStrategy = new UpperCamelCaseNamingStrategy()
+//                    };
+//                    jsonFormatter.PublicSerializerSettings.ContractResolver = defaultContractResolver;
+//                }
             });
 
-            context.Services.AddMvc().AddJsonOptions(options =>
+            context.Services.AddMvc().AddNewtonsoftJson(options =>
             {
+                options.SerializerSettings.ContractResolver = new DefaultContractResolver
+                {
+                    NamingStrategy = new UpperCamelCaseNamingStrategy()
+                };
                 options.SerializerSettings.Converters.Add(new ProtoMessageConverter());
             });
         }
@@ -107,6 +111,7 @@ namespace AElf.WebApp.Web
 
             //app.UseAbpRequestLocalization();
 
+            /*
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {
@@ -116,17 +121,20 @@ namespace AElf.WebApp.Web
                     options.SwaggerEndpoint( $"/swagger/{description.GroupName}/swagger.json", $"AELF API {description.GroupName.ToUpperInvariant()}" );
                 }
             });
+            */
 
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "defaultWithArea",
-                    template: "{area}/{controller=Home}/{action=Index}/{id?}");
-
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
-            });
+//            app.UseEndpoints(routes =>
+//            {
+//                routes.MapControllerRoute(
+//                     "defaultWithArea",
+//                     "{area}/{controller=Home}/{action=Index}/{id?}");
+//
+//                routes.MapControllerRoute(
+//                     "default",
+//                     "{controller=Home}/{action=Index}/{id?}");
+//            });
+            
+            app.UseMvcWithDefaultRouteAndArea();
         }
     }
 

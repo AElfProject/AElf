@@ -25,6 +25,22 @@ namespace AElf.Launcher
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddPolicy("CorsOrigins",
+                    builder =>
+                    {
+                        builder
+                            .WithOrigins(_configuration["CorsOrigins"]
+                                .Split(",", StringSplitOptions.RemoveEmptyEntries)
+                                .Select(o => o.RemovePostFix("/"))
+                                .ToArray())
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
+                    });
+            });
+            
             var chainType = _configuration.GetValue("ChainType", ChainType.MainChain);
             switch (chainType)
             {
@@ -45,17 +61,10 @@ namespace AElf.Launcher
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseCors(builder => builder
-                .WithOrigins(_configuration["CorsOrigins"]
-                    .Split(",", StringSplitOptions.RemoveEmptyEntries)
-                    .Select(o => o.RemovePostFix("/"))
-                    .ToArray())
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials()
-            );
+            app.UseRouting();
+            app.UseCors("CorsOrigins");
 
             app.InitializeApplication();
         }
