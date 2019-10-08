@@ -1503,7 +1503,7 @@ namespace AElf.Parallel.Tests
                     increaseValueInput.Memo = Guid.NewGuid().ToString();
                     transaction = await GenerateTransactionAsync(accountAddress,
                         ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin),
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin),
                         increaseValueInput);
                     systemTransactions.Add(transaction);
 
@@ -1518,7 +1518,7 @@ namespace AElf.Parallel.Tests
                     removeValueInput.Memo = Guid.NewGuid().ToString();
                     transaction = await GenerateTransactionAsync(accountAddress,
                         ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                        nameof(BasicFunctionWithParallelContract.RemoveValueFromPostPlugin), removeValueInput);
+                        nameof(BasicFunctionWithParallelContract.RemoveValueParallelFromPostPlugin), removeValueInput);
                     systemTransactions.Add(transaction);
                 }
 
@@ -1539,14 +1539,14 @@ namespace AElf.Parallel.Tests
                     removeValueInput.Memo = Guid.NewGuid().ToString();
                     transaction = await GenerateTransactionAsync(accountAddress,
                         ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                        nameof(BasicFunctionWithParallelContract.RemoveValueParallelFromPostPlugin), removeValueInput);
+                        nameof(BasicFunctionWithParallelContract.RemoveValueFromPostPlugin), removeValueInput);
                     normalTransactions.Add(transaction);
 
                     removeValueInput.Key = keys[6];
                     removeValueInput.Memo = Guid.NewGuid().ToString();
                     transaction = await GenerateTransactionAsync(accountAddress,
                         ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                        nameof(BasicFunctionWithParallelContract.RemoveValueParallelFromPostPlugin), removeValueInput);
+                        nameof(BasicFunctionWithParallelContract.RemoveValueFromPostPlugin), removeValueInput);
                     normalTransactions.Add(transaction);
 
                     var increaseValueInput = new IncreaseValueInput
@@ -1556,14 +1556,14 @@ namespace AElf.Parallel.Tests
                     };
                     transaction = await GenerateTransactionAsync(accountAddress,
                         ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin), increaseValueInput);
                     normalTransactions.Add(transaction);
 
                     increaseValueInput.Key = keys[6];
                     increaseValueInput.Memo = Guid.NewGuid().ToString();
                     transaction = await GenerateTransactionAsync(accountAddress,
                         ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin), increaseValueInput);
                     normalTransactions.Add(transaction);
                 }
 
@@ -1665,7 +1665,7 @@ namespace AElf.Parallel.Tests
                     increaseValueInput.Memo = Guid.NewGuid().ToString();
                     transaction = await GenerateTransactionAsync(accountAddress,
                         ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin),
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin),
                         increaseValueInput);
                     systemTransactions.Add(transaction);
 
@@ -1680,7 +1680,7 @@ namespace AElf.Parallel.Tests
                     removeValueInput.Memo = Guid.NewGuid().ToString();
                     transaction = await GenerateTransactionAsync(accountAddress,
                         ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                        nameof(BasicFunctionWithParallelContract.RemoveValueFromPostPlugin), removeValueInput);
+                        nameof(BasicFunctionWithParallelContract.RemoveValueParallelFromPostPlugin), removeValueInput);
                     systemTransactions.Add(transaction);
                 }
 
@@ -1712,14 +1712,14 @@ namespace AElf.Parallel.Tests
                     removeValueInput.Memo = Guid.NewGuid().ToString();
                     transaction = await GenerateTransactionAsync(accountAddress,
                         ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                        nameof(BasicFunctionWithParallelContract.RemoveValueParallelFromPostPlugin), removeValueInput);
+                        nameof(BasicFunctionWithParallelContract.RemoveValueFromPostPlugin), removeValueInput);
                     normalTransactions.Add(transaction);
 
                     removeValueInput.Key = keys[6];
                     removeValueInput.Memo = Guid.NewGuid().ToString();
                     transaction = await GenerateTransactionAsync(accountAddress,
                         ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                        nameof(BasicFunctionWithParallelContract.RemoveValueParallelFromPostPlugin), removeValueInput);
+                        nameof(BasicFunctionWithParallelContract.RemoveValueFromPostPlugin), removeValueInput);
                     normalTransactions.Add(transaction);
 
                     var increaseValueInput = new IncreaseValueInput
@@ -1729,14 +1729,14 @@ namespace AElf.Parallel.Tests
                     };
                     transaction = await GenerateTransactionAsync(accountAddress,
                         ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin), increaseValueInput);
                     normalTransactions.Add(transaction);
 
                     increaseValueInput.Key = keys[6];
                     increaseValueInput.Memo = Guid.NewGuid().ToString();
                     transaction = await GenerateTransactionAsync(accountAddress,
                         ParallelTestHelper.BasicFunctionWithParallelContractAddress,
-                        nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin), increaseValueInput);
+                        nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin), increaseValueInput);
                     normalTransactions.Add(transaction);
                 }
 
