@@ -27,7 +27,7 @@ namespace AElf.Launcher
         {
             services.AddCors(options =>
             {
-                options.AddPolicy("CorsOrigins",
+                options.AddPolicy("CorsPolicy",
                     builder =>
                     {
                         builder
@@ -36,8 +36,8 @@ namespace AElf.Launcher
                                 .Select(o => o.RemovePostFix("/"))
                                 .ToArray())
                             .AllowAnyHeader()
-                            .AllowAnyMethod()
-                            .AllowCredentials();
+                            .AllowAnyMethod();
+                        //.AllowCredentials();
                     });
             });
             
@@ -64,7 +64,7 @@ namespace AElf.Launcher
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseRouting();
-            app.UseCors("CorsOrigins");
+            app.UseCors("CorsPolicy");
 
             app.InitializeApplication();
         }
