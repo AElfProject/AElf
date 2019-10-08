@@ -37,11 +37,17 @@ namespace AElf.Contracts.MultiToken
 
             var bill = new TransactionFeeBill
             {
-                TokenToAmount =
-                {
-                    {Context.Variables.NativeSymbol, amount}
-                }
+                TokenToAmount = {{symbol, amount}}
             };
+
+            var unitPrice = State.TransactionFeeUnitPrice.Value;
+            if (unitPrice != 0)
+            {
+                bill += new TransactionFeeBill
+                {
+                    TokenToAmount = {{Context.Variables.NativeSymbol, input.TransactionSize.Mul(unitPrice)}}
+                };
+            }
 
             var fromAddress = Context.Sender;
             State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
@@ -206,68 +212,28 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty DonateResourceToken(Empty input)
+        public override Empty SetTransactionSizeUnitPrice(SInt32Value input)
         {
-            var isMainChain = true;
-            if (State.TreasuryContract.Value == null)
+            if (State.ZeroContract.Value == null)
             {
-                var treasuryContractAddress =
-                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
-                if (treasuryContractAddress == null)
-                {
-                    isMainChain = false;
-                }
-                else
-                {
-                    State.TreasuryContract.Value = treasuryContractAddress;
-                }
+                State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
             }
 
-            var transactions = Context.GetPreviousBlockTransactions();
-            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList.Except(new List<string> {"RAM"}))
+            if (State.ParliamentAuthContract.Value == null)
             {
-                var totalAmount = 0L;
-                foreach (var transaction in transactions)
-                {
-                    var caller = transaction.From;
-                    var contractAddress = transaction.To;
-                    var amount = State.ChargedResourceTokens[caller][contractAddress][symbol];
-                    if (amount > 0)
-                    {
-                        State.Balances[contractAddress][symbol] = State.Balances[contractAddress][symbol].Sub(amount);
-                        Context.LogDebug(() => $"Charged {amount} {symbol} tokens from {contractAddress}");
-                        totalAmount = totalAmount.Add(amount);
-                        State.ChargedResourceTokens[caller][contractAddress][symbol] = 0;
-                    }
-                }
-
-                Context.LogDebug(() => $"Charged resource token {symbol}: {totalAmount}");
-
-                if (totalAmount > 0)
-                {
-                    if (isMainChain)
-                    {
-                        Context.LogDebug(() => $"Adding {totalAmount} of {symbol}s to dividend pool.");
-                        // Main Chain.
-                        State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalAmount);
-                        State.TreasuryContract.Donate.Send(new DonateInput
-                        {
-                            Symbol = symbol,
-                            Amount = totalAmount
-                        });
-                    }
-                    else
-                    {
-                        Context.LogDebug(() => $"Adding {totalAmount} of {symbol}s to consensus address account.");
-                        // Side Chain
-                        var consensusContractAddress =
-                            Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
-                        State.Balances[consensusContractAddress][symbol] =
-                            State.Balances[consensusContractAddress][symbol].Add(totalAmount);
-                    }
-                }
+                State.ParliamentAuthContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
             }
 
+            var contractOwner = State.ZeroContract.GetContractAuthor.Call(Context.Self);
+
+            Assert(
+                contractOwner == Context.Sender ||
+                Context.Sender == State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty()) ||
+                Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
+                "No permission to set tx size unit price.");
+
+            State.TransactionFeeUnitPrice.Value = input.Value;
             return new Empty();
         }
     }

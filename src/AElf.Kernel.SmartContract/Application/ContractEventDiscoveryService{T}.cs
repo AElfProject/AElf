@@ -5,7 +5,6 @@ using AElf.CSharp.Core;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;

@@ -12,5 +12,7 @@ namespace AElf.Contracts.MultiToken
             get;
             set;
         }
+
+        public Int32State TransactionFeeUnitPrice { get; set; }
     }
 }

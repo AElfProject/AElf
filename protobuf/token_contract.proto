@@ -67,6 +67,8 @@ service TokenContract {
     }
     rpc SetFeeReceiver (aelf.Address) returns (google.protobuf.Empty) {
     }
+    rpc SetTransactionSizeUnitPrice (aelf.SInt32Value) returns (google.protobuf.Empty) {
+    }
 
     // Views
     rpc GetTokenInfo (GetTokenInfoInput) returns (TokenInfo) {
