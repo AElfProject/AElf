@@ -301,19 +301,18 @@ namespace AElf.OS.Network.Grpc
 
                 blockList.Blocks.AddRange(blocks);
 
-                if (blockList.Blocks.Count != request.Count)
-                    Logger.LogTrace($"Replied with {blockList.Blocks.Count} blocks for request {request}");
-
                 if (NetworkOptions.CompressBlocksOnRequest)
                 {
                     var headers = new Metadata
                         {new Metadata.Entry(GrpcConstants.GrpcRequestCompressKey, GrpcConstants.GrpcGzipConst)};
                     await context.WriteResponseHeadersAsync(headers);
                 }
+                
+                Logger.LogTrace($"Replied to {context.GetPeerInfo()} with {blockList.Blocks.Count}, request was {request}");
             }
             catch (Exception e)
             {
-                Logger.LogError(e, $"Request blocks error - {context.GetPeerInfo()}: ");
+                Logger.LogError(e, $"Request blocks error - {context.GetPeerInfo()} - request {request}: ");
                 throw;
             }
 

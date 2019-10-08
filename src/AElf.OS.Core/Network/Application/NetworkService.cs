@@ -294,7 +294,7 @@ namespace AElf.OS.Network.Application
 
             if (response != null && response.Success && response.Payload != null 
                 && (response.Payload.Count == 0 || response.Payload.Count != count))
-                Logger.LogWarning($"Block count miss match, asked for {count} but got {response.Payload.Count}");
+                Logger.LogWarning($"Requested blocks from {peer} - count miss match, asked for {count} but got {response.Payload.Count} (from {previousBlock})");
 
             return response;
         }
