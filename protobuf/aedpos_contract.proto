@@ -246,5 +246,5 @@ message MiningInformationUpdated {
     google.protobuf.Timestamp mining_time = 2 [(aelf.is_indexed) = true];
     string behaviour = 3 [(aelf.is_indexed) = true];
     sint64 block_height = 4 [(aelf.is_indexed) = true];
-    aelf.Hash previous_block_hash = 5;
+    aelf.Hash previous_block_hash = 5 [(aelf.is_indexed) = true];
 }

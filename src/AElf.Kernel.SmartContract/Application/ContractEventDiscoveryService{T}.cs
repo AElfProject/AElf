@@ -5,6 +5,7 @@ using AElf.CSharp.Core;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
@@ -64,18 +65,18 @@ namespace AElf.Kernel.SmartContract.Application
 
                 foreach (var log in transactionExecutingResult.Logs)
                 {
-                    if (contractAddress != null && (log.Address != contractAddress || log.Name != _logEvent.Name))
+                    if (contractAddress == null || log.Address != contractAddress || log.Name != _logEvent.Name)
                         continue;
 
+                    var message = new T();
                     try
                     {
-                        var message = new T();
                         message.MergeFrom(log);
                         messages.Add(message);
                     }
                     catch (Exception e)
                     {
-                        Logger.LogError($"Failed to generate message of type {messages.GetType().FullName}. {e}");
+                        Logger.LogError($"Failed to generate message of type {message.GetType().FullName}. {e}");
                         throw;
                     }
                 }
