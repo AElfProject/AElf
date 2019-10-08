@@ -21,16 +21,12 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         public async Task TransactionFee_Mined_Test()
         {
             //set method fee
-            var setResult = await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new TokenAmounts
+            var setResult = await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new MethodFees
             {
-                Method = "SendForFun",
-                Amounts =
+                MethodName = "SendForFun",
+                Fee =
                 {
-                    new TokenAmount
-                    {
-                        Symbol = "ELF",
-                        Amount = 1_0000_0000
-                    }
+                    new MethodFee {Symbol = "ELF", BasicFee = 1_0000_0000}
                 }
             });
             setResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -49,16 +45,12 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         [Fact(Skip = "Current failed transaction cannot charge fee")]
         public async Task TransactionFee_Failed_Test()
         {
-            var setResult = await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new TokenAmounts
+            var setResult = await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new MethodFees
             {
-                Method = "SupposedToFail",
-                Amounts =
+                MethodName = "SupposedToFail",
+                Fee =
                 {
-                    new TokenAmount
-                    {
-                        Symbol = "ELF",
-                        Amount = 2_0000_0000
-                    }
+                    new MethodFee {Symbol = "ELF", BasicFee = 2_0000_0000}
                 }
             });
             setResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
