@@ -21,11 +21,13 @@ namespace AElf.Contracts.MultiToken
             Assert(input.MethodName != null && input.ContractAddress != null && input.TransactionSize > 0,
                 "Invalid charge transaction fees input.");
 
-            State.MethodFeeProviderContract.Value = input.ContractAddress;
+            //State.MethodFeeProviderContract.Value = input.ContractAddress;
 
             var fee = input.ContractAddress == Context.Self
                 ? GetMethodFee(input.MethodName)
-                : State.MethodFeeProviderContract.GetMethodFee.Call(new StringValue {Value = input.MethodName});
+                : Context.Call<MethodFees>(input.ContractAddress, nameof(State.MethodFeeProviderContract.GetMethodFee),
+                    new StringValue {Value = input.MethodName});
+            //State.MethodFeeProviderContract.GetMethodFee.Call(});
 
             if (fee == null || !fee.Fee.Any()) return new Empty();
 

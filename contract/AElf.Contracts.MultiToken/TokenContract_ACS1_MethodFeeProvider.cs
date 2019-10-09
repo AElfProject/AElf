@@ -8,6 +8,22 @@ namespace AElf.Contracts.MultiToken
     {
         private MethodFees GetMethodFee(string input)
         {
+            if (input == nameof(Transfer))
+            {
+                return new MethodFees
+                {
+                    MethodName = nameof(Transfer),
+                    Fee =
+                    {
+                        new MethodFee
+                        {
+                            Symbol = Context.Variables.NativeSymbol,
+                            BasicFee = 1_00000000
+                        }
+                    }
+                };
+            }
+
             return State.MethodFees[input];
         }
 
