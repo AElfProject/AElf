@@ -27,22 +27,6 @@ namespace AElf.Launcher
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
-            services.AddCors(options =>
-            {
-                options.AddPolicy(DefaultCorsPolicyName, builder =>
-                    {
-                        builder
-                            .WithOrigins(_configuration["CorsOrigins"]
-                                .Split(",", StringSplitOptions.RemoveEmptyEntries)
-                                .Select(o => o.RemovePostFix("/"))
-                                .ToArray()
-                            ).WithAbpExposedHeaders()
-                            .AllowAnyHeader()
-                            .AllowAnyMethod();
-                        //.AllowCredentials();
-                    });
-            });
-            
             var chainType = _configuration.GetValue("ChainType", ChainType.MainChain);
             switch (chainType)
             {
@@ -53,6 +37,22 @@ namespace AElf.Launcher
                     AddApplication<MainChainAElfModule>(services);
                     break;
             }
+            services.AddCors(options =>
+            {
+                options.AddPolicy(DefaultCorsPolicyName, builder =>
+                {
+                    builder
+                        .WithOrigins(_configuration["CorsOrigins"]
+                            .Split(",", StringSplitOptions.RemoveEmptyEntries)
+                            .Select(o => o.RemovePostFix("/"))
+                            .ToArray()
+                        )
+                        .WithAbpExposedHeaders()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                    //.AllowCredentials();
+                });
+            });
             
             return services.BuildAutofacServiceProvider();
         }
