@@ -5,6 +5,7 @@ using AElf.Blockchains.MainChain;
 using AElf.Blockchains.SideChain;
 using AElf.Kernel;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,7 @@ namespace AElf.Launcher
     public class Startup
     {
         private readonly IConfiguration _configuration;
+        private const string DefaultCorsPolicyName = "CorsPolicy";
 
         public Startup(IConfiguration configuration)
         {
@@ -27,14 +29,14 @@ namespace AElf.Launcher
         {
             services.AddCors(options =>
             {
-                options.AddPolicy("CorsPolicy",
-                    builder =>
+                options.AddPolicy(DefaultCorsPolicyName, builder =>
                     {
                         builder
                             .WithOrigins(_configuration["CorsOrigins"]
                                 .Split(",", StringSplitOptions.RemoveEmptyEntries)
                                 .Select(o => o.RemovePostFix("/"))
-                                .ToArray())
+                                .ToArray()
+                            ).WithAbpExposedHeaders()
                             .AllowAnyHeader()
                             .AllowAnyMethod();
                         //.AllowCredentials();
@@ -64,7 +66,7 @@ namespace AElf.Launcher
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             app.UseRouting();
-            app.UseCors("CorsPolicy");
+            app.UseCors(DefaultCorsPolicyName);
 
             app.InitializeApplication();
         }

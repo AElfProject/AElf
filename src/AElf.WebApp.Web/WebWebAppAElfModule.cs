@@ -7,7 +7,6 @@ using AElf.WebApp.Application.Chain;
 using AElf.WebApp.Application.Net;
 using Google.Protobuf;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.Versioning;
@@ -50,23 +49,11 @@ namespace AElf.WebApp.Web
             ConfigureSwaggerServices(context.Services);
 
 
-            context.Services.Configure<MvcOptions>(options =>
+            context.Services.AddControllers(options =>
             {
                 options.InputFormatters.Add(new ProtobufInputFormatter());
                 options.OutputFormatters.Add(new ProtobufOutputFormatter());
-                
-//                var jsonFormatter = (JsonOutputFormatter) options.OutputFormatters.FirstOrDefault(f => f is JsonOutputFormatter);
-//                if (jsonFormatter != null)
-//                {
-//                    var defaultContractResolver = new DefaultContractResolver
-//                    {
-//                        NamingStrategy = new UpperCamelCaseNamingStrategy()
-//                    };
-//                    jsonFormatter.PublicSerializerSettings.ContractResolver = defaultContractResolver;
-//                }
-            });
-
-            context.Services.AddMvc().AddNewtonsoftJson(options =>
+            }).AddNewtonsoftJson(options =>
             {
                 options.SerializerSettings.ContractResolver = new DefaultContractResolver
                 {
@@ -111,7 +98,7 @@ namespace AElf.WebApp.Web
 
             //app.UseAbpRequestLocalization();
 
-            /*
+            
             app.UseSwagger();
             app.UseSwaggerUI(options =>
             {
@@ -121,18 +108,6 @@ namespace AElf.WebApp.Web
                     options.SwaggerEndpoint( $"/swagger/{description.GroupName}/swagger.json", $"AELF API {description.GroupName.ToUpperInvariant()}" );
                 }
             });
-            */
-
-//            app.UseEndpoints(routes =>
-//            {
-//                routes.MapControllerRoute(
-//                     "defaultWithArea",
-//                     "{area}/{controller=Home}/{action=Index}/{id?}");
-//
-//                routes.MapControllerRoute(
-//                     "default",
-//                     "{controller=Home}/{action=Index}/{id?}");
-//            });
             
             app.UseMvcWithDefaultRouteAndArea();
         }
