@@ -64,6 +64,12 @@ service BasicFunctionWithParallelContract {
     }
     rpc RemoveAfterSetValue(RemoveAfterSetValueInput) returns (google.protobuf.Empty){
     }
+    rpc ComplexChangeWithDeleteValue1(ComplexChangeInput) returns (google.protobuf.Empty) {
+    }
+    rpc ComplexChangeWithDeleteValue2(ComplexChangeInput) returns (google.protobuf.Empty) {
+    }
+    rpc ComplexChangeWithDeleteValue3(ComplexChangeInput) returns (google.protobuf.Empty) {
+    }
 
     //View
     rpc QueryWinMoney(google.protobuf.Empty) returns (MoneyOutput) {
@@ -157,6 +163,13 @@ message GetValueInput{
 message IncreaseValueInput{
     string key = 1;
     string memo = 2;
+}
+
+message ComplexChangeInput{
+    string key = 1;
+    int64 int64_value = 2;
+    string string_value = 3;
+    MessageValue message_value = 4;
 }
 //Output
 

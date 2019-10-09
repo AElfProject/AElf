@@ -1,5 +1,6 @@
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -255,6 +256,36 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
         public override Empty RemoveValueParallel(RemoveValueInput input)
         {
             return RemoveValue(input);
+        }
+
+        public override Empty ComplexChangeWithDeleteValue1(ComplexChangeInput input)
+        {
+            State.LongValueMap[input.Key] = input.Int64Value;
+            State.StringValueMap[input.Key] = input.StringValue;
+            
+            State.MessageValueMap.Remove(input.Key);
+            
+            return new Empty();
+        }
+
+        public override Empty ComplexChangeWithDeleteValue2(ComplexChangeInput input)
+        {
+            State.LongValueMap.Remove(input.Key);
+            
+            State.StringValueMap[input.Key] = input.StringValue;
+            State.MessageValueMap[input.Key] = input.MessageValue;
+            
+            return new Empty();
+        }
+
+        public override Empty ComplexChangeWithDeleteValue3(ComplexChangeInput input)
+        {
+            State.LongValueMap[input.Key] = input.Int64Value;
+            
+            State.StringValueMap.Remove(input.Key);
+            State.MessageValueMap.Remove(input.Key);
+            
+            return new Empty();
         }
 
         private long WinOrLose(long betAmount)
