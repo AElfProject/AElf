@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Domain;
@@ -333,17 +334,21 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task<List<Hash>> GetBlockHashesAsync(Chain chain, Hash firstHash, int count,
             Hash chainBranchBlockHash)
         {
+            Stopwatch blockHeaderTimer = Stopwatch.StartNew();
             var first = await _blockManager.GetBlockHeaderAsync(firstHash);
+            blockHeaderTimer.Stop();
 
             if (first == null)
+            {
+                Logger.LogWarning($"[Timing][GetBlockHashes] First hash {firstHash} was not found.");
                 return new List<Hash>();
-
+            }
+            
             var height = first.Height + count;
-
             var chainBranchBlockHashKey = chainBranchBlockHash.ToStorageKey();
-
             ChainBlockLink chainBlockLink = null;
 
+            Stopwatch findCountTimer = Stopwatch.StartNew();
             if (chain.Branches.ContainsKey(chainBranchBlockHashKey))
             {
                 if (height > chain.Branches[chainBranchBlockHashKey])
@@ -362,13 +367,16 @@ namespace AElf.Kernel.Blockchain.Application
                     count = (int) (height - first.Height);
                 }
             }
+            findCountTimer.Stop();
 
             var hashes = new List<Hash>();
-
             if (count <= 0)
+            {
+                Logger.LogWarning($"[Timing][GetBlockHashes] First hash {firstHash} no hashes where found.");
                 return hashes;
+            }
 
-
+            Stopwatch findLinkTimer = Stopwatch.StartNew();
             if (chainBlockLink == null)
             {
                 var last = await GetBlockHashByHeightAsync(chain, height, chainBranchBlockHash);
@@ -377,20 +385,27 @@ namespace AElf.Kernel.Blockchain.Application
                     throw new InvalidOperationException("not support");
 
                 chainBlockLink = await _chainManager.GetChainBlockLinkAsync(last);
-            }
+            } 
+            findLinkTimer.Stop();
 
-
+            Stopwatch getChainBlocksTimer = Stopwatch.StartNew();
             hashes.Add(chainBlockLink.BlockHash);
             for (var i = 0; i < count - 1; i++)
             {
                 chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
                 hashes.Add(chainBlockLink.BlockHash);
             }
+            getChainBlocksTimer.Stop();
 
             if (chainBlockLink.PreviousBlockHash != firstHash)
             {
                 throw new Exception("wrong branch");
             }
+            
+            Logger.LogDebug($"[Timing][GetBlockHashes] get block hdr: {blockHeaderTimer.ElapsedMilliseconds} ms, " +
+                            $"find count: {findCountTimer.ElapsedMilliseconds} ms, " +
+                            $"find link: {findLinkTimer.ElapsedMilliseconds} ms" + 
+                            $"get chain blocks: {getChainBlocksTimer.ElapsedMilliseconds} ms");
 
             hashes.Reverse();
 
