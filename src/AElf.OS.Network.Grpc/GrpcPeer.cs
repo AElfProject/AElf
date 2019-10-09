@@ -464,9 +464,9 @@ namespace AElf.OS.Network.Grpc
             {
                 throw new NetworkException("Peer is closed", ex, NetworkExceptionType.Unrecoverable);
             }
-            catch (RpcException ex)
+            catch (AggregateException ex)
             {
-                throw HandleRpcException(ex, requestParams.ErrorMessage);
+                throw HandleRpcException(ex.InnerException as RpcException, requestParams.ErrorMessage);
             }
             finally
             {
