@@ -21,13 +21,10 @@ namespace AElf.Contracts.MultiToken
             Assert(input.MethodName != null && input.ContractAddress != null && input.TransactionSize > 0,
                 "Invalid charge transaction fees input.");
 
-            //State.MethodFeeProviderContract.Value = input.ContractAddress;
-
             var fee = input.ContractAddress == Context.Self
-                ? GetMethodFee(input.MethodName)
-                : Context.Call<MethodFees>(input.ContractAddress, nameof(State.MethodFeeProviderContract.GetMethodFee),
+                ? GetMethodFee(new StringValue {Value = input.MethodName})
+                : Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
                     new StringValue {Value = input.MethodName});
-            //State.MethodFeeProviderContract.GetMethodFee.Call(});
 
             if (fee == null || !fee.Fee.Any()) return new Empty();
 
@@ -153,6 +150,71 @@ namespace AElf.Contracts.MultiToken
                 var amount = bill.Value;
                 State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(amount);
                 TransferTransactionFeesToFeeReceiver(symbol, amount);
+            }
+
+            return new Empty();
+        }
+
+        public override Empty DonateResourceToken(Empty input)
+        {
+            var isMainChain = true;
+            if (State.TreasuryContract.Value == null)
+            {
+                var treasuryContractAddress =
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
+                if (treasuryContractAddress == null)
+                {
+                    isMainChain = false;
+                }
+                else
+                {
+                    State.TreasuryContract.Value = treasuryContractAddress;
+                }
+            }
+
+            var transactions = Context.GetPreviousBlockTransactions();
+            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList.Except(new List<string> {"RAM"}))
+            {
+                var totalAmount = 0L;
+                foreach (var transaction in transactions)
+                {
+                    var caller = transaction.From;
+                    var contractAddress = transaction.To;
+                    var amount = State.ChargedResourceTokens[caller][contractAddress][symbol];
+                    if (amount > 0)
+                    {
+                        State.Balances[contractAddress][symbol] = State.Balances[contractAddress][symbol].Sub(amount);
+                        Context.LogDebug(() => $"Charged {amount} {symbol} tokens from {contractAddress}");
+                        totalAmount = totalAmount.Add(amount);
+                        State.ChargedResourceTokens[caller][contractAddress][symbol] = 0;
+                    }
+                }
+
+                Context.LogDebug(() => $"Charged resource token {symbol}: {totalAmount}");
+
+                if (totalAmount > 0)
+                {
+                    if (isMainChain)
+                    {
+                        Context.LogDebug(() => $"Adding {totalAmount} of {symbol}s to dividend pool.");
+                        // Main Chain.
+                        State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalAmount);
+                        State.TreasuryContract.Donate.Send(new DonateInput
+                        {
+                            Symbol = symbol,
+                            Amount = totalAmount
+                        });
+                    }
+                    else
+                    {
+                        Context.LogDebug(() => $"Adding {totalAmount} of {symbol}s to consensus address account.");
+                        // Side Chain
+                        var consensusContractAddress =
+                            Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+                        State.Balances[consensusContractAddress][symbol] =
+                            State.Balances[consensusContractAddress][symbol].Add(totalAmount);
+                    }
+                }
             }
 
             return new Empty();
