@@ -122,6 +122,22 @@ namespace AElf.Contracts.TokenConverter
             Assert(IsValidSymbol(input.Symbol), "Invalid symbol.");
             var fromConnector = State.Connectors[State.BaseTokenSymbol.Value];
             var toConnector = State.Connectors[input.Symbol];
+            if (String.Equals(input.Symbol, "CPU" ,StringComparison.CurrentCultureIgnoreCase))
+            {
+                fromConnector = State.Connectors["NativeTokenToCPU"];
+            }
+            else if (String.Equals(input.Symbol, "RAM" ,StringComparison.CurrentCultureIgnoreCase))
+            {
+                fromConnector = State.Connectors["NativeTokenToRAM"];
+            }
+            else if (String.Equals(input.Symbol, "NET" ,StringComparison.CurrentCultureIgnoreCase))
+            {
+                fromConnector = State.Connectors["NativeTokenToNET"];
+            }
+            else if (String.Equals(input.Symbol, "STO" ,StringComparison.CurrentCultureIgnoreCase))
+            {
+                fromConnector = State.Connectors["NativeTokenToSTO"];
+            }
             Assert(toConnector != null, "Can't find connector.");
             var amountToPay = BancorHelper.GetAmountToPayFromReturn(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
@@ -173,6 +189,22 @@ namespace AElf.Contracts.TokenConverter
             var fromConnector = State.Connectors[input.Symbol];
             Assert(fromConnector != null, "Can't find connector.");
             var toConnector = State.Connectors[State.BaseTokenSymbol.Value];
+            if (String.Equals(input.Symbol, "CPU" ,StringComparison.CurrentCultureIgnoreCase))
+            {
+                toConnector = State.Connectors["NativeTokenToCPU"];
+            }
+            else if (String.Equals(input.Symbol, "RAM" ,StringComparison.CurrentCultureIgnoreCase))
+            {
+                toConnector = State.Connectors["NativeTokenToRAM"];
+            }
+            else if (String.Equals(input.Symbol, "NET" ,StringComparison.CurrentCultureIgnoreCase))
+            {
+                toConnector = State.Connectors["NativeTokenToNET"];
+            }
+            else if (String.Equals(input.Symbol, "STO" ,StringComparison.CurrentCultureIgnoreCase))
+            {
+                toConnector = State.Connectors["NativeTokenToSTO"];
+            }
             var amountToReceive = BancorHelper.GetReturnFromPaid(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),

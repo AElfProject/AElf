@@ -257,20 +257,84 @@ namespace AElf.Contracts.Economic
                     IsVirtualBalanceEnabled = true,
                     Weight = "0.5",
                     VirtualBalance = EconomicContractConstants.TokenConverterTokenConnectorInitialVirtualBalance
+                },
+                new Connector
+                {
+                    Symbol = EconomicContractConstants.CpuConnectorSymbol,
+                    IsPurchaseEnabled = true,
+                    IsVirtualBalanceEnabled = true,
+                    Weight = "0.005",
+                    VirtualBalance = EconomicContractConstants.CpuInitialVirtualBalance
+                },
+                new Connector
+                {
+                    Symbol = EconomicContractConstants.NativeTokenToCpuSymbol,
+                    IsPurchaseEnabled = true,
+                    IsVirtualBalanceEnabled = true,
+                    Weight = "0.005",
+                    VirtualBalance = EconomicContractConstants.NativeTokenToCpuBalance
+                },
+                new Connector
+                {
+                    Symbol = EconomicContractConstants.RamConnectorSymbol,
+                    IsPurchaseEnabled = true,
+                    IsVirtualBalanceEnabled = true,
+                    Weight = "0.005",
+                    VirtualBalance = EconomicContractConstants.RamInitialVirtualBalance
+                },
+                new Connector
+                {
+                    Symbol = EconomicContractConstants.NativeTokenToRamSymbol,
+                    IsPurchaseEnabled = true,
+                    IsVirtualBalanceEnabled = true,
+                    Weight = "0.005",
+                    VirtualBalance = EconomicContractConstants.NativeTokenToRamBalance
+                },
+                new Connector
+                {
+                    Symbol = EconomicContractConstants.NetConnectorSymbol,
+                    IsPurchaseEnabled = true,
+                    IsVirtualBalanceEnabled = true,
+                    Weight = "0.005",
+                    VirtualBalance = EconomicContractConstants.NetInitialVirtualBalance
+                },
+                new Connector
+                {
+                    Symbol = EconomicContractConstants.NativeTokenToNetSymbol,
+                    IsPurchaseEnabled = true,
+                    IsVirtualBalanceEnabled = true,
+                    Weight = "0.005",
+                    VirtualBalance = EconomicContractConstants.NativeTokenToNetBalance
+                },
+                new Connector
+                {
+                    Symbol = EconomicContractConstants.StoConnectorSymbol,
+                    IsPurchaseEnabled = true,
+                    IsVirtualBalanceEnabled = true,
+                    Weight = "0.005",
+                    VirtualBalance = EconomicContractConstants.StoInitialVirtualBalance
+                },
+                new Connector
+                {
+                    Symbol = EconomicContractConstants.NativeTokenToStoSymbol,
+                    IsPurchaseEnabled = true,
+                    IsVirtualBalanceEnabled = true,
+                    Weight = "0.005",
+                    VirtualBalance = EconomicContractConstants.NativeTokenToStoBalance
                 }
             };
 
-            foreach (var resourceTokenSymbol in EconomicContractConstants.ResourceTokenSymbols)
-            {
-                connectors.Add(new Connector
-                {
-                    Symbol = resourceTokenSymbol,
-                    IsPurchaseEnabled = true,
-                    IsVirtualBalanceEnabled = true,
-                    Weight = EconomicContractConstants.ResourceTokenConnectorWeight,
-                    VirtualBalance = EconomicContractConstants.ResourceTokenConnectorInitialVirtualBalance
-                });
-            }
+//            foreach (var resourceTokenSymbol in EconomicContractConstants.ResourceTokenSymbols)
+//            {
+//                connectors.Add(new Connector
+//                {
+//                    Symbol = resourceTokenSymbol,
+//                    IsPurchaseEnabled = true,
+//                    IsVirtualBalanceEnabled = true,
+//                    Weight = EconomicContractConstants.ResourceTokenConnectorWeight,
+//                    VirtualBalance = EconomicContractConstants.ResourceTokenConnectorInitialVirtualBalance
+//                });
+//            }
 
             State.TokenConverterContract.Initialize.Send(new InitializeInput
             {

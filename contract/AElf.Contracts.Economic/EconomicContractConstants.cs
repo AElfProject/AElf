@@ -24,18 +24,27 @@ namespace AElf.Contracts.Economic
         public const long CpuUnitPrice = 100;
         public const long StoUnitPrice = 100;
         public const long NetUnitPrice = 100;
-        
-        //like provision
-        public const long CpuConnector = 100_000_000;
-        public const long StoConnector = 100_000_000;
-        public const long NetConnector = 100_000_000;
-        public const long RamConnector = 100_000_000;
-        
+
+        public const string CpuConnectorSymbol = "CPU";
+        public const string RamConnectorSymbol = "RAM";
+        public const string NetConnectorSymbol = "NET";
+        public const string StoConnectorSymbol = "STO";
+
         //resource to sell
-        public const long CpuRelayConnectorInitialVirtualBalance = 1_000_000;
-        public const long StoRelayConnectorInitialVirtualBalance = 1_000_000;
-        public const long NetRelayConnectorInitialVirtualBalance = 1_000_000;
-        public const long RamRelayConnectorInitialVirtualBalance = 1_000_000;
+        public const long CpuInitialVirtualBalance = 100_000_000_00000000;
+        public const long StoInitialVirtualBalance = 100_000_000_00000000;
+        public const long NetInitialVirtualBalance = 100_000_000_00000000;
+        public const long RamInitialVirtualBalance = 100_000_000_00000000;
+        
+        public const string NativeTokenToCpuSymbol = "NativeTokenToCPU";
+        public const string NativeTokenToRamSymbol = "NativeTokenToRAM";
+        public const string NativeTokenToNetSymbol = "NativeTokenToNET";
+        public const string NativeTokenToStoSymbol = "NativeTokenToSTO";
+
+        public const long NativeTokenToCpuBalance = 1_000_000_00000000;
+        public const long NativeTokenToNetBalance = 1_000_000_00000000;
+        public const long NativeTokenToRamBalance = 1_000_000_00000000;
+        public const long NativeTokenToStoBalance = 1_000_000_00000000;
 
         // Election related.
         public const string ElectionTokenSymbol = "VOTE";
