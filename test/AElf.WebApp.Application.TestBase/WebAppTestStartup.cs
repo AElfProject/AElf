@@ -15,6 +15,7 @@ namespace AElf.WebApp.Application
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseRouting();
             app.InitializeApplication();
             app.UseCors(builder =>
                 builder.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());

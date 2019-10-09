@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration.Json;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Serilog.Extensions.Logging.File;
 
 namespace AElf.TestLauncher
 {
@@ -37,20 +40,15 @@ namespace AElf.TestLauncher
 
                 var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file);
 
-                yield return new HostBuilder()
-                    .UseContentRoot(Directory.GetCurrentDirectory())
+                yield return new WebHostBuilder()
                     .ConfigureAppConfiguration(config =>
                     {
                         config.AddJsonFile("appsettings.json");
                         config.AddJsonFile(file);
                     })
-                    .ConfigureWebHostDefaults(webBuilder =>
+                    .UseKestrel((builderContext, options) =>
                     {
-                        webBuilder.UseKestrel((builderContext, options) =>
-                            {
-                                options.Configure(builderContext.Configuration.GetSection("Kestrel"));
-                            })
-                            .UseStartup<MainBlockchainStartup<MainBlockchainAElfModule>>();
+                        options.Configure(builderContext.Configuration.GetSection("Kestrel"));
                     })
                     .ConfigureLogging(logger =>
                     {
@@ -59,6 +57,8 @@ namespace AElf.TestLauncher
                     })
 
                     //.UseContentRoot(dir)
+                    .UseContentRoot(Directory.GetCurrentDirectory())
+                    .UseStartup<MainBlockchainStartup<MainBlockchainAElfModule>>()
                     .ConfigureServices(services => { })
                     .Build().RunAsync();
             }

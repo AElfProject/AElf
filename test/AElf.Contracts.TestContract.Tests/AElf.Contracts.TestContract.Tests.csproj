@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <TargetFramework>netcoreapp3.0</TargetFramework>
         <RootNamespace>AElf.Contract.TestContract</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
@@ -20,7 +20,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.MultiToken\AElf.Contracts.MultiToken.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
@@ -116,7 +116,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Protobuf\Generated"/>
+        <Folder Include="Protobuf\Generated" />
     </ItemGroup>
 
 </Project>

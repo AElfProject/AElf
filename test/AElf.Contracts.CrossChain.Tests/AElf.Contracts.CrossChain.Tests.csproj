@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <TargetFramework>netcoreapp3.0</TargetFramework>
         <AssemblyName>AElf.Contracts.CrossChain.Tests</AssemblyName>
         <RootNamespace>AElf.Contracts.CrossChain.Tests</RootNamespace>
         <IsPackable>false</IsPackable>
@@ -16,8 +16,8 @@
     <ItemGroup>
       <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
       <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
