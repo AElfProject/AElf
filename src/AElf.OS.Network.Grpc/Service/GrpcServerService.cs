@@ -295,11 +295,7 @@ namespace AElf.OS.Network.Grpc
 
             try
             {
-                Stopwatch stopwatch = Stopwatch.StartNew();
-                var blocks = await _blockchainService.GetBlocksWithTransactions(request.PreviousBlockHash, request.Count, Logger);
-                stopwatch.Stop();
-                
-                Logger.LogDebug($"Get blocks for {request.PreviousBlockHash} took {stopwatch.ElapsedMilliseconds} ms");
+                var blocks = await _blockchainService.GetBlocksWithTransactions(request.PreviousBlockHash, request.Count);
 
                 if (blocks == null)
                     return blockList;
