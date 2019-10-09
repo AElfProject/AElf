@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
@@ -294,7 +295,11 @@ namespace AElf.OS.Network.Grpc
 
             try
             {
+                Stopwatch stopwatch = Stopwatch.StartNew();
                 var blocks = await _blockchainService.GetBlocksWithTransactions(request.PreviousBlockHash, request.Count);
+                stopwatch.Stop();
+                
+                Logger.LogDebug($"Get blocks for {request.PreviousBlockHash} took {stopwatch.ElapsedMilliseconds} ms");
 
                 if (blocks == null)
                     return blockList;
