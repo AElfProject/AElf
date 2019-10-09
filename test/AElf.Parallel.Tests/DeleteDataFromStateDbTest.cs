@@ -1234,6 +1234,93 @@ namespace AElf.Parallel.Tests
         }
 
         [Fact]
+        public async Task Complex_ChangeAndDelete_Key()
+        {
+            const string key = "TestKey";
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            //ComplexChangeWithDeleteValue1
+            var complexChangeInput = new SetValueInput
+            {
+                Key = key,
+                Int64Value = 100,
+                StringValue = "test1",
+                MessageValue = new MessageValue
+                {
+                    Int64Value = 100,
+                    StringValue = "test1"
+                }
+            };
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.ComplexChangeWithDeleteValue1), complexChangeInput);
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+            
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, complexChangeInput.StringValue, complexChangeInput.Int64Value,
+                null);
+            
+            //ComplexChangeWithDeleteValue2
+            complexChangeInput = new SetValueInput
+            {
+                Key = key,
+                Int64Value = 100,
+                StringValue = "test2",
+                MessageValue = new MessageValue
+                {
+                    Int64Value = 100,
+                    StringValue = "test2"
+                }
+            };
+            transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.ComplexChangeWithDeleteValue2), complexChangeInput);
+            transactions = new[] {transaction};
+            block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+            
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, complexChangeInput.StringValue, 0,
+                complexChangeInput.MessageValue);
+            
+            //ComplexChangeWithDeleteValue3
+            complexChangeInput = new SetValueInput
+            {
+                Key = key,
+                Int64Value = 100,
+                StringValue = "test3",
+                MessageValue = new MessageValue
+                {
+                    Int64Value = 100,
+                    StringValue = "test3"
+                }
+            };
+            transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.ComplexChangeWithDeleteValue3), complexChangeInput);
+            transactions = new[] {transaction};
+            block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+            
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, "", complexChangeInput.Int64Value,
+                null);
+        }
+
+        [Fact]
         public async Task Remove_Value_From_PrePlugin()
         {
             await Set_Value();
