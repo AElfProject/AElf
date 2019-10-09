@@ -50,7 +50,10 @@ namespace AElf.Launcher
                         .WithAbpExposedHeaders()
                         .AllowAnyHeader()
                         .AllowAnyMethod();
-                    //.AllowCredentials();
+                    if (_configuration["CorsOrigins"] != "*")
+                    {
+                        builder.AllowCredentials();
+                    }
                 });
             });
             
