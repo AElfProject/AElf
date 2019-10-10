@@ -16,13 +16,10 @@ do
             dotnet build /clp:ErrorsOnly ${name}/${name}.csproj --configuration Release -P:Version=${VERSION} -P:Authors=AElf -o ../
         fi
     done
-    sleep 10
+    for name in `ls *.nupkg`;
+    do
+        echo ${name}
+        dotnet nuget push ${name} -k ${MYGET_API_KEY} -s https://www.myget.org/F/aelf-project/api/v3/index.json
+    done
     cd ../
-done
-
-# push
-for name in `ls *.nupkg`;
-do
-    echo ${name}
-    dotnet nuget push ${name} -k ${MYGET_API_KEY} -s https://www.myget.org/F/aelf-project/api/v3/index.json
 done
