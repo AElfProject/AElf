@@ -24,7 +24,7 @@ namespace AElf.OS.Network
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var netTestHelper = new NetworkTestContextHelpers();
+            var netTestHelper = new NetworkTestContext();
             context.Services.AddSingleton(netTestHelper);
                 
             Configure<NetworkOptions>(o => {
@@ -43,7 +43,7 @@ namespace AElf.OS.Network
                 });
 
                 mockBlockchainService.Setup(b => b.GetBlockHeaderByHashAsync(It.IsAny<Hash>())).ReturnsAsync(
-                    netTestHelper.CreateFakeBlockHeader(NetworkTestConstants.DefaultChainId, 1, keyPair));
+                    NetworkTestHelper.CreateFakeBlockHeader(NetworkTestConstants.DefaultChainId, 1, keyPair));
 
                 return mockBlockchainService.Object;
             });
@@ -141,7 +141,7 @@ namespace AElf.OS.Network
                         {
                             var keyPair = CryptoHelper.GenerateKeyPair();
                             var handshakeReply = new HandshakeReply {
-                                Handshake = netTestHelper.CreateValidHandshake(keyPair, 10)
+                                Handshake = NetworkTestHelper.CreateValidHandshake(keyPair, 10)
                             };
                             var handshakeCall = TestCalls.AsyncUnaryCall(Task.FromResult(handshakeReply), 
                                 Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });

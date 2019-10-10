@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Kernel;
@@ -51,51 +52,73 @@ namespace AElf.OS.Network.Protocol
             var handshake = new Handshake
             {
                 HandshakeData = handshakeData,
+                SessionId = ByteString.CopyFrom(GenerateRandomToken()),
                 Signature = ByteString.CopyFrom(signature)
             };
 
             return handshake;
         }
+        
+        public static byte[] GenerateRandomToken()
+        {
+            byte[] sessionId = new byte[NetworkConstants.DefaultSessionIdSize];
 
-        public Task<HandshakeValidationResult> ValidateHandshakeAsync(Handshake handshake)
+            using (RNGCryptoServiceProvider rg = new RNGCryptoServiceProvider()) 
+            { 
+                rg.GetBytes(sessionId);
+            }
+
+            return sessionId;
+        }
+
+        public async Task<HandshakeValidationResult> ValidateHandshakeAsync(Handshake handshake)
         {
             var pubkey = handshake.HandshakeData.Pubkey.ToHex();
             if (_networkOptions.AuthorizedPeers == AuthorizedPeers.Authorized &&
                 !_networkOptions.AuthorizedKeys.Contains(pubkey))
             {
-                return Task.FromResult(HandshakeValidationResult.Unauthorized);
+                return HandshakeValidationResult.Unauthorized;
             }
 
             var chainId = _blockchainService.GetChainId();
             if (handshake.HandshakeData.ChainId != chainId)
             {
                 Logger.LogWarning($"Chain is is incorrect: {handshake.HandshakeData.ChainId}.");
-                return Task.FromResult(HandshakeValidationResult.InvalidChainId);
+                return HandshakeValidationResult.InvalidChainId;
             }
 
             if (handshake.HandshakeData.Version != KernelConstants.ProtocolVersion)
             {
                 Logger.LogWarning($"Version is is incorrect: {handshake.HandshakeData.Version}.");
-                return Task.FromResult(HandshakeValidationResult.InvalidVersion);
+                return HandshakeValidationResult.InvalidVersion;
             }
 
             if (TimestampHelper.GetUtcNow() > handshake.HandshakeData.Time +
                 TimestampHelper.DurationFromMilliseconds(NetworkConstants.HandshakeTimeout))
             {
                 Logger.LogWarning("Handshake is expired.");
-                return Task.FromResult(HandshakeValidationResult.HandshakeTimeout);
+                return HandshakeValidationResult.HandshakeTimeout;
             }
 
+            byte[] handshakePubkey = handshake.HandshakeData.Pubkey.ToByteArray();
+            
             var validData = CryptoHelper.VerifySignature(handshake.Signature.ToByteArray(),
-                Hash.FromMessage(handshake.HandshakeData).ToByteArray(), handshake.HandshakeData.Pubkey.ToByteArray());
+                Hash.FromMessage(handshake.HandshakeData).ToByteArray(), handshakePubkey);
 
             if (!validData)
             {
                 Logger.LogWarning("Handshake signature is incorrect.");
-                return Task.FromResult(HandshakeValidationResult.InvalidSignature);
+                return HandshakeValidationResult.InvalidSignature;
             }
 
-            return Task.FromResult(HandshakeValidationResult.Ok);
+            var nodePubKey = await _accountService.GetPublicKeyAsync();
+            if (handshakePubkey.BytesEqual(nodePubKey))
+            {
+                Logger.LogWarning("Self connection detected.");
+                return HandshakeValidationResult.SelfConnection;
+            }
+
+            return HandshakeValidationResult.Ok;
         }
     }
 
@@ -106,6 +129,7 @@ namespace AElf.OS.Network.Protocol
         InvalidVersion = 2,
         HandshakeTimeout = 3,
         InvalidSignature = 4,
-        Unauthorized = 5
+        Unauthorized = 5,
+        SelfConnection = 6
     }
 }
