@@ -8,9 +8,9 @@ using AElf.Cryptography.ECDSA;
 namespace AElf.Contracts.TestBase
 {
     [SuppressMessage("ReSharper", "InconsistentNaming")]
-    public static class SampleECKeys
+    public static class SampleECKeyPairs
     {
-        static SampleECKeys()
+        static SampleECKeyPairs()
         {
             KeyPairs = new ReadOnlyCollection<ECKeyPair>(
                 _keys.Select(x =>

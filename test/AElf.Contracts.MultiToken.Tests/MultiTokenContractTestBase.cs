@@ -27,6 +27,7 @@ using Shouldly;
 using Volo.Abp.Threading;
 using InitializeInput = AElf.Contracts.CrossChain.InitializeInput;
 using SampleAddress = AElf.Contracts.TestKit.SampleAddress;
+using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
 
 namespace AElf.Contracts.MultiToken
 {
@@ -369,34 +370,53 @@ namespace AElf.Contracts.MultiToken
             return proposalId;
         }
 
-        protected async Task BootMinerChangeRoundAsync(string type, long nextRoundNumber = 2)
+        protected async Task BootMinerChangeRoundAsync(bool isMainChain, long nextRoundNumber = 2)
         {
-            switch (type)
+            if (isMainChain)
             {
-                case "Side":
+                var info = await MainChainTester.CallContractMethodAsync(ConsensusAddress,
+                    nameof(AEDPoSContractContainer.AEDPoSContractStub.GetCurrentRoundInformation),
+                    new Empty());
+                var currentRound = Round.Parser.ParseFrom(info);
+                var expectedStartTime = BlockchainStartTimestamp.ToDateTime()
+                    .AddMilliseconds(
+                        ((long) currentRound.TotalMilliseconds(4000)).Mul(
+                            nextRoundNumber.Sub(1)));
+                currentRound.GenerateNextRoundInformation(expectedStartTime.ToTimestamp(), BlockchainStartTimestamp,
+                    out var nextRound);
+                nextRound.RealTimeMinersInformation[MainChainTester.InitialMinerList[0].PublicKey.ToHex()]
+                    .ExpectedMiningTime -= new Duration {Seconds = currentRound.RoundNumber * 20};
+
+                var txResult = await MainChainTester.ExecuteContractWithMiningAsync(ConsensusAddress,
+                    nameof(AEDPoSContractContainer.AEDPoSContractStub.NextRound),
+                    nextRound);
+                txResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }
+
+            if (!isMainChain)
+            {
+                var info = await SideChainTester.CallContractMethodAsync(SideConsensusAddress,
+                    nameof(AEDPoSContractContainer.AEDPoSContractStub.GetCurrentRoundInformation),
+                    new Empty());
+                var currentRound = Round.Parser.ParseFrom(info);
+                var expectedStartTime = BlockchainStartTimestamp.ToDateTime()
+                    .AddMilliseconds(
+                        ((long) currentRound.TotalMilliseconds(4000)).Mul(
+                            nextRoundNumber.Sub(1)));
+                currentRound.GenerateNextRoundInformation(expectedStartTime.ToTimestamp(), BlockchainStartTimestamp,
+                    out var nextRound);
+
+                if (currentRound.RoundNumber >= 3)
                 {
-                    var info = await SideChainTester.CallContractMethodAsync(SideConsensusAddress,
-                        nameof(AEDPoSContractContainer.AEDPoSContractStub.GetCurrentRoundInformation),
-                        new Empty());
-                    var currentRound = Round.Parser.ParseFrom(info);
-                    var expectedStartTime = BlockchainStartTimestamp.ToDateTime()
-                        .AddMilliseconds(
-                            ((long) currentRound.TotalMilliseconds(4000)).Mul(
-                                nextRoundNumber.Sub(1)));
-                    currentRound.GenerateNextRoundInformation(expectedStartTime.ToTimestamp(), BlockchainStartTimestamp,
-                        out var nextRound);
-
-                    if (currentRound.RoundNumber >= 3)
-                    {
-                        nextRound.RealTimeMinersInformation[SideChainTester.InitialMinerList[0].PublicKey.ToHex()]
-                            .ExpectedMiningTime -= new Duration {Seconds = 2400};
-                        var res = await SideChainTester.ExecuteContractWithMiningAsync(SideConsensusAddress,
-                            nameof(AEDPoSContractContainer.AEDPoSContractStub.NextRound),
-                            nextRound);
-                        res.Status.ShouldBe(TransactionResultStatus.Mined);
-                        break;
-                    }
-
+                    nextRound.RealTimeMinersInformation[SideChainTester.InitialMinerList[0].PublicKey.ToHex()]
+                        .ExpectedMiningTime -= new Duration {Seconds = 2400};
+                    var res = await SideChainTester.ExecuteContractWithMiningAsync(SideConsensusAddress,
+                        nameof(AEDPoSContractContainer.AEDPoSContractStub.NextRound),
+                        nextRound);
+                    res.Status.ShouldBe(TransactionResultStatus.Mined);
+                }
+                else
+                {
                     nextRound.RealTimeMinersInformation[SideChainTester.InitialMinerList[0].PublicKey.ToHex()]
                         .ExpectedMiningTime -= new Duration {Seconds = (currentRound.RoundNumber) * 20};
 
@@ -404,31 +424,7 @@ namespace AElf.Contracts.MultiToken
                         nameof(AEDPoSContractContainer.AEDPoSContractStub.NextRound),
                         nextRound);
                     txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                    break;
                 }
-                case "Main":
-                {
-                    var info = await MainChainTester.CallContractMethodAsync(ConsensusAddress,
-                        nameof(AEDPoSContractContainer.AEDPoSContractStub.GetCurrentRoundInformation),
-                        new Empty());
-                    var currentRound = Round.Parser.ParseFrom(info);
-                    var expectedStartTime = BlockchainStartTimestamp.ToDateTime()
-                        .AddMilliseconds(
-                            ((long) currentRound.TotalMilliseconds(4000)).Mul(
-                                nextRoundNumber.Sub(1)));
-                    currentRound.GenerateNextRoundInformation(expectedStartTime.ToTimestamp(), BlockchainStartTimestamp,
-                        out var nextRound);
-                    nextRound.RealTimeMinersInformation[MainChainTester.InitialMinerList[0].PublicKey.ToHex()]
-                        .ExpectedMiningTime -= new Duration {Seconds = currentRound.RoundNumber * 20};
-
-                    var txResult = await MainChainTester.ExecuteContractWithMiningAsync(ConsensusAddress,
-                        nameof(AEDPoSContractContainer.AEDPoSContractStub.NextRound),
-                        nextRound);
-                    txResult.Status.ShouldBe(TransactionResultStatus.Mined);
-                    break;
-                }
-                default:
-                    return;
             }
         }
     }

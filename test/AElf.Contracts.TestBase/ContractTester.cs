@@ -91,7 +91,7 @@ namespace AElf.Contracts.TestBase
 
         public ContractTester(int chainId, ECKeyPair keyPair)
         {
-            var sampleKeyPairs = SampleECKeys.KeyPairs.Take(3).ToList();
+            var sampleKeyPairs = SampleECKeyPairs.KeyPairs.Take(3).ToList();
             InitialMinerList.AddRange(sampleKeyPairs);
             KeyPair = keyPair ?? InitialMinerList[1];
 
@@ -245,7 +245,7 @@ namespace AElf.Contracts.TestBase
         {
             if (initialMiners == null)
             {
-                initialMiners = Enumerable.Range(0, 3).Select(i => SampleECKeys.KeyPairs[i].PublicKey.ToHex())
+                initialMiners = Enumerable.Range(0, 3).Select(i => SampleECKeyPairs.KeyPairs[i].PublicKey.ToHex())
                     .ToList();
             }
 

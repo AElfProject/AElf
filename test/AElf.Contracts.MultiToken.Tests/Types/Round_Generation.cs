@@ -8,7 +8,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     internal partial class Round
     {
-        public bool GenerateNextRoundInformation(Timestamp currentBlockTimestamp, Timestamp blockchainStartTimestamp, out Round nextRound)
+        public bool GenerateNextRoundInformation(Timestamp currentBlockTimestamp, Timestamp blockchainStartTimestamp,
+            out Round nextRound)
         {
             nextRound = new Round();
 
@@ -32,9 +33,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             foreach (var minerInRound in minersMinedCurrentRound.OrderBy(m => m.FinalOrderOfNextRound))
             {
                 var order = minerInRound.FinalOrderOfNextRound;
-                nextRound.RealTimeMinersInformation[minerInRound.  Pubkey] = new MinerInRound
+                nextRound.RealTimeMinersInformation[minerInRound.Pubkey] = new MinerInRound
                 {
-                      Pubkey = minerInRound.  Pubkey,
+                    Pubkey = minerInRound.Pubkey,
                     Order = order,
                     ExpectedMiningTime = currentBlockTimestamp +
                                          new Duration {Seconds = miningInterval.Div(1000).Mul(order)},
@@ -50,9 +51,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var order = ableOrders[i];
                 var minerInRound = minersNotMinedCurrentRound[i];
-                nextRound.RealTimeMinersInformation[minerInRound.  Pubkey] = new MinerInRound
+                nextRound.RealTimeMinersInformation[minerInRound.Pubkey] = new MinerInRound
                 {
-                      Pubkey = minersNotMinedCurrentRound[i].  Pubkey,
+                    Pubkey = minersNotMinedCurrentRound[i].Pubkey,
                     Order = order,
                     ExpectedMiningTime = currentBlockTimestamp +
                                          new Duration {Seconds = miningInterval.Div(1000).Mul(order)},
@@ -76,7 +77,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return true;
         }
-        
+
         private int CalculateNextExtraBlockProducerOrder()
         {
             var firstPlaceInfo = RealTimeMinersInformation.Values.OrderBy(m => m.Order)
@@ -94,13 +95,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var order = GetAbsModulus(sigNum, blockProducerCount) + 1;
             return order;
         }
-        
+
         public List<MinerInRound> GetMinedMiners()
         {
             // For now only this implementation can support test cases.
             return RealTimeMinersInformation.Values.Where(m => m.SupposedOrderOfNextRound != 0).ToList();
         }
-        
+
         public List<MinerInRound> GetNotMinedMiners()
         {
             // For now only this implementation can support test cases.
