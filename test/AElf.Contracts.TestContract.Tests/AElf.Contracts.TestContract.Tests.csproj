@@ -115,8 +115,4 @@
         </ContractStub>
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="Protobuf\Generated"/>
-    </ItemGroup>
-
 </Project>
