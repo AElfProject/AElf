@@ -21,10 +21,8 @@ namespace AElf.Contracts.MultiToken
             Assert(input.MethodName != null && input.ContractAddress != null && input.TransactionSize > 0,
                 "Invalid charge transaction fees input.");
 
-            var fee = input.ContractAddress == Context.Self
-                ? GetMethodFee(new StringValue {Value = input.MethodName})
-                : Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
-                    new StringValue {Value = input.MethodName});
+            var fee = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
+                new StringValue {Value = input.MethodName});
 
             if (fee == null || !fee.Fee.Any()) return new Empty();
 
@@ -39,14 +37,16 @@ namespace AElf.Contracts.MultiToken
                 TokenToAmount = {{symbol, amount}}
             };
 
-            var unitPrice = State.TransactionFeeUnitPrice.Value;
-            if (unitPrice != 0)
+            bill += new TransactionFeeBill
             {
-                bill += new TransactionFeeBill
+                TokenToAmount =
                 {
-                    TokenToAmount = {{Context.Variables.NativeSymbol, input.TransactionSize.Mul(unitPrice)}}
-                };
-            }
+                    {
+                        Context.Variables.NativeSymbol,
+                        input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice)
+                    }
+                }
+            };
 
             var fromAddress = Context.Sender;
             State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
@@ -100,7 +100,7 @@ namespace AElf.Contracts.MultiToken
                 symbol = symbolToAmount.Key;
                 amount = symbolToAmount.Value;
 
-                Assert(amount > 0, $"Invalid transaction fee amount of token {symbolToAmount.Key}.");
+                //Assert(amount > 0, $"Invalid transaction fee amount of token {symbolToAmount.Key}.");
 
                 if (existingBalance >= amount)
                 {
@@ -109,7 +109,7 @@ namespace AElf.Contracts.MultiToken
             }
 
             // Traversed all available tokens, can't find balance of any token enough to pay transaction fee.
-            Assert(existingBalance >= amount, "Insufficient balance to pay transaction fee.");
+            Assert(existingBalance >= amount, $"Insufficient balance to pay transaction fee. {existingBalance} < {amount}");
 
             return symbol != null;
         }
