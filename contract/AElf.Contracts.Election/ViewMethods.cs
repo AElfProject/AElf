@@ -3,6 +3,7 @@ using AElf.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -302,7 +303,7 @@ namespace AElf.Contracts.Election
             int bpCount = round.RealTimeMinersInformation.Count;
             long blockChainStartTime = expectedMiningTime.Seconds.Sub(bpCount.Add(1).Mul(4));
             var countDown = new SInt64Value
-                { Value =DateTime.UtcNow.ToTimestamp().Seconds.Sub(blockChainStartTime) % 604800 };
+                { Value = 604800.Sub((int)Context.CurrentBlockTime.Seconds.Sub(blockChainStartTime) % 604800)};
             return countDown;
         }
         private ElectionVotingRecord TransferVotingRecordToElectionVotingRecord(VotingRecord votingRecord, Hash voteId)
