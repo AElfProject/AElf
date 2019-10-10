@@ -279,14 +279,14 @@ namespace AElf.Contracts.Election
             var voterVotes = State.ElectorVotes[voterPublicKey];
             voterVotes.ActiveVotingRecordIds.Remove(input);
             voterVotes.WithdrawnVotingRecordIds.Add(input);
-            voterVotes.ActiveVotedVotesAmount.Sub(votingRecord.Amount);
+            voterVotes.ActiveVotedVotesAmount = voterVotes.ActiveVotedVotesAmount.Sub(votingRecord.Amount);
             State.ElectorVotes[voterPublicKey] = voterVotes;
 
             // Update Candidate's Votes information.
             var candidateVotes = State.CandidateVotes[votingRecord.Option];
             candidateVotes.ObtainedActiveVotingRecordIds.Remove(input);
             candidateVotes.ObtainedWithdrawnVotingRecordIds.Add(input);
-            candidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
+            candidateVotes.ObtainedActiveVotedVotesAmount = candidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
             State.CandidateVotes[votingRecord.Option] = candidateVotes;
 
             State.TokenContract.Unlock.Send(new UnlockInput

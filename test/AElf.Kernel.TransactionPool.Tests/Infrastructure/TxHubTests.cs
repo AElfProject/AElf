@@ -21,8 +21,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
         }
         
-        // TODO: Need to deploy zero contract.
-        [Fact(Skip = "Zero contract not deployed.")]
+        [Fact]
         public async Task Test_TxHub()
         {
             {

@@ -121,6 +121,7 @@ message VotingRecord {
     google.protobuf.Timestamp vote_timestamp = 6;
     bool is_withdrawn = 7;
     string option = 8;
+    bool is_change_target = 9;
 }
 
 message AddOptionInput {
