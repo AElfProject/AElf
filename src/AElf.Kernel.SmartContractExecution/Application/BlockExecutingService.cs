@@ -125,7 +125,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 Body = blockBody
             };
             blockStateSet.BlockHash = blockHash;
-
             await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
 
             return block;
