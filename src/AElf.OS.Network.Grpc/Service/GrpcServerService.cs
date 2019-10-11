@@ -200,9 +200,14 @@ namespace AElf.OS.Network.Grpc
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
         {
-            if (request == null || request.PreviousBlockHash == null ||
-                _syncStateService.SyncState != SyncState.Finished)
+            if (request == null ||
+                request.PreviousBlockHash == null ||
+                _syncStateService.SyncState != SyncState.Finished ||
+                request.Count == 0 ||
+                request.Count > GrpcConstants.MaxSendBlockCountLimit)
+            {
                 return new BlockList();
+            }
 
             Logger.LogDebug(
                 $"Peer {context.GetPeerInfo()} requested {request.Count} blocks from {request.PreviousBlockHash}.");
