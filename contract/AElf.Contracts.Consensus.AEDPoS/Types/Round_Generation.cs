@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Sdk.CSharp;
@@ -50,7 +49,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     ExpectedMiningTime = currentBlockTimestamp
                         .AddMilliseconds(miningInterval.Mul(order)),
                     ProducedBlocks = minerInRound.ProducedBlocks,
-                    MissedTimeSlots = minerInRound.MissedTimeSlots + 1
+                    // Update missed time slots count of one miner.
+                    MissedTimeSlots = minerInRound.MissedTimeSlots.Add(1)
                 };
             }
 
