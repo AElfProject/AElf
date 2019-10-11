@@ -77,7 +77,7 @@ namespace AElf.Kernel
                         throw;
                     }
 
-                    if (TimestampHelper.GetUtcNow() <= eventData.MiningDueTime)
+                    if (TimestampHelper.GetUtcNow() <= eventData.MiningDueTime - blockExecutionDuration)
                     {
                         await _blockchainService.AddBlockAsync(block);
 
