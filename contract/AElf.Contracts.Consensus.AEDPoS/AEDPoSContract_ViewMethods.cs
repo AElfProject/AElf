@@ -232,6 +232,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var blockchainStartTimestamp = GetBlockchainStartTimestamp();
+            var isMinerListChanged = false;
             if (previousRound.TermNumber.Add(1) != currentRound.TermNumber)
             {
                 var evilMinersPublicKey = GetEvilMinersPublicKey(currentRound, previousRound);
@@ -262,11 +263,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                         currentRound.RealTimeMinersInformation.Remove(publicKeyToRemove);
                     }
+
+                    isMinerListChanged = true;
                 }
             }
 
             return currentRound.GenerateNextRoundInformation(currentBlockTime,
-                blockchainStartTimestamp, out nextRound);
+                blockchainStartTimestamp, out nextRound, isMinerListChanged);
         }
 
         private bool IsMainChainMinerListChanged(Round currentRound)
