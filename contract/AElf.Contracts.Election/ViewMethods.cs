@@ -114,7 +114,7 @@ namespace AElf.Contracts.Election
             return result;
         }
 
-        public override CandidateInformation GetCandidateInformation(StringInput input)
+        public override CandidateInformation GetCandidateInformation(StringValue input)
         {
             return State.CandidateInformationMap[input.Value] ?? new CandidateInformation {Pubkey = input.Value};
         }
@@ -124,7 +124,7 @@ namespace AElf.Contracts.Election
             return State.Snapshots[input.TermNumber] ?? new TermSnapshot();
         }
 
-        public override ElectorVote GetElectorVote(StringInput input)
+        public override ElectorVote GetElectorVote(StringValue input)
         {
             return State.ElectorVotes[input.Value] ?? new ElectorVote
             {
@@ -133,7 +133,7 @@ namespace AElf.Contracts.Election
             };
         }
 
-        public override ElectorVote GetElectorVoteWithRecords(StringInput input)
+        public override ElectorVote GetElectorVoteWithRecords(StringValue input)
         {
             var votes = State.ElectorVotes[input.Value];
             if (votes == null)
@@ -157,7 +157,7 @@ namespace AElf.Contracts.Election
             return votes;
         }
 
-        public override ElectorVote GetElectorVoteWithAllRecords(StringInput input)
+        public override ElectorVote GetElectorVoteWithAllRecords(StringValue input)
         {
             var votes = GetElectorVoteWithRecords(input);
 
@@ -227,7 +227,7 @@ namespace AElf.Contracts.Election
             return output;
         }
 
-        public override CandidateVote GetCandidateVote(StringInput input)
+        public override CandidateVote GetCandidateVote(StringValue input)
         {
             return State.CandidateVotes[input.Value] ?? new CandidateVote
             {
@@ -235,7 +235,7 @@ namespace AElf.Contracts.Election
             };
         }
 
-        public override CandidateVote GetCandidateVoteWithRecords(StringInput input)
+        public override CandidateVote GetCandidateVoteWithRecords(StringValue input)
         {
             var votes = State.CandidateVotes[input.Value];
             if (votes == null)
@@ -255,7 +255,7 @@ namespace AElf.Contracts.Election
             return votes;
         }
 
-        public override CandidateVote GetCandidateVoteWithAllRecords(StringInput input)
+        public override CandidateVote GetCandidateVoteWithAllRecords(StringValue input)
         {
             var votes = GetCandidateVoteWithRecords(input);
 
