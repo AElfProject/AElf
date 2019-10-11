@@ -311,23 +311,29 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
         {
+            var evilMinersPubKey = new List<string>();
+
             // If hash(pre_in) != pre_out
-            var evilMiners = (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
-                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.Pubkey) &&
-                      minerInCurrentRound.PreviousInValue != null
-                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.Pubkey].OutValue
-                where previousOutValue != null &&
-                      Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
-                select minerInCurrentRound.Pubkey).ToList();
+            foreach (var minerInCurrentRound in currentRound.RealTimeMinersInformation.Values)
+            {
+                if (previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.Pubkey) &&
+                    minerInCurrentRound.PreviousInValue != null)
+                {
+                    var previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.Pubkey].OutValue;
+                    if (previousOutValue != null &&
+                        Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue)
+                        evilMinersPubKey.Add(minerInCurrentRound.Pubkey);
+                }
+            }
 
             // If one miner is not a candidate anymore.
             if (State.ElectionContract.Value != null)
             {
                 var candidates = State.ElectionContract.GetCandidates.Call(new Empty()).Value.Select(p => p.ToHex());
-                evilMiners.AddRange(candidates.Except(currentRound.RealTimeMinersInformation.Keys.ToList()));
+                evilMinersPubKey.AddRange(candidates.Except(currentRound.RealTimeMinersInformation.Keys.ToList()));
             }
 
-            return evilMiners;
+            return evilMinersPubKey;
         }
 
         private bool TryToGetElectionSnapshot(long termNumber, out TermSnapshot snapshot)
