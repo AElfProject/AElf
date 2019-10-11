@@ -25,14 +25,14 @@ namespace AElf.Contracts.Economic
         public const long StoUnitPrice = 100;
         public const long NetUnitPrice = 100;
         
-        //like Provision
-        public const long CpuConnector = 100_000_000;    
+        //like provision
+        public const long CpuConnector = 100_000_000;
         public const long StoConnector = 100_000_000;
         public const long NetConnector = 100_000_000;
         public const long RamConnector = 100_000_000;
         
-        // resource to sell 
-        public const long CpuRelayConnectorInitialVirtualBalance = 1_000_000;        
+        //resource to sell
+        public const long CpuRelayConnectorInitialVirtualBalance = 1_000_000;
         public const long StoRelayConnectorInitialVirtualBalance = 1_000_000;
         public const long NetRelayConnectorInitialVirtualBalance = 1_000_000;
         public const long RamRelayConnectorInitialVirtualBalance = 1_000_000;

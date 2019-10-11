@@ -80,7 +80,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 var stub = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation =
-                    (await stub.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
+                    (await stub.GetConsensusExtraData.CallAsync(triggers[minerInRound.Pubkey]
                         .ToBytesValue())).ToConsensusHeaderInformation();
 
                 // Update consensus information.
@@ -159,7 +159,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                     var tester = GetAEDPoSContractStub(currentKeyPair);
                     var headerInformation =
-                        (await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
+                        (await tester.GetConsensusExtraData.CallAsync(triggers[minerInRound.Pubkey]
                             .ToBytesValue())).ToConsensusHeaderInformation();
 
                     // Update consensus information.

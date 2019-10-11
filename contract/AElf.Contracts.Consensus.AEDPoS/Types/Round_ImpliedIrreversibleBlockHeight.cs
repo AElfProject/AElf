@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using AElf.Sdk.CSharp;
 
+// ReSharper disable once CheckNamespace
 namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class Round
@@ -15,9 +16,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return heights;
         }
 
-        public int GetMinimumMinersCount()
-        {
-            return RealTimeMinersInformation.Count.Mul(2).Div(3).Add(1);
-        }
+        public int MinersCountOfConsent => RealTimeMinersInformation.Count.Mul(2).Div(3).Add(1);
     }
 }

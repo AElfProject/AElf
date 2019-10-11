@@ -3,6 +3,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.TransactionPool.Application
@@ -14,12 +16,16 @@ namespace AElf.Kernel.TransactionPool.Application
         private readonly IEnumerable<IConstrainedTransactionValidationProvider>
             _constrainedTransactionValidationProviders;
 
+        public ILogger<TxHubTransactionValidationService> Logger { get; set; }
+
         public TxHubTransactionValidationService(
             IEnumerable<ITransactionValidationProvider> transactionValidationProviders,
             IEnumerable<IConstrainedTransactionValidationProvider> constrainedTransactionValidationProviders)
         {
             _transactionValidationProviders = transactionValidationProviders;
             _constrainedTransactionValidationProviders = constrainedTransactionValidationProviders;
+
+            Logger = NullLogger<TxHubTransactionValidationService>.Instance;
         }
 
         public async Task<bool> ValidateTransactionAsync(Transaction transaction)
@@ -38,7 +44,19 @@ namespace AElf.Kernel.TransactionPool.Application
         public bool ValidateConstrainedTransaction(Transaction transaction, Hash blockHash)
         {
             return _constrainedTransactionValidationProviders.All(provider =>
-                provider.ValidateTransaction(transaction, blockHash));
+            {
+                Logger.LogTrace($"Passing {provider.GetType().Name}");
+                return provider.ValidateTransaction(transaction, blockHash);
+            });
+        }
+
+        public void ClearConstrainedTransactionValidationProvider(Hash blockHash)
+        {
+            foreach (var provider in _constrainedTransactionValidationProviders)
+            {
+                Logger.LogTrace($"Clearing {provider.GetType().Name}");
+                provider.ClearBlockHash(blockHash);
+            }
         }
     }
 }

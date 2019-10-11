@@ -11,7 +11,6 @@ namespace AElf.OS.BlockSync.Application
     {
         private readonly IBlockFetchService _blockFetchService;
         private readonly INetworkService _networkService;
-        private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockchainService _blockchainService;
 
         public BlockFetchServiceTests()
@@ -24,7 +23,8 @@ namespace AElf.OS.BlockSync.Application
         [Fact]
         public async Task FetchBlock_Success()
         {
-            var peerBlock = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"));
+            var response = await _networkService.GetBlockByHashAsync(Hash.FromString("PeerBlock"), null);
+            var peerBlock = response.Payload;
 
             var block = await _blockchainService.GetBlockByHashAsync(peerBlock.GetHash());
             block.ShouldBeNull();
