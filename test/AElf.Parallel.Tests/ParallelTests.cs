@@ -116,7 +116,7 @@ namespace AElf.Parallel.Tests
             var groupedTransactions = await _grouper.GroupAsync(
                 new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
                 cancellableTransactions);
-            groupedTransactions.Parallelizables.Count.ShouldBe(_groupCount);
+            groupedTransactions.Parallelizables.Count.ShouldBe(1);
             groupedTransactions.NonParallelizables.Count.ShouldBe(0);
 
             block = _parallelTestHelper.GenerateBlock(block.GetHash(), block.Height,
@@ -125,6 +125,35 @@ namespace AElf.Parallel.Tests
                 cancellableTransactions, CancellationToken.None);
 
             var codeRemarks =
+                await _codeRemarksManager.GetCodeRemarksAsync(Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
+            codeRemarks.ShouldBeNull();
+
+            groupedTransactions = await _grouper.GroupAsync(
+                new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
+                cancellableTransactions);
+            groupedTransactions.Parallelizables.Count.ShouldBe(1);
+            groupedTransactions.NonParallelizables.Count.ShouldBe(0);
+
+            block.TransactionIds.Count().ShouldBe(systemTransactions.Count + cancellableTransactions.Count);
+            
+            systemTransactions = await _parallelTestHelper.GenerateTransferTransactions(1);
+            cancellableTransactions =
+                _parallelTestHelper.GenerateTransferFromTransactionsWithoutConflictWithMultiSender(keyPairs,
+                    tokenAmount);
+            await _parallelTestHelper.BroadcastTransactions(systemTransactions.Concat(cancellableTransactions));
+
+            groupedTransactions = await _grouper.GroupAsync(
+                new ChainContext {BlockHash = block.GetHash(), BlockHeight = block.Height},
+                cancellableTransactions);
+            groupedTransactions.Parallelizables.Count.ShouldBe(_groupCount);
+            groupedTransactions.NonParallelizables.Count.ShouldBe(0);
+
+            block = _parallelTestHelper.GenerateBlock(block.GetHash(), block.Height,
+                systemTransactions.Concat(cancellableTransactions));
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
+                cancellableTransactions, CancellationToken.None);
+
+            codeRemarks =
                 await _codeRemarksManager.GetCodeRemarksAsync(Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
             codeRemarks.ShouldBeNull();
 
