@@ -35,7 +35,7 @@ namespace AElf.OS.BlockSync.Application
             _transactionValidationService = transactionValidationService;
         }
 
-        public Task<bool> ValidateAnnouncementAsync(Chain chain, BlockAnnouncement blockAnnouncement, string senderPubKey)
+        public Task<bool> ValidateAnnouncementBeforeSyncAsync(Chain chain, BlockAnnouncement blockAnnouncement, string senderPubKey)
         {
             if (!TryCacheNewAnnouncement(blockAnnouncement.BlockHash, blockAnnouncement.BlockHeight, senderPubKey))
             {
@@ -83,7 +83,7 @@ namespace AElf.OS.BlockSync.Application
 
             return true;
         }
-        
+
         private bool TryCacheNewAnnouncement(Hash blockHash, long blockHeight, string senderPubkey)
         {
             return _announcementCacheProvider.TryAddOrUpdateAnnouncementCache(blockHash, blockHeight, senderPubkey);
