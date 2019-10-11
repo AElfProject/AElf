@@ -8,35 +8,23 @@ namespace AElf.Contracts.MultiToken
     {
         public override MethodFees GetMethodFee(StringValue input)
         {
-            return new MethodFees
-            {
-                MethodName = input.Value,
-                Fee =
-                {
-                    new MethodFee
-                    {
-                        Symbol = Context.Variables.NativeSymbol,
-                        BasicFee = 0
-                    }
-                }
-            };
-            if (input.Value == nameof(Transfer))
+            if (input.Value == nameof(Transfer) || input.Value == nameof(TransferFrom))
             {
                 return new MethodFees
                 {
-                    MethodName = nameof(Transfer),
+                    MethodName = input.Value,
                     Fee =
                     {
                         new MethodFee
                         {
                             Symbol = Context.Variables.NativeSymbol,
-                            BasicFee = 0
+                            BasicFee = 1000_0000
                         }
                     }
                 };
             }
 
-            return State.MethodFees[input.Value];
+            return State.MethodFees[input.Value] ?? new MethodFees();
         }
 
         public override Empty SetMethodFee(MethodFees input)

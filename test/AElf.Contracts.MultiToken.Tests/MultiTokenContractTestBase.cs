@@ -72,7 +72,7 @@ namespace AElf.Contracts.MultiToken
         
         protected readonly Address Address = SampleAddress.AddressList[0];
         
-        protected const string SymbolForTest = "ELFTEST";
+        protected const string SymbolForTest = "ELF";
         
         protected const long Amount = 100;
         protected void CheckResult(TransactionResult result)

@@ -175,7 +175,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                 {
                     Symbol = "ELF",
                     To = Address.FromPublicKey(OtherTester.PublicKey),
-                    Amount = elfBalance - 5,
+                    Amount = elfBalance - 5 - 20000000,
                     Memo = "transfer elf to other user"
                 });
                 transferElfResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
