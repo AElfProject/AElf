@@ -123,9 +123,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return extraBlockProducer;
             }
 
-            pubkey = previousRound.RealTimeMinersInformation.Keys.FirstOrDefault(k =>
-                previousRound.IsInCorrectFutureMiningSlot(k,
-                    previousRound.GetExpectedMiningTime(k).AddMilliseconds(miningInterval)));
+            pubkey = previousRound.RealTimeMinersInformation.OrderBy(i => i.Value.Order).Select(i => i.Key)
+                .FirstOrDefault(k =>
+                    previousRound.IsInCorrectFutureMiningSlot(k, Context.CurrentBlockTime));
 
             Context.LogDebug(() => $"Checked abnormal extra block time slot: {pubkey}");
 
