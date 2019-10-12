@@ -43,7 +43,7 @@ namespace AElf.OS.Consensus.DPos
             blockIndex.ShouldBeNull();
         }
 
-        [Fact(Skip ="Need to adopt mock methods and data")]
+        [Fact]
         public async Task Find_LIB_With_Two_BP_Peers_Return_Block_Index()
         {
             var blocks = _osTestHelper.BestBranchBlockList;
@@ -77,7 +77,7 @@ namespace AElf.OS.Consensus.DPos
                 IsInbound = true
             };
             
-            var peer = new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), IpEndpointHelper.Parse(OSConsensusDPosTestConstants.FakeIpEndpoint), connectionInfo);
+            var peer = new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), IpEndPointHelper.Parse(OSConsensusDPosTestConstants.FakeIpEndpoint), connectionInfo);
             peer.IsConnected = true;
             
             var blocks = _osTestHelper.BestBranchBlockList.GetRange(0, blockHeight);

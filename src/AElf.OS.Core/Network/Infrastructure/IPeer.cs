@@ -6,25 +6,31 @@ using AElf.OS.Network.Application;
 using AElf.OS.Network.Metrics;
 using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.OS.Network.Infrastructure
 {
     public interface IPeer
     {
         bool IsReady { get; }
+        string ConnectionStatus { get; }
         bool IsInvalid { get; }
         Hash LastKnownLibHash { get; }
         long LastKnownLibHeight { get; }
+        Timestamp LastReceivedHandshakeTime { get; }
         IPEndPoint RemoteEndpoint { get; }
-        string IpAddress { get; }
-        
+
         int BufferedTransactionsCount { get; }
         int BufferedBlocksCount { get; }
         int BufferedAnnouncementsCount { get; }
+        
+        byte[] InboundSessionId { get; }
 
         PeerConnectionInfo Info { get; }
 
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
+
+        Task CheckHealthAsync();
         
         void AddKnowBlock(BlockAnnouncement blockAnnouncement);
         void UpdateLastKnownLib(LibAnnouncement libAnnouncement);
