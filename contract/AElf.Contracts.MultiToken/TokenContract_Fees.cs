@@ -24,9 +24,9 @@ namespace AElf.Contracts.MultiToken
             var fee = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
                 new StringValue {Value = input.MethodName});
 
-            if (fee == null || !fee.Fee.Any()) return new Empty();
+            if (fee == null || !fee.Fees.Any()) return new Empty();
 
-            if (!ChargeFirstSufficientToken(fee.Fee.ToDictionary(f => f.Symbol, f => f.BasicFee), out var symbol,
+            if (!ChargeFirstSufficientToken(fee.Fees.ToDictionary(f => f.Symbol, f => f.BasicFee), out var symbol,
                 out var amount, out var existingBalance))
             {
                 Assert(false, "Failed to charge first sufficient token.");

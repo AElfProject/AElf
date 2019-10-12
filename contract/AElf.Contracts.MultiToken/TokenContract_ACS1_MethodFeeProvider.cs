@@ -13,7 +13,7 @@ namespace AElf.Contracts.MultiToken
                 return new MethodFees
                 {
                     MethodName = input.Value,
-                    Fee =
+                    Fees =
                     {
                         new MethodFee
                         {
@@ -42,7 +42,7 @@ namespace AElf.Contracts.MultiToken
                 Assert(Context.Sender == genesisOwnerAddress, "No permission to set method fee.");
             }
 
-            foreach (var symbolToAmount in input.Fee)
+            foreach (var symbolToAmount in input.Fees)
             {
                 AssertValidToken(symbolToAmount.Symbol, symbolToAmount.BasicFee);
             }

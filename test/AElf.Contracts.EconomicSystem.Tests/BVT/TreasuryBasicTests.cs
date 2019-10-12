@@ -43,7 +43,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new MethodFees
             {
                 MethodName = nameof(TransactionFeeChargingContractStub.SendForFun),
-                Fee =
+                Fees =
                 {
                     new MethodFee {Symbol = EconomicSystemTestConstants.NativeTokenSymbol, BasicFee = feeAmount}
                 }
@@ -53,7 +53,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             {
                 Value = nameof(TransactionFeeChargingContractStub.SendForFun)
             });
-            tokenAmount.Fee.First(a => a.Symbol == EconomicSystemTestConstants.NativeTokenSymbol).BasicFee
+            tokenAmount.Fees.First(a => a.Symbol == EconomicSystemTestConstants.NativeTokenSymbol).BasicFee
                 .ShouldBe(feeAmount);
         }
 
@@ -86,7 +86,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new MethodFees
             {
                 MethodName = nameof(TransactionFeeChargingContractStub.SupposedToFail),
-                Fee =
+                Fees =
                 {
                     new MethodFee {Symbol = EconomicSystemTestConstants.NativeTokenSymbol, BasicFee = feeAmount}
                 }
@@ -117,7 +117,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new MethodFees
             {
                 MethodName = nameof(TransactionFeeChargingContractStub.SendForFun),
-                Fee =
+                Fees =
                 {
                     new MethodFee
                     {
@@ -136,9 +136,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             {
                 Value = nameof(TransactionFeeChargingContractStub.SendForFun)
             });
-            tokenAmount.Fee.First(a => a.Symbol == EconomicSystemTestConstants.NativeTokenSymbol).BasicFee
+            tokenAmount.Fees.First(a => a.Symbol == EconomicSystemTestConstants.NativeTokenSymbol).BasicFee
                 .ShouldBe(feeAmount);
-            tokenAmount.Fee
+            tokenAmount.Fees
                 .First(a => a.Symbol == EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol).BasicFee
                 .ShouldBe(feeAmount);
 

@@ -24,7 +24,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var setResult = await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new MethodFees
             {
                 MethodName = "SendForFun",
-                Fee =
+                Fees =
                 {
                     new MethodFee {Symbol = "ELF", BasicFee = 1_0000_0000}
                 }
@@ -48,7 +48,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var setResult = await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new MethodFees
             {
                 MethodName = "SupposedToFail",
-                Fee =
+                Fees =
                 {
                     new MethodFee {Symbol = "ELF", BasicFee = 2_0000_0000}
                 }

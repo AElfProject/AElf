@@ -19,7 +19,7 @@ namespace AElf.Contracts.Profit
                 case nameof(CreateScheme):
                     return new MethodFees
                     {
-                        Fee =
+                        Fees =
                         {
                             new MethodFee {Symbol = Context.Variables.NativeSymbol, BasicFee = 10_00000000}
                         }
@@ -27,7 +27,7 @@ namespace AElf.Contracts.Profit
                 default:
                     return new MethodFees
                     {
-                        Fee =
+                        Fees =
                         {
                             new MethodFee {Symbol = Context.Variables.NativeSymbol, BasicFee = 1_00000000}
                         }

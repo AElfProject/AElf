@@ -101,7 +101,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             await DefaultTester.SetMethodFee.SendAsync(new MethodFees
             {
                 MethodName = nameof(DefaultTester.DummyMethod),
-                Fee =
+                Fees =
                 {
                     new MethodFee {Symbol = "ELF", BasicFee = feeAmount}
                 }
@@ -110,7 +110,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             {
                 Value = nameof(DefaultTester.DummyMethod)
             });
-            fee.Fee.First(a => a.Symbol == "ELF").BasicFee.ShouldBe(feeAmount);
+            fee.Fees.First(a => a.Symbol == "ELF").BasicFee.ShouldBe(feeAmount);
         }
 
         [Fact]
