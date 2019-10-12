@@ -1,7 +1,9 @@
-FROM microsoft/dotnet
+FROM microsoft/dotnet:2.2.402
 
 WORKDIR /app
 
 ENV LD_LIBRARY_PATH /app
 
-COPY . .
+COPY ./aelf-node .
+
+CMD /bin/bash
