@@ -141,8 +141,7 @@ namespace AElf.Runtime.CSharp.Policies
                 new FloatOpsValidator(),
                 new ArrayValidator(), 
                 new MultiDimArrayValidator(),
-                // TODO: Enable unchecked math validator once test cases are passing with overflow check
-                // new UncheckedMathValidator(),
+                new UncheckedMathValidator(),
             });
         }
     }
