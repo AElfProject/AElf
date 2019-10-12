@@ -130,14 +130,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
 
             var dummy = await DefaultTester.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-
+            var size = dummy.Transaction.Size();
+            var sizeFee = size * 1000;
             var after = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
                 Owner = DefaultSender,
                 Symbol = "ELF"
             });
-
-            after.Balance.ShouldBe(before.Balance - feeAmount);
+            
+            after.Balance.ShouldBe(before.Balance - feeAmount - sizeFee);
         }
 
         [Fact]

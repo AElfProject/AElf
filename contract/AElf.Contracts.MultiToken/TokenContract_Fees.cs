@@ -24,32 +24,40 @@ namespace AElf.Contracts.MultiToken
             var fee = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
                 new StringValue {Value = input.MethodName});
 
-            if (fee == null || !fee.Fees.Any()) return new Empty();
+            var bill = new TransactionFeeBill();
 
-            if (!ChargeFirstSufficientToken(fee.Fees.ToDictionary(f => f.Symbol, f => f.BasicFee), out var symbol,
-                out var amount, out var existingBalance))
+            var fromAddress = Context.Sender;
+
+            if (fee != null && fee.Fees.Any())
             {
-                Assert(false, "Failed to charge first sufficient token.");
+                if (!ChargeFirstSufficientToken(fee.Fees.ToDictionary(f => f.Symbol, f => f.BasicFee), out var symbol,
+                    out var amount, out var existingBalance))
+                {
+                    Assert(false, "Failed to charge first sufficient token.");
+                }
+
+                bill.TokenToAmount.Add(symbol, amount);
+                // Charge base fee.
+                State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
             }
 
-            var bill = new TransactionFeeBill
-            {
-                TokenToAmount = {{symbol, amount}}
-            };
-
+            var txSizeFeeAmount = input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice);
             bill += new TransactionFeeBill
             {
                 TokenToAmount =
                 {
                     {
                         Context.Variables.NativeSymbol,
-                        input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice)
+                        txSizeFeeAmount
                     }
                 }
             };
 
-            var fromAddress = Context.Sender;
-            State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
+            // Charge tx size fee.
+            State.Balances[fromAddress][Context.Variables.NativeSymbol] =
+                State.Balances[fromAddress][Context.Variables.NativeSymbol].Sub(txSizeFeeAmount);
+
+            // Record the bill finally.
             var oldBill = State.ChargedFees[fromAddress];
             State.ChargedFees[fromAddress] = oldBill == null ? bill : oldBill + bill;
             return new Empty();
