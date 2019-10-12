@@ -1,29 +1,37 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Events;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.Network.Grpc.Connection
 {
     public class ConnectionService : IConnectionService
     {
+        private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
+        public IOptionsSnapshot<NetworkOptions> NetworkOptionsSnapshot { get; set; }
+        
         private readonly IPeerPool _peerPool;
         private readonly IPeerDialer _peerDialer;
         private readonly IHandshakeProvider _handshakeProvider;
+        private readonly IReconnectionService _reconnectionService;
         public ILocalEventBus EventBus { get; set; }
         public ILogger<ConnectionService> Logger { get; set; }
 
         public ConnectionService(IPeerPool peerPool, IPeerDialer peerDialer,
-            IHandshakeProvider handshakeProvider)
+            IHandshakeProvider handshakeProvider, IReconnectionService reconnectionService)
         {
             _peerPool = peerPool;
             _peerDialer = peerDialer;
             _handshakeProvider = handshakeProvider;
+            _reconnectionService = reconnectionService;
 
             Logger = NullLogger<ConnectionService>.Instance;
             EventBus = NullLocalEventBus.Instance;
@@ -37,11 +45,33 @@ namespace AElf.OS.Network.Grpc.Connection
             // clean the pool
             if (_peerPool.RemovePeer(peer.Info.Pubkey) == null)
                 Logger.LogWarning($"{peer} was not found in pool.");
+            
+            // cancel any pending reconnection
+            _reconnectionService.CancelReconnection(peer.RemoteEndpoint.ToString());
 
-            // clean the peer
+            // dispose the peer
             await peer.DisconnectAsync(sendDisconnect);
-
+            
             Logger.LogDebug($"Removed peer {peer}");
+        }
+
+        public Task<bool> SchedulePeerReconnection(IPEndPoint endpoint)
+        {
+            return Task.FromResult(_reconnectionService.SchedulePeerForReconnection(endpoint.ToString()));
+        }
+
+        public async Task<bool> TrySchedulePeerReconnectionAsync(IPeer peer)
+        {
+            await DisconnectAsync(peer);
+            
+            if (peer.Info.IsInbound && (NetworkOptions.BootNodes == null || !NetworkOptions.BootNodes.Any() 
+                || !NetworkOptions.BootNodes.Contains(peer.RemoteEndpoint.ToString())))
+            {
+                Logger.LogDebug($"Completely dropping {peer.RemoteEndpoint} (inbound: {peer.Info.IsInbound}).");
+                return false;
+            }
+            
+            return _reconnectionService.SchedulePeerForReconnection(peer.RemoteEndpoint.ToString());
         }
 
         public GrpcPeer GetPeerByPubkey(string pubkey)

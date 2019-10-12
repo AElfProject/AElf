@@ -6,7 +6,6 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.BlockSync.Events;
 using AElf.OS.Network;
 using AElf.OS.Network.Extensions;
-using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
