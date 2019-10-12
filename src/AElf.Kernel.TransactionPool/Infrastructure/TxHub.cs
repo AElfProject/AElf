@@ -323,5 +323,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             return Task.FromResult(_validated.Count);
         }
+
+        public async Task<bool> IsTransactionExistsAsync(Hash transactionId)
+        {
+            return await _transactionManager.IsTransactionExistsAsync(transactionId);
+        }
     }
 }

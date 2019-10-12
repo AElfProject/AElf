@@ -24,5 +24,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         Task<TransactionReceipt> GetTransactionReceiptAsync(Hash transactionId);
         Task<int> GetAllTransactionCountAsync();
         Task<int> GetValidatedTransactionCountAsync();
+        Task<bool> IsTransactionExistsAsync(Hash transactionId);
     }
 }
