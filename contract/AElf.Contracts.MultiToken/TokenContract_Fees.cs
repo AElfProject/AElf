@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs1;
@@ -41,7 +42,15 @@ namespace AElf.Contracts.MultiToken
                 State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
             }
 
+            var balanceAfterChargingBaseFee = State.Balances[fromAddress][Context.Variables.NativeSymbol];
             var txSizeFeeAmount = input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice);
+            txSizeFeeAmount = balanceAfterChargingBaseFee > txSizeFeeAmount // Enough to pay tx size fee.
+                ? txSizeFeeAmount
+                // It's safe to convert from long to int here because
+                // balanceAfterChargingBaseFee <= txSizeFeeAmount and
+                // typeof(txSizeFeeAmount) == int
+                : (int) balanceAfterChargingBaseFee; 
+
             bill += new TransactionFeeBill
             {
                 TokenToAmount =
@@ -54,12 +63,17 @@ namespace AElf.Contracts.MultiToken
             };
 
             // Charge tx size fee.
-            State.Balances[fromAddress][Context.Variables.NativeSymbol] =
-                State.Balances[fromAddress][Context.Variables.NativeSymbol].Sub(txSizeFeeAmount);
+            var finalBalanceOfNativeSymbol = balanceAfterChargingBaseFee.Sub(txSizeFeeAmount);
+            State.Balances[fromAddress][Context.Variables.NativeSymbol] = finalBalanceOfNativeSymbol;
 
             // Record the bill finally.
             var oldBill = State.ChargedFees[fromAddress];
             State.ChargedFees[fromAddress] = oldBill == null ? bill : oldBill + bill;
+            
+            // If balanceAfterChargingBaseFee < txSizeFeeAmount, make sender's balance of native symbol to 0 and make current execution failed.
+            Assert(balanceAfterChargingBaseFee >= txSizeFeeAmount,
+                $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {txSizeFeeAmount}");
+
             return new Empty();
         }
 
