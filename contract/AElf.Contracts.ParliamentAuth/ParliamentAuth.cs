@@ -125,7 +125,6 @@ namespace AElf.Contracts.ParliamentAuth
         public override Empty Release(Hash proposalId)
         {
             var proposalInfo = GetValidProposal(proposalId);
-            Assert(proposalInfo != null, "Proposal not found.");
             Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
             var organization = State.Organisations[proposalInfo.OrganizationAddress];
             var currentParliament = GetCurrentMinerList();
