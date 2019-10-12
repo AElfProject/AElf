@@ -118,8 +118,8 @@ namespace AElf.Contracts.Election
         public override CandidateInformation GetCandidateInformation(StringInput input)
         {
             var ret = State.CandidateInformationMap[input.Value]??new CandidateInformation{Pubkey = input.Value};
-            if(string.IsNullOrEmpty(ret.CandidateAddresss))
-                ret.CandidateAddresss = ret.Pubkey.GetBytes().ToPlainBase58();
+            if(string.IsNullOrEmpty(ret.CandidateAddresssBase58Check))
+                ret.CandidateAddresssBase58Check =  Base58CheckEncoding.Encode(ByteArrayHelper.HexStringToByteArray(ret.Pubkey));
             return ret;
         }
 
@@ -145,12 +145,12 @@ namespace AElf.Contracts.Election
                 return new ElectorVote
                 {
                     Pubkey = pubKey,
-                    CandidateAddresss = pubKey.ToPlainBase58()
                 };
             }
-            if (string.IsNullOrEmpty(votes.CandidateAddresss))
+            foreach (var candidate in votes.ActiveVotingRecords)
             {
-                votes.CandidateAddresss = votes.Pubkey.ToPlainBase58();
+                if(string.IsNullOrEmpty(candidate.CandidateAddresssBase58Check))
+                    candidate.CandidateAddresssBase58Check = Base58CheckEncoding.Encode(ByteArrayHelper.HexStringToByteArray(candidate.Candidate));
             }
             var votedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
@@ -169,13 +169,15 @@ namespace AElf.Contracts.Election
         public override ElectorVote GetElectorVoteWithAllRecords(StringInput input)
         {
             var votes = GetElectorVoteWithRecords(input);
-            if(string.IsNullOrEmpty(votes.CandidateAddresss))
-                votes.CandidateAddresss = votes.Pubkey.ToPlainBase58();
             if (!votes.WithdrawnVotingRecordIds.Any())
             {
                 return votes;
             }
-
+            foreach (var candidate in votes.ActiveVotingRecords)
+            {
+                if(string.IsNullOrEmpty(candidate.CandidateAddresssBase58Check))
+                    candidate.CandidateAddresssBase58Check = Base58CheckEncoding.Encode(ByteArrayHelper.HexStringToByteArray(candidate.Candidate));
+            }
             var votedWithdrawnRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
                 Ids = {votes.WithdrawnVotingRecordIds}
@@ -228,8 +230,8 @@ namespace AElf.Contracts.Election
                     CandidateInformation = State.CandidateInformationMap[candidate.ToHex()],
                     ObtainedVotesAmount = State.CandidateVotes[candidate.ToHex()].ObtainedActiveVotedVotesAmount
                 };
-                if(string.IsNullOrEmpty(candidateInfo.CandidateInformation.CandidateAddresss))
-                    candidateInfo.CandidateInformation.CandidateAddresss = candidateInfo.CandidateInformation.Pubkey.GetBytes().ToPlainBase58();
+                if(string.IsNullOrEmpty(candidateInfo.CandidateInformation.CandidateAddresssBase58Check))
+                    candidateInfo.CandidateInformation.CandidateAddresssBase58Check = Base58CheckEncoding.Encode(ByteArrayHelper.HexStringToByteArray(candidateInfo.CandidateInformation.Pubkey));
                 output.Value.Add(candidateInfo);
             }
 
@@ -294,18 +296,21 @@ namespace AElf.Contracts.Election
 
         public override SInt64Value GetNextElectCountDown(Empty input)
         {
-            var i =new SInt64Value{ Value = 2L };
+            var i = new SInt64Value { Value = 2L };
             var round = State.AEDPoSContract.GetRoundInformation.Call(i);
-            var orderOneMiner = round.RealTimeMinersInformation.Values.SingleOrDefault(x => x.Order == 1);
-            if(orderOneMiner == null)
-                return new SInt64Value{Value = 0};
+            var orderOneMiner = round.RealTimeMinersInformation.Values.FirstOrDefault(x => x.Order == 1);
+            if (orderOneMiner == null)
+                return new SInt64Value { Value = 0 };
             var expectedMiningTime = orderOneMiner.ExpectedMiningTime;
             int bpCount = round.RealTimeMinersInformation.Count;
             long blockChainStartTime = expectedMiningTime.Seconds.Sub(bpCount.Add(1).Mul(4));
             var countDown = new SInt64Value
-                { Value = 604800.Sub((int)Context.CurrentBlockTime.Seconds.Sub(blockChainStartTime) % 604800)};
+            {
+                Value = 604800.Sub((int) Context.CurrentBlockTime.Seconds.Sub(blockChainStartTime) % 604800)
+            };
             return countDown;
         }
+
         private ElectionVotingRecord TransferVotingRecordToElectionVotingRecord(VotingRecord votingRecord, Hash voteId)
         {
             var lockSeconds = State.LockTimeMap[voteId];

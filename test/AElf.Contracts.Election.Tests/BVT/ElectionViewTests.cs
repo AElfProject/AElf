@@ -52,7 +52,6 @@ namespace AElf.Contracts.Election
             voteRecords.ShouldBe(new ElectorVote
             {
                 Pubkey = pubKey,
-                CandidateAddresss = pubKey.ToPlainBase58()
             });
         }
 
