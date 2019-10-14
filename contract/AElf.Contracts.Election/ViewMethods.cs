@@ -117,9 +117,9 @@ namespace AElf.Contracts.Election
 
         public override CandidateInformation GetCandidateInformation(StringInput input)
         {
-            var ret = State.CandidateInformationMap[input.Value]??new CandidateInformation{Pubkey = input.Value};
-            if(string.IsNullOrEmpty(ret.CandidateAddresssBase58Check))
-                ret.CandidateAddresssBase58Check =  Base58CheckEncoding.Encode(ByteArrayHelper.HexStringToByteArray(ret.Pubkey));
+            var ret = State.CandidateInformationMap[input.Value]??new CandidateInformation{ Pubkey = input.Value };
+            if (string.IsNullOrEmpty(ret.CandidateAddress))
+                ret.CandidateAddress = GetBase58CheckAddress(ret.Pubkey);
             return ret;
         }
 
@@ -147,16 +147,6 @@ namespace AElf.Contracts.Election
                     Pubkey = pubKey,
                 };
             }
-            foreach (var candidate in votes.ActiveVotingRecords)
-            {
-                if(string.IsNullOrEmpty(candidate.CandidateAddresssBase58Check))
-                    candidate.CandidateAddresssBase58Check = Base58CheckEncoding.Encode(ByteArrayHelper.HexStringToByteArray(candidate.Candidate));
-            }
-            foreach (var candidate in votes.WithdrawnVotesRecords)
-            {
-                if(string.IsNullOrEmpty(candidate.CandidateAddresssBase58Check))
-                    candidate.CandidateAddresssBase58Check = Base58CheckEncoding.Encode(ByteArrayHelper.HexStringToByteArray(candidate.Candidate));
-            }
             var votedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
                 Ids = {votes.ActiveVotingRecordIds}
@@ -167,7 +157,16 @@ namespace AElf.Contracts.Election
                 var voteId = votes.ActiveVotingRecordIds[index++];
                 votes.ActiveVotingRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
-
+            foreach (var candidate in votes.ActiveVotingRecords)
+            {
+                if (string.IsNullOrEmpty(candidate.CandidateAddress))
+                    candidate.CandidateAddress = GetBase58CheckAddress(candidate.Candidate);
+            }
+            foreach (var candidate in votes.WithdrawnVotesRecords)
+            {
+                if(string.IsNullOrEmpty(candidate.CandidateAddress))
+                    candidate.CandidateAddress = GetBase58CheckAddress(candidate.Candidate);
+            }
             return votes;
         }
 
@@ -177,16 +176,6 @@ namespace AElf.Contracts.Election
             if (!votes.WithdrawnVotingRecordIds.Any())
             {
                 return votes;
-            }
-            foreach (var candidate in votes.ActiveVotingRecords)
-            {
-                if(string.IsNullOrEmpty(candidate.CandidateAddresssBase58Check))
-                    candidate.CandidateAddresssBase58Check = Base58CheckEncoding.Encode(ByteArrayHelper.HexStringToByteArray(candidate.Candidate));
-            }
-            foreach (var candidate in votes.WithdrawnVotesRecords)
-            {
-                if(string.IsNullOrEmpty(candidate.CandidateAddresssBase58Check))
-                    candidate.CandidateAddresssBase58Check = Base58CheckEncoding.Encode(ByteArrayHelper.HexStringToByteArray(candidate.Candidate));
             }
             var votedWithdrawnRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
@@ -198,7 +187,16 @@ namespace AElf.Contracts.Election
                 var voteId = votes.WithdrawnVotingRecordIds[index++];
                 votes.WithdrawnVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
-
+            foreach (var candidate in votes.ActiveVotingRecords)
+            {
+                if(string.IsNullOrEmpty(candidate.CandidateAddress))
+                    candidate.CandidateAddress = GetBase58CheckAddress(candidate.Candidate);
+            }
+            foreach (var candidate in votes.WithdrawnVotesRecords)
+            {
+                if(string.IsNullOrEmpty(candidate.CandidateAddress))
+                    candidate.CandidateAddress = GetBase58CheckAddress(candidate.Candidate);
+            }
             return votes;
         }
 
@@ -240,8 +238,8 @@ namespace AElf.Contracts.Election
                     CandidateInformation = State.CandidateInformationMap[candidate.ToHex()],
                     ObtainedVotesAmount = State.CandidateVotes[candidate.ToHex()].ObtainedActiveVotedVotesAmount
                 };
-                if(string.IsNullOrEmpty(candidateInfo.CandidateInformation.CandidateAddresssBase58Check))
-                    candidateInfo.CandidateInformation.CandidateAddresssBase58Check = Base58CheckEncoding.Encode(ByteArrayHelper.HexStringToByteArray(candidateInfo.CandidateInformation.Pubkey));
+                if(string.IsNullOrEmpty(candidateInfo.CandidateInformation.CandidateAddress))
+                    candidateInfo.CandidateInformation.CandidateAddress = GetBase58CheckAddress(candidateInfo.CandidateInformation.Pubkey);
                 output.Value.Add(candidateInfo);
             }
 
@@ -343,6 +341,11 @@ namespace AElf.Contracts.Election
         private int GetValidationDataCenterCount()
         {
             return GetMinersCount(new Empty()).Value.Mul(5);
+        }
+
+        private string GetBase58CheckAddress(string pubKey)
+        {
+            return Base58CheckEncoding.Encode(ByteArrayHelper.HexStringToByteArray(pubKey).ComputeHash().ComputeHash());
         }
     }
 }

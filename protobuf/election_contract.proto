@@ -187,7 +187,7 @@ message CandidateInformation {
     sint64 continual_appointment_count = 5;
     aelf.Hash announcement_transaction_id = 6;
     bool is_current_candidate = 7;
-    string candidate_addresss_base58check = 8;
+    string candidate_address = 8;
 }
 
 message CandidateDetail {
@@ -208,7 +208,7 @@ message ElectionVotingRecord {
     bool is_withdrawn = 13;
     sint64 weight = 14;
     bool is_change_target = 15;
-    string candidate_addresss_base58check = 16;
+    string candidate_address = 16;
 }
 
 message PageInformation {
