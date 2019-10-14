@@ -16,10 +16,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
     public class FeeChargePreExecutionPlugin : IPreExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
+        private readonly ISystemTransactionMethodNameListProvider _systemTransactionMethodNameListProvider;
 
-        public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService)
+        public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
+            ISystemTransactionMethodNameListProvider systemTransactionMethodNameListProvider)
         {
             _contextService = contextService;
+            _systemTransactionMethodNameListProvider = systemTransactionMethodNameListProvider;
         }
 
         private static bool IsAcs1(IReadOnlyList<ServiceDescriptor> descriptors)
@@ -31,6 +34,35 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
             IReadOnlyList<ServiceDescriptor> descriptors, ITransactionContext transactionContext)
         {
             var context = _contextService.Create();
+
+            var systemContractAddresses = new List<Address>
+            {
+                context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name),
+                // TODO: Try to use contract address name providers - put providers to one place easy to ref.
+                context.GetContractAddressByName(Hash.FromString("AElf.ContractNames.Consensus")),
+                context.GetContractAddressByName(Hash.FromString("AElf.ContractNames.CrossChain"))
+            };
+            if (systemContractAddresses.Contains(transactionContext.Transaction.To))
+            {
+                if (_systemTransactionMethodNameListProvider.GetSystemTransactionMethodNameList()
+                    .Contains(transactionContext.Transaction.MethodName))
+                {
+                    return new List<Transaction>();
+                }
+                
+                var methodNameWhiteList = new List<string>
+                {
+                    nameof(TokenContractContainer.TokenContractStub.Issue),
+                    nameof(TokenContractContainer.TokenContractStub.CrossChainTransfer),
+                    nameof(TokenContractContainer.TokenContractStub.CrossChainReceiveToken)
+                };
+
+                if (methodNameWhiteList.Contains(transactionContext.Transaction.MethodName))
+                {
+                    return new List<Transaction>();
+                }
+            }
+
             var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
 
             if (!IsAcs1(descriptors) && transactionContext.Transaction.To != tokenContractAddress)
