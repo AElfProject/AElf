@@ -48,7 +48,7 @@ namespace AElf.Contracts.MultiToken
                 // It's safe to convert from long to int here because
                 // balanceAfterChargingBaseFee <= txSizeFeeAmount and
                 // typeof(txSizeFeeAmount) == int
-                : (int) balanceAfterChargingBaseFee; 
+                : (int) balanceAfterChargingBaseFee;
 
             bill += new TransactionFeeBill
             {
@@ -68,10 +68,12 @@ namespace AElf.Contracts.MultiToken
             // Record the bill finally.
             var oldBill = State.ChargedFees[fromAddress];
             State.ChargedFees[fromAddress] = oldBill == null ? bill : oldBill + bill;
-            
+
             // If balanceAfterChargingBaseFee < txSizeFeeAmount, make sender's balance of native symbol to 0 and make current execution failed.
-            Assert( balanceAfterChargingBaseFee >= input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice),
-                $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {txSizeFeeAmount}");
+            Assert(
+                balanceAfterChargingBaseFee >=
+                input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice),
+                $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice)}");
 
             return new Empty();
         }

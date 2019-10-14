@@ -72,6 +72,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
         public async Task GetPreTransactionsTest()
         {
             await DeployContractsAsync();
+            await InitializeTokenAsync();
+            
             await SetMethodFee_Successful(10);
             var plugins = Application.ServiceProvider.GetRequiredService<IEnumerable<IPreExecutionPlugin>>()
                 .ToLookup(p => p.GetType()).Select(coll => coll.First()); // One instance per type
@@ -161,14 +163,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             });
             res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var before = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
-            {
-                Owner = DefaultSender,
-                Symbol = "ELF"
-            });
-            
             var dummy = await DefaultTester.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
-            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
             
             var afterFee = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
@@ -209,7 +205,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             before.Balance.ShouldBeLessThan(feeAmount);
 
             var dummy = await DefaultTester.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
-            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
         }
     }
 }

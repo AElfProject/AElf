@@ -37,6 +37,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
 
             var systemContractAddresses = new List<Address>
             {
+                context.GetZeroSmartContractAddress(context.ChainId),
                 context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name),
                 // TODO: Try to use contract address name providers - put providers to one place easy to ref.
                 context.GetContractAddressByName(Hash.FromString("AElf.ContractNames.Consensus")),
@@ -52,6 +53,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 
                 var methodNameWhiteList = new List<string>
                 {
+                    nameof(TokenContractContainer.TokenContractStub.Create),
                     nameof(TokenContractContainer.TokenContractStub.Issue),
                     nameof(TokenContractContainer.TokenContractStub.CrossChainTransfer),
                     nameof(TokenContractContainer.TokenContractStub.CrossChainReceiveToken)
