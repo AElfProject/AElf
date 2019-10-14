@@ -123,6 +123,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return extraBlockProducer;
             }
 
+            foreach (var maybeCurrentPubkey in round.RealTimeMinersInformation.Keys)
+            {
+                var consensusCommand = GetConsensusCommand(AElfConsensusBehaviour.NextRound, round, maybeCurrentPubkey,
+                    currentBlockTime.AddMilliseconds(-miningInterval));
+                if (consensusCommand.ArrangedMiningTime <= currentBlockTime && currentBlockTime <=
+                    consensusCommand.ArrangedMiningTime.AddMilliseconds(miningInterval))
+                {
+                    return maybeCurrentPubkey;
+                }
+            }
+
             pubkey = previousRound.RealTimeMinersInformation.OrderBy(i => i.Value.Order).Select(i => i.Key)
                 .FirstOrDefault(k =>
                     previousRound.IsInCorrectFutureMiningSlot(k, Context.CurrentBlockTime));

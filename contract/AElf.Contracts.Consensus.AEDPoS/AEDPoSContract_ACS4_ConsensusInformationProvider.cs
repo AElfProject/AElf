@@ -39,7 +39,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return behaviour == AElfConsensusBehaviour.Nothing
                 ? ConsensusCommandProvider.InvalidConsensusCommand
-                : GetConsensusCommand(behaviour, currentRound, _processingBlockMinerPubkey);
+                : GetConsensusCommand(behaviour, currentRound, _processingBlockMinerPubkey, Context.CurrentBlockTime);
         }
 
         public override BytesValue GetConsensusExtraData(BytesValue input)

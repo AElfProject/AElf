@@ -16,14 +16,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="behaviour"></param>
         /// <param name="currentRound"></param>
         /// <param name="publicKey"></param>
+        /// <param name="currentBlockTime"></param>
         /// <returns></returns>
         private ConsensusCommand GetConsensusCommand(AElfConsensusBehaviour behaviour, Round currentRound,
-            string publicKey)
+            string publicKey, Timestamp currentBlockTime = null)
         {
             if (SolitaryMinerDetection(currentRound, publicKey))
                 return ConsensusCommandProvider.InvalidConsensusCommand;
-
-            var currentBlockTime = Context.CurrentBlockTime;
 
             if (currentRound.RoundNumber == 1 && behaviour != AElfConsensusBehaviour.TinyBlock)
                 return new ConsensusCommandProvider(new FirstRoundCommandStrategy(currentRound, publicKey,
