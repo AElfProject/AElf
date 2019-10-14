@@ -300,11 +300,8 @@ namespace AElf.Kernel.Blockchain.Application
 
             var transactionBlockIndex = new TransactionBlockIndex()
             {
-                BlockIndex = new BlockIndex
-                {
-                    BlockHash = block.GetHash(),
-                    BlockHeight = block.Height   
-                }
+                BlockHash = block.GetHash(),
+                BlockHeight = block.Height 
             };
             await _transacionBlockIndexManager.SetTransactionBlockIndexAsync(tx.GetHash(), transactionBlockIndex);
 

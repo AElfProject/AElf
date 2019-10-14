@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Types;
+using Google.Protobuf.Collections;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Blockchain.Application
@@ -34,8 +35,10 @@ namespace AElf.Kernel.Blockchain.Application
             
             var chain = await _blockchainService.GetChainAsync();
 
-            var reversedBlockIndexList = transactionBlockIndex.PreviousExecutionBlockIndexList
-                .Concat(new[] {transactionBlockIndex.BlockIndex}).Reverse().ToList();
+            var previousBlockIndexList =
+                transactionBlockIndex.PreviousExecutionBlockIndexList ?? new RepeatedField<BlockIndex>();
+            var lastBlockIndex = new BlockIndex(transactionBlockIndex.BlockHash, transactionBlockIndex.BlockHeight);
+            var reversedBlockIndexList = previousBlockIndexList.Concat(new[] {lastBlockIndex}).Reverse().ToList();
             
             foreach (var blockIndex in reversedBlockIndexList)
             {
@@ -58,14 +61,17 @@ namespace AElf.Kernel.Blockchain.Application
 
             var transactionBlockIndex = new TransactionBlockIndex
             {
-                BlockIndex = blockIndex
+                BlockHash = blockIndex.BlockHash,
+                BlockHeight = blockIndex.BlockHeight
             };
                     
             if (preTransactionBlockIndex != null)
             {
                 transactionBlockIndex.PreviousExecutionBlockIndexList.Add(preTransactionBlockIndex
                     .PreviousExecutionBlockIndexList);
-                transactionBlockIndex.PreviousExecutionBlockIndexList.Add(preTransactionBlockIndex.BlockIndex);
+                var previousBlockIndex = new BlockIndex(preTransactionBlockIndex.BlockHash,
+                    preTransactionBlockIndex.BlockHeight);
+                transactionBlockIndex.PreviousExecutionBlockIndexList.Add(previousBlockIndex);
             }
 
             await _transactionBlockIndexManager.SetTransactionBlockIndexAsync(txId, transactionBlockIndex);
