@@ -36,10 +36,10 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_ExistChain_WrongIndex()
         {
             int chainId = 123;
-            var dict = new Dictionary<int, BlockCacheEntityProvider>
+            var dict = new Dictionary<int, ChainCacheEntity>
             {
                 {
-                    chainId, new BlockCacheEntityProvider(1)
+                    chainId, new ChainCacheEntity(chainId, 1)
                 }
             };
             CreateFakeCache(dict);
@@ -55,10 +55,10 @@ namespace AElf.CrossChain.Cache
         public void TryAdd_ExistChain_CorrectIndex()
         {
             int chainId = 123;
-            var dict = new Dictionary<int, BlockCacheEntityProvider>
+            var dict = new Dictionary<int, ChainCacheEntity>
             {
                 {
-                    chainId, new BlockCacheEntityProvider(1)
+                    chainId, new ChainCacheEntity(chainId, 1)
                 }
             };
             CreateFakeCache(dict);

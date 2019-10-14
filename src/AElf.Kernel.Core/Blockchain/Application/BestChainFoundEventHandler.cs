@@ -25,10 +25,11 @@ namespace AElf.Kernel.Blockchain.Application
         
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
+            Logger.LogTrace($"Handle best chain found for transaction result: BlockHeight: {eventData.BlockHeight}");
+            
             foreach (var blockHash in eventData.ExecutedBlocks)
             {
                 var block = await _blockchainService.GetBlockByHashAsync(blockHash);
-                Logger.LogTrace($"Handle lib for transactions of block {block.Height}");
                 
                 var preMiningHash = block.Header.GetPreMiningHash();
                 var blockIndex = new BlockIndex
@@ -71,6 +72,9 @@ namespace AElf.Kernel.Blockchain.Application
                     await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex);
                 }
             }
+
+            Logger.LogTrace(
+                $"Finish handle best chain found for transaction result: BlockHeight: {eventData.BlockHeight}");
         }
     }
 }
