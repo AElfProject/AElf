@@ -7,7 +7,7 @@ using Acs0;
 
 namespace AElf.Contracts.Genesis
 {
-    public class BasicContractZero : BasicContractZeroContainer.BasicContractZeroBase
+    public partial class BasicContractZero : BasicContractZeroContainer.BasicContractZeroBase
     {
         #region Views
 
