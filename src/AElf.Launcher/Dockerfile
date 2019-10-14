@@ -4,4 +4,4 @@ WORKDIR /app
 
 ENV LD_LIBRARY_PATH /app
 
-COPY .  .
+COPY . .
