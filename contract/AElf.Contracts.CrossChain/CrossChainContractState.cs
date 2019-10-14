@@ -1,3 +1,4 @@
+using Acs1;
 using Acs7;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
@@ -11,6 +12,8 @@ namespace AElf.Contracts.CrossChain
         public Int64State SideChainSerialNumber { get; set; }
         
         public SingletonState<Address> Owner { get; set; }
+        
+        public MappedState<string, TokenAmounts> TransactionFees { get; set; }
         
         #region side chain
 

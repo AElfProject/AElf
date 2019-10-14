@@ -77,7 +77,7 @@ namespace AElf.Kernel
                         throw;
                     }
 
-                    if (TimestampHelper.GetUtcNow() <= eventData.MiningDueTime)
+                    if (TimestampHelper.GetUtcNow() <= eventData.MiningDueTime - blockExecutionDuration)
                     {
                         await _blockchainService.AddBlockAsync(block);
 
@@ -93,7 +93,9 @@ namespace AElf.Kernel
                     else
                     {
                         Logger.LogWarning(
-                            $"Discard block {block.Height} and trigger once again because mining time slot expired. MiningDueTime : {eventData.MiningDueTime}");
+                            $"Discard block {block.Height} and trigger once again because mining time slot expired. " +
+                            $"MiningDueTime : {eventData.MiningDueTime}, " +
+                            $"block execution duration limit : {blockExecutionDuration}");
                         await TriggerConsensusEventAsync(chain.BestChainHash, chain.BestChainHeight);
                     }
                 }, KernelConstants.ConsensusRequestMiningQueueName);
