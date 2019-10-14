@@ -162,6 +162,15 @@ namespace AElf.Contract.TestContract
                 var feeContractBalance = await GetBalance(TransactionFeesContractAddress, symbol);
                 feeContractBalance.ShouldBe(4000_00000000L);
             }
+
+            //transfer some token to acs8
+            var transactionResult = await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                Amount = 1000_00000000,
+                Symbol = "ELF", 
+                To = Acs8ContractAddress,
+                Memo = "for execution size fee"
+            });
             
             //initialize transactions fee contract
             var initializeResult = await TransactionFeesContractStub.InitializeFeesContract.SendAsync(Acs8ContractAddress);

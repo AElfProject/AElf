@@ -91,7 +91,7 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_Withdraw_Test()
         {
-            const long txFee = 1_00000000;
+            //const long txFee = 1_00000000;
             //without vote
             {
                 var withdrawResult = await Withdraw(SampleECKeyPairs.KeyPairs[1], Hash.FromString("hash1"));
@@ -139,7 +139,7 @@ namespace AElf.Contracts.Vote
                 transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                 var afterBalance = GetUserBalance(voteAddress);
-                beforeBalance.ShouldBe(afterBalance + txFee - 100);
+                beforeBalance.ShouldBe(afterBalance - 100);
             }
         }
 

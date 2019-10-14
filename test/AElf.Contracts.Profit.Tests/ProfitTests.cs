@@ -11,7 +11,7 @@ namespace AElf.Contracts.Profit
 {
     public partial class ProfitTests : ProfitContractTestBase
     {
-        private const long ClaimTransactionFee = 1_00000000;
+        //private const long ClaimTransactionFee = 1_00000000;
 
         public ProfitTests()
         {
@@ -896,7 +896,7 @@ namespace AElf.Contracts.Profit
                 Owner = beneficiaryAddress,
                 Symbol = ProfitContractTestConstants.NativeTokenSymbol
             })).Balance;
-            balance.ShouldBe(amount + initialBalance - ClaimTransactionFee);
+            balance.ShouldBe(amount + initialBalance);
         }
 
         [Fact]
@@ -960,8 +960,7 @@ namespace AElf.Contracts.Profit
                     Owner = beneficiaryAddress1,
                     Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(weight1.Mul(amount).Div(weight1 + weight2).Add(initialBalance1)
-                    .Sub(ClaimTransactionFee));
+                balance.ShouldBe(weight1.Mul(amount).Div(weight1 + weight2).Add(initialBalance1));
             }
 
             await beneficiary2.ClaimProfits.SendAsync(new ClaimProfitsInput
@@ -977,8 +976,7 @@ namespace AElf.Contracts.Profit
                     Owner = beneficiaryAddress2,
                     Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(weight2.Mul(amount).Div(weight1 + weight2).Add(initialBalance2)
-                    .Sub(ClaimTransactionFee));
+                balance.ShouldBe(weight2.Mul(amount).Div(weight1 + weight2).Add(initialBalance2));
             }
         }
 
@@ -1052,8 +1050,7 @@ namespace AElf.Contracts.Profit
                     Owner = beneficiaryAddress1,
                     Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(weight1.Mul(amount).Div(weight1.Add(weight2).Add(weight3)).Add(initialBalance1)
-                    .Sub(ClaimTransactionFee));
+                balance.ShouldBe(weight1.Mul(amount).Div(weight1.Add(weight2).Add(weight3)).Add(initialBalance1));
             }
 
             await beneficiary2.ClaimProfits.SendAsync(new ClaimProfitsInput
@@ -1069,8 +1066,7 @@ namespace AElf.Contracts.Profit
                     Owner = beneficiaryAddress2,
                     Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(weight2.Mul(amount).Div(weight1.Add(weight2).Add(weight3)).Add(initialBalance2)
-                    .Sub(ClaimTransactionFee));
+                balance.ShouldBe(weight2.Mul(amount).Div(weight1.Add(weight2).Add(weight3)).Add(initialBalance2));
             }
         }
 
@@ -1168,7 +1164,7 @@ namespace AElf.Contracts.Profit
                     Owner = beneficiaryAddress,
                     Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(amount * periodCount + initialBalance - ClaimTransactionFee);
+                balance.ShouldBe(amount * periodCount + initialBalance);
 
                 var details = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {
@@ -1198,7 +1194,7 @@ namespace AElf.Contracts.Profit
                     Owner = beneficiaryAddress,
                     Symbol = ProfitContractTestConstants.NativeTokenSymbol
                 })).Balance;
-                balance.ShouldBe(amount * periodCount + amount + initialBalance - ClaimTransactionFee * 2);
+                balance.ShouldBe(amount * periodCount + amount + initialBalance);
 
                 var details = await creator.GetProfitDetails.CallAsync(new GetProfitDetailsInput
                 {

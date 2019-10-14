@@ -21,7 +21,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
     {
         private TokenContractContainer.TokenContractStub TokenContractStub { get; set; }
         private Address TestContractAddress { get; set; }
-        private AElf.Types.Address TokenContractAddress { get; set; }
+        private Address TokenContractAddress { get; set; }
         private TestContract.ContractContainer.ContractStub DefaultTester { get; set; }
         private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         private Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
