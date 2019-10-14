@@ -70,7 +70,7 @@ namespace AElf.Contracts.MultiToken
             State.ChargedFees[fromAddress] = oldBill == null ? bill : oldBill + bill;
             
             // If balanceAfterChargingBaseFee < txSizeFeeAmount, make sender's balance of native symbol to 0 and make current execution failed.
-            Assert(balanceAfterChargingBaseFee >= txSizeFeeAmount,
+            Assert( balanceAfterChargingBaseFee >= input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice),
                 $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {txSizeFeeAmount}");
 
             return new Empty();

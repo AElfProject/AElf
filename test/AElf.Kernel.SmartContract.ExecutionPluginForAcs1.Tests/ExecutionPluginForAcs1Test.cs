@@ -40,7 +40,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             {
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = Codes.Single(kv => kv.Key.Contains("TestContract")).Value;
-                TestContractAddress = await DeployContractAsync(category, code, Hash.FromString("TestContract"), DefaultSenderKeyPair);
+                TestContractAddress = await DeployContractAsync(category, code, Hash.FromString("TestContract"),
+                    DefaultSenderKeyPair);
                 DefaultTester =
                     GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);
             }
@@ -114,7 +115,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
         }
 
         [Fact]
-        public async Task ChargeFee_Successful()
+        public async Task ChargeFee_SuccessfulTest()
         {
             await DeployContractsAsync();
             await InitializeTokenAsync();
@@ -137,16 +138,52 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
                 Owner = DefaultSender,
                 Symbol = "ELF"
             });
-            
+
             after.Balance.ShouldBe(before.Balance - feeAmount - sizeFee);
         }
 
         [Fact]
-        public async Task ChargeFee_PreFailed()
+        public async Task ChargeFee_SizeFee_FailedTest()
         {
             await DeployContractsAsync();
             await InitializeTokenAsync();
-            var feeAmount = 7;
+            // Make sure balance insufficient
+            var originalBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+            {
+                Owner = DefaultSender,
+                Symbol = "ELF"
+            })).Balance;
+            var targetBalance = 200000; // So that the sender doesn't have enough balance for paying the fee
+            var res = await TokenContractStub.Burn.SendAsync(new BurnInput()
+            {
+                Symbol = "ELF",
+                Amount = originalBalance - targetBalance
+            });
+            res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var before = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+            {
+                Owner = DefaultSender,
+                Symbol = "ELF"
+            });
+            
+            var dummy = await DefaultTester.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
+            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            var afterFee = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
+            {
+                Owner = DefaultSender,
+                Symbol = "ELF"
+            })).Balance;
+            afterFee.ShouldBe(0);
+        }
+
+        [Fact]
+        public async Task ChargeFee_TransactionFee_FailedTest()
+        {
+            await DeployContractsAsync();
+            await InitializeTokenAsync();
+            var feeAmount = 100000;
             await SetMethodFee_Successful(feeAmount);
             {
                 // Make sure balance insufficient
@@ -155,7 +192,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
                     Owner = DefaultSender,
                     Symbol = "ELF"
                 })).Balance;
-                var targetBalance = feeAmount - 1; // So that the sender doesn't have enough balance for paying the fee
+                var targetBalance = 200000; // So that the sender doesn't have enough balance for paying the fee
                 var res = await TokenContractStub.Burn.SendAsync(new BurnInput()
                 {
                     Symbol = "ELF",
@@ -172,7 +209,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             before.Balance.ShouldBeLessThan(feeAmount);
 
             var dummy = await DefaultTester.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
-            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
     }
 }
