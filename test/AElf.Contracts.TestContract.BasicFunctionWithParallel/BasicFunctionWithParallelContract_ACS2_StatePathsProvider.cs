@@ -51,6 +51,9 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
                 
                 case nameof(IncreaseValueParallel):
                 case nameof(IncreaseValueParallelWithInlineAndPlugin):
+                case nameof(IncreaseValueFailedParallelWithInlineAndPlugin):  
+                case nameof(IncreaseValueParallelFailed):
+                case nameof(IncreaseValueParallelWithFailedInlineAndPlugin):
                 {
                     var args = IncreaseValueInput.Parser.ParseFrom(txn.Params);
                     return new ResourceInfo

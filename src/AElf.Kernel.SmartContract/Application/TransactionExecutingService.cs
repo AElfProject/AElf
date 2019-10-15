@@ -78,6 +78,18 @@ namespace AElf.Kernel.SmartContract.Application
                         break;
                     }
 
+                    var transactionExecutingStateSets = new List<TransactionExecutingStateSet>();
+                    foreach (var preTrace in trace.PreTraces)
+                    {
+                        if (preTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
+                    }
+                    
+                    foreach (var postTrace in trace.PostTraces)
+                    {
+                        if (postTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(postTrace.GetStateSets());
+                    }
+
+                    groupStateCache.Update(transactionExecutingStateSets);
                     trace.SurfaceUpError();
                 }
                 else
@@ -206,6 +218,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
             finally
             {
+                (txContext.StateCache as TieredStateCache)?.ClearTempValue();
                 await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
                 await LocalEventBus.PublishAsync(new TransactionExecutedEventData
                 {
@@ -269,7 +282,7 @@ namespace AElf.Kernel.SmartContract.Application
                     var stateSets = preTrace.GetStateSets().ToList();
                     internalStateCache.Update(stateSets);
                     var parentStateCache = txContext.StateCache as TieredStateCache;
-                    parentStateCache?.Update(stateSets);
+                    parentStateCache?.SetTempValues(stateSets);
                 }
             }
 
@@ -284,6 +297,20 @@ namespace AElf.Kernel.SmartContract.Application
             CancellationToken cancellationToken)
         {
             var trace = txContext.Trace;
+            if (!trace.IsSuccessful())
+            {
+                var parentStateCache = txContext.StateCache as TieredStateCache;
+                parentStateCache?.ClearTempValue();
+                internalStateCache = new TieredStateCache(txContext.StateCache);
+                foreach (var preTrace in txContext.Trace.PreTraces)
+                {
+                    var stateSets = preTrace.GetStateSets().ToList();
+                    internalStateCache.Update(stateSets);
+                    parentStateCache?.SetTempValues(stateSets);
+                }
+
+                internalChainContext.StateCache = internalStateCache;
+            }
             foreach (var plugin in _postPlugins)
             {
                 var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txContext);
@@ -368,27 +395,49 @@ namespace AElf.Kernel.SmartContract.Application
             if (trace.IsSuccessful())
             {
                 var transactionExecutingStateSets = trace.GetStateSets();
-                foreach (var transactionExecutingStateSet in transactionExecutingStateSets)
+                returnSet = GetReturnSet(returnSet, transactionExecutingStateSets);
+                returnSet.ReturnValue = trace.ReturnValue;
+            }
+            else
+            {
+                var transactionExecutingStateSets = new List<TransactionExecutingStateSet>();
+                foreach (var preTrace in trace.PreTraces)
                 {
-                    foreach (var write in transactionExecutingStateSet.Writes)
-                    {
-                        returnSet.StateChanges[write.Key] = write.Value;
-                        returnSet.StateDeletes.Remove(write.Key);
-                    }
-                    foreach (var delete in transactionExecutingStateSet.Deletes)
-                    {
-                        returnSet.StateDeletes[delete.Key] = delete.Value;
-                        returnSet.StateChanges.Remove(delete.Key);
-                    }
+                    if (preTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
+                }
+                    
+                foreach (var postTrace in trace.PostTraces)
+                {
+                    if (postTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(postTrace.GetStateSets());
                 }
 
-                returnSet.ReturnValue = trace.ReturnValue;
+                returnSet = GetReturnSet(returnSet, transactionExecutingStateSets);
             }
 
             var reads = trace.GetFlattenedReads();
             foreach (var read in reads)
             {
                 returnSet.StateAccesses[read.Key] = read.Value;
+            }
+
+            return returnSet;
+        }
+        
+        private ExecutionReturnSet GetReturnSet(ExecutionReturnSet returnSet,
+            IEnumerable<TransactionExecutingStateSet> transactionExecutingStateSets)
+        {
+            foreach (var transactionExecutingStateSet in transactionExecutingStateSets)
+            {
+                foreach (var write in transactionExecutingStateSet.Writes)
+                {
+                    returnSet.StateChanges[write.Key] = write.Value;
+                    returnSet.StateDeletes.Remove(write.Key);
+                }
+                foreach (var delete in transactionExecutingStateSet.Deletes)
+                {
+                    returnSet.StateDeletes[delete.Key] = delete.Value;
+                    returnSet.StateChanges.Remove(delete.Key);
+                }
             }
 
             return returnSet;

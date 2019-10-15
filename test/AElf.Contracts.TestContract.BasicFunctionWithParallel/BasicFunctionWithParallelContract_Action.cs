@@ -1,3 +1,4 @@
+using System;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
 using AElf.Sdk.CSharp.State;
@@ -164,7 +165,126 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
         {
             return IncreaseValueWithInline(input);
         }
+
+        public override Empty IncreaseValueFailed(IncreaseValueInput input)
+        {
+            Assert(false);
+            return new Empty();
+        }
+
+        public override Empty IncreaseValueParallelFailed(IncreaseValueInput input)
+        {
+            return IncreaseValueFailed(input);
+        }
+
+        public override Empty IncreaseValueFailedWithInline(IncreaseValueInput input)
+        {
+            Context.SendInline(Context.Self, nameof(IncreaseValue), input);
+            return IncreaseValueFailed(input);
+        }
+
+        public override Empty IncreaseValueFailedWithPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueFailed(input);
+        }
+
+        public override Empty IncreaseValueFailedWithPostPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueFailed(input);
+        }
+
+        public override Empty IncreaseValueFailedWithPrePlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueFailed(input);
+        }
+
+        public override Empty IncreaseValueFailedWithInlineAndPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueFailedWithInline(input);
+        }
         
+        public override Empty IncreaseValueWithFailedInline(IncreaseValueInput input)
+        {
+            IncreaseValue(input);
+            Context.SendInline(Context.Self, nameof(IncreaseValueFailed), input);
+            return new Empty();
+        }
+
+        public override Empty IncreaseValueWithFailedInlineAndPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueWithFailedInline(input);
+        }
+
+        public override Empty IncreaseValueFailedParallelWithInlineAndPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueFailedWithInline(input);
+        }
+
+        public override Empty IncreaseValueFailedWithInlineAndPostPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueFailedWithInline(input);
+        }
+
+        public override Empty IncreaseValueFailedWithInlineAndPrePlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueFailedWithInline(input);
+        }
+        
+        public override Empty IncreaseValueParallelWithFailedInlineAndPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueWithFailedInline(input);
+        }
+
+        public override Empty IncreaseValueWithFailedInlineAndPostPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueWithFailedInline(input);
+        }
+
+        public override Empty IncreaseValueWithFailedInlineAndPrePlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueWithFailedInline(input);
+        }
+
+        public override Empty IncreaseValueWithFailedPrePlugin(IncreaseValueInput input)
+        {
+            return IncreaseValue(input);
+        }
+
+        public override Empty IncreaseValueWithInlineAndFailedPrePlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueWithInline(input);
+        }
+
+        public override Empty IncreaseValueWithFailedPrePluginAndPostPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValue(input);
+        }
+
+        public override Empty IncreaseValueWithInlineAndFailedPrePluginAndPostPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueWithInline(input);
+        }
+
+        public override Empty IncreaseValueWithFailedPostPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValue(input);
+        }
+
+        public override Empty IncreaseValueWithInlineAndFailedPostPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueWithInline(input);
+        }
+
+        public override Empty IncreaseValueWithPrePluginAndFailedPostPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValue(input);
+        }
+
+        public override Empty IncreaseValueWithInlineAndPrePluginAndFailedPostPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueWithInline(input);
+        }
+
         public override Empty RemoveValue(RemoveValueInput input)
         {
             State.LongValueMap.Remove(input.Key);
