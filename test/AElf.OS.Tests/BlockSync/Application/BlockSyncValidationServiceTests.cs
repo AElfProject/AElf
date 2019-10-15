@@ -42,7 +42,7 @@ namespace AElf.OS.BlockSync.Application
             };
 
             var validateResult =
-                await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement,
+                await _blockSyncValidationService.ValidateAnnouncementBeforeSyncAsync(chain, blockAnnouncement,
                     GetEncodedPubKeyString());
 
             validateResult.ShouldBeTrue();
@@ -60,12 +60,12 @@ namespace AElf.OS.BlockSync.Application
             };
 
             var validateResult =
-                await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement,
+                await _blockSyncValidationService.ValidateAnnouncementBeforeSyncAsync(chain, blockAnnouncement,
                     GetEncodedPubKeyString());
             validateResult.ShouldBeTrue();
 
             validateResult =
-                await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement,
+                await _blockSyncValidationService.ValidateAnnouncementBeforeSyncAsync(chain, blockAnnouncement,
                     GetEncodedPubKeyString());
             validateResult.ShouldBeFalse();
         }
@@ -82,7 +82,7 @@ namespace AElf.OS.BlockSync.Application
             };
 
             var validateResult =
-                await _blockSyncValidationService.ValidateAnnouncementAsync(chain, blockAnnouncement,
+                await _blockSyncValidationService.ValidateAnnouncementBeforeSyncAsync(chain, blockAnnouncement,
                     GetEncodedPubKeyString());
 
             validateResult.ShouldBeFalse();
