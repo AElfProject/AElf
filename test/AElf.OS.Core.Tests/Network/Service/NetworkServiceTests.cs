@@ -1,17 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
-using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
-using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
-using Moq;
-using Org.BouncyCastle.Utilities.Net;
 using Shouldly;
 using Xunit;
 
@@ -21,8 +14,9 @@ namespace AElf.OS.Network
     {
         private readonly INetworkService _networkService;
         private readonly IPeerPool _peerPool;
+        private readonly IBlackListedPeerProvider _blackListProvider;
+
         private readonly KernelTestHelper _kernelTestHelper;
-        private IBlackListedPeerProvider _blackListProvider;
 
         public NetworkServiceTests()
         {
