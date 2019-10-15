@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Acs1;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -36,10 +37,11 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
             var transactionStub = GetTransactionFeeChargingContractTester(tester);
             var transactionResult = await transactionStub.SendForFun.SendAsync(new Empty());
+            var transactionSize = transactionResult.Transaction.Size();
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var afterBalance = await GetUserBalance(tester);
-            beforeBalance.ShouldBe(afterBalance + 1_0000_0000);
+            beforeBalance.ShouldBe(afterBalance + 1_0000_0000 + transactionSize * 1000);
         }
 
         [Fact(Skip = "Current failed transaction cannot charge fee")]

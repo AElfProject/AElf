@@ -66,15 +66,16 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             {
                 Option = address,
                 VotingItemId = registerItem.VotingItemId
-            })).TransactionResult;
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }));
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var transactionSize = transactionResult.Transaction.Size();
 
             var afterBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = BootMinerAddress
             })).Balance;
-            beforeBalance.ShouldBe(afterBalance + NewFeeAmount);
+            beforeBalance.ShouldBe(afterBalance + NewFeeAmount + transactionSize * 1000);
         }
 
         private async Task Profit_SetMethodFee_Test()
@@ -125,13 +126,14 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             });
 
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var transactionSize = transactionResult.Transaction.Size();
 
             var afterBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = testerAddress
             })).Balance;
-            beforeBalance.ShouldBe(afterBalance + NewFeeAmount); 
+            beforeBalance.ShouldBe(afterBalance + NewFeeAmount + transactionSize * 1000); 
         }
 
         private async Task Vote_SetMethodFee(string method, string symbol, long feeAmount)

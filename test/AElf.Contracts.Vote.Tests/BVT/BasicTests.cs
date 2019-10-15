@@ -66,7 +66,7 @@ namespace AElf.Contracts.Vote
                 var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 1);
                 var voter = SampleECKeyPairs.KeyPairs[31];
                 var voteResult = await Vote(voter, registerItem.VotingItemId, registerItem.Options[0], 100);
-                voteResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+                voteResult.Status.ShouldBe(TransactionResultStatus.Failed);
             }
 
             //vote option not exist
