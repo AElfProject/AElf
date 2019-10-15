@@ -11,7 +11,7 @@ namespace AElf.OS.Network.Application
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
         Task<bool> RemovePeerByPubkeyAsync(string peerPubKey, bool blacklistPeer = false);
-        List<PeerInfo> GetPeers();
+        List<PeerInfo> GetPeers(bool includeFailing = true);
         PeerInfo GetPeerByPubkey(string peerPubkey);
         Task<Response<BlockWithTransactions>> GetBlockByHashAsync(Hash hash, string peerPubkey = null);
         Task<Response<List<BlockWithTransactions>>> GetBlocksAsync(Hash previousBlock, int count, string peerPubkey = null);

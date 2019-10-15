@@ -171,6 +171,7 @@ namespace AElf.OS.Network.Grpc.Connection
             }
 
             currentPeer.IsConnected = true;
+            currentPeer.SyncState = SyncState.Syncing;
             
             Logger.LogWarning($"Connected to: {currentPeer.RemoteEndpoint} - {currentPeer.Info.Pubkey.Substring(0, 45)}" +
                               $" - in-token {currentPeer.InboundSessionId?.ToHex()}, out-token {currentPeer.OutboundSessionId?.ToHex()}" +
@@ -288,6 +289,7 @@ namespace AElf.OS.Network.Grpc.Connection
                               $" - best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}]");
 
             peer.IsConnected = true;
+            peer.SyncState = SyncState.Syncing;
             
             FireConnectionEvent(peer);
         }
