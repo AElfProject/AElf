@@ -1,12 +1,17 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Moq;
+using Org.BouncyCastle.Utilities.Net;
 using Shouldly;
 using Xunit;
 
@@ -17,13 +22,44 @@ namespace AElf.OS.Network
         private readonly INetworkService _networkService;
         private readonly IPeerPool _peerPool;
         private readonly KernelTestHelper _kernelTestHelper;
+        private IBlackListedPeerProvider _blackListProvider;
 
         public NetworkServiceTests()
         {
             _networkService = GetRequiredService<INetworkService>();
             _peerPool = GetRequiredService<IPeerPool>();
             _kernelTestHelper = GetRequiredService<KernelTestHelper>();
+            _blackListProvider = GetRequiredService<IBlackListedPeerProvider>();
         }
+
+        #region Blacklisting
+
+        [Fact]
+        public async Task RemovePeerByPubkeyAsync_BlackListTest()
+        {
+            var peerPubKey = "blacklistpeer";
+            var endpoint = IpEndPointHelper.Parse("127.0.0.1:5000");
+            var address = endpoint.Address;
+
+            await _networkService.RemovePeerByPubkeyAsync(peerPubKey);
+            _blackListProvider.IsIpBlackListed(address).ShouldBeFalse();
+            
+            await _networkService.RemovePeerByPubkeyAsync(peerPubKey, true);
+            _blackListProvider.IsIpBlackListed(address).ShouldBeTrue();
+        }
+        
+        [Fact]
+        public async Task AddPeerAsync_CannotAddBlacklistedPeer()
+        {
+            var endpoint = IpEndPointHelper.Parse("127.0.0.1:5000");
+            var address = endpoint.Address;
+
+            _blackListProvider.AddIpToBlackList(address);
+            
+            (await _networkService.AddPeerAsync(endpoint.ToString())).ShouldBeFalse();
+        }
+
+        #endregion Blacklisting
 
         #region GetBlocks
 
