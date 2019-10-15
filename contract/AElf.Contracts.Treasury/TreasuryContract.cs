@@ -34,7 +34,7 @@ namespace AElf.Contracts.Treasury
     /// 2. tx fees.
     /// 3. resource consumption of developer's contracts.
     /// </summary>
-    public class TreasuryContract : TreasuryContractContainer.TreasuryContractBase
+    public partial class TreasuryContract : TreasuryContractContainer.TreasuryContractBase
     {
         public override Empty InitialTreasuryContract(Empty input)
         {

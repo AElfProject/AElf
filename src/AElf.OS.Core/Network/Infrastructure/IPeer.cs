@@ -13,6 +13,7 @@ namespace AElf.OS.Network.Infrastructure
     public interface IPeer
     {
         bool IsReady { get; }
+        string ConnectionStatus { get; }
         bool IsInvalid { get; }
         Hash LastKnownLibHash { get; }
         long LastKnownLibHeight { get; }
@@ -28,6 +29,8 @@ namespace AElf.OS.Network.Infrastructure
         PeerConnectionInfo Info { get; }
 
         IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
+
+        Task CheckHealthAsync();
         
         void AddKnowBlock(BlockAnnouncement blockAnnouncement);
         void UpdateLastKnownLib(LibAnnouncement libAnnouncement);

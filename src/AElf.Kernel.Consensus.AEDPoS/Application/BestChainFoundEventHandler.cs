@@ -89,10 +89,10 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     async () =>
                     {
                         var currentChain = await _blockchainService.GetChainAsync();
-                        if (currentChain.LastIrreversibleBlockHeight < blockIndex.Height)
+                        if (currentChain.LastIrreversibleBlockHeight < blockIndex.BlockHeight)
                         {
-                            await _blockchainService.SetIrreversibleBlockAsync(currentChain, blockIndex.Height,
-                                blockIndex.Hash);
+                            await _blockchainService.SetIrreversibleBlockAsync(currentChain, blockIndex.BlockHeight,
+                                blockIndex.BlockHash);
                         }
                     }, KernelConstants.UpdateChainQueueName);
             }
