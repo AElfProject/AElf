@@ -10,6 +10,8 @@ using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -34,6 +36,8 @@ namespace AElf.Kernel.SmartContract.Application
 
         private readonly IReadOnlyDictionary<Address, long> _readOnlyContractInfoCache;
 
+        public ILogger<SmartContractExecutiveService> Logger { get; set; }
+ 
         public SmartContractExecutiveService(
             ISmartContractRunnerContainer smartContractRunnerContainer, IBlockchainStateManager blockchainStateManager,
             IDefaultContractZeroCodeProvider defaultContractZeroCodeProvider,
@@ -44,6 +48,8 @@ namespace AElf.Kernel.SmartContract.Application
             _defaultContractZeroCodeProvider = defaultContractZeroCodeProvider;
             _hostSmartContractBridgeContextService = hostSmartContractBridgeContextService;
             _readOnlyContractInfoCache = new ReadOnlyDictionary<Address, long>(_contractInfoCache);
+
+            Logger = NullLogger<SmartContractExecutiveService>.Instance;
         }
 
         private ConcurrentBag<IExecutive> GetPool(Address address)
@@ -54,6 +60,7 @@ namespace AElf.Kernel.SmartContract.Application
                 _executivePools[address] = pool;
             }
 
+//            Logger.LogInformation($"Executive: Address= {address}, Count = {pool?.Count ?? 0}");
             return pool;
         }
 
