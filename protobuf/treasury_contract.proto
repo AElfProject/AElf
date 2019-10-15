@@ -5,11 +5,13 @@ package treasury;
 import "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
+import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.Treasury";
 
 service TreasuryContract {
     option (aelf.csharp_state) = "AElf.Contracts.Treasury.TreasuryContractState";
+    option (aelf.base) = "acs1.proto";
 
     // Action
     rpc InitialTreasuryContract (google.protobuf.Empty) returns (google.protobuf.Empty) {

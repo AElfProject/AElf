@@ -10,7 +10,7 @@ namespace AElf.OS.Network.Application
     {
         Task<bool> AddPeerAsync(string address);
         Task<bool> RemovePeerAsync(string address);
-        Task<bool> RemovePeerByPubkeyAsync(string peerPubKey);
+        Task<bool> RemovePeerByPubkeyAsync(string peerPubKey, bool blacklistPeer = false);
         List<PeerInfo> GetPeers();
         PeerInfo GetPeerByPubkey(string peerPubkey);
         Task<Response<BlockWithTransactions>> GetBlockByHashAsync(Hash hash, string peerPubkey = null);
