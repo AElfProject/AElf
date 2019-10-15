@@ -1,3 +1,4 @@
+using Acs1;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
 
@@ -52,5 +53,7 @@ namespace AElf.Contracts.Election
         public Int64State TimeEachTerm { get; set; }
 
         public SingletonState<Hash> MinerElectionVotingItemId { get; set; }
+        
+        public MappedState<string, TokenAmounts> TransactionFees { get; set; }
     }
 }
