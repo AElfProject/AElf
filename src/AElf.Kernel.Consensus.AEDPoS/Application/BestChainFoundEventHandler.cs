@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
@@ -27,6 +28,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         private readonly ContractEventDiscoveryService<IrreversibleBlockHeightUnacceptable>
             _unacceptableLibHeightEventDiscoveryService;
 
+        private readonly ISmartContractAddressService _smartContractAddressService;
+
         private readonly ContractEventDiscoveryService<IrreversibleBlockFound>
             _irreversibleBlockFoundEventDiscoveryService;
 
@@ -36,12 +39,14 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             ITransactionInclusivenessProvider transactionInclusivenessProvider,
             ContractEventDiscoveryService<IrreversibleBlockFound> irreversibleBlockEventDiscoveryService,
             ContractEventDiscoveryService<IrreversibleBlockHeightUnacceptable>
-                unacceptableLibHeightEventDiscoveryService)
+                unacceptableLibHeightEventDiscoveryService,
+            ISmartContractAddressService smartContractAddressService)
         {
             _taskQueueManager = taskQueueManager;
             _blockchainService = blockchainService;
             _transactionInclusivenessProvider = transactionInclusivenessProvider;
             _unacceptableLibHeightEventDiscoveryService = unacceptableLibHeightEventDiscoveryService;
+            _smartContractAddressService = smartContractAddressService;
             _irreversibleBlockFoundEventDiscoveryService = irreversibleBlockEventDiscoveryService;
 
             Logger = NullLogger<BestChainFoundEventHandler>.Instance;
@@ -52,53 +57,65 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             Logger.LogDebug(
                 $"Handle best chain found for lib: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
 
-            var chain = await _blockchainService.GetChainAsync();
-            IBlockIndex blockIndex = null;
-            foreach (var blockHash in eventData.ExecutedBlocks.AsEnumerable().Reverse())
+            var consensusAddress =
+                _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
+            try
             {
-                var irreversibleBlockFound =
-                    (await _irreversibleBlockFoundEventDiscoveryService.GetEventMessagesAsync(blockHash))
+                var chain = await _blockchainService.GetChainAsync();
+                IBlockIndex blockIndex = null;
+
+                foreach (var blockHash in eventData.ExecutedBlocks.AsEnumerable().Reverse())
+                {
+                    var irreversibleBlockFound =
+                        (await _irreversibleBlockFoundEventDiscoveryService.GetEventMessagesAsync(blockHash, consensusAddress))
+                        .FirstOrDefault();
+
+                    if (irreversibleBlockFound == null) continue;
+
+                    if (chain.LastIrreversibleBlockHeight >= irreversibleBlockFound.IrreversibleBlockHeight) continue;
+
+                    var libBlockHash = await _blockchainService.GetBlockHashByHeightAsync(chain,
+                        irreversibleBlockFound.IrreversibleBlockHeight, blockHash);
+                    blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);
+                }
+
+                var distanceToLib =
+                    (await _unacceptableLibHeightEventDiscoveryService.GetEventMessagesAsync(eventData.BlockHash, consensusAddress))
                     .FirstOrDefault();
+                if (distanceToLib != null && distanceToLib.DistanceToIrreversibleBlockHeight > 0)
+                {
+                    Logger.LogDebug($"Distance to lib height: {distanceToLib.DistanceToIrreversibleBlockHeight}");
+                    _transactionInclusivenessProvider.IsTransactionPackable = false;
+                }
+                else
+                {
+                    _transactionInclusivenessProvider.IsTransactionPackable = true;
+                }
 
-                if (irreversibleBlockFound == null) continue;
-
-                if (chain.LastIrreversibleBlockHeight >= irreversibleBlockFound.IrreversibleBlockHeight) continue;
-
-                var libBlockHash = await _blockchainService.GetBlockHashByHeightAsync(chain,
-                    irreversibleBlockFound.IrreversibleBlockHeight, blockHash);
-                blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);
-            }
-
-            var distanceToLib =
-                (await _unacceptableLibHeightEventDiscoveryService.GetEventMessagesAsync(eventData.BlockHash))
-                .FirstOrDefault();
-
-            if (distanceToLib != null && distanceToLib.DistanceToIrreversibleBlockHeight > 0)
-            {
-                Logger.LogDebug($"Distance to lib height: {distanceToLib.DistanceToIrreversibleBlockHeight}");
-                _transactionInclusivenessProvider.IsTransactionPackable = false;
-            }
-            else
-            {
-                _transactionInclusivenessProvider.IsTransactionPackable = true;
-            }
-
-            if (blockIndex != null)
-            {
-                _taskQueueManager.Enqueue(
-                    async () =>
-                    {
-                        var currentChain = await _blockchainService.GetChainAsync();
-                        if (currentChain.LastIrreversibleBlockHeight < blockIndex.BlockHeight)
+                if (blockIndex != null)
+                {
+                    Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight}");
+                    _taskQueueManager.Enqueue(
+                        async () =>
                         {
-                            await _blockchainService.SetIrreversibleBlockAsync(currentChain, blockIndex.BlockHeight,
-                                blockIndex.BlockHash);
-                        }
-                    }, KernelConstants.UpdateChainQueueName);
-            }
+                            var currentChain = await _blockchainService.GetChainAsync();
+                            if (currentChain.LastIrreversibleBlockHeight < blockIndex.BlockHeight)
+                            {
+                                await _blockchainService.SetIrreversibleBlockAsync(currentChain, blockIndex.BlockHeight,
+                                    blockIndex.BlockHash);
+                            }
+                        }, KernelConstants.UpdateChainQueueName);
+                }
 
-            Logger.LogDebug(
-                $"Finish handle best chain found for lib : BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
+                Logger.LogDebug(
+                    $"Finish handle best chain found for lib : BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(
+                    "Failed to resolve IrreversibleBlockFound or IrreversibleBlockHeightUnacceptable event.", e);
+                throw;
+            }
         }
     }
 }
