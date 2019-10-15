@@ -178,7 +178,7 @@ namespace AElf.OS.BlockSync.Worker
                 }
 
             }
-            else if (jobInfo.CurrentTargetBlockHeight <= chain.BestChainHeight + 8)
+            else if (jobInfo.CurrentTargetBlockHeight <= chain.LongestChainHeight + 8)
             {
                 downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
                 {
