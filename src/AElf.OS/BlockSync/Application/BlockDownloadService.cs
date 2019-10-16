@@ -83,7 +83,6 @@ namespace AElf.OS.BlockSync.Application
                             exceptedPeers);
 
                         downloadResult = await DownloadBlocksAsync(peerPubkey, downloadBlockDto);
-                        ;
 
                         if (downloadResult.Success || retryTimes <= 0)
                             break;
