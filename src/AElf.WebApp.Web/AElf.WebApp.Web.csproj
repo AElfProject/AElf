@@ -16,7 +16,7 @@
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="3.2.1" />
         <PackageReference Include="Microsoft.Extensions.Primitives" Version="3.0.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0-rc4" />
-        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="0.21.0" />
+        <PackageReference Include="Volo.Abp.AspNetCore.Mvc" Version="0.22.0" />
     </ItemGroup>
 
 </Project>

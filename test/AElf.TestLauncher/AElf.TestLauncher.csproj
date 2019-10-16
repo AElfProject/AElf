@@ -13,8 +13,8 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Serilog.Extensions.Logging.File" Version="2.0.0-dev-00032" />
-        <PackageReference Include="Volo.Abp.Autofac" Version="0.21.0" />
-        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
+        <PackageReference Include="Volo.Abp.Autofac" Version="0.22.0" />
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
     <ItemGroup>
         <Content Include="appsettings.json">
