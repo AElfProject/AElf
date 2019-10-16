@@ -167,16 +167,16 @@ namespace AElf.Kernel.Blockchain.Application
                 await _fullBlockchainService.GetReversedBlockIndexes(_kernelTestHelper.BestBranchBlockList[5].GetHash(),
                     3);
             result.Count.ShouldBe(3);
-            result[0].Hash.ShouldBe(_kernelTestHelper.BestBranchBlockList[4].GetHash());
-            result[1].Hash.ShouldBe(_kernelTestHelper.BestBranchBlockList[3].GetHash());
-            result[2].Hash.ShouldBe(_kernelTestHelper.BestBranchBlockList[2].GetHash());
+            result[0].BlockHash.ShouldBe(_kernelTestHelper.BestBranchBlockList[4].GetHash());
+            result[1].BlockHash.ShouldBe(_kernelTestHelper.BestBranchBlockList[3].GetHash());
+            result[2].BlockHash.ShouldBe(_kernelTestHelper.BestBranchBlockList[2].GetHash());
 
             result = await _fullBlockchainService.GetReversedBlockIndexes(
                 _kernelTestHelper.BestBranchBlockList[3].GetHash(), 4);
             result.Count.ShouldBe(3);
-            result[0].Hash.ShouldBe(_kernelTestHelper.BestBranchBlockList[2].GetHash());
-            result[1].Hash.ShouldBe(_kernelTestHelper.BestBranchBlockList[1].GetHash());
-            result[2].Hash.ShouldBe(chain.GenesisBlockHash);
+            result[0].BlockHash.ShouldBe(_kernelTestHelper.BestBranchBlockList[2].GetHash());
+            result[1].BlockHash.ShouldBe(_kernelTestHelper.BestBranchBlockList[1].GetHash());
+            result[2].BlockHash.ShouldBe(chain.GenesisBlockHash);
         }
 
         [Fact]

@@ -45,6 +45,7 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             return _constrainedTransactionValidationProviders.All(provider =>
             {
+//                Logger.LogTrace($"Passing {provider.GetType().Name}");
                 return provider.ValidateTransaction(transaction, blockHash);
             });
         }
@@ -53,6 +54,7 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             foreach (var provider in _constrainedTransactionValidationProviders)
             {
+//                Logger.LogTrace($"Clearing {provider.GetType().Name}");
                 provider.ClearBlockHash(blockHash);
             }
         }
