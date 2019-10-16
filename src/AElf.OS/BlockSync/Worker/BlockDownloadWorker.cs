@@ -64,7 +64,8 @@ namespace AElf.OS.BlockSync.Worker
                         continue;
                     }
 
-                    Logger.LogDebug($"Execute download job: CurrentTargetBlockHeight: {jobInfo.CurrentTargetBlockHeight}, TargetBlockHeight:{jobInfo.TargetBlockHeight}, SuggestedPeerPubkey:{jobInfo.SuggestedPeerPubkey}.");
+                    Logger.LogDebug(
+                        $"Execute download job: CurrentTargetBlockHeight: {jobInfo.CurrentTargetBlockHeight}, TargetBlockHeight:{jobInfo.TargetBlockHeight}, SuggestedPeerPubkey:{jobInfo.SuggestedPeerPubkey}.");
 
                     var downloadResult = await DownloadBlocksAsync(chain, jobInfo);
 

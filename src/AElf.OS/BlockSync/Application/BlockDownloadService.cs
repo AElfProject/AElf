@@ -114,7 +114,10 @@ namespace AElf.OS.BlockSync.Application
 
         private async Task<bool?> CheckIrreversibleBlockHashAsync(Hash blockHash, long blockHeight)
         {
-            var peers = _networkService.GetPeers().Where(p => p.LastKnownLibHeight >= blockHeight).ToList();
+            var peers = _networkService.GetPeers(false)
+                .Where(p => p.SyncState == SyncState.Finished && 
+                            p.LastKnownLibHeight >= blockHeight)
+                .ToList();
             bool? checkResult = null;
 
             // Make sure we have enough peer to check the block
@@ -169,8 +172,9 @@ namespace AElf.OS.BlockSync.Application
         private string GetRandomPeerPubkey(string defaultPeerPubkey, long peerLibHeight, List<string> exceptedPeers)
         {
             var random = new Random();
-            var peers = _networkService.GetPeers()
-                .Where(p => p.LastKnownLibHeight >= peerLibHeight &&
+            var peers = _networkService.GetPeers(false)
+                .Where(p => p.SyncState == SyncState.Finished && 
+                            p.LastKnownLibHeight >= peerLibHeight &&
                             (exceptedPeers.IsNullOrEmpty() || !exceptedPeers.Contains(p.Pubkey)))
                 .ToList();
 
