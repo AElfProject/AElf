@@ -72,6 +72,8 @@ namespace AElf.WebApp.Application.Chain
                 var block = await _blockchainService.GetBlockAtHeightAsync(transactionResult.BlockNumber);
                 output.BlockHash = block.GetHash().ToHex();
                 output.ReturnValue = transactionResult.ReturnValue.ToHex();
+                var bloom = transactionResult.Bloom;
+                output.Bloom = bloom.Length == 0 ? new byte[256].ToHex() : bloom.ToByteArray().ToHex();
             }
 
             if (transactionResult.Status == TransactionResultStatus.Failed)

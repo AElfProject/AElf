@@ -93,6 +93,7 @@ namespace AElf.WebApp.Application.Chain
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
 
+            var bloom = block.Header.Bloom;
             var blockDto = new BlockDto
             {
                 BlockHash = block.GetHash().ToHex(),
@@ -105,7 +106,7 @@ namespace AElf.WebApp.Application.Chain
                     Height = block.Header.Height,
                     Time = block.Header.Time.ToDateTime(),
                     ChainId = ChainHelper.ConvertChainIdToBase58(block.Header.ChainId),
-                    Bloom = block.Header.Bloom.ToByteArray().ToHex(),
+                    Bloom = bloom.Length == 0 ? new byte[256].ToHex() : bloom.ToByteArray().ToHex(),
                     SignerPubkey = block.Header.SignerPubkey.ToByteArray().ToHex()
                 },
                 Body = new BlockBodyDto()
@@ -147,6 +148,7 @@ namespace AElf.WebApp.Application.Chain
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
 
+            var bloom = blockInfo.Header.Bloom;
             var blockDto = new BlockDto
             {
                 BlockHash = blockInfo.GetHash().ToHex(),
@@ -159,7 +161,7 @@ namespace AElf.WebApp.Application.Chain
                     Height = blockInfo.Header.Height,
                     Time = blockInfo.Header.Time.ToDateTime(),
                     ChainId = ChainHelper.ConvertChainIdToBase58(blockInfo.Header.ChainId),
-                    Bloom = blockInfo.Header.Bloom.ToByteArray().ToHex(),
+                    Bloom = bloom.Length == 0 ? new byte[256].ToHex() : bloom.ToByteArray().ToHex(),
                     SignerPubkey = blockInfo.Header.SignerPubkey.ToByteArray().ToHex()
                 },
                 Body = new BlockBodyDto()

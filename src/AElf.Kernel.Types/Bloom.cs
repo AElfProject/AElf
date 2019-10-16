@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Google.Protobuf;
 
 namespace AElf.Kernel
@@ -27,11 +28,16 @@ namespace AElf.Kernel
 
         public Bloom()
         {
-            _data = new byte[Length];
+            _data = new byte[0];
         }
 
         public Bloom(byte[] data)
         {
+            if (data.Length == 0)
+            {
+                _data = new byte[0];
+                return;
+            }
             if (data.Length != Length)
             {
                 throw new InvalidOperationException($"Bloom data has to be {Length} bytes long.");
@@ -62,6 +68,7 @@ namespace AElf.Kernel
                 throw new InvalidOperationException("Invalid input.");
             }
 
+            if (_data.Length == 0) _data = new byte[Length];
             for (uint i = 0; i < BucketPerVal * 2; i += 2)
             {
                 var index = ((hash256[i] << 8) | hash256[i + 1]) & 2047;
@@ -76,6 +83,8 @@ namespace AElf.Kernel
         /// <param name="blooms">Other blooms</param>
         public void Combine(IEnumerable<Bloom> blooms)
         {
+            if (!blooms.Any(b => b.Data.Length > 0)) return;
+            if (_data.Length == 0) _data = new byte[Length];
             foreach (var bloom in blooms)
             {
                 for (var i = 0; i < Length; i++)
@@ -92,6 +101,7 @@ namespace AElf.Kernel
         /// <returns></returns>
         public bool IsIn(Bloom bloom)
         {
+            if (bloom.Data.Length == 0 || _data.Length == 0) return false;
             for (var i = 0; i < Length; i++)
             {
                 var curByte = _data[i];
