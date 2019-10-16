@@ -28,6 +28,9 @@ namespace AElf.OS.BlockSync.Application
 
         public ILogger<BlockDownloadService> Logger { get; set; }
 
+        /// <summary>
+        /// Make sure we have enough peers to check the block hash
+        /// </summary>
         private const int PeerCheckMinimumCount = 15;
 
         public BlockDownloadService(INetworkService networkService,
@@ -109,6 +112,16 @@ namespace AElf.OS.BlockSync.Application
             return downloadResult;
         }
 
+        /// <summary>
+        /// Ask all of peers to check the irreversible block hash is correct.
+        /// </summary>
+        /// <param name="blockHash"></param>
+        /// <param name="blockHeight"></param>
+        /// <returns>
+        ///  Null: No enough results to known if it's correct
+        ///  True: More than 2/3 peers say is correct
+        /// False: More than 2/3 peers say is incorrect
+        /// </returns>
         private async Task<bool?> CheckIrreversibleBlockHashAsync(Hash blockHash, long blockHeight)
         {
             var peers = _networkService.GetPeers(false)
@@ -117,7 +130,6 @@ namespace AElf.OS.BlockSync.Application
                 .ToList();
             bool? checkResult = null;
 
-            // Make sure we have enough peer to check the block
             if (peers.Count > PeerCheckMinimumCount)
             {
                 var correctCount = 0;
@@ -157,7 +169,6 @@ namespace AElf.OS.BlockSync.Application
             return checkResult;
         }
 
-
         private async Task CheckBadPeerAsync(string peerPubkey, Hash downloadPreviousBlockHash,
             long downloadPreviousBlockHeight)
         {
@@ -173,7 +184,7 @@ namespace AElf.OS.BlockSync.Application
                     wrongPeerPubkey);
             }
         }
-
+        
         private bool UseSuggestedPeer(DownloadBlockDto downloadBlockDto)
         {
             if (downloadBlockDto.UseSuggestedPeer)

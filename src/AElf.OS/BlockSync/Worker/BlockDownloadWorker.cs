@@ -179,6 +179,7 @@ namespace AElf.OS.BlockSync.Worker
                 }
 
             }
+            // If last target block didn't become the longest chain, stop this job.
             else if (jobInfo.CurrentTargetBlockHeight <= chain.LongestChainHeight + 8)
             {
                 downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
