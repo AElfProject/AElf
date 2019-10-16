@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
@@ -169,7 +170,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     AddToCollection(_invalidatedByBlock, receipt);
                     break;
                 case RefBlockStatus.RefBlockValid:
-                    _validatedTransactions.Enqueue(receipt);
+                    if (!_validatedTransactions.Contains(receipt))
+                    {
+                        _validatedTransactions.Enqueue(receipt);
+                        using (var streamWriter = new StreamWriter("/Users/aelf/configinfo3/TransactionsReceived3.txt", true))
+                        {
+                            streamWriter.WriteLine($"TxId: {receipt.TransactionId}; Status: {receipt.RefBlockStatus}");
+                        }
+                    }
                     break;
             }
         }
