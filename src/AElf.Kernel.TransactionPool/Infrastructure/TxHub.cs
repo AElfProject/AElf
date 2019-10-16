@@ -26,7 +26,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionValidationService _transactionValidationService;
 
-        private ConcurrentQueue<TransactionReceipt> _helpQueue =
+        private ConcurrentQueue<TransactionReceipt> _tempTxQueue =
             new ConcurrentQueue<TransactionReceipt>();
 
         private readonly ConcurrentQueue<TransactionReceipt> _validatedTransactions =
@@ -155,13 +155,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 blockIndex => GetPrefixByHash(blockIndex.Hash));
         }
 
-        private void ResetCurrentCollections()
-        {
-            _expiredByExpiryBlock = new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
-            _invalidatedByBlock = new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
-            _futureByBlock = new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionReceipt>>();
-        }
-
         private void AddToRespectiveCurrentCollection(TransactionReceipt receipt)
         {
             switch (receipt.RefBlockStatus)
@@ -176,17 +169,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     AddToCollection(_invalidatedByBlock, receipt);
                     break;
                 case RefBlockStatus.RefBlockValid:
-                    if (!_validatedTransactions.Contains(receipt))
-                    {
-                        _validatedTransactions.Enqueue(receipt);
-                    }
+                    _validatedTransactions.Enqueue(receipt);
                     break;
             }
         }
         
         private void UpdateValidatedTransactions()
         {
-            _helpQueue = new ConcurrentQueue<TransactionReceipt>();
+            _tempTxQueue = new ConcurrentQueue<TransactionReceipt>();
             while (_validatedTransactions.TryDequeue(out var receipt))
             {
                 if (receipt.RefBlockStatus != RefBlockStatus.RefBlockValid)
@@ -194,10 +184,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     continue;
                 }
                 
-                _helpQueue.Enqueue(receipt);
+                _tempTxQueue.Enqueue(receipt);
             }
 
-            while (_helpQueue.TryDequeue(out var receipt))
+            while (_tempTxQueue.TryDequeue(out var receipt))
             {
                 _validatedTransactions.Enqueue(receipt);
             }
@@ -213,7 +203,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
         }
 
-        private void CleanTransactions(IEnumerable<Hash> transactionIds)
+        private void CleanValidatedTransactions(IEnumerable<Hash> transactionIds)
         {
             while (_validatedTransactions.TryDequeue(out var receipt))
             {
@@ -222,15 +212,21 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     continue;
                 }
 
-                _helpQueue.Enqueue(receipt);
+                _tempTxQueue.Enqueue(receipt);
             }
 
-            while (_helpQueue.TryDequeue(out var receipt))
+            while (_tempTxQueue.TryDequeue(out var receipt))
             {
                 _validatedTransactions.Enqueue(receipt);
             }
         }
 
+        private int GetPoolAllTransactionCount()
+        {
+            return _validatedTransactions.Count + _expiredByExpiryBlock.Count +
+                _futureByBlock.Count + _invalidatedByBlock.Count;
+        }
+        
         #endregion
 
         #region Event Handler Methods
@@ -244,15 +240,13 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     TransactionId = transaction.GetHash(),
                     Transaction = transaction
                 };
-                if (_validatedTransactions.Any(receiptEx => receiptEx.TransactionId == receipt.TransactionId)
-                || _expiredByExpiryBlock.Values.Any(x => x.Values.Any(y => y.TransactionId == receipt.TransactionId)))
+                if (_validatedTransactions.Any(receiptEx => receiptEx.TransactionId == receipt.TransactionId))
                 {
                     //Logger.LogWarning($"Transaction already exists in TxStore");
                     continue;
                 }
 
-                var transactionCount = _validatedTransactions.Count + _expiredByExpiryBlock.Count +
-                                        _futureByBlock.Count + _invalidatedByBlock.Count;
+                var transactionCount = GetPoolAllTransactionCount();
                 if (transactionCount > _transactionOptions.PoolLimit)
                 {
                     //Logger.LogWarning($"TxStore is full, ignore tx {receipt.TransactionId}");
@@ -295,7 +289,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
-            CleanTransactions(block.Body.TransactionIds.ToList());
+            CleanValidatedTransactions(block.Body.TransactionIds.ToList());
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
@@ -303,9 +297,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             Logger.LogDebug(
                 $"Handle best chain found: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
 
-            var allTxsCount = _validatedTransactions.Count + _expiredByExpiryBlock.Count +
-                                   _futureByBlock.Count + _invalidatedByBlock.Count;
-            var minimumHeight = allTxsCount == 0
+            //var allTxsCount = GetPoolAllTransactionCount();
+            var minimumHeight = _validatedTransactions.Count == 0
                 ? 0
                 : _validatedTransactions.Min(x => x.Transaction.RefBlockNumber);
             var prefixes = await GetPrefixesByHeightAsync(minimumHeight, eventData.BlockHash, eventData.BlockHeight);
@@ -334,7 +327,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
         {
-            CleanTransactions(eventData.Transactions);
+            CleanValidatedTransactions(eventData.Transactions);
 
             await Task.CompletedTask;
         }
@@ -343,8 +336,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public Task<int> GetAllTransactionCountAsync()
         {
-            var allTxsCount = _validatedTransactions.Count + _expiredByExpiryBlock.Count +
-                              _futureByBlock.Count + _invalidatedByBlock.Count;
+            var allTxsCount = GetPoolAllTransactionCount();
             return Task.FromResult(allTxsCount);
         }
 
