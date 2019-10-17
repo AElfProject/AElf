@@ -18,8 +18,8 @@ namespace AElf.Kernel.TransactionPool.Application
 
             blockIndexes.Add(new BlockIndex
             {
-                Hash = bestChainHash, 
-                Height = bestChainHeight
+                BlockHash = bestChainHash, 
+                BlockHeight = bestChainHeight
             });
 
             return blockIndexes;
