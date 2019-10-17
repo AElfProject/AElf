@@ -68,9 +68,10 @@ message ExecutionReturnSet {
     Hash transaction_id = 1;
     TransactionResultStatus status = 2;
     map<string, bytes> state_changes = 3;
-    map<string, bool> StateAccesses = 4;
+    map<string, bool> state_accesses = 4;
     bytes bloom = 5;
     bytes return_value = 6;
+    map<string, bool> state_deletes = 7;
 }
 
 message BlockHeaderList {
@@ -114,6 +115,7 @@ message BlockStateSet {
     Hash previous_hash = 2;
     int64 block_height = 3;
     map<string, bytes> changes = 4;
+    repeated string deletes = 5;
 }
 
 enum ChainStateMergingStatus {
@@ -163,9 +165,15 @@ message ChainBlockIndex {
     Hash block_hash = 1;
 }
 
+message BlockIndex{
+    Hash block_hash = 1;
+    int64 block_height = 2;
+}
+
 message TransactionBlockIndex {
     Hash block_hash = 1;
     int64 block_height = 2;
+    repeated BlockIndex previous_execution_block_index_list = 3;
 }
 
 message ChainContractInfo{

@@ -142,8 +142,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private async Task<Dictionary<long, ByteString>> GetPrefixesByHeightAsync(long firstHeight, Hash bestChainHash,
             long bestChainHeight)
         {
-            var blockIndexes = await _blockchainService.GetBlockIndexesAsync(firstHeight, bestChainHash, bestChainHeight);
-            return blockIndexes.ToDictionary(blockIndex => blockIndex.Height, blockIndex => GetPrefixByHash(blockIndex.Hash));
+            var blockIndexes =
+                await _blockchainService.GetBlockIndexesAsync(firstHeight, bestChainHash, bestChainHeight);
+
+            return blockIndexes.ToDictionary(blockIndex => blockIndex.BlockHeight,
+                blockIndex => GetPrefixByHash(blockIndex.BlockHash));
         }
 
         private void ResetCurrentCollections()
