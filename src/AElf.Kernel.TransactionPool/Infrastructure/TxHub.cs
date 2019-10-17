@@ -27,9 +27,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionValidationService _transactionValidationService;
 
-        private ConcurrentQueue<TransactionReceipt> _tempTxQueue =
-            new ConcurrentQueue<TransactionReceipt>();
-
         private readonly ConcurrentQueue<TransactionReceipt> _validatedTransactions =
             new ConcurrentQueue<TransactionReceipt>();
 
@@ -80,9 +77,28 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 return output;
             }
 
-            output.Transactions.AddRange(_validatedTransactions
-                .Where((x, i) => transactionCount <= 0 || i < transactionCount).Select(x => x.Transaction));
+//            output.Transactions.AddRange(_validatedTransactions
+//                .Where((x, i) => transactionCount <= 0 || i < transactionCount).Select(x => x.Transaction));
 
+            if (transactionCount > 0)
+            {
+                var partialValidated = _validatedTransactions.Take(transactionCount).Select(x => x.Transaction);
+                output.Transactions.AddRange(partialValidated.ToList());
+            }
+            else
+            {
+                var allValidated = _validatedTransactions.Take(_validatedTransactions.Count).Select(x => x.Transaction);
+                output.Transactions.AddRange(allValidated);
+            }
+            
+            using (var streamWriter =
+                new StreamWriter($"{Directory.GetCurrentDirectory()}/Logs/GetExecutableTransactionSet.txt", true))
+            {
+                foreach (var item in output.Transactions)
+                {
+                    streamWriter.WriteLine($"TxId: {item.GetHash()}; Output txs' count: {output.Transactions.Count}\n'");
+                }
+            }
             return output;
         }
 
@@ -170,13 +186,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     AddToCollection(_invalidatedByBlock, receipt);
                     break;
                 case RefBlockStatus.RefBlockValid:
-                    if (!_validatedTransactions.Contains(receipt))
+                    _validatedTransactions.Enqueue(receipt);
+                    using (var streamWriter =
+                        new StreamWriter($"{Directory.GetCurrentDirectory()}/Logs/TxsReceived.txt", true))
                     {
-                        _validatedTransactions.Enqueue(receipt);
-                        using (var streamWriter = new StreamWriter("/Users/aelf/configinfo3/TransactionsReceived3.txt", true))
-                        {
-                            streamWriter.WriteLine($"TxId: {receipt.TransactionId}; Status: {receipt.RefBlockStatus}");
-                        }
+                        streamWriter.WriteLine($"TxId: {receipt.TransactionId}; Status: {receipt.RefBlockStatus}");
                     }
                     break;
             }
@@ -184,7 +198,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         
         private void UpdateValidatedTransactions()
         {
-            _tempTxQueue = new ConcurrentQueue<TransactionReceipt>();
+            var tempTxQueue = new ConcurrentQueue<TransactionReceipt>();
             while (_validatedTransactions.TryDequeue(out var receipt))
             {
                 if (receipt.RefBlockStatus != RefBlockStatus.RefBlockValid)
@@ -192,10 +206,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                     continue;
                 }
                 
-                _tempTxQueue.Enqueue(receipt);
+                tempTxQueue.Enqueue(receipt);
             }
 
-            while (_tempTxQueue.TryDequeue(out var receipt))
+            while (tempTxQueue.TryDequeue(out var receipt))
             {
                 _validatedTransactions.Enqueue(receipt);
             }
@@ -211,22 +225,26 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
         }
 
-        private void CleanValidatedTransactions(IEnumerable<Hash> transactionIds)
+        private void CleanValidatedTransactions(List<Hash> transactionIds)
         {
+            var tempTxQueue = new ConcurrentQueue<TransactionReceipt>();
+            Logger.LogInformation($"Before clean, _validatedTransactions count:{_validatedTransactions.Count}");
             while (_validatedTransactions.TryDequeue(out var receipt))
             {
-                if (transactionIds != null && transactionIds.Contains(receipt.TransactionId))
+                if (transactionIds.Any(x => x == receipt.TransactionId))
                 {
                     continue;
                 }
 
-                _tempTxQueue.Enqueue(receipt);
+                tempTxQueue.Enqueue(receipt);
             }
 
-            while (_tempTxQueue.TryDequeue(out var receipt))
+            while (tempTxQueue.TryDequeue(out var receipt))
             {
                 _validatedTransactions.Enqueue(receipt);
             }
+            
+            Logger.LogInformation($"After clean, _validatedTransactions count:{_validatedTransactions.Count}");
         }
 
         private int GetPoolAllTransactionCount()
@@ -297,6 +315,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
+            Logger.LogInformation($"BlockAccepted transactions need to be clean in Validated :{block.Body.TransactionIds.Count}");
             CleanValidatedTransactions(block.Body.TransactionIds.ToList());
         }
 
