@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Domain;
 using AElf.Kernel.Blockchain.Events;
-using AElf.Types;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Application;
+using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -74,8 +74,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash != _bestChainHash)
             {
-                Logger.LogWarning(
-                    $"Attempting to retrieve executable transactions while best chain records don't match.");
+                Logger.LogWarning($"Retrieve executable transactions while best chain records don't match.");
                 return output;
             }
 
@@ -143,11 +142,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private async Task<Dictionary<long, ByteString>> GetPrefixesByHeightAsync(long firstHeight, Hash bestChainHash,
             long bestChainHeight)
         {
-            var blockIndexes =
-                await _blockchainService.GetBlockIndexesAsync(firstHeight, bestChainHash, bestChainHeight);
-
-            return blockIndexes.ToDictionary(blockIndex => blockIndex.Height,
-                blockIndex => GetPrefixByHash(blockIndex.Hash));
+            var blockIndexes = await _blockchainService.GetBlockIndexesAsync(firstHeight, bestChainHash, bestChainHeight);
+            return blockIndexes.ToDictionary(blockIndex => blockIndex.Height, blockIndex => GetPrefixByHash(blockIndex.Hash));
         }
 
         private void ResetCurrentCollections()
@@ -279,14 +275,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             CleanTransactions(_expiredByExpiryBlock, eventData.BlockHeight);
             CleanTransactions(_invalidatedByBlock, eventData.BlockHeight);
-
             await Task.CompletedTask;
         }
 
         public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
         {
             CleanTransactions(eventData.Transactions);
-
             await Task.CompletedTask;
         }
 
