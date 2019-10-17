@@ -92,6 +92,10 @@ namespace AElf.WebApp.Application.Chain
                 output.Transaction.Params = JsonFormatter.ToDiagnosticString(
                     methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
             }
+
+            output.TransactionFee =
+                JsonConvert.DeserializeObject<TransactionFeeDto>(transactionResult.TransactionFee.ToString());
+
             return output;
         }
 
@@ -161,6 +165,10 @@ namespace AElf.WebApp.Application.Chain
                         methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
 
                     transactionResultDto.Status = transactionResult.Status.ToString();
+
+                    transactionResultDto.TransactionFee =
+                        JsonConvert.DeserializeObject<TransactionFeeDto>(transactionResult.TransactionFee.ToString());
+
                     output.Add(transactionResultDto);
                 }
             }
