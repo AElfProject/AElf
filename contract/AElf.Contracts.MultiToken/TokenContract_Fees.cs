@@ -16,10 +16,12 @@ namespace AElf.Contracts.MultiToken
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override Empty ChargeTransactionFees(ChargeTransactionFeesInput input)
+        public override TransactionFee ChargeTransactionFees(ChargeTransactionFeesInput input)
         {
             Assert(input.MethodName != null && input.ContractAddress != null && input.TransactionSize > 0,
                 "Invalid charge transaction fees input.");
+
+            var result = new TransactionFee();
 
             var fee = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
                 new StringValue {Value = input.MethodName});
@@ -39,6 +41,7 @@ namespace AElf.Contracts.MultiToken
                 bill.TokenToAmount.Add(symbol, amount);
                 // Charge base fee.
                 State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
+                result.Value.Add(symbol, amount);
             }
 
             var balanceAfterChargingBaseFee = State.Balances[fromAddress][Context.Variables.NativeSymbol];
@@ -75,7 +78,17 @@ namespace AElf.Contracts.MultiToken
                 input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice),
                 $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice)}");
 
-            return new Empty();
+            if (result.Value.ContainsKey(Context.Variables.NativeSymbol))
+            {
+                result.Value[Context.Variables.NativeSymbol] =
+                    result.Value[Context.Variables.NativeSymbol].Add(txSizeFeeAmount);
+            }
+            else
+            {
+                result.Value.Add(Context.Variables.NativeSymbol, txSizeFeeAmount);
+            }
+
+            return result;
         }
 
         public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
