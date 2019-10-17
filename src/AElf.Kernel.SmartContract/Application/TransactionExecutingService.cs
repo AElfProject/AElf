@@ -83,8 +83,7 @@ namespace AElf.Kernel.SmartContract.Application
                 }
                 else
                 {
-                    groupStateCache.Update(trace.GetFlattenedWrites()
-                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                    groupStateCache.Update(trace.GetStateSets());
                 }
 
                 if (trace.Error != string.Empty)
@@ -224,10 +223,9 @@ namespace AElf.Kernel.SmartContract.Application
             IChainContext internalChainContext, CancellationToken cancellationToken)
         {
             var trace = txContext.Trace;
-            if (txContext.Trace.IsSuccessful() && txContext.Trace.InlineTransactions.Count > 0)
+            if (txContext.Trace.IsSuccessful())
             {
-                internalStateCache.Update(txContext.Trace.GetFlattenedWrites()
-                    .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                internalStateCache.Update(txContext.Trace.GetStateSets());
                 foreach (var inlineTx in txContext.Trace.InlineTransactions)
                 {
                     var inlineTrace = await ExecuteOneAsync(depth + 1, internalChainContext, inlineTx,
@@ -240,8 +238,7 @@ namespace AElf.Kernel.SmartContract.Application
                         break;
                     }
 
-                    internalStateCache.Update(inlineTrace.GetFlattenedWrites()
-                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                    internalStateCache.Update(inlineTrace.GetStateSets());
                 }
             }
         }
@@ -277,11 +274,10 @@ namespace AElf.Kernel.SmartContract.Application
                         return false;
                     }
 
-                    var changes = preTrace.GetFlattenedWrites()
-                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())).ToList();
-                    internalStateCache.Update(changes);
+                    var stateSets = preTrace.GetStateSets().ToList();
+                    internalStateCache.Update(stateSets);
                     var parentStateCache = txContext.StateCache as TieredStateCache;
-                    parentStateCache?.Update(changes);
+                    parentStateCache?.Update(stateSets);
                 }
             }
 
@@ -313,8 +309,7 @@ namespace AElf.Kernel.SmartContract.Application
                         return false;
                     }
 
-                    internalStateCache.Update(postTrace.GetFlattenedWrites()
-                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                    internalStateCache.Update(postTrace.GetStateSets());
                 }
             }
 
@@ -380,17 +375,28 @@ namespace AElf.Kernel.SmartContract.Application
 
             if (trace.IsSuccessful())
             {
-                foreach (var s in trace.GetFlattenedWrites())
+                var transactionExecutingStateSets = trace.GetStateSets();
+                foreach (var transactionExecutingStateSet in transactionExecutingStateSets)
                 {
-                    returnSet.StateChanges[s.Key] = s.Value;
+                    foreach (var write in transactionExecutingStateSet.Writes)
+                    {
+                        returnSet.StateChanges[write.Key] = write.Value;
+                        returnSet.StateDeletes.Remove(write.Key);
+                    }
+                    foreach (var delete in transactionExecutingStateSet.Deletes)
+                    {
+                        returnSet.StateDeletes[delete.Key] = delete.Value;
+                        returnSet.StateChanges.Remove(delete.Key);
+                    }
                 }
 
                 returnSet.ReturnValue = trace.ReturnValue;
             }
 
-            foreach (var s in trace.GetFlattenedReads())
+            var reads = trace.GetFlattenedReads();
+            foreach (var read in reads)
             {
-                returnSet.StateAccesses[s.Key] = s.Value;
+                returnSet.StateAccesses[read.Key] = read.Value;
             }
 
             return returnSet;
