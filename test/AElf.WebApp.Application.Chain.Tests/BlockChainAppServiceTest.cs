@@ -393,7 +393,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
 
-            var existTransaction = await _txHub.GetTransactionReceiptAsync(transaction.GetHash());
+            var existTransaction = await _txHub.GetQueuedTransactionAsync(transaction.GetHash());
             existTransaction.ShouldBeNull();
         }
 

@@ -84,7 +84,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             return output;
         }
 
-        public Task<QueuedTransaction> GetTransactionReceiptAsync(Hash transactionId)
+        public Task<QueuedTransaction> GetQueuedTransactionAsync(Hash transactionId)
         {
             _allTransactions.TryGetValue(transactionId, out var receipt);
             return Task.FromResult(receipt);

@@ -228,8 +228,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private void TransactionShouldInPool(Transaction transaction)
         {
-            var existTransactionReceipt = _txHub.GetTransactionReceiptAsync(transaction.GetHash()).Result;
-            existTransactionReceipt.Transaction.ShouldBe(transaction);
+            var existQueuedTransaction = _txHub.GetQueuedTransactionAsync(transaction.GetHash()).Result;
+            existQueuedTransaction.Transaction.ShouldBe(transaction);
         }
 
         private void TransactionPoolSizeShouldBe(int size)
