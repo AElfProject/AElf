@@ -60,7 +60,7 @@ namespace AElf.Kernel.SmartContract.Application
                 _executivePools[address] = pool;
             }
 
-            Logger.LogInformation($"Executive: Address= {address}, Count = {pool?.Count ?? 0}");
+            //Logger.LogInformation($"Executive: Address= {address}, Count = {pool?.Count ?? 0}");
             return pool;
         }
 
