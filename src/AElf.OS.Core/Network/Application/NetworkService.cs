@@ -88,9 +88,9 @@ namespace AElf.OS.Network.Application
             return true;
         }
 
-        public List<PeerInfo> GetPeers()
+        public List<PeerInfo> GetPeers(bool includeFailing = true)
         {   
-            return _peerPool.GetPeers(true).Select(PeerInfoHelper.FromNetworkPeer).ToList();
+            return _peerPool.GetPeers(includeFailing).Select(PeerInfoHelper.FromNetworkPeer).ToList();
         }
 
         public PeerInfo GetPeerByPubkey(string peerPubkey)

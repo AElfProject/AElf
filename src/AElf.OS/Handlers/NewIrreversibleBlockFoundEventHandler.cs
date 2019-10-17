@@ -9,16 +9,23 @@ namespace AElf.OS.Handlers
     public class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
         ITransientDependency
     {
-        private readonly INetworkService _NetworkService;
+        private readonly INetworkService _networkService;
+        private readonly ISyncStateService _syncStateService;
 
-        public NewIrreversibleBlockFoundEventHandler(INetworkService networkService)
+        public NewIrreversibleBlockFoundEventHandler(INetworkService networkService, ISyncStateService syncStateService)
         {
-            _NetworkService = networkService;
+            _networkService = networkService;
+            _syncStateService = syncStateService;
         }
 
         public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            var _ = _NetworkService.BroadcastLibAnnounceAsync(eventData.BlockHash, eventData.BlockHeight);
+            if (_syncStateService.SyncState != SyncState.Finished)
+            {
+                return Task.CompletedTask;
+            }
+            
+            var _ = _networkService.BroadcastLibAnnounceAsync(eventData.BlockHash, eventData.BlockHeight);
             return Task.CompletedTask;
         }
     }
