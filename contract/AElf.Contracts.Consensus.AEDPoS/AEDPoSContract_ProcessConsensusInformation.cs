@@ -52,8 +52,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Context.Fire(miningInformationUpdated);
             Context.LogDebug(() => miningInformationUpdated.ToString());
 
-            ResetLatestProviderToTinyBlocksCount();
-
             // Make sure GetMaximumBlocksCount need to be executed no matter what consensus behaviour is.
             var minersCountInTheory = GetMaximumBlocksCount();
             ResetLatestProviderToTinyBlocksCount(minersCountInTheory);
