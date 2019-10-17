@@ -35,7 +35,5 @@ namespace AElf.Kernel.Blockchain.Application
             //block.Complete(currentBlockTime, results);
             return block;
         }
-
-        
     }
 }
