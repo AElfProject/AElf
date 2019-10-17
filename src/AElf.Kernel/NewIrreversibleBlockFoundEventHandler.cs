@@ -40,7 +40,7 @@ namespace AElf.Kernel
                 var chain = await _blockchainService.GetChainAsync();
                 var discardedBranch = await _blockchainService.GetDiscardedBranchAsync(chain);
                 
-                if (discardedBranch.BranchKeys.Count > 0 || discardedBranch.BranchKeys.Count > 0)
+                if (discardedBranch.BranchKeys.Count > 0 || discardedBranch.NotLinkedKeys.Count > 0)
                 {
                     _taskQueueManager.Enqueue(
                         async () => { await _blockchainService.CleanChainBranchAsync(discardedBranch); },
