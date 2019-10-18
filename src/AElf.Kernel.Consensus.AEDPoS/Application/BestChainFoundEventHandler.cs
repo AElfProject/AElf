@@ -63,7 +63,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             if (index != null)
             {
-//                _transactionInclusivenessProvider.IsTransactionPackable = true;
                 _taskQueueManager.Enqueue(
                     async () =>
                     {
