@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
+using AElf.Kernel.SmartContractExecution.Events;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.Kernel.SmartContract.Application
 {
@@ -20,6 +22,8 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly List<IPostExecutionPlugin> _postPlugins;
         private readonly ITransactionResultService _transactionResultService;
         public ILogger<TransactionExecutingService> Logger { get; set; }
+        
+        public ILocalEventBus LocalEventBus { get; set; }
 
         public TransactionExecutingService(ITransactionResultService transactionResultService,
             ISmartContractExecutiveService smartContractExecutiveService, IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins
@@ -30,6 +34,7 @@ namespace AElf.Kernel.SmartContract.Application
             _prePlugins = GetUniquePrePlugins(prePlugins);
             _postPlugins = GetUniquePostPlugins(postPlugins);
             Logger = NullLogger<TransactionExecutingService>.Instance;
+            LocalEventBus = NullLocalEventBus.Instance;
         }
 
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
@@ -56,8 +61,9 @@ namespace AElf.Kernel.SmartContract.Application
                     cancellationToken);
 
                 // Will be useful when debugging MerkleTreeRootOfWorldState is different from each miner.
-                //Logger.LogTrace(transaction.MethodName);
-                //Logger.LogTrace(trace.StateSet.Writes.Values.Select(v => v.ToBase64().CalculateHash().ToHex()).JoinAsString("\n"));
+                Logger.LogTrace(transaction.MethodName);
+                Logger.LogTrace(trace.StateSet.Writes.Values.Select(v => v.ToBase64().ComputeHash().ToHex())
+                    .JoinAsString("\n"));
 
                 if (!trace.IsSuccessful())
                 {
@@ -76,8 +82,7 @@ namespace AElf.Kernel.SmartContract.Application
                 }
                 else
                 {
-                    groupStateCache.Update(trace.GetFlattenedWrites()
-                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                    groupStateCache.Update(trace.GetStateSets());
                 }
 
                 if (trace.Error != string.Empty)
@@ -100,7 +105,7 @@ namespace AElf.Kernel.SmartContract.Application
             return returnSets;
         }
 
-        private bool IsTransactionCanceled(TransactionTrace trace)
+        private static bool IsTransactionCanceled(TransactionTrace trace)
         {
             return trace.ExecutionStatus == ExecutionStatus.Canceled ||
                    trace.InlineTraces.ToList().Any(IsTransactionCanceled);
@@ -108,9 +113,9 @@ namespace AElf.Kernel.SmartContract.Application
 
         private async Task<TransactionTrace> ExecuteOneAsync(int depth, IChainContext chainContext,
             Transaction transaction, Timestamp currentBlockTime, CancellationToken cancellationToken,
-            Address origin = null)
+            Address origin = null, bool isCancellable = true)
         {
-            if (cancellationToken.IsCancellationRequested)
+            if (isCancellable && cancellationToken.IsCancellationRequested)
             {
                 return new TransactionTrace
                 {
@@ -130,7 +135,7 @@ namespace AElf.Kernel.SmartContract.Application
                 TransactionId = transaction.GetHash()
             };
 
-            var txCtxt = new TransactionContext
+            var txContext = new TransactionContext
             {
                 PreviousBlockHash = chainContext.BlockHash,
                 CurrentBlockTime = currentBlockTime,
@@ -154,8 +159,8 @@ namespace AElf.Kernel.SmartContract.Application
             }
             catch (SmartContractFindRegistrationException e)
             {
-                txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                txCtxt.Trace.Error += "Invalid contract address.\n";
+                txContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+                txContext.Trace.Error += "Invalid contract address.\n";
                 return trace;
             }
             
@@ -165,7 +170,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                 if (depth == 0)
                 {
-                    if (!await ExecutePluginOnPreTransactionStageAsync(executive, txCtxt, currentBlockTime,
+                    if (!await ExecutePluginOnPreTransactionStageAsync(executive, txContext, currentBlockTime,
                         internalChainContext, internalStateCache, cancellationToken))
                     {
                         return trace;
@@ -174,16 +179,16 @@ namespace AElf.Kernel.SmartContract.Application
 
                 #endregion
 
-                await executive.ApplyAsync(txCtxt);
+                await executive.ApplyAsync(txContext);
 
-                await ExecuteInlineTransactions(depth, currentBlockTime, txCtxt, internalStateCache,
+                await ExecuteInlineTransactions(depth, currentBlockTime, txContext, internalStateCache,
                     internalChainContext, cancellationToken);
 
                 #region PostTransaction
 
                 if (depth == 0)
                 {
-                    if (!await ExecutePluginOnPostTransactionStageAsync(executive, txCtxt, currentBlockTime,
+                    if (!await ExecutePluginOnPostTransactionStageAsync(executive, txContext, currentBlockTime,
                         internalChainContext, internalStateCache, cancellationToken))
                     {
                         return trace;
@@ -194,55 +199,59 @@ namespace AElf.Kernel.SmartContract.Application
             }
             catch (Exception ex)
             {
-                txCtxt.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                txCtxt.Trace.Error += ex + "\n";
+                Logger.LogError($"Tx execution failed: {txContext}");
+                txContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+                txContext.Trace.Error += ex + "\n";
                 throw;
             }
             finally
             {
                 await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
+                await LocalEventBus.PublishAsync(new TransactionExecutedEventData
+                {
+                    TransactionTrace = trace
+                });
             }
 
             return trace;
         }
 
         private async Task ExecuteInlineTransactions(int depth, Timestamp currentBlockTime,
-            TransactionContext txCtxt, TieredStateCache internalStateCache,
-            ChainContextWithTieredStateCache internalChainContext, CancellationToken cancellationToken)
+            ITransactionContext txContext, TieredStateCache internalStateCache,
+            IChainContext internalChainContext, CancellationToken cancellationToken)
         {
-            var trace = txCtxt.Trace;
-            if (txCtxt.Trace.IsSuccessful() && txCtxt.Trace.InlineTransactions.Count > 0)
+            var trace = txContext.Trace;
+            if (txContext.Trace.IsSuccessful())
             {
-                internalStateCache.Update(txCtxt.Trace.GetFlattenedWrites()
-                    .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
-                foreach (var inlineTx in txCtxt.Trace.InlineTransactions)
+                internalStateCache.Update(txContext.Trace.GetStateSets());
+                foreach (var inlineTx in txContext.Trace.InlineTransactions)
                 {
                     var inlineTrace = await ExecuteOneAsync(depth + 1, internalChainContext, inlineTx,
-                        currentBlockTime, cancellationToken, txCtxt.Origin);
+                        currentBlockTime, cancellationToken, txContext.Origin);
                     trace.InlineTraces.Add(inlineTrace);
                     if (!inlineTrace.IsSuccessful())
                     {
                         Logger.LogError($"Method name: {inlineTx.MethodName}, {inlineTrace.Error}");
-                        // Fail already, no need to execute remaining inline transactions
+                        // Already failed, no need to execute remaining inline transactions
                         break;
                     }
 
-                    internalStateCache.Update(inlineTrace.GetFlattenedWrites()
-                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                    internalStateCache.Update(inlineTrace.GetStateSets());
                 }
             }
         }
 
         private async Task<bool> ExecutePluginOnPreTransactionStageAsync(IExecutive executive,
-            ITransactionContext txCtxt,
-            Timestamp currentBlockTime, ChainContextWithTieredStateCache internalChainContext,
+            ITransactionContext txContext,
+            Timestamp currentBlockTime,
+            IChainContext internalChainContext,
             TieredStateCache internalStateCache,
             CancellationToken cancellationToken)
         {
-            var trace = txCtxt.Trace;
+            var trace = txContext.Trace;
             foreach (var plugin in _prePlugins)
             {
-                var transactions = await plugin.GetPreTransactionsAsync(executive.Descriptors, txCtxt);
+                var transactions = await plugin.GetPreTransactionsAsync(executive.Descriptors, txContext);
                 foreach (var preTx in transactions)
                 {
                     var preTrace = await ExecuteOneAsync(0, internalChainContext, preTx, currentBlockTime,
@@ -257,8 +266,10 @@ namespace AElf.Kernel.SmartContract.Application
                         return false;
                     }
 
-                    internalStateCache.Update(preTrace.GetFlattenedWrites()
-                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                    var stateSets = preTrace.GetStateSets().ToList();
+                    internalStateCache.Update(stateSets);
+                    var parentStateCache = txContext.StateCache as TieredStateCache;
+                    parentStateCache?.Update(stateSets);
                 }
             }
 
@@ -266,19 +277,20 @@ namespace AElf.Kernel.SmartContract.Application
         }
 
         private async Task<bool> ExecutePluginOnPostTransactionStageAsync(IExecutive executive,
-            ITransactionContext txCtxt,
-            Timestamp currentBlockTime, ChainContextWithTieredStateCache internalChainContext,
+            ITransactionContext txContext,
+            Timestamp currentBlockTime,
+            IChainContext internalChainContext,
             TieredStateCache internalStateCache,
             CancellationToken cancellationToken)
         {
-            var trace = txCtxt.Trace;
+            var trace = txContext.Trace;
             foreach (var plugin in _postPlugins)
             {
-                var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txCtxt);
+                var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txContext);
                 foreach (var postTx in transactions)
                 {
                     var postTrace = await ExecuteOneAsync(0, internalChainContext, postTx, currentBlockTime,
-                        cancellationToken);
+                        cancellationToken, isCancellable: false);
                     trace.PostTransactions.Add(postTx);
                     trace.PostTraces.Add(postTrace);
                     if (!postTrace.IsSuccessful())
@@ -289,8 +301,7 @@ namespace AElf.Kernel.SmartContract.Application
                         return false;
                     }
 
-                    internalStateCache.Update(postTrace.GetFlattenedWrites()
-                        .Select(x => new KeyValuePair<string, byte[]>(x.Key, x.Value.ToByteArray())));
+                    internalStateCache.Update(postTrace.GetStateSets());
                 }
             }
 
@@ -301,7 +312,12 @@ namespace AElf.Kernel.SmartContract.Application
         {
             if (trace.ExecutionStatus == ExecutionStatus.Undefined)
             {
-                return null;
+                return new TransactionResult
+                {
+                    TransactionId = trace.TransactionId,
+                    Status = TransactionResultStatus.Unexecutable,
+                    Error = ExecutionStatus.Undefined.ToString()
+                };
             }
 
             if (trace.ExecutionStatus == ExecutionStatus.Prefailed)
@@ -351,17 +367,28 @@ namespace AElf.Kernel.SmartContract.Application
 
             if (trace.IsSuccessful())
             {
-                foreach (var s in trace.GetFlattenedWrites())
+                var transactionExecutingStateSets = trace.GetStateSets();
+                foreach (var transactionExecutingStateSet in transactionExecutingStateSets)
                 {
-                    returnSet.StateChanges[s.Key] = s.Value;
+                    foreach (var write in transactionExecutingStateSet.Writes)
+                    {
+                        returnSet.StateChanges[write.Key] = write.Value;
+                        returnSet.StateDeletes.Remove(write.Key);
+                    }
+                    foreach (var delete in transactionExecutingStateSet.Deletes)
+                    {
+                        returnSet.StateDeletes[delete.Key] = delete.Value;
+                        returnSet.StateChanges.Remove(delete.Key);
+                    }
                 }
 
                 returnSet.ReturnValue = trace.ReturnValue;
             }
 
-            foreach (var s in trace.GetFlattenedReads())
+            var reads = trace.GetFlattenedReads();
+            foreach (var read in reads)
             {
-                returnSet.StateAccesses[s.Key] = s.Value;
+                returnSet.StateAccesses[read.Key] = read.Value;
             }
 
             return returnSet;

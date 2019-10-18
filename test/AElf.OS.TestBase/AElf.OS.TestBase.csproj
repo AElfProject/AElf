@@ -1,22 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <RootNamespace>AElf.OS</RootNamespace>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
-
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
-        <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
-        <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Contracts.Deployer\AElf.Contracts.Deployer.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj"/>
     </ItemGroup>
-
     <ItemGroup>
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0"/>
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1"/>
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj">

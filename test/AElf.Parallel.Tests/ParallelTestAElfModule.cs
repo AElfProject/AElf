@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using AElf.Kernel;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Modularity;
 using AElf.OS;
@@ -18,6 +20,11 @@ namespace AElf.Parallel.Tests
         {
             base.ConfigureServices(context);
             context.Services.AddSingleton<ParallelTestHelper>();
+        }
+
+        public override void PostConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.RemoveAll(s=>s.ImplementationType == typeof(NewIrreversibleBlockFoundEventHandler));
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

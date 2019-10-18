@@ -59,7 +59,7 @@ namespace AElf.Contracts.TestKit
             ECKeyPair senderKey)
         {
             var zeroStub = GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, senderKey);
-            var res = await zeroStub.DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput()
+            var res = await zeroStub.DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput
             {
                 Category = category,
                 Code = ByteString.CopyFrom(code),

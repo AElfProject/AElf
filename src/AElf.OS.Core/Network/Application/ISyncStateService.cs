@@ -29,19 +29,16 @@ namespace AElf.OS.Network.Application
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockchainNodeContextService _blockchainNodeContextService;
         private readonly IPeerPool _peerPool;
-        private readonly IHandshakeProvider _handshakeProvider;
 
         public ILogger<SyncStateService> Logger { get; set; }
         
         public SyncStateService(INodeSyncStateProvider syncStateProvider, IBlockchainService blockchainService, 
-            IBlockchainNodeContextService blockchainNodeContextService, IPeerPool peerPool, 
-            IHandshakeProvider handshakeProvider)
+            IBlockchainNodeContextService blockchainNodeContextService, IPeerPool peerPool)
         {
             _syncStateProvider = syncStateProvider;
             _blockchainService = blockchainService;
             _blockchainNodeContextService = blockchainNodeContextService;
             _peerPool = peerPool;
-            _handshakeProvider = handshakeProvider;
         }
         
         public long GetCurrentSyncTarget() => _syncStateProvider.SyncTarget;
@@ -105,25 +102,6 @@ namespace AElf.OS.Network.Application
             // also be true when the node starts.
             if (chain.LastIrreversibleBlockHeight >= _syncStateProvider.SyncTarget)
             {
-                var handshake = await _handshakeProvider.GetHandshakeAsync();
-                
-                // Update handshake information of all our peers
-                var tasks = _peerPool.GetPeers().Select(async peer =>
-                {
-                    try
-                    {
-                        await peer.DoHandshakeAsync(handshake);
-                    }
-                    catch (NetworkException e)
-                    {
-                        Logger.LogError(e, "Error while handshaking.");
-                    }
-                    
-                    Logger.LogDebug($"Peer {peer} last known LIB is {peer.LastKnownLibHeight}.");
-                    
-                }).ToList();
-                
-                await Task.WhenAll(tasks);
                 await UpdateSyncTargetAsync();
             }
         }

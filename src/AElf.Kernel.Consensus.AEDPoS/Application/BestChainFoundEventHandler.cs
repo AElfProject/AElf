@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.TransactionPool.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -15,44 +16,66 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     public class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>, ITransientDependency
     {
         private readonly ITaskQueueManager _taskQueueManager;
-        private readonly IIrreversibleBlockDiscoveryService _irreversibleBlockDiscoveryService;
+
+        private readonly IIrreversibleBlockRelatedEventsDiscoveryService
+            _irreversibleBlockRelatedEventsDiscoveryService;
 
         private readonly IBlockchainService _blockchainService;
-        
+
+        private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
+
         public ILogger<BestChainFoundEventHandler> Logger { get; set; }
 
-        public BestChainFoundEventHandler(IIrreversibleBlockDiscoveryService irreversibleBlockDiscoveryService,
-            ITaskQueueManager taskQueueManager, IBlockchainService blockchainService)
+        public BestChainFoundEventHandler(
+            IIrreversibleBlockRelatedEventsDiscoveryService irreversibleBlockRelatedEventsDiscoveryService,
+            ITaskQueueManager taskQueueManager, IBlockchainService blockchainService,
+            ITransactionInclusivenessProvider transactionInclusivenessProvider)
         {
-            _irreversibleBlockDiscoveryService = irreversibleBlockDiscoveryService;
+            _irreversibleBlockRelatedEventsDiscoveryService = irreversibleBlockRelatedEventsDiscoveryService;
             _taskQueueManager = taskQueueManager;
             _blockchainService = blockchainService;
-            
+            _transactionInclusivenessProvider = transactionInclusivenessProvider;
+
             Logger = NullLogger<BestChainFoundEventHandler>.Instance;
         }
 
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
-            Logger.LogDebug($"Handle best chain found for lib: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
-            
+            Logger.LogDebug(
+                $"Handle best chain found for lib: BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
+
             var chain = await _blockchainService.GetChainAsync();
-            var index = await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(chain,
+            var index = await _irreversibleBlockRelatedEventsDiscoveryService.GetLastIrreversibleBlockIndexAsync(chain,
                 eventData.ExecutedBlocks);
-            
+
+            var unacceptableDistanceToLib = await _irreversibleBlockRelatedEventsDiscoveryService
+                .GetUnacceptableDistanceToLastIrreversibleBlockHeightAsync(eventData.BlockHash);
+
+            if (unacceptableDistanceToLib > 0)
+            {
+                Logger.LogDebug($"Unacceptable distance to lib height: {unacceptableDistanceToLib}");
+                _transactionInclusivenessProvider.IsTransactionPackable = false;
+            }
+            else
+            {
+                _transactionInclusivenessProvider.IsTransactionPackable = true;
+            }
+
             if (index != null)
             {
                 _taskQueueManager.Enqueue(
                     async () =>
                     {
                         var currentChain = await _blockchainService.GetChainAsync();
-                        if (currentChain.LastIrreversibleBlockHeight < index.Height)
+                        if (currentChain.LastIrreversibleBlockHeight < index.BlockHeight)
                         {
-                            await _blockchainService.SetIrreversibleBlockAsync(currentChain, index.Height, index.Hash);
+                            await _blockchainService.SetIrreversibleBlockAsync(currentChain, index.BlockHeight, index.BlockHash);
                         }
                     }, KernelConstants.UpdateChainQueueName);
             }
-            
-            Logger.LogDebug($"Finish handle best chain found for lib : BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
+
+            Logger.LogDebug(
+                $"Finish handle best chain found for lib : BlockHeight: {eventData.BlockHeight}, BlockHash: {eventData.BlockHash}");
         }
     }
 }

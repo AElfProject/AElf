@@ -31,11 +31,21 @@ namespace AElf.OS.Network
         /// The maximum number of peers accepted by this node (0 for no limit).
         /// </summary>
         public int MaxPeers { get; set; } = NetworkConstants.DefaultMaxPeers;
+        
+        /// <summary>
+        /// The maximum number of connection from a given host (0 for no limit).
+        /// </summary>
+        public int MaxPeersPerIpAddress { get; set; } = NetworkConstants.DefaultMaxPeersPerIpAddress;
 
         /// <summary>
         /// Timeout used when trying to connect to another peer.
         /// </summary>
         public int PeerDialTimeoutInMilliSeconds { get; set; } = NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds;
+
+        /// <summary>
+        /// Period used to try and reconnect to outbound peers that have disconnected.
+        /// </summary>
+        public int PeerReconnectionPeriod { get; set; } = NetworkConstants.DefaultPeerReconnectionPeriod;
 
         /// <summary>
         /// Indicates if this node will compress blocks when a peer requests blocks.

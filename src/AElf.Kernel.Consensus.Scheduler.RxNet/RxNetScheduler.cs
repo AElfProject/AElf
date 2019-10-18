@@ -24,7 +24,7 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
             Logger = NullLogger<RxNetScheduler>.Instance;
         }
 
-        public void NewEvent(int countingMilliseconds, ConsensusRequestMiningEventData consensusRequestMiningEventData)
+        public void NewEvent(long countingMilliseconds, ConsensusRequestMiningEventData consensusRequestMiningEventData)
         {
             _observables = Subscribe(countingMilliseconds, consensusRequestMiningEventData);
         }
@@ -34,7 +34,8 @@ namespace AElf.Kernel.Consensus.Scheduler.RxNet
             Logger.LogDebug("Disposed previous consensus event.");
             _observables?.Dispose();
         }
-        public IDisposable Subscribe(int countingMilliseconds, ConsensusRequestMiningEventData consensusRequestMiningEventData)
+
+        public IDisposable Subscribe(long countingMilliseconds, ConsensusRequestMiningEventData consensusRequestMiningEventData)
         {
             Logger.LogDebug($"Will produce block after {countingMilliseconds} ms - " +
                             $"{TimestampHelper.GetUtcNow().AddMilliseconds(countingMilliseconds).ToDateTime():yyyy-MM-dd HH.mm.ss,fff}");

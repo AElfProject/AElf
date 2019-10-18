@@ -604,7 +604,7 @@ namespace AElf.Contracts.Election
                 await ProduceBlocks(ValidationDataCenterKeyPairs[i], 10);
             }
 
-            await NextTerm(InitialCoreDataCenterKeyPairs[0]);
+            await NextTerm(ValidationDataCenterKeyPairs[0]);
 
             var round = await AEDPoSContractStub.GetCurrentRoundInformation.CallAsync(new Empty());
             round.TermNumber.ShouldBe(supposedNextTermNumber);

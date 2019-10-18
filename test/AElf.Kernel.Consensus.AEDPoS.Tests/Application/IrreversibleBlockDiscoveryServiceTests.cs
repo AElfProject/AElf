@@ -9,12 +9,12 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
 {
     public class IrreversibleBlockDiscoveryServiceTests : AEDPoSTestBase
     {
-        private IIrreversibleBlockDiscoveryService _irreversibleBlockDiscoveryService;
+        private IIrreversibleBlockRelatedEventsDiscoveryService _irreversibleBlockRelatedEventsDiscoveryService;
         private IBlockchainService _chainService;
 
         public IrreversibleBlockDiscoveryServiceTests()
         {
-            _irreversibleBlockDiscoveryService = GetRequiredService<IIrreversibleBlockDiscoveryService>();
+            _irreversibleBlockRelatedEventsDiscoveryService = GetRequiredService<IIrreversibleBlockRelatedEventsDiscoveryService>();
             _chainService = GetRequiredService<IBlockchainService>();
         }
 
@@ -25,7 +25,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
             var chain = await _chainService.GetChainAsync();
             var blockId = chain.LastIrreversibleBlockHash;
             var blockIndex =
-                await _irreversibleBlockDiscoveryService.DiscoverAndSetIrreversibleAsync(chain, new[] {blockId});
+                await _irreversibleBlockRelatedEventsDiscoveryService.GetLastIrreversibleBlockIndexAsync(chain, new[] {blockId});
             blockIndex.ShouldBeNull();
         }
     }

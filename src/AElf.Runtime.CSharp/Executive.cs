@@ -159,7 +159,15 @@ namespace AElf.Runtime.CSharp
                     var changes = _smartContractProxy.GetChanges();
 
                     var address = _hostSmartContractBridgeContext.Self.ToStorageKey();
-                    foreach (var (key, value) in changes.Writes)
+                    foreach (var key in changes.Writes.Keys)
+                    {
+                        if (!key.StartsWith(address))
+                        {
+                            throw new InvalidOperationException("a contract cannot access other contracts data");
+                        }
+                    }
+                    
+                    foreach (var (key, value) in changes.Deletes)
                     {
                         if (!key.StartsWith(address))
                         {
@@ -167,7 +175,7 @@ namespace AElf.Runtime.CSharp
                         }
                     }
 
-                    foreach (var (key, value) in changes.Reads)
+                    foreach (var key in changes.Reads.Keys)
                     {
                         if (!key.StartsWith(address))
                         {
@@ -178,6 +186,7 @@ namespace AElf.Runtime.CSharp
                     if (!CurrentTransactionContext.Trace.IsSuccessful())
                     {
                         changes.Writes.Clear();
+                        changes.Deletes.Clear();
                     }
 
                     CurrentTransactionContext.Trace.StateSet = changes;

@@ -23,70 +23,74 @@ namespace AElf.Contracts.AssociationAuth
         [Fact]
         public async Task Get_Organization_Test()
         {
-            var reviewer1 = new Reviewer {Address = Reviewer1, Weight = 1};
-            var reviewer2 = new Reviewer {Address = Reviewer2, Weight = 2};
-            var reviewer3 = new Reviewer {Address = Reviewer3, Weight = 3};
-
-            var createOrganizationInput = new CreateOrganizationInput
+            //failed case
             {
-                Reviewers = {reviewer1, reviewer2, reviewer3},
-                ReleaseThreshold = 2,
-                ProposerThreshold = 2
-            };
-            var transactionResult =
-                await AssociationAuthContractStub.CreateOrganization.SendAsync(createOrganizationInput);
-            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            var organizationAddress = transactionResult.Output;
-            var getOrganization = await AssociationAuthContractStub.GetOrganization.CallAsync(organizationAddress);
+                var organization =
+                    await AssociationAuthContractStub.GetOrganization.CallAsync(SampleAddress.AddressList[0]);
+                organization.ShouldBe(new Organization());
+            }
 
-            getOrganization.OrganizationAddress.ShouldBe(organizationAddress);
-            getOrganization.Reviewers[0].Address.ShouldBe(Reviewer1);
-            getOrganization.Reviewers[0].Weight.ShouldBe(1);
-            getOrganization.ProposerThreshold.ShouldBe(2);
-            getOrganization.ReleaseThreshold.ShouldBe(2);
-            getOrganization.OrganizationHash.ShouldBe(Hash.FromTwoHashes(
-                Hash.FromMessage(AssociationAuthContractAddress), Hash.FromMessage(createOrganizationInput)));
-        }
+            //normal case
+            {
+                var reviewer1 = new Reviewer {Address = Reviewer1, Weight = 1};
+                var reviewer2 = new Reviewer {Address = Reviewer2, Weight = 2};
+                var reviewer3 = new Reviewer {Address = Reviewer3, Weight = 3};
 
-        [Fact]
-        public async Task Get_OrganizationFailed_Test()
-        {
-            var organization =
-                await AssociationAuthContractStub.GetOrganization.CallAsync(SampleAddress.AddressList[0]);
-            organization.ShouldBe(new Organization());
+                var createOrganizationInput = new CreateOrganizationInput
+                {
+                    Reviewers = {reviewer1, reviewer2, reviewer3},
+                    ReleaseThreshold = 2,
+                    ProposerThreshold = 2
+                };
+                var transactionResult =
+                    await AssociationAuthContractStub.CreateOrganization.SendAsync(createOrganizationInput);
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                var organizationAddress = transactionResult.Output;
+                var getOrganization = await AssociationAuthContractStub.GetOrganization.CallAsync(organizationAddress);
+
+                getOrganization.OrganizationAddress.ShouldBe(organizationAddress);
+                getOrganization.Reviewers[0].Address.ShouldBe(Reviewer1);
+                getOrganization.Reviewers[0].Weight.ShouldBe(1);
+                getOrganization.ProposerThreshold.ShouldBe(2);
+                getOrganization.ReleaseThreshold.ShouldBe(2);
+                getOrganization.OrganizationHash.ShouldBe(Hash.FromTwoHashes(
+                    Hash.FromMessage(AssociationAuthContractAddress), Hash.FromMessage(createOrganizationInput)));
+            }
         }
 
         [Fact]
         public async Task Get_Proposal_Test()
         {
-            var organizationAddress = await CreateOrganizationAsync();
-            var transferInput = new TransferInput()
+            //failed case
             {
-                Symbol = "ELF",
-                Amount = 100,
-                To = Reviewer1,
-                Memo = "Transfer"
-            };
-            var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);
-            var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId);
+                var proposal = await AssociationAuthContractStub.GetProposal.CallAsync(Hash.FromString("Test"));
+                proposal.ShouldBe(new ProposalOutput());
+            }
+            
+            //normal case
+            {
+                var organizationAddress = await CreateOrganizationAsync();
+                var transferInput = new TransferInput()
+                {
+                    Symbol = "ELF",
+                    Amount = 100,
+                    To = Reviewer1,
+                    Memo = "Transfer"
+                };
+                var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);
+                var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId);
 
-            getProposal.Output.Proposer.ShouldBe(Reviewer2);
-            getProposal.Output.ContractMethodName.ShouldBe(nameof(TokenContract.Transfer));
-            getProposal.Output.ProposalId.ShouldBe(proposalId);
-            getProposal.Output.OrganizationAddress.ShouldBe(organizationAddress);
-            getProposal.Output.ToAddress.ShouldBe(TokenContractAddress);
-            getProposal.Output.Params.ShouldBe(transferInput.ToByteString());
+                getProposal.Output.Proposer.ShouldBe(Reviewer2);
+                getProposal.Output.ContractMethodName.ShouldBe(nameof(TokenContract.Transfer));
+                getProposal.Output.ProposalId.ShouldBe(proposalId);
+                getProposal.Output.OrganizationAddress.ShouldBe(organizationAddress);
+                getProposal.Output.ToAddress.ShouldBe(TokenContractAddress);
+                getProposal.Output.Params.ShouldBe(transferInput.ToByteString());
+            }
         }
 
         [Fact]
-        public async Task Get_ProposalFailed_Test()
-        {
-            var proposal = await AssociationAuthContractStub.GetProposal.CallAsync(Hash.FromString("Test"));
-            proposal.ShouldBe(new ProposalOutput());
-        }
-
-        [Fact]
-        public async Task Create_OrganizationFailed_Test()
+        public async Task Create_Organization_Failed_Test()
         {
             var reviewer1 = new Reviewer {Address = Reviewer1, Weight = 1};
             var reviewer2 = new Reviewer {Address = Reviewer2, Weight = 2};
@@ -127,7 +131,7 @@ namespace AElf.Contracts.AssociationAuth
         }
 
         [Fact]
-        public async Task Create_ProposalFailed_Test()
+        public async Task Create_Proposal_Failed_Test()
         {
             var organizationAddress = await CreateOrganizationAsync();
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
@@ -261,54 +265,103 @@ namespace AElf.Contracts.AssociationAuth
             transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             transactionResult1.Output.Value.ShouldBe(true);
 
-            Thread.Sleep(100);
             var transactionResult2 =
                 await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
             transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
         }
+
+        [Fact]
+        public async Task Approve_Proposal_Failed_Test()
+        {
+            //not found
+            {
+                var transactionResult = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput
+                {
+                    ProposalId = Hash.FromString("Test")
+                });
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            }
+            
+            var organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);
+            
+            //not authorize
+            {
+                AssociationAuthContractStub = GetAssociationAuthContractTester(DefaultSenderKeyPair);
+                var transactionResult = await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput
+                {
+                    ProposalId = proposalId
+                });
+                transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            }
+            
+            //expired time
+            {
+                AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
+                BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
+                var transactionResult = await AssociationAuthContractStub.Approve.CallAsync(new ApproveInput
+                {
+                    ProposalId = proposalId
+                });
+                transactionResult.Value.ShouldBe(false);
+            }
+            
+            //already exist
+            {
+                AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
+                BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(-5));
+                var transactionResult1 =
+                    await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
+                transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+                transactionResult1.Output.Value.ShouldBe(true);
+
+                var transactionResult2 =
+                    await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
+                transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            }
+        }
         
         [Fact]
-        public async Task Release_NotEnoughWeight_Test()
+        public async Task Release_Proposal_Failed_Test()
         {
+            //not found
+            {
+                var fakeId = Hash.FromString("test");
+                AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
+                var result = await AssociationAuthContractStub.Release.SendAsync(fakeId);
+                //Proposal not found
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                result.TransactionResult.Error.Contains("Proposal not found.").ShouldBeTrue();
+            }
+            
             var organizationAddress = await CreateOrganizationAsync();
             var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);
             await TransferToOrganizationAddressAsync(organizationAddress);
-            await ApproveAsync(Reviewer1KeyPair,proposalId);
+            
+            //not enough weight
+            {
+                await ApproveAsync(Reviewer1KeyPair,proposalId);
+                
+                AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
+                var result = await AssociationAuthContractStub.Release.SendAsync(proposalId);
+                //Reviewer weight < ReleaseThreshold, release failed
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                result.TransactionResult.Error.Contains("Not approved.").ShouldBeTrue();
+            }
+            
+            //wrong sender
+            {
+                await ApproveAsync(Reviewer3KeyPair,proposalId);
   
-            AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
-            var result = await AssociationAuthContractStub.Release.SendAsync(proposalId);
-            //Reviewer weight < ReleaseThreshold, release failed
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.Contains("Not approved.").ShouldBeTrue();
+                AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
+                var result = await AssociationAuthContractStub.Release.SendAsync(proposalId);
+                result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+                result.TransactionResult.Error.Contains("Unable to release this proposal.").ShouldBeTrue();
+            }
         }
-
+        
         [Fact]
-        public async Task Release_NotFound_Test()
-        { 
-            var proposalId = Hash.FromString("test");
-            AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
-            var result = await AssociationAuthContractStub.Release.SendAsync(proposalId);
-            //Proposal not found
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.Contains("Proposal not found.").ShouldBeTrue();
-        }
-
-        [Fact]
-        public async Task Release_WrongSender_Test()
-        {
-            var organizationAddress = await CreateOrganizationAsync();
-            var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);
-            await TransferToOrganizationAddressAsync(organizationAddress);
-            await ApproveAsync(Reviewer3KeyPair,proposalId);
-  
-            AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
-            var result = await AssociationAuthContractStub.Release.SendAsync(proposalId);
-            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            result.TransactionResult.Error.Contains("Unable to release this proposal.").ShouldBeTrue();
-        }
-
-        [Fact]
-        public async Task Release_Proposal_Test()
+        public async Task Release_Proposal_Success_Test()
         {
             var organizationAddress = await CreateOrganizationAsync();
             var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);

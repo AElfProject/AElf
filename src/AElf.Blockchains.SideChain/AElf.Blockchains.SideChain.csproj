@@ -35,6 +35,12 @@
         <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
             <Link>Protobuf\Proto\parliament_auth_contract.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\referendum_auth_contract.proto">
+            <Link>Protobuf\Proto\referendum_auth_contract.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\association_auth_contract.proto">
+            <Link>Protobuf\Proto\referendum_auth_contract.proto</Link>
+        </ContractStub>
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj">
@@ -53,6 +59,21 @@
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
         <ProjectReference Include="..\..\contract\AElf.Contracts.ParliamentAuth\AElf.Contracts.ParliamentAuth.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.ReferendumAuth\AElf.Contracts.ReferendumAuth.csproj">
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.AssociationAuth\AElf.Contracts.AssociationAuth.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

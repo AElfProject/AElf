@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain.Communication.Grpc;
 using AElf.Kernel;
@@ -40,7 +41,8 @@ namespace AElf.Blockchains.BasicBaseChain
         //web api module
         typeof(WebWebAppAElfModule),
 
-        typeof(ParallelExecutionModule)
+        typeof(ParallelExecutionModule),
+        typeof(BlockTransactionLimitControllerModule)
     )]
     public class BasicBaseChainAElfModule : AElfModule
     {
@@ -72,10 +74,15 @@ namespace AElf.Blockchains.BasicBaseChain
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = context.Services
-                    .GetConfiguration().GetValue("TokenInitial:Symbol", "ELF");
+                    .GetConfiguration().GetValue("Economic:Symbol", "ELF");
             });
             
             Configure<ContractOptions>(configuration.GetSection("Contract"));
+            Configure<ContractOptions>(options =>
+            {
+                options.GenesisContractDir = Path.Combine(context.Services.GetHostingEnvironment().ContentRootPath,
+                    "genesis");
+            });
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

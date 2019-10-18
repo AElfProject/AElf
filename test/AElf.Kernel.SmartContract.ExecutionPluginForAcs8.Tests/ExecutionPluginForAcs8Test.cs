@@ -46,8 +46,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             });
         }
 
-        [Fact]
-        public async Task AdvanceResourceToken()
+        private async Task AdvanceResourceToken()
         {
             const long amount = 10_000_00000000;
             var resourceTokenList = new List<string> {"CPU", "STO", "NET"};
@@ -198,7 +197,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 Owner = TestContractAddress, Symbol = symbol
             });
 
-            var lesserConsumption = balanceAfter.Balance - balanceBefore.Balance;
+            var lesserConsumption = balanceBefore.Balance - balanceAfter.Balance;
 
             consumption.ShouldBeGreaterThan(lesserConsumption);
         }
@@ -221,9 +220,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             var (cpu1, sto1, net1) = 
                 await GetTransactionResourcesCost(DefaultTester.FewConsumingMethod.SendAsync);
             
-            cpu.ShouldBeGreaterThanOrEqualTo(cpu1);
-            sto.ShouldBeGreaterThanOrEqualTo(sto1);
-            net.ShouldBeGreaterThanOrEqualTo(net1);
+            cpu.ShouldBeGreaterThan(cpu1);
+            sto.ShouldBeGreaterThan(sto1);
+            net.ShouldBe(net1);
         }
 
         private async Task<(long cpu, long sto, long net)> GetTransactionResourcesCost(Func<Empty, Task<IExecutionResult<Empty>>> action)

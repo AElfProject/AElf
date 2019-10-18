@@ -6,12 +6,14 @@ import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.Election";
 
 service ElectionContract {
     
     option (aelf.csharp_state) = "AElf.Contracts.Election.ElectionContractState";
+    option (aelf.base) = "acs1.proto";
 
     // Action
     rpc InitialElectionContract (InitialElectionContractInput) returns (google.protobuf.Empty) {
@@ -25,6 +27,8 @@ service ElectionContract {
     rpc QuitElection (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc Vote (VoteMinerInput) returns (google.protobuf.Empty) {
+    }
+    rpc ChangeVotingOption (ChangeVotingOptionInput) returns (google.protobuf.Empty) {
     }
     rpc Withdraw (aelf.Hash) returns (google.protobuf.Empty) {
     }
@@ -133,6 +137,11 @@ message VoteMinerInput {
     string candidate_pubkey = 1;
     sint64 amount = 2;
     google.protobuf.Timestamp end_timestamp = 3;
+}
+
+message ChangeVotingOptionInput {
+    aelf.Hash vote_id = 1;
+    string candidate_pubkey = 2;
 }
 
 message UpdateTermNumberInput {

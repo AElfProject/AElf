@@ -7,6 +7,14 @@
         <IsContract>true</IsContract>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
+
     <ItemGroup>
         <ContractBase Include="..\..\protobuf\acs3.proto">
             <Link>Protobuf/Proto/acs3.proto</Link>
@@ -14,15 +22,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ContractReference Include="..\..\protobuf\acs1.proto">
-            <Link>Protobuf/Proto/acs1.proto</Link>
-        </ContractReference>
         <ContractReference Include="..\..\protobuf\acs0.proto">
             <Link>Protobuf\Proto\reference\acs0.proto</Link>
         </ContractReference>
-        <ContractReference Include="..\..\protobuf\acs1.proto">
+        <ContractBase Include="..\..\protobuf\acs1.proto">
             <Link>Protobuf\Proto\reference\acs1.proto</Link>
-        </ContractReference>
+        </ContractBase>
         <ContractReference Include="..\..\protobuf\token_converter_contract.proto">
             <Link>Protobuf\Proto\reference\token_converter_contract.proto</Link>
         </ContractReference>

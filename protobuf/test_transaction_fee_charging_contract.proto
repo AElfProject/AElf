@@ -16,6 +16,8 @@ service TransactionFeeChargingContract {
     }
     rpc SendForFun (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
+    rpc SupposedToFail (google.protobuf.Empty) returns (google.protobuf.Empty) {
+    }
 }
 
 message InitializeTransactionFeeChargingContractInput {

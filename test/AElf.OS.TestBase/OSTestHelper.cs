@@ -266,7 +266,7 @@ namespace AElf.OS
             return transactions;
         }
 
-        public Transaction GenerateTransaction(Address from, Address to,string methodName, IMessage input)
+        public Transaction GenerateTransaction(Address from, Address to, string methodName, IMessage input)
         {
             var chain = _blockchainService.GetChainAsync().Result;
             var transaction = new Transaction

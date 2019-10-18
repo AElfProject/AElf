@@ -83,6 +83,7 @@ namespace AElf.Blockchains.MainChain
 
             round.RoundNumber = currentRoundNumber + 1;
             round.TermNumber = currentTermNumber + 1;
+            round.IsMinerListJustChanged = true;
 
             return round;
         }

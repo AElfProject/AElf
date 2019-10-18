@@ -97,5 +97,10 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
         {
             throw new System.NotImplementedException();
         }
+
+        public Task<Chain> ResetChainToLibAsync(Chain chain)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

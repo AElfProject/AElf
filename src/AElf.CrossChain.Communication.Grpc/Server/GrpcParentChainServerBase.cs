@@ -49,6 +49,8 @@ namespace AElf.CrossChain.Communication.Grpc
                 $"Received initialization data request from  chain {ChainHelper.ConvertChainIdToBase58(request.ChainId)}");
             var sideChainInitializationResponse =
                 await _crossChainResponseService.ResponseChainInitializationDataFromParentChainAsync(request.ChainId);
+            Logger.LogTrace(
+                $"Response initialization data for chain {ChainHelper.ConvertChainIdToBase58(request.ChainId)}");
             return sideChainInitializationResponse;
         }
     }

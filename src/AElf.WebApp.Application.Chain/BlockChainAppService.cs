@@ -207,6 +207,7 @@ namespace AElf.WebApp.Application.Chain
             var blockState = await _blockchainStateManager.GetBlockStateSetAsync(HashHelper.HexStringToHash(blockHash));
             if (blockState == null)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+            
             return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
         }
 
@@ -228,16 +229,20 @@ namespace AElf.WebApp.Application.Chain
                     {
                         Order = i.Value.Order,
                         ExpectedMiningTime = i.Value.ExpectedMiningTime.ToDateTime(),
-                        ActualMiningTimes = i.Value.ActualMiningTimes.Select(t => t.ToDateTime()).ToList(),
+                        ActualMiningTimes = i.Value.ActualMiningTimes?.Select(t => t.ToDateTime()).ToList(),
                         ProducedTinyBlocks = i.Value.ProducedTinyBlocks,
                         ProducedBlocks = i.Value.ProducedBlocks,
                         MissedBlocks = i.Value.MissedTimeSlots,
                         InValue = i.Value.InValue?.ToHex(),
                         OutValue = i.Value.OutValue?.ToHex(),
-                        PreviousInValue = i.Value.PreviousInValue?.ToHex()
+                        PreviousInValue = i.Value.PreviousInValue?.ToHex(),
+                        ImpliedIrreversibleBlockHeight = i.Value.ImpliedIrreversibleBlockHeight
                     }),
                 RoundNumber = round.RoundNumber,
                 TermNumber = round.TermNumber,
+                ConfirmedIrreversibleBlockHeight = round.ConfirmedIrreversibleBlockHeight,
+                ConfirmedIrreversibleBlockRoundNumber = round.ConfirmedIrreversibleBlockRoundNumber,
+                IsMinerListJustChanged = round.IsMinerListJustChanged,
                 RoundId = round.RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds)
                     .Sum()
             };

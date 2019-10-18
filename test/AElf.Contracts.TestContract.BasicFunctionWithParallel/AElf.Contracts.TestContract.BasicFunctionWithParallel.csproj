@@ -3,12 +3,12 @@
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
         <PackageId>AElf.Contracts.TestContract.BasicFunctionWithParallel</PackageId>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <RootNamespace>AElf.Contracts.TestContract.BasicFunctionWithParallel</RootNamespace>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj" />
+        <ProjectReference Include="..\..\src\AElf.Sdk.CSharp\AElf.Sdk.CSharp.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -25,7 +25,7 @@
             <Link>Protobuf\Proto\acs2.proto</Link>
         </ContractBase>
     </ItemGroup>
-    
+
     <ItemGroup>
         <ContractCode Include="..\..\protobuf\test_basic_function_with_parallel_contract.proto">
             <Link>Protobuf\Proto\test_basic_function_with_parallel_contract.proto</Link>

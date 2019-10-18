@@ -83,6 +83,11 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected Address ParliamentAuthContractAddress =>
             GetOrDeployContract(Contracts.ParliamentAuth, ref _parliamentAddress);
+        
+        private Address _referendumAddress;
+
+        protected Address ReferendumAuthContractAddress =>
+            GetOrDeployContract(Contracts.ReferendumAuth, ref _referendumAddress);
 
         #endregion
 
@@ -267,7 +272,6 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected void DeployAllContracts()
         {
-            _ = TokenContractAddress;
             _ = VoteContractAddress;
             _ = ProfitContractAddress;
             _ = EconomicContractAddress;
@@ -278,6 +282,8 @@ namespace AElf.Contracts.Economic.TestBase
             _ = TokenConverterContractAddress;
             _ = ConsensusContractAddress;
             _ = MethodCallThresholdContractAddress;
+            _ = ReferendumAuthContractAddress;
+            _ = TokenContractAddress;
         }
 
         #endregion

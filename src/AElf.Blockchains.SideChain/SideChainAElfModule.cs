@@ -1,5 +1,7 @@
 ﻿using AElf.Blockchains.BasicBaseChain;
+using AElf.Kernel.Token;
 using AElf.Modularity;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.Modularity;
@@ -16,6 +18,11 @@ namespace AElf.Blockchains.SideChain
         public SideChainAElfModule()
         {
             Logger = NullLogger<SideChainAElfModule>.Instance;
+        }
+
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            context.Services.AddSingleton<IPrimaryTokenSymbolProvider, SideChainPrimaryTokenSymbolProvider>();
         }
     }
 }

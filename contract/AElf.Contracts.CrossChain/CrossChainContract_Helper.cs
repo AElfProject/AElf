@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Acs3;
 using Acs7;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.MultiToken;
@@ -55,30 +54,23 @@ namespace AElf.Contracts.CrossChain
             State.TxRootMerklePathInParentChain[height] = path;
         }
 
-        private void LockTokenAndResource(SideChainCreationRequest sideChainInfo, int chainId)
+        private void CreateSideChainToken(SideChainCreationRequest sideChainCreationRequest, SideChainTokenInfo sideChainTokenInfo, int chainId)
         {
-            //Api.Assert(request.Proposer.Equals(Api.GetFromAddress()), "Unable to lock token or resource.");
-            // update locked token balance
-            
             TransferFrom(new TransferFromInput
             {
                 From = Context.Origin,
                 To = Context.Self,
-                Amount = sideChainInfo.LockedTokenAmount,
+                Amount = sideChainCreationRequest.LockedTokenAmount,
                 Symbol = Context.Variables.NativeSymbol
             });
-            State.IndexingBalance[chainId] = sideChainInfo.LockedTokenAmount;
+            State.IndexingBalance[chainId] = sideChainCreationRequest.LockedTokenAmount;
+            
+            CreateSideChainToken(sideChainTokenInfo, chainId);   
             // Todo: enable resource
-            // lock 
-            /*foreach (var resourceBalance in sideChainInfo.ResourceBalances)
-            {
-                Api.LockResource(resourceBalance.Amount, resourceBalance.Type);
-            }*/
         }
 
         private void UnlockTokenAndResource(SideChainInfo sideChainInfo)
         {
-            //Api.Assert(sideChainInfo.LockedAddress.Equals(Api.GetFromAddress()), "Unable to withdraw token or resource.");
             // unlock token
             var chainId = sideChainInfo.SideChainId;
             var balance = State.IndexingBalance[chainId];
@@ -90,12 +82,15 @@ namespace AElf.Contracts.CrossChain
                     Symbol = Context.Variables.NativeSymbol
                 });
             State.IndexingBalance[chainId] = 0;
-
-            // unlock resource 
-            /*foreach (var resourceBalance in sideChainInfo.ResourceBalances)
-            {
-                Api.UnlockResource(resourceBalance.Amount, resourceBalance.Type);
-            }*/
+        }
+        
+        private void AssertSideChainTokenInfo(SideChainTokenInfo sideChainTokenInfo)
+        {
+            Assert(
+                !string.IsNullOrEmpty(sideChainTokenInfo.Symbol) 
+                && !string.IsNullOrEmpty(sideChainTokenInfo.TokenName),
+                "Invalid side chain token name,");
+            Assert(sideChainTokenInfo.TotalSupply > 0, "Invalid side chain token supply.");
         }
 
         private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)
@@ -117,10 +112,41 @@ namespace AElf.Contracts.CrossChain
             State.TokenContract.TransferFrom.Send(input);
         }
 
+        private void CreateSideChainToken(SideChainTokenInfo sideChainTokenInfo, int chainId)
+        {
+            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            State.TokenContract.Create.Send(new CreateInput
+            {
+                TokenName = sideChainTokenInfo.TokenName,
+                Decimals = sideChainTokenInfo.Decimals,
+                IsBurnable = sideChainTokenInfo.IsBurnable,
+                Issuer = Context.Origin,
+                IssueChainId = chainId,
+                IsTransferDisabled = false,
+                Symbol = sideChainTokenInfo.Symbol,
+                TotalSupply = sideChainTokenInfo.TotalSupply
+            });
+        }
+
         private TokenInfo GetNativeTokenInfo()
         {
             ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
             return State.TokenContract.GetNativeTokenInfo.Call(new Empty());
+        }
+
+        private TokenInfo GetTokenInfo(string symbol)
+        {
+            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            return State.TokenContract.GetTokenInfo.Call(new GetTokenInfoInput
+            {
+                Symbol = symbol
+            });
+        }
+
+        private TokenInfoList GetResourceTokenInfo()
+        {
+            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
+            return State.TokenContract.GetResourceTokenInfo.Call(new Empty());
         }
 
         private MinerListWithRoundNumber GetCurrentMiners()

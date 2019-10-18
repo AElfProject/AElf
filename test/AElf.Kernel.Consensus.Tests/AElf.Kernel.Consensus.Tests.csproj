@@ -2,24 +2,24 @@
 
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
-        <IsPackable>true</IsPackable>
         <RootNamespace>AElf.Kernel.Consensus</RootNamespace>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
-        <PackageReference Include="Shouldly" Version="3.0.2" />
-        <PackageReference Include="xunit" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.console" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+        <PackageReference Include="coverlet.msbuild" Version="2.5.1"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0"/>
+        <PackageReference Include="Shouldly" Version="3.0.2"/>
+        <PackageReference Include="xunit" Version="2.4.1"/>
+        <PackageReference Include="xunit.runner.console" Version="2.4.1"/>
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1"/>
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj" />
-      <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
-      <ProjectReference Include="..\..\src\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj" />
-      <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.TestBase\AElf.Kernel.TestBase.csproj" />
-      <ProjectReference Include="..\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
+        <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Kernel.Consensus\AElf.Kernel.Consensus.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.TestBase\AElf.Kernel.TestBase.csproj"/>
+        <ProjectReference Include="..\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj"/>
     </ItemGroup>
     <ItemGroup>
         <ContractStub Include="..\..\protobuf\acs4.proto">

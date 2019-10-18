@@ -11,6 +11,7 @@ namespace AElf.Kernel.Blockchain.Application
     public interface ITransactionResultQueryService
     {
         Task<TransactionResult> GetTransactionResultAsync(Hash transactionId);
+        Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash);
     }
 
     public interface ITransactionResultService : ITransactionResultQueryService
@@ -22,15 +23,15 @@ namespace AElf.Kernel.Blockchain.Application
     public class TransactionResultService : ITransactionResultService, ITransientDependency
     {
         private readonly ITransactionResultManager _transactionResultManager;
-        private readonly ITransactionBlockIndexManager _transactionBlockIndexManager;
+        private readonly ITransactionBlockIndexService _transactionBlockIndexService;
         private readonly IBlockchainService _blockchainService;
 
-        public TransactionResultService(ITransactionResultManager transactionResultManager,
-            ITransactionBlockIndexManager transactionBlockIndexManager, IBlockchainService blockchainService)
+        public TransactionResultService(ITransactionResultManager transactionResultManager, 
+            IBlockchainService blockchainService, ITransactionBlockIndexService transactionBlockIndexService)
         {
             _transactionResultManager = transactionResultManager;
-            _transactionBlockIndexManager = transactionBlockIndexManager;
             _blockchainService = blockchainService;
+            _transactionBlockIndexService = transactionBlockIndexService;
         }
 
         public async Task AddTransactionResultAsync(TransactionResult transactionResult, BlockHeader blockHeader)
@@ -42,46 +43,28 @@ namespace AElf.Kernel.Blockchain.Application
         public async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId)
         {
             var transactionBlockIndex =
-                await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(transactionId);
+                await _transactionBlockIndexService.GetTransactionBlockIndexAsync(transactionId);
+
             if (transactionBlockIndex != null)
-            {
-                // If TransactionBlockIndex exists, then read the result via TransactionBlockIndex
                 return await _transactionResultManager.GetTransactionResultAsync(transactionId,
                     transactionBlockIndex.BlockHash);
-            }
-
-            var chain = await _blockchainService.GetChainAsync();
-            var hash = chain.BestChainHash;
-            var until = chain.LastIrreversibleBlockHeight > Constants.GenesisBlockHeight
-                ? chain.LastIrreversibleBlockHeight - 1
-                : Constants.GenesisBlockHeight;
-            while (true)
-            {
-                var result = await _transactionResultManager.GetTransactionResultAsync(transactionId, hash);
-                if (result != null)
-                {
-                    return result;
-                }
-
-                var header = await _blockchainService.GetBlockHeaderByHashAsync(hash);
-                result = await _transactionResultManager.GetTransactionResultAsync(transactionId,
-                    header.GetPreMiningHash());
-                if (result != null)
-                {
-                    return result;
-                }
-
-                if (header.Height <= until)
-                {
-                    // do until 1 block below LIB, in case the TransactionBlockIndex is not already added during
-                    // NewIrreversibleBlockFoundEvent handling
-                    break;
-                }
-
-                hash = header.PreviousBlockHash;
-            }
 
             return null;
+        }
+
+        public async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash)
+        {
+            var txResult = await _transactionResultManager.GetTransactionResultAsync(transactionId, blockHash);
+            if (txResult != null)
+            {
+                return txResult;
+            }
+            
+            var header = await _blockchainService.GetBlockHeaderByHashAsync(blockHash);
+            txResult = await _transactionResultManager.GetTransactionResultAsync(transactionId,
+                header.GetPreMiningHash());
+            
+            return txResult;
         }
     }
 }

@@ -21,3 +21,18 @@ message RandomNumberOrder {
     sint64 block_height = 1;// Orderer is possible to get a random number after this height.
     aelf.Hash token_hash = 2;// Token to get the random number.
 }
+
+// Events
+
+message RandomNumberRequestHandled {
+    option (aelf.is_event) = true;
+    aelf.Address requester = 1;
+    aelf.Hash token_hash = 2;
+    sint64 block_height = 3;
+}
+
+message RandomNumberGenerated {
+    option (aelf.is_event) = true;
+    aelf.Hash token_hash = 1;
+    aelf.Hash random_hash = 2;// Random Number
+}

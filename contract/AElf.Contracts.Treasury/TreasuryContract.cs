@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken;
@@ -33,7 +34,7 @@ namespace AElf.Contracts.Treasury
     /// 2. tx fees.
     /// 3. resource consumption of developer's contracts.
     /// </summary>
-    public class TreasuryContract : TreasuryContractContainer.TreasuryContractBase
+    public partial class TreasuryContract : TreasuryContractContainer.TreasuryContractBase
     {
         public override Empty InitialTreasuryContract(Empty input)
         {
@@ -402,7 +403,8 @@ namespace AElf.Contracts.Treasury
                     reElectionProfitAddBeneficiaries.BeneficiaryShares.Add(new BeneficiaryShare
                     {
                         Beneficiary = minerAddress,
-                        Shares = continualAppointmentCount
+                        Shares = Math.Min(continualAppointmentCount,
+                            TreasuryContractConstants.MaximumReElectionRewardShare)
                     });
                 }
                 else

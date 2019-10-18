@@ -6,6 +6,7 @@ using Google.Protobuf;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         private void ShareInValueOfCurrentRound(Round currentRound, Round previousRound, Hash inValue, string publicKey)

@@ -9,8 +9,10 @@ namespace AElf.Sdk.CSharp.Tests.TestContract
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
-            // TODO: Add back this assert
-            // Api.Assert(Api.GetContractOwner().Equals(Api.GetFromAddress()), "Only owner can initialize the contract state.");
+            // TODO: State.ZeroContract.GetContractAuthor.Call(Context.Self) failed.
+//            State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
+//            var contractAuthor = State.ZeroContract.GetContractAuthor.Call(Context.Self);
+//            Assert(contractAuthor == Context.Sender, "Only author can initialize the contract state.");
 
             // Set token info
             State.TokenInfo.Symbol.Value = symbol;
@@ -18,11 +20,18 @@ namespace AElf.Sdk.CSharp.Tests.TestContract
             State.TokenInfo.TotalSupply.Value = totalSupply;
             State.TokenInfo.Decimals.Value = decimals;
 
+            State.NativeTokenSymbol.Value = symbol;
+
             // Assign total supply to owner
             State.Balances[Context.Sender] = totalSupply;
 
             // Set initialized flag
             State.Initialized.Value = true;
+        }
+
+        public void ResetNativeTokenSymbol(string symbol)
+        {
+            State.NativeTokenSymbol.Value = symbol;
         }
 
         public void Transfer(Address to, ulong amount)
