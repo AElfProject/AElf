@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Acs7;
 using AElf.CrossChain.Cache.Application;
 using AElf.CrossChain.Cache;
+using AElf.CrossChain.Communication.Exception;
 using AElf.CrossChain.Communication.Infrastructure;
 using AElf.Kernel;
 using Grpc.Core;
@@ -119,10 +120,10 @@ namespace AElf.CrossChain.Communication.Grpc
             {
                 await requestFunc();
             }
-            catch (RpcException)
+            catch (RpcException e)
             {
                 IsConnected = false;
-                throw;
+                throw new CrossChainRequestException(e.Message, e);
             }
         }
 

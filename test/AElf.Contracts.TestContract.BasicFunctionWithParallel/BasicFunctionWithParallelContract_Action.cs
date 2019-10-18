@@ -1,5 +1,6 @@
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -93,6 +94,197 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
         public override Empty ValidateOrigin(Address address)
         {
             Assert(address == Context.Origin, "Validation failed, origin is not expected.");
+            return new Empty();
+        }
+
+        public override Empty SetValue(SetValueInput input)
+        {
+            State.LongValueMap[input.Key] = input.Int64Value;
+            State.StringValueMap[input.Key] = input.StringValue;
+            State.MessageValueMap[input.Key] = input.MessageValue;
+            return new Empty();
+        }
+
+        public override Empty IncreaseValue(IncreaseValueInput input)
+        {
+            var longValue = State.LongValueMap[input.Key];
+            longValue++;
+            State.LongValueMap[input.Key] = longValue;
+            State.StringValueMap[input.Key] = longValue.ToString();
+            var messageValue = State.MessageValueMap[input.Key] ?? new MessageValue();
+            messageValue.Int64Value = longValue;
+            messageValue.StringValue = State.StringValueMap[input.Key];
+            State.MessageValueMap[input.Key] = messageValue;
+            return new Empty();
+        }
+
+        public override Empty IncreaseValueParallel(IncreaseValueInput input)
+        {
+            return IncreaseValue(input);
+        }
+        
+        public override Empty IncreaseValueWithInline(IncreaseValueInput input)
+        {
+            IncreaseValue(input);
+            Context.SendInline(Context.Self, nameof(IncreaseValue), input);
+            return new Empty();
+        }
+
+        public override Empty IncreaseValueWithPrePlugin(IncreaseValueInput input)
+        {
+            return IncreaseValue(input);
+        }
+        
+        public override Empty IncreaseValueWithPostPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValue(input);
+        }
+
+        public override Empty IncreaseValueWithInlineAndPrePlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueWithInline(input);
+        }
+        
+        public override Empty IncreaseValueWithInlineAndPostPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueWithInline(input);
+        }
+
+        public override Empty IncreaseValueWithPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValue(input);
+        }
+
+        public override Empty IncreaseValueWithInlineAndPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueWithInline(input);
+        }
+        
+        public override Empty IncreaseValueParallelWithInlineAndPlugin(IncreaseValueInput input)
+        {
+            return IncreaseValueWithInline(input);
+        }
+        
+        public override Empty RemoveValue(RemoveValueInput input)
+        {
+            State.LongValueMap.Remove(input.Key);
+            State.StringValueMap.Remove(input.Key);
+            State.MessageValueMap.Remove(input.Key);
+            return new Empty();
+        }
+
+        public override Empty RemoveValueFromInlineWithPlugin(RemoveValueInput input)
+        {
+            IncreaseValue(new IncreaseValueInput
+            {
+                Key = input.Key
+            });
+            Context.SendInline(Context.Self, nameof(RemoveValue), input);
+            return new Empty();
+        }
+
+        public override Empty RemoveValueFromPrePlugin(RemoveValueInput input)
+        {
+            var increaseValueInput = new IncreaseValueInput
+            {
+                Key = input.Key
+            };
+            IncreaseValue(increaseValueInput);
+            Context.SendInline(Context.Self, nameof(IncreaseValue), increaseValueInput);
+            return new Empty();
+        }
+        
+        public override Empty RemoveValueFromPostPlugin(RemoveValueInput input)
+        {
+            var increaseValueInput = new IncreaseValueInput
+            {
+                Key = input.Key
+            };
+            IncreaseValue(increaseValueInput);
+            Context.SendInline(Context.Self, nameof(IncreaseValue), increaseValueInput);
+            return new Empty();
+        }
+
+        public override Empty RemoveValueParallelFromPostPlugin(RemoveValueInput input)
+        {
+            var increaseValueInput = new IncreaseValueInput
+            {
+                Key = input.Key
+            };
+            IncreaseValue(increaseValueInput);
+            Context.SendInline(Context.Self, nameof(IncreaseValue), increaseValueInput);
+            return new Empty();
+        }
+
+        public override Empty RemoveValueWithPlugin(RemoveValueInput input)
+        {
+            RemoveValue(input);
+            var increaseValueInput = new IncreaseValueInput
+            {
+                Key = input.Key
+            };
+            Context.SendInline(Context.Self, nameof(IncreaseValue), increaseValueInput);
+            return new Empty();
+        }
+
+        public override Empty RemoveAfterSetValue(RemoveAfterSetValueInput input)
+        {
+            State.LongValueMap[input.Key] = input.Int64Value;
+            State.StringValueMap[input.Key] = input.StringValue;
+            State.MessageValueMap[input.Key] = input.MessageValue;
+            
+            State.LongValueMap.Remove(input.Key);
+            State.StringValueMap.Remove(input.Key);
+            State.MessageValueMap.Remove(input.Key);
+            
+            return new Empty();
+        }
+
+        public override Empty SetAfterRemoveValue(SetAfterRemoveValueInput input)
+        {
+            State.LongValueMap.Remove(input.Key);
+            State.StringValueMap.Remove(input.Key);
+            State.MessageValueMap.Remove(input.Key);
+            
+            State.LongValueMap[input.Key] = input.Int64Value;
+            State.StringValueMap[input.Key] = input.StringValue;
+            State.MessageValueMap[input.Key] = input.MessageValue;
+            
+            return new Empty();
+        }
+
+        public override Empty RemoveValueParallel(RemoveValueInput input)
+        {
+            return RemoveValue(input);
+        }
+
+        public override Empty ComplexChangeWithDeleteValue1(ComplexChangeInput input)
+        {
+            State.LongValueMap[input.Key] = input.Int64Value;
+            State.StringValueMap[input.Key] = input.StringValue;
+            
+            State.MessageValueMap.Remove(input.Key);
+            
+            return new Empty();
+        }
+
+        public override Empty ComplexChangeWithDeleteValue2(ComplexChangeInput input)
+        {
+            State.LongValueMap.Remove(input.Key);
+            
+            State.StringValueMap[input.Key] = input.StringValue;
+            State.MessageValueMap[input.Key] = input.MessageValue;
+            
+            return new Empty();
+        }
+
+        public override Empty ComplexChangeWithDeleteValue3(ComplexChangeInput input)
+        {
+            State.LongValueMap[input.Key] = input.Int64Value;
+            
+            State.StringValueMap.Remove(input.Key);
+            State.MessageValueMap.Remove(input.Key);
+            
             return new Empty();
         }
 
