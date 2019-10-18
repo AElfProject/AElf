@@ -80,13 +80,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     return new List<Transaction>();
                 }
 
-
                 if (!IsAcs1(descriptors) && transactionContext.Transaction.To != tokenContractAddress)
-                {
-                    return new List<Transaction>();
-                }
-
-                if (tokenContractAddress == null)
                 {
                     return new List<Transaction>();
                 }
