@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Acs0;
 using Acs1;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.SmartContract.Application;
@@ -63,6 +64,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 {
                     return new List<Transaction>();
                 }
+            }
+
+            if (context.CurrentHeight < 2)
+            {
+                return new List<Transaction>();
             }
 
             var tokenContractAddress = context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name);
