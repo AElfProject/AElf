@@ -80,8 +80,8 @@ namespace AElf.Kernel.Types.Tests
         public void BlockIndex_Test()
         {
             var blockIndex = new BlockIndex();
-            blockIndex.Hash = Hash.Empty;
-            blockIndex.Height = 1L;
+            blockIndex.BlockHash = Hash.Empty;
+            blockIndex.BlockHeight = 1L;
 
             var blockIndex1 = new BlockIndex(Hash.Empty, 1L);
 

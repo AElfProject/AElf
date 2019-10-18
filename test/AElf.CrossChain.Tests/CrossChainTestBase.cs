@@ -25,7 +25,7 @@ namespace AElf.CrossChain
             _configOptions.CrossChainDataValidationIgnored = false;
         }
 
-        protected void CreateFakeCache(Dictionary<int, BlockCacheEntityProvider> cachingData)
+        protected void CreateFakeCache(Dictionary<int, ChainCacheEntity> cachingData)
         {
             foreach (var (key, value) in cachingData)
             {

@@ -64,6 +64,7 @@ namespace AElf.WebApp.Application.Net
                 ProtocolVersion = p.ProtocolVersion,
                 ConnectionTime = p.ConnectionTime,
                 Inbound = p.Inbound,
+                ConnectionStatus = p.ConnectionStatus,
                 BufferedAnnouncementsCount = p.BufferedAnnouncementsCount,
                 BufferedBlocksCount = p.BufferedBlocksCount,
                 BufferedTransactionsCount = p.BufferedTransactionsCount,

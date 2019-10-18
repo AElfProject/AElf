@@ -56,7 +56,6 @@ namespace AElf.Contracts.ParliamentAuth
         }
 
         private const int MaxThreshold = 10000;
-        private const int DefaultReleaseThreshold = 6666; // 2/3 for default parliament organization
 
         private bool Validate(Organization organization)
         {
@@ -75,7 +74,7 @@ namespace AElf.Contracts.ParliamentAuth
         private ProposalInfo GetValidProposal(Hash proposalId)
         {
             var proposal = State.Proposals[proposalId];
-            Assert(proposal != null, "Invalid proposal id.");
+            Assert(proposal != null, "Proposal not found.");
             Assert(Validate(proposal), "Invalid proposal.");
             return proposal;
         }
