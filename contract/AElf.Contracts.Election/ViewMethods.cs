@@ -116,8 +116,7 @@ namespace AElf.Contracts.Election
 
         public override CandidateInformation GetCandidateInformation(StringInput input)
         {
-            var ret = State.CandidateInformationMap[input.Value]??new CandidateInformation{ Pubkey = input.Value };
-            return ret;
+            return State.CandidateInformationMap[input.Value] ?? new CandidateInformation {Pubkey = input.Value};
         }
 
         public override TermSnapshot GetTermSnapshot(GetTermSnapshotInput input)
@@ -137,13 +136,10 @@ namespace AElf.Contracts.Election
         {
             var votes = State.ElectorVotes[input.Value];
             if (votes == null)
-            {
-                var pubKey = input.Value.ToByteString();
                 return new ElectorVote
                 {
-                    Pubkey = pubKey,
+                    Pubkey = input.Value.ToByteString()
                 };
-            }
             var votedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
                 Ids = {votes.ActiveVotingRecordIds}
@@ -154,16 +150,19 @@ namespace AElf.Contracts.Election
                 var voteId = votes.ActiveVotingRecordIds[index++];
                 votes.ActiveVotingRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
+            
             return votes;
         }
 
         public override ElectorVote GetElectorVoteWithAllRecords(StringInput input)
         {
             var votes = GetElectorVoteWithRecords(input);
+            
             if (!votes.WithdrawnVotingRecordIds.Any())
             {
                 return votes;
             }
+            
             var votedWithdrawnRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
                 Ids = {votes.WithdrawnVotingRecordIds}
@@ -174,6 +173,7 @@ namespace AElf.Contracts.Election
                 var voteId = votes.WithdrawnVotingRecordIds[index++];
                 votes.WithdrawnVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
+            
             return votes;
         }
 
@@ -210,12 +210,11 @@ namespace AElf.Contracts.Election
             var length = Math.Min(Math.Min(input.Length, 20), candidates.Value.Count.Sub(input.Start));
             foreach (var candidate in candidates.Value.Skip(input.Start).Take(length))
             {
-                var candidateInfo = new CandidateDetail
+                output.Value.Add(new CandidateDetail
                 {
                     CandidateInformation = State.CandidateInformationMap[candidate.ToHex()],
                     ObtainedVotesAmount = State.CandidateVotes[candidate.ToHex()].ObtainedActiveVotedVotesAmount
-                };
-                output.Value.Add(candidateInfo);
+                });
             }
 
             return output;
@@ -245,6 +244,7 @@ namespace AElf.Contracts.Election
                 var voteId = votes.ObtainedActiveVotingRecordIds[index++];
                 votes.ObtainedActiveVotingRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
+            
             return votes;
         }
 
@@ -278,17 +278,17 @@ namespace AElf.Contracts.Election
 
         public override SInt64Value GetNextElectCountDown(Empty input)
         {
-            var i = new SInt64Value { Value = 2L };
-            var round = State.AEDPoSContract.GetRoundInformation.Call(i);
+            var round = State.AEDPoSContract.GetRoundInformation.Call( new SInt64Value { Value = 2L });
             var orderOneMiner = round.RealTimeMinersInformation.Values.FirstOrDefault(x => x.Order == 1);
             if (orderOneMiner == null)
                 return new SInt64Value { Value = 0 };
             var expectedMiningTime = orderOneMiner.ExpectedMiningTime;
             int bpCount = round.RealTimeMinersInformation.Count;
             long blockChainStartTime = expectedMiningTime.Seconds.Sub(bpCount.Add(1).Mul(4));
+            var weekSeconds = ElectionContractConstants.WeekSeconds;
             var countDown = new SInt64Value
             {
-                Value = 604800.Sub((int) Context.CurrentBlockTime.Seconds.Sub(blockChainStartTime) % 604800)
+                Value = weekSeconds.Sub((int) Context.CurrentBlockTime.Seconds.Sub(blockChainStartTime) % weekSeconds)
             };
             return countDown;
         }

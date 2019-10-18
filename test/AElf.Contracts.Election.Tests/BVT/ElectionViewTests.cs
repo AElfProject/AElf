@@ -48,10 +48,9 @@ namespace AElf.Contracts.Election
             {
                 Value = ValidationDataCenterKeyPairs.Last().PublicKey.ToHex()
             });
-            var pubKey =  ByteString.CopyFrom(ValidationDataCenterKeyPairs.Last().PublicKey);
             voteRecords.ShouldBe(new ElectorVote
             {
-                Pubkey = pubKey,
+                Pubkey = ByteString.CopyFrom(ValidationDataCenterKeyPairs.Last().PublicKey)
             });
         }
 
