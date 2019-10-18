@@ -17,10 +17,10 @@ namespace AElf.Contracts.Economic
 
         // Resource token related.
         public static readonly List<string> ResourceTokenSymbols = new List<string> {"RAM", "CPU", "NET", "STO"};
-        public const long ResourceTokenTotalSupply = 1_000_000_000_00000000;
+        public const long ResourceTokenTotalSupply = 100_000_000_00000000;
         public const int ResourceTokenDecimals = 8;
         public const string ResourceTokenConnectorWeight = "0.2";
-        public const long ResourceTokenConnectorInitialVirtualBalance = 100_000;
+        public const long ResourceTokenConnectorInitialVirtualBalance = 100_000_00000000;
         public const long CpuUnitPrice = 100;
         public const long StoUnitPrice = 100;
         public const long NetUnitPrice = 100;
@@ -30,16 +30,16 @@ namespace AElf.Contracts.Economic
         public const string NetConnectorSymbol = "NET";
         public const string StoConnectorSymbol = "STO";
 
-        //resource to sell
-        public const long CpuInitialVirtualBalance = 100_000_000_00000000;
-        public const long StoInitialVirtualBalance = 100_000_000_00000000;
-        public const long NetInitialVirtualBalance = 100_000_000_00000000;
-        public const long RamInitialVirtualBalance = 100_000_000_00000000;
+//        //resource to sell
+        public const long CpuInitialVirtualBalance = 100_00000000;
+        public const long StoInitialVirtualBalance = 100_00000000;
+        public const long NetInitialVirtualBalance = 100_00000000;
+        public const long RamInitialVirtualBalance = 100_00000000;
         
-        public const string NativeTokenToCpuSymbol = "NativeTokenToCPU";
-        public const string NativeTokenToRamSymbol = "NativeTokenToRAM";
-        public const string NativeTokenToNetSymbol = "NativeTokenToNET";
-        public const string NativeTokenToStoSymbol = "NativeTokenToSTO";
+        public const string NativeTokenToCpuSymbol = "NTCPU"; //NativeTokenToCPU
+        public const string NativeTokenToRamSymbol = "NTRAM";
+        public const string NativeTokenToNetSymbol = "NTNET";
+        public const string NativeTokenToStoSymbol = "NTSTO";
 
         public const long NativeTokenToCpuBalance = 1_000_000_00000000;
         public const long NativeTokenToNetBalance = 1_000_000_00000000;

@@ -120,25 +120,14 @@ namespace AElf.Contracts.TokenConverter
         public override Empty Buy(BuyInput input)
         {
             Assert(IsValidSymbol(input.Symbol), "Invalid symbol.");
-            var fromConnector = State.Connectors[State.BaseTokenSymbol.Value];
+            
             var toConnector = State.Connectors[input.Symbol];
-            if (String.Equals(input.Symbol, "CPU" ,StringComparison.CurrentCultureIgnoreCase))
-            {
-                fromConnector = State.Connectors["NativeTokenToCPU"];
-            }
-            else if (String.Equals(input.Symbol, "RAM" ,StringComparison.CurrentCultureIgnoreCase))
-            {
-                fromConnector = State.Connectors["NativeTokenToRAM"];
-            }
-            else if (String.Equals(input.Symbol, "NET" ,StringComparison.CurrentCultureIgnoreCase))
-            {
-                fromConnector = State.Connectors["NativeTokenToNET"];
-            }
-            else if (String.Equals(input.Symbol, "STO" ,StringComparison.CurrentCultureIgnoreCase))
-            {
-                fromConnector = State.Connectors["NativeTokenToSTO"];
-            }
-            Assert(toConnector != null, "Can't find connector.");
+            Assert(toConnector != null, "Can't find to connector.");
+            var relatedSymbol = string.IsNullOrEmpty(toConnector.RelatedSymbol)
+                ? State.BaseTokenSymbol.Value
+                : toConnector.RelatedSymbol;
+            var fromConnector = State.Connectors[relatedSymbol];
+            Assert(toConnector != null, "Can't find from connector.");
             var amountToPay = BancorHelper.GetAmountToPayFromReturn(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),
@@ -151,14 +140,14 @@ namespace AElf.Contracts.TokenConverter
             // Pay fee
             if (fee > 0)
             {
-                HandleFee(fee);
+                HandleFee(fee, fromConnector.Symbol);
             }
 
             // Transfer base token
             State.TokenContract.TransferFrom.Send(
                 new TransferFromInput()
                 {
-                    Symbol = State.BaseTokenSymbol.Value,
+                    Symbol = fromConnector.Symbol,
                     From = Context.Sender,
                     To = Context.Self,
                     Amount = amountToPay
@@ -187,24 +176,12 @@ namespace AElf.Contracts.TokenConverter
         {
             Assert(IsValidSymbol(input.Symbol), "Invalid symbol.");
             var fromConnector = State.Connectors[input.Symbol];
-            Assert(fromConnector != null, "Can't find connector.");
-            var toConnector = State.Connectors[State.BaseTokenSymbol.Value];
-            if (String.Equals(input.Symbol, "CPU" ,StringComparison.CurrentCultureIgnoreCase))
-            {
-                toConnector = State.Connectors["NativeTokenToCPU"];
-            }
-            else if (String.Equals(input.Symbol, "RAM" ,StringComparison.CurrentCultureIgnoreCase))
-            {
-                toConnector = State.Connectors["NativeTokenToRAM"];
-            }
-            else if (String.Equals(input.Symbol, "NET" ,StringComparison.CurrentCultureIgnoreCase))
-            {
-                toConnector = State.Connectors["NativeTokenToNET"];
-            }
-            else if (String.Equals(input.Symbol, "STO" ,StringComparison.CurrentCultureIgnoreCase))
-            {
-                toConnector = State.Connectors["NativeTokenToSTO"];
-            }
+            Assert(fromConnector != null, "Can't find from connector.");
+            var relatedSymbol = string.IsNullOrEmpty(fromConnector.RelatedSymbol)
+                ? State.BaseTokenSymbol.Value
+                : fromConnector.RelatedSymbol;
+            var toConnector = State.Connectors[relatedSymbol];
+            Assert(toConnector != null, "Can't find to connector.");
             var amountToReceive = BancorHelper.GetReturnFromPaid(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
                 GetSelfBalance(toConnector), GetWeight(toConnector),
@@ -224,14 +201,14 @@ namespace AElf.Contracts.TokenConverter
             // Pay fee
             if (fee > 0)
             {
-                HandleFee(fee);
+                HandleFee(fee, toConnector.Symbol);
             }
 
             // Transfer base token
             State.TokenContract.Transfer.Send(
                 new TransferInput()
                 {
-                    Symbol = State.BaseTokenSymbol.Value,
+                    Symbol = toConnector.Symbol,
                     To = Context.Sender,
                     Amount = amountToReceiveLessFee
                 });
@@ -255,7 +232,7 @@ namespace AElf.Contracts.TokenConverter
             return new Empty();
         }
 
-        private void HandleFee(long fee)
+        private void HandleFee(long fee, string symbol)
         {
             var donateFee = fee.Div(2);
             var burnFee = fee.Sub(donateFee);
@@ -264,7 +241,7 @@ namespace AElf.Contracts.TokenConverter
             State.TokenContract.TransferFrom.Send(
                 new TransferFromInput
                 {
-                    Symbol = State.BaseTokenSymbol.Value,
+                    Symbol = symbol,
                     From = Context.Sender,
                     To = State.FeeReceiverAddress.Value,
                     Amount = donateFee
@@ -274,7 +251,7 @@ namespace AElf.Contracts.TokenConverter
             State.TokenContract.TransferFrom.Send(
                 new TransferFromInput
                 {
-                    Symbol = State.BaseTokenSymbol.Value,
+                    Symbol = symbol,
                     From = Context.Sender,
                     To = Context.Self,
                     Amount = burnFee
@@ -282,7 +259,7 @@ namespace AElf.Contracts.TokenConverter
             State.TokenContract.Burn.Send(
                 new BurnInput
                 {
-                    Symbol = State.BaseTokenSymbol.Value,
+                    Symbol = symbol,
                     Amount = burnFee
                 });
         }
