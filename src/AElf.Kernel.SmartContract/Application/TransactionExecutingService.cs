@@ -157,7 +157,7 @@ namespace AElf.Kernel.SmartContract.Application
                     internalChainContext,
                     transaction.To);
             }
-            catch (SmartContractFindRegistrationException e)
+            catch (SmartContractFindRegistrationException)
             {
                 txContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
                 txContext.Trace.Error += "Invalid contract address.\n";
