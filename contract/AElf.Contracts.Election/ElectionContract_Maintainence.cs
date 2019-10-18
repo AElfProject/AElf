@@ -53,14 +53,13 @@ namespace AElf.Contracts.Election
 
             State.VoteContract.Value = Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName);
 
-            var startTime = DateTime.MinValue.ToUniversalTime();
             var votingRegisterInput = new VotingRegisterInput
             {
                 IsLockToken = false,
                 AcceptedCurrency = Context.Variables.NativeSymbol,
                 TotalSnapshotNumber = long.MaxValue,
-                StartTimestamp = startTime.ToTimestamp(),
-                EndTimestamp = startTime.AddTicks(DateTime.MaxValue.Ticks - DateTime.MinValue.Ticks).ToTimestamp()
+                StartTimestamp = DateTime.SpecifyKind(DateTime.MinValue,DateTimeKind.Utc).ToTimestamp(),
+                EndTimestamp = DateTime.SpecifyKind(DateTime.MaxValue, DateTimeKind.Utc).ToTimestamp()
             };
             State.VoteContract.Register.Send(votingRegisterInput);
 
