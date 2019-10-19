@@ -17,7 +17,7 @@ namespace AElf.Contracts.MultiToken
                     {
                         new MethodFee
                         {
-                            Symbol = GetPrimaryTokenSymbol(new Empty()).Value
+                            Symbol = GetPrimaryTokenSymbol(new Empty()).Value,
                             BasicFee = 1000_0000
                         }
                     }
