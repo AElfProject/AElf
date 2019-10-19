@@ -32,7 +32,8 @@ namespace AElf.Contracts.TokenConverter
             VirtualBalance = 0,
             Weight = "0.5",
             IsPurchaseEnabled = true,
-            IsVirtualBalanceEnabled = false
+            IsVirtualBalanceEnabled = false,
+            RelatedSymbol = NativeSymbol
         };
 
         #region Views Test

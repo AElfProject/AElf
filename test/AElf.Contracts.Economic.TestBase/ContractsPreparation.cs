@@ -513,7 +513,8 @@ namespace AElf.Contracts.Economic.TestBase
                     Symbol = EconomicContractsTestConstants.TransactionFeeChargingContractTokenSymbol,
                     IsPurchaseEnabled = true,
                     Weight = "0.2",
-                    IsVirtualBalanceEnabled = true
+                    IsVirtualBalanceEnabled = true,
+                    RelatedSymbol = EconomicContractsTestConstants.NativeTokenSymbol
                 });
             }
         }

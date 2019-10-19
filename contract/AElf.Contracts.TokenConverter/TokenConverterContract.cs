@@ -123,10 +123,11 @@ namespace AElf.Contracts.TokenConverter
             
             var toConnector = State.Connectors[input.Symbol];
             Assert(toConnector != null, "Can't find to connector.");
-            var relatedSymbol = string.IsNullOrEmpty(toConnector.RelatedSymbol)
-                ? State.BaseTokenSymbol.Value
-                : toConnector.RelatedSymbol;
-            var fromConnector = State.Connectors[relatedSymbol];
+//            var relatedSymbol = string.IsNullOrEmpty(toConnector.RelatedSymbol)
+//                ? State.BaseTokenSymbol.Value
+//                : toConnector.RelatedSymbol;
+            Assert(!string.IsNullOrEmpty(toConnector.RelatedSymbol), "can't find related symbol'");
+            var fromConnector = State.Connectors[toConnector.RelatedSymbol];
             Assert(toConnector != null, "Can't find from connector.");
             var amountToPay = BancorHelper.GetAmountToPayFromReturn(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),
@@ -177,10 +178,11 @@ namespace AElf.Contracts.TokenConverter
             Assert(IsValidSymbol(input.Symbol), "Invalid symbol.");
             var fromConnector = State.Connectors[input.Symbol];
             Assert(fromConnector != null, "Can't find from connector.");
-            var relatedSymbol = string.IsNullOrEmpty(fromConnector.RelatedSymbol)
-                ? State.BaseTokenSymbol.Value
-                : fromConnector.RelatedSymbol;
-            var toConnector = State.Connectors[relatedSymbol];
+//            var relatedSymbol = string.IsNullOrEmpty(fromConnector.RelatedSymbol)
+//                ? State.BaseTokenSymbol.Value
+//                : fromConnector.RelatedSymbol;
+            Assert(!string.IsNullOrEmpty(fromConnector.RelatedSymbol), "can't find related symbol'");
+            var toConnector = State.Connectors[fromConnector.RelatedSymbol];
             Assert(toConnector != null, "Can't find to connector.");
             var amountToReceive = BancorHelper.GetReturnFromPaid(
                 GetSelfBalance(fromConnector), GetWeight(fromConnector),

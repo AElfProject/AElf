@@ -71,7 +71,8 @@ namespace AElf.Contracts.MultiToken
             VirtualBalance = 0,
             Weight = "0.5",
             IsPurchaseEnabled = true,
-            IsVirtualBalanceEnabled = false
+            IsVirtualBalanceEnabled = false,
+            RelatedSymbol = "ELF"
         };
 
         private Connector BaseConnector = new Connector
