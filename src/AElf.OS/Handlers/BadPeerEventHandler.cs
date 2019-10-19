@@ -21,13 +21,12 @@ namespace AElf.OS.Handlers
             _networkService = networkService;
         }
 
-        public Task HandleEventAsync(BadPeerFoundEventData eventData)
+        public async Task HandleEventAsync(BadPeerFoundEventData eventData)
         {
             Logger.LogWarning(
                 $"Remove bad peer: {eventData.PeerPubkey}, block hash: {eventData.BlockHash}, block height: {eventData.BlockHeight}");
 
-            _ = _networkService.RemovePeerByPubkeyAsync(eventData.PeerPubkey, true);
-            return Task.CompletedTask;
+            await _networkService.RemovePeerByPubkeyAsync(eventData.PeerPubkey, true);
         }
     }
 }
