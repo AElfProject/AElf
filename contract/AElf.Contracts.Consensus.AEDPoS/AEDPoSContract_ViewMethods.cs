@@ -145,6 +145,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override BoolValue IsCurrentMiner(Address input)
         {
+            var result = new BoolValue {Value = IsCurrentMiner(ConvertAddressToPubkey(input))};
+            if (result.Value) return result;
+
             var currentMinerPubkey = GetCurrentMinerPubkey(new Empty());
             if (currentMinerPubkey.Value.Any())
             {
@@ -158,6 +161,53 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             return new BoolValue {Value = false};
+        }
+
+        /// <summary>
+        /// The address must in miner list.
+        /// </summary>
+        /// <param name="address"></param>
+        /// <returns></returns>
+        private string ConvertAddressToPubkey(Address address)
+        {
+            if (!TryToGetCurrentRoundInformation(out var currentRound)) return null;
+
+            return currentRound.RealTimeMinersInformation.Keys.FirstOrDefault(k =>
+                Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(k)) == address);
+        }
+
+        private bool IsCurrentMiner(string pubkey)
+        {
+            if (pubkey == null) return false;
+
+            if (!TryToGetCurrentRoundInformation(out var currentRound)) return false;
+
+            if (!currentRound.RealTimeMinersInformation.ContainsKey(pubkey)) return false;
+
+            var currentRoundStartTime = currentRound.GetRoundStartTime();
+            if (Context.CurrentBlockTime < currentRoundStartTime)
+            {
+                return currentRound.ExtraBlockProducerOfPreviousRound == pubkey;
+            }
+
+            var miningInterval = currentRound.GetMiningInterval();
+            var currentRoundExtraBlockMiningTime = currentRound.GetExtraBlockMiningTime();
+            var miningInRound = currentRound.RealTimeMinersInformation[pubkey];
+            if (currentRoundStartTime <= Context.CurrentBlockTime &&
+                Context.CurrentBlockTime < currentRoundExtraBlockMiningTime)
+            {
+                var supposedMiningTime = miningInRound.ExpectedMiningTime;
+                return supposedMiningTime <= Context.CurrentBlockTime &&
+                       Context.CurrentBlockTime <= supposedMiningTime.AddMilliseconds(miningInterval);
+            }
+
+            if (currentRoundExtraBlockMiningTime <= Context.CurrentBlockTime &&
+                Context.CurrentBlockTime < currentRoundExtraBlockMiningTime.AddMilliseconds(miningInterval))
+            {
+                return currentRound.RealTimeMinersInformation.Single(m => m.Value.IsExtraBlockProducer).Key == pubkey;
+            }
+
+            return false;
         }
 
         private Round GenerateFirstRoundOfNextTerm(string senderPublicKey, int miningInterval)
