@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -85,6 +86,16 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             output.Transactions.AddRange(_validatedTransactions.Values.OrderBy(x => x.EnqueueTime)
                 .Where((x, i) => transactionCount <= 0 || i < transactionCount).Select(x => x.Transaction));
 
+            using (var streamWriter =
+                new StreamWriter($"{Directory.GetCurrentDirectory()}/Logs/GetExecutables.txt", true))
+            {
+                var collection = _validatedTransactions.Values.OrderBy(x => x.EnqueueTime)
+                    .Where((x, i) => transactionCount <= 0 || i < transactionCount).Select(x => x.TransactionId);
+                foreach (var item in collection)
+                {
+                    streamWriter.WriteLine($"TxId out from pool:{item};Out time:{TimestampHelper.GetUtcNow()}");
+                }
+            }
             return output;
         }
 
@@ -197,6 +208,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
         }
 
+        private void CleanTransactionsInValidated(IEnumerable<Hash> transactionIds)
+        {
+            foreach (var transactionId in transactionIds)
+            {
+                _validatedTransactions.TryRemove(transactionId, out _);
+            }
+        }
+
         public async Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData)
         {
             if (_bestChainHash == Hash.Empty)
@@ -248,6 +267,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 {
                     Transaction = queuedTransaction.Transaction
                 });
+                
+                using (var streamWriter =
+                    new StreamWriter($"{Directory.GetCurrentDirectory()}/Logs/TxsReceived.txt", true))
+                {
+                    streamWriter.WriteLine($"TxId: {queuedTransaction.TransactionId}; Enqueue time: {queuedTransaction.EnqueueTime}");
+                }
             }
         }
 
@@ -255,6 +280,24 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
             CleanTransactions(block.Body.TransactionIds.ToList());
+            CleanTransactionsInValidated(block.Body.TransactionIds.ToList());
+            using (var streamWriter =
+                new StreamWriter($"{Directory.GetCurrentDirectory()}/Logs/allTxsAfterClean.txt", true))
+            {
+                foreach (var item in _allTransactions)
+                {
+                    streamWriter.WriteLine($"At block height:{block.Height}\n,allTxId remain in pool:{item.Value.TransactionId};After clean,now is:{TimestampHelper.GetUtcNow()}");
+                }
+            }
+            
+            using (var streamWriter =
+                new StreamWriter($"{Directory.GetCurrentDirectory()}/Logs/validatedTxsAfterClean.txt", true))
+            {
+                foreach (var item in _validatedTransactions)
+                {
+                    streamWriter.WriteLine($"At block height:{block.Height}\n,validatedTxId remain in pool:{item.Value.TransactionId};After clean,now is:{TimestampHelper.GetUtcNow()}");
+                }
+            }
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
