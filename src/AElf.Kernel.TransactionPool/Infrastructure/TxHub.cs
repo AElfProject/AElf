@@ -43,8 +43,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private ConcurrentDictionary<long, ConcurrentDictionary<Hash, QueuedTransaction>> _futureByBlock =
             new ConcurrentDictionary<long, ConcurrentDictionary<Hash, QueuedTransaction>>();
 
-        private readonly ActionBlock<QueuedTransaction> _processTransactionJobs;
-
         private long _bestChainHeight = Constants.GenesisBlockHeight - 1;
         private Hash _bestChainHash = Hash.Empty;
 
@@ -60,7 +58,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _transactionValidationService = transactionValidationService;
             LocalEventBus = NullLocalEventBus.Instance;
             _transactionOptions = transactionOptions.Value;
-            _processTransactionJobs = new ActionBlock<QueuedTransaction>(ProcessTransactionAsync);
         }
 
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount = 0)
@@ -221,57 +218,55 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             if (_bestChainHash == Hash.Empty)
                 return;
 
-            foreach (var transaction in eventData.Transactions)
+            foreach (var receivedTransaction in eventData.Transactions)
             {
                 if (_allTransactions.Count > _transactionOptions.PoolLimit)
                     break;
 
                 var queuedTransaction = new QueuedTransaction
                 {
-                    TransactionId = transaction.GetHash(),
-                    Transaction = transaction,
+                    TransactionId = receivedTransaction.GetHash(),
+                    Transaction = receivedTransaction,
                     EnqueueTime = TimestampHelper.GetUtcNow()
                 };
-                await _processTransactionJobs.SendAsync(queuedTransaction);
-            }
-        }
 
-        public async Task ProcessTransactionAsync(QueuedTransaction queuedTransaction)
-        {
-            if (_allTransactions.ContainsKey(queuedTransaction.TransactionId))
-                return;
+                if (_allTransactions.TryGetValue(queuedTransaction.TransactionId, out _))
+                    continue;
 
-            // Skip this transaction if it is already in local database.
-            var transaction = await _transactionManager.GetTransactionAsync(queuedTransaction.TransactionId);
-            if (transaction != null)
-                return;
+                // Skip this transaction if it is already in local database.
+                var transaction = await _transactionManager.GetTransactionAsync(queuedTransaction.TransactionId);
+                if (transaction != null)
+                    continue;
 
-            var validationResult =
-                await _transactionValidationService.ValidateTransactionAsync(queuedTransaction.Transaction);
-            if (!validationResult)
-                return;
+                var validationResult =
+                    await _transactionValidationService.ValidateTransactionAsync(queuedTransaction.Transaction);
+                if (!validationResult)
+                    continue;
 
-            var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
-            if (!addSuccess)
-                return;
-
-            await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
-
-            var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
-            UpdateRefBlockStatus(queuedTransaction, prefix, _bestChainHeight);
-            AddToCollection(queuedTransaction);
-
-            if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockValid)
-            {
-                await LocalEventBus.PublishAsync(new TransactionAcceptedEvent()
-                {
-                    Transaction = queuedTransaction.Transaction
-                });
+                var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
+                if (!addSuccess)
+                    continue;
                 
-                using (var streamWriter =
-                    new StreamWriter($"{Directory.GetCurrentDirectory()}/Logs/TxsReceived.txt", true))
+                var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
+                UpdateRefBlockStatus(queuedTransaction, prefix, _bestChainHeight);
+
+                if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockExpired)
+                    continue;
+
+                await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
+
+                if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockValid)
                 {
-                    streamWriter.WriteLine($"TxId: {queuedTransaction.TransactionId}; Enqueue time: {queuedTransaction.EnqueueTime}");
+                    await LocalEventBus.PublishAsync(new TransactionAcceptedEvent()
+                    {
+                        Transaction = queuedTransaction.Transaction
+                    });
+
+                    using (var streamWriter =
+                        new StreamWriter($"{Directory.GetCurrentDirectory()}/Logs/TxsReceived.txt", true))
+                    {
+                        streamWriter.WriteLine($"TxId: {queuedTransaction.TransactionId}; Enqueue time: {queuedTransaction.EnqueueTime}");
+                    }
                 }
             }
         }
