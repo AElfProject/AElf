@@ -236,7 +236,8 @@ namespace AElf.Contracts.Election
                 VotingItemId = State.MinerElectionVotingItemId.Value,
                 Amount = votingRecord.Amount,
                 Voter = votingRecord.Voter,
-                Option = input.CandidatePubkey
+                Option = input.CandidatePubkey,
+                IsChangeTarget = true
             });
 
             // Update related candidate
@@ -264,7 +265,6 @@ namespace AElf.Contracts.Election
                     AllObtainedVotedVotesAmount = votingRecord.Amount
                 };
             }
-            votingRecord.IsChangeTarget = true;
             return new Empty();
         }
 
