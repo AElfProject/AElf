@@ -1,3 +1,4 @@
+using AElf.OS.Account;
 using AElf.OS.BlockSync;
 using AElf.TestBase;
 
