@@ -48,13 +48,17 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
 
             var blockHashWithoutCache = executedBlock.GetHashWithoutCache();
-            if (blockHashWithoutCache != blockHash)
+            if (!blockHashWithoutCache.Equals(blockHash))
             {
-                Logger.LogWarning($"Block execution failed. Block: {executedBlock}");
+                Logger.LogWarning(
+                    $"Block execution failed. Block header: {executedBlock.Header}, Block body: {executedBlock.Body}");
+
+                return false;
             }
-            return blockHashWithoutCache.Equals(blockHash);
+
+            return true;
         }
-        
+
         /// <summary>
         /// Processing pipeline for a block contains ValidateBlockBeforeExecute, ExecuteBlock and ValidateBlockAfterExecute.
         /// </summary>
