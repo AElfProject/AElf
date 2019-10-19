@@ -71,9 +71,9 @@ namespace AElf.Kernel.SmartContract.Application
                 if (trace == null)
                     break;
                 // Will be useful when debugging MerkleTreeRootOfWorldState is different from each miner.
-                Logger.LogTrace(transaction.MethodName);
-                Logger.LogTrace(trace.StateSet.Writes.Values.Select(v => v.ToBase64().ComputeHash().ToHex())
-                    .JoinAsString("\n"));
+//                Logger.LogTrace(transaction.MethodName);
+//                Logger.LogTrace(trace.StateSet.Writes.Values.Select(v => v.ToBase64().ComputeHash().ToHex())
+//                    .JoinAsString("\n"));
 
                 if (!trace.IsSuccessful())
                 {

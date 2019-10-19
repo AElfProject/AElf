@@ -133,7 +133,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             };
             blockStateSet.BlockHash = blockHash;
             await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
-
+            Logger.LogTrace($"BlockStateSet: {blockStateSet}");
             return block;
         }
 
