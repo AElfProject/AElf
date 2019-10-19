@@ -250,7 +250,7 @@ namespace AElf.Contracts.Election
             newCandidateVotes.ObtainedActiveVotedVotesAmount =
                 newCandidateVotes.ObtainedActiveVotedVotesAmount.Add(votingRecord.Amount);
             State.CandidateVotes[input.CandidatePubkey] = newCandidateVotes;
-
+            votingRecord.IsChangeTarget = true;
             return new Empty();
         }
 

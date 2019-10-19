@@ -96,11 +96,6 @@ namespace AElf.Contracts.Vote
                 VoteTimestamp = Context.CurrentBlockTime,
                 Voter = input.Voter
             };
-            if (State.VotingRecords[input.VoteId] != null)
-            {
-                if(State.VotingRecords[input.VoteId].IsWithdrawn)
-                    votingRecord.IsChangeTarget = true;
-            }
             //save the VotingRecords into the state.
             State.VotingRecords[input.VoteId] = votingRecord;
 
