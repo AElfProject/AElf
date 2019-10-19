@@ -98,6 +98,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             }
             catch (SmartContractFindRegistrationException e)
             {
+                Logger.LogError(e, $"problem while calc resources");
                 return new TransactionResourceInfo
                 {
                     TransactionId = transaction.GetHash(),
@@ -108,7 +109,12 @@ namespace AElf.Kernel.SmartContract.Parallel
             {
                 if (executive != null)
                 {
+                    Logger.LogDebug($"[assembly] GetResourcesForOneAsync - About to put back executive {address.Value.ToBase64()}.");
                     await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
+                }
+                else
+                {
+                    Logger.LogWarning("Null executive");
                 }
             }
         }

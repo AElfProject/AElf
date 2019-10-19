@@ -23,5 +23,7 @@ namespace AElf.Kernel.SmartContract.Application
         IReadOnlyDictionary<Address, long> GetContractInfoCache();
 
         bool IsContractDeployOrUpdating(Address address);
+
+        void PrintUnloadedAssemblies();
     }
 }

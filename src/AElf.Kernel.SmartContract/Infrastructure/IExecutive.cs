@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
@@ -11,7 +12,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
     /// </summary>
     public interface IExecutive
     {
-        IReadOnlyList<ServiceDescriptor> Descriptors { get; }
+        List<ServiceDescriptor> Descriptors { get; }
         IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext);
         Task ApplyAsync(ITransactionContext transactionContext);
         string GetJsonStringOfParameters(string methodName, byte[] paramsBytes);
@@ -19,5 +20,9 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         IEnumerable<FileDescriptor> GetFileDescriptors();
         
         Hash ContractHash { get; }
+
+        WeakReference Unload();
+        string AssemblyName();
+        void Init(SmartContractRegistration reg);
     }
 }

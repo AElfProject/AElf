@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Kernel.Infrastructure;
@@ -10,6 +11,7 @@ using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -21,8 +23,8 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly IHostSmartContractBridgeContextService _hostSmartContractBridgeContextService;
 
-        private readonly ConcurrentDictionary<Address, ConcurrentBag<IExecutive>> _executivePools =
-            new ConcurrentDictionary<Address, ConcurrentBag<IExecutive>>();
+        private readonly ConcurrentDictionary<Address, PoolWithId> _executivePools =
+            new ConcurrentDictionary<Address, PoolWithId>();
 
         private readonly ConcurrentDictionary<Address, SmartContractRegistration>
             _addressSmartContractRegistrationMappingCache =
@@ -33,6 +35,8 @@ namespace AElf.Kernel.SmartContract.Application
             new ConcurrentDictionary<Address, long>();
 
         private readonly IReadOnlyDictionary<Address, long> _readOnlyContractInfoCache;
+        
+        public ILogger<SmartContractExecutiveService> Logger { get; set; }
 
         public SmartContractExecutiveService(
             ISmartContractRunnerContainer smartContractRunnerContainer, IBlockchainStateManager blockchainStateManager,
@@ -46,12 +50,23 @@ namespace AElf.Kernel.SmartContract.Application
             _readOnlyContractInfoCache = new ReadOnlyDictionary<Address, long>(_contractInfoCache);
         }
 
-        private ConcurrentBag<IExecutive> GetPool(Address address)
+        public class PoolWithId : ConcurrentBag<IExecutive>
+        {
+            public Guid Id { get; set; }
+
+            public PoolWithId()
+            {
+                Id = Guid.NewGuid();
+            }
+        }
+
+        private PoolWithId GetPool(Address address)
         {
             if (!_executivePools.TryGetValue(address, out var pool))
             {
-                pool = new ConcurrentBag<IExecutive>();
+                pool = new PoolWithId();
                 _executivePools[address] = pool;
+                Logger.LogDebug($"Added new pool for {address.Value.ToBase64()}, pool id: {pool.Id}");
             }
 
             return pool;
@@ -68,6 +83,8 @@ namespace AElf.Kernel.SmartContract.Application
 
             if (!pool.TryTake(out var executive))
             {
+                Logger.LogDebug($"No executives in pool for {address.Value.ToBase64()} - pool id: {pool.Id}");
+                
                 var reg = await GetSmartContractRegistrationAsync(chainContext, address);
                 executive = await GetExecutiveAsync(address, reg);
 
@@ -81,6 +98,7 @@ namespace AElf.Kernel.SmartContract.Application
                         //not from zero contract, so we need to load new zero contract from the old executive,
                         //and replace it
                         reg = await GetSmartContractRegistrationFromZeroAsync(executive, chainContext, address);
+                        Logger.LogDebug($"Overriding executive {address.Value.ToBase64()} - pool id: {pool.Id}");
                         executive = await GetExecutiveAsync(address, reg);
                     }
                     
@@ -88,6 +106,10 @@ namespace AElf.Kernel.SmartContract.Application
                     _addressSmartContractRegistrationMappingCache.TryAdd(address, reg);
 
                 }
+            }
+            else
+            {
+                Logger.LogDebug($"Taken an executive for {address.Value.ToBase64()} - pool id: {pool.Id} - {executive.AssemblyName()}");
             }
 
             return await GetExecutiveAsync(chainContext, address, executive);
@@ -99,6 +121,7 @@ namespace AElf.Kernel.SmartContract.Application
             var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
 
             // run smartcontract executive info and return executive
+            Logger.LogDebug($"Creating executive for {address.Value.ToBase64()}");
             var executive = await runner.RunAsync(reg);
 
             var context =
@@ -106,7 +129,8 @@ namespace AElf.Kernel.SmartContract.Application
             executive.SetHostSmartContractBridgeContext(context);
             return executive;
         }
-
+        
+        private List<WeakReference> _unloadableExecutives = new List<WeakReference>();
 
         public virtual async Task PutExecutiveAsync(Address address, IExecutive executive)
         {
@@ -117,23 +141,87 @@ namespace AElf.Kernel.SmartContract.Application
                     if (reg.CodeHash == executive.ContractHash)
                     {
                         pool.Add(executive);
+                        Logger.LogDebug($"PutExecutiveAsync - Put back executive to pool for {address.Value.ToBase64()} pool count {pool.Count}, pool id: {pool.Id}, name {executive.AssemblyName()}");
                     }
                 }
+            }
+            else
+            {
+                Logger.LogDebug($"PutExecutiveAsync - Could not find executive pool for {address.Value.ToBase64()}");
+                UnloadExecutive(executive, address);
             }
 
             await Task.CompletedTask;
         }
 
+        private bool UnloadExecutive(IExecutive executive, Address address)
+        {
+            Logger.LogDebug($"UnloadExecutive - About to unload {executive.AssemblyName()}");
+            
+            WeakReference loadContext = executive.Unload();
+            if (!loadContext.IsAlive)
+            {
+                Logger.LogDebug($"UnloadExecutive - Unloaded {address.Value.ToBase64()} -- {executive.AssemblyName()}");
+                return true;
+            }
+            else
+            {
+                _unloadableExecutives.Add(loadContext);
+                Logger.LogDebug($"UnloadExecutive - Could not unload {address.Value.ToBase64()} -- {executive.AssemblyName()}");
+                return false;
+            }
+        }
+
+        public void PrintUnloadedAssemblies()
+        {
+            Logger.LogDebug($"PrintUnloadedAssemblies - Starting unloading");
+            
+            foreach (var unloadableExecutive in _unloadableExecutives)
+            {
+                Logger.LogDebug($"PrintUnloadedAssemblies - weak ref: {unloadableExecutive.IsAlive}");
+            }
+        }
+
         public async Task SetContractInfoAsync(Address address, long blockHeight)
         {
-            _executivePools.TryRemove(address, out _);
-            _addressSmartContractRegistrationMappingCache.TryRemove(address, out _);
-            if (!_contractInfoCache.TryGetValue(address, out var height) || blockHeight > height)
+            try
             {
-                _contractInfoCache[address] = blockHeight;
-                var chainContractInfo = await _blockchainStateManager.GetChainContractInfoAsync();
-                chainContractInfo.ContractInfos[address.ToStorageKey()] = blockHeight;
-                await _blockchainStateManager.SetChainContractInfoAsync(chainContractInfo);
+                if (_executivePools.TryRemove(address, out var oldExecutives))
+                {
+                    Logger.LogDebug($"SetContractInfoAsync - Removed pool for the address {address.Value.ToBase64()} - pool id: {oldExecutives.Id} - count {oldExecutives.Count}");
+                
+                    foreach (var executive in oldExecutives.ToList())
+                    {
+                        UnloadExecutive(executive, address);
+//                        if (executive.Unload())
+//                            Logger.LogDebug($"SetContractInfoAsync - Unloaded {address.Value.ToBase64()} - {executive.AssemblyName()}");
+//                        else
+//                        {
+//                            _unloadableExecutives.Add(executive);
+//
+//                            Logger.LogDebug(
+//                                $"SetContractInfoAsync - executive not unloaded {address.Value.ToBase64()} - {executive.AssemblyName()}");
+//                        }
+                    }
+                    
+                    Logger.LogDebug($"SetContractInfoAsync - Unloaded executives for {address.Value.ToBase64()} - pool id: {oldExecutives.Id} ");
+                }
+
+                _addressSmartContractRegistrationMappingCache.TryRemove(address, out _);
+            
+                if (!_contractInfoCache.TryGetValue(address, out var height) || blockHeight > height)
+                {
+                    _contractInfoCache[address] = blockHeight;
+                    var chainContractInfo = await _blockchainStateManager.GetChainContractInfoAsync();
+                    chainContractInfo.ContractInfos[address.ToStorageKey()] = blockHeight;
+                    await _blockchainStateManager.SetChainContractInfoAsync(chainContractInfo);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, $"error");
+                Logger.LogError(e, $"error when removing pool for the address { address.Value.ToBase64() }");
+                throw;
             }
         }
 
@@ -196,6 +284,8 @@ namespace AElf.Kernel.SmartContract.Application
         private async Task<SmartContractRegistration> GetSmartContractRegistrationFromZeroAsync(
             IChainContext chainContext, Address address)
         {
+            Logger.LogDebug($"[assembly] Getting the smart contract reg {address.Value.ToBase64()}.");
+
             IExecutive executiveZero = null;
             try
             {
@@ -207,6 +297,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (executiveZero != null)
                 {
+                    Logger.LogDebug($"[assembly] About to put back executive {address.Value.ToBase64()}.");
                     await PutExecutiveAsync(_defaultContractZeroCodeProvider.ContractZeroAddress, executiveZero);
                 }
             }
@@ -277,7 +368,8 @@ namespace AElf.Kernel.SmartContract.Application
         private async Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address,
             IExecutive executive)
         {
-            if (!_contractInfoCache.TryGetValue(address, out var height) || height == 1) return executive;
+            if (!_contractInfoCache.TryGetValue(address, out var height) || height == 1) 
+                return executive;
 
             var smartContractRegistration = await GetGetSmartContractRegistrationWithoutCacheAsync(chainContext, address);
             if (smartContractRegistration.CodeHash == executive.ContractHash) return executive;

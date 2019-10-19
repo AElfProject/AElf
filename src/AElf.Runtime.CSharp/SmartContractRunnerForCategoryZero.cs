@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -13,7 +14,7 @@ namespace AElf.Runtime.CSharp
     public class SmartContractRunnerForCategoryZero : ISmartContractRunner
     {
         public int Category { get; protected set; }
-        private readonly ISdkStreamManager _sdkStreamManager;
+        protected readonly ISdkStreamManager _sdkStreamManager;
 
         private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams =
             new ConcurrentDictionary<string, MemoryStream>();
@@ -42,30 +43,32 @@ namespace AElf.Runtime.CSharp
         /// Creates an isolated context for the smart contract residing with an Api singleton.
         /// </summary>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.NoInlining)]
         protected virtual AssemblyLoadContext GetLoadContext()
         {
             // To make sure each smart contract resides in an isolated context with an Api singleton
             return new ContractCodeLoadContext(_sdkStreamManager);
         }
 
+        [MethodImpl(MethodImplOptions.NoInlining)]
         public virtual async Task<IExecutive> RunAsync(SmartContractRegistration reg)
         {
-            var code = reg.Code.ToByteArray();
+//            var code = reg.Code.ToByteArray();
+//            var loadContext = GetLoadContext();
 
-            var loadContext = GetLoadContext();
+//            Assembly assembly = null;
+//            using (Stream stream = new MemoryStream(code))
+//            {
+//                assembly = loadContext.LoadFromStream(stream);
+//            }
+//
+//            if (assembly == null)
+//            {
+//                throw new InvalidCodeException("Invalid binary code.");
+//            }
 
-            Assembly assembly = null;
-            using (Stream stream = new MemoryStream(code))
-            {
-                assembly = loadContext.LoadFromStream(stream);
-            }
-
-            if (assembly == null)
-            {
-                throw new InvalidCodeException("Invalid binary code.");
-            }
-
-            var executive = new Executive(assembly, _executivePlugins) {ContractHash = reg.CodeHash};
+            var executive = new Executive(_executivePlugins, _sdkStreamManager) { ContractHash = reg.CodeHash };
+            executive.Init(reg);
 
             return await Task.FromResult(executive);
         }

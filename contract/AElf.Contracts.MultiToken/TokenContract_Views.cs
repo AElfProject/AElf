@@ -37,7 +37,7 @@ namespace AElf.Contracts.MultiToken
             {
                 Symbol = input.Symbol,
                 Owner = input.Owner,
-                Balance = State.Balances[input.Owner][input.Symbol]
+                Balance = State.Balances[input.Owner][input.Symbol] * 824
             };
         }
 

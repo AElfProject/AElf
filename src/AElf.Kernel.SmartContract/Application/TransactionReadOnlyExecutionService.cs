@@ -5,12 +5,15 @@ using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 using Google.Protobuf.Reflection;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.SmartContract.Application
 {
     public class TransactionReadOnlyExecutionService : ITransactionReadOnlyExecutionService
     {
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
+        
+        public ILogger<TransactionReadOnlyExecutionService> Logger { get; set; }
 
         public TransactionReadOnlyExecutionService(ISmartContractExecutiveService smartContractExecutiveService)
         {
@@ -45,6 +48,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
             finally
             {
+                Logger.LogDebug($"[assembly] ExecuteAsync - About to put back executive {transaction.To.Value.ToBase64()}.");
                 await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
             }
 
@@ -66,6 +70,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (executive != null)
                 {
+                    Logger.LogDebug($"[assembly] GetFileDescriptorSetAsync - About to put back executive {address.Value.ToBase64()}.");
                     await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
                 }
             }
@@ -88,6 +93,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (executive != null)
                 {
+                    Logger.LogDebug($"[assembly] GetFileDescriptorsAsync - About to put back executive {address.Value.ToBase64()}.");
                     await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
                 }
             }
@@ -108,6 +114,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (executive != null)
                 {
+                    Logger.LogDebug($"[assembly] GetTransactionParametersAsync - About to put back executive {address.Value.ToBase64()}.");
                     await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
                 }
             }

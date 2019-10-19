@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -11,6 +12,8 @@ namespace AElf.Kernel.SmartContract.Application
 
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISmartContractExecutiveService _smartContractExecutiveService;
+        
+        public ILogger<SmartContractService> Logger { get; set; }
 
         public SmartContractService(
             ISmartContractRunnerContainer smartContractRunnerContainer,
@@ -31,8 +34,13 @@ namespace AElf.Kernel.SmartContract.Application
 
             if (contractDto.ContractName != null)
                 _smartContractAddressService.SetAddress(contractDto.ContractName, contractDto.ContractAddress);
+            
+            Logger.LogDebug($"DeployContractAsync - {contractDto.ContractName}");
+            
             await _smartContractExecutiveService.SetContractInfoAsync(contractDto.ContractAddress,
                 contractDto.BlockHeight);
+            
+            Logger.LogDebug($"Finished DeployContractAsync - {contractDto.ContractName}");
 
             //Todo New version metadata handle it
 //            var contractType = runner.GetContractType(registration);
@@ -46,9 +54,10 @@ namespace AElf.Kernel.SmartContract.Application
             var runner = _smartContractRunnerContainer.GetRunner(contractDto.SmartContractRegistration.Category);
             await Task.Run(() => runner.CodeCheck(contractDto.SmartContractRegistration.Code.ToByteArray(),
                 contractDto.IsPrivileged));
+            
+            Logger.LogDebug($"UpdateContractAsync - {contractDto.ContractName}");
 
-            await _smartContractExecutiveService.SetContractInfoAsync(contractDto.ContractAddress,
-                contractDto.BlockHeight);
+            await _smartContractExecutiveService.SetContractInfoAsync(contractDto.ContractAddress, contractDto.BlockHeight);
 
             //Todo New version metadata handle it
 //            var oldRegistration = await GetContractByAddressAsync(contractAddress);

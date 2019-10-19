@@ -28,39 +28,37 @@ namespace AElf.Runtime.CSharp
         public override async Task<IExecutive> RunAsync(SmartContractRegistration reg)
         {
             var code = reg.Code.ToByteArray();
-
             var loadContext = GetLoadContext();
+//
+//            Assembly assembly = null;
+//            using (Stream stream = new MemoryStream(code))
+//            {
+//                assembly = loadContext.LoadFromStream(stream);
+//                
+//                //load by main context, not load in code, directly load in dll
+//
+//                try
+//                {
+//                    var assembly2 = Assembly.Load(assembly.FullName);
+//
+//                    if (code.SequenceEqual(File.ReadAllBytes(assembly2.Location)))
+//                    {
+//                        assembly = assembly2;
+//                    }
+//                }
+//                catch(Exception)
+//                {
+//                    //may cannot find assembly in local
+//                }
+//            }
+//
+//            if (assembly == null)
+//            {
+//                throw new InvalidCodeException("Invalid binary code.");
+//            }
 
-            Assembly assembly = null;
-            using (Stream stream = new MemoryStream(code))
-            {
-                assembly = loadContext.LoadFromStream(stream);
-                
-                //load by main context, not load in code, directly load in dll
-
-                try
-                {
-                    var assembly2 = Assembly.Load(assembly.FullName);
-
-                    if (code.SequenceEqual(File.ReadAllBytes(assembly2.Location)))
-                    {
-                        assembly = assembly2;
-                    }
-                }
-                catch(Exception)
-                {
-                    //may cannot find assembly in local
-                }
-            }
-
-            if (assembly == null)
-            {
-                throw new InvalidCodeException("Invalid binary code.");
-            }
-
-            var executive = new Executive(assembly, _executivePlugins);
-            
-            executive.ContractHash = reg.CodeHash;
+            var executive = new Executive(_executivePlugins, _sdkStreamManager) { ContractHash = reg.CodeHash };
+            executive.Init(reg);
 
             return await Task.FromResult(executive);
         }

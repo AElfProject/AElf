@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
@@ -19,54 +21,50 @@ namespace AElf.Runtime.CSharp
 {
     public class Executive : IExecutive
     {
-        private readonly Assembly _contractAssembly;
-        private readonly Type _contractType;
-        private readonly object _contractInstance;
-        private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
-        private readonly ServerServiceDefinition _serverServiceDefinition;
+        private Type _contractType;
+        private object _contractInstance;
+        private ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
+        private ServerServiceDefinition _serverServiceDefinition;
 
         private CSharpSmartContractProxy _smartContractProxy;
         private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
 
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
         private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
-        public IReadOnlyList<ServiceDescriptor> Descriptors { get; }
+        private readonly ISdkStreamManager _sdkStreamManager;
 
-        private Type FindContractType(Assembly assembly)
+        private ContractCodeLoadContext _loadContext;
+        public List<ServiceDescriptor> Descriptors { get; private set; }
+
+        public Executive(IServiceContainer<IExecutivePlugin> executivePlugins, ISdkStreamManager sdkStreamManager)
         {
-            var types = assembly.GetTypes();
-            return types.SingleOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t) && !t.IsNested);
+            _executivePlugins = executivePlugins;
+            _sdkStreamManager = sdkStreamManager;
         }
-
-        private Type FindContractBaseType(Assembly assembly)
+        
+        private ServerServiceDefinition GetServerServiceDefinition(ContractCodeLoadContext context)
         {
-            var types = assembly.GetTypes();
-            return types.SingleOrDefault(t => typeof(ISmartContract).IsAssignableFrom(t) && t.IsNested);
-        }
-
-        private Type FindContractContainer(Assembly assembly)
-        {
-            var contractBase = FindContractBaseType(assembly);
-            return contractBase.DeclaringType;
-        }
-
-        private ServerServiceDefinition GetServerServiceDefinition(Assembly assembly)
-        {
-            var methodInfo = FindContractContainer(assembly).GetMethod("BindService",
-                new[] {FindContractBaseType(assembly)});
+            var methodInfo = context.FindContractContainer().GetMethod("BindService", 
+                new[] {context.FindContractBaseType()});
+            
             return methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
         }
 
-        public Executive(Assembly assembly, IServiceContainer<IExecutivePlugin> executivePlugins)
+        public void Init(SmartContractRegistration reg)
         {
-            _contractAssembly = assembly;
-            _executivePlugins = executivePlugins;
-            _contractType = FindContractType(assembly);
+            var code = reg.Code.ToByteArray();
+            var loadContext = new ContractCodeLoadContext(_sdkStreamManager);
+            loadContext.LoadFromStream(code.ToArray());
+
+            _contractType = loadContext.GetContractType();
             _contractInstance = Activator.CreateInstance(_contractType);
             _smartContractProxy = new CSharpSmartContractProxy(_contractInstance);
-            _serverServiceDefinition = GetServerServiceDefinition(assembly);
+            _serverServiceDefinition = GetServerServiceDefinition(loadContext);
             _callHandlers = _serverServiceDefinition.GetCallHandlers();
-            Descriptors = _serverServiceDefinition.GetDescriptors();
+
+            Descriptors = _serverServiceDefinition.GetDescriptors().ToList();
+
+            _loadContext = loadContext;
         }
 
         public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
@@ -74,6 +72,17 @@ namespace AElf.Runtime.CSharp
             _hostSmartContractBridgeContext = smartContractBridgeContext;
             _smartContractProxy.InternalInitialize(_hostSmartContractBridgeContext);
             return this;
+        }
+
+        public WeakReference Unload()
+        {
+            _loadContext.Unload();
+            return new WeakReference(_loadContext);
+        }
+
+        public string AssemblyName()
+        {
+            return _loadContext.AssemblyName();
         }
 
         private void Cleanup()

@@ -51,6 +51,7 @@ namespace AElf.Kernel.SmartContract.Application
             var returnSets = new List<ExecutionReturnSet>();
             foreach (var transaction in transactionExecutingDto.Transactions)
             {
+                Logger.LogDebug($"Executing {transaction.GetHash().ToHex()}");
                 if (cancellationToken.IsCancellationRequested)
                 {
                     break;
@@ -207,6 +208,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
             finally
             {
+                Logger.LogDebug($"[assembly] About to put back executive {transaction.To.Value.ToBase64()}.");
                 await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
                 await LocalEventBus.PublishAsync(new TransactionExecutedEventData
                 {
