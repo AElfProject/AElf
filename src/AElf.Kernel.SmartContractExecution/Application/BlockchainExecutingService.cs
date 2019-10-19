@@ -52,7 +52,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             {
                 blockState = await _blockchainStateManager.GetBlockStateSetAsync(blockHashWithoutCache);
                 Logger.LogWarning($"Block execution failed. BlockStateSet: {blockState}");
-                Logger.LogWarning($"Block execution failed. Block: {executedBlock}");
+                Logger.LogWarning($"Block execution failed. Block header: {executedBlock.Header}, Block body: {executedBlock.Body}");
             }
             return blockHashWithoutCache.Equals(blockHash);
         }
