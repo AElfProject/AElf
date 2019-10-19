@@ -44,7 +44,8 @@ namespace AElf.Contracts.MultiToken
                 result.Value.Add(symbol, amount);
             }
 
-            var balanceAfterChargingBaseFee = State.Balances[fromAddress][Context.Variables.NativeSymbol];
+            var symbolToChargeTxSizeFee = GetPrimaryTokenSymbol(new Empty()).Value;
+            var balanceAfterChargingBaseFee = State.Balances[fromAddress][symbolToChargeTxSizeFee];
             var txSizeFeeAmount = input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice);
             txSizeFeeAmount = balanceAfterChargingBaseFee > txSizeFeeAmount // Enough to pay tx size fee.
                 ? txSizeFeeAmount
@@ -58,7 +59,7 @@ namespace AElf.Contracts.MultiToken
                 TokenToAmount =
                 {
                     {
-                        Context.Variables.NativeSymbol,
+                        symbolToChargeTxSizeFee,
                         txSizeFeeAmount
                     }
                 }
@@ -66,7 +67,7 @@ namespace AElf.Contracts.MultiToken
 
             // Charge tx size fee.
             var finalBalanceOfNativeSymbol = balanceAfterChargingBaseFee.Sub(txSizeFeeAmount);
-            State.Balances[fromAddress][Context.Variables.NativeSymbol] = finalBalanceOfNativeSymbol;
+            State.Balances[fromAddress][symbolToChargeTxSizeFee] = finalBalanceOfNativeSymbol;
 
             // Record the bill finally.
             var oldBill = State.ChargedFees[fromAddress];
@@ -78,14 +79,14 @@ namespace AElf.Contracts.MultiToken
                 input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice),
                 $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice)}");
 
-            if (result.Value.ContainsKey(Context.Variables.NativeSymbol))
+            if (result.Value.ContainsKey(symbolToChargeTxSizeFee))
             {
-                result.Value[Context.Variables.NativeSymbol] =
-                    result.Value[Context.Variables.NativeSymbol].Add(txSizeFeeAmount);
+                result.Value[symbolToChargeTxSizeFee] =
+                    result.Value[symbolToChargeTxSizeFee].Add(txSizeFeeAmount);
             }
             else
             {
-                result.Value.Add(Context.Variables.NativeSymbol, txSizeFeeAmount);
+                result.Value.Add(symbolToChargeTxSizeFee, txSizeFeeAmount);
             }
 
             return result;
