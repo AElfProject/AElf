@@ -5,6 +5,7 @@ using AElf.Contracts.Vote;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Election
@@ -246,10 +247,23 @@ namespace AElf.Contracts.Election
             State.CandidateVotes[votingRecord.Option] = oldCandidateVotes;
 
             var newCandidateVotes = State.CandidateVotes[input.CandidatePubkey];
-            newCandidateVotes.ObtainedActiveVotingRecordIds.Add(input.VoteId);
-            newCandidateVotes.ObtainedActiveVotedVotesAmount =
-                newCandidateVotes.ObtainedActiveVotedVotesAmount.Add(votingRecord.Amount);
-            State.CandidateVotes[input.CandidatePubkey] = newCandidateVotes;
+            if( newCandidateVotes != null )
+            {
+                newCandidateVotes.ObtainedActiveVotingRecordIds.Add(input.VoteId);
+                newCandidateVotes.ObtainedActiveVotedVotesAmount =
+                    newCandidateVotes.ObtainedActiveVotedVotesAmount.Add(votingRecord.Amount);
+                State.CandidateVotes[input.CandidatePubkey] = newCandidateVotes;
+            }
+            else
+            {
+                State.CandidateVotes[input.CandidatePubkey] = new CandidateVote
+                {
+                    Pubkey = input.CandidatePubkey.ToByteString(),
+                    ObtainedActiveVotingRecordIds = {input.VoteId},
+                    ObtainedActiveVotedVotesAmount = votingRecord.Amount,
+                    AllObtainedVotedVotesAmount = votingRecord.Amount
+                };
+            }
             votingRecord.IsChangeTarget = true;
             return new Empty();
         }
