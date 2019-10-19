@@ -285,10 +285,10 @@ namespace AElf.Contracts.Election
             var expectedMiningTime = orderOneMiner.ExpectedMiningTime;
             int bpCount = round.RealTimeMinersInformation.Count;
             long blockChainStartTime = expectedMiningTime.Seconds.Sub(bpCount.Add(1).Mul(4));
-            var weekSeconds = ElectionContractConstants.WeekSeconds;
+            var electionTimeSpan = State.TimeEachTerm.Value;
             var countDown = new SInt64Value
             {
-                Value = weekSeconds.Sub((int) Context.CurrentBlockTime.Seconds.Sub(blockChainStartTime) % weekSeconds)
+                Value = electionTimeSpan.Sub((int) Context.CurrentBlockTime.Seconds.Sub(blockChainStartTime) % electionTimeSpan)
             };
             return countDown;
         }

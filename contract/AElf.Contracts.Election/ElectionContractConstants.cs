@@ -11,6 +11,5 @@ namespace AElf.Contracts.Election
         public const int ElfTokenDecimals = 8;
         
         public const int VoteTokenDecimals = 0;
-        public const int WeekSeconds = 60 * 60 * 24 * 7;
     }
 }
