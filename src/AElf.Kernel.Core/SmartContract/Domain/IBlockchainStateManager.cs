@@ -162,6 +162,7 @@ namespace AElf.Kernel.SmartContract.Domain
         public async Task MergeBlockStateAsync(ChainStateInfo chainStateInfo, Hash blockStateHash)
         {
             var blockState = await _blockStateSets.GetAsync(blockStateHash.ToStorageKey());
+            
             if (blockState == null)
             {
                 if (chainStateInfo.Status == ChainStateMergingStatus.Merged &&
@@ -179,11 +180,13 @@ namespace AElf.Kernel.SmartContract.Domain
     
             if (chainStateInfo.BlockHash == null || chainStateInfo.BlockHash == blockState.PreviousHash)
             {
+                // flag as merging
                 chainStateInfo.Status = ChainStateMergingStatus.Merging;
                 chainStateInfo.MergingBlockHash = blockStateHash;
-
                 await _chainStateInfoCollection.SetAsync(chainStateInfo.ChainId.ToStorageKey(), chainStateInfo);
-                var dic = blockState.Changes.Select(change => new VersionedState()
+
+                // create versioned states: key => { block, (key;value) }
+                var versionedStates = blockState.Changes.Select(change => new VersionedState()
                 {
                     Key = change.Key,
                     Value = change.Value,
@@ -192,23 +195,26 @@ namespace AElf.Kernel.SmartContract.Domain
                     //OriginBlockHash = origin.BlockHash
                 }).ToDictionary(p => p.Key, p => p);
 
-                await _versionedStates.SetAllAsync(dic);
-
+                // save the states and remove deletes
+                await _versionedStates.SetAllAsync(versionedStates);
+                // todo can this be done before setting all keys ?
                 foreach (var key in blockState.Deletes)
                 {
                     await _versionedStates.RemoveAsync(key);
                 }
 
+                // update the chain info status
                 chainStateInfo.Status = ChainStateMergingStatus.Merged;
                 chainStateInfo.BlockHash = blockState.BlockHash;
                 chainStateInfo.BlockHeight = blockState.BlockHeight;
                 await _chainStateInfoCollection.SetAsync(chainStateInfo.ChainId.ToStorageKey(), chainStateInfo);
 
+                // remove the block state hash
                 await _blockStateSets.RemoveAsync(blockStateHash.ToStorageKey());
 
+                // update the chain info status again
                 chainStateInfo.Status = ChainStateMergingStatus.Common;
                 chainStateInfo.MergingBlockHash = null;
-
                 await _chainStateInfoCollection.SetAsync(chainStateInfo.ChainId.ToStorageKey(), chainStateInfo);
             }
             else

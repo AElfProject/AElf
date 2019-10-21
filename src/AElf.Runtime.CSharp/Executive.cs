@@ -94,6 +94,7 @@ namespace AElf.Runtime.CSharp
                 }
 
                 Execute();
+
                 if (CurrentTransactionContext.CallDepth == 0)
                 {
                     // Plugin should only apply to top level transaction
