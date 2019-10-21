@@ -214,7 +214,7 @@ namespace AElf.Parallel.Tests
                     Second = param.Second
                 };
                 var queryTransaction = _parallelTestHelper.GenerateTransaction(accountAddress,
-                    _parallelTestHelper.BasicFunctionWithParallelContractAddress,
+                    ParallelTestHelper.BasicFunctionWithParallelContractAddress,
                     nameof(BasicFunctionWithParallelContract.QueryTwoUserWinMoney), input);
                 var byteString = await _parallelTestHelper.ExecuteReadOnlyAsync(queryTransaction, block.GetHash(), block.Height);
                 var output = TwoUserMoneyOut.Parser.ParseFrom(byteString);
