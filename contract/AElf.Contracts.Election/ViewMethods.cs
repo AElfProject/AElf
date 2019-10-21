@@ -251,12 +251,8 @@ namespace AElf.Contracts.Election
         public override CandidateVote GetCandidateVoteWithAllRecords(StringInput input)
         {
             var votes = GetCandidateVoteWithRecords(input);
-
-            if (!votes.ObtainedActiveVotingRecordIds.Any())
-            {
-                return votes;
-            }
-
+            
+            //get withdrawn records
             var obtainedWithdrawnRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
                 Ids = {votes.ObtainedWithdrawnVotingRecordIds}
