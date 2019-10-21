@@ -190,6 +190,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return currentRound.ExtraBlockProducerOfPreviousRound == pubkey;
             }
 
+            if (currentRound.IsMinerListJustChanged)
+            {
+                Context.LogDebug(() => "Term changed and ExtraBlockProducerOfPreviousRound is incorrect.");
+            }
+
             var miningInterval = currentRound.GetMiningInterval();
             var currentRoundExtraBlockMiningTime = currentRound.GetExtraBlockMiningTime();
             var miningInRound = currentRound.RealTimeMinersInformation[pubkey];
@@ -210,7 +215,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return false;
         }
 
-        private Round GenerateFirstRoundOfNextTerm(string senderPublicKey, int miningInterval)
+        private Round GenerateFirstRoundOfNextTerm(string senderPubkey, int miningInterval)
         {
             Round newRound;
             TryToGetCurrentRoundInformation(out var currentRound);
@@ -235,14 +240,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             newRound.BlockchainAge = GetBlockchainAge();
 
-            if (newRound.RealTimeMinersInformation.ContainsKey(senderPublicKey))
+            if (newRound.RealTimeMinersInformation.ContainsKey(senderPubkey))
             {
-                newRound.RealTimeMinersInformation[senderPublicKey].ProducedBlocks = 1;
+                newRound.RealTimeMinersInformation[senderPubkey].ProducedBlocks = 1;
             }
             else
             {
-                UpdateCandidateInformation(senderPublicKey, 1, 0);
+                UpdateCandidateInformation(senderPubkey, 1, 0);
             }
+
+            newRound.ExtraBlockProducerOfPreviousRound = senderPubkey;
 
             return newRound;
         }
