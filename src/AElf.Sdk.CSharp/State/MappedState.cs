@@ -25,6 +25,7 @@ namespace AElf.Sdk.CSharp.State
 
         internal Dictionary<TKey, ValuePair> Cache = new Dictionary<TKey, ValuePair>();
 
+        // todo : does this key have to be IComparable or something.
         public TEntity this[TKey key]
         {
             get
