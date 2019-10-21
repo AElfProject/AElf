@@ -315,6 +315,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         evilMinersPubKey.Add(minerInCurrentRound.Pubkey);
                 }
             }
+
             return evilMinersPubKey;
 
             // Below LINQ-expression causes unchecked math instructions after compilation
@@ -381,15 +382,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .Div(State.MinerIncreaseInterval.Value).Mul(2)), State.MaximumMinersCount.Value);
         }
 
-        public override SInt64Value GetCurrentWelfareReward(Empty input)
+        public override SInt64Value GetNextElectCountDown(Empty input)
         {
-            if (TryToGetCurrentRoundInformation(out var currentRound))
-            {
-                return new SInt64Value
-                    {Value = currentRound.GetMinedBlocks().Mul(GetMiningRewardPerBlock())};
-            }
-
-            return new SInt64Value {Value = 0};
+            var firstRoundNumberOfCurrentTerm = State.FirstRoundNumberOfEachTerm[State.CurrentTermNumber.Value];
+            if (!TryToGetRoundInformation(firstRoundNumberOfCurrentTerm, out var firstRoundOfCurrentTerm))
+                return new SInt64Value(); // Unlikely.
+            var currentTermEndTime = firstRoundOfCurrentTerm.GetRoundStartTime().AddMilliseconds(State.TimeEachTerm.Value);
+            return new SInt64Value {Value = (currentTermEndTime - Context.CurrentBlockTime).Seconds};
         }
     }
 }
