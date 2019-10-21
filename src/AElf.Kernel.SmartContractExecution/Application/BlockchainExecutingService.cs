@@ -117,6 +117,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     var processResult = await TryProcessBlockAsync(linkedBlock);
                     if (!processResult)
                     {
+                        // todo should this also remove the block state set.
                         await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
                             ChainBlockLinkExecutionStatus.ExecutionFailed);
                         await _chainManager.RemoveLongestBranchAsync(chain);

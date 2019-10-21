@@ -210,7 +210,7 @@ namespace AElf.Kernel.SmartContract.Domain
                 chainStateInfo.BlockHeight = blockState.BlockHeight;
                 await _chainStateInfoCollection.SetAsync(chainStateInfo.ChainId.ToStorageKey(), chainStateInfo);
 
-                // remove the block state hash
+                // remove the block state set hash
                 await _blockStateSets.RemoveAsync(blockStateHash.ToStorageKey());
 
                 // update the chain info status again
