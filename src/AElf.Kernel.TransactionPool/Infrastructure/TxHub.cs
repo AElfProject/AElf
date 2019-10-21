@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -82,17 +81,13 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             output.Transactions.AddRange(_validatedTransactions.Values.OrderBy(x => x.EnqueueTime)
                 .Where((x, i) => transactionCount <= 0 || i < transactionCount).Select(x => x.Transaction));
-
-            using (var streamWriter =
-                new StreamWriter($"{Directory.GetCurrentDirectory()}/Logs/GetExecutables.txt", true))
+            
+            Logger.LogInformation($"Time now:{TimestampHelper.GetUtcNow()};GetExecutableTransactionSet list:");
+            foreach (var transaction in output.Transactions)
             {
-                var collection = _validatedTransactions.Values.OrderBy(x => x.EnqueueTime)
-                    .Where((x, i) => transactionCount <= 0 || i < transactionCount).Select(x => x.TransactionId);
-                foreach (var item in collection)
-                {
-                    streamWriter.WriteLine($"TxId out from pool:{item};Out time:{TimestampHelper.GetUtcNow()}");
-                }
+                Logger.LogInformation($"{transaction.GetHash()};");
             }
+
             return output;
         }
 
@@ -262,37 +257,40 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                         Transaction = queuedTransaction.Transaction
                     });
 
-                    using (var streamWriter =
-                        new StreamWriter($"{Directory.GetCurrentDirectory()}/Logs/TxsReceived.txt", true))
-                    {
-                        streamWriter.WriteLine($"TxId: {queuedTransaction.TransactionId}; Enqueue time: {queuedTransaction.EnqueueTime}");
-                    }
+                    Logger.LogInformation(
+                        $"In HandleTransactionsReceived : TxId: {queuedTransaction.TransactionId}; Enqueue time: {queuedTransaction.EnqueueTime}");
                 }
             }
         }
 
+        private void LoggerTransactionsDict(ConcurrentDictionary<Hash,QueuedTransaction> txDictionary)
+        {
+            foreach (var tx in txDictionary)
+            {
+                Logger.LogInformation($"{tx.Value.TransactionId}");
+            }
+        }
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
+            Logger.LogInformation($"Before clean,at HandleBlockAccepted height: {block.Height}; _allTransactions' count = '{_allTransactions.Count};_validatedTransactions' count = {_validatedTransactions.Count}");
+            
+            //before clean
+            Logger.LogInformation("_allTransactions list:");
+            LoggerTransactionsDict(_allTransactions);
+            Logger.LogInformation("_validatedTransactions list:");
+            LoggerTransactionsDict(_validatedTransactions);
+            //clean txs
             CleanTransactions(block.Body.TransactionIds.ToList());
             CleanTransactionsInValidated(block.Body.TransactionIds.ToList());
-            using (var streamWriter =
-                new StreamWriter($"{Directory.GetCurrentDirectory()}/Logs/allTxsAfterClean.txt", true))
-            {
-                foreach (var item in _allTransactions)
-                {
-                    streamWriter.WriteLine($"At block height:{block.Height}\n,allTxId remain in pool:{item.Value.TransactionId};After clean,now is:{TimestampHelper.GetUtcNow()}");
-                }
-            }
             
-            using (var streamWriter =
-                new StreamWriter($"{Directory.GetCurrentDirectory()}/Logs/validatedTxsAfterClean.txt", true))
-            {
-                foreach (var item in _validatedTransactions)
-                {
-                    streamWriter.WriteLine($"At block height:{block.Height}\n,validatedTxId remain in pool:{item.Value.TransactionId};After clean,now is:{TimestampHelper.GetUtcNow()}");
-                }
-            }
+            //after clean
+            Logger.LogInformation($"After clean, _allTransactions' count = '{_allTransactions.Count};_validatedTransactions' count = {_validatedTransactions.Count}");
+           
+            Logger.LogInformation("_allTransactions after clean list:");
+            LoggerTransactionsDict(_allTransactions);
+            Logger.LogInformation("_validatedTransactions after clean list:");
+            LoggerTransactionsDict(_validatedTransactions);
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
