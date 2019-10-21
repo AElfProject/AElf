@@ -384,10 +384,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override SInt64Value GetNextElectCountDown(Empty input)
         {
-            var firstRoundNumberOfCurrentTerm = State.FirstRoundNumberOfEachTerm[State.CurrentTermNumber.Value];
-            if (!TryToGetRoundInformation(firstRoundNumberOfCurrentTerm, out var firstRoundOfCurrentTerm))
-                return new SInt64Value(); // Unlikely.
-            var currentTermEndTime = firstRoundOfCurrentTerm.GetRoundStartTime().AddMilliseconds(State.TimeEachTerm.Value);
+            var currentTermNumber = State.CurrentTermNumber.Value;
+            Timestamp currentTermStartTime;
+            if (currentTermNumber == 1)
+            {
+                currentTermStartTime = State.BlockchainStartTimestamp.Value;
+            }
+            else
+            {
+                var firstRoundNumberOfCurrentTerm = State.FirstRoundNumberOfEachTerm[currentTermNumber];
+                if (!TryToGetRoundInformation(firstRoundNumberOfCurrentTerm, out var firstRoundOfCurrentTerm))
+                    return new SInt64Value(); // Unlikely.
+                currentTermStartTime = firstRoundOfCurrentTerm.GetRoundStartTime();
+            }
+
+            var currentTermEndTime = currentTermStartTime.AddSeconds(State.TimeEachTerm.Value);
             return new SInt64Value {Value = (currentTermEndTime - Context.CurrentBlockTime).Seconds};
         }
     }
