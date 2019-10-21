@@ -56,6 +56,7 @@ namespace AElf.Kernel.SmartContract.Domain
         {
             ByteString value = null;
 
+            // todo : this is not the best chain right ? it's irreversible after merging the state.
             //first DB read
             var bestChainState = await _versionedStates.GetAsync(key);
 
