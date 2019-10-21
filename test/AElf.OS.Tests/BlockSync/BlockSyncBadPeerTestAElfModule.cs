@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Modularity;
 using AElf.OS.Network;
@@ -19,6 +20,24 @@ namespace AElf.OS.BlockSync
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             _peers.Add("BadPeerPubkey", new PeerInfo());
+            _peers.Add("NotLinkedBlockPubkey", new PeerInfo());
+            _peers.Add("WrongLIBPubkey", new PeerInfo
+            {
+                Pubkey = "WrongLIBPubkey",
+                SyncState = SyncState.Finished,
+                LastKnownLibHeight = 110
+            });
+
+            for (int i = 0; i < 15; i++)
+            {
+                var pubkey = "GoodPeerPubkey" + i;
+                _peers.Add(pubkey, new PeerInfo
+                {
+                    Pubkey = pubkey,
+                    SyncState = SyncState.Finished,
+                    LastKnownLibHeight = 150
+                });
+            }
 
             var osTestHelper = context.Services.GetServiceLazy<OSTestHelper>();
             
@@ -39,24 +58,43 @@ namespace AElf.OS.BlockSync
                         return Task.FromResult(new Response<BlockWithTransactions>(result));
                     });
 
-//                networkServiceMock
-//                    .Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>(),
-//                        It.IsAny<string>()))
-//                    .Returns<Hash, int, string>((previousBlockHash, count, peerPubKey) =>
-//                    {
-//                        var result = new List<BlockWithTransactions>();
-//
-//                        var hash = previousBlockHash;
-//                        
-//                        while (result.Count < count && _peerBlockList.TryGetValue(hash, out var block))
-//                        {
-//                            result.Add(new BlockWithTransactions {Header = block.Header});
-//
-//                            hash = block.GetHash();
-//                        }
-//
-//                        return Task.FromResult(new Response<List<BlockWithTransactions>>(result));
-//                    });
+                networkServiceMock
+                    .Setup(p => p.GetBlocksAsync(It.IsAny<Hash>(), It.IsAny<int>(),
+                        It.IsAny<string>()))
+                    .Returns<Hash, int, string>((previousBlockHash, count, peerPubKey) =>
+                    {
+                        var result = new List<BlockWithTransactions>();
+                        var hash = previousBlockHash;
+                        
+                        if (peerPubKey == "NotLinkedBlockPubkey")
+                        {
+                            for (var i = 0; i < count-1; i++)
+                            {
+                                var block = osTestHelper.Value.GenerateBlockWithTransactions(hash, 100 + i);
+                                hash = block.Header.PreviousBlockHash;
+
+                                result.Add(block);
+                            }
+
+                            var notLinkedBlock =
+                                osTestHelper.Value.GenerateBlockWithTransactions(Hash.FromString("NotLinkedBlock"),
+                                    100);
+                            result.Add(notLinkedBlock);
+                        }
+
+                        if (hash == Hash.FromString("GoodBlockHash"))
+                        {
+                            for (var i = 0; i < count; i++)
+                            {
+                                var block = osTestHelper.Value.GenerateBlockWithTransactions(hash, 100 + i);
+                                hash = block.Header.PreviousBlockHash;
+
+                                result.Add(block);
+                            }
+                        }
+
+                        return Task.FromResult(new Response<List<BlockWithTransactions>>(result));
+                    });
 
                 networkServiceMock.Setup(p => p.RemovePeerByPubkeyAsync(It.IsAny<string>(), It.IsAny<bool>()))
                     .Returns<string, bool>(
@@ -68,6 +106,8 @@ namespace AElf.OS.BlockSync
 
                 networkServiceMock.Setup(p => p.GetPeerByPubkey(It.IsAny<string>()))
                     .Returns<string>((peerPubKey) => _peers.ContainsKey(peerPubKey) ? _peers[peerPubKey] : null);
+
+                networkServiceMock.Setup(p => p.GetPeers(It.IsAny<bool>())).Returns(_peers.Values.ToList());
 
                 return networkServiceMock.Object;
             });

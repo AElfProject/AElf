@@ -129,7 +129,7 @@ namespace AElf.OS.BlockSync.Application
                 .ToList();
             bool? checkResult = null;
 
-            if (peers.Count > PeerCheckMinimumCount)
+            if (peers.Count >= PeerCheckMinimumCount)
             {
                 var correctCount = 0;
                 var incorrectCount = 0;
