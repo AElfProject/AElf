@@ -43,7 +43,7 @@ namespace AElf.OS.Network.Application
 
         public async Task<bool> AddPeerAsync(string address)
         {
-            if (IpEndpointHelper.TryParse(address, out IPEndPoint endpoint))
+            if (IpEndPointHelper.TryParse(address, out IPEndPoint endpoint))
                 return await _networkServer.ConnectAsync(endpoint);
 
             return false;
@@ -51,7 +51,7 @@ namespace AElf.OS.Network.Application
 
         public async Task<bool> RemovePeerAsync(string address)
         {
-            if (!IpEndpointHelper.TryParse(address, out IPEndPoint endpoint)) 
+            if (!IpEndPointHelper.TryParse(address, out IPEndPoint endpoint)) 
                 return false;
             
             var peer = _peerPool.FindPeerByEndpoint(endpoint);
@@ -60,7 +60,7 @@ namespace AElf.OS.Network.Application
                 Logger.LogWarning($"Could not find peer at address {address}");
                 return false;
             }
-            
+
             await _networkServer.DisconnectAsync(peer);
 
             return true;
@@ -261,6 +261,27 @@ namespace AElf.OS.Network.Application
             return Task.CompletedTask;
         }
 
+        public async Task SendHealthChecksAsync()
+        {
+            foreach (var peer in _peerPool.GetPeers())
+            {
+                Logger.LogDebug($"Health checking: {peer}");
+                
+                try
+                {
+                    await peer.CheckHealthAsync();
+                }
+                catch (NetworkException ex)
+                {
+                    if (ex.ExceptionType == NetworkExceptionType.Unrecoverable)
+                    {
+                        Logger.LogError(ex, $"Removing unhealthy peer {peer}.");
+                        await _networkServer.TrySchedulePeerReconnectionAsync(peer);
+                    }
+                }
+            }
+        }
+
         public async Task<Response<List<BlockWithTransactions>>> GetBlocksAsync(Hash previousBlock, int count, 
             string peerPubkey)
         {
@@ -273,7 +294,7 @@ namespace AElf.OS.Network.Application
 
             if (response != null && response.Success && response.Payload != null 
                 && (response.Payload.Count == 0 || response.Payload.Count != count))
-                Logger.LogWarning($"Block count miss match, asked for {count} but got {response.Payload.Count}");
+                Logger.LogWarning($"Requested blocks from {peer} - count miss match, asked for {count} but got {response.Payload.Count} (from {previousBlock})");
 
             return response;
         }
@@ -319,11 +340,11 @@ namespace AElf.OS.Network.Application
             if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
             {
                 Logger.LogError(exception, $"Removing unrecoverable {peer}.");
-                await _networkServer.DisconnectAsync(peer);
+                await _networkServer.TrySchedulePeerReconnectionAsync(peer);
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
             {
-                Logger.LogError(exception, $"Queuing peer for reconnection {peer.IpAddress}.");
+                Logger.LogError(exception, $"Queuing peer for reconnection {peer.RemoteEndpoint}.");
                 QueueNetworkTask(async () => await RecoverPeerAsync(peer));
             }
         }
@@ -336,7 +357,7 @@ namespace AElf.OS.Network.Application
             var success = await peer.TryRecoverAsync();
 
             if (!success)
-                await _networkServer.DisconnectAsync(peer);
+                await _networkServer.TrySchedulePeerReconnectionAsync(peer);
         }
         
         private void QueueNetworkTask(Func<Task> task)

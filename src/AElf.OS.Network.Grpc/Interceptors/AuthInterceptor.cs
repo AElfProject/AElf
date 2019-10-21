@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.OS.Network.Infrastructure;
 using Grpc.Core;
@@ -19,17 +20,34 @@ namespace AElf.OS.Network.Grpc
 
         public override Task<TResponse> UnaryServerHandler<TRequest, TResponse>(TRequest request, ServerCallContext context, UnaryServerMethod<TRequest, TResponse> continuation)
         {
-            if (context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake)))
+            try
             {
-                var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
-
-                if (peer == null && context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.Ping)))
+                if (context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.DoHandshake)))
                 {
-                    Logger.LogWarning($"Could not find peer {context.GetPublicKey()}");
-                    return Task.FromResult<TResponse>(null);
-                }
+                    // a method other than DoHandshake is being called
                 
-                context.RequestHeaders.Add(new Metadata.Entry(GrpcConstants.PeerInfoMetadataKey, $"{peer}"));
+                    var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+
+                    if (peer == null && context.Method != GetFullMethodName(nameof(PeerService.PeerServiceBase.Ping)))
+                    {
+                        Logger.LogWarning($"Could not find peer {context.GetPublicKey()}");
+                        return Task.FromResult<TResponse>(null);
+                    }
+
+                    // check that the peers session is equal to one announced in the headers
+                    if (peer != null && !peer.InboundSessionId.BytesEqual(context.GetSessionId()))
+                    {
+                        Logger.LogWarning($"Wrong session id, ({peer.InboundSessionId.ToHex()} vs {context.GetSessionId().ToHex()}) {context.GetPublicKey()}");
+                        return Task.FromResult<TResponse>(null);
+                    }
+                
+                    context.RequestHeaders.Add(new Metadata.Entry(GrpcConstants.PeerInfoMetadataKey, $"{peer}"));
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Auth interceptor error: ");
+                throw;
             }
             
             return continuation(request, context);
@@ -43,15 +61,29 @@ namespace AElf.OS.Network.Grpc
         public override Task<TResponse> ClientStreamingServerHandler<TRequest, TResponse>(IAsyncStreamReader<TRequest> requestStream, ServerCallContext context,
             ClientStreamingServerMethod<TRequest, TResponse> continuation)
         {
-            var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
-
-            if (peer == null)
+            try
             {
-                Logger.LogWarning($"Could not find peer {context.GetPublicKey()}");
-                return Task.FromResult<TResponse>(null);
-            }
+                var peer = _peerPool.FindPeerByPublicKey(context.GetPublicKey());
+
+                if (peer == null)
+                {
+                    Logger.LogWarning($"Could not find peer {context.GetPublicKey()}");
+                    return Task.FromResult<TResponse>(null);
+                }
+            
+                if (!peer.InboundSessionId.BytesEqual(context.GetSessionId()))
+                {
+                    Logger.LogWarning($"Wrong session id, ({peer.InboundSessionId.ToHex()} vs {context.GetSessionId().ToHex()}) {context.GetPublicKey()}");
+                    return Task.FromResult<TResponse>(null);
+                }
         
-            context.RequestHeaders.Add(new Metadata.Entry(GrpcConstants.PeerInfoMetadataKey, $"{peer}"));
+                context.RequestHeaders.Add(new Metadata.Entry(GrpcConstants.PeerInfoMetadataKey, $"{peer}"));
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e, "Auth stream interceptor error: ");
+                return null;
+            }
             
             return continuation(requestStream, context);
         }

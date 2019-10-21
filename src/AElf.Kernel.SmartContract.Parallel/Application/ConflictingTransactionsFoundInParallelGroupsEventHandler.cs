@@ -13,7 +13,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         private readonly IConflictingTransactionIdentificationService _conflictingTransactionIdentificationService;
         private readonly ICodeRemarksService _codeRemarksService;
         private readonly IResourceExtractionService _resourceExtractionService;
-
+ 
         public ConflictingTransactionsFoundInParallelGroupsEventHandler(
             IConflictingTransactionIdentificationService conflictingTransactionIdentificationService,
             ICodeRemarksService codeRemarksService,IResourceExtractionService resourceExtractionService)
