@@ -20,7 +20,7 @@ namespace AElf.Sdk.CSharp.State
         {
             internal TEntity OriginalValue;
             internal TEntity Value;
-            internal bool IsDeleted;
+            internal bool IsDeleted; // todo : the default value could be true ?
         }
 
         internal Dictionary<TKey, ValuePair> Cache = new Dictionary<TKey, ValuePair>();
