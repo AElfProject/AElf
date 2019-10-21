@@ -382,6 +382,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .Div(State.MinerIncreaseInterval.Value).Mul(2)), State.MaximumMinersCount.Value);
         }
 
+        public override SInt64Value GetCurrentWelfareReward(Empty input)
+        {
+            if (TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                return new SInt64Value
+                    {Value = currentRound.GetMinedBlocks().Mul(GetMiningRewardPerBlock())};
+            }
+
+            return new SInt64Value {Value = 0};
+        }
+        
         public override SInt64Value GetNextElectCountDown(Empty input)
         {
             var currentTermNumber = State.CurrentTermNumber.Value;
