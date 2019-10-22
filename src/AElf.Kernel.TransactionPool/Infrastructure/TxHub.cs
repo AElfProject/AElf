@@ -82,6 +82,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash != _bestChainHash)
             {
+                Logger.LogWarning(
+                    $"Attempting to retrieve executable transactions while best chain records don't match.");
                 return output;
             }
 
@@ -252,12 +254,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
             UpdateRefBlockStatus(queuedTransaction, prefix, _bestChainHeight);
+            AddToCollection(queuedTransaction);
 
             if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockExpired)
                 return;
 
             if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockValid)
             {
+                //_validatedTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
                 await LocalEventBus.PublishAsync(new TransactionAcceptedEvent()
                 {
                     Transaction = queuedTransaction.Transaction
@@ -302,12 +306,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             CleanTransactions(_expiredByExpiryBlock, eventData.BlockHeight);
             CleanTransactions(_invalidatedByBlock, eventData.BlockHeight);
+
             await Task.CompletedTask;
         }
 
         public async Task HandleUnexecutableTransactionsFoundAsync(UnexecutableTransactionsFoundEvent eventData)
         {
             CleanTransactions(eventData.Transactions);
+
             await Task.CompletedTask;
         }
 
