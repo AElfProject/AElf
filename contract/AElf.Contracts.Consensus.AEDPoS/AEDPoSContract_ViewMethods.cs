@@ -330,9 +330,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (State.ElectionContract.Value != null)
             {
                 var candidates = State.ElectionContract.GetCandidates.Call(new Empty()).Value.Select(p => p.ToHex());
-                evilMinersPubKey.AddRange(candidates.Except(currentRound.RealTimeMinersInformation.Keys.ToList()));
+                evilMinersPubKey.AddRange(currentRound.RealTimeMinersInformation.Keys.ToList().Except(candidates));
             }
-
 
             return evilMinersPubKey;
         }
