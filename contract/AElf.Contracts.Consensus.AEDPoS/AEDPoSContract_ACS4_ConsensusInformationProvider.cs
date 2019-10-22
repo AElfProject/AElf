@@ -55,25 +55,24 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(triggerInformation.Pubkey.Any(),
                 "Data to request consensus information should contain public key.");
 
-            var publicKey = triggerInformation.Pubkey;
+            var pubkey = triggerInformation.Pubkey;
             var consensusInformation = new AElfConsensusHeaderInformation();
             consensusInformation.MergeFrom(GetConsensusBlockExtraData(input, true).Value);
             var round = consensusInformation.Round;
             var behaviour = consensusInformation.Behaviour;
             switch (behaviour)
             {
-                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                 case AElfConsensusBehaviour.UpdateValue:
                     return new TransactionList
                     {
                         Transactions =
                         {
                             GenerateTransaction(nameof(UpdateValue),
-                                round.ExtractInformationToUpdateConsensus(publicKey.ToHex()))
+                                round.ExtractInformationToUpdateConsensus(pubkey.ToHex()))
                         }
                     };
                 case AElfConsensusBehaviour.TinyBlock:
-                    var minerInRound = round.RealTimeMinersInformation[publicKey.ToHex()];
+                    var minerInRound = round.RealTimeMinersInformation[pubkey.ToHex()];
                     return new TransactionList
                     {
                         Transactions =
@@ -120,8 +119,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             input.MergeFrom(input1.Value);
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
-                var isContainPreviousInValue =
-                    input.Behaviour != AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue;
+                var isContainPreviousInValue = !currentRound.IsMinerListJustChanged;
                 if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
                 {
                     Context.LogDebug(() => $"Round information of block header:\n{input.Round}");

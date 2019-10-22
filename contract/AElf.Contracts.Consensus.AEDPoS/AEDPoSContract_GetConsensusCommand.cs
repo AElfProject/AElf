@@ -15,37 +15,36 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// </summary>
         /// <param name="behaviour"></param>
         /// <param name="currentRound"></param>
-        /// <param name="publicKey"></param>
+        /// <param name="pubkey"></param>
         /// <param name="currentBlockTime"></param>
         /// <returns></returns>
         private ConsensusCommand GetConsensusCommand(AElfConsensusBehaviour behaviour, Round currentRound,
-            string publicKey, Timestamp currentBlockTime = null)
+            string pubkey, Timestamp currentBlockTime = null)
         {
-            if (SolitaryMinerDetection(currentRound, publicKey))
+            if (SolitaryMinerDetection(currentRound, pubkey))
                 return ConsensusCommandProvider.InvalidConsensusCommand;
 
             if (currentRound.RoundNumber == 1 && behaviour != AElfConsensusBehaviour.TinyBlock)
-                return new ConsensusCommandProvider(new FirstRoundCommandStrategy(currentRound, publicKey,
+                return new ConsensusCommandProvider(new FirstRoundCommandStrategy(currentRound, pubkey,
                     currentBlockTime, behaviour)).GetConsensusCommand();
 
             switch (behaviour)
             {
-                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                 case AElfConsensusBehaviour.UpdateValue:
-                    return new ConsensusCommandProvider(new NormalBlockCommandStrategy(currentRound, publicKey,
+                    return new ConsensusCommandProvider(new NormalBlockCommandStrategy(currentRound, pubkey,
                         currentBlockTime)).GetConsensusCommand();
 
                 case AElfConsensusBehaviour.NextRound:
                 case AElfConsensusBehaviour.NextTerm:
                     return new ConsensusCommandProvider(
-                            new TerminateRoundCommandStrategy(currentRound, publicKey, currentBlockTime,
+                            new TerminateRoundCommandStrategy(currentRound, pubkey, currentBlockTime,
                                 behaviour == AElfConsensusBehaviour.NextTerm))
                         .GetConsensusCommand();
 
                 case AElfConsensusBehaviour.TinyBlock:
                 {
                     var consensusCommand =
-                        new ConsensusCommandProvider(new TinyBlockCommandStrategy(currentRound, publicKey,
+                        new ConsensusCommandProvider(new TinyBlockCommandStrategy(currentRound, pubkey,
                             currentBlockTime, GetMaximumBlocksCount())).GetConsensusCommand();
                     if (consensusCommand.Hint ==
                         new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.NextRound}.ToByteString())
@@ -65,9 +64,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// just stop and waiting to execute other miners' blocks.
         /// </summary>
         /// <param name="currentRound"></param>
-        /// <param name="publicKey"></param>
+        /// <param name="pubkey"></param>
         /// <returns></returns>
-        private bool SolitaryMinerDetection(Round currentRound, string publicKey)
+        private bool SolitaryMinerDetection(Round currentRound, string pubkey)
         {
             var isAlone = false;
             // Skip this detection until 4th round.
@@ -80,7 +79,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     var minedMiners = previousRound.GetMinedMiners();
                     isAlone = minedMiners.Count == 1 &&
-                              minedMiners.Select(m => m.Pubkey).Contains(publicKey);
+                              minedMiners.Select(m => m.Pubkey).Contains(pubkey);
                 }
 
                 // check one further round.
@@ -89,7 +88,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     var minedMiners = previousPreviousRound.GetMinedMiners();
                     isAlone = minedMiners.Count == 1 &&
-                              minedMiners.Select(m => m.Pubkey).Contains(publicKey);
+                              minedMiners.Select(m => m.Pubkey).Contains(pubkey);
                 }
             }
 

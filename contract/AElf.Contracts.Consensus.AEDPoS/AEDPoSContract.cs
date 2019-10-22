@@ -194,7 +194,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var minerList = State.MainChainCurrentMinerList.Value.Pubkeys;
-            foreach (var symbol in new List<string> {"RAM", "STO", "CPU", "NET"})
+            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList)
             {
                 var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {
