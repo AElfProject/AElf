@@ -221,12 +221,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             foreach (var token in tokens.Values)
             {
-                // TODO: Set to null.
-                State.RandomNumberInformationMap[token] = new RandomNumberRequestInformation();
+                State.RandomNumberInformationMap.Remove(token);
             }
 
-            // TODO: Set to null.
-            State.RandomNumberTokenMap[targetRoundNumber] = new HashList();
+            State.RandomNumberTokenMap.Remove(targetRoundNumber);
         }
     }
 }

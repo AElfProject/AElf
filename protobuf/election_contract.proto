@@ -6,6 +6,7 @@ import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.Election";
@@ -48,7 +49,7 @@ service ElectionContract {
     rpc GetVotedCandidates (google.protobuf.Empty) returns (PubkeyList) {
         option (aelf.is_view) = true;
     }
-    rpc GetCandidateInformation (StringInput) returns (CandidateInformation) {
+    rpc GetCandidateInformation (google.protobuf.StringValue) returns (CandidateInformation) {
         option (aelf.is_view) = true;
     }
     rpc GetVictories (google.protobuf.Empty) returns (PubkeyList) {
@@ -63,22 +64,22 @@ service ElectionContract {
     rpc GetElectionResult (GetElectionResultInput) returns (ElectionResult) {
         option (aelf.is_view) = true;
     }
-    rpc GetElectorVote (StringInput) returns (ElectorVote) {
+    rpc GetElectorVote (google.protobuf.StringValue) returns (ElectorVote) {
         option (aelf.is_view) = true;
     }
-    rpc GetElectorVoteWithRecords (StringInput) returns (ElectorVote) {
+    rpc GetElectorVoteWithRecords (google.protobuf.StringValue) returns (ElectorVote) {
         option (aelf.is_view) = true;
     }
-    rpc GetElectorVoteWithAllRecords (StringInput) returns (ElectorVote) {
+    rpc GetElectorVoteWithAllRecords (google.protobuf.StringValue) returns (ElectorVote) {
         option (aelf.is_view) = true;
     }
-    rpc GetCandidateVote (StringInput) returns (CandidateVote) {
+    rpc GetCandidateVote (google.protobuf.StringValue) returns (CandidateVote) {
         option (aelf.is_view) = true;
     }
-    rpc GetCandidateVoteWithRecords (StringInput) returns (CandidateVote) {
+    rpc GetCandidateVoteWithRecords (google.protobuf.StringValue) returns (CandidateVote) {
         option (aelf.is_view) = true;
     }
-    rpc GetCandidateVoteWithAllRecords (StringInput) returns (CandidateVote) {
+    rpc GetCandidateVoteWithAllRecords (google.protobuf.StringValue) returns (CandidateVote) {
         option (aelf.is_view) = true;
     }
     rpc GetVotersCount (google.protobuf.Empty) returns (aelf.SInt64Value) {
@@ -166,7 +167,6 @@ message ElectorVote {
     repeated ElectionVotingRecord active_voting_records = 5;
     repeated ElectionVotingRecord withdrawn_votes_records = 6;
     bytes pubkey = 7;
-    aelf.Address address = 8;
 }
 
 message CandidateVote {
@@ -187,7 +187,6 @@ message CandidateInformation {
     sint64 continual_appointment_count = 5;
     aelf.Hash announcement_transaction_id = 6;
     bool is_current_candidate = 7;
-    aelf.Address address = 8;
 }
 
 message CandidateDetail {
@@ -213,14 +212,6 @@ message ElectionVotingRecord {
 message PageInformation {
     sint32 start = 1;
     sint32 length = 2;
-}
-
-message StringInput {
-    string value = 1;
-}
-
-message StringOutput {
-    string value = 1;
 }
 
 message PubkeyList {

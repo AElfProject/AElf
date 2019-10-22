@@ -25,5 +25,13 @@ namespace AElf.Contracts.MultiToken
     [DependsOn(typeof(ContractTestAElfModule))]
     public class MultiTokenContractCrossChainTestAElfModule : ContractTestAElfModule
     {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var instance = new TestTokenBalanceTransactionGenerator();
+            context.Services.AddSingleton(instance);
+            context.Services.AddSingleton<ISystemTransactionGenerator>(instance);
+            context.Services.RemoveAll<IPreExecutionPlugin>();
+            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+        }
     }
 }

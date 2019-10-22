@@ -1,9 +1,11 @@
+using AElf.Kernel.SmartContract.Application;
 using System.Collections.Generic;
 using AElf.Kernel;
 using AElf.Kernel.SmartContract.Parallel;
 using AElf.Modularity;
 using AElf.OS;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
@@ -20,6 +22,7 @@ namespace AElf.Parallel.Tests
         {
             base.ConfigureServices(context);
             context.Services.AddSingleton<ParallelTestHelper>();
+            context.Services.RemoveAll<IPreExecutionPlugin>();
         }
 
         public override void PostConfigureServices(ServiceConfigurationContext context)

@@ -38,8 +38,7 @@ namespace AElf.Contracts.Election
             {
                 State.CandidateInformationMap[pubkey] = new CandidateInformation
                 {
-                    Pubkey = pubkey,
-                    Address = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(pubkey))
+                    Pubkey = pubkey
                 };
             }
 
@@ -192,8 +191,7 @@ namespace AElf.Contracts.Election
                     Beneficiary = Address.FromPublicKey(publicKeyByte)
                 });
                 Context.LogDebug(() => $"Marked {input.Pubkey.Substring(0, 10)} as an evil node.");
-                // TODO: Set to null.
-                State.CandidateInformationMap[input.Pubkey] = new CandidateInformation();
+                State.CandidateInformationMap.Remove(input.Pubkey);
                 var candidates = State.Candidates.Value;
                 candidates.Value.Remove(ByteString.CopyFrom(publicKeyByte));
                 State.Candidates.Value = candidates;

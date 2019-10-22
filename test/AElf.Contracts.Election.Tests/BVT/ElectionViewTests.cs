@@ -50,7 +50,7 @@ namespace AElf.Contracts.Election
             });
             voteRecords.ShouldBe(new ElectorVote
             {
-                Pubkey = ByteString.CopyFrom(ValidationDataCenterKeyPairs.Last().PublicKey),
+                Pubkey = ByteString.CopyFrom(ValidationDataCenterKeyPairs.Last().PublicKey)
             });
         }
 

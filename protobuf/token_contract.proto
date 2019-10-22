@@ -29,7 +29,7 @@ service TokenContract {
     }
     rpc Burn (BurnInput) returns (google.protobuf.Empty) {
     }
-    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (google.protobuf.Empty) {
+    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (aelf.TransactionFee) {
     }
     rpc ClaimTransactionFees (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }

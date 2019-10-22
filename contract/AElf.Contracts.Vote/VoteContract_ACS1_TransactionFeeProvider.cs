@@ -19,7 +19,7 @@ namespace AElf.Contracts.Vote
                 case nameof(Register):
                     return new MethodFees
                     {
-                        Fee =
+                        Fees =
                         {
                             new MethodFee {Symbol = Context.Variables.NativeSymbol, BasicFee = 10_00000000}
                         }
@@ -27,7 +27,7 @@ namespace AElf.Contracts.Vote
                 default:
                     return new MethodFees
                     {
-                        Fee =
+                        Fees =
                         {
                             new MethodFee {Symbol = Context.Variables.NativeSymbol, BasicFee = 1_00000000}
                         }

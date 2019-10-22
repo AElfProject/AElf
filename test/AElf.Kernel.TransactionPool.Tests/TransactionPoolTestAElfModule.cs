@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;

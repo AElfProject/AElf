@@ -232,7 +232,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var blockchainStartTimestamp = GetBlockchainStartTimestamp();
-            if (previousRound.TermNumber + 1 != currentRound.TermNumber)
+            var isMinerListChanged = false;
+            if (previousRound.TermNumber.Add(1) != currentRound.TermNumber)
             {
                 var evilMinersPublicKey = GetEvilMinersPublicKey(currentRound, previousRound);
                 var evilMinersCount = evilMinersPublicKey.Count;
@@ -262,11 +263,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                         currentRound.RealTimeMinersInformation.Remove(publicKeyToRemove);
                     }
+
+                    isMinerListChanged = true;
                 }
             }
 
             return currentRound.GenerateNextRoundInformation(currentBlockTime,
-                blockchainStartTimestamp, out nextRound);
+                blockchainStartTimestamp, out nextRound, isMinerListChanged);
         }
 
         private bool IsMainChainMinerListChanged(Round currentRound)
@@ -309,6 +312,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
         {
             var evilMinersPubKey = new List<string>();
+
+            // If hash(pre_in) != pre_out
             foreach (var minerInCurrentRound in currentRound.RealTimeMinersInformation.Values)
             {
                 if (previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.Pubkey) &&
@@ -321,16 +326,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            return evilMinersPubKey;
+            // If one miner is not a candidate anymore.
+            if (State.ElectionContract.Value != null)
+            {
+                var candidates = State.ElectionContract.GetCandidates.Call(new Empty()).Value.Select(p => p.ToHex());
+                evilMinersPubKey.AddRange(candidates.Except(currentRound.RealTimeMinersInformation.Keys.ToList()));
+            }
 
-            // Below LINQ-expression causes unchecked math instructions after compilation
-//            return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
-//                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.Pubkey) &&
-//                      minerInCurrentRound.PreviousInValue != null
-//                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.Pubkey].OutValue
-//                where previousOutValue != null &&
-//                      Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
-//                select minerInCurrentRound.Pubkey).ToList();
+
+            return evilMinersPubKey;
         }
 
         private bool TryToGetElectionSnapshot(long termNumber, out TermSnapshot snapshot)
@@ -397,14 +401,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return new SInt64Value {Value = 0};
         }
-
+        
         public override SInt64Value GetNextElectCountDown(Empty input)
         {
-            if (!State.IsMainChain.Value)
-            {
-                return new SInt64Value();
-            }
-
             var currentTermNumber = State.CurrentTermNumber.Value;
             Timestamp currentTermStartTime;
             if (currentTermNumber == 1)

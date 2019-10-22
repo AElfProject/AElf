@@ -1,27 +1,9 @@
 using System.Collections.Generic;
-using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.SmartContract.Application;
-using AElf.Modularity;
-using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.Modularity;
 
-namespace AElf.Kernel.ChainController
+namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
 {
-    [DependsOn(
-        typeof(ChainControllerAElfModule),
-        typeof(KernelCoreTestAElfModule))]
-    public class ChainControllerTestAElfModule : AElfModule
-    {
-        public override void ConfigureServices(ServiceConfigurationContext context)
-        {
-            var services = context.Services;
-            
-            services.AddTransient<ChainCreationService>();
-            services.AddSingleton<ISystemTransactionMethodNameListProvider, SystemTransactionMethodNameListProvider>();
-        }
-    }
-    
     public class SystemTransactionMethodNameListProvider : ISystemTransactionMethodNameListProvider, ITransientDependency
     {
         public List<string> GetSystemTransactionMethodNameList()

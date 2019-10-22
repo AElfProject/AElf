@@ -17,7 +17,7 @@ namespace AElf.Contracts.TestContract.TransactionFees
             return new MethodFees
             {
                 MethodName = input.Value,
-                Fee =
+                Fees =
                 {
                     new MethodFee {Symbol = "ELF", BasicFee = 1_00000000}
                 }

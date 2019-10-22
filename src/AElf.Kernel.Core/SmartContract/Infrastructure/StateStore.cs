@@ -64,5 +64,10 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             _cache.TryRemove(key, out _);
             await _stateStoreImplementation.RemoveAsync(key);
         }
+
+        public async Task<bool> IsExistsAsync(string key)
+        {
+            return _cache.ContainsKey(key);
+        }
     }
 }
