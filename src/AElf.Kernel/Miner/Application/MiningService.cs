@@ -92,7 +92,6 @@ namespace AElf.Kernel.Miner.Application
             using (var cts = new CancellationTokenSource())
             {
                 var expirationTime = blockTime + requestMiningDto.BlockExecutionTime;
-                double cancelTimeSeconds = 0;
                 if (expirationTime < TimestampHelper.GetUtcNow())
                     cts.Cancel();
                 else
@@ -102,7 +101,6 @@ namespace AElf.Kernel.Miner.Application
                     {
                         ts = TimeSpan.FromMilliseconds(4000);
                     }
-                    cancelTimeSeconds = ts.TotalMilliseconds;
                     cts.CancelAfter(ts);
                 }
                 
@@ -110,20 +108,14 @@ namespace AElf.Kernel.Miner.Application
                     requestMiningDto.PreviousBlockHeight, blockTime);
                 var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
                     requestMiningDto.PreviousBlockHeight);
-                var now = TimestampHelper.GetUtcNow();
-                Logger.LogTrace($"## previous block hash: {block.Header.PreviousBlockHash},  " +
-                                $"current block start time : {now.ToDateTime():hh:mm:ss.ffff}" +
-                                $"will be canceled in {cancelTimeSeconds}");
                 var pending = transactions;
                 block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                     systemTransactions, pending, cts.Token);
                 await SignBlockAsync(block);
-                now = TimestampHelper.GetUtcNow();
                 Logger.LogInformation($"## Generated block: {block.ToDiagnosticString()}, " +
                                       $"previous: {block.Header.PreviousBlockHash}, " +
                                       $"executed transactions: {block.Body.TransactionsCount}, " +
-                                      $"not executed transactions {transactions.Count + systemTransactions.Count - block.Body.TransactionsCount} " +
-                                      $"$generate time {now.ToDateTime():hh:mm:ss.ffff}");
+                                      $"not executed transactions {transactions.Count + systemTransactions.Count - block.Body.TransactionsCount} ");
                 return block;
             }
         }
