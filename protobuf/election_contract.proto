@@ -203,6 +203,7 @@ message ElectionVotingRecord {
     google.protobuf.Timestamp vote_timestamp = 12;
     bool is_withdrawn = 13;
     sint64 weight = 14;
+    bool is_change_target = 15;
 }
 
 message PageInformation {
