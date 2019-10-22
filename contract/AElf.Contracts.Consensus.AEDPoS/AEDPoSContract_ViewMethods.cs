@@ -315,6 +315,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         evilMinersPubKey.Add(minerInCurrentRound.Pubkey);
                 }
             }
+
             return evilMinersPubKey;
 
             // Below LINQ-expression causes unchecked math instructions after compilation
@@ -390,6 +391,26 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             return new SInt64Value {Value = 0};
+        }
+        
+        public override SInt64Value GetNextElectCountDown(Empty input)
+        {
+            var currentTermNumber = State.CurrentTermNumber.Value;
+            Timestamp currentTermStartTime;
+            if (currentTermNumber == 1)
+            {
+                currentTermStartTime = State.BlockchainStartTimestamp.Value;
+            }
+            else
+            {
+                var firstRoundNumberOfCurrentTerm = State.FirstRoundNumberOfEachTerm[currentTermNumber];
+                if (!TryToGetRoundInformation(firstRoundNumberOfCurrentTerm, out var firstRoundOfCurrentTerm))
+                    return new SInt64Value(); // Unlikely.
+                currentTermStartTime = firstRoundOfCurrentTerm.GetRoundStartTime();
+            }
+
+            var currentTermEndTime = currentTermStartTime.AddSeconds(State.TimeEachTerm.Value);
+            return new SInt64Value {Value = (currentTermEndTime - Context.CurrentBlockTime).Seconds};
         }
     }
 }
