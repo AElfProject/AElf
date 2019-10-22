@@ -140,7 +140,6 @@ namespace AElf.Contracts.Election
                 {
                     Pubkey = input.Value.ToByteString()
                 };
-
             var votedRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
                 Ids = {votes.ActiveVotingRecordIds}
@@ -151,19 +150,19 @@ namespace AElf.Contracts.Election
                 var voteId = votes.ActiveVotingRecordIds[index++];
                 votes.ActiveVotingRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
-
+            
             return votes;
         }
 
         public override ElectorVote GetElectorVoteWithAllRecords(StringInput input)
         {
             var votes = GetElectorVoteWithRecords(input);
-
+            
             if (!votes.WithdrawnVotingRecordIds.Any())
             {
                 return votes;
             }
-
+            
             var votedWithdrawnRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
                 Ids = {votes.WithdrawnVotingRecordIds}
@@ -174,7 +173,7 @@ namespace AElf.Contracts.Election
                 var voteId = votes.WithdrawnVotingRecordIds[index++];
                 votes.WithdrawnVotesRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
-
+            
             return votes;
         }
 
@@ -208,6 +207,10 @@ namespace AElf.Contracts.Election
         {
             var output = new GetPageableCandidateInformationOutput();
             var candidates = State.Candidates.Value;
+
+            var count = candidates.Value.Count;
+            if (count <= input.Start) return output;
+
             var length = Math.Min(Math.Min(input.Length, 20), candidates.Value.Count.Sub(input.Start));
             foreach (var candidate in candidates.Value.Skip(input.Start).Take(length))
             {
@@ -245,19 +248,15 @@ namespace AElf.Contracts.Election
                 var voteId = votes.ObtainedActiveVotingRecordIds[index++];
                 votes.ObtainedActiveVotingRecords.Add(TransferVotingRecordToElectionVotingRecord(record, voteId));
             }
-
+            
             return votes;
         }
 
         public override CandidateVote GetCandidateVoteWithAllRecords(StringInput input)
         {
             var votes = GetCandidateVoteWithRecords(input);
-
-            if (!votes.ObtainedActiveVotingRecordIds.Any())
-            {
-                return votes;
-            }
-
+            
+            //get withdrawn records
             var obtainedWithdrawnRecords = State.VoteContract.GetVotingRecords.Call(new GetVotingRecordsInput
             {
                 Ids = {votes.ObtainedWithdrawnVotingRecordIds}
@@ -277,6 +276,26 @@ namespace AElf.Contracts.Election
             return State.DataCentersRankingList.Value;
         }
 
+        /*
+        public override SInt64Value GetNextElectCountDown(Empty input)
+        {
+            var round = State.AEDPoSContract.GetRoundInformation.Call(new SInt64Value {Value = 2L});
+            var orderOneMiner = round.RealTimeMinersInformation.Values.FirstOrDefault(x => x.Order == 1);
+            if (orderOneMiner == null)
+                return new SInt64Value {Value = 0};
+            var expectedMiningTime = orderOneMiner.ExpectedMiningTime;
+            int bpCount = round.RealTimeMinersInformation.Count;
+            long blockChainStartTime = expectedMiningTime.Seconds.Sub(bpCount.Add(1).Mul(4));
+            var electionTimeSpan = State.TimeEachTerm.Value;
+            var countDown = new SInt64Value
+            {
+                Value = electionTimeSpan.Sub((int) Context.CurrentBlockTime.Seconds.Sub(blockChainStartTime) %
+                                             electionTimeSpan)
+            };
+            return countDown;
+        }
+        */
+
         private ElectionVotingRecord TransferVotingRecordToElectionVotingRecord(VotingRecord votingRecord, Hash voteId)
         {
             var lockSeconds = State.LockTimeMap[voteId];
@@ -292,7 +311,8 @@ namespace AElf.Contracts.Election
                 WithdrawTimestamp = votingRecord.WithdrawTimestamp,
                 UnlockTimestamp = votingRecord.VoteTimestamp.AddSeconds(lockSeconds),
                 IsWithdrawn = votingRecord.IsWithdrawn,
-                Weight = GetVotesWeight(votingRecord.Amount, lockSeconds)
+                Weight = GetVotesWeight(votingRecord.Amount, lockSeconds),
+                IsChangeTarget = votingRecord.IsChangeTarget
             };
         }
 
