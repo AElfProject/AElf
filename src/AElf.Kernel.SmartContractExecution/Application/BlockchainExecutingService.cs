@@ -48,15 +48,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
 
             var blockHashWithoutCache = executedBlock.GetHashWithoutCache();
-            if (!blockHashWithoutCache.Equals(blockHash))
+
+            if (blockHashWithoutCache != blockHash)
             {
-                Logger.LogWarning(
-                    $"Block execution failed. Block header: {executedBlock.Header}, Block body: {executedBlock.Body}");
-
-                return false;
+                blockState = await _blockchainStateManager.GetBlockStateSetAsync(blockHashWithoutCache);
+                Logger.LogWarning($"Block execution failed. BlockStateSet: {blockState}");
+                Logger.LogWarning($"Block execution failed. Block header: {executedBlock.Header}, Block body: {executedBlock.Body}");
             }
-
-            return true;
+            return blockHashWithoutCache.Equals(blockHash);
         }
 
         /// <summary>
