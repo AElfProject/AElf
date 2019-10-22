@@ -105,5 +105,37 @@ namespace AElf.Kernel
                 }
             }
         }
+
+        public IEnumerable<TransactionExecutingStateSet> GetStateSets()
+        {
+            foreach (var trace in PreTraces)
+            {
+                var stateSets = trace.GetStateSets();
+                foreach (var stateSet in stateSets)
+                {
+                    yield return stateSet;
+                }
+            }
+
+            yield return StateSet;
+            
+            foreach (var trace in InlineTraces)
+            {
+                var stateSets = trace.GetStateSets();
+                foreach (var stateSet in stateSets)
+                {
+                    yield return stateSet;
+                }
+            }
+            
+            foreach (var trace in PostTraces)
+            {
+                var stateSets = trace.GetStateSets();
+                foreach (var stateSet in stateSets)
+                {
+                    yield return stateSet;
+                }
+            }
+        }
     }
 }
