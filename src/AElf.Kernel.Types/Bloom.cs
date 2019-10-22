@@ -51,6 +51,7 @@ namespace AElf.Kernel
 
         public void AddValue(IMessage message)
         {
+            if (message == null) return;
             var bytes = message.ToByteArray();
             AddValue(bytes);
         }
