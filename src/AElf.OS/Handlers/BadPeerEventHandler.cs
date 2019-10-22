@@ -25,6 +25,8 @@ namespace AElf.OS.Handlers
 
         private async Task HandleBadPeerAsync(string peerPubkey)
         {
+            // Because of the peer reconnection feature, temporarily disable remove bad peer
+            return;
             await _networkService.RemovePeerByPubkeyAsync(peerPubkey);
         }
 

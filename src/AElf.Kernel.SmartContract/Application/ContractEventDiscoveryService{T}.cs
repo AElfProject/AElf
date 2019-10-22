@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.CSharp.Core;
 using AElf.Kernel.Blockchain.Application;
@@ -30,58 +31,68 @@ namespace AElf.Kernel.SmartContract.Application
             Logger = NullLogger<ContractEventDiscoveryService<T>>.Instance;
         }
 
-        public async Task<IEnumerable<T>> GetEventMessagesAsync(Hash blockHash, Address contractAddress = null)
+        public async Task<IEnumerable<T>> GetEventMessagesAsync(Hash blockHash, Address contractAddress)
         {
-            PrepareBloom(contractAddress);
-            var block = await _blockchainService.GetBlockByHashAsync(blockHash);
-
-            var messages = new List<T>();
-
-            if (!_bloom.IsIn(new Bloom(block.Header.Bloom.ToByteArray()))) return messages;
-
-            foreach (var transactionId in block.Body.TransactionIds)
+            try
             {
-                var transactionExecutingResult =
-                    await _transactionResultQueryService.GetTransactionResultAsync(transactionId);
-                if (transactionExecutingResult == null)
-                {
-                    Logger.LogTrace($"Transaction result is null, transactionId: {transactionId}");
-                    continue;
-                }
+                PrepareBloom(contractAddress);
+                var block = await _blockchainService.GetBlockByHashAsync(blockHash);
 
-                if (transactionExecutingResult.Status == TransactionResultStatus.Failed)
-                {
-                    Logger.LogTrace(
-                        $"Transaction failed, transactionId: {transactionId}, error: {transactionExecutingResult.Error}");
-                    continue;
-                }
+                var messages = new List<T>();
 
-                if (transactionExecutingResult.Bloom.Length == 0 ||
-                    !_bloom.IsIn(new Bloom(transactionExecutingResult.Bloom.ToByteArray())))
-                {
-                    continue;
-                }
+                if (!_bloom.IsIn(new Bloom(block.Header.Bloom.ToByteArray()))) return messages;
 
-                foreach (var log in transactionExecutingResult.Logs)
+                foreach (var transactionId in block.Body.TransactionIds)
                 {
-                    if (contractAddress == null || log.Address != contractAddress || log.Name != _logEvent.Name)
+                    var transactionExecutingResult =
+                        await _transactionResultQueryService.GetTransactionResultAsync(transactionId);
+                    if (transactionExecutingResult == null)
+                    {
+                        Logger.LogTrace($"Transaction result is null, transactionId: {transactionId}");
                         continue;
-
-                    var message = new T();
-                    try
-                    {
-                        message.MergeFrom(log);
-                        messages.Add(message);
                     }
-                    catch (Exception e)
+
+                    if (transactionExecutingResult.Status == TransactionResultStatus.Failed)
                     {
-                        Logger.LogError($"Failed to generate message of type {message.GetType().FullName}. {e}");
-                        throw;
+                        Logger.LogTrace(
+                            $"Transaction failed, transactionId: {transactionId}, error: {transactionExecutingResult.Error}");
+                        continue;
+                    }
+
+                    if (transactionExecutingResult.Bloom.Length == 0 ||
+                        !_bloom.IsIn(new Bloom(transactionExecutingResult.Bloom.ToByteArray())))
+                    {
+                        continue;
+                    }
+
+                    foreach (var log in transactionExecutingResult.Logs)
+                    {
+                        if (contractAddress == null || log.Address != contractAddress || log.Name != _logEvent.Name)
+                            continue;
+
+                        var message = new T();
+                        try
+                        {
+                            message.MergeFrom(log);
+                            messages.Add(message);
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.LogError($"Failed to generate message of type {message.GetType().FullName}. {e}");
+                            throw;
+                        }
                     }
                 }
-            }
 
-            return messages;
+                Logger.LogTrace($"Event of type {typeof(T).FullName} found. {messages.FirstOrDefault()}");
+
+                return messages;
+            }
+            catch (Exception e)
+            {
+                Logger.LogError($"Failed to resolve event {typeof(T).FullName}");
+                throw;
+            }
         }
 
         private void PrepareBloom(Address contractAddress)

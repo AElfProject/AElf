@@ -82,6 +82,9 @@ service AEDPoSContract {
     rpc IsCurrentMiner (aelf.Address) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
+    rpc GetNextElectCountDown (google.protobuf.Empty) returns (aelf.SInt64Value) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitialAElfConsensusContractInput {
@@ -232,7 +235,7 @@ message LatestProviderToTinyBlocksCount {
 // Events
 message IrreversibleBlockFound {
     option (aelf.is_event) = true;
-    sint64 irreversible_block_height = 1;
+    sint64 irreversible_block_height = 1 [(aelf.is_indexed) = true];
 }
 
 message IrreversibleBlockHeightUnacceptable {

@@ -52,8 +52,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Context.Fire(miningInformationUpdated);
             Context.LogDebug(() => miningInformationUpdated.ToString());
 
-            ResetLatestProviderToTinyBlocksCount();
-
+            // Make sure GetMaximumBlocksCount need to be executed no matter what consensus behaviour is.
+            var minersCountInTheory = GetMaximumBlocksCount();
+            ResetLatestProviderToTinyBlocksCount(minersCountInTheory);
             ClearCachedFields();
         }
 
@@ -275,7 +276,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return true;
         }
 
-        private void ResetLatestProviderToTinyBlocksCount()
+        private void ResetLatestProviderToTinyBlocksCount(int minersCountInTheory)
         {
             LatestProviderToTinyBlocksCount currentValue;
             if (State.LatestProviderToTinyBlocksCount.Value == null)
@@ -303,7 +304,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     State.LatestProviderToTinyBlocksCount.Value = new LatestProviderToTinyBlocksCount
                     {
                         Pubkey = _processingBlockMinerPubkey,
-                        BlocksCount = GetMaximumBlocksCount().Sub(1)
+                        BlocksCount = minersCountInTheory.Sub(1)
                     };
                 }
             }
