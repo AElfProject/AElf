@@ -68,8 +68,7 @@ namespace AElf.Contracts.Election
                 {
                     Pubkey = pubkey,
                     AnnouncementTransactionId = Context.TransactionId,
-                    IsCurrentCandidate = true,
-                    Address = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(pubkey))
+                    IsCurrentCandidate = true
                 };
             }
 

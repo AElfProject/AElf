@@ -82,6 +82,9 @@ service AEDPoSContract {
     rpc IsCurrentMiner (aelf.Address) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
+    rpc GetNextElectCountDown (google.protobuf.Empty) returns (aelf.SInt64Value) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitialAElfConsensusContractInput {

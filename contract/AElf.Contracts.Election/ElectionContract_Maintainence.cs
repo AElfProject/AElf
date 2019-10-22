@@ -38,8 +38,7 @@ namespace AElf.Contracts.Election
             {
                 State.CandidateInformationMap[pubkey] = new CandidateInformation
                 {
-                    Pubkey = pubkey,
-                    Address = Address.FromPublicKey(ByteArrayHelper.HexStringToByteArray(pubkey))
+                    Pubkey = pubkey
                 };
             }
 
