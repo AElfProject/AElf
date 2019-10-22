@@ -51,7 +51,6 @@ namespace AElf.Contracts.Election
             voteRecords.ShouldBe(new ElectorVote
             {
                 Pubkey = ByteString.CopyFrom(ValidationDataCenterKeyPairs.Last().PublicKey),
-                Address = Address.FromPublicKey(ValidationDataCenterKeyPairs.Last().PublicKey)
             });
         }
 
