@@ -65,7 +65,10 @@ namespace AElf.Kernel.SmartContract.Application
                 }
                 catch(OperationCanceledException)
                 {
-                    Logger.LogTrace("be canceled in executeAsync because of timeout");
+                    var now = TimestampHelper.GetUtcNow();
+                    Logger.LogTrace($"## canceled ,previous block hash: {transactionExecutingDto.BlockHeader.PreviousBlockHash}, " +
+                                    $"transaction method: {transaction.MethodName} " +
+                                    $"time: {now.ToDateTime():hh:mm:ss.ffff}");
                     break;
                 }
                 if (trace == null)
