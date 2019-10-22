@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
@@ -60,10 +59,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             _transactionValidationService = transactionValidationService;
             LocalEventBus = NullLocalEventBus.Instance;
             _transactionOptions = transactionOptions.Value;
-            _processTransactionJobs = new ActionBlock<QueuedTransaction>(ProcessTransactionAsync, new ExecutionDataflowBlockOptions
-            {
-                MaxDegreeOfParallelism = 1
-            });
+            _processTransactionJobs = new ActionBlock<QueuedTransaction>(ProcessTransactionAsync,
+                new ExecutionDataflowBlockOptions
+                {
+                    MaxDegreeOfParallelism = 1
+                });
         }
 
         public async Task<ExecutableTransactionSet> GetExecutableTransactionSetAsync(int transactionCount = 0)
@@ -82,18 +82,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             var chain = await _blockchainService.GetChainAsync();
             if (chain.BestChainHash != _bestChainHash)
             {
-                Logger.LogWarning($"Retrieve executable transactions while best chain records don't match.");
                 return output;
             }
 
             output.Transactions.AddRange(_validatedTransactions.Values.OrderBy(x => x.EnqueueTime)
                 .Where((x, i) => transactionCount <= 0 || i < transactionCount).Select(x => x.Transaction));
-            
-            Logger.LogInformation($"Time now:{TimestampHelper.GetUtcNow()};GetExecutableTransactionSet list:");
-            foreach (var transaction in output.Transactions)
-            {
-                Logger.LogInformation($"{transaction.GetHash()};");
-            }
 
             return output;
         }
@@ -220,6 +213,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             if (_bestChainHash == Hash.Empty)
                 return;
 
+            if (_processTransactionJobs.InputCount > _transactionOptions.PoolLimit)
+                return;
+
             foreach (var transaction in eventData.Transactions)
             {
                 if (_allTransactions.Count > _transactionOptions.PoolLimit)
@@ -240,21 +236,19 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             if (_allTransactions.ContainsKey(queuedTransaction.TransactionId))
                 return;
 
-            // Skip this transaction if it is already in local database.
-            var transaction = await _transactionManager.GetTransactionAsync(queuedTransaction.TransactionId);
-            if (transaction != null)
-                return;
-
             var validationResult =
                 await _transactionValidationService.ValidateTransactionAsync(queuedTransaction.Transaction);
             if (!validationResult)
                 return;
 
-            var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
-            if (!addSuccess)
+            var transaction = await _transactionManager.GetTransactionAsync(queuedTransaction.TransactionId);
+            if (transaction != null)
                 return;
 
             await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
+            var addSuccess = _allTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
+            if (!addSuccess)
+                return;
 
             var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
             UpdateRefBlockStatus(queuedTransaction, prefix, _bestChainHeight);
@@ -268,40 +262,14 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 {
                     Transaction = queuedTransaction.Transaction
                 });
-
-                Logger.LogInformation(
-                    $"In HandleTransactionsReceived : TxId: {queuedTransaction.TransactionId}; Enqueue time: {queuedTransaction.EnqueueTime}");
             }
         }
 
-        private void LoggerTransactionsDict(ConcurrentDictionary<Hash,QueuedTransaction> txDictionary)
-        {
-            foreach (var tx in txDictionary)
-            {
-                Logger.LogInformation($"{tx.Value.TransactionId}");
-            }
-        }
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
             var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
-            Logger.LogInformation($"Before clean,at HandleBlockAccepted height: {block.Height}; _allTransactions' count = '{_allTransactions.Count};_validatedTransactions' count = {_validatedTransactions.Count}");
-            
-            //before clean
-            Logger.LogInformation("_allTransactions list:");
-            LoggerTransactionsDict(_allTransactions);
-            Logger.LogInformation("_validatedTransactions list:");
-            LoggerTransactionsDict(_validatedTransactions);
-            //clean txs
             CleanTransactions(block.Body.TransactionIds.ToList());
             CleanTransactionsInValidated(block.Body.TransactionIds.ToList());
-            
-            //after clean
-            Logger.LogInformation($"After clean, _allTransactions' count = '{_allTransactions.Count};_validatedTransactions' count = {_validatedTransactions.Count}");
-           
-            Logger.LogInformation("_allTransactions after clean list:");
-            LoggerTransactionsDict(_allTransactions);
-            Logger.LogInformation("_validatedTransactions after clean list:");
-            LoggerTransactionsDict(_validatedTransactions);
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
