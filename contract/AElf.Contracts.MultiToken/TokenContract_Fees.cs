@@ -16,43 +16,80 @@ namespace AElf.Contracts.MultiToken
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public override Empty ChargeTransactionFees(ChargeTransactionFeesInput input)
+        public override TransactionFee ChargeTransactionFees(ChargeTransactionFeesInput input)
         {
             Assert(input.MethodName != null && input.ContractAddress != null && input.TransactionSize > 0,
                 "Invalid charge transaction fees input.");
 
+            var result = new TransactionFee();
+
             var fee = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
                 new StringValue {Value = input.MethodName});
 
-            if (fee == null || !fee.Fee.Any()) return new Empty();
+            var bill = new TransactionFeeBill();
 
-            if (!ChargeFirstSufficientToken(fee.Fee.ToDictionary(f => f.Symbol, f => f.BasicFee), out var symbol,
-                out var amount, out var existingBalance))
+            var fromAddress = Context.Sender;
+
+            if (fee != null && fee.Fees.Any())
             {
-                Assert(false, "Failed to charge first sufficient token.");
+                if (!ChargeFirstSufficientToken(fee.Fees.ToDictionary(f => f.Symbol, f => f.BasicFee), out var symbol,
+                    out var amount, out var existingBalance))
+                {
+                    Assert(false, "Failed to charge first sufficient token.");
+                }
+
+                bill.TokenToAmount.Add(symbol, amount);
+                // Charge base fee.
+                State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
+                result.Value.Add(symbol, amount);
             }
 
-            var bill = new TransactionFeeBill
-            {
-                TokenToAmount = {{symbol, amount}}
-            };
+            var symbolToChargeTxSizeFee = GetPrimaryTokenSymbol(new Empty()).Value;
+            var balanceAfterChargingBaseFee = State.Balances[fromAddress][symbolToChargeTxSizeFee];
+            var txSizeFeeAmount = input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice);
+            txSizeFeeAmount = balanceAfterChargingBaseFee > txSizeFeeAmount // Enough to pay tx size fee.
+                ? txSizeFeeAmount
+                // It's safe to convert from long to int here because
+                // balanceAfterChargingBaseFee <= txSizeFeeAmount and
+                // typeof(txSizeFeeAmount) == int
+                : (int) balanceAfterChargingBaseFee;
 
             bill += new TransactionFeeBill
             {
                 TokenToAmount =
                 {
                     {
-                        Context.Variables.NativeSymbol,
-                        input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice)
+                        symbolToChargeTxSizeFee,
+                        txSizeFeeAmount
                     }
                 }
             };
 
-            var fromAddress = Context.Sender;
-            State.Balances[fromAddress][symbol] = existingBalance.Sub(amount);
+            // Charge tx size fee.
+            var finalBalanceOfNativeSymbol = balanceAfterChargingBaseFee.Sub(txSizeFeeAmount);
+            State.Balances[fromAddress][symbolToChargeTxSizeFee] = finalBalanceOfNativeSymbol;
+
+            // Record the bill finally.
             var oldBill = State.ChargedFees[fromAddress];
             State.ChargedFees[fromAddress] = oldBill == null ? bill : oldBill + bill;
-            return new Empty();
+
+            // If balanceAfterChargingBaseFee < txSizeFeeAmount, make sender's balance of native symbol to 0 and make current execution failed.
+            Assert(
+                balanceAfterChargingBaseFee >=
+                input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice),
+                $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice)}");
+
+            if (result.Value.ContainsKey(symbolToChargeTxSizeFee))
+            {
+                result.Value[symbolToChargeTxSizeFee] =
+                    result.Value[symbolToChargeTxSizeFee].Add(txSizeFeeAmount);
+            }
+            else
+            {
+                result.Value.Add(symbolToChargeTxSizeFee, txSizeFeeAmount);
+            }
+
+            return result;
         }
 
         public override Empty ChargeResourceToken(ChargeResourceTokenInput input)

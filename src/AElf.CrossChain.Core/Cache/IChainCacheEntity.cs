@@ -3,17 +3,28 @@ using System.Linq;
 
 namespace AElf.CrossChain.Cache
 {
-    public class BlockCacheEntityProvider
+    public interface IChainCacheEntity
+    {
+        bool TryAdd(IBlockCacheEntity blockCacheEntity);
+        long TargetChainHeight();
+        bool TryTake(long height, out IBlockCacheEntity blockCacheEntity, bool isCacheSizeLimited);
+        void ClearOutOfDateCacheByHeight(long height);
+    }
+    
+    public class ChainCacheEntity : IChainCacheEntity
     {
         private BlockingCollection<IBlockCacheEntity> BlockCacheEntities { get; } =
             new BlockingCollection<IBlockCacheEntity>(new ConcurrentQueue<IBlockCacheEntity>());
 
-        private BlockingCollection<IBlockCacheEntity> DequeuedBlockCacheEntities { get; } = new BlockingCollection<IBlockCacheEntity>();
+        private BlockingCollection<IBlockCacheEntity> DequeuedBlockCacheEntities { get; } =
+            new BlockingCollection<IBlockCacheEntity>(new ConcurrentQueue<IBlockCacheEntity>());
         
         private readonly long _initTargetHeight;
+        private readonly int _chainId;
         
-        public BlockCacheEntityProvider(long chainHeight)
+        public ChainCacheEntity(int chainId, long chainHeight)
         {
+            _chainId = chainId;
             _initTargetHeight = chainHeight;
         }
 
@@ -67,6 +78,17 @@ namespace AElf.CrossChain.Cache
             return false;
         }
 
+        public void ClearOutOfDateCacheByHeight(long height)
+        {
+            while (true)
+            {
+                var front = DequeuedBlockCacheEntities.FirstOrDefault();
+                if (front == null || front.Height > height)
+                    return;
+                DequeuedBlockCacheEntities.Take();
+            }
+        }
+
         /// <summary>
         /// Return first element in cached queue.
         /// </summary>
@@ -103,11 +125,7 @@ namespace AElf.CrossChain.Cache
             var res = BlockCacheEntities.TryTake(out blockCacheEntity,
                 CrossChainConstants.WaitingIntervalInMillisecond);
             if (res)
-            {
                 DequeuedBlockCacheEntities.Add(blockCacheEntity);
-                if (DequeuedBlockCacheEntities.Count >= CrossChainConstants.ChainCacheEntityCapacity)
-                    DequeuedBlockCacheEntities.Take();
-            }
 
             return res;
         }

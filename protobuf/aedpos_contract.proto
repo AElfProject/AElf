@@ -232,7 +232,7 @@ message LatestProviderToTinyBlocksCount {
 // Events
 message IrreversibleBlockFound {
     option (aelf.is_event) = true;
-    sint64 irreversible_block_height = 1;
+    sint64 irreversible_block_height = 1 [(aelf.is_indexed) = true];
 }
 
 message IrreversibleBlockHeightUnacceptable {

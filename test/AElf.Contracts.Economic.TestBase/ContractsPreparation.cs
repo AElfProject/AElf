@@ -272,7 +272,6 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected void DeployAllContracts()
         {
-            _ = TokenContractAddress;
             _ = VoteContractAddress;
             _ = ProfitContractAddress;
             _ = EconomicContractAddress;
@@ -284,6 +283,7 @@ namespace AElf.Contracts.Economic.TestBase
             _ = ConsensusContractAddress;
             _ = MethodCallThresholdContractAddress;
             _ = ReferendumAuthContractAddress;
+            _ = TokenContractAddress;
         }
 
         #endregion

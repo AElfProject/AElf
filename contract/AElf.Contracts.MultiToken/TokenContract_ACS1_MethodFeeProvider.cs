@@ -13,11 +13,11 @@ namespace AElf.Contracts.MultiToken
                 return new MethodFees
                 {
                     MethodName = input.Value,
-                    Fee =
+                    Fees =
                     {
                         new MethodFee
                         {
-                            Symbol = Context.Variables.NativeSymbol,
+                            Symbol = GetPrimaryTokenSymbol(new Empty()).Value,
                             BasicFee = 1000_0000
                         }
                     }
@@ -42,7 +42,7 @@ namespace AElf.Contracts.MultiToken
                 Assert(Context.Sender == genesisOwnerAddress, "No permission to set method fee.");
             }
 
-            foreach (var symbolToAmount in input.Fee)
+            foreach (var symbolToAmount in input.Fees)
             {
                 AssertValidToken(symbolToAmount.Symbol, symbolToAmount.BasicFee);
             }

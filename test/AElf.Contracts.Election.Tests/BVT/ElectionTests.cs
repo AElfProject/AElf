@@ -5,6 +5,7 @@ using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -361,12 +362,13 @@ namespace AElf.Contracts.Election
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                 Symbol = "ELF"
             });
+            var txSize = claimResult.Transaction.Size();
             claimResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             // Check ELF token balance
             {
                 var balance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
-                balance.ShouldBe(beforeBalance - 1_00000000);
+                balance.ShouldBe(beforeBalance - 1_00000000 - txSize * 1000);
             }
 
             // Check VOTE token balance.

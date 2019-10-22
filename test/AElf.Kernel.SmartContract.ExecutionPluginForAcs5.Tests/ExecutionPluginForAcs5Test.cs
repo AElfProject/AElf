@@ -64,7 +64,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
         [Fact]
         public async Task CheckThreshold_PreFailed()
         {
-            const long feeAmount = 10;
+            const long feeAmount = 5_0000_0000L;
             
             await InitializeContracts();
             await SetThresholdFee(feeAmount);
@@ -75,7 +75,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                 Symbol = "ELF"
             })).Balance;
 
-            var transferAmount = originalBalance - 5;
+            var transferAmount = originalBalance - feeAmount;
             var burnResult = await TokenContractStub.Burn.SendAsync(new BurnInput
             {
                 Symbol = "ELF",
@@ -152,8 +152,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
         [Fact]
         public async Task CheckMultipleThreshold_Failed()
         {
-            const long elfFeeAmount = 10;
-            const long ramFeeAmount = 20;
+            const long elfFeeAmount = 1_0000_0000L;
+            const long ramFeeAmount = 50_0000L;
 
             await InitializeContracts();
             await SetMultipleThresholdFee(elfFeeAmount, ramFeeAmount);
@@ -175,7 +175,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                 {
                     Symbol = "ELF",
                     To = Address.FromPublicKey(OtherTester.PublicKey),
-                    Amount = elfBalance - 5 - 20000000,
+                    Amount = elfBalance - (elfFeeAmount - 50),
                     Memo = "transfer elf to other user"
                 });
                 transferElfResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -184,7 +184,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                 {
                     Symbol = "RAM",
                     To = Address.FromPublicKey(OtherTester.PublicKey),
-                    Amount = ramBalance - 5,
+                    Amount = ramBalance - (ramFeeAmount - 50),
                     Memo = "transfer ram to other user"
                 });
                 transferRamResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);

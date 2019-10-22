@@ -22,7 +22,7 @@ namespace AElf.WebApp.Application.Chain
 
         Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
             int limit = 10);
-        
+
         Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId);
     }
 
@@ -92,6 +92,11 @@ namespace AElf.WebApp.Application.Chain
                 output.Transaction.Params = JsonFormatter.ToDiagnosticString(
                     methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
             }
+
+            output.TransactionFee = transactionResult.TransactionFee == null
+                ? new TransactionFeeDto()
+                : JsonConvert.DeserializeObject<TransactionFeeDto>(transactionResult.TransactionFee.ToString());
+
             return output;
         }
 
@@ -161,6 +166,10 @@ namespace AElf.WebApp.Application.Chain
                         methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
 
                     transactionResultDto.Status = transactionResult.Status.ToString();
+
+                    transactionResultDto.TransactionFee =
+                        JsonConvert.DeserializeObject<TransactionFeeDto>(transactionResult.TransactionFee.ToString());
+
                     output.Add(transactionResultDto);
                 }
             }
@@ -209,15 +218,16 @@ namespace AElf.WebApp.Application.Chain
             {
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
-            
+
             var transactionResultList = new List<TransactionResult>();
             foreach (var item in blockInfo.TransactionIds)
             {
                 var result = await GetTransactionResultAsync(item);
                 transactionResultList.Add(result);
             }
-            
-            var transactionResultSet = transactionResultList.Select(txResult => (txResult.TransactionId, txResult.Status));
+
+            var transactionResultSet =
+                transactionResultList.Select(txResult => (txResult.TransactionId, txResult.Status));
             var leafNodes = new List<Hash>();
             foreach (var (txId, status) in transactionResultSet)
             {
@@ -250,18 +260,22 @@ namespace AElf.WebApp.Application.Chain
                     Status = TransactionResultStatus.Pending
                 };
             }
-            
+
             // in storage
             TransactionResult result;
             if (blockHash != null)
             {
-                result = await _transactionResultProxyService.TransactionResultQueryService.
-                    GetTransactionResultAsync(transactionId, blockHash);
+                result =
+                    await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(
+                        transactionId, blockHash);
             }
             else
             {
-                result = await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(transactionId);
+                result =
+                    await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(
+                        transactionId);
             }
+
             if (result != null)
             {
                 return result;
@@ -274,7 +288,7 @@ namespace AElf.WebApp.Application.Chain
                 Status = TransactionResultStatus.NotExisted
             };
         }
-        
+
         private Hash GetHashCombiningTransactionAndStatus(Hash txId,
             TransactionResultStatus executionReturnStatus)
         {

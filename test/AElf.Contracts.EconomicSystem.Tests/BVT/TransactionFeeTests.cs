@@ -31,8 +31,8 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     Value = nameof(VoteContractStub.AddOption)
                 });
                 addOptionFeeAmount.MethodName.ShouldBe(string.Empty); //default value is empty
-                addOptionFeeAmount.Fee.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
-                addOptionFeeAmount.Fee.First().BasicFee.ShouldBe(DefaultFeeAmount);
+                addOptionFeeAmount.Fees.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
+                addOptionFeeAmount.Fees.First().BasicFee.ShouldBe(DefaultFeeAmount);
             }
 
             //set transaction fee
@@ -44,9 +44,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 {
                     Value = nameof(VoteContractStub.AddOption)
                 });
-                addOptionFeeAmount.Fee.Count.ShouldBe(1);
-                addOptionFeeAmount.Fee.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
-                addOptionFeeAmount.Fee.First().BasicFee.ShouldBe(NewFeeAmount);
+                addOptionFeeAmount.Fees.Count.ShouldBe(1);
+                addOptionFeeAmount.Fees.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
+                addOptionFeeAmount.Fees.First().BasicFee.ShouldBe(NewFeeAmount);
             }
         }
         
@@ -66,15 +66,16 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             {
                 Option = address,
                 VotingItemId = registerItem.VotingItemId
-            })).TransactionResult;
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }));
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var transactionSize = transactionResult.Transaction.Size();
 
             var afterBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = BootMinerAddress
             })).Balance;
-            beforeBalance.ShouldBe(afterBalance + NewFeeAmount);
+            beforeBalance.ShouldBe(afterBalance + NewFeeAmount + transactionSize * 1000);
         }
 
         private async Task Profit_SetMethodFee_Test()
@@ -86,8 +87,8 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                     Value = nameof(ProfitContractStub.CreateScheme)
                 });
                 addOptionFeeAmount.MethodName.ShouldBe(string.Empty); //default value is empty
-                addOptionFeeAmount.Fee.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
-                addOptionFeeAmount.Fee.First().BasicFee.ShouldBe(CreateSchemeAmount);
+                addOptionFeeAmount.Fees.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
+                addOptionFeeAmount.Fees.First().BasicFee.ShouldBe(CreateSchemeAmount);
             }
 
             //set transaction fee
@@ -99,9 +100,9 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 {
                     Value = nameof(ProfitContractStub.CreateScheme)
                 });
-                addOptionFeeAmount.Fee.Count.ShouldBe(1);
-                addOptionFeeAmount.Fee.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
-                addOptionFeeAmount.Fee.First().BasicFee.ShouldBe(NewFeeAmount);
+                addOptionFeeAmount.Fees.Count.ShouldBe(1);
+                addOptionFeeAmount.Fees.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
+                addOptionFeeAmount.Fees.First().BasicFee.ShouldBe(NewFeeAmount);
             }
         }
 
@@ -125,13 +126,14 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             });
 
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var transactionSize = transactionResult.Transaction.Size();
 
             var afterBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = testerAddress
             })).Balance;
-            beforeBalance.ShouldBe(afterBalance + NewFeeAmount); 
+            beforeBalance.ShouldBe(afterBalance + NewFeeAmount + transactionSize * 1000); 
         }
 
         private async Task Vote_SetMethodFee(string method, string symbol, long feeAmount)
@@ -145,7 +147,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Params = new MethodFees
                 {
                     MethodName = method,
-                    Fee =
+                    Fees =
                     {
                         new MethodFee
                         {
@@ -181,7 +183,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Params = new MethodFees 
                 {
                     MethodName = method,
-                    Fee =
+                    Fees =
                     {
                         new MethodFee
                         {
