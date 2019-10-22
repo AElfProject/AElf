@@ -51,7 +51,7 @@ namespace AElf.OS.Consensus.DPos
 //                        }
 //                    }
 //                }, KernelConstants.UpdateChainQueueName);
-            }
+//            }
         }
     }
 
