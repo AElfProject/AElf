@@ -46,43 +46,6 @@ namespace AElf.Contracts.MultiToken
             }
         }
 
-        private ResourceInfo GetDonateResourceTokenResourceInfo(Transaction txn)
-        {
-            var resourceInfo = new ResourceInfo
-            {
-                Paths =
-                {
-                    GetPath(nameof(TokenContractState.TreasuryContract))
-                }
-            };
-
-            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"RAM"}))
-            {
-                resourceInfo.Paths.Add(GetPath(nameof(TokenContractState.ChargedResources), symbol));
-            }
-
-            return resourceInfo;
-        }
-
-        private ResourceInfo GetClaimTransactionFessResourceInfo(Transaction txn)
-        {
-            var resourceInfo = new ResourceInfo
-            {
-                Paths =
-                {
-                    GetPath(nameof(TokenContractState.PreviousBlockTransactionFeeTokenSymbolList)),
-                    GetPath(nameof(TokenContractState.TreasuryContract))
-                }
-            };
-            if (State.PreviousBlockTransactionFeeTokenSymbolList.Value == null) return resourceInfo;
-            foreach (var symbol in State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList)
-            {
-                resourceInfo.Paths.Add(GetPath(nameof(TokenContractState.ChargedFees), symbol));
-            }
-
-            return resourceInfo;
-        }
-
         private ScopedStatePath GetPath(params string[] parts)
         {
             return new ScopedStatePath

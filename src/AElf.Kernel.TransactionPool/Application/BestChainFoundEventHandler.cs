@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
-using AElf.Kernel.Blockchain.Application;
+using Acs0;
 using AElf.Kernel.Blockchain.Events;
+using AElf.Kernel.SmartContract.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -11,30 +12,35 @@ namespace AElf.Kernel.TransactionPool.Application
     internal class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>, ITransientDependency
     {
         private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
-        private readonly IContractDeployDiscoveryService _contractDeployDiscoveryService;
-
-        private readonly IBlockchainService _blockchainService;
+        private readonly ContractEventDiscoveryService<ContractDeployed> _contractDeployDiscoveryService;
+        private readonly ISmartContractAddressService _smartContractAddressService;
 
         public ILogger<BestChainFoundEventHandler> Logger { get; set; }
 
         public BestChainFoundEventHandler(IDeployedContractAddressProvider deployedContractAddressProvider,
-            IBlockchainService blockchainService, IContractDeployDiscoveryService contractDeployDiscoveryService)
+            ContractEventDiscoveryService<ContractDeployed> contractDeployDiscoveryService,
+            ISmartContractAddressService smartContractAddressService)
         {
             _deployedContractAddressProvider = deployedContractAddressProvider;
-            _blockchainService = blockchainService;
             _contractDeployDiscoveryService = contractDeployDiscoveryService;
+            _smartContractAddressService = smartContractAddressService;
 
             Logger = NullLogger<BestChainFoundEventHandler>.Instance;
         }
 
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
-            var chain = await _blockchainService.GetChainAsync();
-            var addresses = await _contractDeployDiscoveryService.GetDeployedContractAddresses(chain,
-                eventData.ExecutedBlocks);
-            foreach (var address in addresses)
+            var zeroContractAddress = _smartContractAddressService.GetZeroSmartContractAddress();
+            foreach (var executedBlockHash in eventData.ExecutedBlocks)
             {
-                _deployedContractAddressProvider.AddDeployedContractAddress(address);
+                var deployedContracts =
+                    await _contractDeployDiscoveryService.GetEventMessagesAsync(executedBlockHash, zeroContractAddress);
+                foreach (var deployedContract in deployedContracts)
+                {
+                    if (deployedContract.Address == null) continue;
+                    _deployedContractAddressProvider.AddDeployedContractAddress(deployedContract.Address);
+                    Logger.LogTrace($"Added deployed contract address of {deployedContract}");
+                }
             }
         }
     }
