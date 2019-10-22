@@ -104,9 +104,9 @@ namespace AElf.Cryptography
             return recoverResult && publicKey.BytesEqual(recoverPublicKey);
         }
 
-        public static bool RecoverPublicKey(byte[] signature, byte[] hash, out byte[] publicKey)
+        public static bool RecoverPublicKey(byte[] signature, byte[] hash, out byte[] pubkey)
         {
-            publicKey = null;
+            pubkey = null;
             try
             {
                 Lock.AcquireWriterLock(Timeout.Infinite);
@@ -121,7 +121,7 @@ namespace AElf.Cryptography
                     return false;
                 if (!Secp256K1.PublicKeySerialize(pubKey, recoveredPubKey))
                     return false;
-                publicKey = pubKey;
+                pubkey = pubKey;
                 return true;
             }
             finally
