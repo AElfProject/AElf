@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
@@ -19,18 +21,22 @@ namespace AElf.Runtime.CSharp
 {
     public class Executive : IExecutive
     {
-        private readonly Assembly _contractAssembly;
-        private readonly Type _contractType;
-        private readonly object _contractInstance;
-        private readonly ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
-        private readonly ServerServiceDefinition _serverServiceDefinition;
+        private Assembly _contractAssembly;
+        private Type _contractType;
+        private object _contractInstance;
+        private ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
+        private ServerServiceDefinition _serverServiceDefinition;
+        
+        private readonly ISdkStreamManager _sdkStreamManager;
 
         private CSharpSmartContractProxy _smartContractProxy;
         private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
 
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
         private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
-        public IReadOnlyList<ServiceDescriptor> Descriptors { get; }
+        private WeakReference<AssemblyLoadContext> _loadContext;
+        public IReadOnlyList<ServiceDescriptor> Descriptors => _descriptors;
+        private List<ServiceDescriptor> _descriptors;
 
         private Type FindContractType(Assembly assembly)
         {
@@ -57,16 +63,45 @@ namespace AElf.Runtime.CSharp
             return methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
         }
 
-        public Executive(Assembly assembly, IServiceContainer<IExecutivePlugin> executivePlugins)
+        public Executive(IServiceContainer<IExecutivePlugin> executivePlugins, 
+            ISdkStreamManager sdkStreamManager)
         {
-            _contractAssembly = assembly;
+            _sdkStreamManager = sdkStreamManager;
             _executivePlugins = executivePlugins;
+        }
+
+        public void Load(byte[] code)
+        {
+            var acl = new ContractCodeLoadContext(_sdkStreamManager);
+            //var acl = new AssemblyLoadContext(null, isCollectible: true);
+            _loadContext = new WeakReference<AssemblyLoadContext>(acl);
+
+            Assembly assembly = null;
+            using (Stream stream = new MemoryStream(code))
+            {
+                assembly = acl.LoadFromStream(stream);
+            }
+
+            if (assembly == null)
+            {
+                throw new InvalidCodeException("Invalid binary code.");
+            }
+            
+            _contractAssembly = assembly;
             _contractType = FindContractType(assembly);
             _contractInstance = Activator.CreateInstance(_contractType);
             _smartContractProxy = new CSharpSmartContractProxy(_contractInstance);
             _serverServiceDefinition = GetServerServiceDefinition(assembly);
             _callHandlers = _serverServiceDefinition.GetCallHandlers();
-            Descriptors = _serverServiceDefinition.GetDescriptors();
+            _descriptors = _serverServiceDefinition.GetDescriptors().ToList();
+        }
+        
+        public void Unload()
+        {
+            if (_loadContext.TryGetTarget(out var target))
+            {
+                target.Unload();
+            }
         }
 
         public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)

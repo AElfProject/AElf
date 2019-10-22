@@ -14,6 +14,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
             foreach (var r in runners)
             {
                 _runners[r.Category] = r;
+                _runners[30] = r;
             }
         }
 

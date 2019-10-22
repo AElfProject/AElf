@@ -13,6 +13,7 @@ using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Domain;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
@@ -25,6 +26,8 @@ namespace AElf.OS.Node.Application
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IServiceContainer<INodePlugin> _nodePlugins;
         private readonly ContractOptions _contractOptions;
+        
+        public ILogger<OsBlockchainNodeContextService> Logger { get; set; }
 
         public OsBlockchainNodeContextService(IBlockchainNodeContextService blockchainNodeContextService,
             IAElfNetworkServer networkServer, ISmartContractAddressService smartContractAddressService,
@@ -39,6 +42,8 @@ namespace AElf.OS.Node.Application
 
         public async Task<OsBlockchainNodeContext> StartAsync(OsBlockchainNodeContextStartDto dto)
         {
+            Logger.LogDebug($"Before start - Loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("AElf.Contracts.MultiToken")).ToList().Count()}");
+
             var transactions = new List<Transaction>();
 
             transactions.Add(GetTransactionForDeployment(dto.ZeroSmartContract, Hash.Empty,
@@ -83,12 +88,19 @@ namespace AElf.OS.Node.Application
             int category,
             SystemContractDeploymentInput.Types.SystemTransactionMethodCallList transactionMethodCallList = null)
         {
+            Logger.LogDebug($"Before start - Loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("AElf.Contracts.MultiToken")).ToList().Count()}");
+
+            
             var dllPath = Directory.Exists(_contractOptions.GenesisContractDir)
                 ? Path.Combine(_contractOptions.GenesisContractDir, $"{contractType.Assembly.GetName().Name}.dll")
                 : contractType.Assembly.Location;
             var code = File.ReadAllBytes(dllPath);
 
-            return GetTransactionForDeployment(code, systemContractName, category, transactionMethodCallList);
+            var ret = GetTransactionForDeployment(code, systemContractName, category, transactionMethodCallList);
+
+            Logger.LogDebug($"After start - Loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("AElf.Contracts.MultiToken")).ToList().Count()}");
+
+            return ret;
         }
 
         private Transaction GetTransactionForDeployment(byte[] code, Hash systemContractName,

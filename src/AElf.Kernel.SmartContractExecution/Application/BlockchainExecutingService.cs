@@ -20,6 +20,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private readonly IBlockExecutingService _blockExecutingService;
         private readonly IBlockchainStateManager _blockchainStateManager;
         public ILocalEventBus LocalEventBus { get; set; }
+        
+        public ILogger<FullBlockchainExecutingService> Logger { get; set; }
 
         public FullBlockchainExecutingService(IChainManager chainManager,
             IBlockchainService blockchainService, IBlockValidationService blockValidationService,
@@ -34,8 +36,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             LocalEventBus = NullLocalEventBus.Instance;
         }
 
-        public ILogger<FullBlockchainExecutingService> Logger { get; set; }
-
         private async Task<bool> TryExecuteBlockAsync(Block block)
         {
             var blockHash = block.GetHash();
@@ -46,6 +46,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var transactions = await _blockchainService.GetTransactionsAsync(block.TransactionIds);
             var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+
+            
 
             return executedBlock.GetHashWithoutCache().Equals(blockHash);
         }

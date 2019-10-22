@@ -7,25 +7,23 @@ using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
 
 namespace AElf.Runtime.CSharp
 {
     public class SmartContractRunnerForCategoryZero : ISmartContractRunner
     {
+        public ILogger<SmartContractRunnerForCategoryZero> Logger { get; set; }
+        
         public int Category { get; protected set; }
+        
         private readonly ISdkStreamManager _sdkStreamManager;
-
-        private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams =
-            new ConcurrentDictionary<string, MemoryStream>();
-
-        private readonly ConcurrentDictionary<Hash, Type> _cachedContractTypeByHash =
-            new ConcurrentDictionary<Hash, Type>();
 
         private readonly string _sdkDir;
         private readonly ContractAuditor _contractAuditor;
 
         protected readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
-
+        
         public SmartContractRunnerForCategoryZero(
             string sdkDir,
             IServiceContainer<IExecutivePlugin> executivePlugins = null,
@@ -51,21 +49,8 @@ namespace AElf.Runtime.CSharp
         public virtual async Task<IExecutive> RunAsync(SmartContractRegistration reg)
         {
             var code = reg.Code.ToByteArray();
-
-            var loadContext = GetLoadContext();
-
-            Assembly assembly = null;
-            using (Stream stream = new MemoryStream(code))
-            {
-                assembly = loadContext.LoadFromStream(stream);
-            }
-
-            if (assembly == null)
-            {
-                throw new InvalidCodeException("Invalid binary code.");
-            }
-
-            var executive = new Executive(assembly, _executivePlugins) {ContractHash = reg.CodeHash};
+            var executive = new Executive(_executivePlugins, _sdkStreamManager) { ContractHash = reg.CodeHash };
+            executive.Load(code);
 
             return await Task.FromResult(executive);
         }

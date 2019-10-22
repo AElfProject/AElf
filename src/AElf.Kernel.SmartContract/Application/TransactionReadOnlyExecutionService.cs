@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
@@ -88,11 +89,22 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (executive != null)
                 {
-                    await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
+                    executive?.Unload();
+                    Clean();
+                    //await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
                 }
             }
 
             return output;
+        }
+        
+        private void Clean()
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
         }
 
         public async Task<string> GetTransactionParametersAsync(IChainContext chainContext, Transaction transaction)

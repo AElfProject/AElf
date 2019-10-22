@@ -36,7 +36,7 @@ namespace AElf.Runtime.CSharp
                 var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
                 ms = new MemoryStream();
                 fs.CopyTo(ms);
-                _cachedSdkStreams.TryAdd(path, ms);
+                //_cachedSdkStreams.TryAdd(path, ms);
             }
 
             ms.Position = 0;

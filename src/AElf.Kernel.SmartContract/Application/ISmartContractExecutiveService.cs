@@ -14,7 +14,7 @@ namespace AElf.Kernel.SmartContract.Application
 
         Task PutExecutiveAsync(Address address, IExecutive executive);
 
-        Task SetContractInfoAsync(Address address,long blockHeight);
+        Task SetContractInfoAsync(Address address,long blockHeight, bool unload = false);
 
         void ClearContractInfoCache(long blockHeight);
 

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Kernel.Infrastructure;
@@ -105,9 +106,30 @@ namespace AElf.Kernel.SmartContract.Application
             // get runner
             var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
 
+//            foreach (var ass in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.FullName.Contains("System")))
+//            {
+//                Logger.LogDebug($"Assembly: {ass.FullName}");
+//            }
+            
+            Logger.LogDebug($"Getting executive for: {address.Value.ToHex()}, codeHash: {reg.CodeHash.ToHex()}");
+            
             // run smartcontract executive info and return executive
+            //Logger.LogDebug($"Before RunAsync - loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("Token")).ToList().Count}");
+            Logger.LogDebug($"Before RunAsync - loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("HelloWorldContract")).ToList().Count}");
             var executive = await runner.RunAsync(reg);
+            Logger.LogDebug($"After RunAsync - loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("HelloWorldContract")).ToList().Count}");
+            //Logger.LogDebug($"After RunAsync - loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("Token")).ToList().Count}");
 
+            if (reg.CodeHash.ToHex() ==
+                "36874dc40609aa4112b6eb1b1f4731840eecf366f869ab4508ce495333184567"
+            )
+            {
+                foreach (var ass in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.FullName.Contains("System")))
+                {
+                    Logger.LogDebug($"Assembly: {ass.FullName}");
+                }
+            }
+            
             var context =
                 _hostSmartContractBridgeContextService.Create();
             executive.SetHostSmartContractBridgeContext(context);
@@ -126,15 +148,47 @@ namespace AElf.Kernel.SmartContract.Application
                         pool.Add(executive);
                     }
                 }
+                else
+                {
+                    Logger.LogDebug($"Lost an executive for {address} (no registration)");
+                }
+            }
+            else
+            {
+                Logger.LogDebug($"Lost an executive for {address} (no pool)");
             }
 
             await Task.CompletedTask;
         }
 
-        public async Task SetContractInfoAsync(Address address, long blockHeight)
+        private void Clean()
         {
-            _executivePools.TryRemove(address, out _);
+            for (int i = 0; i < 10; i++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+        }
+
+        public async Task SetContractInfoAsync(Address address, long blockHeight, bool unload = false)
+        {
+            if (_executivePools.TryRemove(address, out var executives))
+            {
+                foreach (var exec in executives)
+                {
+                    Logger.LogDebug($"Unloaded for {address.Value.ToHex()}");
+                    
+                    if (unload)
+                        exec.Unload();
+                }
+            }
+
+            Clean();
+            
+            //Logger.LogDebug($"After RunAsync - after clean assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("Token")).ToList().Count}");
+
             _addressSmartContractRegistrationMappingCache.TryRemove(address, out _);
+            
             if (!_contractInfoCache.TryGetValue(address, out var height) || blockHeight > height)
             {
                 _contractInfoCache[address] = blockHeight;

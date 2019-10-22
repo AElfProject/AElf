@@ -19,5 +19,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         IEnumerable<FileDescriptor> GetFileDescriptors();
         
         Hash ContractHash { get; }
+
+        void Unload();
     }
 }

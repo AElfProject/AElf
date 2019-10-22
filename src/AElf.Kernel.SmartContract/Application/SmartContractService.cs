@@ -48,7 +48,7 @@ namespace AElf.Kernel.SmartContract.Application
                 contractDto.IsPrivileged));
 
             await _smartContractExecutiveService.SetContractInfoAsync(contractDto.ContractAddress,
-                contractDto.BlockHeight);
+                contractDto.BlockHeight, true);
 
             //Todo New version metadata handle it
 //            var oldRegistration = await GetContractByAddressAsync(contractAddress);
