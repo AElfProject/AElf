@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
+using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.Consensus.AEDPoS
 {
@@ -29,6 +30,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services
                 .AddSingleton<IConstrainedTransactionValidationProvider,
                     ConstrainedAEDPoSTransactionValidationProvider>();
+            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
 
             var configuration = context.Services.GetConfiguration();
 
