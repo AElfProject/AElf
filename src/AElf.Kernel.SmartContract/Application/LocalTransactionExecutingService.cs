@@ -52,6 +52,12 @@ namespace AElf.Kernel.SmartContract.Application
                 transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);
 
             var returnSets = new List<ExecutionReturnSet>();
+            if (cancellationToken == CancellationToken.None)
+            {
+                var now = TimestampHelper.GetUtcNow();
+                Logger.LogTrace($"##system transaction start " +
+                                $"time: {now.ToDateTime():hh:mm:ss.ffff}");
+            }
             foreach (var transaction in transactionExecutingDto.Transactions)
             {
                 TransactionTrace trace;
@@ -113,6 +119,12 @@ namespace AElf.Kernel.SmartContract.Application
 
                 var returnSet = GetReturnSet(trace, result);
                 returnSets.Add(returnSet);
+            }
+            if (cancellationToken == CancellationToken.None)
+            {
+                var now = TimestampHelper.GetUtcNow();
+                Logger.LogTrace($"## system transaction end " +
+                                $"time: {now.ToDateTime():hh:mm:ss.ffff}");
             }
 
             return returnSets;
