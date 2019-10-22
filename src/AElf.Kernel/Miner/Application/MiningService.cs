@@ -112,7 +112,7 @@ namespace AElf.Kernel.Miner.Application
                 block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
                     systemTransactions, pending, cts.Token);
                 await SignBlockAsync(block);
-                Logger.LogInformation($"## Generated block: {block.ToDiagnosticString()}, " +
+                Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
                                       $"previous: {block.Header.PreviousBlockHash}, " +
                                       $"executed transactions: {block.Body.TransactionsCount}, " +
                                       $"not executed transactions {transactions.Count + systemTransactions.Count - block.Body.TransactionsCount} ");
