@@ -110,7 +110,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                 var returnSet = GetReturnSet(trace, result);
                 returnSets.Add(returnSet);
-            }      
+            }
 
             return returnSets;
         }
