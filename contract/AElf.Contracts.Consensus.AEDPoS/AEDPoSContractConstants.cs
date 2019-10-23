@@ -7,7 +7,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public const int RandomNumberDueRoundCount = 1024;
         public const long InitialMiningRewardPerBlock = 12500000;
         public const long TimeToReduceMiningRewardByHalf = 126144000;// (60 * 60 * 24 * 365 * 4) s
-        public const int InitialMinersCount = 9;
+        public const int InitialMinersCount = 4;
         public const int KeepRounds = 40960;
         public const long TolerableMissedTimeSlotsCount = 10;// update for miss slots test
     }
