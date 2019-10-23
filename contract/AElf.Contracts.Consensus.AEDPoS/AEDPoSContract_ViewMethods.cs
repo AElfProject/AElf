@@ -233,44 +233,46 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var blockchainStartTimestamp = GetBlockchainStartTimestamp();
             var isMinerListChanged = false;
-            if (previousRound.TermNumber.Add(1) != currentRound.TermNumber)
+            if (previousRound.TermNumber == currentRound.TermNumber) // In same term.
             {
                 var evilMinersPublicKey = GetEvilMinersPublicKey(currentRound, previousRound);
                 var evilMinersCount = evilMinersPublicKey.Count;
                 if (evilMinersCount != 0)
                 {
                     Context.LogDebug(() => $"Evil nodes found: \n{string.Join("\n", evilMinersPublicKey)}");
-                    foreach (var publicKeyToRemove in evilMinersPublicKey)
-                    {
-                        var theOneFeelingLucky = GetNextAvailableMinerPublicKey(currentRound);
 
-                        if (theOneFeelingLucky == null)
+                    var alternatives = GetNextAvailableMinerPublicKey(currentRound, evilMinersCount);
+
+                    if (alternatives.Count < evilMinersCount)
+                    {
+                        Context.LogDebug(() => "Failed to find alternative miners.");
+                    }
+                    else
+                    {
+                        for (var i = 0; i < evilMinersCount; i++)
                         {
-                            Context.LogDebug(() => "Failed to find alternative miner.");
-                            break;
+                            // Update history information of evil node.
+                            UpdateCandidateInformation(evilMinersPublicKey[i],
+                                currentRound.RealTimeMinersInformation[evilMinersPublicKey[i]].ProducedBlocks,
+                                currentRound.RealTimeMinersInformation[evilMinersPublicKey[i]].MissedTimeSlots, true);
+
+                            // Transfer evil node's consensus information to the chosen backup.
+                            var evilMinerInformation = currentRound.RealTimeMinersInformation[evilMinersPublicKey[i]];
+                            var minerInRound = new MinerInRound
+                            {
+                                Pubkey = alternatives[i],
+                                ExpectedMiningTime = evilMinerInformation.ExpectedMiningTime,
+                                Order = evilMinerInformation.Order,
+                                PreviousInValue = Hash.Empty,
+                                IsExtraBlockProducer = evilMinerInformation.IsExtraBlockProducer
+                            };
+
+                            currentRound.RealTimeMinersInformation.Add(alternatives[i], minerInRound);
+                            currentRound.RealTimeMinersInformation.Remove(evilMinersPublicKey[i]);
                         }
 
-                        // Update history information of evil node.
-                        UpdateCandidateInformation(publicKeyToRemove,
-                            currentRound.RealTimeMinersInformation[publicKeyToRemove].ProducedBlocks,
-                            currentRound.RealTimeMinersInformation[publicKeyToRemove].MissedTimeSlots, true);
-
-                        // Transfer evil node's consensus information to the chosen backup.
-                        var evilMinerInformation = currentRound.RealTimeMinersInformation[publicKeyToRemove];
-                        var minerInRound = new MinerInRound
-                        {
-                            Pubkey = theOneFeelingLucky,
-                            ExpectedMiningTime = evilMinerInformation.ExpectedMiningTime,
-                            Order = evilMinerInformation.Order,
-                            PreviousInValue = Hash.Empty,
-                            IsExtraBlockProducer = evilMinerInformation.IsExtraBlockProducer
-                        };
-                        
-                        currentRound.RealTimeMinersInformation.Add(theOneFeelingLucky, minerInRound);
-                        currentRound.RealTimeMinersInformation.Remove(publicKeyToRemove);
+                        isMinerListChanged = true;
                     }
-
-                    isMinerListChanged = true;
                 }
             }
 
@@ -362,28 +364,37 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return snapshot.ElectionResult.Any();
         }
 
-        private string GetNextAvailableMinerPublicKey(Round round)
+        private List<string> GetNextAvailableMinerPublicKey(Round round, int count = 1)
         {
-            string nextCandidate = null;
+            var nextCandidate = new List<string>();
 
             TryToGetRoundInformation(1, out var firstRound);
             // Check out election snapshot.
             if (TryToGetTermNumber(out var termNumber) && termNumber > 1 &&
                 TryToGetElectionSnapshot(termNumber - 1, out var snapshot))
             {
-                nextCandidate = snapshot.ElectionResult
+                var maybeNextCandidates = snapshot.ElectionResult
                     // Except initial miners.
                     .Where(cs => !firstRound.RealTimeMinersInformation.ContainsKey(cs.Key))
                     // Except current miners.
                     .Where(cs => !round.RealTimeMinersInformation.ContainsKey(cs.Key))
                     .OrderByDescending(s => s.Value)
-                    .FirstOrDefault(c => !round.RealTimeMinersInformation.ContainsKey(c.Key)).Key;
-                Context.LogDebug(() => $"Found alternative miner from candidate list: {nextCandidate != null}");
+                    .Where(c => !round.RealTimeMinersInformation.ContainsKey(c.Key)).ToList();
+                var take = Math.Min(count, maybeNextCandidates.Count);
+                nextCandidate.AddRange(maybeNextCandidates.Select(i => i.Key).Take(take));
+                Context.LogDebug(() =>
+                    $"Found alternative miner from candidate list: {nextCandidate.Aggregate("\n", (key1, key2) => key1 + "\n" + key2)}");
             }
 
             // Check out initial miners.
-            return nextCandidate ?? firstRound.RealTimeMinersInformation.Keys.FirstOrDefault(k =>
-                       !round.RealTimeMinersInformation.ContainsKey(k));
+            if (nextCandidate.Count < count)
+            {
+                nextCandidate.AddRange(firstRound.RealTimeMinersInformation.Keys.Where(k =>
+                    !round.RealTimeMinersInformation.ContainsKey(k)).Take(Math.Min(count - nextCandidate.Count,
+                    firstRound.RealTimeMinersInformation.Count)));
+            }
+
+            return nextCandidate;
         }
 
         private int GetMinersCount(Round input)
