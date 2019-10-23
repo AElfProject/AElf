@@ -8,7 +8,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TokenConverter
 {
-    public class TokenConverterContract : TokenConverterContractContainer.TokenConverterContractBase
+    public partial class TokenConverterContract : TokenConverterContractContainer.TokenConverterContractBase
     {
         #region Views
 
@@ -156,6 +156,7 @@ namespace AElf.Contracts.TokenConverter
                     To = Context.Sender,
                     Amount = input.Amount
                 });
+            
             Context.Fire(new TokenBought
             {
                 Symbol = input.Symbol,

@@ -3,10 +3,11 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;
 using AElf.Kernel.TransactionPool.Application;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Blockchains.MainChain
 {
-    public class MainChainSystemTransactionMethodNameListProvider : ISystemTransactionMethodNameListProvider
+    public class MainChainSystemTransactionMethodNameListProvider : ISystemTransactionMethodNameListProvider, ITransientDependency
     {
         public List<string> GetSystemTransactionMethodNameList()
         {

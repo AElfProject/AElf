@@ -7,6 +7,7 @@ using AElf.Types;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         private void ProcessConsensusInformation(dynamic input, [CallerMemberName] string caller = null)
@@ -18,23 +19,42 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return;
             }
 
+            var behaviour = AElfConsensusBehaviour.Nothing;
+
             switch (input)
             {
                 case Round round when caller == nameof(NextRound):
                     ProcessNextRound(round);
+                    behaviour = AElfConsensusBehaviour.NextRound;
                     break;
                 case Round round when caller == nameof(NextTerm):
                     ProcessNextTerm(round);
+                    behaviour = AElfConsensusBehaviour.NextTerm;
                     break;
                 case UpdateValueInput updateValueInput:
                     ProcessUpdateValue(updateValueInput);
+                    behaviour = AElfConsensusBehaviour.UpdateValue;
                     break;
                 case TinyBlockInput tinyBlockInput:
                     ProcessTinyBlock(tinyBlockInput);
+                    behaviour = AElfConsensusBehaviour.TinyBlock;
                     break;
             }
 
-            ResetLatestProviderToTinyBlocksCount();
+            var miningInformationUpdated = new MiningInformationUpdated
+            {
+                Pubkey = _processingBlockMinerPubkey,
+                Behaviour = behaviour.ToString(),
+                MiningTime = Context.CurrentBlockTime,
+                BlockHeight = Context.CurrentHeight,
+                PreviousBlockHash = Context.PreviousBlockHash
+            };
+            Context.Fire(miningInformationUpdated);
+            Context.LogDebug(() => miningInformationUpdated.ToString());
+
+            // Make sure GetMaximumBlocksCount need to be executed no matter what consensus behaviour is.
+            var minersCountInTheory = GetMaximumBlocksCount();
+            ResetLatestProviderToTinyBlocksCount(minersCountInTheory);
             ClearCachedFields();
         }
 
@@ -48,8 +68,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (currentRound.RoundNumber == 1)
             {
                 // Set blockchain start timestamp.
-                var actualBlockchainStartTimestamp = nextRound.GetStartTime();
+                var actualBlockchainStartTimestamp = currentRound.FirstActualMiner()?.ActualMiningTimes.FirstOrDefault() ??
+                                                     Context.CurrentBlockTime;
                 SetBlockchainStartTimestamp(actualBlockchainStartTimestamp);
+                //currentRound.RealTimeMinersInformation.First().Value.ActualMiningTimes.First();
 
                 // Initialize current miners' information in Election Contract.
                 if (State.IsMainChain.Value)
@@ -254,7 +276,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return true;
         }
 
-        private void ResetLatestProviderToTinyBlocksCount()
+        private void ResetLatestProviderToTinyBlocksCount(int minersCountInTheory)
         {
             LatestProviderToTinyBlocksCount currentValue;
             if (State.LatestProviderToTinyBlocksCount.Value == null)
@@ -282,7 +304,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     State.LatestProviderToTinyBlocksCount.Value = new LatestProviderToTinyBlocksCount
                     {
                         Pubkey = _processingBlockMinerPubkey,
-                        BlocksCount = GetMaximumBlocksCount().Sub(1)
+                        BlocksCount = minersCountInTheory.Sub(1)
                     };
                 }
             }

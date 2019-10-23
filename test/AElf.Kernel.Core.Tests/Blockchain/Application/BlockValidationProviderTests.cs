@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Types;
@@ -88,7 +89,6 @@ namespace AElf.Kernel.Blockchain.Application
             validateResult.ShouldBeFalse();
            
             block.Header = _kernelTestHelper.GenerateBlock(9, Hash.FromString("PreviousBlockHash")).Header;
-            block.Body.BlockHeader = block.Header.GetHash();
             block.Header.ChainId = 0;
             block.Header.Signature = ByteString.CopyFrom(CryptoHelper.SignWithPrivateKey(_kernelTestHelper.KeyPair.PrivateKey, block.GetHash().ToByteArray())); 
             validateResult = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
@@ -111,7 +111,6 @@ namespace AElf.Kernel.Blockchain.Application
             var validateResult = await _blockValidationService.ValidateBlockBeforeAttachAsync(block);
             validateResult.ShouldBeFalse();
             
-            block.Body.BlockHeader = block.Header.GetHash();
             block.Body.TransactionIds.Add(Hash.Empty);
             block.Header.MerkleTreeRootOfTransactions = block.Body.CalculateMerkleTreeRoot();
             block.Header.ChainId = 0;
@@ -120,6 +119,21 @@ namespace AElf.Kernel.Blockchain.Application
 
             validateResult = await _blockValidationService.ValidateBlockBeforeAttachAsync(block);
             validateResult.ShouldBeTrue();
+        }
+
+        [Fact]
+        public async Task ValidateBeforeAttach_DuplicatesTransactions_ReturnFalse()
+        {
+            var transaction = _kernelTestHelper.GenerateTransaction();
+            var block = _kernelTestHelper.GenerateBlock(9, Hash.FromString("PreviousBlockHash"),
+                new List<Transaction> {transaction,transaction});
+
+            block.Header.Signature =
+                ByteString.CopyFrom(CryptoHelper.SignWithPrivateKey(_kernelTestHelper.KeyPair.PrivateKey,
+                    block.GetHash().ToByteArray()));
+
+            var validateResult = await _blockValidationProvider.ValidateBeforeAttachAsync(block);
+            validateResult.ShouldBeFalse();
         }
     }
 }

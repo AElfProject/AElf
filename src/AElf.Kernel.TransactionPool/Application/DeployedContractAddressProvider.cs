@@ -5,10 +5,11 @@ using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    internal class DeployedContractAddressProvider : IDeployedContractAddressProvider
+    internal class DeployedContractAddressProvider : IDeployedContractAddressProvider, ISingletonDependency
     {
         private AddressList _addressList = new AddressList();
 

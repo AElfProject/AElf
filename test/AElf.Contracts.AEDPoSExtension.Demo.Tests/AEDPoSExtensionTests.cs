@@ -119,9 +119,8 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             }
 
             // Miner of order 3 produce his first block.
-            await BlockMiningService.MineBlockAsync();
-
             {
+                await BlockMiningService.MineBlockAsync();
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
                 round.RealTimeMinersInformation.Values.Count(m => m.OutValue != null).ShouldBe(3);
             }
@@ -144,7 +143,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 round.RoundNumber.ShouldBe(2);
             }
 
-            // 6 more blocks will end second round.
+            // 5 more blocks will end second round.
             for (var i = 0; i < AEDPoSExtensionConstants.TinyBlocksNumber * 6; i++)
             {
                 await BlockMiningService.MineBlockAsync(new List<Transaction>());
@@ -153,26 +152,22 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             // Check round number.
             {
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
-                round.RoundNumber.ShouldBeGreaterThanOrEqualTo(3);
+                round.RoundNumber.ShouldBe(3);
             }
         }
         
         [Fact(Skip = "Redo this later.")]
         public async Task<Hash> RequestRandomNumber_Test()
         {
-            const long minimumBlockHeight = 40;
-
-            var transaction = ConsensusStub.RequestRandomNumber.GetTransaction(new RequestRandomNumberInput
-            {
-                MinimumBlockHeight = minimumBlockHeight
-            });
+            var transaction = ConsensusStub.RequestRandomNumber.GetTransaction(new Empty());
             await BlockMiningService.MineBlockAsync(new List<Transaction>
             {
                 transaction
             });
 
-            // TODO: Need to query result of transaction, this feature implemented in another PR.
-            return Hash.Empty;
+            var transactionTrace = TransactionTraceProvider.GetTransactionTrace(transaction.GetHash());
+
+            return Hash.Parser.ParseFrom(transactionTrace.ReturnValue);
         }
 
         [Fact(Skip = "Redo this later.")]

@@ -356,12 +356,12 @@ namespace AElf.Contracts.Vote
         }
 
         [Fact]
-        public async Task VoteContract_GetVotingResult_Test()
+        public async Task VoteContract_VotesAndGetVotedItems_Test()
         {
             var voteUser = SampleECKeyPairs.KeyPairs[2];
             var votingItem = await RegisterVotingItemAsync(10, 3, true, DefaultSender, 2);
+            
             await Vote(voteUser, votingItem.VotingItemId, votingItem.Options.First(), 1000L);
-
             var votingResult = await VoteContractStub.GetVotingResult.CallAsync(new GetVotingResultInput
             {
                 VotingItemId = votingItem.VotingItemId,
@@ -371,17 +371,8 @@ namespace AElf.Contracts.Vote
             votingResult.VotingItemId.ShouldBe(votingItem.VotingItemId);
             votingResult.VotersCount.ShouldBe(1);
             votingResult.Results.Values.First().ShouldBe(1000L);
-        }
-
-        [Fact]
-        public async Task VoteContract_VotesAndGetVotedItems_Test()
-        {
-            var voteUser = SampleECKeyPairs.KeyPairs[2];
-            var votingItem = await RegisterVotingItemAsync(10, 3, true, DefaultSender, 2);
             
-            await Vote(voteUser, votingItem.VotingItemId, votingItem.Options.First(), 1000L);
             await Vote(voteUser, votingItem.VotingItemId, votingItem.Options.Last(), 500L);
-
             var votedResult = await GetVotedItems(Address.FromPublicKey(voteUser.PublicKey));
             votedResult.VotedItemVoteIds[votingItem.VotingItemId.ToHex()].ActiveVotes.Count.ShouldBe(2);
         }

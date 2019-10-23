@@ -5,6 +5,8 @@ using AElf.Contracts.Treasury;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
+    // ReSharper disable UnusedAutoPropertyAccessor.Global
     public partial class AEDPoSContractState
     {
         internal ElectionContractContainer.ElectionContractReferenceState ElectionContract { get; set; }

@@ -16,8 +16,7 @@ namespace AElf.Blockchains.MainChain
     /// </summary>
     public partial class GenesisSmartContractDtoProvider : IGenesisSmartContractDtoProvider
     {
-        private readonly IReadOnlyDictionary<string, byte[]> _codes =
-            ContractsDeployer.GetContractCodes<GenesisSmartContractDtoProvider>();
+        private readonly IReadOnlyDictionary<string, byte[]> _codes;
         
         private readonly ConsensusOptions _consensusOptions;
         private readonly EconomicOptions _economicOptions;
@@ -29,6 +28,8 @@ namespace AElf.Blockchains.MainChain
             _consensusOptions = dposOptions.Value;
             _economicOptions = economicOptions.Value;
             _contractOptions = contractOptions.Value;
+            _codes = ContractsDeployer.GetContractCodes<GenesisSmartContractDtoProvider>(_contractOptions
+                .GenesisContractDir);
         }
 
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress)
@@ -46,6 +47,8 @@ namespace AElf.Blockchains.MainChain
                 GetGenesisSmartContractDtosForConfiguration(zeroContractAddress),
                 GetGenesisSmartContractDtosForConsensus(),
                 GetGenesisSmartContractDtosForTokenConverter(),
+                GetGenesisSmartContractDtosForReferendum(),
+                GetGenesisSmartContractDtosForAssociation(),
                 // Economic Contract should always be the last one to deploy and initialize.
                 GetGenesisSmartContractDtosForEconomic()
             }.SelectMany(x => x);

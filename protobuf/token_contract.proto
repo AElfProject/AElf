@@ -35,6 +35,8 @@ service TokenContract {
     }
     rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {
     }
+    rpc RegisterNativeAndResourceTokenInfo(RegisterNativeAndResourceTokenInfoInput) returns (google.protobuf.Empty) {
+    }  
     rpc RegisterNativeTokenInfo(RegisterNativeTokenInfoInput) returns (google.protobuf.Empty) {
     }
     rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
@@ -73,6 +75,9 @@ service TokenContract {
     rpc GetNativeTokenInfo (google.protobuf.Empty) returns (TokenInfo) {
         option (aelf.is_view) = true;
     }
+    rpc GetResourceTokenInfo (google.protobuf.Empty) returns (TokenInfoList) {
+        option (aelf.is_view) = true;
+    }
     rpc GetBalance (GetBalanceInput) returns (GetBalanceOutput) {
         option (aelf.is_view) = true;
     }
@@ -92,6 +97,9 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     rpc GetCrossChainTransferTokenContractAddress (GetCrossChainTransferTokenContractAddressInput) returns (aelf.Address) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetPrimaryTokenSymbol (google.protobuf.Empty) returns (google.protobuf.StringValue) {
         option (aelf.is_view) = true;
     }
 }
@@ -118,6 +126,7 @@ message CreateInput {
     bool is_burnable = 6;
     repeated aelf.Address lock_white_list = 7;
     bool is_transfer_disabled = 8;
+    int32 issue_chain_id = 9;
 }
 
 message RegisterNativeTokenInfoInput{
@@ -128,6 +137,12 @@ message RegisterNativeTokenInfoInput{
     aelf.Address issuer = 5;
     bool is_burnable = 6;
     sint32 issue_chain_id = 8;
+}
+
+message RegisterNativeAndResourceTokenInfoInput {
+    RegisterNativeTokenInfoInput native_token_info = 1;
+    TokenInfoList resource_token_list = 2;
+    TokenInfo chain_primary_token = 3;
 }
 
 message IssueInput {
@@ -313,7 +328,14 @@ message GetVirtualAddressForLockingInput {
     aelf.Hash lock_id = 3;
 }
 
-// Events
+message TokenInfoList {
+    repeated TokenInfo value = 1;
+}
+
+message GetCrossChainTransferTokenContractAddressInput {
+    int32 chainId = 1;
+}
+
 message CrossChainCreateTokenInput {
     int32 from_chain_id = 1;
     int64 parent_chain_height = 2;
@@ -328,6 +350,8 @@ message RegisterCrossChainTokenContractAddressInput{
     aelf.MerklePath merkle_path = 4;
     aelf.Address token_contract_address = 5;
 }
+
+// Events
 
 message Transferred {
     option (aelf.is_event) = true;
@@ -362,6 +386,7 @@ message Burned
     sint64 amount = 3;
 }
 
-message GetCrossChainTransferTokenContractAddressInput {
-    int32 chainId = 1;
+message ChainPrimaryTokenSymbolSet {
+    option (aelf.is_event) = true;
+    string token_symbol = 1;
 }

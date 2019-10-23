@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using Shouldly;
 using Xunit;
 
@@ -9,7 +8,7 @@ namespace AElf.Database.Tests
         [Fact]
         public void CheckDbType_Test()
         {
-            var type = this._context.Database.GetType().GetGenericTypeDefinition();
+            var type = _context.Database.GetType().GetGenericTypeDefinition();
             typeof(InMemoryDatabase<>).IsAssignableFrom(type).ShouldBe(true);
 
             var connection = GetRequiredService<KeyValueDatabaseOptions<MyContext>>().ConnectionString;

@@ -1,16 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using AElf.Contracts.Election;
-using AElf.Cryptography.SecretSharing;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         public override SInt64Value GetCurrentRoundNumber(Empty input) =>
@@ -32,6 +30,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     }
                 }
                 : new MinerList();
+
+        public override PubkeyList GetCurrentMinerPubkeyList(Empty input) => new PubkeyList
+        {
+            Pubkeys = {GetCurrentMinerList(input).Pubkeys.Select(p => p.ToHex())}
+        };
 
         public override MinerListWithRoundNumber GetCurrentMinerListWithRoundNumber(Empty input) =>
             new MinerListWithRoundNumber
@@ -87,16 +90,51 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public override StringValue GetCurrentMinerPubkey(Empty input)
         {
-            if (TryToGetCurrentRoundInformation(out var round))
+            if (!TryToGetCurrentRoundInformation(out var round)) return new StringValue();
+            Context.LogDebug(() => $"Based on round: \n{round.GetSimpleRound()}");
+            Context.LogDebug(() => $"Based on block time: {Context.CurrentBlockTime}");
+            var currentMinerPubkey = GetCurrentMinerPubkey(round, Context.CurrentBlockTime);
+            Context.LogDebug(() => $"Current miner pubkey: {currentMinerPubkey}");
+            return currentMinerPubkey != null ? new StringValue {Value = currentMinerPubkey} : new StringValue();
+        }
+
+        private string GetCurrentMinerPubkey(Round round, Timestamp currentBlockTime)
+        {
+            var miningInterval = round.GetMiningInterval();
+            string pubkey;
+            if (currentBlockTime < round.GetExtraBlockMiningTime())
             {
-                var currentMinerPubkey = round.GetCurrentMinerPubkey(Context.CurrentBlockTime);
-                if (currentMinerPubkey != null)
+                pubkey = round.RealTimeMinersInformation.Values.OrderBy(m => m.Order).FirstOrDefault(m =>
+                    m.ExpectedMiningTime <= currentBlockTime &&
+                    currentBlockTime < m.ExpectedMiningTime.AddMilliseconds(miningInterval))?.Pubkey;
+                if (pubkey != null)
                 {
-                    return new StringValue {Value = currentMinerPubkey};
+                    Context.LogDebug(() => $"Checked normal block time slot: {pubkey}");
+                    return pubkey;
                 }
             }
 
-            return new StringValue();
+            if (!TryToGetPreviousRoundInformation(out var previousRound)) return null;
+
+            Context.LogDebug(() => $"Now based on round: \n{previousRound.GetSimpleRound()}");
+
+            var extraBlockProducer = previousRound.RealTimeMinersInformation.Values.First(m => m.IsExtraBlockProducer)
+                .Pubkey;
+            var extraBlockMiningTime = previousRound.GetExtraBlockMiningTime();
+            if (extraBlockMiningTime <= currentBlockTime &&
+                currentBlockTime <= extraBlockMiningTime.AddMilliseconds(miningInterval))
+            {
+                Context.LogDebug(() => $"Checked extra block time slot: {extraBlockProducer}");
+                return extraBlockProducer;
+            }
+
+            pubkey = previousRound.RealTimeMinersInformation.Keys.FirstOrDefault(k =>
+                previousRound.IsInCorrectFutureMiningSlot(k,
+                    previousRound.GetExpectedMiningTime(k).AddMilliseconds(miningInterval)));
+
+            Context.LogDebug(() => $"Checked abnormal extra block time slot: {pubkey}");
+
+            return pubkey;
         }
 
         public override BoolValue IsCurrentMiner(Address input)
@@ -104,11 +142,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var currentMinerPubkey = GetCurrentMinerPubkey(new Empty());
             if (currentMinerPubkey.Value.Any())
             {
-                return new BoolValue
+                var isCurrentMiner = new BoolValue
                 {
                     Value = input == Address.FromPublicKey(
                                 ByteArrayHelper.HexStringToByteArray(currentMinerPubkey.Value))
                 };
+                Context.LogDebug(() => $"Current miner: {currentMinerPubkey}. {isCurrentMiner}");
+                return isCurrentMiner;
             }
 
             return new BoolValue {Value = false};
@@ -153,7 +193,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private long GetBlockchainAge()
         {
-            return (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds;
+            return State.BlockchainStartTimestamp.Value == null
+                ? 0
+                : (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds;
         }
 
         private bool TryToGetVictories(out MinerList victories)
@@ -166,7 +208,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var victoriesPublicKeys = State.ElectionContract.GetVictories.Call(new Empty());
             Context.LogDebug(() =>
-                $"Got victories from Election Contract:\n{string.Join("\n", victoriesPublicKeys.Value.Select(s => s.ToHex().Substring(0, 10)))}");
+                "Got victories from Election Contract:\n" +
+                $"{string.Join("\n", victoriesPublicKeys.Value.Select(s => s.ToHex().Substring(0, 20)))}");
             victories = new MinerList
             {
                 Pubkeys = {victoriesPublicKeys.Value},
@@ -188,7 +231,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return true;
             }
 
-            TryToGetBlockchainStartTimestamp(out var blockchainStartTimestamp);
+            var blockchainStartTimestamp = GetBlockchainStartTimestamp();
             if (previousRound.TermNumber + 1 != currentRound.TermNumber)
             {
                 var evilMinersPublicKey = GetEvilMinersPublicKey(currentRound, previousRound);
@@ -235,7 +278,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return result;
         }
 
-        private Hash GetMinerListHash(IEnumerable<string> minerList)
+        private static Hash GetMinerListHash(IEnumerable<string> minerList)
         {
             return Hash.FromString(
                 minerList.OrderBy(p => p).Aggregate("", (current, publicKey) => current + publicKey));
@@ -265,13 +308,29 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
         {
-            return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
-                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.Pubkey) &&
-                      minerInCurrentRound.PreviousInValue != null
-                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.Pubkey].OutValue
-                where previousOutValue != null &&
-                      Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
-                select minerInCurrentRound.Pubkey).ToList();
+            var evilMinersPubKey = new List<string>();
+            foreach (var minerInCurrentRound in currentRound.RealTimeMinersInformation.Values)
+            {
+                if (previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.Pubkey) &&
+                    minerInCurrentRound.PreviousInValue != null)
+                {
+                    var previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.Pubkey].OutValue;
+                    if (previousOutValue != null &&
+                        Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue)
+                        evilMinersPubKey.Add(minerInCurrentRound.Pubkey);
+                }
+            }
+
+            return evilMinersPubKey;
+
+            // Below LINQ-expression causes unchecked math instructions after compilation
+//            return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
+//                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.Pubkey) &&
+//                      minerInCurrentRound.PreviousInValue != null
+//                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.Pubkey].OutValue
+//                where previousOutValue != null &&
+//                      Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
+//                select minerInCurrentRound.Pubkey).ToList();
         }
 
         private bool TryToGetElectionSnapshot(long termNumber, out TermSnapshot snapshot)
@@ -313,9 +372,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
                        !round.RealTimeMinersInformation.ContainsKey(k));
         }
 
-
         private int GetMinersCount(Round input)
         {
+            if (State.BlockchainStartTimestamp.Value == null)
+            {
+                return AEDPoSContractConstants.InitialMinersCount;
+            }
+
             if (!TryToGetRoundInformation(1, out _)) return 0;
             return Math.Min(input.RealTimeMinersInformation.Count < AEDPoSContractConstants.InitialMinersCount
                 ? AEDPoSContractConstants.InitialMinersCount
@@ -333,6 +396,31 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             return new SInt64Value {Value = 0};
+        }
+
+        public override SInt64Value GetNextElectCountDown(Empty input)
+        {
+            if (!State.IsMainChain.Value)
+            {
+                return new SInt64Value();
+            }
+
+            var currentTermNumber = State.CurrentTermNumber.Value;
+            Timestamp currentTermStartTime;
+            if (currentTermNumber == 1)
+            {
+                currentTermStartTime = State.BlockchainStartTimestamp.Value;
+            }
+            else
+            {
+                var firstRoundNumberOfCurrentTerm = State.FirstRoundNumberOfEachTerm[currentTermNumber];
+                if (!TryToGetRoundInformation(firstRoundNumberOfCurrentTerm, out var firstRoundOfCurrentTerm))
+                    return new SInt64Value(); // Unlikely.
+                currentTermStartTime = firstRoundOfCurrentTerm.GetRoundStartTime();
+            }
+
+            var currentTermEndTime = currentTermStartTime.AddSeconds(State.TimeEachTerm.Value);
+            return new SInt64Value {Value = (currentTermEndTime - Context.CurrentBlockTime).Seconds};
         }
     }
 }

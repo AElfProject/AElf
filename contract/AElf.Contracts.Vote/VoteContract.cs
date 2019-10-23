@@ -97,7 +97,8 @@ namespace AElf.Contracts.Vote
                 Option = input.Option,
                 IsWithdrawn = false,
                 VoteTimestamp = Context.CurrentBlockTime,
-                Voter = input.Voter
+                Voter = input.Voter,
+                IsChangeTarget = input.IsChangeTarget
             };
             //save the VotingRecords into the state.
             State.VotingRecords[input.VoteId] = votingRecord;

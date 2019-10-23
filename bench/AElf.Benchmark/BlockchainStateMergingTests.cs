@@ -24,7 +24,7 @@ namespace AElf.Benchmark
         private ITransactionManager _transactionManager;
         private ITransactionResultManager _transactionResultManager;
         private IBlockchainStateManager _blockchainStateManager;
-        private IBlockchainStateMergingService _blockchainStateMergingService;
+        private IBlockchainStateService _blockchainStateService;
         private IBlockchainService _blockchainService;
         private IChainManager _chainManager;
         private ITxHub _txHub;
@@ -47,7 +47,7 @@ namespace AElf.Benchmark
             _chains = GetRequiredService<IBlockchainStore<Chain>>();
             _chainStateInfoCollection = GetRequiredService<IStateStore<ChainStateInfo>>();
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
-            _blockchainStateMergingService = GetRequiredService<IBlockchainStateMergingService>();
+            _blockchainStateService = GetRequiredService<IBlockchainStateService>();
             _blockchainService = GetRequiredService<IBlockchainService>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _chainManager = GetRequiredService<IChainManager>();
@@ -75,7 +75,7 @@ namespace AElf.Benchmark
                 }
             }
 
-            await _blockchainStateMergingService.MergeBlockStateAsync(_chain.BestChainHeight, _chain.BestChainHash);
+            await _blockchainStateService.MergeBlockStateAsync(_chain.BestChainHeight, _chain.BestChainHash);
             
             for (var i = 0; i < BlockCount; i++)
             {
@@ -98,7 +98,7 @@ namespace AElf.Benchmark
         public async Task MergeBlockStateTest()
         {
             var chain = await _blockchainService.GetChainAsync();
-            await _blockchainStateMergingService.MergeBlockStateAsync(chain.BestChainHeight, chain.BestChainHash);
+            await _blockchainStateService.MergeBlockStateAsync(chain.BestChainHeight, chain.BestChainHash);
         }
 
         [IterationCleanup]

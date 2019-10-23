@@ -29,7 +29,7 @@ namespace AElf.Contracts.MultiToken
                 Issuer = input.Issuer,
                 IsBurnable = input.IsBurnable,
                 IsTransferDisabled = input.IsTransferDisabled,
-                IssueChainId = Context.ChainId
+                IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
             });
 
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
@@ -50,23 +50,39 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty RegisterNativeTokenInfo(RegisterNativeTokenInfoInput input)
+        public override Empty RegisterNativeAndResourceTokenInfo(RegisterNativeAndResourceTokenInfoInput input)
         {
             Assert(string.IsNullOrEmpty(State.NativeTokenSymbol.Value), "Native token already registered.");
-            State.NativeTokenSymbol.Value = input.Symbol;
-            
-            var tokenInfo = new TokenInfo
+            State.NativeTokenSymbol.Value = input.NativeTokenInfo.Symbol;
+
+            var nativeTokenInfo = new TokenInfo
             {
-                Symbol = input.Symbol,
-                TokenName = input.TokenName,
-                TotalSupply = input.TotalSupply,
-                Issuer = input.Issuer,
-                Decimals = input.Decimals,
+                Symbol = input.NativeTokenInfo.Symbol,
+                TokenName = input.NativeTokenInfo.TokenName,
+                TotalSupply = input.NativeTokenInfo.TotalSupply,
+                Issuer = input.NativeTokenInfo.Issuer,
+                Decimals = input.NativeTokenInfo.Decimals,
                 IsBurnable = true,
-                IssueChainId = input.IssueChainId
+                IssueChainId = input.NativeTokenInfo.IssueChainId
             };
 
-            RegisterTokenInfo(tokenInfo);
+            RegisterTokenInfo(nativeTokenInfo);
+
+            Assert(input.ChainPrimaryToken.IssueChainId == Context.ChainId, "Invalid primary token info.");
+            State.ChainPrimaryTokenSymbol.Value = input.ChainPrimaryToken.Symbol;
+            RegisterTokenInfo(input.ChainPrimaryToken);
+
+            if (input.ResourceTokenList?.Value != null)
+            {
+                foreach (var resourceTokenInfo in input.ResourceTokenList.Value)
+                {
+                    resourceTokenInfo.Supply = 0;
+                    RegisterTokenInfo(resourceTokenInfo);
+                }
+            }
+
+            Context.Fire(new ChainPrimaryTokenSymbolSet {TokenSymbol = input.ChainPrimaryToken.Symbol});
+
             return new Empty();
         }
 
@@ -80,6 +96,7 @@ namespace AElf.Contracts.MultiToken
             AssertValidMemoOrUsage(input.Memo);
             Assert(input.To != null, "To address not filled.");
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
+            Assert(tokenInfo.IssueChainId == Context.ChainId, "Unable to issue token with wrong chainId.");
             Assert(tokenInfo.Issuer == Context.Sender || Context.Sender == Context.GetZeroSmartContractAddress(),
                 $"Sender is not allowed to issue token {input.Symbol}.");
             tokenInfo.Supply = tokenInfo.Supply.Add(input.Amount);
@@ -104,11 +121,11 @@ namespace AElf.Contracts.MultiToken
             var parentChainId = GetValidCrossChainContractReferenceState().GetParentChainId.Call(new Empty()).Value;
             var tokenContractAddress = State.CrossChainTransferWhiteList[parentChainId];
             Assert(tokenContractAddress != null, "Token contract address of parent chain not found.");
-            
+
             var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
 
             AssertCrossChainTransaction(originalTransaction, tokenContractAddress, nameof(Create));
-            
+
             var originalTransactionId = originalTransaction.GetHash();
             CrossChainVerify(originalTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
 
@@ -131,18 +148,18 @@ namespace AElf.Contracts.MultiToken
         {
             var owner = GetOwnerAddress();
             Assert(Context.Sender == owner, "No permission.");
-            
+
             var originalTransaction = Transaction.Parser.ParseFrom(input.TransactionBytes);
             AssertCrossChainTransaction(originalTransaction, Context.GetZeroSmartContractAddress(input.FromChainId),
                 nameof(ACS0Container.ACS0ReferenceState.ValidateSystemContractAddress));
-            
+
             var validAddress = ExtractTokenContractAddress(originalTransaction.Params);
-            
+
             var originalTransactionId = originalTransaction.GetHash();
             CrossChainVerify(originalTransactionId, input.ParentChainHeight, input.FromChainId, input.MerklePath);
 
             State.CrossChainTransferWhiteList[input.FromChainId] = validAddress;
-            
+
             return new Empty();
         }
 
@@ -182,7 +199,7 @@ namespace AElf.Contracts.MultiToken
             Assert(State.VerifiedCrossChainTransferTransaction[transferTransactionId] == null,
                 "Token already claimed.");
 
-            var crossChainTransferInput = 
+            var crossChainTransferInput =
                 CrossChainTransferInput.Parser.ParseFrom(transferTransaction.Params.ToByteArray());
             var symbol = crossChainTransferInput.Symbol;
             var amount = crossChainTransferInput.Amount;
@@ -211,9 +228,9 @@ namespace AElf.Contracts.MultiToken
             State.Balances[receivingAddress][symbol] = balanceOfReceiver.Add(amount);
             return new Empty();
         }
-        
+
         #endregion
-        
+
         public override Empty Lock(LockInput input)
         {
             AssertLockAddress(input.Symbol);
@@ -345,6 +362,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ChargeResourceToken(ChargeResourceTokenInput input)
         {
+            Context.LogDebug(() => $"Start executing ChargeResourceToken.{input}");
             if (input.Equals(new ChargeResourceTokenInput()))
             {
                 return new Empty();
@@ -358,12 +376,15 @@ namespace AElf.Contracts.MultiToken
             };
             foreach (var pair in symbolToAmount)
             {
+                Context.LogDebug(() => $"Charging {pair.Value} {pair.Key} tokens.");
                 var existingBalance = State.Balances[Context.Sender][pair.Key];
                 Assert(existingBalance >= pair.Value,
                     $"Insufficient resource. {pair.Key}: {existingBalance} / {pair.Value}");
                 State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key] =
                     State.ChargedResourceTokens[input.Caller][Context.Sender][pair.Key].Add(pair.Value);
             }
+
+            Context.LogDebug(() => "Finished executing ChargeResourceToken.");
 
             return new Empty();
         }
@@ -398,15 +419,12 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ClaimTransactionFees(Empty input)
         {
-            Context.LogDebug(() => "Start ClaimTransactionFees.");
             if (State.TreasuryContract.Value == null)
             {
                 var treasuryContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
                 if (treasuryContractAddress == null)
                 {
-                    Context.LogDebug(() => "End ClaimTransactionFees.");
-
                     // Which means Treasury Contract didn't deployed yet. Ignore this method.
                     return new Empty();
                 }
@@ -417,8 +435,6 @@ namespace AElf.Contracts.MultiToken
             if (State.PreviousBlockTransactionFeeTokenSymbolList.Value == null ||
                 !State.PreviousBlockTransactionFeeTokenSymbolList.Value.SymbolList.Any())
             {
-                Context.LogDebug(() => "End ClaimTransactionFees.");
-
                 return new Empty();
             }
 
@@ -462,8 +478,9 @@ namespace AElf.Contracts.MultiToken
             });
 
             var transferAmount = totalFee.Sub(burnAmount);
-            if (State.TreasuryContract.Donate != null)
+            if (State.TreasuryContract.Value != null)
             {
+                // Main chain would donate tx fees to dividend pool.
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,
@@ -472,13 +489,24 @@ namespace AElf.Contracts.MultiToken
             }
             else
             {
-                Assert(State.FeeReceiver.Value != null, "Fee receiver not set.");
-                Transfer(new TransferInput
+                if (State.FeeReceiver.Value != null)
                 {
-                    To = State.FeeReceiver.Value,
-                    Symbol = symbol,
-                    Amount = transferAmount,
-                });
+                    Transfer(new TransferInput
+                    {
+                        To = State.FeeReceiver.Value,
+                        Symbol = symbol,
+                        Amount = transferAmount,
+                    });
+                }
+                else
+                {
+                    // Burn all!
+                    Burn(new BurnInput
+                    {
+                        Symbol = symbol,
+                        Amount = transferAmount
+                    });
+                }
             }
         }
 
@@ -491,27 +519,23 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty DonateResourceToken(Empty input)
         {
-            Context.LogDebug(() => "Start DonateResourceToken.");
-
+            var isMainChain = true;
             if (State.TreasuryContract.Value == null)
             {
                 var treasuryContractAddress =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
                 if (treasuryContractAddress == null)
                 {
-                    Context.LogDebug(() => "End DonateResourceToken.");
-
-                    // Which means Treasury Contract didn't deployed yet. Ignore this method.
-                    return new Empty();
+                    isMainChain = false;
                 }
-
-                State.TreasuryContract.Value = treasuryContractAddress;
+                else
+                {
+                    State.TreasuryContract.Value = treasuryContractAddress;
+                }
             }
-            
-            // TODO: Adapter side chain.
 
             var transactions = Context.GetPreviousBlockTransactions();
-            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"RAM"}))
+            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList.Except(new List<string> {"RAM"}))
             {
                 var totalAmount = 0L;
                 foreach (var transaction in transactions)
@@ -522,23 +546,38 @@ namespace AElf.Contracts.MultiToken
                     if (amount > 0)
                     {
                         State.Balances[contractAddress][symbol] = State.Balances[contractAddress][symbol].Sub(amount);
+                        Context.LogDebug(() => $"Charged {amount} {symbol} tokens from {contractAddress}");
                         totalAmount = totalAmount.Add(amount);
                         State.ChargedResourceTokens[caller][contractAddress][symbol] = 0;
                     }
                 }
 
+                Context.LogDebug(() => $"Charged resource token {symbol}: {totalAmount}");
+
                 if (totalAmount > 0)
                 {
-                    State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalAmount);
-                    State.TreasuryContract.Donate.Send(new DonateInput
+                    if (isMainChain)
                     {
-                        Symbol = symbol,
-                        Amount = totalAmount
-                    });
+                        Context.LogDebug(() => $"Adding {totalAmount} of {symbol}s to dividend pool.");
+                        // Main Chain.
+                        State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalAmount);
+                        State.TreasuryContract.Donate.Send(new DonateInput
+                        {
+                            Symbol = symbol,
+                            Amount = totalAmount
+                        });
+                    }
+                    else
+                    {
+                        Context.LogDebug(() => $"Adding {totalAmount} of {symbol}s to consensus address account.");
+                        // Side Chain
+                        var consensusContractAddress =
+                            Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName);
+                        State.Balances[consensusContractAddress][symbol] =
+                            State.Balances[consensusContractAddress][symbol].Add(totalAmount);
+                    }
                 }
             }
-
-            Context.LogDebug(() => "End DonateResourceToken.");
 
             return new Empty();
         }
@@ -583,7 +622,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty CheckResourceToken(Empty input)
         {
-            foreach (var symbol in TokenContractConstants.ResourceTokenSymbols.Except(new List<string> {"RAM"}))
+            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList.Except(new List<string> {"RAM"}))
             {
                 var balance = State.Balances[Context.Sender][symbol];
                 Assert(balance > 0, $"Contract balance of {symbol} token is not enough.");
@@ -615,18 +654,32 @@ namespace AElf.Contracts.MultiToken
             Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
                 "Only profit receiver can perform this action.");
             Assert(input.Symbols.Count <= TokenContractConstants.SymbolCountLimit);
-            foreach (var symbol in input.Symbols.Except(TokenContractConstants.ResourceTokenSymbols))
+            foreach (var symbol in input.Symbols.Except(Context.Variables.ResourceTokenSymbolNameList))
             {
                 var profits = State.Balances[input.ContractAddress][symbol];
                 State.Balances[input.ContractAddress][symbol] = 0;
                 var donates = profits.Mul(profitReceivingInformation.DonationPartsPerHundred).Div(100);
                 State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(donates);
-                // TODO: Adapter side chain.
-                State.TreasuryContract.Donate.Send(new DonateInput
+                if (State.TreasuryContract.Value != null)
                 {
-                    Symbol = symbol,
-                    Amount = donates
-                });
+                    // Main Chain.
+                    State.TreasuryContract.Donate.Send(new DonateInput
+                    {
+                        Symbol = symbol,
+                        Amount = donates
+                    });
+                }
+                else
+                {
+                    // Side Chain.
+                    Transfer(new TransferInput
+                    {
+                        To = Context.GetContractAddressByName(SmartContractConstants.ConsensusContractSystemName),
+                        Amount = donates,
+                        Symbol = symbol
+                    });
+                }
+
                 State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol] =
                     State.Balances[profitReceivingInformation.ProfitReceiverAddress][symbol].Add(profits.Sub(donates));
             }
@@ -692,7 +745,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty AdvanceResourceToken(AdvanceResourceTokenInput input)
         {
-            Assert(TokenContractConstants.ResourceTokenSymbols.Contains(input.ResourceTokenSymbol),
+            Assert(Context.Variables.ResourceTokenSymbolNameList.Contains(input.ResourceTokenSymbol),
                 "Invalid resource token symbol.");
             State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol] =
                 State.AdvancedResourceToken[input.ContractAddress][Context.Sender][input.ResourceTokenSymbol]

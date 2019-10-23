@@ -15,6 +15,12 @@ namespace AElf.Contracts.TestContract.Performance
             return new Empty();
         }
 
+        public override Empty WriteKContentByte(WriteInput input)
+        {
+            State.Content[Context.Sender] = input.Content.ToHex();
+            return new Empty();
+        }
+        
         public override Empty Write1KContentByte(WriteInput input)
         {
             Assert(input.Content.Length == 1000, $"input length not correct, {input.Content.Length}/1k");
@@ -40,6 +46,14 @@ namespace AElf.Contracts.TestContract.Performance
         {
             Assert(input.Content.Length == 10000, $"input length not correct, {input.Content.Length}/10k");
             State.Content[Context.Sender] = input.Content.ToHex();
+            return new Empty();
+        }
+        
+        public override Empty ComputeLevel(NumberInput input)
+        {
+            var result = CalculateFibonacci(input.Number); 
+            State.MapContent[Context.Sender][input.Number] = result;
+            
             return new Empty();
         }
 

@@ -179,7 +179,7 @@ namespace AElf.CrossChain
                         $"Side chain data not found, chainId: {ChainHelper.ConvertChainIdToBase58(sideChainBlockData.ChainId)}, side chain height: {targetHeight}.");
                 if (!cachedSideChainBlockData.Equals(sideChainBlockData))
                     return false;
-                
+
                 sideChainValidatedHeightDict[sideChainBlockData.ChainId] = sideChainBlockData.Height;
             }
 
@@ -245,6 +245,8 @@ namespace AElf.CrossChain
         {
             if (!_transactionInclusivenessProvider.IsTransactionPackable)
                 return null;
+
+            Logger.LogTrace("Try get cross chain data for mining.");
             
             var sideChainBlockData = await GetNonIndexedSideChainBlockDataAsync(blockHash, blockHeight);
             var parentChainBlockData = await GetNonIndexedParentChainBlockDataAsync(blockHash, blockHeight);

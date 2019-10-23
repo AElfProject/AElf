@@ -20,9 +20,10 @@ namespace AElf.Kernel.SmartContract.Parallel
             _resourceExtractionService = resourceExtractionService;
         }
 
-        public async Task HandleEventAsync(TransactionAcceptedEvent eventData)
+        public Task HandleEventAsync(TransactionAcceptedEvent eventData)
         {
-            await _resourceExtractionService.HandleTransactionAcceptedEvent(eventData);
+            _ = _resourceExtractionService.HandleTransactionAcceptedEvent(eventData);
+            return Task.CompletedTask;
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)

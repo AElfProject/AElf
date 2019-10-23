@@ -17,5 +17,11 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
         
         public MappedState<Address, long> WinerHistory { get; set; }   
         public MappedState<Address, long> LoserHistory { get; set; }
+        
+        public MappedState<string,string> StringValueMap { get; set; }
+        
+        public MappedState<string,long> LongValueMap { get; set; }
+
+        public MappedState<string, MessageValue> MessageValueMap { get; set; }
     }
 }

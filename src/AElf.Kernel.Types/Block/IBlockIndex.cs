@@ -4,28 +4,21 @@ namespace AElf.Kernel
 {
     public interface IBlockIndex
     {
-        Hash Hash { get; }
-        long Height { get; }
+        Hash BlockHash { get; }
+        long BlockHeight { get; }
     }
 
-    public class BlockIndex : IBlockIndex
+    public partial class BlockIndex : IBlockIndex
     {
         public BlockIndex(Hash hash, long height)
         {
-            Hash = hash;
-            Height = height;
+            BlockHash = hash;
+            BlockHeight = height;
         }
 
-        public Hash Hash { get; set; }
-        public long Height { get; set; }
-
-        public BlockIndex()
+        public string ToDiagnosticString()
         {
-        }
-
-        public override string ToString()
-        {
-            return $"[{Hash}: {Height}]";
+            return $"[{BlockHash}: {BlockHeight}]";
         }
     }
 }

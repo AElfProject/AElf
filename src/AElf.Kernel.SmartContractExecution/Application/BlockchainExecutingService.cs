@@ -47,9 +47,17 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var transactions = await _blockchainService.GetTransactionsAsync(block.TransactionIds);
             var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
 
-            return executedBlock.GetHashWithoutCache().Equals(blockHash);
+            var blockHashWithoutCache = executedBlock.GetHashWithoutCache();
+
+            if (blockHashWithoutCache != blockHash)
+            {
+                blockState = await _blockchainStateManager.GetBlockStateSetAsync(blockHashWithoutCache);
+                Logger.LogWarning($"Block execution failed. BlockStateSet: {blockState}");
+                Logger.LogWarning($"Block execution failed. Block header: {executedBlock.Header}, Block body: {executedBlock.Body}");
+            }
+            return blockHashWithoutCache.Equals(blockHash);
         }
-        
+
         /// <summary>
         /// Processing pipeline for a block contains ValidateBlockBeforeExecute, ExecuteBlock and ValidateBlockAfterExecute.
         /// </summary>
@@ -123,8 +131,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
                         return null;
                     }
                     
-                    await _chainManager.SetChainBlockLinkExecutionStatus(blockLink, 
-                        ChainBlockLinkExecutionStatus.ExecutionSuccess);
                     successLinks.Add(blockLink);
                     Logger.LogInformation($"Executed block {blockLink.BlockHash} at height {blockLink.Height}.");
                     await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
@@ -159,6 +165,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
             
             await SetBestChainAsync(successLinks, chain);
+            foreach (var blockLink in successLinks)
+            {
+                await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
+                    ChainBlockLinkExecutionStatus.ExecutionSuccess);
+            }
             
             Logger.LogInformation(
                 $"Attach blocks to best chain, status: {status}, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");

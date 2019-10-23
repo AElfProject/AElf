@@ -3,12 +3,14 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
+using AElf.Kernel.SmartContract.Application;
 
 namespace AElf.Kernel.Consensus.AEDPoS
 {
@@ -25,6 +27,10 @@ namespace AElf.Kernel.Consensus.AEDPoS
             context.Services.AddTransient<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
             context.Services
                 .AddSingleton<IBroadcastPrivilegedPubkeyListProvider, AEDPoSBroadcastPrivilegedPubkeyListProvider>();
+            context.Services
+                .AddSingleton<IConstrainedTransactionValidationProvider,
+                    ConstrainedAEDPoSTransactionValidationProvider>();
+            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
 
             var configuration = context.Services.GetConfiguration();
 

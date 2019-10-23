@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs4;
@@ -7,6 +6,7 @@ using AElf.Types;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         /// <summary>
@@ -62,7 +62,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             // Is sender produce too many continuous blocks?
             // Skip first two rounds.
-            if (providedRound.RoundNumber > 2)
+            if (providedRound.RoundNumber > 2 && baseRound.RealTimeMinersInformation.Count != 1)
             {
                 var latestProviderToTinyBlocksCount = State.LatestProviderToTinyBlocksCount.Value;
                 if (latestProviderToTinyBlocksCount != null && latestProviderToTinyBlocksCount.Pubkey == pubkey &&
@@ -91,7 +91,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             switch (extraData.Behaviour)
             {
-                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                 case AElfConsensusBehaviour.UpdateValue:
                     return ValidationForUpdateValue(extraData);
                 case AElfConsensusBehaviour.NextRound:
@@ -115,8 +114,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 // Which means this miner is producing tiny blocks for previous extra block slot.
                 Context.LogDebug(() =>
-                    $"latest actual mining time: {latestActualMiningTime}, round start time: {round.GetStartTime()}");
-                return latestActualMiningTime < round.GetStartTime();
+                    $"latest actual mining time: {latestActualMiningTime}, round start time: {round.GetRoundStartTime()}");
+                return latestActualMiningTime < round.GetRoundStartTime();
             }
 
             Context.LogDebug(() =>
@@ -208,16 +207,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
         
         private bool ValidatePreviousInValue(AElfConsensusHeaderInformation extraData)
         {
-            var publicKey = extraData.SenderPubkey.ToHex();
+            var pubkey = extraData.SenderPubkey.ToHex();
 
             if (!TryToGetPreviousRoundInformation(out var previousRound)) return true;
 
-            if (!previousRound.RealTimeMinersInformation.ContainsKey(publicKey)) return true;
+            if (!previousRound.RealTimeMinersInformation.ContainsKey(pubkey)) return true;
 
-            if (extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue == null) return true;
+            if (extraData.Round.RealTimeMinersInformation[pubkey].PreviousInValue == null) return true;
 
-            var previousOutValue = previousRound.RealTimeMinersInformation[publicKey].OutValue;
-            var previousInValue = extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue;
+            var previousOutValue = previousRound.RealTimeMinersInformation[pubkey].OutValue;
+            var previousInValue = extraData.Round.RealTimeMinersInformation[pubkey].PreviousInValue;
             if (previousInValue == Hash.Empty) return true;
 
             return Hash.FromMessage(previousInValue) == previousOutValue;
