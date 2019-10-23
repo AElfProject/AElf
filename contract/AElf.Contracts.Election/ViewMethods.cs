@@ -295,7 +295,13 @@ namespace AElf.Contracts.Election
             return countDown;
         }
         */
-
+        public override SInt64Value GetElectionTermTimeSpan(Empty input)
+        {
+            return new SInt64Value 
+            { 
+                Value = State.TimeEachTerm.Value
+            };
+        }
         private ElectionVotingRecord TransferVotingRecordToElectionVotingRecord(VotingRecord votingRecord, Hash voteId)
         {
             var lockSeconds = State.LockTimeMap[voteId];

@@ -102,6 +102,9 @@ service ElectionContract {
     rpc GetDataCenterRankingList (google.protobuf.Empty) returns (DataCenterRankingList) {
         option (aelf.is_view) = true;
     }
+    rpc GetElectionTermTimeSpan (google.protobuf.Empty) returns (aelf.SInt64Value) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitialElectionContractInput {
