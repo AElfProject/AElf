@@ -217,7 +217,7 @@ namespace AElf.Contracts.Election
                 output.Value.Add(new CandidateDetail
                 {
                     CandidateInformation = State.CandidateInformationMap[candidate.ToHex()],
-                    ObtainedVotesAmount = GetCandidateVote(new StringInput {Value = candidate.ToHex()})
+                    ObtainedVotesAmount = GetCandidateVote(new StringValue {Value = candidate.ToHex()})
                         .ObtainedActiveVotedVotesAmount
                 });
             }
