@@ -7,16 +7,13 @@ using System.Runtime.Loader;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Types;
-using Microsoft.Extensions.Logging;
 
 namespace AElf.Runtime.CSharp
 {
     public class SmartContractRunnerForCategoryZero : ISmartContractRunner
     {
-        public ILogger<SmartContractRunnerForCategoryZero> Logger { get; set; }
-        
         public int Category { get; protected set; }
-        private readonly ISdkStreamManager _sdkStreamManager;
+        protected readonly ISdkStreamManager _sdkStreamManager;
 
         private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams =
             new ConcurrentDictionary<string, MemoryStream>();

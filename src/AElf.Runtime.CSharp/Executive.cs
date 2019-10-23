@@ -34,7 +34,7 @@ namespace AElf.Runtime.CSharp
 
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
         private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
-        private WeakReference<AssemblyLoadContext> _loadContext;
+        private WeakReference<ContractCodeLoadContext> _loadContext;
         public IReadOnlyList<ServiceDescriptor> Descriptors => _descriptors;
         private List<ServiceDescriptor> _descriptors;
 
@@ -73,8 +73,7 @@ namespace AElf.Runtime.CSharp
         public void Load(byte[] code)
         {
             var acl = new ContractCodeLoadContext(_sdkStreamManager);
-            //var acl = new AssemblyLoadContext(null, isCollectible: true);
-            _loadContext = new WeakReference<AssemblyLoadContext>(acl);
+            _loadContext = new WeakReference<ContractCodeLoadContext>(acl);
 
             Assembly assembly = null;
             using (Stream stream = new MemoryStream(code))
@@ -100,6 +99,7 @@ namespace AElf.Runtime.CSharp
         {
             if (_loadContext.TryGetTarget(out var target))
             {
+                target.Dispose();
                 target.Unload();
             }
         }

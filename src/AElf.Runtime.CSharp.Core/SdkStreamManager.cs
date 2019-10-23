@@ -33,13 +33,15 @@ namespace AElf.Runtime.CSharp
 
             if (!_cachedSdkStreams.TryGetValue(path, out var ms))
             {
-                var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
+                using var fs = new FileStream(path, FileMode.Open, FileAccess.Read);
                 ms = new MemoryStream();
                 fs.CopyTo(ms);
+
                 _cachedSdkStreams.TryAdd(path, ms);
             }
 
             ms.Position = 0;
+
             return ms;
         }
     }
