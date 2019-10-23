@@ -1,4 +1,3 @@
-using System;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -205,17 +204,7 @@ namespace AElf.WebApp.Application.Chain
         /// <returns></returns>
         public async Task<BlockStateDto> GetBlockStateAsync(string blockHash)
         {
-            Hash blockHashId;
-            try
-            {
-                blockHashId = HashHelper.HexStringToHash(blockHash);
-            }
-            catch
-            {
-                throw new UserFriendlyException(Error.Message[Error.InvalidBlockHash],
-                    Error.InvalidBlockHash.ToString());
-            }
-            var blockState = await _blockchainStateManager.GetBlockStateSetAsync(blockHashId);
+            var blockState = await _blockchainStateManager.GetBlockStateSetAsync(HashHelper.HexStringToHash(blockHash));
             if (blockState == null)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             

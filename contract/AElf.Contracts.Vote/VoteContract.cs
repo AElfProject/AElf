@@ -30,7 +30,6 @@ namespace AElf.Contracts.Vote
             }).Value;
             Assert(isInWhiteList, "Claimed accepted token is not available for voting.");
 
-            Assert(input.Options.Count <= VoteContractConstants.OptionCountLimit, "Invalid input.");
             // Initialize voting event.
             var votingItem = new VotingItem
             {
@@ -310,7 +309,6 @@ namespace AElf.Contracts.Vote
         {
             var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
-            Assert(input.Options.Count <= VoteContractConstants.OptionCountLimit, "Invalid input.");
             foreach (var option in input.Options)
             {
                 Assert(!votingItem.Options.Contains(option), "Option already exists.");
@@ -325,7 +323,6 @@ namespace AElf.Contracts.Vote
         {
             var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
-            Assert(input.Options.Count <= VoteContractConstants.OptionCountLimit, "Invalid input.");
             foreach (var option in input.Options)
             {
                 Assert(votingItem.Options.Contains(option), "Option doesn't exist.");
