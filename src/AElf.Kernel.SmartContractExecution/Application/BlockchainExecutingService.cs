@@ -48,6 +48,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
 
             var blockHashWithoutCache = executedBlock.GetHashWithoutCache();
+
             if (blockHashWithoutCache != blockHash)
             {
                 blockState = await _blockchainStateManager.GetBlockStateSetAsync(blockHashWithoutCache);
@@ -56,7 +57,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
             return blockHashWithoutCache.Equals(blockHash);
         }
-        
+
         /// <summary>
         /// Processing pipeline for a block contains ValidateBlockBeforeExecute, ExecuteBlock and ValidateBlockAfterExecute.
         /// </summary>
