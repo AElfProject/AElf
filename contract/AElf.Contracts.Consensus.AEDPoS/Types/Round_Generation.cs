@@ -10,9 +10,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public bool GenerateNextRoundInformation(Timestamp currentBlockTimestamp, Timestamp blockchainStartTimestamp,
             out Round nextRound, bool isMinerListChanged = false)
         {
-            nextRound = new Round();
-
-            nextRound.IsMinerListJustChanged = isMinerListChanged;
+            nextRound = new Round {IsMinerListJustChanged = isMinerListChanged};
 
             var minersMinedCurrentRound = GetMinedMiners();
             var minersNotMinedCurrentRound = GetNotMinedMiners();

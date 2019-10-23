@@ -246,6 +246,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                         if (theOneFeelingLucky == null)
                         {
+                            Context.LogDebug(() => "Failed to find alternative miner.");
                             break;
                         }
 
@@ -255,12 +256,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
                             currentRound.RealTimeMinersInformation[publicKeyToRemove].MissedTimeSlots, true);
 
                         // Transfer evil node's consensus information to the chosen backup.
-                        var minerInRound = currentRound.RealTimeMinersInformation[publicKeyToRemove];
-                        minerInRound.Pubkey = theOneFeelingLucky;
-                        minerInRound.ProducedBlocks = 0;
-                        minerInRound.MissedTimeSlots = 0;
-                        currentRound.RealTimeMinersInformation[theOneFeelingLucky] = minerInRound;
-
+                        var evilMinerInformation = currentRound.RealTimeMinersInformation[publicKeyToRemove];
+                        var minerInRound = new MinerInRound
+                        {
+                            Pubkey = theOneFeelingLucky,
+                            ExpectedMiningTime = evilMinerInformation.ExpectedMiningTime,
+                            Order = evilMinerInformation.Order,
+                            PreviousInValue = Hash.Empty,
+                            IsExtraBlockProducer = evilMinerInformation.IsExtraBlockProducer
+                        };
+                        
+                        currentRound.RealTimeMinersInformation.Add(theOneFeelingLucky, minerInRound);
                         currentRound.RealTimeMinersInformation.Remove(publicKeyToRemove);
                     }
 
@@ -372,6 +378,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .Where(cs => !round.RealTimeMinersInformation.ContainsKey(cs.Key))
                     .OrderByDescending(s => s.Value)
                     .FirstOrDefault(c => !round.RealTimeMinersInformation.ContainsKey(c.Key)).Key;
+                Context.LogDebug(() => $"Found alternative miner from candidate list: {nextCandidate != null}");
             }
 
             // Check out initial miners.
