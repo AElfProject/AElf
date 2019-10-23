@@ -1,10 +1,8 @@
 using System;
 using System.IO;
-using System.Linq;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Types;
 using Google.Protobuf;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
@@ -25,8 +23,6 @@ namespace AElf.Kernel.SmartContract.Infrastructure
     {
         private readonly IStaticChainInformationProvider _staticChainInformationProvider;
         private readonly ContractOptions _contractOptions;
-        
-        public ILogger<DefaultContractZeroCodeProvider> Logger { get; set; }
 
         public DefaultContractZeroCodeProvider(IStaticChainInformationProvider staticChainInformationProvider,
             IOptionsSnapshot<ContractOptions> contractOptions)
@@ -40,8 +36,6 @@ namespace AElf.Kernel.SmartContract.Infrastructure
 
         public void SetDefaultContractZeroRegistrationByType(Type defaultZero)
         {
-            Logger.LogDebug($"SetDefaultContractZeroRegistrationByType start - Loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("AElf.Contracts.MultiToken")).ToList().Count()}");
-            
             var dllPath = Directory.Exists(_contractOptions.GenesisContractDir)
                 ? Path.Combine(_contractOptions.GenesisContractDir, $"{defaultZero.Assembly.GetName().Name}.dll")
                 : defaultZero.Assembly.Location;
@@ -52,8 +46,6 @@ namespace AElf.Kernel.SmartContract.Infrastructure
                 Code = ByteString.CopyFrom(code),
                 CodeHash = Hash.FromRawBytes(code)
             };
-            
-            Logger.LogDebug($"SetDefaultContractZeroRegistrationByType end - Loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("AElf.Contracts.MultiToken")).ToList().Count()}");
         }
 
         public Address GetZeroSmartContractAddress(int chainId)
