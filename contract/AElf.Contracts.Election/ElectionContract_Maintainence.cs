@@ -180,6 +180,10 @@ namespace AElf.Contracts.Election
         public override Empty UpdateCandidateInformation(UpdateCandidateInformationInput input)
         {
             var candidateInformation = State.CandidateInformationMap[input.Pubkey];
+            if (candidateInformation == null)
+            {
+                return new Empty();
+            }
 
             if (input.IsEvilNode)
             {
