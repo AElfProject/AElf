@@ -99,6 +99,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             return Task.FromResult(receipt);
         }
 
+        #region Private Methods
+
         private static void AddToCollection(
             ConcurrentDictionary<long, ConcurrentDictionary<Hash, QueuedTransaction>> collection,
             QueuedTransaction receipt)
@@ -210,6 +212,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
         }
 
+        #endregion
+
+        #region Event Handler Methods
+
         public async Task HandleTransactionsReceivedAsync(TransactionsReceivedEvent eventData)
         {
             if (_bestChainHash == Hash.Empty)
@@ -233,7 +239,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
         }
 
-        public async Task ProcessTransactionAsync(QueuedTransaction queuedTransaction)
+        private async Task ProcessTransactionAsync(QueuedTransaction queuedTransaction)
         {
             if (_allTransactions.ContainsKey(queuedTransaction.TransactionId))
                 return;
@@ -254,14 +260,12 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             var prefix = await GetPrefixByHeightAsync(queuedTransaction.Transaction.RefBlockNumber, _bestChainHash);
             UpdateRefBlockStatus(queuedTransaction, prefix, _bestChainHeight);
-            AddToCollection(queuedTransaction);
 
             if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockExpired)
                 return;
 
             if (queuedTransaction.RefBlockStatus == RefBlockStatus.RefBlockValid)
             {
-                //_validatedTransactions.TryAdd(queuedTransaction.TransactionId, queuedTransaction);
                 await LocalEventBus.PublishAsync(new TransactionAcceptedEvent()
                 {
                     Transaction = queuedTransaction.Transaction
@@ -316,6 +320,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
             await Task.CompletedTask;
         }
+
+        #endregion
 
         public Task<int> GetAllTransactionCountAsync()
         {
