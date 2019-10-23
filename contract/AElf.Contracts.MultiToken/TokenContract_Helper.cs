@@ -135,9 +135,9 @@ namespace AElf.Contracts.MultiToken
             Assert(isValid, "Invalid input.");
         }
 
-        private void AssertValidMemoOrUsage(string str)
+        private void AssertValidMemo(string str)
         {
-            Assert(str.Length <= TokenContractConstants.InstructionLength, "Invalid input.");
+            Assert(str.Length <= TokenContractConstants.MemoLength, "Invalid input.");
         }
     }
 }

@@ -19,7 +19,7 @@ namespace AElf.Contracts.AssociationAuth
             return proposal.ApprovedWeight >= organization.ReleaseThreshold;
         }
 
-        private const int ReviewerCountLimit = 50;
+        private const int ReviewerCountLimit = 1024;
         private bool Validate(Organization organization)
         {
             var allReviewersHaveValidWeigths = organization.Reviewers.All(r => r.Weight >= 0);

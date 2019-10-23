@@ -93,7 +93,7 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty Issue(IssueInput input)
         {
-            AssertValidMemoOrUsage(input.Memo);
+            AssertValidMemo(input.Memo);
             Assert(input.To != null, "To address not filled.");
             var tokenInfo = AssertValidToken(input.Symbol, input.Amount);
             Assert(tokenInfo.IssueChainId == Context.ChainId, "Unable to issue token with wrong chainId.");
@@ -109,7 +109,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Transfer(TransferInput input)
         {
             AssertValidSymbolAndAmount(input.Symbol, input.Amount);
-            AssertValidMemoOrUsage(input.Memo);
+            AssertValidMemo(input.Memo);
             DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
             return new Empty();
         }
@@ -172,7 +172,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty CrossChainTransfer(CrossChainTransferInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
-            AssertValidMemoOrUsage(input.Memo);
+            AssertValidMemo(input.Memo);
             
             int issueChainId = GetIssueChainId(input.Symbol);
             Assert(issueChainId == input.IssueChainId, "Incorrect issue chain id.");
@@ -235,7 +235,7 @@ namespace AElf.Contracts.MultiToken
         {
             AssertLockAddress(input.Symbol);
             AssertValidToken(input.Symbol, input.Amount);
-            AssertValidMemoOrUsage(input.Usage);
+            AssertValidMemo(input.Usage);
             var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
                 .Concat(input.LockId.Value).ToArray());
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
@@ -248,7 +248,7 @@ namespace AElf.Contracts.MultiToken
         {
             AssertLockAddress(input.Symbol);
             AssertValidToken(input.Symbol, input.Amount);
-            AssertValidMemoOrUsage(input.Usage);
+            AssertValidMemo(input.Usage);
             var fromVirtualAddress = Hash.FromRawBytes(Context.Sender.Value.Concat(input.Address.Value)
                 .Concat(input.LockId.Value).ToArray());
             Context.SendVirtualInline(fromVirtualAddress, Context.Self, nameof(Transfer), new TransferInput
@@ -264,7 +264,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty TransferFrom(TransferFromInput input)
         {
             AssertValidSymbolAndAmount(input.Symbol, input.Amount);
-            AssertValidMemoOrUsage(input.Memo);
+            AssertValidMemo(input.Memo);
 
             // First check allowance.
             var allowance = State.Allowances[input.From][Context.Sender][input.Symbol];
@@ -696,7 +696,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty TransferToContract(TransferToContractInput input)
         {
             AssertValidToken(input.Symbol, input.Amount);
-            AssertValidMemoOrUsage(input.Memo);
+            AssertValidMemo(input.Memo);
 
             // First check allowance.
             var allowance = State.Allowances[Context.Origin][Context.Sender][input.Symbol];
