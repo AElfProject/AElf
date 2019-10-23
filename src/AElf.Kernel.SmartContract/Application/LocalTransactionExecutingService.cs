@@ -59,15 +59,17 @@ namespace AElf.Kernel.SmartContract.Application
                     break;
                 try
                 {
-                    trace = await ExecuteOneAsync(0, groupChainContext, transaction,
+                    var task = Task.Run(() => ExecuteOneAsync(0, groupChainContext, transaction,
                         transactionExecutingDto.BlockHeader.Time,
-                        cancellationToken).WithCancellation(cancellationToken);
+                        cancellationToken), cancellationToken);
+                    trace = await task.WithCancellation(cancellationToken);
                 }
-                catch(OperationCanceledException)
+                catch (OperationCanceledException)
                 {
                     Logger.LogTrace($"transaction canceled");
                     break;
                 }
+                
                 if (trace == null)
                     break;
                 // Will be useful when debugging MerkleTreeRootOfWorldState is different from each miner.
@@ -138,7 +140,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 throw new Exception($"error tx: {transaction}");
             }
-            await Task.Yield();        // put the next code into a new thread
+            
             var trace = new TransactionTrace
             {
                 TransactionId = transaction.GetHash()
