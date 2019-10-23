@@ -89,22 +89,11 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (executive != null)
                 {
-                    executive?.Unload();
-                    Clean();
-                    //await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
+                    await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
                 }
             }
 
             return output;
-        }
-        
-        private void Clean()
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-            }
         }
 
         public async Task<string> GetTransactionParametersAsync(IChainContext chainContext, Transaction transaction)
