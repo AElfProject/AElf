@@ -56,7 +56,8 @@ namespace AElf.Contracts.TestKit
         typeof(SmartContractExecutionAElfModule),
         typeof(TransactionPoolAElfModule),
         typeof(ChainControllerAElfModule),
-        typeof(CSharpRuntimeAElfModule)
+        typeof(CSharpRuntimeAElfModule),
+        typeof(TransactionExecutingDependencyTestModule)
     )]
     public class ContractTestModule : AbpModule
     {
