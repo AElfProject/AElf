@@ -16,14 +16,19 @@ namespace AElf.Runtime.CSharp
         public ILogger<SmartContractRunnerForCategoryZero> Logger { get; set; }
         
         public int Category { get; protected set; }
-        
         private readonly ISdkStreamManager _sdkStreamManager;
+
+        private readonly ConcurrentDictionary<string, MemoryStream> _cachedSdkStreams =
+            new ConcurrentDictionary<string, MemoryStream>();
+
+        private readonly ConcurrentDictionary<Hash, Type> _cachedContractTypeByHash =
+            new ConcurrentDictionary<Hash, Type>();
 
         private readonly string _sdkDir;
         private readonly ContractAuditor _contractAuditor;
 
         protected readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
-        
+
         public SmartContractRunnerForCategoryZero(
             string sdkDir,
             IServiceContainer<IExecutivePlugin> executivePlugins = null,

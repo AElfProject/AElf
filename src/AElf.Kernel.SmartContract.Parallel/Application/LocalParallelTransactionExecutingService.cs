@@ -40,8 +40,6 @@ namespace AElf.Kernel.SmartContract.Parallel
         public async Task<List<ExecutionReturnSet>> ExecuteAsync(TransactionExecutingDto transactionExecutingDto,
             CancellationToken cancellationToken, bool throwException = false)
         {
-            Logger.LogDebug($"Parallel exc - Loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("AElf.Contracts.MultiToken")).ToList().Count()}");
-
             Logger.LogTrace($"Entered parallel ExecuteAsync.");
             var transactions = transactionExecutingDto.Transactions.ToList();
             var blockHeader = transactionExecutingDto.BlockHeader;
@@ -59,8 +57,6 @@ namespace AElf.Kernel.SmartContract.Parallel
             };
             var groupedTransactions = await _grouper.GroupAsync(chainContext, transactions);
             
-            Logger.LogDebug($"Parallel, after group before exec - Loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("AElf.Contracts.MultiToken")).ToList().Count()}");
-
             var returnSets = new List<ExecutionReturnSet>();
             var nonParallelizableReturnSets = await _plainExecutingService.ExecuteAsync(
                 new TransactionExecutingDto
@@ -122,8 +118,6 @@ namespace AElf.Kernel.SmartContract.Parallel
                     returnSets, conflictingSets
                 ));
             }
-            
-            Logger.LogDebug($"Parallel end - Loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("AElf.Contracts.MultiToken")).ToList().Count()}");
 
             return returnSets;
         }

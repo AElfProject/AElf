@@ -28,10 +28,7 @@ namespace AElf.Runtime.CSharp
             if (assemblyName.Name.StartsWith("AElf.Sdk"))
             {
                 // Sdk assembly should NOT be shared
-                using (var stream = _sdkStreamManager.GetStream(assemblyName))
-                {
-                    return LoadFromStream(stream);
-                }
+                _sdkStreamManager.GetStream(assemblyName);
             }
 
             return null;

@@ -35,7 +35,7 @@ namespace AElf.Blockchains.MainChain
         public IEnumerable<GenesisSmartContractDto> GetGenesisSmartContractDtos(Address zeroContractAddress)
         {
             // The order matters !!!
-            var selectMany = new[]
+            return new[]
             {
                 GetGenesisSmartContractDtosForVote(zeroContractAddress),
                 GetGenesisSmartContractDtosForProfit(zeroContractAddress),
@@ -52,8 +52,6 @@ namespace AElf.Blockchains.MainChain
                 // Economic Contract should always be the last one to deploy and initialize.
                 GetGenesisSmartContractDtosForEconomic()
             }.SelectMany(x => x);
-
-            return selectMany;
         }
     }
 }

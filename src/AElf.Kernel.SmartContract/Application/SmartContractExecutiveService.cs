@@ -120,16 +120,6 @@ namespace AElf.Kernel.SmartContract.Application
             Logger.LogDebug($"After RunAsync - loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("HelloWorldContract")).ToList().Count}");
             //Logger.LogDebug($"After RunAsync - loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("Token")).ToList().Count}");
 
-            if (reg.CodeHash.ToHex() ==
-                "36874dc40609aa4112b6eb1b1f4731840eecf366f869ab4508ce495333184567"
-            )
-            {
-                foreach (var ass in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.FullName.Contains("System")))
-                {
-                    Logger.LogDebug($"Assembly: {ass.FullName}");
-                }
-            }
-            
             var context =
                 _hostSmartContractBridgeContextService.Create();
             executive.SetHostSmartContractBridgeContext(context);
