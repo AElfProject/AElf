@@ -127,6 +127,7 @@ message CreateInput {
     repeated aelf.Address lock_white_list = 7;
     bool is_transfer_disabled = 8;
     int32 issue_chain_id = 9;
+    string target_symbol = 10;
 }
 
 message RegisterNativeTokenInfoInput{

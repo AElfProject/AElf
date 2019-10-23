@@ -131,6 +131,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     Symbol = Context.Variables.NativeSymbol,
                     Amount = amount,
+                    TargetSymbol = Context.Variables.NativeSymbol
                 });
             }
 

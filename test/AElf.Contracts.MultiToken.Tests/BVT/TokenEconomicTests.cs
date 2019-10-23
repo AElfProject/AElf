@@ -24,7 +24,7 @@ namespace AElf.Contracts.MultiToken
                     TokenName = "elf token",
                     TotalSupply = TotalSupply,
                     Issuer = DefaultAddress,
-                    LockWhiteList = { TreasuryContractAddress }
+                    LockWhiteList = { TreasuryContractAddress },
                 });
                 await TokenContractStub.Issue.SendAsync(new IssueInput()
                 {
@@ -70,6 +70,7 @@ namespace AElf.Contracts.MultiToken
                     Decimals = 2,
                     Issuer = DefaultAddress,
                     IsBurnable = true,
+                    TargetSymbol = DefaultSymbol,
                     LockWhiteList =
                     {
                         ProfitContractAddress,

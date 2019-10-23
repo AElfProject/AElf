@@ -169,6 +169,7 @@ namespace AElf.Contracts.MultiToken
                 Issuer = AliceCoinTokenInfo.Issuer,
                 IsBurnable = AliceCoinTokenInfo.IsBurnable,
                 IsTransferDisabled = AliceCoinTokenInfo.IsTransferDisabled,
+                TargetSymbol = "ELF",
                 LockWhiteList =
                 {
                     BasicFunctionContractAddress,
@@ -259,7 +260,8 @@ namespace AElf.Contracts.MultiToken
                 Decimals = BobCoinTokenInfo.Decimals,
                 Issuer = BobCoinTokenInfo.Issuer,
                 IsBurnable = BobCoinTokenInfo.IsBurnable,
-                IsTransferDisabled = BobCoinTokenInfo.IsTransferDisabled
+                IsTransferDisabled = BobCoinTokenInfo.IsTransferDisabled,
+                TargetSymbol = "ELF"
             });
 
             // Check token information after creating.
@@ -283,6 +285,7 @@ namespace AElf.Contracts.MultiToken
                 Issuer = DefaultAddress,
                 TokenName = "elf test token",
                 TotalSupply = AliceCoinTotalAmount,
+                TargetSymbol = "ELF",
                 LockWhiteList =
                 {
                     User1Address

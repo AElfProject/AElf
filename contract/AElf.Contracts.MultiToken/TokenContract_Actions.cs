@@ -12,6 +12,7 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract : TokenContractImplContainer.TokenContractImplBase
     {
+        private readonly Dictionary<string, string> _tokenBasedOnNativeDic = new Dictionary<string, string>();
         /// <summary>
         /// Register the TokenInfo into TokenContract add initial TokenContractState.LockWhiteLists;
         /// </summary>
@@ -30,7 +31,8 @@ namespace AElf.Contracts.MultiToken
                 IsTransferDisabled = input.IsTransferDisabled,
                 IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
             });
-
+            if(!string.IsNullOrEmpty(input.TargetSymbol))
+                _tokenBasedOnNativeDic[input.Symbol] = input.TargetSymbol;
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
             {
                 State.NativeTokenSymbol.Value = input.Symbol;
@@ -470,13 +472,16 @@ namespace AElf.Contracts.MultiToken
             });
 
             var transferAmount = totalFee.Sub(burnAmount);
+            _tokenBasedOnNativeDic.TryGetValue(symbol, out var targetSymbol);
+            targetSymbol = targetSymbol ?? State.NativeTokenSymbol.Value;
             if (State.TreasuryContract.Value != null)
             {
                 // Main chain would donate tx fees to dividend pool.
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,
-                    Amount = transferAmount
+                    Amount = transferAmount,
+                    TargetSymbol = targetSymbol
                 });
             }
             else
@@ -553,10 +558,13 @@ namespace AElf.Contracts.MultiToken
                         Context.LogDebug(() => $"Adding {totalAmount} of {symbol}s to dividend pool.");
                         // Main Chain.
                         State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalAmount);
+                        _tokenBasedOnNativeDic.TryGetValue(symbol, out var targetSymbol);
+                        targetSymbol = targetSymbol ?? State.NativeTokenSymbol.Value;
                         State.TreasuryContract.Donate.Send(new DonateInput
                         {
                             Symbol = symbol,
-                            Amount = totalAmount
+                            Amount = totalAmount,
+                            TargetSymbol = targetSymbol
                         });
                     }
                     else
@@ -653,11 +661,14 @@ namespace AElf.Contracts.MultiToken
                 State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(donates);
                 if (State.TreasuryContract.Value != null)
                 {
+                    _tokenBasedOnNativeDic.TryGetValue(symbol, out var targetSymbol);
+                    targetSymbol = targetSymbol ?? State.NativeTokenSymbol.Value;
                     // Main Chain.
                     State.TreasuryContract.Donate.Send(new DonateInput
                     {
                         Symbol = symbol,
-                        Amount = donates
+                        Amount = donates,
+                        TargetSymbol = targetSymbol
                     });
                 }
                 else

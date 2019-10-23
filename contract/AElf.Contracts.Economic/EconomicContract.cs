@@ -25,7 +25,7 @@ namespace AElf.Contracts.Economic
             CreateNativeToken(input);
             CreateTokenConverterToken();
             CreateResourceTokens();
-            CreateElectionToken();
+            CreateElectionToken(input.NativeTokenSymbol);
 
             Context.LogDebug(() => "Finished creating tokens.");
 
@@ -51,6 +51,7 @@ namespace AElf.Contracts.Economic
                 Decimals = input.NativeTokenDecimals,
                 IsBurnable = input.IsNativeTokenBurnable,
                 Issuer = Context.Self,
+                TargetSymbol = input.NativeTokenSymbol,
                 LockWhiteList =
                 {
                     Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName),
@@ -61,14 +62,7 @@ namespace AElf.Contracts.Economic
                     Context.GetContractAddressByName(SmartContractConstants.ReferendumAuthContractSystemName)
                 }
             });
-            var resourceRelatedNativeBalanceSymbols = new []
-            {
-                EconomicContractConstants.NativeTokenToCpuSymbol,
-                EconomicContractConstants.NativeTokenToNetSymbol,
-                EconomicContractConstants.NativeTokenToRamSymbol,
-                EconomicContractConstants.NativeTokenToStoSymbol
-            };
-            foreach (var symbol in resourceRelatedNativeBalanceSymbols)
+            foreach (var symbol in EconomicContractConstants.ResourceTokenToNativeTokenDic.Values)
             {
                 State.TokenContract.Create.Send(new CreateInput
                 {
@@ -78,6 +72,7 @@ namespace AElf.Contracts.Economic
                     Decimals = input.NativeTokenDecimals,
                     IsBurnable = input.IsNativeTokenBurnable,
                     Issuer = Context.Self,
+                    TargetSymbol = symbol,
                     LockWhiteList =
                     {
                         Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName),
@@ -90,7 +85,6 @@ namespace AElf.Contracts.Economic
                 });
             }
         }
-
         private void CreateTokenConverterToken()
         {
             State.TokenContract.Create.Send(new CreateInput
@@ -113,7 +107,7 @@ namespace AElf.Contracts.Economic
         {
             var tokenConverter =
                 Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
-            foreach (var resourceTokenSymbol in EconomicContractConstants.ResourceTokenSymbols)
+            foreach (var resourceTokenSymbol in EconomicContractConstants.ResourceTokenToNativeTokenDic.Keys)
             {
                 State.TokenContract.Create.Send(new CreateInput
                 {
@@ -122,6 +116,7 @@ namespace AElf.Contracts.Economic
                     TotalSupply = EconomicContractConstants.ResourceTokenTotalSupply,
                     Decimals = EconomicContractConstants.ResourceTokenDecimals,
                     Issuer = Context.Self,
+                    TargetSymbol = EconomicContractConstants.ResourceTokenToNativeTokenDic[resourceTokenSymbol],
                     LockWhiteList =
                     {
                         Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
@@ -140,7 +135,7 @@ namespace AElf.Contracts.Economic
             }
         }
 
-        private void CreateElectionToken()
+        private void CreateElectionToken(string nativeSymbol)
         {
             State.TokenContract.Create.Send(new CreateInput
             {
@@ -150,6 +145,7 @@ namespace AElf.Contracts.Economic
                 Decimals = 0,
                 Issuer = Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
                 IsBurnable = false,
+                TargetSymbol = nativeSymbol,
                 LockWhiteList =
                 {
                     Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),

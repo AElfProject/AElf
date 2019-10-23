@@ -144,9 +144,7 @@ namespace AElf.Contracts.Treasury
                 State.TokenContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
-
-            var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
-
+            var isNativeSymbol = input.Symbol == input.TargetSymbol;  //Context.Variables.NativeSymbol
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
@@ -158,9 +156,9 @@ namespace AElf.Contracts.Treasury
                 Memo = "Donate to treasury."
             });
 
-            if (input.Symbol != Context.Variables.NativeSymbol)
+            if (!isNativeSymbol)
             {
-                ConvertToNativeToken(input.Symbol, input.Amount);
+                ConvertToNativeToken(input.Symbol, input.Amount, input.TargetSymbol);
             }
 
             return new Empty();
@@ -183,20 +181,20 @@ namespace AElf.Contracts.Treasury
             Donate(new DonateInput
             {
                 Symbol = input.Symbol,
-                Amount = balance
+                Amount = balance,
+                TargetSymbol = input.TargetSymbol
             });
 
             return new Empty();
         }
 
-        private void ConvertToNativeToken(string symbol, long amount)
+        private void ConvertToNativeToken(string symbol, long amount, string targetSymbol)
         {
             if (State.TokenConverterContract.Value == null)
             {
                 State.TokenConverterContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
             }
-
             State.TokenConverterContract.Sell.Send(new SellInput
             {
                 Symbol = symbol,
@@ -204,7 +202,8 @@ namespace AElf.Contracts.Treasury
             });
             Context.SendInline(Context.Self, nameof(DonateAll), new DonateAllInput
             {
-                Symbol = Context.Variables.NativeSymbol
+                Symbol = targetSymbol,
+                TargetSymbol = targetSymbol
             });
         }
 

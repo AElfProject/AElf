@@ -4,6 +4,16 @@ namespace AElf.Contracts.Economic
 {
     public static class EconomicContractConstants
     {
+        static EconomicContractConstants()
+        {
+            ResourceTokenToNativeTokenDic = new Dictionary<string, string>
+            {
+                [CpuConnectorSymbol] = NativeTokenToCpuSymbol,
+                [RamConnectorSymbol] = NativeTokenToRamSymbol,
+                [NetConnectorSymbol] = NativeTokenToNetSymbol,
+                [StoConnectorSymbol] = NativeTokenToStoSymbol
+            };
+        }
         public const long NativeTokenConnectorInitialVirtualBalance = 100_000_00000000;
 
         // Token Converter Contract related.
@@ -16,7 +26,7 @@ namespace AElf.Contracts.Economic
         public const int ConnectorSettingProposalReleaseThreshold = 6666;
 
         // Resource token related.
-        public static readonly List<string> ResourceTokenSymbols = new List<string> {"RAM", "CPU", "NET", "STO"};
+        public static readonly Dictionary<string, string> ResourceTokenToNativeTokenDic;
         public const long ResourceTokenTotalSupply = 1_000_000_000_00000000;
         public const int ResourceTokenDecimals = 8;
         public const string ResourceTokenConnectorWeight = "0.2";
@@ -45,7 +55,6 @@ namespace AElf.Contracts.Economic
         public const long NativeTokenToNetBalance = 1_000_000_00000000;
         public const long NativeTokenToRamBalance = 1_000_000_00000000;
         public const long NativeTokenToStoBalance = 1_000_000_00000000;
-
         // Election related.
         public const string ElectionTokenSymbol = "VOTE";
         public const long ElectionTokenTotalSupply = long.MaxValue;
