@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -38,57 +37,48 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 CancellationToken.None);
         }
 
-        public async Task<Block> ExecuteBlockAsync(BlockHeader blockHeader, IEnumerable<Transaction> nonCancellableTransactions, 
-            IEnumerable<Transaction> cancellableTransactions, CancellationToken cancellationToken)
+        public async Task<Block> ExecuteBlockAsync(BlockHeader blockHeader,
+            IEnumerable<Transaction> nonCancellableTransactions, IEnumerable<Transaction> cancellableTransactions,
+            CancellationToken cancellationToken)
         {
             Logger.LogTrace("Entered ExecuteBlockAsync");
-            
             var nonCancellable = nonCancellableTransactions.ToList();
             var cancellable = cancellableTransactions.ToList();
 
-            var execParams = new TransactionExecutingDto {
-                BlockHeader = blockHeader, Transactions = nonCancellable
-            };
-            
-            var nonCancellableReturnSets = await _executingService.ExecuteAsync(execParams, CancellationToken.None, 
-                true);
-            
-            Logger.LogDebug($"after non-cancel txs - Loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("AElf.Contracts.MultiToken")).ToList().Count()}");
-
+            var nonCancellableReturnSets =
+                await _executingService.ExecuteAsync(
+                    new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = nonCancellable},
+                    CancellationToken.None, true);
             Logger.LogTrace("Executed non-cancellable txs");
 
             var returnSetCollection = new ReturnSetCollection(nonCancellableReturnSets);
-            var cancellableReturnSets = new List<ExecutionReturnSet>();
-            
+            List<ExecutionReturnSet> cancellableReturnSets = new List<ExecutionReturnSet>();
             if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
             {
-                var cancelableExecParams = new TransactionExecutingDto {
-                    BlockHeader = blockHeader,
-                    Transactions = cancellable,
-                    PartialBlockStateSet = returnSetCollection.ToBlockStateSet()
-                };
-                
-                cancellableReturnSets = await _executingService.ExecuteAsync(cancelableExecParams, cancellationToken, 
-                    false);
-                
-                //Logger.LogDebug($"after cancel txs - Loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("AElf.Contracts.MultiToken")).ToList().Count()}");
-
+                cancellableReturnSets = await _executingService.ExecuteAsync(
+                    new TransactionExecutingDto
+                    {
+                        BlockHeader = blockHeader,
+                        Transactions = cancellable,
+                        PartialBlockStateSet = returnSetCollection.ToBlockStateSet()
+                    },
+                    cancellationToken, false);
                 returnSetCollection.AddRange(cancellableReturnSets);
-
                 Logger.LogTrace("Executed cancellable txs");
             }
 
             if (returnSetCollection.Unexecutable.Count > 0)
-                await EventBus.PublishAsync( new UnexecutableTransactionsFoundEvent(blockHeader, returnSetCollection.Unexecutable));
+            {
+                await EventBus.PublishAsync(
+                    new UnexecutableTransactionsFoundEvent(blockHeader, returnSetCollection.Unexecutable));
+            }
 
             var executedCancellableTransactions = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
-            var allExecutedTransactions = nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash()))).ToList();
-            
+            var allExecutedTransactions =
+                nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash())))
+                    .ToList();
             var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
                 returnSetCollection.Executed);
-            
-            //Logger.LogDebug($"after fill block - Loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("AElf.Contracts.MultiToken")).ToList().Count()}");
-            
             return block;
         }
         

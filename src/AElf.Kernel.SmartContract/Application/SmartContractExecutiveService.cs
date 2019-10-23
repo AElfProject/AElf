@@ -105,27 +105,23 @@ namespace AElf.Kernel.SmartContract.Application
         {
             // get runner
             var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
-
-//            foreach (var ass in AppDomain.CurrentDomain.GetAssemblies().Where(a => !a.FullName.Contains("System")))
-//            {
-//                Logger.LogDebug($"Assembly: {ass.FullName}");
-//            }
             
             Logger.LogDebug($"Getting executive for: {address.Value.ToHex()}, codeHash: {reg.CodeHash.ToHex()}");
             
-            // run smartcontract executive info and return executive
-            //Logger.LogDebug($"Before RunAsync - loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("Token")).ToList().Count}");
-            Logger.LogDebug($"Before RunAsync - loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("HelloWorldContract")).ToList().Count}");
+            // run smart contract executive info and return executive
             var executive = await runner.RunAsync(reg);
-            Logger.LogDebug($"After RunAsync - loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("HelloWorldContract")).ToList().Count}");
-            //Logger.LogDebug($"After RunAsync - loaded assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("Token")).ToList().Count}");
+            
+            int executiveCount = AppDomain.CurrentDomain
+                .GetAssemblies()
+                .Count(a => a.FullName.Contains("HelloWorldContract"));
+            
+            Logger.LogDebug($"Currently {executiveCount} executives are loaded for {address.Value.ToHex()}");
 
-            var context =
-                _hostSmartContractBridgeContextService.Create();
+            var context =_hostSmartContractBridgeContextService.Create();
             executive.SetHostSmartContractBridgeContext(context);
+            
             return executive;
         }
-
 
         public virtual async Task PutExecutiveAsync(Address address, IExecutive executive)
         {
@@ -151,31 +147,21 @@ namespace AElf.Kernel.SmartContract.Application
             await Task.CompletedTask;
         }
 
-        private void Clean()
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-            }
-        }
-
         public async Task SetContractInfoAsync(Address address, long blockHeight, bool unload = false)
         {
             if (_executivePools.TryRemove(address, out var executives))
             {
-                foreach (var exec in executives)
+                if (unload)
                 {
-                    Logger.LogDebug($"Unloaded for {address.Value.ToHex()}");
-                    
-                    if (unload)
+                    foreach (var exec in executives)
+                    {
+                        Logger.LogDebug($"Unloaded executive for address {address.Value.ToHex()}");
                         exec.Unload();
+                    }
                 }
             }
 
-            Clean();
-            
-            //Logger.LogDebug($"After RunAsync - after clean assembly: {AppDomain.CurrentDomain.GetAssemblies().Where(a => a.FullName.Contains("Token")).ToList().Count}");
+            //Collect();
 
             _addressSmartContractRegistrationMappingCache.TryRemove(address, out _);
             
@@ -185,6 +171,15 @@ namespace AElf.Kernel.SmartContract.Application
                 var chainContractInfo = await _blockchainStateManager.GetChainContractInfoAsync();
                 chainContractInfo.ContractInfos[address.ToStorageKey()] = blockHeight;
                 await _blockchainStateManager.SetChainContractInfoAsync(chainContractInfo);
+            }
+        }
+        
+        private void Collect()
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
             }
         }
 
