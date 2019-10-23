@@ -97,13 +97,13 @@ namespace AElf.Kernel.Miner.Application
                 else
                 {
                     var ts = (expirationTime - TimestampHelper.GetUtcNow()).ToTimeSpan();
-                    if (ts.TotalMilliseconds > 4000)
+                    if (ts.TotalMilliseconds > int.MaxValue)
                     {
-                        ts = TimeSpan.FromMilliseconds(4000);
+                        ts = TimeSpan.FromMilliseconds(int.MaxValue);
                     }
                     cts.CancelAfter(ts);
                 }
-                
+
                 var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
                     requestMiningDto.PreviousBlockHeight, blockTime);
                 var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
