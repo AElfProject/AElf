@@ -11,6 +11,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         private void ShareInValueOfCurrentRound(Round currentRound, Round previousRound, Hash inValue, string publicKey)
         {
+            Context.LogDebug(() => "Entered ShareInValueOfCurrentRound");
             if (!currentRound.RealTimeMinersInformation.ContainsKey(publicKey)) return;
 
             var minersCount = currentRound.RealTimeMinersInformation.Count;
@@ -57,6 +58,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 currentRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].DecryptedPreviousInValues
                     .Add(publicKey, ByteString.CopyFrom(decryptedInValue));
             }
+            
+            Context.LogDebug(() => "Leaving ShareInValueOfCurrentRound");
         }
 
         private void RevealSharedInValues(Round currentRound, string publicKey)
