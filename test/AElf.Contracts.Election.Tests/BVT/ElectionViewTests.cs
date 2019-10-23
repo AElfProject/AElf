@@ -150,7 +150,16 @@ namespace AElf.Contracts.Election
         public async Task GetPageableCandidateInformation_Test()
         {
             ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
-
+            //query before vote
+            var candidateInformation0 =
+                await ElectionContractStub.GetPageableCandidateInformation.CallAsync(new PageInformation
+                {
+                    Start = 0,
+                    Length = 10
+                });
+            candidateInformation0.Value.Count.ShouldBe(10);
+            candidateInformation0.Value.ToList().Select(o=>o.ObtainedVotesAmount).ShouldAllBe(o=>o==0);
+            
             var candidates = await ElectionContractStub.GetCandidates.CallAsync(new Empty());
             candidates.Value.Count.ShouldBe(ValidationDataCenterKeyPairs.Count);
             var moreVotesCandidates = ValidationDataCenterKeyPairs
