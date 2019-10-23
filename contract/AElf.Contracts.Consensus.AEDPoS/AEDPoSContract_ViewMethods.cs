@@ -326,11 +326,15 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
+            if (State.ElectionContract.Value == null) return evilMinersPubKey;
+
             // If one miner is not a candidate anymore.
-            if (State.ElectionContract.Value != null)
+            var candidates = State.ElectionContract.GetCandidates.Call(new Empty()).Value.Select(p => p.ToHex())
+                .ToList();
+            if (candidates.Any())
             {
-                var candidates = State.ElectionContract.GetCandidates.Call(new Empty()).Value.Select(p => p.ToHex());
-                evilMinersPubKey.AddRange(currentRound.RealTimeMinersInformation.Keys.ToList().Except(candidates));
+                evilMinersPubKey.AddRange(
+                    currentRound.RealTimeMinersInformation.Keys.Where(pubkey => !candidates.Contains(pubkey)));
             }
 
             return evilMinersPubKey;
