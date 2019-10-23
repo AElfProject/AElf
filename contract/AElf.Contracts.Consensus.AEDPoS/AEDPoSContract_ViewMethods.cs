@@ -31,6 +31,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
                 : new MinerList();
 
+        public override PubkeyList GetCurrentMinerPubkeyList(Empty input) => new PubkeyList
+        {
+            Pubkeys = {GetCurrentMinerList(input).Pubkeys.Select(p => p.ToHex())}
+        };
+
         public override MinerListWithRoundNumber GetCurrentMinerListWithRoundNumber(Empty input) =>
             new MinerListWithRoundNumber
             {
@@ -392,9 +397,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return new SInt64Value {Value = 0};
         }
-        
+
         public override SInt64Value GetNextElectCountDown(Empty input)
         {
+            if (!State.IsMainChain.Value)
+            {
+                return new SInt64Value();
+            }
+
             var currentTermNumber = State.CurrentTermNumber.Value;
             Timestamp currentTermStartTime;
             if (currentTermNumber == 1)
