@@ -21,7 +21,6 @@ namespace AElf.Contracts.Election
             var updatedBackupSubsidy = 0L;
             var updatedBasicReward = 0L;
             var updatedVotesWeightReward = 0L;
-            var updatedReElectionReward = 0L;
             var updatedCitizenWelfare = 0L;
 
             var treasuryScheme =
@@ -30,7 +29,10 @@ namespace AElf.Contracts.Election
             // Prepare candidates and votes.
             {
                 // SampleKeyPairs[13...47] announce election.
-                ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+                foreach (var keyPair in ValidationDataCenterKeyPairs)
+                {
+                    await AnnounceElectionAsync(keyPair);
+                }
 
                 // Check the count of announce candidates.
                 var candidates = await ElectionContractStub.GetCandidates.CallAsync(new Empty());
@@ -39,15 +41,19 @@ namespace AElf.Contracts.Election
                 // SampleKeyPairs[13...17] get 2 votes.
                 var moreVotesCandidates = ValidationDataCenterKeyPairs
                     .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
-                moreVotesCandidates.ForEach(async kp =>
-                    await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 2));
+                foreach (var keyPair in moreVotesCandidates)
+                {
+                    await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 2);
+                }
 
                 // SampleKeyPairs[18...22] get 1 votes.
                 var lessVotesCandidates = ValidationDataCenterKeyPairs
                     .Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount)
                     .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
-                lessVotesCandidates.ForEach(async kp =>
-                    await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 1));
+                foreach (var keyPair in lessVotesCandidates)
+                {
+                    await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 1);
+                }
 
                 // Check the count of voted candidates, should be 10.
                 var votedCandidates = await ElectionContractStub.GetVotedCandidates.CallAsync(new Empty());
@@ -543,13 +549,18 @@ namespace AElf.Contracts.Election
                     var profitSize = profitBasicResult.Transaction.Size();
                     profitBasicResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-                    var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                    int sizeFee;
+
                     {
-                        Owner = Address.FromPublicKey(miner.PublicKey),
-                        Symbol = EconomicContractsTestConstants.NativeTokenSymbol
-                    })).Balance;
-                    var sizeFee = profitSize * 1000;
-                    balance.ShouldBe(beforeToken + basicMinerRewardAmount - txFee - sizeFee);
+                        var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                        {
+                            Owner = Address.FromPublicKey(miner.PublicKey),
+                            Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                        })).Balance; 
+                        sizeFee = profitSize * 1000;
+                        balance.ShouldBe(beforeToken + basicMinerRewardAmount - txFee - sizeFee);
+                        balance.ShouldBe(beforeToken + basicMinerRewardAmount - txFee);
+                    }
 
                     var voteResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
@@ -578,14 +589,16 @@ namespace AElf.Contracts.Election
                     var reElectionSize = reElectionResult.Transaction.Size();
                     reElectionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-                    var balance2 = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                     {
-                        Owner = Address.FromPublicKey(miner.PublicKey),
-                        Symbol = EconomicContractsTestConstants.NativeTokenSymbol
-                    })).Balance;
-                    sizeFee = (profitSize + voteSize + reElectionSize) * 1000;
-                    balance2.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount +
-                                      reElectionBalance - 3 * txFee - sizeFee);
+                        var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                        {
+                            Owner = Address.FromPublicKey(miner.PublicKey),
+                            Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                        })).Balance;
+                        sizeFee = (profitSize + voteSize + reElectionSize) * 1000;
+                        balance.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount +
+                                         reElectionBalance - 3 * txFee - sizeFee);
+                    }
 
                     var backupResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
                     {
@@ -595,14 +608,16 @@ namespace AElf.Contracts.Election
                     var backSize = backupResult.Transaction.Size();
                     backupResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-                    var balance3 = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                     {
-                        Owner = Address.FromPublicKey(miner.PublicKey),
-                        Symbol = EconomicContractsTestConstants.NativeTokenSymbol
-                    })).Balance;
-                    sizeFee = (profitSize + voteSize + reElectionSize + backSize) * 1000;
-                    balance3.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount +
-                                      reElectionBalance + backupBalance - 4 *txFee - sizeFee);
+                        var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                        {
+                            Owner = Address.FromPublicKey(miner.PublicKey),
+                            Symbol = EconomicContractsTestConstants.NativeTokenSymbol
+                        })).Balance;
+                        sizeFee = (profitSize + voteSize + reElectionSize + backSize) * 1000;
+                        balance.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount +
+                                         reElectionBalance + backupBalance - 4 *txFee - sizeFee);
+                    }
                 }
             }
         }
