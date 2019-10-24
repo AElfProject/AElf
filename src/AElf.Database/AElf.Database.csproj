@@ -8,6 +8,6 @@
         <ProjectReference Include="..\AElf.Core\AElf.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.Data" Version="0.22.0" />
+        <PackageReference Include="Volo.Abp.Data" Version="1.0.2" />
     </ItemGroup>
 </Project>

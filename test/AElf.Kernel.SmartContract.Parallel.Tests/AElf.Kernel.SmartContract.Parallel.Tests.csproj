@@ -2,6 +2,7 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp3.0</TargetFramework>
         <IsPackable>false</IsPackable>
+        <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\test\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj" />
@@ -58,7 +59,7 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="Volo.Abp.Autofac" Version="0.22.0" />
-        <PackageReference Include="Volo.Abp.TestBase" Version="0.22.0" />
+        <PackageReference Include="Volo.Abp.Autofac" Version="1.0.2" />
+        <PackageReference Include="Volo.Abp.TestBase" Version="1.0.2" />
     </ItemGroup>
 </Project>
