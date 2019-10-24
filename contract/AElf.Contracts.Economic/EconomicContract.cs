@@ -12,7 +12,7 @@ using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
 
 namespace AElf.Contracts.Economic
 {
-    public class EconomicContract : EconomicContractContainer.EconomicContractBase
+    public partial class EconomicContract : EconomicContractContainer.EconomicContractBase
     {
         public override Empty InitialEconomicSystem(InitialEconomicSystemInput input)
         {
@@ -85,7 +85,7 @@ namespace AElf.Contracts.Economic
         {
             var tokenConverter =
                 Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
-            foreach (var resourceTokenSymbol in EconomicContractConstants.ResourceTokenSymbols)
+            foreach (var resourceTokenSymbol in Context.Variables.ResourceTokenSymbolNameList)
             {
                 State.TokenContract.Create.Send(new CreateInput
                 {
@@ -260,7 +260,7 @@ namespace AElf.Contracts.Economic
                 }
             };
 
-            foreach (var resourceTokenSymbol in EconomicContractConstants.ResourceTokenSymbols)
+            foreach (var resourceTokenSymbol in Context.Variables.ResourceTokenSymbolNameList)
             {
                 connectors.Add(new Connector
                 {

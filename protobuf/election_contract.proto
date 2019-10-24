@@ -6,12 +6,14 @@ import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.Election";
 
 service ElectionContract {
     
     option (aelf.csharp_state) = "AElf.Contracts.Election.ElectionContractState";
+    option (aelf.base) = "acs1.proto";
 
     // Action
     rpc InitialElectionContract (InitialElectionContractInput) returns (google.protobuf.Empty) {
@@ -203,6 +205,7 @@ message ElectionVotingRecord {
     google.protobuf.Timestamp vote_timestamp = 12;
     bool is_withdrawn = 13;
     sint64 weight = 14;
+    bool is_change_target = 15;
 }
 
 message PageInformation {

@@ -80,7 +80,8 @@ namespace AElf.OS.Network
             result = await _service.DoHandshake(request, context);
             result.Error.ShouldBe(HandshakeError.WrongSignature);
 
-            var handshake = await _handshakeProvider.GetHandshakeAsync();
+            var peerKeyPair = CryptoHelper.GenerateKeyPair();
+            var handshake = NetworkTestHelper.CreateValidHandshake(peerKeyPair, 10, ChainHelper.ConvertBase58ToChainId("AELF"), 2000);
             request = new HandshakeRequest {Handshake = handshake};
             result = await _service.DoHandshake(request, context);
             result.Error.ShouldBe(HandshakeError.HandshakeOk);
@@ -330,6 +331,20 @@ namespace AElf.OS.Network
             
             Assert.NotNull(reply?.Blocks);
             Assert.Empty(reply.Blocks);
+        }
+
+        [Fact]
+        public async Task RequestBlocks_MoreThenLimit_ReturnsEmpty()
+        {
+            var serverCallContext = BuildServerCallContext();
+            var chain = await _blockchainService.GetChainAsync();
+            var reply = await _service.RequestBlocks(new BlocksRequest
+            {
+                PreviousBlockHash = chain.GenesisBlockHash,
+                Count = GrpcConstants.MaxSendBlockCountLimit + 1
+            }, serverCallContext);
+
+            Assert.True(reply.Blocks.Count == 0);
         }
 
         #endregion RequestBlocks

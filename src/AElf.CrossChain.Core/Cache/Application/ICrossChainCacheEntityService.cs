@@ -8,6 +8,7 @@ namespace AElf.CrossChain.Cache.Application
         void RegisterNewChain(int chainId, long height);
         List<int> GetCachedChainIds();
         long GetTargetHeightForChainCacheEntity(int chainId);
+        void ClearOutOfDateCrossChainCache(int chainId, long height);
     }
 
     internal class CrossChainCacheEntityService : ICrossChainCacheEntityService, ITransientDependency
@@ -32,6 +33,12 @@ namespace AElf.CrossChain.Cache.Application
         public long GetTargetHeightForChainCacheEntity(int chainId)
         {
             return _crossChainCacheEntityProvider.GetChainCacheEntity(chainId).TargetChainHeight();
+        }
+
+        public void ClearOutOfDateCrossChainCache(int chainId, long height)
+        {
+            var chainCacheEntity = _crossChainCacheEntityProvider.GetChainCacheEntity(chainId);
+            chainCacheEntity.ClearOutOfDateCacheByHeight(height);
         }
     }
 }

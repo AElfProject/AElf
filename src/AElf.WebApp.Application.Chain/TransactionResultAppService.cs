@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using AElf.Kernel;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 
@@ -86,7 +85,8 @@ namespace AElf.WebApp.Application.Chain
 
             output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
             var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
-                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
+                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName,
+                false);
 
             if (methodDescriptor != null)
             {
@@ -259,10 +259,11 @@ namespace AElf.WebApp.Application.Chain
 
             var methodDescriptor =
                 await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(_blockchainService,
-                    _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
+                    _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName, false);
 
-            transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(
-                methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
+            if(methodDescriptor != null)
+                transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(
+                    methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
 
             transactionResultDto.Status = transactionResult.Status.ToString();
 

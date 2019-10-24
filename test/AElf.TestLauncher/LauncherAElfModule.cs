@@ -45,8 +45,6 @@ namespace AElf.TestLauncher
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("Election")).Value;
         public byte[] TokenContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("MultiToken")).Value;
-        public byte[] FeeReceiverContractCode =>
-            Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("FeeReceiver")).Value;
         public ILogger<MainBlockchainAElfModule> Logger { get; set; }
 
         public OsBlockchainNodeContext OsBlockchainNodeContext { get; set; }
@@ -88,9 +86,6 @@ namespace AElf.TestLauncher
             dto.InitializationSmartContracts.AddGenesisSmartContract(
                 ElectionContractCode,
                 ElectionSmartContractAddressNameProvider.Name);
-            dto.InitializationSmartContracts.AddGenesisSmartContract(
-                FeeReceiverContractCode,
-                ResourceFeeReceiverSmartContractAddressNameProvider.Name);
 
             var osService = context.ServiceProvider.GetService<IOsBlockchainNodeContextService>();
             var that = this;

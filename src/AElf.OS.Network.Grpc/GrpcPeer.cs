@@ -5,12 +5,14 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using AElf.Kernel;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Metrics;
+using AElf.OS.Network.Protocol.Types;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
@@ -25,14 +27,11 @@ namespace AElf.OS.Network.Grpc
     {
         private const int MaxMetricsPerMethod = 100;
         private const int BlockRequestTimeout = 500;
-        private const int BlocksRequestTimeout = 800;
+        private const int HealthCheckTimeout = 3000;
+        private const int BlocksRequestTimeout = 5000;
         private const int GetNodesTimeout = 500;
-        private const int UpdateHandshakeTimeout = 400;
+        private const int UpdateHandshakeTimeout = 3000;
         private const int StreamRecoveryWaitTimeInMilliseconds = 500;
-
-        private const int MaxDegreeOfParallelismForAnnouncementJobs = 3;
-        private const int MaxDegreeOfParallelismForTransactionJobs = 1;
-        private const int MaxDegreeOfParallelismForBlockJobs = 1;
 
         private enum MetricNames
         {
@@ -63,22 +62,36 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public long LastKnownLibHeight { get; private set; }
+        public string ConnectionStatus => _channel.State.ToString();
 
-        public bool IsBest { get; set; }
+        public Hash LastKnownLibHash { get; private set; }
+        public long LastKnownLibHeight { get; private set; }
+        public Timestamp LastReceivedHandshakeTime { get; private set; }
+        public Timestamp LastSentHandshakeTime { get; private set; }
+
         public bool IsConnected { get; set; }
         public bool IsShutdown { get; set; }
         public Hash CurrentBlockHash { get; private set; }
         public long CurrentBlockHeight { get; private set; }
+        
+        /// <summary>
+        /// Session ID to use when authenticating messages from this peer, announced to the
+        /// remote peer at connection.
+        /// </summary>
+        public byte[] InboundSessionId { get; set; }
+        
+        /// <summary>
+        /// Session ID to use when sending messages to this peer, announced at connection
+        /// from the other peer.
+        /// </summary>
+        public byte[] OutboundSessionId => Info.SessionId;
 
         public IPEndPoint RemoteEndpoint { get; }
         public int BufferedTransactionsCount => _sendTransactionJobs.InputCount;
         public int BufferedBlocksCount => _sendBlockJobs.InputCount;
         public int BufferedAnnouncementsCount => _sendAnnouncementJobs.InputCount;
 
-        public string IpAddress { get; }
-
-        public PeerInfo Info { get; }
+        public PeerConnectionInfo Info { get; }
 
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
@@ -89,18 +102,19 @@ namespace AElf.OS.Network.Grpc
         private AsyncClientStreamingCall<Transaction, VoidReply> _transactionStreamCall;
         private AsyncClientStreamingCall<BlockAnnouncement, VoidReply> _announcementStreamCall;
         private AsyncClientStreamingCall<BlockWithTransactions, VoidReply> _blockStreamCall;
+        private AsyncClientStreamingCall<LibAnnouncement, VoidReply> _libAnnouncementStreamCall;
 
         private readonly ActionBlock<StreamJob> _sendAnnouncementJobs;
         private readonly ActionBlock<StreamJob> _sendBlockJobs;
         private readonly ActionBlock<StreamJob> _sendTransactionJobs;
 
-        public GrpcPeer(GrpcClient client, IPEndPoint remoteEndpoint, PeerInfo peerInfo)
+        public GrpcPeer(GrpcClient client, IPEndPoint remoteEndpoint, PeerConnectionInfo peerConnectionInfo)
         {
             _channel = client.Channel;
             _client = client.Client;
 
             RemoteEndpoint = remoteEndpoint;
-            Info = peerInfo;
+            Info = peerConnectionInfo;
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
@@ -116,19 +130,16 @@ namespace AElf.OS.Network.Grpc
             _sendAnnouncementJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
                 new ExecutionDataflowBlockOptions
                 {
-                    MaxDegreeOfParallelism = MaxDegreeOfParallelismForAnnouncementJobs,
                     BoundedCapacity = NetworkConstants.DefaultMaxBufferedAnnouncementCount
                 });
             _sendBlockJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
                 new ExecutionDataflowBlockOptions
                 {
-                    MaxDegreeOfParallelism = MaxDegreeOfParallelismForBlockJobs,
                     BoundedCapacity = NetworkConstants.DefaultMaxBufferedBlockCount
                 });
             _sendTransactionJobs = new ActionBlock<StreamJob>(SendStreamJobAsync,
                 new ExecutionDataflowBlockOptions
                 {
-                    MaxDegreeOfParallelism = MaxDegreeOfParallelismForTransactionJobs,
                     BoundedCapacity = NetworkConstants.DefaultMaxBufferedTransactionCount
                 });
         }
@@ -153,7 +164,11 @@ namespace AElf.OS.Network.Grpc
         public Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest)
         {
             GrpcRequest request = new GrpcRequest {ErrorMessage = "Request nodes failed."};
-            Metadata data = new Metadata {{GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString()}};
+            Metadata data = new Metadata
+            {
+                { GrpcConstants.TimeoutMetadataKey, GetNodesTimeout.ToString() },
+                { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
+            };
 
             return RequestAsync(() => _client.GetNodesAsync(new NodesRequest {MaxCount = count}, data), request);
         }
@@ -163,6 +178,36 @@ namespace AElf.OS.Network.Grpc
             LastKnownLibHeight = handshake.HandshakeData.LastIrreversibleBlockHeight;
             CurrentBlockHash = handshake.HandshakeData.BestChainHash;
             CurrentBlockHeight = handshake.HandshakeData.BestChainHeight;
+            LastReceivedHandshakeTime = handshake.HandshakeData.Time;
+        }
+
+        public void UpdateLastSentHandshake(Handshake handshake)
+        {
+            LastSentHandshakeTime = handshake.HandshakeData.Time;
+        }
+
+        public void UpdateLastKnownLib(LibAnnouncement libAnnouncement)
+        {
+            if (libAnnouncement.LibHeight <= LastKnownLibHeight)
+            {
+                return;
+            }
+
+            LastKnownLibHash = libAnnouncement.LibHash;
+            LastKnownLibHeight = libAnnouncement.LibHeight;
+        }
+
+        public async Task CheckHealthAsync()
+        {
+            GrpcRequest request = new GrpcRequest { ErrorMessage = $"Health check failed." };
+
+            Metadata data = new Metadata
+            {
+                { GrpcConstants.TimeoutMetadataKey, HealthCheckTimeout.ToString() },
+                { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
+            };
+
+            await RequestAsync(() => _client.CheckHealthAsync(new HealthCheckRequest(), data), request);
         }
 
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
@@ -176,7 +221,11 @@ namespace AElf.OS.Network.Grpc
                 MetricInfo = $"Block request for {hash}"
             };
 
-            Metadata data = new Metadata {{GrpcConstants.TimeoutMetadataKey, BlockRequestTimeout.ToString()}};
+            Metadata data = new Metadata
+            {
+                { GrpcConstants.TimeoutMetadataKey, BlockRequestTimeout.ToString() },
+                { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
+            };
 
             var blockReply = await RequestAsync(() => _client.RequestBlockAsync(blockRequest, data), request);
 
@@ -195,7 +244,11 @@ namespace AElf.OS.Network.Grpc
                 MetricInfo = $"Get blocks for {blockInfo}"
             };
 
-            Metadata data = new Metadata {{GrpcConstants.TimeoutMetadataKey, BlocksRequestTimeout.ToString()}};
+            Metadata data = new Metadata
+            {
+                { GrpcConstants.TimeoutMetadataKey, BlocksRequestTimeout.ToString() },
+                { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
+            };
 
             var list = await RequestAsync(() => _client.RequestBlocksAsync(blockRequest, data), request);
 
@@ -233,6 +286,19 @@ namespace AElf.OS.Network.Grpc
 
             _sendBlockJobs.Post(new StreamJob{BlockWithTransactions = blockWithTransactions, SendCallback = sendCallback});
         }
+        
+        public void EnqueueLibAnnouncement(LibAnnouncement libAnnouncement, Action<NetworkException> sendCallback)
+        {
+            if (!IsReady)
+                throw new NetworkException($"Dropping lib announcement, peer is not ready - {this}.",
+                    NetworkExceptionType.NotConnected);
+
+            _sendAnnouncementJobs.Post(new StreamJob
+            {
+                LibAnnouncement = libAnnouncement,
+                SendCallback = sendCallback
+            });
+        }
 
         private async Task SendStreamJobAsync(StreamJob job)
         {
@@ -253,12 +319,21 @@ namespace AElf.OS.Network.Grpc
                 {
                     await BroadcastBlockAsync(job.BlockWithTransactions);
                 }
+                else if (job.LibAnnouncement != null)
+                {
+                    await SendLibAnnouncementAsync(job.LibAnnouncement);
+                }
             }
             catch (RpcException ex)
             {
-                job.SendCallback?.Invoke(CreateNetworkException(ex, $"Error on broadcast to {this}: "));
+                job.SendCallback?.Invoke(HandleRpcException(ex, $"Error on broadcast to {this}: "));
                 await Task.Delay(StreamRecoveryWaitTimeInMilliseconds);
                 return;
+            }
+            catch (Exception ex)
+            {
+                job.SendCallback?.Invoke(new NetworkException("Unknown exception during broadcast.", ex));
+                throw;
             }
 
             job.SendCallback?.Invoke(null);
@@ -267,7 +342,7 @@ namespace AElf.OS.Network.Grpc
         private async Task BroadcastBlockAsync(BlockWithTransactions blockWithTransactions)
         {
             if (_blockStreamCall == null)
-                _blockStreamCall = _client.BlockBroadcastStream();
+                _blockStreamCall = _client.BlockBroadcastStream(new Metadata {{ GrpcConstants.SessionIdMetadataKey, OutboundSessionId }});
 
             try
             {
@@ -289,8 +364,8 @@ namespace AElf.OS.Network.Grpc
         private async Task SendAnnouncementAsync(BlockAnnouncement header)
         {
             if (_announcementStreamCall == null)
-                _announcementStreamCall = _client.AnnouncementBroadcastStream();
-
+                _announcementStreamCall = _client.AnnouncementBroadcastStream(new Metadata {{ GrpcConstants.SessionIdMetadataKey, OutboundSessionId }});
+            
             try
             {
                 await _announcementStreamCall.RequestStream.WriteAsync(header);
@@ -311,7 +386,7 @@ namespace AElf.OS.Network.Grpc
         private async Task SendTransactionAsync(Transaction transaction)
         {
             if (_transactionStreamCall == null)
-                _transactionStreamCall = _client.TransactionBroadcastStream();
+                _transactionStreamCall = _client.TransactionBroadcastStream(new Metadata {{ GrpcConstants.SessionIdMetadataKey, OutboundSessionId }});
 
             try
             {
@@ -326,6 +401,28 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
+        /// <summary>
+        /// Send a lib announcement to the peer using the stream call.
+        /// Note: this method is not thread safe.
+        /// </summary>
+        public async Task SendLibAnnouncementAsync(LibAnnouncement libAnnouncement)
+        {
+            if (_libAnnouncementStreamCall == null)
+                _libAnnouncementStreamCall = _client.LibAnnouncementBroadcastStream(new Metadata {{ GrpcConstants.SessionIdMetadataKey, OutboundSessionId }});
+            
+            try
+            {
+                await _libAnnouncementStreamCall.RequestStream.WriteAsync(libAnnouncement);
+            }
+            catch (RpcException e)
+            {
+                _libAnnouncementStreamCall.Dispose();
+                _libAnnouncementStreamCall = null;
+                
+                throw;
+            }
+        }
+
         #endregion
         
         public async Task ConfirmHandshakeAsync()
@@ -334,7 +431,8 @@ namespace AElf.OS.Network.Grpc
 
             Metadata data = new Metadata
             {
-                {GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString()}
+                {GrpcConstants.TimeoutMetadataKey, UpdateHandshakeTimeout.ToString()},
+                {GrpcConstants.SessionIdMetadataKey, OutboundSessionId}
             };
 
             await RequestAsync(() => _client.ConfirmHandshakeAsync(new ConfirmHandshakeRequest(), data), request);
@@ -362,9 +460,13 @@ namespace AElf.OS.Network.Grpc
 
                 return response;
             }
+            catch (ObjectDisposedException ex)
+            {
+                throw new NetworkException("Peer is closed", ex, NetworkExceptionType.Unrecoverable);
+            }
             catch (AggregateException ex)
             {
-                throw CreateNetworkException(ex.Flatten(), requestParams.ErrorMessage);
+                throw HandleRpcException(ex.InnerException as RpcException, requestParams.ErrorMessage);
             }
             finally
             {
@@ -396,7 +498,7 @@ namespace AElf.OS.Network.Grpc
         /// This method handles the case where the peer is potentially down. If the Rpc call
         /// put the channel in TransientFailure or Connecting, we give the connection a certain time to recover.
         /// </summary>
-        private NetworkException CreateNetworkException(Exception exception, string errorMessage)
+        private NetworkException HandleRpcException(RpcException exception, string errorMessage)
         {
             string message = $"Failed request to {this}: {errorMessage}";
             NetworkExceptionType type = NetworkExceptionType.Rpc;
@@ -425,10 +527,15 @@ namespace AElf.OS.Network.Grpc
             else
             {
                 // there was an exception, not related to connectivity.
-                if (exception.InnerException is RpcException rpcEx && rpcEx.StatusCode == StatusCode.Cancelled)
+                if (exception.StatusCode == StatusCode.Cancelled)
                 {
                     message = $"Request was cancelled {this}: {errorMessage}";
                     type = NetworkExceptionType.Unrecoverable;
+                }
+                else if (exception.StatusCode == StatusCode.Unknown)
+                {
+                    message = $"Exception in handler {this}: {errorMessage}";
+                    type = NetworkExceptionType.HandlerException;
                 }
             }
 
@@ -492,9 +599,11 @@ namespace AElf.OS.Network.Grpc
 
                 try
                 {
+                    Metadata metadata = new Metadata {{ GrpcConstants.SessionIdMetadataKey, OutboundSessionId }};
+                    
                     await RequestAsync(
                         () => _client.DisconnectAsync(new DisconnectReason
-                            {Why = DisconnectReason.Types.Reason.Shutdown}), request);
+                            {Why = DisconnectReason.Types.Reason.Shutdown}, metadata), request);
                 }
                 catch (NetworkException)
                 {

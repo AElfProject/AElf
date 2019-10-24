@@ -72,73 +72,82 @@ namespace AElf.Kernel.SmartContract.Domain
                         //because we may clear history state
                         throw new InvalidOperationException($"cannot read history state, best chain state hash: {bestChainState.BlockHash.ToHex()}, key: {key}, block height: {blockHeight}, block hash{blockHash.ToHex()}");
                     }
-
-                    //find value in block state set
-                    var blockStateKey = blockHash.ToStorageKey();
-                    var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
-                    while (blockStateSet != null && blockStateSet.BlockHeight > bestChainState.BlockHeight)
+                    else
                     {
-                        if (blockStateSet.Changes.ContainsKey(key))
+                        //find value in block state set
+                        var blockStateKey = blockHash.ToStorageKey();
+                        var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
+                        while (blockStateSet != null && blockStateSet.BlockHeight > bestChainState.BlockHeight)
                         {
-                            value = blockStateSet.Changes[key];
-                            break;
+                            if (blockStateSet.Deletes.Contains(key))
+                            {
+                                break;
+                            }
+                            
+                            if (blockStateSet.Changes.ContainsKey(key))
+                            {
+                                value = blockStateSet.Changes[key];
+                                break;
+                            }
+
+                            blockStateKey = blockStateSet.PreviousHash?.ToStorageKey();
+
+                            if (blockStateKey != null)
+                            {
+                                blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
+                            }
+                            else
+                            {
+                                blockStateSet = null;
+                            }
                         }
 
-                        blockStateKey = blockStateSet.PreviousHash?.ToStorageKey();
-
-                        if (blockStateKey != null)
+                        if (value == null && (blockStateSet == null || !blockStateSet.Deletes.Contains(key) || blockStateSet.BlockHeight <= bestChainState.BlockHeight))
                         {
-                            blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
-                        }
-                        else
-                        {
-                            blockStateSet = null;
+                            //not found value in block state sets. for example, best chain is 100, blockHeight is 105,
+                            //it will find 105 ~ 101 block state set. so the value could only be the best chain state value.
+                            // retry versioned state in case conflict of get state during merging  
+                            bestChainState = await _versionedStates.GetAsync(key);
+                            value = bestChainState.Value;
                         }
                     }
-
-                    if (value != null) return value;
-                    //not found value in block state sets. for example, best chain is 100, blockHeight is 105,
-                    //it will find 105 ~ 101 block state set. so the value could only be the best chain state value.
-                    // retry versioned state in case conflict of get state during merging  
-                    bestChainState = await _versionedStates.GetAsync(key);
-                    value = bestChainState.Value;
                 }
             }
             else
             {
                 //best chain state is null, it will find value in block state set
-                value = await GetStateInBlockStateAsync(key,blockHash.ToStorageKey());
-                if (value != null) return value;
-                // retry versioned state in case conflict of get state during merging  
-                bestChainState = await _versionedStates.GetAsync(key);
-                value = bestChainState?.Value;
-            }
-
-            return value;
-        }
-
-        private async Task<ByteString> GetStateInBlockStateAsync(string key, string blockStateKey)
-        {
-            ByteString value = null;
-            
-            var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
-            while (blockStateSet != null)
-            {
-                if (blockStateSet.Changes.ContainsKey(key))
+                var blockStateKey = blockHash.ToStorageKey();
+                var blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
+                while (blockStateSet != null)
                 {
-                    value = blockStateSet.Changes[key];
-                    break;
+                    if (blockStateSet.Deletes.Contains(key))
+                    {
+                        break;
+                    }
+                    
+                    if (blockStateSet.Changes.ContainsKey(key))
+                    {
+                        value = blockStateSet.Changes[key];
+                        break;
+                    }
+
+                    blockStateKey = blockStateSet.PreviousHash?.ToStorageKey();
+
+                    if (blockStateKey != null)
+                    {
+                        blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
+                    }
+                    else
+                    {
+                        blockStateSet = null;
+                    }
                 }
-
-                blockStateKey = blockStateSet.PreviousHash?.ToStorageKey();
-
-                if (blockStateKey != null)
+                
+                if (value == null && blockStateSet == null)
                 {
-                    blockStateSet = await _blockStateSets.GetAsync(blockStateKey);
-                }
-                else
-                {
-                    blockStateSet = null;
+                    // retry versioned state in case conflict of get state during merging  
+                    bestChainState = await _versionedStates.GetAsync(key);
+                    value = bestChainState?.Value;
                 }
             }
 
@@ -184,6 +193,11 @@ namespace AElf.Kernel.SmartContract.Domain
                 }).ToDictionary(p => p.Key, p => p);
 
                 await _versionedStates.SetAllAsync(dic);
+
+                foreach (var key in blockState.Deletes)
+                {
+                    await _versionedStates.RemoveAsync(key);
+                }
 
                 chainStateInfo.Status = ChainStateMergingStatus.Merged;
                 chainStateInfo.BlockHash = blockState.BlockHash;

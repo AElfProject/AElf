@@ -14,7 +14,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var extraData = validationContext.ExtraData;
             switch (extraData.Behaviour)
             {
-                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                 case AElfConsensusBehaviour.UpdateValue:
                     return ValidationForUpdateValue(validationContext);
                 case AElfConsensusBehaviour.NextRound:

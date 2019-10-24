@@ -31,6 +31,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
                 : new MinerList();
 
+        public override PubkeyList GetCurrentMinerPubkeyList(Empty input) => new PubkeyList
+        {
+            Pubkeys = {GetCurrentMinerList(input).Pubkeys.Select(p => p.ToHex())}
+        };
+
         public override MinerListWithRoundNumber GetCurrentMinerListWithRoundNumber(Empty input) =>
             new MinerListWithRoundNumber
             {
@@ -303,13 +308,29 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private List<string> GetEvilMinersPublicKey(Round currentRound, Round previousRound)
         {
-            return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
-                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.Pubkey) &&
-                      minerInCurrentRound.PreviousInValue != null
-                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.Pubkey].OutValue
-                where previousOutValue != null &&
-                      Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
-                select minerInCurrentRound.Pubkey).ToList();
+            var evilMinersPubKey = new List<string>();
+            foreach (var minerInCurrentRound in currentRound.RealTimeMinersInformation.Values)
+            {
+                if (previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.Pubkey) &&
+                    minerInCurrentRound.PreviousInValue != null)
+                {
+                    var previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.Pubkey].OutValue;
+                    if (previousOutValue != null &&
+                        Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue)
+                        evilMinersPubKey.Add(minerInCurrentRound.Pubkey);
+                }
+            }
+
+            return evilMinersPubKey;
+
+            // Below LINQ-expression causes unchecked math instructions after compilation
+//            return (from minerInCurrentRound in currentRound.RealTimeMinersInformation.Values
+//                where previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.Pubkey) &&
+//                      minerInCurrentRound.PreviousInValue != null
+//                let previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.Pubkey].OutValue
+//                where previousOutValue != null &&
+//                      Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue
+//                select minerInCurrentRound.Pubkey).ToList();
         }
 
         private bool TryToGetElectionSnapshot(long termNumber, out TermSnapshot snapshot)
@@ -375,6 +396,31 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             return new SInt64Value {Value = 0};
+        }
+
+        public override SInt64Value GetNextElectCountDown(Empty input)
+        {
+            if (!State.IsMainChain.Value)
+            {
+                return new SInt64Value();
+            }
+
+            var currentTermNumber = State.CurrentTermNumber.Value;
+            Timestamp currentTermStartTime;
+            if (currentTermNumber == 1)
+            {
+                currentTermStartTime = State.BlockchainStartTimestamp.Value;
+            }
+            else
+            {
+                var firstRoundNumberOfCurrentTerm = State.FirstRoundNumberOfEachTerm[currentTermNumber];
+                if (!TryToGetRoundInformation(firstRoundNumberOfCurrentTerm, out var firstRoundOfCurrentTerm))
+                    return new SInt64Value(); // Unlikely.
+                currentTermStartTime = firstRoundOfCurrentTerm.GetRoundStartTime();
+            }
+
+            var currentTermEndTime = currentTermStartTime.AddSeconds(State.TimeEachTerm.Value);
+            return new SInt64Value {Value = (currentTermEndTime - Context.CurrentBlockTime).Seconds};
         }
     }
 }
