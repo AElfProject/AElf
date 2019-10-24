@@ -17,7 +17,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             /// </summary>
             public static ConsensusCommand InvalidConsensusCommand => new ConsensusCommand
             {
-                ArrangedMiningTime = new Timestamp {Seconds = long.MaxValue},
+                ArrangedMiningTime = new Timestamp {Seconds = int.MaxValue},
                 Hint = ByteString.CopyFrom(new AElfConsensusHint
                 {
                     Behaviour = AElfConsensusBehaviour.Nothing
