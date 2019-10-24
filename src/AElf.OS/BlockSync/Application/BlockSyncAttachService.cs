@@ -44,7 +44,7 @@ namespace AElf.OS.BlockSync.Application
             if (!blockValid)
             {
                 Logger.LogWarning(
-                    $"Sync block validation failed, peer: {senderPubkey}, block hash: {blockWithTransactions.GetHash()}, block height: {blockWithTransactions.Height}");
+                    $"### Sync block validation failed, peer: {senderPubkey}, block hash: {blockWithTransactions.GetHash()}, block height: {blockWithTransactions.Height}");
                 await LocalEventBus.PublishAsync(new BadPeerFoundEventData
                 {
                     BlockHash = blockWithTransactions.GetHash(),

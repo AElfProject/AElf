@@ -54,7 +54,7 @@ namespace AElf.OS.BlockSync.Application
             if (blockWithTransactions.GetHash() != blockHash || blockWithTransactions.Height != blockHeight)
             {
                 Logger.LogWarning(
-                    $"Fetched invalid block, peer: {suggestedPeerPubKey}, block hash: {blockWithTransactions.GetHash()}, block height: {blockWithTransactions.Height}");
+                    $"### Fetched invalid block, peer: {suggestedPeerPubKey}, block hash: {blockWithTransactions.GetHash()}, block height: {blockWithTransactions.Height}");
                 await LocalEventBus.PublishAsync(new BadPeerFoundEventData
                 {
                     BlockHash = blockWithTransactions.GetHash(),

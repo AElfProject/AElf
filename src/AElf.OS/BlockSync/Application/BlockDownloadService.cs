@@ -178,7 +178,7 @@ namespace AElf.OS.BlockSync.Application
             {
                 var wrongPeerPubkey = checkResult.Value ? peerPubkey : _blockSyncStateProvider.LastRequestPeerPubkey;
                 Logger.LogWarning(
-                    $"Wrong irreversible block: {wrongPeerPubkey}, block hash: {downloadPreviousBlockHash}, block height: {downloadPreviousBlockHeight}");
+                    $"### Wrong irreversible block: {wrongPeerPubkey}, block hash: {downloadPreviousBlockHash}, block height: {downloadPreviousBlockHeight}");
                 throw new BlockDownloadException(downloadPreviousBlockHash, downloadPreviousBlockHeight,
                     wrongPeerPubkey);
             }
