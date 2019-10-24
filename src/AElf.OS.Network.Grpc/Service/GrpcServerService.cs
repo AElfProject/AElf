@@ -111,7 +111,7 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
             
-            Logger.LogDebug($"Block stream finished with {context.GetPeerInfo()} - {context.Peer}.");
+            Logger.LogDebug($"## Block stream finished with {context.GetPeerInfo()} - {context.Peer}.");
 
             return new VoidReply();
         }
@@ -144,7 +144,7 @@ namespace AElf.OS.Network.Grpc
                 return Task.CompletedTask;
             }
 
-            Logger.LogDebug($"Received announce {announcement.BlockHash} from {context.GetPeerInfo()}.");
+            Logger.LogDebug($"## Received announce {announcement.BlockHash} from {context.GetPeerInfo()}.");
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
 
@@ -238,7 +238,7 @@ namespace AElf.OS.Network.Grpc
             }
 
             Logger.LogDebug(
-                $"Received lib announce hash: {announcement.LibHash}, height {announcement.LibHeight} from {context.GetPeerInfo()}.");
+                $"## Received lib announce hash: {announcement.LibHash}, height {announcement.LibHeight} from {context.GetPeerInfo()}.");
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
 

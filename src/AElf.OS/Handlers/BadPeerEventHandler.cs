@@ -24,7 +24,7 @@ namespace AElf.OS.Handlers
         public async Task HandleEventAsync(BadPeerFoundEventData eventData)
         {
             Logger.LogWarning(
-                $"Remove bad peer: {eventData.PeerPubkey}, block hash: {eventData.BlockHash}, block height: {eventData.BlockHeight}");
+                $"## Remove bad peer: {eventData.PeerPubkey}, block hash: {eventData.BlockHash}, block height: {eventData.BlockHeight}");
 
             await _networkService.RemovePeerByPubkeyAsync(eventData.PeerPubkey, true);
         }

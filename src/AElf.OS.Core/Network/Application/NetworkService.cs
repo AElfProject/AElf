@@ -80,7 +80,7 @@ namespace AElf.OS.Network.Application
             if (blacklistPeer)
             {
                 _blackListedPeerProvider.AddIpToBlackList(peer.RemoteEndpoint.Address);
-                Logger.LogDebug($"Blacklisted {peer.RemoteEndpoint.Address} ({peerPubKey})");
+                Logger.LogDebug($"## Blacklisted {peer.RemoteEndpoint.Address} ({peerPubKey})");
             }
             
             await _networkServer.DisconnectAsync(peer);

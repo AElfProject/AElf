@@ -14,6 +14,8 @@ namespace AElf.WebApp.Application.Net
         Task<bool> AddPeerAsync(AddPeerInput input);
 
         Task<bool> RemovePeerAsync(string address);
+        
+        Task<bool> RemovePeerByPubkeyAsync(string peerPubKey, bool blacklistPeer = false);
 
         List<PeerDto> GetPeers(bool withMetrics);
 
@@ -51,6 +53,17 @@ namespace AElf.WebApp.Application.Net
         {
             _reconnectionService.CancelReconnection(address);
             return await _networkService.RemovePeerAsync(address);
+        }
+        
+        /// <summary>
+        /// Attempts to remove a node from the connected network nodes by public key
+        /// </summary>
+        /// <param name="peerPubKey">public key</param>
+        /// <param name="blacklistPeer">add into black list or not</param>
+        /// <returns></returns>
+        public async Task<bool> RemovePeerByPubkeyAsync(string peerPubKey, bool blacklistPeer = false)
+        {
+            return await _networkService.RemovePeerByPubkeyAsync(peerPubKey, blacklistPeer);
         }
         
         /// <summary>

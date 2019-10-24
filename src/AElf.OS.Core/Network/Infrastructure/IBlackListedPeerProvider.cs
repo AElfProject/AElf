@@ -48,7 +48,7 @@ namespace AElf.OS.Network.Infrastructure
                 if ((TimestampHelper.GetUtcNow() - blackListedPeer.Value).Seconds >= NetworkOptions.PeerBlackListTimeoutInSeconds 
                     && _blackListedPeers.TryRemove(blackListedPeer.Key, out _))
                 {
-                    Logger.LogDebug($"Removed blacklisted peer {blackListedPeer.Key}");
+                    Logger.LogDebug($"## Removed blacklisted peer {blackListedPeer.Key}");
                 }
             }
         }
