@@ -51,6 +51,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             var executedBlock = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
 
             var blockHashWithoutCache = executedBlock.GetHashWithoutCache();
+
             if (blockHashWithoutCache != blockHash)
             {
                 blockState = await _blockchainStateManager.GetBlockStateSetAsync(blockHashWithoutCache);
