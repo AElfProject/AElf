@@ -653,7 +653,6 @@ namespace AElf.Contracts.MultiToken
             var profitReceivingInformation = State.ProfitReceivingInfos[input.ContractAddress];
             Assert(profitReceivingInformation.ProfitReceiverAddress == Context.Sender,
                 "Only profit receiver can perform this action.");
-            Assert(input.Symbols.Count <= TokenContractConstants.SymbolCountLimit);
             foreach (var symbol in input.Symbols.Except(Context.Variables.ResourceTokenSymbolNameList))
             {
                 var profits = State.Balances[input.ContractAddress][symbol];
