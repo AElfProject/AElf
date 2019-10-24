@@ -123,9 +123,6 @@ namespace AElf.Contracts.TokenConverter
             
             var toConnector = State.Connectors[input.Symbol];
             Assert(toConnector != null, "Can't find to connector.");
-//            var relatedSymbol = string.IsNullOrEmpty(toConnector.RelatedSymbol)
-//                ? State.BaseTokenSymbol.Value
-//                : toConnector.RelatedSymbol;
             Assert(!string.IsNullOrEmpty(toConnector.RelatedSymbol), "can't find related symbol'");
             var fromConnector = State.Connectors[toConnector.RelatedSymbol];
             Assert(toConnector != null, "Can't find from connector.");
@@ -141,17 +138,18 @@ namespace AElf.Contracts.TokenConverter
             // Pay fee
             if (fee > 0)
             {
-                HandleFee(fee, fromConnector.Symbol);
+                HandleFee(fee);
             }
 
             // Transfer base token
             State.TokenContract.TransferFrom.Send(
                 new TransferFromInput()
                 {
-                    Symbol = fromConnector.Symbol,
+                    Symbol = State.BaseTokenSymbol.Value,
                     From = Context.Sender,
                     To = Context.Self,
-                    Amount = amountToPay
+                    Amount = amountToPay,
+                    TargetSymbol = fromConnector.Symbol
                 });
 
             // Transfer bought token
@@ -203,7 +201,7 @@ namespace AElf.Contracts.TokenConverter
             // Pay fee
             if (fee > 0)
             {
-                HandleFee(fee, toConnector.Symbol);
+                HandleFee(fee);
             }
 
             // Transfer base token
@@ -212,7 +210,8 @@ namespace AElf.Contracts.TokenConverter
                 {
                     Symbol = toConnector.Symbol,
                     To = Context.Sender,
-                    Amount = amountToReceiveLessFee
+                    Amount = amountToReceiveLessFee,
+                    TargetSymbol = State.BaseTokenSymbol.Value
                 });
 
             // Transfer sold token
@@ -234,7 +233,7 @@ namespace AElf.Contracts.TokenConverter
             return new Empty();
         }
 
-        private void HandleFee(long fee, string symbol)
+        private void HandleFee(long fee)
         {
             var donateFee = fee.Div(2);
             var burnFee = fee.Sub(donateFee);
@@ -243,7 +242,7 @@ namespace AElf.Contracts.TokenConverter
             State.TokenContract.TransferFrom.Send(
                 new TransferFromInput
                 {
-                    Symbol = symbol,
+                    Symbol = State.BaseTokenSymbol.Value,
                     From = Context.Sender,
                     To = State.FeeReceiverAddress.Value,
                     Amount = donateFee
@@ -253,7 +252,7 @@ namespace AElf.Contracts.TokenConverter
             State.TokenContract.TransferFrom.Send(
                 new TransferFromInput
                 {
-                    Symbol = symbol,
+                    Symbol = State.BaseTokenSymbol.Value,
                     From = Context.Sender,
                     To = Context.Self,
                     Amount = burnFee
@@ -261,7 +260,7 @@ namespace AElf.Contracts.TokenConverter
             State.TokenContract.Burn.Send(
                 new BurnInput
                 {
-                    Symbol = symbol,
+                    Symbol = State.BaseTokenSymbol.Value,
                     Amount = burnFee
                 });
         }

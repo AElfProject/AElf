@@ -23,8 +23,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var donateResult = await stub.Donate.SendAsync(new DonateInput
             {
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                Amount = 50,
-                TargetSymbol = EconomicSystemTestConstants.NativeTokenSymbol
+                Amount = 50
             });
             donateResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -48,8 +47,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
             var donateResult = await stub.DonateAll.SendAsync(new DonateAllInput
             {
-                Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                TargetSymbol = EconomicSystemTestConstants.NativeTokenSymbol
+                Symbol = EconomicSystemTestConstants.NativeTokenSymbol
             });
             donateResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -96,8 +94,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var donateResult = await stub.Donate.SendAsync(new DonateInput
             {
                 Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,
-                Amount = 50,
-                TargetSymbol = EconomicSystemTestConstants.NativeTokenSymbol
+                Amount = 50
             });
             donateResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
@@ -118,8 +115,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var stub = GetTreasuryContractTester(keyPair);
             var donateResult = await stub.DonateAll.SendAsync(new DonateAllInput
             {
-                Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,
-                TargetSymbol = EconomicSystemTestConstants.NativeTokenSymbol
+                Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol
             });
             donateResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 

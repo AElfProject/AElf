@@ -33,14 +33,16 @@ namespace AElf.Contracts.MultiToken
             Assert(amount > 0, "Invalid amount.");
         }
 
-        private void DoTransfer(Address from, Address to, string symbol, long amount, string memo)
+        private void DoTransfer(Address from, Address to, string symbol, long amount, string memo, string targetSymbol)
         {
+            if (string.IsNullOrEmpty(targetSymbol))
+                targetSymbol = symbol;
             Assert(from != to, "Can't do transfer to sender itself.");
             var balanceOfSender = State.Balances[from][symbol];
             Assert(balanceOfSender >= amount, $"Insufficient balance. {symbol}: {balanceOfSender} / {amount}");
             var balanceOfReceiver = State.Balances[to][symbol];
             State.Balances[from][symbol] = balanceOfSender.Sub(amount);
-            State.Balances[to][symbol] = balanceOfReceiver.Add(amount);
+            State.Balances[to][targetSymbol] = balanceOfReceiver.Add(amount);
             Context.Fire(new Transferred()
             {
                 From = from,

@@ -70,7 +70,6 @@ namespace AElf.Contracts.MultiToken
                     Decimals = 2,
                     Issuer = DefaultAddress,
                     IsBurnable = true,
-                    TargetSymbol = DefaultSymbol,
                     LockWhiteList =
                     {
                         ProfitContractAddress,

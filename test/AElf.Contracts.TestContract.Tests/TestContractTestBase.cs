@@ -223,7 +223,6 @@ namespace AElf.Contract.TestContract
                     TokenName = "elf token",
                     TotalSupply = Supply * 10,
                     Issuer = DefaultSender,
-                    TargetSymbol = "ELF",
                     LockWhiteList =
                     {
                         TokenConverterContractAddress,
@@ -259,7 +258,6 @@ namespace AElf.Contract.TestContract
                         TokenName = resourceRelatedNativeToken + " elf token",
                         TotalSupply = Supply * 10,
                         Issuer = DefaultSender,
-                        TargetSymbol = resourceRelatedNativeToken,
                         LockWhiteList =
                         {
                             TokenConverterContractAddress,
@@ -295,7 +293,6 @@ namespace AElf.Contract.TestContract
                         Decimals = 8,
                         Issuer = DefaultSender,
                         IsBurnable = true,
-                        TargetSymbol = NativTokenToSourceSymbols.FirstOrDefault(x=>x.Contains(symbol)),
                         LockWhiteList =
                         {
                             TokenConverterContractAddress,

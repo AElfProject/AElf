@@ -40,7 +40,6 @@ service TreasuryContract {
 message DonateInput {
     string symbol = 1;
     sint64 amount = 2;
-    string target_symbol = 3;
 }
 
 message ReleaseInput {
@@ -65,7 +64,6 @@ message GetWelfareRewardAmountSampleOutput {
 
 message DonateAllInput {
     string symbol = 1;
-    string target_symbol = 2;
 }
 
 message ReleaseMiningRewardInput {

@@ -175,8 +175,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                     TokenName = "elf token",
                     TotalSupply = totalSupply,
                     Issuer = DefaultSender,
-                    LockWhiteList = {TreasuryContractAddress, TokenConverterAddress},
-                    TargetSymbol =  "ELF"
+                    LockWhiteList = {TreasuryContractAddress, TokenConverterAddress}
                 });
 
                 createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -213,8 +212,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                         TokenName = nativeToken + " elf token",
                         TotalSupply = totalSupply,
                         Issuer = DefaultSender,
-                        LockWhiteList = {TreasuryContractAddress, TokenConverterAddress},
-                        TargetSymbol = nativeToken
+                        LockWhiteList = {TreasuryContractAddress, TokenConverterAddress}
                     });
 
                     createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -251,8 +249,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                     TokenName = "cpu token",
                     TotalSupply = totalSupply,
                     Issuer = DefaultSender,
-                    LockWhiteList = {TreasuryContractAddress, TokenConverterAddress},
-                    TargetSymbol = "NTCPU"
+                    LockWhiteList = {TreasuryContractAddress, TokenConverterAddress}
                 });
 
                 createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -277,8 +274,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                     TokenName = "sto token",
                     TotalSupply = totalSupply,
                     Issuer = DefaultSender,
-                    LockWhiteList = {TreasuryContractAddress, TokenConverterAddress},
-                    TargetSymbol = "NTSTO"
+                    LockWhiteList = {TreasuryContractAddress, TokenConverterAddress}
                 });
 
                 createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -303,8 +299,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                     TokenName = "net token",
                     TotalSupply = totalSupply,
                     Issuer = DefaultSender,
-                    LockWhiteList = {TreasuryContractAddress, TokenConverterAddress},
-                    TargetSymbol = "NTNET"
+                    LockWhiteList = {TreasuryContractAddress, TokenConverterAddress}
                 });
 
                 createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);

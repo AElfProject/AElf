@@ -12,7 +12,6 @@ namespace AElf.Contracts.MultiToken
 {
     public partial class TokenContract : TokenContractImplContainer.TokenContractImplBase
     {
-        private readonly Dictionary<string, string> _tokenBasedOnNativeDic = new Dictionary<string, string>();
         /// <summary>
         /// Register the TokenInfo into TokenContract add initial TokenContractState.LockWhiteLists;
         /// </summary>
@@ -31,8 +30,6 @@ namespace AElf.Contracts.MultiToken
                 IsTransferDisabled = input.IsTransferDisabled,
                 IssueChainId = input.IssueChainId == 0 ? Context.ChainId : input.IssueChainId
             });
-            if(!string.IsNullOrEmpty(input.TargetSymbol))
-                _tokenBasedOnNativeDic[input.Symbol] = input.TargetSymbol;
             if (string.IsNullOrEmpty(State.NativeTokenSymbol.Value))
             {
                 State.NativeTokenSymbol.Value = input.Symbol;
@@ -109,7 +106,7 @@ namespace AElf.Contracts.MultiToken
         public override Empty Transfer(TransferInput input)
         {
             AssertValidSymbolAndAmount(input.Symbol, input.Amount);
-            DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo);
+            DoTransfer(Context.Sender, input.To, input.Symbol, input.Amount, input.Memo, input.TargetSymbol);
             return new Empty();
         }
 
@@ -236,7 +233,7 @@ namespace AElf.Contracts.MultiToken
                 .Concat(input.LockId.Value).ToArray());
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
             // Transfer token to virtual address.
-            DoTransfer(input.Address, virtualAddress, input.Symbol, input.Amount, input.Usage);
+            DoTransfer(input.Address, virtualAddress, input.Symbol, input.Amount, input.Usage, null);
             return new Empty();
         }
 
@@ -266,14 +263,14 @@ namespace AElf.Contracts.MultiToken
             {
                 if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value)
                 {
-                    DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
+                    DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo, input.TargetSymbol);
                     return new Empty();
                 }
 
                 Assert(false, $"Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}");
             }
 
-            DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo);
+            DoTransfer(input.From, input.To, input.Symbol, input.Amount, input.Memo, input.TargetSymbol);
             State.Allowances[input.From][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             return new Empty();
         }
@@ -472,16 +469,13 @@ namespace AElf.Contracts.MultiToken
             });
 
             var transferAmount = totalFee.Sub(burnAmount);
-            _tokenBasedOnNativeDic.TryGetValue(symbol, out var targetSymbol);
-            targetSymbol = targetSymbol ?? State.NativeTokenSymbol.Value;
             if (State.TreasuryContract.Value != null)
             {
                 // Main chain would donate tx fees to dividend pool.
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = symbol,
-                    Amount = transferAmount,
-                    TargetSymbol = targetSymbol
+                    Amount = transferAmount
                 });
             }
             else
@@ -558,13 +552,10 @@ namespace AElf.Contracts.MultiToken
                         Context.LogDebug(() => $"Adding {totalAmount} of {symbol}s to dividend pool.");
                         // Main Chain.
                         State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(totalAmount);
-                        _tokenBasedOnNativeDic.TryGetValue(symbol, out var targetSymbol);
-                        targetSymbol = targetSymbol ?? State.NativeTokenSymbol.Value;
                         State.TreasuryContract.Donate.Send(new DonateInput
                         {
                             Symbol = symbol,
-                            Amount = totalAmount,
-                            TargetSymbol = targetSymbol
+                            Amount = totalAmount
                         });
                     }
                     else
@@ -661,14 +652,11 @@ namespace AElf.Contracts.MultiToken
                 State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(donates);
                 if (State.TreasuryContract.Value != null)
                 {
-                    _tokenBasedOnNativeDic.TryGetValue(symbol, out var targetSymbol);
-                    targetSymbol = targetSymbol ?? State.NativeTokenSymbol.Value;
                     // Main Chain.
                     State.TreasuryContract.Donate.Send(new DonateInput
                     {
                         Symbol = symbol,
-                        Amount = donates,
-                        TargetSymbol = targetSymbol
+                        Amount = donates
                     });
                 }
                 else
@@ -705,14 +693,14 @@ namespace AElf.Contracts.MultiToken
             {
                 if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value)
                 {
-                    DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
+                    DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo, null);
                     return new Empty();
                 }
 
                 Assert(false, $"Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}");
             }
 
-            DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
+            DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo, null);
             State.Allowances[Context.Origin][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             return new Empty();
         }

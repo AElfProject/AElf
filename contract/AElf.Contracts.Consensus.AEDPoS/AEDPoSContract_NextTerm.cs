@@ -130,8 +130,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 State.TreasuryContract.Donate.Send(new DonateInput
                 {
                     Symbol = Context.Variables.NativeSymbol,
-                    Amount = amount,
-                    TargetSymbol = Context.Variables.NativeSymbol
+                    Amount = amount
                 });
             }
 

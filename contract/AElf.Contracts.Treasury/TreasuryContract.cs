@@ -144,7 +144,7 @@ namespace AElf.Contracts.Treasury
                 State.TokenContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
-            var isNativeSymbol = input.Symbol == input.TargetSymbol;  //Context.Variables.NativeSymbol
+            var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
             State.TokenContract.TransferFrom.Send(new TransferFromInput
             {
                 From = Context.Sender,
@@ -153,12 +153,15 @@ namespace AElf.Contracts.Treasury
                     : Context.Self,
                 Symbol = input.Symbol,
                 Amount = input.Amount,
-                Memo = "Donate to treasury."
+                Memo = "Donate to treasury.",
+                TargetSymbol = isNativeSymbol
+                                ?Context.Variables.NativeSymbol
+                                :input.Symbol
             });
 
             if (!isNativeSymbol)
             {
-                ConvertToNativeToken(input.Symbol, input.Amount, input.TargetSymbol);
+                ConvertToNativeToken(input.Symbol, input.Amount);
             }
 
             return new Empty();
@@ -171,7 +174,6 @@ namespace AElf.Contracts.Treasury
                 State.TokenContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
             }
-
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
                 Symbol = input.Symbol,
@@ -182,13 +184,12 @@ namespace AElf.Contracts.Treasury
             {
                 Symbol = input.Symbol,
                 Amount = balance,
-                TargetSymbol = input.TargetSymbol
             });
 
             return new Empty();
         }
 
-        private void ConvertToNativeToken(string symbol, long amount, string targetSymbol)
+        private void ConvertToNativeToken(string symbol, long amount)
         {
             if (State.TokenConverterContract.Value == null)
             {
@@ -202,8 +203,7 @@ namespace AElf.Contracts.Treasury
             });
             Context.SendInline(Context.Self, nameof(DonateAll), new DonateAllInput
             {
-                Symbol = targetSymbol,
-                TargetSymbol = targetSymbol
+                Symbol = Context.Variables.NativeSymbol
             });
         }
 
