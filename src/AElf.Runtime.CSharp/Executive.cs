@@ -35,7 +35,6 @@ namespace AElf.Runtime.CSharp
 
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
         private IServiceContainer<IExecutivePlugin> _executivePlugins;
-        //private WeakReference<ContractCodeLoadContext> _loadContext;
         public IReadOnlyList<ServiceDescriptor> Descriptors => _descriptors;
         private List<ServiceDescriptor> _descriptors;
         private ContractCodeLoadContext _acl;
@@ -96,12 +95,8 @@ namespace AElf.Runtime.CSharp
             _descriptors = _serverServiceDefinition.GetDescriptors().ToList();
         }
 
-        public bool IsDisposed { get; set; } = false;
-        
         public void Unload()
         {
-            IsDisposed = true;
-            
             var acl = _acl;
             _acl = null;
             
@@ -115,14 +110,7 @@ namespace AElf.Runtime.CSharp
             
             _sdkStreamManager = null;
             
-            acl.Dispose();
             acl.Unload();
-
-//            if (_loadContext.TryGetTarget(out var target))
-//            {
-//                target.Dispose();
-//                target.Unload();
-//            }
         }
 
         public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)

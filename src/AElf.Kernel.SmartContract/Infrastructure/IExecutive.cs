@@ -21,7 +21,5 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         Hash ContractHash { get; }
 
         void Unload();
-        
-        bool IsDisposed { get; }
     }
 }
