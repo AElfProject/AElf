@@ -183,6 +183,11 @@ namespace AElf.CrossChain
                 sideChainValidatedHeightDict[sideChainBlockData.ChainId] = sideChainBlockData.Height;
             }
 
+            foreach (var chainIdHeight in sideChainValidatedHeightDict)
+            {
+                Logger.LogTrace($"Validated height {chainIdHeight.Value} from  chain {chainIdHeight.Value} ");
+            }
+
             return true;
         }
         
