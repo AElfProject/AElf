@@ -16,6 +16,7 @@ namespace AElf.OS.Network.Grpc
         BlockReply EvilBlock(BlockReply original, ServerCallContext context);
         BlockList EvilBlockList(BlockList original, ServerCallContext context);
     }
+
     public class EvilBlockProvider : IEvilBlockProvider
     {
         private Timestamp _evilTime;
@@ -26,16 +27,16 @@ namespace AElf.OS.Network.Grpc
         {
             _evilTime = TimestampHelper.GetUtcNow();
             _evilStatus = false;
-            
+
             Logger = NullLogger<GrpcServerService>.Instance;
         }
 
         public BlockReply EvilBlock(BlockReply original, ServerCallContext context)
         {
             if (original.Block == null) return original;
-            if (!EvilOrNot(out var number)) return original;
+            if (!EvilOrNot(3, out var number)) return original;
 
-            Logger.LogWarning($"### Evil block to {context.GetPeerInfo()}");
+            Logger.LogWarning($"### Evil block to {context.GetPeerInfo()} with case: {number % 4}");
             switch (number % 4)
             {
                 case 0:
@@ -48,12 +49,11 @@ namespace AElf.OS.Network.Grpc
                     original.Block.Header.PreviousBlockHash = Hash.FromString("invalid one");
                     break;
                 case 3:
-                    var block = new BlockWithTransactions
+                    original.Block = new BlockWithTransactions
                     {
                         Header = original.Block.Header,
-                        Transactions = {GenerateInvalidTransaction(5).ToArray()}
+                        Transactions = {GenerateInvalidTransaction(5)}
                     };
-                    original.Block = block;
                     break;
             }
 
@@ -63,11 +63,11 @@ namespace AElf.OS.Network.Grpc
         public BlockList EvilBlockList(BlockList original, ServerCallContext context)
         {
             if (original.Equals(new BlockList())) return original;
-            if (!EvilOrNot(out var number)) return original;
-            
-            Logger.LogWarning($"### Evil blocks to {context.GetPeerInfo()}");
+            if (!EvilOrNot(5, out var number)) return original;
+
+            Logger.LogWarning($"### Evil blocks to {context.GetPeerInfo()} with case: {number % 3}");
             var rdBlockNo = new Random(DateTime.Now.GetHashCode()).Next(0, original.Blocks.Count);
-            switch (number % 3)
+            switch (number % 4)
             {
                 case 0:
                     original.Blocks[rdBlockNo].Header.Bloom = ByteString.CopyFromUtf8("invalid bloom");
@@ -79,12 +79,19 @@ namespace AElf.OS.Network.Grpc
                 case 2:
                     original.Blocks[rdBlockNo].Header.PreviousBlockHash = Hash.FromString("invalid hash");
                     break;
+                case 3:
+                    original.Blocks[rdBlockNo] = new BlockWithTransactions
+                    {
+                        Header = original.Blocks[rdBlockNo].Header,
+                        Transactions = {GenerateInvalidTransaction(3)}
+                    };
+                    break;
             }
 
             return original;
         }
 
-        private bool EvilOrNot(out int number)
+        private bool EvilOrNot(int fakePercent, out int number)
         {
             number = 0;
             if (_evilStatus)
@@ -97,10 +104,10 @@ namespace AElf.OS.Network.Grpc
 
                 return false;
             }
-            
+
             var rd = new Random(DateTime.Now.Millisecond);
             number = rd.Next(1, 101);
-            if (number >= 5) return false;
+            if (number >= fakePercent) return false;
 
             _evilStatus = true;
             _evilTime = TimestampHelper.GetUtcNow();
