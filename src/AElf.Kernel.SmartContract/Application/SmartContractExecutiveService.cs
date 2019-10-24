@@ -161,7 +161,7 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             }
 
-            //Collect();
+            Collect();
 
             _addressSmartContractRegistrationMappingCache.TryRemove(address, out _);
             

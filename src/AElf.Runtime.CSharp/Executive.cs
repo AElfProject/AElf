@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
+using System.Text;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Infrastructure;
@@ -27,16 +28,17 @@ namespace AElf.Runtime.CSharp
         private ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
         private ServerServiceDefinition _serverServiceDefinition;
         
-        private readonly ISdkStreamManager _sdkStreamManager;
+        private ISdkStreamManager _sdkStreamManager;
 
         private CSharpSmartContractProxy _smartContractProxy;
         private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
 
         private IHostSmartContractBridgeContext _hostSmartContractBridgeContext;
-        private readonly IServiceContainer<IExecutivePlugin> _executivePlugins;
-        private WeakReference<ContractCodeLoadContext> _loadContext;
+        private IServiceContainer<IExecutivePlugin> _executivePlugins;
+        //private WeakReference<ContractCodeLoadContext> _loadContext;
         public IReadOnlyList<ServiceDescriptor> Descriptors => _descriptors;
         private List<ServiceDescriptor> _descriptors;
+        private ContractCodeLoadContext _acl;
 
         private Type FindContractType(Assembly assembly)
         {
@@ -72,13 +74,12 @@ namespace AElf.Runtime.CSharp
 
         public void Load(byte[] code)
         {
-            var acl = new ContractCodeLoadContext(_sdkStreamManager);
-            _loadContext = new WeakReference<ContractCodeLoadContext>(acl);
+            _acl = new ContractCodeLoadContext(_sdkStreamManager);
 
             Assembly assembly = null;
             using (Stream stream = new MemoryStream(code))
             {
-                assembly = acl.LoadFromStream(stream);
+                assembly = _acl.LoadFromStream(stream);
             }
 
             if (assembly == null)
@@ -94,14 +95,34 @@ namespace AElf.Runtime.CSharp
             _callHandlers = _serverServiceDefinition.GetCallHandlers();
             _descriptors = _serverServiceDefinition.GetDescriptors().ToList();
         }
+
+        public bool IsDisposed { get; set; } = false;
         
         public void Unload()
         {
-            if (_loadContext.TryGetTarget(out var target))
-            {
-                target.Dispose();
-                target.Unload();
-            }
+            IsDisposed = true;
+            
+            var acl = _acl;
+            _acl = null;
+            
+            _contractAssembly = null;
+            _contractType = null;
+            _contractInstance = null;
+            _smartContractProxy = null;
+            _serverServiceDefinition = null;
+            _callHandlers = null;
+            _descriptors = null;
+            
+            _sdkStreamManager = null;
+            
+            acl.Dispose();
+            acl.Unload();
+
+//            if (_loadContext.TryGetTarget(out var target))
+//            {
+//                target.Dispose();
+//                target.Unload();
+//            }
         }
 
         public IExecutive SetHostSmartContractBridgeContext(IHostSmartContractBridgeContext smartContractBridgeContext)
