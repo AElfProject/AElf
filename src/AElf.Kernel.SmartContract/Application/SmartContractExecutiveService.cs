@@ -132,6 +132,7 @@ namespace AElf.Kernel.SmartContract.Application
                     if (reg.CodeHash == executive.ContractHash)
                     {
                         pool.Add(executive);
+                        return;
                     }
                 }
                 else
@@ -143,6 +144,8 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 Logger.LogDebug($"Lost an executive for {address} (no pool)");
             }
+            
+            executive.Unload();
 
             await Task.CompletedTask;
         }

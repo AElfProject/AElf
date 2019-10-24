@@ -71,7 +71,7 @@ namespace AElf.Runtime.CSharp
             _executivePlugins = executivePlugins;
         }
 
-        public void Load(byte[] code)
+        public void Load(byte[] code, bool loadForTest)
         {
             _acl = new ContractCodeLoadContext(_sdkStreamManager);
 
@@ -79,6 +79,24 @@ namespace AElf.Runtime.CSharp
             using (Stream stream = new MemoryStream(code))
             {
                 assembly = _acl.LoadFromStream(stream);
+            }
+
+            if (loadForTest)
+            {
+                // for test code coverage purposes we reload the assembly.
+                try
+                {
+                    var assembly2 = Assembly.Load(assembly.FullName);
+
+                    if (code.SequenceEqual(File.ReadAllBytes(assembly2.Location)))
+                    {
+                        assembly = assembly2;
+                    }
+                }
+                catch(Exception)
+                {
+                    //may cannot find assembly in local
+                }
             }
 
             if (assembly == null)

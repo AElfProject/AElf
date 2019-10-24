@@ -24,7 +24,7 @@ namespace AElf.Runtime.CSharp
         {
             var code = reg.Code.ToByteArray();
             var executive = new Executive(_executivePlugins, _sdkStreamManager) { ContractHash = reg.CodeHash };
-            executive.Load(code);
+            executive.Load(code, true);
 
             return await Task.FromResult(executive);
         }
