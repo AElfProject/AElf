@@ -13,6 +13,7 @@ namespace AElf.OS.Network.Grpc
         /// </summary>
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            context.Services.AddSingleton<IEvilBlockProvider, EvilBlockProvider>();
             context.Services.AddSingleton<IAElfNetworkServer, GrpcNetworkServer>();
             context.Services.AddSingleton<PeerService.PeerServiceBase, GrpcServerService>();
 

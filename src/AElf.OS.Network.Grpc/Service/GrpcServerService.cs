@@ -32,24 +32,22 @@ namespace AElf.OS.Network.Grpc
         private readonly IBlockchainService _blockchainService;
         private readonly IPeerDiscoveryService _peerDiscoveryService;
         private readonly IConnectionService _connectionService;
+        private readonly IEvilBlockProvider _evilBlockProvider;
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
         
-        public EvilBlockService EvilBlockService { get; set; }
-
         public GrpcServerService(ISyncStateService syncStateService, IConnectionService connectionService,
-            IBlockchainService blockchainService, IPeerDiscoveryService peerDiscoveryService)
+            IBlockchainService blockchainService, IPeerDiscoveryService peerDiscoveryService, IEvilBlockProvider evilBlockProvider)
         {
             _syncStateService = syncStateService;
             _connectionService = connectionService;
             _blockchainService = blockchainService;
             _peerDiscoveryService = peerDiscoveryService;
+            _evilBlockProvider = evilBlockProvider;
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
-            
-            EvilBlockService = new EvilBlockService();
         }
 
         public override async Task<HandshakeReply> DoHandshake(HandshakeRequest request, ServerCallContext context)
@@ -301,7 +299,7 @@ namespace AElf.OS.Network.Grpc
             }
             
             var original = new BlockReply {Block = block};
-            return EvilBlockService.EvilBlock(original, context);
+            return _evilBlockProvider.EvilBlock(original, context);
         }
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
@@ -344,7 +342,7 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            return EvilBlockService.EvilBlockList(blockList, context);
+            return _evilBlockProvider.EvilBlockList(blockList, context);
         }
 
         public override async Task<NodeList> GetNodes(NodesRequest request, ServerCallContext context)
