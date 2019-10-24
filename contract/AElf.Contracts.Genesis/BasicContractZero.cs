@@ -92,13 +92,11 @@ namespace AElf.Contracts.Genesis
             return address;
         }
 
-        private const int CodeLengthLimit = 1024*1024*2 ;
         private Address PrivateDeploySystemSmartContract(Hash name, int category, byte[] code, bool isSystemContract)
         {
             if (name != null)
                 Assert(State.NameAddressMapping[name] == null, "contract name already been registered");
 
-            Assert(code.Length > 0 && code.Length <= CodeLengthLimit , "Invalid input.");
             var serialNumber = State.ContractSerialNumber.Value;
             // Increment
             State.ContractSerialNumber.Value = serialNumber + 1;
@@ -164,8 +162,6 @@ namespace AElf.Contracts.Genesis
 
         public override Address UpdateSmartContract(ContractUpdateInput input)
         {
-            Assert(input.Code.ToByteArray().Length > 0 && input.Code.ToByteArray().Length <= CodeLengthLimit , "Invalid input.");
-
             var contractAddress = input.Address;
             var code = input.Code.ToByteArray();
             var info = State.ContractInfos[contractAddress];
