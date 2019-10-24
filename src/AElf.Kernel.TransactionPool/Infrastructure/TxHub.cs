@@ -204,14 +204,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
         }
 
-        private void CleanTransactionsInValidated(IEnumerable<Hash> transactionIds)
-        {
-            foreach (var transactionId in transactionIds)
-            {
-                _validatedTransactions.TryRemove(transactionId, out _);
-            }
-        }
-
         #endregion
 
         #region Event Handler Methods
@@ -277,7 +269,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
             CleanTransactions(block.Body.TransactionIds.ToList());
-            CleanTransactionsInValidated(block.Body.TransactionIds.ToList());
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
