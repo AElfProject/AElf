@@ -183,7 +183,7 @@ namespace AElf.Contracts.Treasury
             Donate(new DonateInput
             {
                 Symbol = input.Symbol,
-                Amount = balance,
+                Amount = balance
             });
 
             return new Empty();

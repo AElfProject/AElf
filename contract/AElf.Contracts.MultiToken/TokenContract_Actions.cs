@@ -233,7 +233,7 @@ namespace AElf.Contracts.MultiToken
                 .Concat(input.LockId.Value).ToArray());
             var virtualAddress = Context.ConvertVirtualAddressToContractAddress(fromVirtualAddress);
             // Transfer token to virtual address.
-            DoTransfer(input.Address, virtualAddress, input.Symbol, input.Amount, input.Usage, null);
+            DoTransfer(input.Address, virtualAddress, input.Symbol, input.Amount, input.Usage);
             return new Empty();
         }
 
@@ -693,14 +693,14 @@ namespace AElf.Contracts.MultiToken
             {
                 if (IsInWhiteList(new IsInWhiteListInput {Symbol = input.Symbol, Address = Context.Sender}).Value)
                 {
-                    DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo, null);
+                    DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
                     return new Empty();
                 }
 
                 Assert(false, $"Insufficient allowance. Token: {input.Symbol}; {allowance}/{input.Amount}");
             }
 
-            DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo, null);
+            DoTransfer(Context.Origin, Context.Sender, input.Symbol, input.Amount, input.Memo);
             State.Allowances[Context.Origin][Context.Sender][input.Symbol] = allowance.Sub(input.Amount);
             return new Empty();
         }

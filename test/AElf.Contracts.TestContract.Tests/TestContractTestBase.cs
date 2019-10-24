@@ -239,15 +239,7 @@ namespace AElf.Contract.TestContract
                     Memo = "Set for token converter."
                 });
                 CheckResult(issueResult.TransactionResult);
-//
-//                issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
-//                {
-//                    Symbol = "ELF",
-//                    Amount = Supply / 2,
-//                    To = OtherTester,
-//                    Memo = "Set for token converter."
-//                });
-//                CheckResult(issueResult.TransactionResult);
+
                 foreach (var resourceRelatedNativeToken in NativTokenToSourceSymbols)
                 {
                     createResult = await TokenContractStub.Create.SendAsync(new CreateInput()

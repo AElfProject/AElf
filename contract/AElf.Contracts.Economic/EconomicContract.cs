@@ -25,7 +25,7 @@ namespace AElf.Contracts.Economic
             CreateNativeToken(input);
             CreateTokenConverterToken();
             CreateResourceTokens();
-            CreateElectionToken(input.NativeTokenSymbol);
+            CreateElectionToken();
 
             Context.LogDebug(() => "Finished creating tokens.");
 
@@ -132,7 +132,7 @@ namespace AElf.Contracts.Economic
             }
         }
 
-        private void CreateElectionToken(string nativeSymbol)
+        private void CreateElectionToken()
         {
             State.TokenContract.Create.Send(new CreateInput
             {

@@ -33,7 +33,7 @@ namespace AElf.Contracts.MultiToken
             Assert(amount > 0, "Invalid amount.");
         }
 
-        private void DoTransfer(Address from, Address to, string symbol, long amount, string memo, string targetSymbol)
+        private void DoTransfer(Address from, Address to, string symbol, long amount, string memo, string targetSymbol = null)
         {
             if (string.IsNullOrEmpty(targetSymbol))
                 targetSymbol = symbol;
