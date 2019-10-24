@@ -35,6 +35,8 @@ namespace AElf.OS.Network.Grpc
 
         public ILocalEventBus EventBus { get; set; }
         public ILogger<GrpcServerService> Logger { get; set; }
+        
+        public EvilBlockService EvilBlockService { get; set; }
 
         public GrpcServerService(ISyncStateService syncStateService, IConnectionService connectionService,
             IBlockchainService blockchainService, IPeerDiscoveryService peerDiscoveryService)
@@ -46,6 +48,8 @@ namespace AElf.OS.Network.Grpc
 
             EventBus = NullLocalEventBus.Instance;
             Logger = NullLogger<GrpcServerService>.Instance;
+            
+            EvilBlockService = new EvilBlockService();
         }
 
         public override async Task<HandshakeReply> DoHandshake(HandshakeRequest request, ServerCallContext context)
@@ -295,8 +299,9 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogError(e, $"Request block error: {context.GetPeerInfo()}");
                 throw;
             }
-
-            return new BlockReply {Block = block};
+            
+            var original = new BlockReply {Block = block};
+            return EvilBlockService.EvilBlock(original, context);
         }
 
         public override async Task<BlockList> RequestBlocks(BlocksRequest request, ServerCallContext context)
@@ -339,7 +344,7 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            return blockList;
+            return EvilBlockService.EvilBlockList(blockList, context);
         }
 
         public override async Task<NodeList> GetNodes(NodesRequest request, ServerCallContext context)
