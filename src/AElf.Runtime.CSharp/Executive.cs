@@ -27,8 +27,6 @@ namespace AElf.Runtime.CSharp
         private object _contractInstance;
         private ReadOnlyDictionary<string, IServerCallHandler> _callHandlers;
         private ServerServiceDefinition _serverServiceDefinition;
-        
-        private ISdkStreamManager _sdkStreamManager;
 
         private CSharpSmartContractProxy _smartContractProxy;
         private ITransactionContext CurrentTransactionContext => _hostSmartContractBridgeContext.TransactionContext;
@@ -37,7 +35,8 @@ namespace AElf.Runtime.CSharp
         private IServiceContainer<IExecutivePlugin> _executivePlugins;
         public IReadOnlyList<ServiceDescriptor> Descriptors => _descriptors;
         private List<ServiceDescriptor> _descriptors;
-        private ContractCodeLoadContext _acl;
+
+        private AssemblyLoadContext _acl;
 
         private Type FindContractType(Assembly assembly)
         {
@@ -64,39 +63,19 @@ namespace AElf.Runtime.CSharp
             return methodInfo.Invoke(null, new[] {_contractInstance}) as ServerServiceDefinition;
         }
 
-        public Executive(IServiceContainer<IExecutivePlugin> executivePlugins, 
-            ISdkStreamManager sdkStreamManager)
+        public Executive(IServiceContainer<IExecutivePlugin> executivePlugins)
         {
-            _sdkStreamManager = sdkStreamManager;
             _executivePlugins = executivePlugins;
         }
 
-        public void Load(byte[] code, bool loadForTest)
+        public void Load(byte[] code, AssemblyLoadContext loadContext)
         {
-            _acl = new ContractCodeLoadContext(_sdkStreamManager);
+            _acl = loadContext;
 
             Assembly assembly = null;
             using (Stream stream = new MemoryStream(code))
             {
                 assembly = _acl.LoadFromStream(stream);
-            }
-
-            if (loadForTest)
-            {
-                // for test code coverage purposes we reload the assembly.
-                try
-                {
-                    var assembly2 = Assembly.Load(assembly.FullName);
-
-                    if (code.SequenceEqual(File.ReadAllBytes(assembly2.Location)))
-                    {
-                        assembly = assembly2;
-                    }
-                }
-                catch(Exception)
-                {
-                    //may cannot find assembly in local
-                }
             }
 
             if (assembly == null)
@@ -125,9 +104,7 @@ namespace AElf.Runtime.CSharp
             _serverServiceDefinition = null;
             _callHandlers = null;
             _descriptors = null;
-            
-            _sdkStreamManager = null;
-            
+
             acl.Unload();
         }
 

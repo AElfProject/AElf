@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Kernel.Infrastructure;
@@ -105,21 +104,13 @@ namespace AElf.Kernel.SmartContract.Application
         {
             // get runner
             var runner = _smartContractRunnerContainer.GetRunner(reg.Category);
-            
-            Logger.LogDebug($"Getting executive for: {address.Value.ToHex()}, codeHash: {reg.CodeHash.ToHex()}");
-            
-            // run smart contract executive info and return executive
-            var executive = await runner.RunAsync(reg);
-            
-            int executiveCount = AppDomain.CurrentDomain
-                .GetAssemblies()
-                .Count(a => a.FullName.Contains("HelloWorldContract"));
-            
-            Logger.LogDebug($"Currently {executiveCount} executives are loaded for {address.Value.ToHex()}");
 
-            var context =_hostSmartContractBridgeContextService.Create();
+            // run smartcontract executive info and return executive
+            var executive = await runner.RunAsync(reg);
+
+            var context =
+                _hostSmartContractBridgeContextService.Create();
             executive.SetHostSmartContractBridgeContext(context);
-            
             return executive;
         }
 
@@ -164,8 +155,6 @@ namespace AElf.Kernel.SmartContract.Application
                 }
             }
 
-            Collect();
-
             _addressSmartContractRegistrationMappingCache.TryRemove(address, out _);
             
             if (!_contractInfoCache.TryGetValue(address, out var height) || blockHeight > height)
@@ -174,15 +163,6 @@ namespace AElf.Kernel.SmartContract.Application
                 var chainContractInfo = await _blockchainStateManager.GetChainContractInfoAsync();
                 chainContractInfo.ContractInfos[address.ToStorageKey()] = blockHeight;
                 await _blockchainStateManager.SetChainContractInfoAsync(chainContractInfo);
-            }
-        }
-        
-        private void Collect()
-        {
-            for (int i = 0; i < 10; i++)
-            {
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
             }
         }
 

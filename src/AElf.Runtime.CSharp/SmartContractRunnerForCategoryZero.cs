@@ -51,8 +51,8 @@ namespace AElf.Runtime.CSharp
         public virtual async Task<IExecutive> RunAsync(SmartContractRegistration reg)
         {
             var code = reg.Code.ToByteArray();
-            var executive = new Executive(_executivePlugins, _sdkStreamManager) { ContractHash = reg.CodeHash };
-            executive.Load(code, false);
+            var executive = new Executive(_executivePlugins) { ContractHash = reg.CodeHash };
+            executive.Load(code, GetLoadContext());
 
             return await Task.FromResult(executive);
         }
