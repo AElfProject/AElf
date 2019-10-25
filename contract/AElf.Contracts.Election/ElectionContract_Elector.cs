@@ -41,13 +41,13 @@ namespace AElf.Contracts.Election
 
             LockNativeSymbolOfSender(input.Amount);
 
-            IssueVoteSymbol(input.Amount);
+            CallTokenContractIssue(input.Amount);
 
-            VoteFor(input.Amount, input.CandidatePubkey);
+            CallVoteContractVote(input.Amount, input.CandidatePubkey);
 
             var votesWeight = GetVotesWeight(input.Amount, lockSeconds);
 
-            AddBeneficiary(votesWeight, lockSeconds);
+            CallProfitContractAddBeneficiary(votesWeight, lockSeconds);
 
             var rankingList = State.DataCentersRankingList.Value;
             if (State.DataCentersRankingList.Value.DataCenters.ContainsKey(input.CandidatePubkey))
@@ -367,7 +367,7 @@ namespace AElf.Contracts.Election
             });
         }
 
-        private void IssueVoteSymbol(long amount)
+        private void CallTokenContractIssue(long amount)
         {
             State.TokenContract.Issue.Send(new IssueInput
             {
@@ -378,7 +378,7 @@ namespace AElf.Contracts.Election
             });
         }
 
-        private void VoteFor(long amount, string candidatePubkey)
+        private void CallVoteContractVote(long amount, string candidatePubkey)
         {
             State.VoteContract.Vote.Send(new VoteInput
             {
@@ -390,7 +390,7 @@ namespace AElf.Contracts.Election
             });
         }
 
-        private void AddBeneficiary(long votesWeight, long lockSeconds)
+        private void CallProfitContractAddBeneficiary(long votesWeight, long lockSeconds)
         {
             State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
             {

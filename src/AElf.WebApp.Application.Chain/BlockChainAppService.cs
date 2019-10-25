@@ -87,7 +87,7 @@ namespace AElf.WebApp.Application.Chain
             }
 
             var block = await GetBlockAsync(realBlockHash);
-            var blockDto = CreateNewBlockDto(block, includeTransactions);
+            var blockDto = CreateBlockDto(block, includeTransactions);
 
             return blockDto;
         }
@@ -103,7 +103,7 @@ namespace AElf.WebApp.Application.Chain
             if (blockHeight == 0)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             var blockInfo = await GetBlockAtHeightAsync(blockHeight);
-            var blockDto = CreateNewBlockDto(blockInfo, includeTransactions);
+            var blockDto = CreateBlockDto(blockInfo, includeTransactions);
             
             return blockDto;
         }
@@ -182,7 +182,7 @@ namespace AElf.WebApp.Application.Chain
             return await _blockchainService.GetBlockByHeightInBestChainBranchAsync(height);
         }
 
-        private BlockDto CreateNewBlockDto(Block block, bool includeTransactions)
+        private BlockDto CreateBlockDto(Block block, bool includeTransactions)
         {
             if (block == null)
             {

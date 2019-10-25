@@ -135,7 +135,10 @@ namespace AElf.Database.RedisProtocol
         
         public static RedisEndpoint ToRedisEndpoint(this string connectionString, int? defaultPort = null)
         {
-            HandleConnectionString(ref connectionString);
+            if (connectionString == null)
+                throw new ArgumentNullException("connectionString");
+            if (connectionString.StartsWith("redis://"))
+                connectionString = connectionString.Substring("redis://".Length);
 
             var domainParts = connectionString.SplitOnLast('@');
             var qsParts = domainParts.Last().SplitOnFirst('?');
@@ -173,14 +176,6 @@ namespace AElf.Database.RedisProtocol
             }
 
             return endpoint;
-        }
-
-        private static void HandleConnectionString(ref string connectionString)
-        {
-            if (connectionString == null)
-                throw new ArgumentNullException("connectionString");
-            if (connectionString.StartsWith("redis://"))
-                connectionString = connectionString.Substring("redis://".Length);
         }
         
         private static void HandleEndpointByName(RedisEndpoint endpoint, bool useDefaultPort, string name, string value)
@@ -226,30 +221,6 @@ namespace AElf.Database.RedisProtocol
 
     internal static class RedisExtensionsInternal
     {
-//        public static bool IsConnected(this Socket socket)
-//        {
-//            try
-//            {
-//                return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
-//            }
-//            catch (SocketException)
-//            {
-//                return false;
-//            }
-//        }
-
-//
-//        public static string[] GetIds(this IHasStringId[] itemsWithId)
-//        {
-//            var ids = new string[itemsWithId.Length];
-//            for (var i = 0; i < itemsWithId.Length; i++)
-//            {
-//                ids[i] = itemsWithId[i].Id;
-//            }
-//
-//            return ids;
-//        }
-
         public static List<string> ToStringList(this byte[][] multiDataList)
         {
             if (multiDataList == null)
@@ -263,36 +234,6 @@ namespace AElf.Database.RedisProtocol
 
             return results;
         }
-//
-//        public static string[] ToStringArray(this byte[][] multiDataList)
-//        {
-//            if (multiDataList == null)
-//                return TypeConstants.EmptyStringArray;
-//
-//            var to = new string[multiDataList.Length];
-//            for (int i = 0; i < multiDataList.Length; i++)
-//            {
-//                to[i] = multiDataList[i].FromUtf8Bytes();
-//            }
-//
-//            return to;
-//        }
-//
-//        public static Dictionary<string, string> ToStringDictionary(this byte[][] multiDataList)
-//        {
-//            if (multiDataList == null)
-//                return TypeConstants.EmptyStringDictionary;
-//
-//            var map = new Dictionary<string, string>();
-//
-//            for (var i = 0; i < multiDataList.Length; i += 2)
-//            {
-//                var key = multiDataList[i].FromUtf8Bytes();
-//                map[key] = multiDataList[i + 1].FromUtf8Bytes();
-//            }
-//
-//            return map;
-//        }
 
         private static readonly NumberFormatInfo DoubleFormatProvider = new NumberFormatInfo
         {
@@ -313,14 +254,6 @@ namespace AElf.Database.RedisProtocol
 
             return bytes;
         }
-//
-//        public static byte[][] ToMultiByteArray(this string[] args)
-//        {
-//            var byteArgs = new byte[args.Length][];
-//            for (var i = 0; i < args.Length; ++i)
-//                byteArgs[i] = args[i].ToUtf8Bytes();
-//            return byteArgs;
-//        }
 
         public static byte[][] PrependByteArray(this byte[][] args, byte[] valueToPrepend)
         {

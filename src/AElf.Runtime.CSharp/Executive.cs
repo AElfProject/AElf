@@ -124,12 +124,11 @@ namespace AElf.Runtime.CSharp
                     );
                 }
 
-                ExecuteTx(handler);
+                ExecuteTransaction(handler);
 
                 if (!handler.IsView())
                 {
-                    var changes = GetChanges();
-                    CurrentTransactionContext.Trace.StateSet = changes;
+                    CurrentTransactionContext.Trace.StateSet = GetChanges();
                 }
                 else
                 {
@@ -160,16 +159,6 @@ namespace AElf.Runtime.CSharp
 
             return handler.InputBytesToString(paramsBytes);
         }
-
-//        public object GetReturnValue(string methodName, byte[] bytes)
-//        {
-//            if (!_callHandlers.TryGetValue(methodName, out var handler))
-//            {
-//                return null;
-//            }
-//
-//            return handler.ReturnBytesToObject(bytes);
-//        }
 
         private IEnumerable<FileDescriptor> GetSelfAndDependency(FileDescriptor fileDescriptor,
             HashSet<string> known = null)
@@ -203,7 +192,7 @@ namespace AElf.Runtime.CSharp
 
         public Hash ContractHash { get; set; }
 
-        private void ExecuteTx(IServerCallHandler handler)
+        private void ExecuteTransaction(IServerCallHandler handler)
         {
             try
             {
@@ -212,7 +201,6 @@ namespace AElf.Runtime.CSharp
                 if (retVal != null)
                 {
                     CurrentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);
-                    // TODO: Clean up ReadableReturnValue
                     CurrentTransactionContext.Trace.ReadableReturnValue = handler.ReturnBytesToString(retVal);
                 }
 
