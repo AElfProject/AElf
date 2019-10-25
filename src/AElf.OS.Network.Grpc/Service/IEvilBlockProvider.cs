@@ -34,7 +34,7 @@ namespace AElf.OS.Network.Grpc
         public BlockReply EvilBlock(BlockReply original, ServerCallContext context)
         {
             if (original.Block == null) return original;
-            if (!EvilOrNot(3, out var number)) return original;
+            if (!EvilOrNot(4, out var number)) return original;
 
             Logger.LogWarning($"### Evil block to {context.GetPeerInfo()} with case: {number % 4}");
             switch (number % 4)
