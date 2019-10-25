@@ -9,7 +9,7 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 
-namespace AElf.Contracts.TestKit
+namespace AElf.OS
 {
     public class MockTxHub : ITxHub
     {
@@ -71,9 +71,18 @@ namespace AElf.Contracts.TestKit
             await Task.CompletedTask;
         }
 
-        public Task<QueuedTransaction> GetQueuedTransactionAsync(Hash transactionId)
+        public async Task<QueuedTransaction> GetQueuedTransactionAsync(Hash transactionId)
         {
-            throw new System.NotImplementedException();
+            if (!_allTransactions.TryGetValue(transactionId, out var transaction))
+            {
+                return null;
+            }
+
+            return new QueuedTransaction
+            {
+                TransactionId = transactionId,
+                Transaction = transaction,
+            };
         }
 
         public Task<int> GetAllTransactionCountAsync()
@@ -83,7 +92,7 @@ namespace AElf.Contracts.TestKit
 
         public Task<int> GetValidatedTransactionCountAsync()
         {
-            throw new System.NotImplementedException();
+            return Task.FromResult(_allTransactions.Count);
         }
 
         private void CleanTransactions(IEnumerable<Hash> transactionIds)

@@ -9,7 +9,7 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
 
-namespace AElf.Contracts.TestKit
+namespace AElf.Contracts.TestBase
 {
     public class MockTxHub : ITxHub
     {
