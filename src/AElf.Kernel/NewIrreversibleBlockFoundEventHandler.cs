@@ -27,7 +27,7 @@ namespace AElf.Kernel
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
-        public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
+        public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
             _taskQueueManager.Enqueue(async () =>
             {
@@ -39,7 +39,7 @@ namespace AElf.Kernel
             {
                 var chain = await _blockchainService.GetChainAsync();
                 var discardedBranch = await _blockchainService.GetDiscardedBranchAsync(chain);
-                
+
                 if (discardedBranch.BranchKeys.Count > 0 || discardedBranch.NotLinkedKeys.Count > 0)
                 {
                     _taskQueueManager.Enqueue(
@@ -47,6 +47,8 @@ namespace AElf.Kernel
                         KernelConstants.UpdateChainQueueName);
                 }
             }, KernelConstants.CleanChainBranchQueueName);
+
+            return Task.CompletedTask;
         }
     }
 }
