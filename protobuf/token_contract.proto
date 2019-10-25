@@ -36,7 +36,7 @@ service TokenContract {
     rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {
     }
     rpc RegisterNativeAndResourceTokenInfo(RegisterNativeAndResourceTokenInfoInput) returns (google.protobuf.Empty) {
-    }  
+    }
     rpc RegisterNativeTokenInfo(RegisterNativeTokenInfoInput) returns (google.protobuf.Empty) {
     }
     rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
