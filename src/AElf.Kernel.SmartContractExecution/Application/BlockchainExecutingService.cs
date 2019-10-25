@@ -58,9 +58,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 Logger.LogWarning($"Block execution failed. BlockStateSet: {blockState}");
                 Logger.LogWarning(
                     $"Block execution failed. Block header: {executedBlock.Header}, Block body: {executedBlock.Body}");
+
+                return false;
             }
 
-            return blockHashWithoutCache.Equals(blockHash);
+            return true;
         }
 
         /// <summary>
@@ -134,10 +136,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     successLinks.Add(blockLink);
                     successBlocks.Add(linkedBlock);
                     Logger.LogInformation($"Executed block {blockLink.BlockHash} at height {blockLink.Height}.");
-                    await LocalEventBus.PublishAsync(new BlockAcceptedEvent()
-                    {
-                        BlockHeader = linkedBlock.Header
-                    });
+                    
+                    await LocalEventBus.PublishAsync(new BlockAcceptedEvent {BlockHeader = linkedBlock.Header});
                 }
             }
             catch (BlockValidationException ex)
@@ -166,12 +166,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
 
             await SetBestChainAsync(successLinks, chain);
-            foreach (var blockLink in successLinks)
-            {
-                await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
-                    ChainBlockLinkExecutionStatus.ExecutionSuccess);
-            }
-
+            await ProcessChainBlockLinkAsync(successLinks);
             await ProcessTransactionResultAsync(successBlocks);
             await PublishBestChainFoundEventAsync(chain, successBlocks);
 
@@ -179,6 +174,15 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 $"Attach blocks to best chain, status: {status}, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");
 
             return blockLinks;
+        }
+
+        private async Task ProcessChainBlockLinkAsync(List<ChainBlockLink> successLinks)
+        {
+            foreach (var blockLink in successLinks)
+            {
+                await _chainManager.SetChainBlockLinkExecutionStatus(blockLink,
+                    ChainBlockLinkExecutionStatus.ExecutionSuccess);
+            }
         }
 
         private async Task ProcessTransactionResultAsync(List<Block> successBlocks)
