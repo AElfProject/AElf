@@ -42,10 +42,10 @@ namespace AElf.WebApp.Application.Chain.Application
             _miningSequenceService = miningSequenceService;
         }
 
-        public Task Handle(Block block, TransactionResult result, LogEvent log)
+        public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new MiningInformationUpdated();
-            eventData.MergeFrom(log);
+            eventData.MergeFrom(logEvent);
 
             _miningSequenceService.AddMiningInformation(new MiningSequenceDto
             {

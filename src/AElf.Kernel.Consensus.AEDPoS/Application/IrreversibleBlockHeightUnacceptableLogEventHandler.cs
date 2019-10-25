@@ -45,10 +45,10 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             Logger = NullLogger<IrreversibleBlockHeightUnacceptableLogEventHandler>.Instance;
         }
 
-        public async Task Handle(Block block, TransactionResult result, LogEvent log)
+        public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new IrreversibleBlockHeightUnacceptable();
-            eventData.MergeFrom(log);
+            eventData.MergeFrom(logEvent);
 
             if (eventData.DistanceToIrreversibleBlockHeight > 0)
             {

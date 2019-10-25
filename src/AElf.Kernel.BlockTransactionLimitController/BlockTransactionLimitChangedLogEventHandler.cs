@@ -44,10 +44,10 @@ namespace AElf.Kernel.BlockTransactionLimitController
             Logger = NullLogger<BlockTransactionLimitChangedLogEventHandler>.Instance;
         }
 
-        public async Task Handle(Block block, TransactionResult result, LogEvent log)
+        public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new BlockTransactionLimitChanged();
-            eventData.MergeFrom(log);
+            eventData.MergeFrom(logEvent);
 
             _blockTransactionLimitProvider.SetLimit(eventData.New);
             Logger.LogInformation($"BlockTransactionLimit has been changed to {eventData.New}");

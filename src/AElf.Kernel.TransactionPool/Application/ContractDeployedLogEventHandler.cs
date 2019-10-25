@@ -42,10 +42,10 @@ namespace AElf.Kernel.TransactionPool.Application
             Logger = NullLogger<ContractDeployedLogEventHandler>.Instance;
         }
 
-        public Task Handle(Block block, TransactionResult result, LogEvent log)
+        public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new ContractDeployed();
-            eventData.MergeFrom(log);
+            eventData.MergeFrom(logEvent);
 
             _deployedContractAddressProvider.AddDeployedContractAddress(eventData.Address);
             Logger.LogTrace($"Added deployed contract address of {eventData}");

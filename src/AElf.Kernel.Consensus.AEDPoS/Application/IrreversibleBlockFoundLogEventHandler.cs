@@ -48,10 +48,10 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             Logger = NullLogger<IrreversibleBlockFoundLogEventHandler>.Instance;
         }
 
-        public Task Handle(Block block, TransactionResult result, LogEvent log)
+        public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new IrreversibleBlockFound();
-            eventData.MergeFrom(log);
+            eventData.MergeFrom(logEvent);
 
             var _ = ProcessLogEventAsync(block, eventData);
 
