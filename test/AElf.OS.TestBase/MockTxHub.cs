@@ -42,6 +42,8 @@ namespace AElf.OS
         {
             foreach (var transaction in eventData.Transactions)
             {
+                if (_allTransactions.ContainsKey(transaction.GetHash()))
+                    continue;
                 _allTransactions.Add(transaction.GetHash(), transaction);
                 await _transactionManager.AddTransactionAsync(transaction);
             }
