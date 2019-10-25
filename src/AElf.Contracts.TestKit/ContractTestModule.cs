@@ -126,8 +126,6 @@ namespace AElf.Contracts.TestKit
 
                     return service.Object;
                 });
-
-            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
         }
 
         public int ChainId { get; } = 500;

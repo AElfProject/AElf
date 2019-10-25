@@ -13,7 +13,7 @@ namespace AElf.Kernel.BlockTransactionLimitController
 {
     public class BlockTransactionLimitChangedLogEventHandler : ILogEventHandler, ISingletonDependency
     {
-        private readonly IBlockTransactionLimitProvider _provider;
+        private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private LogEvent _interestedEvent;
 
@@ -21,9 +21,12 @@ namespace AElf.Kernel.BlockTransactionLimitController
         {
             get
             {
-                if (_interestedEvent != null) return _interestedEvent;
+                if (_interestedEvent != null)
+                    return _interestedEvent;
+
                 var address =
-                    _smartContractAddressService.GetAddressByContractName(ConfigurationSmartContractAddressNameProvider.Name);
+                    _smartContractAddressService.GetAddressByContractName(ConfigurationSmartContractAddressNameProvider
+                        .Name);
 
                 _interestedEvent = new BlockTransactionLimitChanged().ToLogEvent(address);
 
@@ -33,10 +36,10 @@ namespace AElf.Kernel.BlockTransactionLimitController
 
         public ILogger<BlockTransactionLimitChangedLogEventHandler> Logger { get; set; }
 
-        public BlockTransactionLimitChangedLogEventHandler(IBlockTransactionLimitProvider provider,
+        public BlockTransactionLimitChangedLogEventHandler(IBlockTransactionLimitProvider blockTransactionLimitProvider,
             ISmartContractAddressService smartContractAddressService)
         {
-            _provider = provider;
+            _blockTransactionLimitProvider = blockTransactionLimitProvider;
             _smartContractAddressService = smartContractAddressService;
             Logger = NullLogger<BlockTransactionLimitChangedLogEventHandler>.Instance;
         }
@@ -44,13 +47,9 @@ namespace AElf.Kernel.BlockTransactionLimitController
         public async Task Handle(Block block, TransactionResult result, LogEvent log)
         {
             var eventData = new BlockTransactionLimitChanged();
-            foreach (var bs in log.Indexed)
-            {
-                eventData.MergeFrom(bs);
-            }
+            eventData.MergeFrom(log);
 
-            eventData.MergeFrom(log.NonIndexed);
-            _provider.SetLimit(eventData.New);
+            _blockTransactionLimitProvider.SetLimit(eventData.New);
             Logger.LogInformation($"BlockTransactionLimit has been changed to {eventData.New}");
             await Task.CompletedTask;
         }
