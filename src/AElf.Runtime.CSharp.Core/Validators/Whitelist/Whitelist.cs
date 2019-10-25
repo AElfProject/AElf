@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Threading.Tasks;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
@@ -49,30 +50,21 @@ namespace AElf.Runtime.CSharp.Validators.Whitelist
                 if (!_assemblies.Keys.Contains(asmRef.Name))
                     results.Add(new WhitelistValidationResult("Assembly " + asmRef.Name + " is not allowed."));
             }
-            
+
             // Validate types in the module
-            results.AddRange(module.Types.SelectMany(Validate));
+            results.AddRange(module.Types.AsParallel().SelectMany(Validate));
             
             // Validate nested types
-            results.AddRange(module.Types.SelectMany(t => t.NestedTypes).SelectMany(Validate));
+            results.AddRange(module.Types.SelectMany(t => t.NestedTypes).AsParallel().SelectMany(Validate));
 
             return results;
         }
 
         private IEnumerable<ValidationResult> Validate(TypeDefinition type)
         {
-            var results = new List<ValidationResult>();
-
-            foreach (var method in type.Methods)
-            {
-                if (!method.HasBody)
-                    continue;
-
-                foreach (var instruction in method.Body.Instructions)
-                {
-                    results.AddRange(Validate(method, instruction));
-                }
-            }
+            var results = type.Methods.AsParallel().Where(m => m.HasBody)
+                .SelectMany(method => method.Body.Instructions
+                    .SelectMany(instruction => Validate(method, instruction)));
 
             return results;
         }

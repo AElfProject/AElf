@@ -1,7 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using AElf.Runtime.CSharp.Policies;
 using AElf.Runtime.CSharp.Validators;
 using AElf.Runtime.CSharp.Validators.Whitelist;
@@ -32,7 +32,7 @@ namespace AElf.Runtime.CSharp
             
             // Check whether the assembly is verifiable
             findings.AddRange(_ilVerifier.Verify(code));
-
+            
             // Do not validate further if contract assembly is not verifiable
             if (findings.Count == 0)
             {
@@ -43,18 +43,20 @@ namespace AElf.Runtime.CSharp
                 findings.AddRange(policy.ModuleValidators.SelectMany(v => v.Validate(modDef)));
 
                 // Run method validators
-                foreach (var typ in modDef.Types)
-                {
-                    #if DEBUG
-                    // Skip validation if it is a coverlet injected type, only in debug mode
-                    if (typ.Namespace.StartsWith("Coverlet."))
-                        continue;
-                    #endif
-                    foreach (var method in typ.Methods)
+                Parallel.ForEach(modDef.Types,
+                    type =>
                     {
-                        findings.AddRange(policy.MethodValidators.SelectMany(v => v.Validate(method)));
+#if DEBUG
+                        // Skip validation if it is a coverlet injected type, only in debug mode
+                        if (type.Namespace.StartsWith("Coverlet."))
+                            return;
+#endif
+                        foreach (var method in type.Methods)
+                        {
+                            findings.AddRange(policy.MethodValidators.SelectMany(v => v.Validate(method)));
+                        }
                     }
-                }
+                );
             }
 
             if (findings.Count > 0)
