@@ -131,7 +131,8 @@ namespace AElf.Contracts.MultiToken
         private void AssertValidCreateInput(CreateInput input)
         {
             var isValid = input.TokenName.Length <= TokenContractConstants.TokenNameLength
-                   && input.Decimals <= TokenContractConstants.MaxDecimals;
+                          && input.Decimals >= 0
+                          && input.Decimals <= TokenContractConstants.MaxDecimals;
             Assert(isValid, "Invalid input.");
         }
     }
