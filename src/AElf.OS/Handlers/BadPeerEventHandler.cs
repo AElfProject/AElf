@@ -27,7 +27,7 @@ namespace AElf.OS.Handlers
         {
             // Because of the peer reconnection feature, temporarily disable remove bad peer
             return;
-            await _networkService.RemovePeerByPubkeyAsync(peerPubkey);
+            //await _networkService.RemovePeerByPubkeyAsync(peerPubkey);
         }
 
         public Task HandleEventAsync(BlockValidationFailedEventData eventData)

@@ -50,7 +50,10 @@ namespace AElf.Contracts.Election
             var balanceBeforeAnnouncing = await GetNativeTokenBalance(candidatesKeyPairs[0].PublicKey);
             balanceBeforeAnnouncing.ShouldBe(ElectionContractConstants.UserInitializeTokenAmount);
 
-            candidatesKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+            foreach (var keyPair in candidatesKeyPairs)
+            {
+                await AnnounceElectionAsync(keyPair);
+            }
 
             var balanceAfterAnnouncing = await GetNativeTokenBalance(candidatesKeyPairs[0].PublicKey);
 
@@ -89,6 +92,7 @@ namespace AElf.Contracts.Election
             balanceBeforeAnnouncing.ShouldBe(balanceAfterAnnouncing + ElectionContractConstants.LockTokenForElection);
         }
 
+        #pragma warning disable xUnit1013
         public async Task ElectionContract_QuiteElection_Test()
         {
             const int quitCount = 2;
@@ -113,7 +117,10 @@ namespace AElf.Contracts.Election
                 balancesBeforeQuiting.Add(quitCandidate, await GetNativeTokenBalance(quitCandidate.PublicKey));
             }
 
-            quitCandidates.ForEach(async kp => await QuitElectionAsync(kp));
+            foreach (var keyPair in quitCandidates)
+            {
+                await QuitElectionAsync(keyPair);
+            }
 
             // Check balances after quiting election.
             foreach (var quitCandidate in quitCandidates)

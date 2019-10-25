@@ -10,7 +10,8 @@ namespace AElf.Kernel.SmartContractExecution
 {
     [DependsOn(
         typeof(SmartContractExecutionAElfModule),
-        typeof(KernelCoreTestAElfModule)
+        typeof(KernelCoreTestAElfModule),
+        typeof(TransactionExecutingDependencyTestModule)
     )]
     public class SmartContractExecutionTestAElfModule : AElfModule
     {
