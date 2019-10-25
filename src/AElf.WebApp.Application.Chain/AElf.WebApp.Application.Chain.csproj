@@ -14,9 +14,9 @@
       <ProjectReference Include="..\AElf.WebApp.Application.Core\AElf.WebApp.Application.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <CommonMessage Include="..\..\protobuf\aedpos_contract.proto">
+        <ContractMessage Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf/Proto/aedpos_contract.proto</Link>
-        </CommonMessage>
+        </ContractMessage>
     </ItemGroup>
 
 </Project>
