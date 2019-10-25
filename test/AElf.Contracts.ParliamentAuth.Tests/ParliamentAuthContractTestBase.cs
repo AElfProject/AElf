@@ -162,7 +162,7 @@ namespace AElf.Contracts.ParliamentAuth
         protected long TotalSupply;
         protected long BalanceOfStarter;
         protected bool IsPrivilegePreserved;
-        protected ContractTester<ParliamentAuthContractPrivilegeTestAElfModule> Tester;
+        protected new ContractTester<ParliamentAuthContractPrivilegeTestAElfModule> Tester;
 
 
         public ParliamentAuthContractPrivilegeTestBase()
