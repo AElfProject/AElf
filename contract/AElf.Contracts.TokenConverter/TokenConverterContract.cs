@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using AElf.Contracts.MultiToken;
@@ -117,6 +118,92 @@ namespace AElf.Contracts.TokenConverter
             return new Empty();
         }
 
+        public override Empty UpdateConnector(Connector input)
+        {
+            Assert(!string.IsNullOrEmpty(input.Symbol), "input symbol can not be empty'");
+            var targetConnector = State.Connectors[input.Symbol];
+            Assert(targetConnector != null, "Can't find target connector.");
+            if (!string.IsNullOrEmpty(input.Weight))
+            {
+                AssertedDecimal(input.Weight);
+                targetConnector.Weight = input.Weight;
+            }
+            if(input.VirtualBalance > 0)
+                targetConnector.VirtualBalance = input.VirtualBalance;
+            targetConnector.IsVirtualBalanceEnabled = input.IsVirtualBalanceEnabled;
+            targetConnector.IsPurchaseEnabled = input.IsPurchaseEnabled;
+            if(!string.IsNullOrEmpty(input.RelatedSymbol))
+                targetConnector.RelatedSymbol = input.RelatedSymbol;
+            return new Empty();
+        }
+
+        public override Empty AddPairConnectors(PairConnector pairConnector)
+        {
+            var resourceConnector = new Connector
+            {
+                Symbol = pairConnector.ResourceConnectorSymbol,
+                VirtualBalance = pairConnector.ResourceVirtualBalance,
+                IsVirtualBalanceEnabled = pairConnector.IsResourceVirtualBalanceEnabled,
+                IsPurchaseEnabled = pairConnector.IsPurchaseEnabled,
+                RelatedSymbol = pairConnector.NativeConnectorSymbol
+            };
+            AssertValidConnectorAndNormalizeWeight(resourceConnector);
+            var nativeTokenToResourceConnector = new Connector
+            {
+                Symbol = pairConnector.NativeConnectorSymbol,
+                VirtualBalance = pairConnector.NativeVirtualBalance,
+                IsVirtualBalanceEnabled = pairConnector.IsNativeVirtualBalanceEnabled,
+                IsPurchaseEnabled = pairConnector.IsPurchaseEnabled,
+                RelatedSymbol = pairConnector.ResourceConnectorSymbol
+            };
+            AssertValidConnectorAndNormalizeWeight(nativeTokenToResourceConnector);
+            int count = State.ConnectorCount.Value;
+            State.ConnectorSymbols[count+1] = resourceConnector.Symbol;
+            State.Connectors[resourceConnector.Symbol] = resourceConnector;
+            State.ConnectorSymbols[count+2] = nativeTokenToResourceConnector.Symbol;
+            State.Connectors[resourceConnector.Symbol] = nativeTokenToResourceConnector;
+            State.ConnectorCount.Value = count + 2;
+            State.TokenContract.Create.Send(new CreateInput
+            {
+                Symbol = resourceConnector.Symbol,
+                TokenName = $"{resourceConnector.Symbol} Token",
+                TotalSupply = pairConnector.ResourceTotalSupply,
+                Decimals = pairConnector.Decimals,
+                Issuer = Context.Self,
+                IsBurnable = pairConnector.IsResourceConnectorTokenBurnable,
+                LockWhiteList =
+                {
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
+                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
+                },
+            });
+            State.TokenContract.Issue.Send(new IssueInput
+            {
+                Symbol = resourceConnector.Symbol,
+                Amount = pairConnector.ResourceTotalSupply,
+                To = State.TokenContract.Value,
+                Memo = "Initialize for resource trade"
+            });
+            State.TokenContract.Create.Send(new CreateInput
+            {
+                Symbol = nativeTokenToResourceConnector.Symbol,
+                TokenName =nativeTokenToResourceConnector.Symbol + " Native Token",
+                TotalSupply = long.MaxValue,
+                Decimals = pairConnector.Decimals,
+                IsBurnable = pairConnector.IsNativeConnectorTokenBurnable,
+                Issuer = Context.Self,
+                LockWhiteList =
+                {
+                    Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName),
+                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName),
+                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
+                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
+                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName),
+                    Context.GetContractAddressByName(SmartContractConstants.ReferendumAuthContractSystemName)
+                }
+            });
+            return new Empty();
+        }
         public override Empty Buy(BuyInput input)
         {
             Assert(IsValidSymbol(input.Symbol), "Invalid symbol.");

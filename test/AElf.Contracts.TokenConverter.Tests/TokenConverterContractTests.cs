@@ -459,7 +459,56 @@ namespace AElf.Contracts.TokenConverter
                 managerAddress.ShouldBe(address);
             }
         }
-        
+
+        [Fact]
+        public async Task Update_Connector_Success_Test()
+        {
+            await DeployContractsAsync();
+            await CreateRamToken();
+            await InitializeTokenConverterContract();
+            var ramConnectorBefore = await DefaultStub.GetConnector.CallAsync(new TokenSymbol {Symbol = RamConnector.Symbol});
+            ramConnectorBefore.Symbol.ShouldBe(RamConnector.Symbol);
+            var updateConnector = new Connector
+            {
+                Symbol = ramConnectorBefore.Symbol,
+                VirtualBalance = 1000_000,
+                IsVirtualBalanceEnabled = false,
+                IsPurchaseEnabled = true,
+                RelatedSymbol = "change"
+            };
+            await DefaultStub.UpdateConnector.SendAsync(updateConnector);
+            var ramConnectorAfter =await DefaultStub.GetConnector.CallAsync(new TokenSymbol {Symbol = RamConnector.Symbol});
+            ramConnectorAfter.RelatedSymbol.ShouldBe("change");
+        }
+        [Fact]
+        public async Task Add_Pair_Connector_Success_Test()
+        {
+            await DeployContractsAsync();
+            await CreateRamToken();
+            await InitializeTokenConverterContract();
+            var pairConnector = new PairConnector
+            {
+                ResourceConnectorSymbol = "NETT",
+                ResourceWeight = "0.02",
+                ResourceTotalSupply = 1000_000,
+                ResourceVirtualBalance = 100,
+                IsResourceVirtualBalanceEnabled = true,
+                NativeConnectorSymbol = "NTNETT",
+                NativeWeight = "0.05",
+                NativeVirtualBalance = 1100,
+                NativeTotalSupply = long.MaxValue,
+                IsNativeVirtualBalanceEnabled = true,
+                IsNativeConnectorTokenBurnable = true,
+                Decimals = 8,
+                IsPurchaseEnabled = true,
+                IsResourceConnectorTokenBurnable = true
+            };
+            await DefaultStub.AddPairConnectors.SendAsync(pairConnector);
+            var resourceConnector =await DefaultStub.GetConnector.CallAsync(new TokenSymbol {Symbol = "NETT"});
+            var nativeToResourceConnector =await DefaultStub.GetConnector.CallAsync(new TokenSymbol {Symbol = "NTNETT"});
+            resourceConnector.ShouldNotBeNull();
+            nativeToResourceConnector.ShouldNotBeNull();
+        }
         #endregion
 
         #region Private Task

@@ -242,17 +242,7 @@ namespace AElf.Contracts.Economic
         {
             State.ParliamentAuthContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
-
-            var createOrganizationInput = new CreateOrganizationInput
-            {
-                ReleaseThreshold = EconomicContractConstants.ConnectorSettingProposalReleaseThreshold
-            };
-            State.ParliamentAuthContract.CreateOrganization.Send(createOrganizationInput);
-
-            var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(State.ParliamentAuthContract.Value),
-                Hash.FromMessage(createOrganizationInput));
-            return Address.FromPublicKey(State.ParliamentAuthContract.Value.Value.Concat(
-                organizationHash.Value.ToByteArray().ComputeHash()).ToArray());
+            return State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty());
         }
 
         private void InitializeTokenConverterContract()

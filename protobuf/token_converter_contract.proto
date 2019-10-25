@@ -26,7 +26,10 @@ service TokenConverterContract {
     }
     rpc SetManagerAddress (aelf.Address) returns (google.protobuf.Empty) {
     }
-
+    rpc UpdateConnector(Connector) returns (google.protobuf.Empty){
+    }
+    rpc AddPairConnectors(PairConnector) returns (google.protobuf.Empty){
+    }
     // Views
     rpc GetTokenContractAddress (google.protobuf.Empty) returns (aelf.Address) {
         option (aelf.is_view) = true;
@@ -111,4 +114,20 @@ message TokenSold {
     sint64 sold_amount = 2;
     sint64 base_amount = 3;
     sint64 fee_amount =4;    
+}
+message PairConnector {
+    string resource_connector_symbol = 1;
+    sint64 resource_virtual_balance = 2;
+    sint64 resource_total_supply = 3;
+    string resource_weight = 4;
+    bool is_resource_virtual_balance_enabled = 5;
+    string native_connector_symbol = 6;
+    sint64 native_virtual_balance = 7;
+    sint64 native_total_supply = 8;
+    string native_weight = 9;
+    bool is_native_virtual_balance_enabled = 10;
+    bool is_purchase_enabled = 11;
+    sint32 decimals = 12;
+    bool is_resource_connector_token_burnable = 13;
+    bool is_native_connector_token_burnable = 14;
 }
