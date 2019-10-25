@@ -24,7 +24,7 @@ namespace AElf.OS
                 return taskQueue.Object;
             });
             
-            Configure<BackgroundWorkerOptions>(o => { o.IsEnabled = false; });
+            Configure<AbpBackgroundWorkerOptions>(o => { o.IsEnabled = false; });
         }
     }
 }

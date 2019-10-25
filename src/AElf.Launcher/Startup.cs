@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using AElf.Blockchains.BasicBaseChain;
 using AElf.Blockchains.MainChain;
 using AElf.Blockchains.SideChain;
 using AElf.Kernel;
@@ -9,7 +8,6 @@ using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Volo.Abp;
 using Volo.Abp.Modularity;
 
 namespace AElf.Launcher
@@ -25,7 +23,7 @@ namespace AElf.Launcher
         }
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-        public IServiceProvider ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             var chainType = _configuration.GetValue("ChainType", ChainType.MainChain);
             switch (chainType)
@@ -56,13 +54,11 @@ namespace AElf.Launcher
                     }
                 });
             });
-            
-            return services.BuildAutofacServiceProvider();
         }
         
         private static void AddApplication<T>(IServiceCollection services) where T: IAbpModule
         {
-            services.AddApplication<T>(options => { options.UseAutofac(); });
+            services.AddApplication<T>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
