@@ -134,10 +134,5 @@ namespace AElf.Contracts.MultiToken
                    && input.Decimals <= TokenContractConstants.MaxDecimals;
             Assert(isValid, "Invalid input.");
         }
-
-        private void AssertValidMemo(string str)
-        {
-            Assert(str.Length <= TokenContractConstants.MemoLength, "Invalid input.");
-        }
     }
 }
