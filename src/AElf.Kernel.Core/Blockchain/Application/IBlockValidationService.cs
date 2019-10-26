@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -27,7 +29,8 @@ namespace AElf.Kernel.Blockchain.Application
             _blockValidationProviders = blockValidationProviders;
         }
 
-        public async Task<bool> ValidateBlockBeforeAttachAsync(IBlock block){
+        public async Task<bool> ValidateBlockBeforeAttachAsync(IBlock block)
+        {
             foreach (var provider in _blockValidationProviders)
             {
                 if (!await provider.ValidateBeforeAttachAsync(block))

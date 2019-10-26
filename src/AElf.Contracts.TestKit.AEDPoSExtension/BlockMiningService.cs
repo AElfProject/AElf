@@ -99,7 +99,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                 .AddMilliseconds(AEDPoSExtensionConstants.MiningInterval));
 
             InitialContractStubs();
-            InitialConsensus(currentBlockTime);
+            await InitialConsensus(currentBlockTime);
 
             return map;
         }
@@ -113,13 +113,22 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             }
         }
 
-        private void InitialConsensus(DateTime currentBlockTime)
+        private async Task InitialConsensus(DateTime currentBlockTime)
         {
-            _contractStubs.First().InitialAElfConsensusContract.SendAsync(new InitialAElfConsensusContractInput
+            // InitialAElfConsensusContract
             {
-                MinerIncreaseInterval = AEDPoSExtensionConstants.MinerIncreaseInterval,
-                TimeEachTerm = AEDPoSExtensionConstants.TimeEachTerm
-            });
+                var executionResult = await _contractStubs.First().InitialAElfConsensusContract.SendAsync(
+                    new InitialAElfConsensusContractInput
+                    {
+                        MinerIncreaseInterval = AEDPoSExtensionConstants.MinerIncreaseInterval,
+                        TimeEachTerm = AEDPoSExtensionConstants.TimeEachTerm
+                    });
+                if (executionResult.TransactionResult.Status != TransactionResultStatus.Mined)
+                {
+                    throw new InitializationFailedException("Failed to execute InitialAElfConsensusContract.",
+                        executionResult.TransactionResult.Error);
+                }
+            }
 
             var initialMinerList = new MinerList
             {
@@ -128,7 +137,20 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             _currentRound =
                 initialMinerList.GenerateFirstRoundOfNewTerm(AEDPoSExtensionConstants.MiningInterval,
                     currentBlockTime);
-            _contractStubs.First().FirstRound.SendAsync(_currentRound);
+            _testDataProvider.SetBlockTime(currentBlockTime.ToTimestamp());
+
+
+            // FirstRound
+            {
+                var executionResult = await _contractStubs.First().FirstRound.SendAsync(_currentRound);
+                if (executionResult.TransactionResult.Status != TransactionResultStatus.Mined)
+                {
+                    throw new InitializationFailedException("Failed to execute FirstRound.",
+                        executionResult.TransactionResult.Error);
+                }
+            }
+            _testDataProvider.SetBlockTime(currentBlockTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval)
+                .ToTimestamp());
         }
 
         public async Task MineBlockAsync(List<Transaction> transactions = null)
@@ -147,6 +169,13 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 
             var (contractStub, pubkey) =
                 GetProperContractStub(currentBlockTime);
+
+            var currentRound = await contractStub.GetCurrentRoundInformation.CallAsync(new Empty());
+            if (currentRound.RoundNumber == 0)
+            {
+                throw new InitializationFailedException("Can't find current round information.");
+            }
+
             var command = await contractStub.GetConsensusCommand.CallAsync(pubkey);
             var hint = AElfConsensusHint.Parser.ParseFrom(command.Hint);
             var triggerInformation = new AElfConsensusTriggerInformation
@@ -302,6 +331,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 
             round.RoundNumber = currentRoundNumber + 1;
             round.TermNumber = currentTermNumber + 1;
+            round.IsMinerListJustChanged = true;
 
             return round;
         }

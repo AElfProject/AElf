@@ -12,9 +12,6 @@ namespace AElf.OS.Consensus.DPos
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<DPoSAnnouncementReceivedEventDataHandler>();
-            context.Services
-                .AddSingleton<IAEDPoSLastLastIrreversibleBlockDiscoveryService,
-                    AEDPoSLastLastIrreversibleBlockDiscoveryService>();
         }
     }
 }

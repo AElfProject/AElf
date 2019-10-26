@@ -27,8 +27,8 @@ Modify this config file by `aelf-command config`.
 
   - `set`: set and save config in the file, remember just set `datadir`, `endpoint`, `account`, `password` four keys.
     ```bash
-    aelf-command config set endpoint http://127.0.0.1:8000
-    aelf-command config -h
+    $ aelf-command config set endpoint http://127.0.0.1:8000
+    $ aelf-command config -h
 
     Usage: aelf-command config [options] <flag> [key] [value]
     
@@ -46,16 +46,16 @@ Modify this config file by `aelf-command config`.
     ``` 
   - `get`: get the value of given `key` from global `.aelfrc` file
     ```bash
-    aelf-command config get endpoint
+    $ aelf-command config get endpoint
     http://127.0.0.1:8000
     ```
   - `delete`: delete the `<key, value>` from global `.aelfrc` file by a given key
     ```bash
-    aelf-command config delete endpoint
+    $ aelf-command config delete endpoint
     ```
   - `list`: get the list of all configs stored in global `.aelfrc` file
     ```bash
-    aelf-command config list
+    $ aelf-command config list
     endpoint=http://127.0.0.1:8000
     ```
 
@@ -76,7 +76,7 @@ each line is `<key, value>` config and a whitespace is needed to separate them.
 You can give common options by passing them in CLI parameters.
 
 ```bash
-aelf-command console -a sadaf -p password -e http://127.0.0.1:8000
+$ aelf-command console -a sadaf -p password -e http://127.0.0.1:8000
 ```
 
 Notice the priority, the options given in higher priority will overwrite the lower priority.
@@ -86,12 +86,13 @@ Notice the priority, the options given in higher priority will overwrite the low
 This command will create a new account.
 
 ```bash
+$ aelf-command create -h
 Usage: aelf-command create [options] [save-to-file]
 
 create a new account
 
 Options:
-  -c, --cipher [cipher]  Which cipher algorithm to use, default to be aes-256-cbc
+  -c, --cipher [cipher]  Which cipher algorithm to use, default to be aes-128-ctr
   -h, --help             output usage information
 
 Examples:
@@ -103,8 +104,8 @@ aelf-command create
 Example:
 
 * Specify the cipher way to encrypt account info by passing option `-c [cipher]`, such as:
-```shell script
-aelf-command create -c aes-128-cbc
+```bash
+$ aelf-command create -c aes-128-cbc
 ```
 
 ### load - load an account by a given `private key` or `mnemonic`
@@ -113,21 +114,121 @@ This command allow you load an account from backup.
 
 ```bash
 # load from mnemonic
-aelf-command load 'great mushroom loan crisp ... door juice embrace'
+$ aelf-command load 'great mushroom loan crisp ... door juice embrace'
 # load from private key
-aelf-command load 'e038eea7e151eb451ba2901f7...b08ba5b76d8f288'
+$ aelf-command load 'e038eea7e151eb451ba2901f7...b08ba5b76d8f288'
 # load from prompting
-aelf-command load
+$ aelf-command load
 ? Enter a private key or mnemonic › e038eea7e151eb451ba2901f7...b08ba5b76d8f288
 ...
 ```
+
+### wallet - show wallet details which include `private key`, `address`, `public key` and `mnemonic`
+
+This command allow you print wallet info.
+
+```bash
+$ aelf-command wallet -a C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuw...8qYjGsESanXR
+⬡ AElf [Info]: Private Key         : 97ca9fbece296231f26bee0e493500810f...cbd984f69a8dc22ec9ec89ebb00 
+⬡ AElf [Info]: Public Key          : 04c30dd0c3b5abfc85a11b15dabd0de926...74fe04e92eaebf2e4fef6445d9b9b11efe6f4b70c8e86644b72621f9987dc00bb1eab44a9bd7512ea53f93937a5d0 
+⬡ AElf [Info]: Address             : C91b1SF5mMbenHZTfdfbJSkJcK7HMjeiuw...8qYjGsESanXR 
+```
+
+### proposal - create a proposal
+
+There are some transactions you can't send directly, such as deploying a smart contract, you need to create a proposal to a specific organization which contains BP nodes, and wait for the approve.
+
+Actually, you can create proposals on any contract method.
+
+* Get an organization address or create a organization
+```bash
+$ aelf-command call AElf.ContractNames.Parliament GetGenesisOwnerAddress ''
+✔ Fetching contract successfully!
+✔ Calling method successfully!
+⬡ AElf [Info]:
+Result:
+"BkcXRkykRC2etHp9hgFfbw2ec1edx7ERBxYtbC97z3Q2bNCwc"
+✔ Succeed!
+```
+
+`BkcXRkykRC2etHp9hgFfbw2ec1edx7ERBxYtbC97z3Q2bNCwc` is the organization address.
+
+You can get the default organization address and it has all BP nodes inside, every proposal can only be released when it has got over 2/3 BP nodes approve
+
+Create an organization
+```bash
+$ aelf-command send AElf.ContractNames.Parliament CreateOrganization '{"reviewers":["ada","asda"], "releaseThreshold": 660000}' 
+```
+
+* Create a proposal
+```bash
+$ aelf-command proposal
+
+? Enter an organization address: BkcXRkykRC2etHp9hgFfbw2ec1edx7ERBxYtbC97z3Q2bNCwc
+? Select the expired time for this proposal: 2022/09/23 22:06
+? Enter a contract address or name: 2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8
+✔ Fetching contract successfully!
+? Pick up a contract method: DeploySmartContract
+
+If you need to pass file contents to the contractMethod, you can enter the relative or absolute path of the file instead
+
+Enter required params one by one:
+? Enter the required param <category>: 0
+? Enter the required param <code>: /Users/home/Downloads/AElf.Contracts.TokenConverter.dll
+? It seems that you have entered a file path, do you want to read the file content and take it as the value of <code> Yes
+⬡ AElf [Info]:
+ { TransactionId:
+   '09c8c824d2e3aea1d6cd15b7bb6cefe4e236c5b818d6a01d4f7ca0b60fe99535' }
+✔ loading proposal id...
+⬡ AElf [Info]: Proposal id: "bafe83ca4ec5b2a2f1e8016d09b21362c9345954a014379375f1a90b7afb43fb".
+✔ Succeed!
+```
+
+You can get the proposal id the get proposal status by it.
+
+* Get proposal status
+
+```bash
+$ aelf-command call AElf.ContractNames.Parliament GetProposal bafe83ca4ec5b2a2f1e8016d09b21362c9345954a014379375f1a90b7afb43fb
+
+{
+  ...
+  "expiredTime": {
+    "seconds": "1663942010",
+    "nanos": 496000
+  },
+  "organizationAddress": "BkcXRkykRC2etHp9hgFfbw2ec1edx7ERBxYtbC97z3Q2bNCwc",
+  "proposer": "2tj7Ea67fuQfVAtQZ3WBmTv7AAJ8S9D2L4g6PpRRJei6JXk7RG",
+  "toBeReleased": false
+}
+✔ Succeed!
+```
+
+`toBeReleased` indicates whether you can release this proposal, in default situation, a proposal need to get over 2/3 BP nodes approve.
+
+* Release a proposal
+
+You can release a proposal when it got approved.
+```bash
+$ aelf-command send AElf.ContractNames.Parliament Release bafe83ca4ec5b2a2f1e8016d09b21362c9345954a014379375f1a90b7afb43fb
+⬡ AElf [Info]:
+ { TransactionId:
+   '09c8c824d2e3aea1d...cefe4e236c5b818d6a01d4f7ca0b60fe99535' }
+```
+
+Get the transaction result
+
+```bash
+$ aelf-command get-tx-result 09c8c824d2e3aea1d...cefe4e236c5b818d6a01d4f7ca0b60fe99535
+```
+
 
 ### deploy - deploy a smart contract
 
 Deploy a smart contract to the chain
 
 ```bash
-aelf-command deploy
+$ aelf-command deploy
 ✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
 ✔ Enter the password you typed when creating a wallet … ********
 ✔ Enter the category of the contract to be deployed … 0
@@ -137,7 +238,7 @@ aelf-command deploy
 ### send - send a transaction
 
 ```bash
-aelf-command send
+$ aelf-command send
 ✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
 ✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … D3vSjRYL8MpeRpvUDy85ktXijnBe2tHn8NTACsggUVteQCNGP
 ✔ Enter the password you typed when creating a wallet … ********
@@ -155,14 +256,14 @@ Result:
 ```
 
 ```bash
-aelf-command send AElf.ContractNames.Token GetTokenInfo '{"symbol":"ELF"}'
-aelf-command send WnV9Gv3gioSh3Vgaw8SSB96nV8fWUNxuVozCf6Y14e7RXyGaM GetTokenInfo '{"symbol":"ELF"}'
+$ aelf-command send AElf.ContractNames.Token GetTokenInfo '{"symbol":"ELF"}'
+$ aelf-command send WnV9Gv3gioSh3Vgaw8SSB96nV8fWUNxuVozCf6Y14e7RXyGaM GetTokenInfo '{"symbol":"ELF"}'
 ```
 
 ### call - call a read-only method on a contract
 
 ```bash
-aelf-command call
+$ aelf-command call
 ✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
 ✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … D3vSjRYL8MpeRpvUDy85ktXijnBe2tHn8NTACsggUVteQCNGP
 ✔ Enter the password you typed when creating a wallet … ********
@@ -186,13 +287,37 @@ Result:
 ```
 
 ```bash
-aelf-command call AElf.ContractNames.Token GetTokenInfo '{"symbol":"ELF"}'
-aelf-command call WnV9Gv3gioSh3Vgaw8SSB96nV8fWUNxuVozCf6Y14e7RXyGaM GetTokenInfo '{"symbol":"ELF"}'
+$ aelf-command call AElf.ContractNames.Token GetTokenInfo '{"symbol":"ELF"}'
+$ aelf-command call WnV9Gv3gioSh3Vgaw8SSB96nV8fWUNxuVozCf6Y14e7RXyGaM GetTokenInfo '{"symbol":"ELF"}'
+```
+
+### get-chain-status - get the current status of the block chain
+
+```bash
+$ aelf-command get-chain-status
+✔ Succeed
+{
+  "ChainId": "AELF",
+  "Branches": {
+    "59937e3c16860dedf0c80955f4995a5604ca43ccf39cd52f936fb4e5a5954445": 4229086
+  },
+  "NotLinkedBlocks": {},
+  "LongestChainHeight": 4229086,
+  "LongestChainHash": "59937e3c16860dedf0c80955f4995a5604ca43ccf39cd52f936fb4e5a5954445",
+  "GenesisBlockHash": "da5e200259320781a1851081c99984fb853385153991e0f00984a0f5526d121c",
+  "GenesisContractAddress": "2gaQh4uxg6tzyH1ADLoDxvHA14FMpzEiMqsQ6sDG5iHT8cmjp8",
+  "LastIrreversibleBlockHash": "497c24ff443f5cbd33da24a430f5c6c5e0be2f31651bd89f4ddf2790bcbb1906",
+  "LastIrreversibleBlockHeight": 4229063,
+  "BestChainHash": "59937e3c16860dedf0c80955f4995a5604ca43ccf39cd52f936fb4e5a5954445",
+  "BestChainHeight": 4229086
+}
 ```
 
 ### get-tx-result - get a transaction result
 
 ```bash
+$ aelf-command get-tx-result
+
 ✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
 ✔ Enter a valid transaction hash in hex format … 7b620a49ee9666c0c381fdb33f94bd31e1b5eb0fdffa081463c3954e9f734a02
 ✔ Succeed!
@@ -222,15 +347,17 @@ aelf-command call WnV9Gv3gioSh3Vgaw8SSB96nV8fWUNxuVozCf6Y14e7RXyGaM GetTokenInfo
 ### get-blk-height - get the block height
 
 ```bash
-aelf-command get-blk-height
+$ aelf-command get-blk-height
 ✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
 > 7902091
 ```
 
-### get-blk-info - get the block info by a block height
+### get-blk-info - get the block info by a block height or a block hash
+
+You can pass a block height or a block hash to this sub-command.
 
 ```bash
-aelf-command get-blk-info
+$ aelf-command get-blk-info
 ✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
 ✔ Enter a valid height … 123
 ✔ Include transactions whether or not … no / yes
@@ -258,10 +385,15 @@ aelf-command get-blk-info
       [ 'a365a682caf3b586cbd167b81b167979057246a726c7282530554984ec042625' ] } }
 ```
 
+```bash
+$ aelf-command get-blk-info ca61c7c8f5fc1bc8af0536bc9b51c61a94f39641a93a748e72802b3678fea4a9 true
+$ aelf-command get-blk-info 12 true
+```
+
 ### console - open an interactive console
 
 ```bash
-aelf-command console
+$ aelf-command console
 ✔ Enter the the URI of an AElf node … http://13.231.179.27:8000
 ✔ Enter a valid wallet address, if you don't have, create one by aelf-command create … 2Ue31YTuB5Szy7cnr3SCEGU2gtGi5uMQBYarYUR5oGin1sys6H
 ✔ Enter the password you typed when creating a wallet … ********
@@ -281,4 +413,3 @@ Welcome to aelf interactive console. Ctrl + C to terminate the program. Double t
    ║                                                           ║
    ╚═══════════════════════════════════════════════════════════╝
 ```
-

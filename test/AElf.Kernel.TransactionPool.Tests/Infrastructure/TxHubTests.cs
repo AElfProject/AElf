@@ -8,7 +8,7 @@ using Xunit;
 
 namespace AElf.Kernel.TransactionPool.Infrastructure
 {
-    public class TxHubTests : TransactionPoolWithChainTestBase
+    public sealed class TxHubTests : TransactionPoolWithChainTestBase
     {
         private readonly TxHub _txHub;
         private readonly IBlockchainService _blockchainService;
@@ -38,6 +38,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
 
             var transactionHeight100 = _kernelTestHelper.GenerateTransaction(100);
+
             {
                 // Receive a feature transaction twice
                 // Chain:

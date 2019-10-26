@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
         <ProjectReference Include="..\..\contract\AElf.Contracts.Consensus.AEDPoS\AElf.Contracts.Consensus.AEDPoS.csproj">
@@ -30,13 +31,11 @@
         <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj" />
         <ProjectReference Include="..\..\src\AElf.Database\AElf.Database.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel.Consensus.AEDPoS\AElf.Kernel.Consensus.AEDPoS.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Kernel.Token\AElf.Kernel.Token.csproj" />
         <ProjectReference Include="..\AElf.Kernel.Tests\AElf.Kernel.Tests.csproj" />
         <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj" />
         <ProjectReference Include="..\..\src\AElf.OS.Core\AElf.OS.Core.csproj" />
         <ProjectReference Include="..\..\src\AElf.Runtime.CSharp.ExecutiveTokenPlugin\AElf.Runtime.CSharp.ExecutiveTokenPlugin.csproj" />
         <ProjectReference Include="..\..\src\AElf.Runtime.CSharp\AElf.Runtime.CSharp.csproj" />
-        <ProjectReference Include="..\AElf.TestBase\AElf.TestBase.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
@@ -68,9 +67,6 @@
         </ContractStub>
         <ContractStub Include="..\..\protobuf\resource_contract.proto">
             <Link>Protobuf\Proto\stub\resource_contract.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\fee_receiver_contract.proto">
-            <Link>Protobuf\Proto\stub\fee_receiver_contract.proto</Link>
         </ContractStub>
         <ContractStub Include="..\..\protobuf\cross_chain_contract.proto">
             <Link>Protobuf\Proto\stub\cross_chain_contract.proto</Link>

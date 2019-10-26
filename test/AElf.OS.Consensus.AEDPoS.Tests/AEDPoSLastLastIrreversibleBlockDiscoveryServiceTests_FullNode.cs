@@ -1,12 +1,11 @@
-using System;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
+using AElf.OS.Network.Protocol.Types;
 using AElf.TestBase;
-using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Shouldly;
 using Xunit;
@@ -20,9 +19,7 @@ namespace AElf.OS.Consensus.DPos
             _aedpoSLastLastIrreversibleBlockDiscoveryService;
         private readonly IPeerPool _peerPool;
         private readonly OSTestHelper _osTestHelper;
-
-        private readonly long _connectionTime = TimestampHelper.GetUtcNow().Seconds;
-
+        
         public AEDPoSLastLastIrreversibleBlockDiscoveryServiceTests_FullNode()
         {
             _aedpoSLastLastIrreversibleBlockDiscoveryService =
@@ -62,8 +59,8 @@ namespace AElf.OS.Consensus.DPos
             
             var blockIndex = await _aedpoSLastLastIrreversibleBlockDiscoveryService.FindLastLastIrreversibleBlockAsync(
                 OSConsensusDPosTestConstants.Bp2PublicKey);
-            blockIndex.Height.ShouldBe(blocks[4].Height);
-            blockIndex.Hash.ShouldBe(blocks[4].GetHash());
+            blockIndex.BlockHeight.ShouldBe(blocks[4].Height);
+            blockIndex.BlockHash.ShouldBe(blocks[4].GetHash());
         }
         
         [Fact]
@@ -81,15 +78,15 @@ namespace AElf.OS.Consensus.DPos
         {
             var channel = new Channel(OSConsensusDPosTestConstants.FakeIpEndpoint, ChannelCredentials.Insecure);
             
-            var connectionInfo = new PeerInfo
+            var connectionInfo = new PeerConnectionInfo
             {
                 Pubkey = publicKey,
                 ProtocolVersion = KernelConstants.ProtocolVersion,
-                ConnectionTime = _connectionTime,
+                ConnectionTime = TimestampHelper.GetUtcNow(),
                 IsInbound = true
             };
             
-            var peer = new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), IpEndpointHelper.Parse(OSConsensusDPosTestConstants.FakeIpEndpoint), connectionInfo);
+            var peer = new GrpcPeer(new GrpcClient(channel, new PeerService.PeerServiceClient(channel)), IpEndPointHelper.Parse(OSConsensusDPosTestConstants.FakeIpEndpoint), connectionInfo);
             peer.IsConnected = true;
             var blocks = _osTestHelper.BestBranchBlockList.GetRange(0, blockHeight);
             foreach (var block in blocks)

@@ -266,7 +266,7 @@ namespace AElf.OS
             return transactions;
         }
 
-        public Transaction GenerateTransaction(Address from, Address to,string methodName, IMessage input)
+        public Transaction GenerateTransaction(Address from, Address to, string methodName, IMessage input)
         {
             var chain = _blockchainService.GetChainAsync().Result;
             var transaction = new Transaction
@@ -365,7 +365,7 @@ namespace AElf.OS
             var transaction = GenerateTransaction(accountAddress, basicContractZero,
                 nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract), new ContractDeploymentInput()
                 {
-                    Category = 0,
+                    Category = KernelConstants.CodeCoverageRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(T).Assembly.Location))
                 });
 
@@ -396,6 +396,7 @@ namespace AElf.OS
                 ChainId = _chainOptions.ChainId
             };
 
+            dto.SmartContractRunnerCategory = KernelConstants.CodeCoverageRunnerCategory;
             dto.InitializationSmartContracts.AddGenesisSmartContract(
                 ConsensusContractCode,
                 ConsensusSmartContractAddressNameProvider.Name);

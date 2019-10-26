@@ -94,7 +94,8 @@ namespace AElf.Contracts.Vote
                 Option = input.Option,
                 IsWithdrawn = false,
                 VoteTimestamp = Context.CurrentBlockTime,
-                Voter = input.Voter
+                Voter = input.Voter,
+                IsChangeTarget = input.IsChangeTarget
             };
             //save the VotingRecords into the state.
             State.VotingRecords[input.VoteId] = votingRecord;
@@ -189,9 +190,6 @@ namespace AElf.Contracts.Vote
             {
                 Assert(votingRecord.Voter == Context.Sender, "No permission to withdraw votes of others.");
             }
-
-            Assert(votingItem.CurrentSnapshotNumber > votingRecord.SnapshotNumber,
-                "Cannot withdraw votes of on-going voting item.");
 
             // Update VotingRecord.
             votingRecord.IsWithdrawn = true;

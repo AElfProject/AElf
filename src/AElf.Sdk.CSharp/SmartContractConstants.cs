@@ -14,5 +14,6 @@ namespace AElf.Sdk.CSharp
         public static readonly Hash CrossChainContractSystemName = Hash.FromString("AElf.ContractNames.CrossChain");
         public static readonly Hash TokenConverterContractSystemName = Hash.FromString("AElf.ContractNames.TokenConverter");
         public static readonly Hash EconomicContractSystemName = Hash.FromString("AElf.ContractNames.Economic");
+        public static readonly Hash ReferendumAuthContractSystemName = Hash.FromString("AElf.ContractNames.ReferendumAuth");
     }
 }

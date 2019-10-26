@@ -47,8 +47,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             }
         }
 
-        [Fact]
-        public async Task Token_Lock_Test()
+        private async Task Token_Lock_Test()
         {
             await tokenTestElectionContractStub.AnnounceElection.SendAsync(new Empty());
             var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput

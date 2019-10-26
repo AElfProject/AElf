@@ -1,6 +1,6 @@
 ﻿using AElf.Blockchains.BasicBaseChain;
+using AElf.Kernel.Token;
 using AElf.Modularity;
-using AElf.OS.Node.Application;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -22,8 +22,7 @@ namespace AElf.Blockchains.SideChain
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            base.ConfigureServices(context);
-            context.Services.AddTransient<IGenesisSmartContractDtoProvider, GenesisSmartContractDtoProvider>();
+            context.Services.AddSingleton<IPrimaryTokenSymbolProvider, SideChainPrimaryTokenSymbolProvider>();
         }
     }
 }

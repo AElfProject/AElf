@@ -1,4 +1,5 @@
 using Google.Protobuf.WellKnownTypes;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.Application
 {
@@ -8,7 +9,7 @@ namespace AElf.Kernel.Consensus.Application
         void SetBlockTime(Timestamp blockTime);
     }
 
-    public class BlockTimeProvider : IBlockTimeProvider
+    public class BlockTimeProvider : IBlockTimeProvider, ISingletonDependency
     {
         private Timestamp _blockTime;
         public Timestamp GetBlockTime()

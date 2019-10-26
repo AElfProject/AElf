@@ -2,21 +2,22 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <RootNamespace>AElf.Kernel</RootNamespace>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
     <ItemGroup>
-      <ProjectReference Include="..\AElf.Kernel.ChainController.Tests\AElf.Kernel.ChainController.Tests.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.SmartContract.Tests\AElf.Kernel.SmartContract.Tests.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.SmartContractExecution.Tests\AElf.Kernel.SmartContractExecution.Tests.csproj" />
-      <ProjectReference Include="..\AElf.Kernel.TransactionPool.Tests\AElf.Kernel.TransactionPool.Tests.csproj" />
-      <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj" />
+        <ProjectReference Include="..\AElf.Kernel.ChainController.Tests\AElf.Kernel.ChainController.Tests.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.Core.Tests\AElf.Kernel.Core.Tests.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.SmartContract.Tests\AElf.Kernel.SmartContract.Tests.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.SmartContractExecution.Tests\AElf.Kernel.SmartContractExecution.Tests.csproj"/>
+        <ProjectReference Include="..\AElf.Kernel.TransactionPool.Tests\AElf.Kernel.TransactionPool.Tests.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Kernel\AElf.Kernel.csproj"/>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
-        <PackageReference Include="Shouldly" Version="3.0.2" />
-        <PackageReference Include="xunit" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.console" Version="2.4.1" />
-        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+        <PackageReference Include="coverlet.msbuild" Version="2.5.1"/>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0"/>
+        <PackageReference Include="Shouldly" Version="3.0.2"/>
+        <PackageReference Include="xunit" Version="2.4.1"/>
+        <PackageReference Include="xunit.runner.console" Version="2.4.1"/>
+        <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1"/>
     </ItemGroup>
 </Project>

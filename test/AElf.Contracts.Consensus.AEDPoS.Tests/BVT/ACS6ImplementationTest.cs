@@ -18,38 +18,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         internal async Task<RandomNumberOrder> AEDPoSContract_RequestRandomNumber_Test()
         {
             var randomNumberOrder =
-                (await AEDPoSContractStub.RequestRandomNumber.SendAsync(new RequestRandomNumberInput())).Output;
+                (await AEDPoSContractStub.RequestRandomNumber.SendAsync(new Empty())).Output;
             randomNumberOrder.TokenHash.ShouldNotBeNull();
             randomNumberOrder.BlockHeight.ShouldBeGreaterThan(
                 AEDPoSContractTestConstants.InitialMinersCount.Mul(AEDPoSContractTestConstants.TinySlots));
             return randomNumberOrder;
-        }
-
-        [Fact]
-        internal async Task<Hash> AEDPoSContract_RequestRandomNumber_FillMinimumBlockHeight_Test()
-        {
-            const long minimumBlockHeight = 1000;
-            var randomNumberOrder = (await AEDPoSContractStub.RequestRandomNumber.SendAsync(new RequestRandomNumberInput
-            {
-                MinimumBlockHeight = minimumBlockHeight
-            })).Output;
-            randomNumberOrder.TokenHash.ShouldNotBeNull();
-            randomNumberOrder.BlockHeight.ShouldBe(minimumBlockHeight);
-            return randomNumberOrder.TokenHash;
-        }
-
-        [Fact]
-        public async Task AEDPoSContract_RequestRandomNumber_FillMinimumBlockHeight_MultipleTimes_Test()
-        {
-            var hash = await AEDPoSContract_RequestRandomNumber_FillMinimumBlockHeight_Test();
-
-            const long minimumBlockHeight = 1000;
-            var randomNumberOrder = (await AEDPoSContractStub.RequestRandomNumber.SendAsync(new RequestRandomNumberInput
-            {
-                MinimumBlockHeight = minimumBlockHeight
-            })).Output;
-            var hash1 = randomNumberOrder.TokenHash;
-            hash1.ShouldNotBe(hash);
         }
 
         [Fact]
@@ -80,7 +53,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 var stub = GetAEDPoSContractStub(currentKeyPair);
                 var headerInformation =
-                    (await stub.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
+                    (await stub.GetConsensusExtraData.CallAsync(triggers[minerInRound.Pubkey]
                         .ToBytesValue())).ToConsensusHeaderInformation();
 
                 // Update consensus information.
@@ -114,16 +87,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 randomNumber.Value.ShouldNotBeEmpty();
             }
 
-            // Now we can get this random number again.
-            {
-                var randomNumber = (await AEDPoSContractStub.GetRandomNumber.SendAsync(order.TokenHash)).Output;
-                randomNumber.Value.ShouldNotBeEmpty();
-            }
-
             return order.TokenHash;
         }
 
-        [Fact]
+        [Fact(Skip = "Generated random token will be deleted after 1024 round")]
         internal async Task AEDPoSContract_GetRandomNumber_AfterSixRounds_Test()
         {
             var tokenHash = await AEDPoSContract_GetRandomNumber_Test();
@@ -165,7 +132,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                     var tester = GetAEDPoSContractStub(currentKeyPair);
                     var headerInformation =
-                        (await tester.GetInformationToUpdateConsensus.CallAsync(triggers[minerInRound.Pubkey]
+                        (await tester.GetConsensusExtraData.CallAsync(triggers[minerInRound.Pubkey]
                             .ToBytesValue())).ToConsensusHeaderInformation();
 
                     // Update consensus information.

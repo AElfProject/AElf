@@ -12,7 +12,6 @@ namespace AElf.OS.Network.Extensions
                 Header = block.Header,
                 Body = new BlockBody
                 {
-                    BlockHeader = block.Header.GetHash(),
                     TransactionIds = {block.Transactions.Select(tx => tx.GetHash()).ToList()}
                 }
             };

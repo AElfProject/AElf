@@ -28,17 +28,26 @@ namespace AElf.OS.Network
         #region GetBlocks
 
         [Fact]
-        public async Task GetBlocks_FromAnyoneThatNoOneHas_ReturnsNull()
+        public async Task GetBlocks_FromNullPeerOrUnfindable_ThrowsException()
         {
-            var blocks = await _networkService.GetBlocksAsync(Hash.FromString("unknown"), 5);
-            Assert.Null(blocks);
+            var exceptionNullPeer = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                    await _networkService.GetBlocksAsync(Hash.FromString("bHash1"), 1, null));
+            
+            exceptionNullPeer.Message.ShouldBe("Could not find peer .");
+
+            string peerName = "peer_name";
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                    await _networkService.GetBlocksAsync(Hash.FromString("bHash1"), 1, peerName));
+            
+            exception.Message.ShouldBe($"Could not find peer {peerName}.");
         }
 
         [Fact]
-        public async Task GetBlocks_FaultyPeer_ShouldGetFromBestPeer()
+        public async Task GetBlocks_NetworkException_ReturnsNonSuccessfulResponse()
         {
-            var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash2"), "failed_peer");
-            Assert.NotNull(block);
+            var response = await _networkService.GetBlocksAsync(Hash.FromString("block_hash"), 1, "failed_peer");
+            response.Success.ShouldBeFalse();
+            response.Payload.ShouldBeNull();
         }
 
         #endregion GetBlocks
@@ -46,10 +55,18 @@ namespace AElf.OS.Network
         #region GetBlockByHash
 
         [Fact]
-        public async Task GetBlockByHash_UnfindablePeer_ReturnsNull()
+        public async Task GetBlockByHash_UnfindablePeer_ThrowsExceptionNull()
         {
-            var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"), "a");
-            Assert.Null(block);
+            var exceptionNullPeer = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"), null));
+            
+            exceptionNullPeer.Message.ShouldBe("Could not find peer .");
+            
+            string peerName = "peer_name";
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+                await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"), peerName));
+            
+            exception.Message.ShouldBe($"Could not find peer {peerName}.");
         }
 
         [Fact]
@@ -57,6 +74,14 @@ namespace AElf.OS.Network
         {
             var block = await _networkService.GetBlockByHashAsync(Hash.FromString("bHash1"), "p1");
             Assert.NotNull(block);
+        }
+        
+        [Fact]
+        public async Task GetBlockByHash_NetworkException_ReturnsNonSuccessfulResponse()
+        {
+            var response = await _networkService.GetBlocksAsync(Hash.FromString("block_hash"), 1, "failed_peer");
+            response.Success.ShouldBeFalse();
+            response.Payload.ShouldBeNull();
         }
 
         #endregion GetBlockByHash

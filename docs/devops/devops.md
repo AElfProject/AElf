@@ -38,7 +38,7 @@ To ensure the quality of our system and avoid regression, as well as permit safe
 The perfomance testing is crucial to AElf since a strong point of our system is speed.
 
 ## Monitoring
-  - Server monitoring: zabix monitors instances of aelf metrics like cpu, db...
+  - Server monitoring: zabbix monitors instances of aelf metrics like cpu, db...
   - Chain monitoring: project on github with grafana dashboard from influxdb
   - Akka monitoring: monitor actors.
 

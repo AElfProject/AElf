@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 
@@ -25,19 +24,15 @@ namespace AElf.Kernel.SmartContract.Application
 
         public bool TryGetValue(ScopedStatePath key, out byte[] value)
         {
-            // if the original value doesn't exist, then the state is not in the cache
-            if (!TryGetOriginalValue(key, out value))
-            {
-                return false;
-            }
+            var originalFound = TryGetOriginalValue(key, out value);
 
-            // the original value was found, check if the value is changed
-            if (_currentValues.TryGetValue(key.ToStateKey(), out var currentValue))
+            var currentFound = _currentValues.TryGetValue(key.ToStateKey(), out var currentValue);
+            if (currentFound)
             {
                 value = currentValue;
             }
 
-            return true;
+            return originalFound || currentFound;
         }
 
         public byte[] this[ScopedStatePath key]
@@ -52,11 +47,21 @@ namespace AElf.Kernel.SmartContract.Application
             }
         }
 
-        public void Update(IEnumerable<KeyValuePair<string, byte[]>> changes)
+        public void Update(IEnumerable<TransactionExecutingStateSet> stateSets)
         {
-            foreach (var change in changes)
+            foreach (var stateSet in stateSets)
             {
-                _currentValues[change.Key] = change.Value;
+                var changes = stateSet.Writes;
+                foreach (var change in changes)
+                {
+                    _currentValues[change.Key] = change.Value.ToByteArray();
+                }
+
+                var deletes = stateSet.Deletes;
+                foreach (var delete in deletes)
+                {
+                    _currentValues[delete.Key] = null;
+                }
             }
         }
 

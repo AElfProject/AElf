@@ -7,7 +7,7 @@ namespace AElf.Kernel.SmartContractExecution
         
     }
     
-    public class SmartContractExecutionExecutingTestBase : AElfIntegratedTest<SmartContractExecutionExecutingTestAElfModule>
+    public class SmartContractExecutionExecutingTestBase : AElfIntegratedTest<FullBlockChainExecutingTestModule>
     {
         
     }

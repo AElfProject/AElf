@@ -6,6 +6,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
+    // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
         /// <summary>
@@ -15,26 +16,33 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         public override ConsensusCommand GetConsensusCommand(BytesValue input)
         {
-            Assert(input.Value.Any(), "Invalid public key.");
+            _processingBlockMinerPubkey = input.Value.ToHex();
 
-            if (Context.CurrentHeight == 1) return GetInvalidConsensusCommand();
+            if (Context.CurrentHeight < 2) return ConsensusCommandProvider.InvalidConsensusCommand;
 
-            if (!TryToGetCurrentRoundInformation(out var currentRound)) return GetInvalidConsensusCommand();
+            if (!TryToGetCurrentRoundInformation(out var currentRound))
+                return ConsensusCommandProvider.InvalidConsensusCommand;
 
-            var publicKey = input.Value.ToHex();
+            if (!currentRound.IsInMinerList(_processingBlockMinerPubkey))
+                return ConsensusCommandProvider.InvalidConsensusCommand;
 
-            var behaviour = GetConsensusBehaviour(currentRound, publicKey);
+            var blockchainStartTimestamp = GetBlockchainStartTimestamp();
 
-            Context.LogDebug(() => currentRound.ToString(publicKey));
+            var behaviour = IsMainChain
+                ? new MainChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey, GetMaximumBlocksCount(),
+                        Context.CurrentBlockTime, blockchainStartTimestamp, State.TimeEachTerm.Value)
+                    .GetConsensusBehaviour()
+                : new SideChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey, GetMaximumBlocksCount(),
+                    Context.CurrentBlockTime).GetConsensusBehaviour();
 
-            Context.LogDebug(() => $"Current behaviour: {behaviour.ToString()}");
+            Context.LogDebug(() => $"{currentRound.ToString(_processingBlockMinerPubkey)}\nArranged behaviour: {behaviour.ToString()}");
 
             return behaviour == AElfConsensusBehaviour.Nothing
-                ? GetInvalidConsensusCommand() // Handle this situation previously.
-                : GetConsensusCommand(behaviour, currentRound, publicKey);
+                ? ConsensusCommandProvider.InvalidConsensusCommand
+                : GetConsensusCommand(behaviour, currentRound, _processingBlockMinerPubkey, Context.CurrentBlockTime);
         }
 
-        public override BytesValue GetInformationToUpdateConsensus(BytesValue input)
+        public override BytesValue GetConsensusExtraData(BytesValue input)
         {
             return GetConsensusBlockExtraData(input);
         }
@@ -47,25 +55,24 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(triggerInformation.Pubkey.Any(),
                 "Data to request consensus information should contain public key.");
 
-            var publicKey = triggerInformation.Pubkey;
+            var pubkey = triggerInformation.Pubkey;
             var consensusInformation = new AElfConsensusHeaderInformation();
             consensusInformation.MergeFrom(GetConsensusBlockExtraData(input, true).Value);
             var round = consensusInformation.Round;
             var behaviour = consensusInformation.Behaviour;
             switch (behaviour)
             {
-                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                 case AElfConsensusBehaviour.UpdateValue:
                     return new TransactionList
                     {
                         Transactions =
                         {
                             GenerateTransaction(nameof(UpdateValue),
-                                round.ExtractInformationToUpdateConsensus(publicKey.ToHex()))
+                                round.ExtractInformationToUpdateConsensus(pubkey.ToHex()))
                         }
                     };
                 case AElfConsensusBehaviour.TinyBlock:
-                    var minerInRound = round.RealTimeMinersInformation[publicKey.ToHex()];
+                    var minerInRound = round.RealTimeMinersInformation[pubkey.ToHex()];
                     return new TransactionList
                     {
                         Transactions =
@@ -112,8 +119,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             input.MergeFrom(input1.Value);
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
-                var isContainPreviousInValue =
-                    input.Behaviour != AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue;
+                var isContainPreviousInValue = !currentRound.IsMinerListJustChanged;
                 if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
                 {
                     Context.LogDebug(() => $"Round information of block header:\n{input.Round}");
