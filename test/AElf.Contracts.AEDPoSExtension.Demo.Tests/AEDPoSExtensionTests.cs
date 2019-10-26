@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -80,7 +81,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             {
                 await BlockMiningService.MineBlockAsync();
             }
-            
+
             // Check miner information
             {
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
@@ -140,6 +141,11 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             // Check round number.
             {
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
+                if (round.RoundNumber != 2)
+                {
+                    throw new Exception(round.ToString());
+                }
+
                 round.RoundNumber.ShouldBe(2);
             }
 
@@ -155,7 +161,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 round.RoundNumber.ShouldBe(3);
             }
         }
-        
+
         [Fact(Skip = "Redo this later.")]
         public async Task<Hash> RequestRandomNumber_Test()
         {
