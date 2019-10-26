@@ -2,7 +2,6 @@ syntax = "proto3";
 
 option csharp_namespace = "AElf.OS.Network.Grpc";
 
-import "kernel.proto";
 import "network_types.proto";
 import "aelf/core.proto";
 
