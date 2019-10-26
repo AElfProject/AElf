@@ -54,7 +54,7 @@ namespace AElf.Blockchains.BasicBaseChain
 
             var chainType = context.Services.GetConfiguration().GetValue("ChainType", ChainType.MainChain);
             var netType = context.Services.GetConfiguration().GetValue("NetType", NetType.MainNet);
-            context.Services.SetConfiguration(new ConfigurationBuilder().AddConfiguration(configuration)
+            context.Services.ReplaceConfiguration(new ConfigurationBuilder().AddConfiguration(configuration)
                 .AddJsonFile($"appsettings.{chainType}.{netType}.json").SetBasePath(context.Services.GetHostingEnvironment().ContentRootPath)
                 .Build());
         }
@@ -75,6 +75,8 @@ namespace AElf.Blockchains.BasicBaseChain
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = context.Services
                     .GetConfiguration().GetValue("Economic:Symbol", "ELF");
+                options.ContextVariables[ContextVariableDictionary.ResourceTokenSymbolList] = context.Services
+                    .GetConfiguration().GetValue("Economic:ResourceTokenSymbolList", "RAM,STO,CPU,NET");
             });
             
             Configure<ContractOptions>(configuration.GetSection("Contract"));

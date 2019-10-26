@@ -4,6 +4,7 @@
         <TargetFramework>netcoreapp3.0</TargetFramework>
         <RootNamespace>AElf.Contract.Vote</RootNamespace>
         <IsPackable>false</IsPackable>
+        <NoWarn>0436</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>

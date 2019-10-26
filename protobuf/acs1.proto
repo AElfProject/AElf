@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package acs1;
 
-import "aelf/options.proto";
-import "google/protobuf/empty.proto";
+import public "aelf/options.proto";
+import public "google/protobuf/empty.proto";
 
 option (aelf.identity) = "acs1";
 
