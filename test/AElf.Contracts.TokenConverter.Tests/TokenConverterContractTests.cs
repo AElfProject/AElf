@@ -466,7 +466,7 @@ namespace AElf.Contracts.TokenConverter
             await DeployContractsAsync();
             await CreateRamToken();
             await InitializeTokenConverterContract();
-            var ramConnectorBefore = await DefaultStub.GetConnector.CallAsync(new TokenSymbol {Symbol = RamConnector.Symbol});
+            var ramConnectorBefore = await AuthorizedStub.GetConnector.CallAsync(new TokenSymbol {Symbol = RamConnector.Symbol});
             ramConnectorBefore.Symbol.ShouldBe(RamConnector.Symbol);
             var updateConnector = new Connector
             {
@@ -476,8 +476,8 @@ namespace AElf.Contracts.TokenConverter
                 IsPurchaseEnabled = true,
                 RelatedSymbol = "change"
             };
-            await DefaultStub.UpdateConnector.SendAsync(updateConnector);
-            var ramConnectorAfter =await DefaultStub.GetConnector.CallAsync(new TokenSymbol {Symbol = RamConnector.Symbol});
+            await AuthorizedStub.UpdateConnector.SendAsync(updateConnector);
+            var ramConnectorAfter =await AuthorizedStub.GetConnector.CallAsync(new TokenSymbol {Symbol = RamConnector.Symbol});
             ramConnectorAfter.RelatedSymbol.ShouldBe("change");
         }
         [Fact]
@@ -503,9 +503,9 @@ namespace AElf.Contracts.TokenConverter
                 IsPurchaseEnabled = true,
                 IsResourceConnectorTokenBurnable = true
             };
-            await DefaultStub.AddPairConnectors.SendAsync(pairConnector);
-            var resourceConnector =await DefaultStub.GetConnector.CallAsync(new TokenSymbol {Symbol = "NETT"});
-            var nativeToResourceConnector =await DefaultStub.GetConnector.CallAsync(new TokenSymbol {Symbol = "NTNETT"});
+            await AuthorizedStub.AddPairConnectors.SendAsync(pairConnector);
+            var resourceConnector =await AuthorizedStub.GetConnector.CallAsync(new TokenSymbol {Symbol = "NETT"});
+            var nativeToResourceConnector =await AuthorizedStub.GetConnector.CallAsync(new TokenSymbol {Symbol = "NTNETT"});
             resourceConnector.ShouldNotBeNull();
             nativeToResourceConnector.ShouldNotBeNull();
         }

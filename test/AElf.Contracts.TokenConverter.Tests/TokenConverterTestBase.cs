@@ -17,6 +17,7 @@ namespace AElf.Contracts.TokenConverter
         internal TokenContractContainer.TokenContractStub TokenContractStub;
         
         internal TokenConverterContractContainer.TokenConverterContractStub DefaultStub;
+        internal TokenConverterContractContainer.TokenConverterContractStub AuthorizedStub;
         
         protected ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
         protected Address DefaultSender => Address.FromPublicKey(DefaultSenderKeyPair.PublicKey);
@@ -58,6 +59,8 @@ namespace AElf.Contracts.TokenConverter
                 TokenConverterContractAddress = await DeployContractAsync(category, code, Hash.FromString("TokenConverter"), DefaultSenderKeyPair);
                 DefaultStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
                     TokenConverterContractAddress, DefaultSenderKeyPair);
+                AuthorizedStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
+                    TokenConverterContractAddress, ManagerKeyPair);
             }
         }
 
