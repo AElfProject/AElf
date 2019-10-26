@@ -87,6 +87,8 @@ namespace AElf.Contracts.AssociationAuth
             //TODO: Proposals with the same input is not supported. 
             Assert(State.Proposals[hash] == null, "Proposal already exists.");
             State.Proposals[hash] = proposal;
+            Context.Fire(new ProposalCreated { ProposalId = hash});
+            
             return hash;
         }
 
@@ -114,6 +116,9 @@ namespace AElf.Contracts.AssociationAuth
             Assert(IsReleaseThresholdReached(proposalInfo, organization), "Not approved.");
             Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
                 proposalInfo.ContractMethodName, proposalInfo.Params);
+            
+            Context.Fire(new ProposalReleased{ ProposalId = proposalId});
+            State.Proposals.Remove(proposalId);
             
             return new Empty();
         }

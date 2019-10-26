@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel;
 using AElf.Kernel.Token;
 using AElf.Types;
@@ -40,9 +41,9 @@ namespace AElf.Contracts.Genesis
             var txResult2 = await ReleaseProposalAsync(proposalId);
             txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var creator = ContractDeployed.Parser.ParseFrom(txResult2.Logs[0].Indexed[0]).Creator;
+            var creator = ContractDeployed.Parser.ParseFrom(txResult2.Logs[1].Indexed[0]).Creator;
             creator.ShouldBe(Tester.GetCallOwnerAddress());
-            var deployAddress = ContractDeployed.Parser.ParseFrom(txResult2.Logs[0].NonIndexed).Address;
+            var deployAddress = ContractDeployed.Parser.ParseFrom(txResult2.Logs[1].NonIndexed).Address;
             deployAddress.ShouldNotBeNull();
         }
 
@@ -62,10 +63,10 @@ namespace AElf.Contracts.Genesis
             var txResult2 = await ReleaseProposalAsync(proposalId);
             txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var contractAddress = CodeUpdated.Parser.ParseFrom(txResult2.Logs[0].Indexed[0]).Address;
+            var contractAddress = CodeUpdated.Parser.ParseFrom(txResult2.Logs[1].Indexed[0]).Address;
             contractAddress.ShouldBe(TokenContractAddress);
             var codeHash = Hash.FromRawBytes(code);
-            var newHash = CodeUpdated.Parser.ParseFrom(txResult2.Logs[0].NonIndexed).NewCodeHash;
+            var newHash = CodeUpdated.Parser.ParseFrom(txResult2.Logs[1].NonIndexed).NewCodeHash;
             newHash.ShouldBe(codeHash);
         }
         
@@ -85,10 +86,10 @@ namespace AElf.Contracts.Genesis
             var txResult2 = await ReleaseProposalAsync(proposalId);
             txResult2.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var contractAddress = CodeUpdated.Parser.ParseFrom(txResult2.Logs[0].Indexed[0]).Address;
+            var contractAddress = CodeUpdated.Parser.ParseFrom(txResult2.Logs[1].Indexed[0]).Address;
             contractAddress.ShouldBe(BasicContractZeroAddress);
             var codeHash = Hash.FromRawBytes(code);
-            var newHash = CodeUpdated.Parser.ParseFrom(txResult2.Logs[0].NonIndexed).NewCodeHash;
+            var newHash = CodeUpdated.Parser.ParseFrom(txResult2.Logs[1].NonIndexed).NewCodeHash;
             newHash.ShouldBe(codeHash);
         }
 

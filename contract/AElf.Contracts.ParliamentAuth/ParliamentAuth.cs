@@ -1,4 +1,5 @@
 using Acs3;
+using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using CreateProposalInput = Acs3.CreateProposalInput;
@@ -106,6 +107,8 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(Validate(proposal), "Invalid proposal.");
             Assert(State.Proposals[hash] == null, "Proposal already exists.");
             State.Proposals[hash] = proposal;
+            Context.Fire(new ProposalCreated { ProposalId = hash});
+            
             return hash;
         }
 
@@ -131,6 +134,8 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(IsReleaseThresholdReached(proposalInfo, organization, currentParliament), "Not approved.");
             Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
                 proposalInfo.ContractMethodName, proposalInfo.Params);
+            Context.Fire(new ProposalReleased{ ProposalId = proposalId});
+            State.Proposals.Remove(proposalId);
             
             return new Empty();
         }
