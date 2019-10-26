@@ -16,11 +16,11 @@ using AElf.Types;
 namespace AElf.Runtime.CSharp.Policies
 {
     public class DefaultPolicy : AbstractPolicy
-    {        
+    {
         public DefaultPolicy()
         {
             Whitelist = new Whitelist();
-            
+
             WhitelistAssemblies();
             WhitelistSystemTypes();
             WhitelistReflectionTypes();
@@ -41,7 +41,7 @@ namespace AElf.Runtime.CSharp.Policies
                 .Assembly(Assembly.Load("System.Linq"), Trust.Full)
                 .Assembly(Assembly.Load("System.Collections"), Trust.Full)
                 .Assembly(Assembly.Load("Google.Protobuf"), Trust.Full)
-                
+
                 .Assembly(typeof(CSharpSmartContract).Assembly, Trust.Full) // AElf.Sdk.CSharp
                 .Assembly(typeof(Address).Assembly, Trust.Full) // AElf.Types
                 .Assembly(typeof(IMethod).Assembly, Trust.Full) // AElf.CSharp.Core
@@ -124,7 +124,7 @@ namespace AElf.Runtime.CSharp.Policies
                 .Namespace("System.Globalization", Permission.Denied, type => type
                     .Type(nameof(CultureInfo), Permission.Denied, m => m
                         .Member(nameof(CultureInfo.InvariantCulture), Permission.Allowed)))
-                
+
                 // Used for initializing large arrays hardcoded in the code, array validator will take care of the size
                 .Namespace("System.Runtime.CompilerServices", Permission.Denied, type => type
                     .Type(nameof(RuntimeHelpers), Permission.Denied, member => member
@@ -134,9 +134,10 @@ namespace AElf.Runtime.CSharp.Policies
 
         private void UseMethodValidators()
         {
-            MethodValidators.AddRange(new IValidator<MethodDefinition>[]{
+            MethodValidators.AddRange(new IValidator<MethodDefinition>[]
+            {
                 new FloatOpsValidator(),
-                new ArrayValidator(), 
+                new ArrayValidator(),
                 new MultiDimArrayValidator(),
                 new UncheckedMathValidator(),
             });

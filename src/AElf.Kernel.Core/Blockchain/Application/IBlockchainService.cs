@@ -16,7 +16,7 @@ namespace AElf.Kernel.Blockchain.Application
     public interface IBlockchainService
     {
         int GetChainId();
-        
+
         Task<Chain> CreateChainAsync(Block block, IEnumerable<Transaction> transactions);
         Task AddTransactionsAsync(IEnumerable<Transaction> transactions);
         Task<List<Transaction>> GetTransactionsAsync(IEnumerable<Hash> transactionIds);
@@ -47,6 +47,8 @@ namespace AElf.Kernel.Blockchain.Application
         Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, Block block);
         Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
         Task SetIrreversibleBlockAsync(Chain chain, long irreversibleBlockHeight, Hash irreversibleBlockHash);
+        Task<DiscardedBranch> GetDiscardedBranchAsync(Chain chain);
+        Task CleanChainBranchAsync(DiscardedBranch discardedBranch);
 
         Task<Chain> ResetChainToLibAsync(Chain chain);
     }
@@ -165,14 +167,14 @@ namespace AElf.Kernel.Blockchain.Application
         {
             await AddTransactionsAsync(transactions);
             await AddBlockAsync(block);
-            
-            return await _chainManager.CreateAsync(block.GetHash());;
+
+            return await _chainManager.CreateAsync(block.GetHash());
         }
 
         public async Task<List<Transaction>> GetTransactionsAsync(IEnumerable<Hash> transactionIds)
         {
             List<Transaction> transactions = new List<Transaction>();
-            
+
             foreach (var transactionId in transactionIds)
             {
                 var transaction = await _transactionManager.GetTransactionAsync(transactionId);
@@ -229,9 +231,11 @@ namespace AElf.Kernel.Blockchain.Application
             var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(chainBranchBlockHash);
             if (chainBlockLink.Height < height)
             {
-                Logger.LogWarning($"Start searching height: {chainBlockLink.Height},target height: {height},cannot get block hash");
-                return null; 
-            } 
+                Logger.LogWarning(
+                    $"Start searching height: {chainBlockLink.Height},target height: {height},cannot get block hash");
+                return null;
+            }
+
             while (true)
             {
                 if (chainBlockLink.Height == height)
@@ -290,12 +294,8 @@ namespace AElf.Kernel.Blockchain.Application
             };
 
             var success = await _chainManager.SetIrreversibleBlockAsync(chain, irreversibleBlockHash);
-            if (!success) return;
-            // TODO: move to background job, it will slow down our system
-            // Clean last branches and not linked
-            var toCleanBlocks = await _chainManager.CleanBranchesAsync(chain, eventDataToPublish.PreviousIrreversibleBlockHash,
-                eventDataToPublish.PreviousIrreversibleBlockHeight);
-            await RemoveBlocksAsync(toCleanBlocks);
+            if (!success)
+                return;
 
             Logger.LogInformation($"Set lib: {irreversibleBlockHeight} - {irreversibleBlockHash}");
 
@@ -399,7 +399,7 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task<Block> GetBlockByHashAsync(Hash blockId)
         {
-            return await _blockManager.GetBlockAsync(blockId);;
+            return await _blockManager.GetBlockAsync(blockId);
         }
 
         public async Task<BlockHeader> GetBlockHeaderByHashAsync(Hash blockId)
@@ -418,13 +418,16 @@ namespace AElf.Kernel.Blockchain.Application
             return await _chainManager.GetAsync();
         }
 
-        private async Task RemoveBlocksAsync(List<Hash> blockHashes)
+        public async Task<DiscardedBranch> GetDiscardedBranchAsync(Chain chain)
         {
-            foreach (var blockHash in blockHashes)
-            {
-                await _chainManager.RemoveChainBlockLinkAsync(blockHash);
-                await _blockManager.RemoveBlockAsync(blockHash);
-            }
+            return await _chainManager.GetDiscardedBranchAsync(chain, chain.LastIrreversibleBlockHash,
+                chain.LastIrreversibleBlockHeight);
+        }
+
+        public async Task CleanChainBranchAsync(DiscardedBranch discardedBranch)
+        {
+            var chain = await GetChainAsync();
+            await _chainManager.CleanChainBranchAsync(chain, discardedBranch);
         }
     }
 }
