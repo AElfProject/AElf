@@ -109,7 +109,7 @@ namespace AElf.Contracts.Election
             return GetTester<ElectionContractContainer.ElectionContractStub>(ElectionContractAddress, keyPair);
         }
 
-        internal new AEDPoSContractContainer.AEDPoSContractStub GetAEDPoSContractTester(ECKeyPair keyPair)
+        internal AEDPoSContractContainer.AEDPoSContractStub GetAEDPoSContractTester(ECKeyPair keyPair)
         {
             return GetTester<AEDPoSContractContainer.AEDPoSContractStub>(ConsensusContractAddress, keyPair);
         }
