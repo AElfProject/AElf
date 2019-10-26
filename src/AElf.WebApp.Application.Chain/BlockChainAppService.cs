@@ -196,7 +196,7 @@ namespace AElf.WebApp.Application.Chain
                     PreviousBlockHash = block.Header.PreviousBlockHash.ToHex(),
                     MerkleTreeRootOfTransactions = block.Header.MerkleTreeRootOfTransactions.ToHex(),
                     MerkleTreeRootOfWorldState = block.Header.MerkleTreeRootOfWorldState.ToHex(),
-                    MerkleTreeRootOfTransactionStatus = block.Header.MerkleTreeRootOfTransactionStatus.ToHex(),
+                    MerkleTreeRootOfTransactionState = block.Header.MerkleTreeRootOfTransactionStatus.ToHex(),
                     Extra = block.Header.ExtraData.ToString(),
                     Height = block.Header.Height,
                     Time = block.Header.Time.ToDateTime(),

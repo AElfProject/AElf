@@ -10,7 +10,7 @@ namespace AElf.WebApp.Application.Chain.Dto
         
         public string MerkleTreeRootOfWorldState { get; set; }
 
-        public string MerkleTreeRootOfTransactionStatus { get; set; }
+        public string MerkleTreeRootOfTransactionState { get; set; }
         
         public string Extra { get; set; }
         
