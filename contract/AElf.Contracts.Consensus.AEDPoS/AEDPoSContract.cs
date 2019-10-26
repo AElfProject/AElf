@@ -114,7 +114,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             foreach (var previousInValue in input.MinersPreviousInValues)
             {
-                if (previousInValue.Key == publicKey)
+                if (previousInValue.Key == publicKey || previousInValue.Value == null)
                 {
                     continue;
                 }
