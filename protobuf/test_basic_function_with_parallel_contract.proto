@@ -23,6 +23,8 @@ service BasicFunctionWithParallelContract {
     }
     rpc ValidateOrigin(aelf.Address) returns (google.protobuf.Empty) {
     }
+    rpc IncreaseWinMoney(IncreaseWinMoneyInput) returns (google.protobuf.Empty) {
+    }
     rpc IncreaseValue(IncreaseValueInput) returns (google.protobuf.Empty){
     }
     rpc IncreaseValueParallel(IncreaseValueInput) returns (google.protobuf.Empty){
@@ -122,6 +124,11 @@ message UnlockTokenInput {
     string symbol = 3;
     string usage = 4;
     int64 amount = 5;
+}
+
+message IncreaseWinMoneyInput{
+    aelf.Address first = 1;
+    aelf.Address second = 2;
 }
 
 message QueryTwoUserWinMoneyInput{

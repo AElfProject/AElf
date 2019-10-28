@@ -76,7 +76,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// MiningInterval * MinersCount + MiningInterval.
         /// </summary>
         /// <param name="miningInterval"></param>
-        /// <returns></returns>                                                
+        /// <returns></returns>
         private int TotalMilliseconds(int miningInterval = 0)
         {
             if (miningInterval == 0)
