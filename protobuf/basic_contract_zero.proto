@@ -2,11 +2,8 @@ syntax = "proto3";
 
 package zero;
 
-import "aelf/options.proto";
 import "acs0.proto";
 import "acs1.proto";
-import "aelf/core.proto";
-import "google/protobuf/empty.proto";
 
 option csharp_namespace = "AElf.Contracts.Genesis";
 

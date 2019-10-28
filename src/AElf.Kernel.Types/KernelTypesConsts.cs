@@ -13,6 +13,7 @@ namespace AElf.Kernel
         public const string MergeBlockStateQueueName = "MergeBlockStateQueue";
         public const string UpdateChainQueueName = "UpdateChainQueue";
         public const string ConsensusRequestMiningQueueName = "ConsensusRequestMiningQueue";
+        public const string CleanChainBranchQueueName = "CleanChainBranchQueue";
         public const string StorageKeySeparator = ",";
         public static Duration AllowedFutureBlockTimeSpan = new Duration() { Seconds = 4 };
     }

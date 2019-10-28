@@ -3,8 +3,6 @@ syntax = "proto3";
 package treasury;
 
 import "aelf/core.proto";
-import "aelf/options.proto";
-import "google/protobuf/empty.proto";
 import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.Treasury";

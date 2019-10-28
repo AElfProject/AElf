@@ -415,7 +415,7 @@ namespace AElf.OS.Network.Grpc
             {
                 await _libAnnouncementStreamCall.RequestStream.WriteAsync(libAnnouncement);
             }
-            catch (RpcException e)
+            catch (RpcException)
             {
                 _libAnnouncementStreamCall.Dispose();
                 _libAnnouncementStreamCall = null;
