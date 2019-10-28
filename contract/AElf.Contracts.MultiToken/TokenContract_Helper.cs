@@ -127,5 +127,13 @@ namespace AElf.Contracts.MultiToken
             var tokenInfo = State.TokenInfos[symbol];
             return tokenInfo.IssueChainId;
         }
+
+        private void AssertValidCreateInput(CreateInput input)
+        {
+            var isValid = input.TokenName.Length <= TokenContractConstants.TokenNameLength
+                          && input.Decimals >= 0
+                          && input.Decimals <= TokenContractConstants.MaxDecimals;
+            Assert(isValid, "Invalid input.");
+        }
     }
 }
