@@ -3,7 +3,6 @@ syntax = "proto3";
 import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
 import "acs2.proto";
 
 option csharp_namespace = "AElf.Contracts.TestContract.BasicFunctionWithParallel";
@@ -23,6 +22,8 @@ service BasicFunctionWithParallelContract {
     rpc UnlockToken(UnlockTokenInput) returns (google.protobuf.Empty) {
     }
     rpc ValidateOrigin(aelf.Address) returns (google.protobuf.Empty) {
+    }
+    rpc IncreaseWinMoney(IncreaseWinMoneyInput) returns (google.protobuf.Empty) {
     }
     rpc IncreaseValue(IncreaseValueInput) returns (google.protobuf.Empty){
     }
@@ -169,6 +170,11 @@ message UnlockTokenInput {
     string symbol = 3;
     string usage = 4;
     int64 amount = 5;
+}
+
+message IncreaseWinMoneyInput{
+    aelf.Address first = 1;
+    aelf.Address second = 2;
 }
 
 message QueryTwoUserWinMoneyInput{

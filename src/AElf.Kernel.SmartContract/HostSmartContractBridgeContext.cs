@@ -193,7 +193,6 @@ namespace AElf.Kernel.SmartContract
             });
         }
 
-        //TODO: review the method is safe, and can FromPublicKey accept a different length (may not 32) byte array?
         public Address ConvertVirtualAddressToContractAddress(Hash virtualAddress)
         {
             return Address.FromPublicKey(Self.Value.Concat(

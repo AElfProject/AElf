@@ -18,7 +18,7 @@ namespace AElf.WebApp.Application.Chain
         internal static async Task<MethodDescriptor> GetContractMethodDescriptorAsync(
             IBlockchainService blockchainService,
             ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, Address contractAddress,
-            string methodName)
+            string methodName, bool throwException = true)
         {
             IEnumerable<FileDescriptor> fileDescriptors;
             _blockchainService = blockchainService;
@@ -30,8 +30,10 @@ namespace AElf.WebApp.Application.Chain
             }
             catch
             {
-                throw new UserFriendlyException(Error.Message[Error.InvalidContractAddress],
+                if(throwException)
+                    throw new UserFriendlyException(Error.Message[Error.InvalidContractAddress],
                     Error.InvalidContractAddress.ToString());
+                return null;
             }
 
             foreach (var fileDescriptor in fileDescriptors)
