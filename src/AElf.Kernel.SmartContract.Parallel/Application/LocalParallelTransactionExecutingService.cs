@@ -112,6 +112,7 @@ namespace AElf.Kernel.SmartContract.Parallel
                     blockHeader.PreviousBlockHash,
                     returnSets, conflictingSets
                 ));
+                await ProcessConflictingSetsAsync(conflictingSets, returnSets, blockHeader);
             }
 
             return returnSets;
@@ -141,6 +142,23 @@ namespace AElf.Kernel.SmartContract.Parallel
             }
 
             return returnSets;
+        }
+
+        private async Task ProcessConflictingSetsAsync(List<ExecutionReturnSet> conflictionSets,
+            List<ExecutionReturnSet> returnSets, BlockHeader blockHeader)
+        {
+            foreach (var conflictionSet in conflictionSets)
+            {
+                var result = new TransactionResult
+                {
+                    TransactionId = conflictionSet.TransactionId,
+                    Status = TransactionResultStatus.Unexecutable,
+                    Error = ExecutionStatus.Canceled.ToString()
+                };
+                conflictionSet.Status = result.Status;
+                await _transactionResultService.AddTransactionResultAsync(result, blockHeader);
+                returnSets.Add(conflictionSet);
+            }
         }
 
         private async Task<(List<ExecutionReturnSet>, HashSet<string>)> ExecuteAndPreprocessResult(
