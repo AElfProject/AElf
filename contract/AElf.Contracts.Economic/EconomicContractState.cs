@@ -18,6 +18,6 @@ namespace AElf.Contracts.Economic
         internal TokenConverterContractContainer.TokenConverterContractReferenceState TokenConverterContract { get; set; }
         internal ParliamentAuthContractContainer.ParliamentAuthContractReferenceState ParliamentAuthContract { get; set; }
         internal ACS0Container.ACS0ReferenceState ZeroContract { get; set; }
-        internal MappedState<string, TokenAmounts> TransactionFees { get; set; }
+        internal MappedState<string, MethodFees> TransactionFees { get; set; }
     }
 }

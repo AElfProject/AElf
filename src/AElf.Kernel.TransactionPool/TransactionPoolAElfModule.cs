@@ -21,6 +21,7 @@ namespace AElf.Kernel.TransactionPool
             // so it causes a deadlock.
             //services.AddSingleton<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
             
+            services.AddSingleton<ITransactionValidationProvider, TransactionMethodNameValidationProvider>();
             services.AddSingleton<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
 

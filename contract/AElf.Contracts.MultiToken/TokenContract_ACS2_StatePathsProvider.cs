@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Acs2;
+﻿using Acs2;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 
@@ -35,14 +33,15 @@ namespace AElf.Contracts.MultiToken
                             GetPath(nameof(TokenContractState.Allowances), args.From.ToString(), txn.From.ToString(),
                                 args.Symbol),
                             GetPath(nameof(TokenContractState.Balances), args.From.ToString(), args.Symbol),
-                            GetPath(nameof(TokenContractState.Balances), args.To.ToString(), args.Symbol)
+                            GetPath(nameof(TokenContractState.Balances), args.To.ToString(), args.Symbol),
+                            GetPath(nameof(TokenContractState.Balances), txn.From.ToString(), args.Symbol)
                         }
                     };
                 }
 
                 // TODO: Support more methods
                 default:
-                    throw new AssertionException($"invalid method: {txn.MethodName}");
+                    return new ResourceInfo();
             }
         }
 
