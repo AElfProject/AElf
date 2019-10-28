@@ -9,6 +9,7 @@ using AElf.CSharp.Core.Utils;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
+using Shouldly;
 using Xunit;
 using SampleAddress = AElf.Contracts.TestKit.SampleAddress;
 
@@ -436,6 +437,15 @@ namespace AElf.Contracts.MultiToken
                 });
             var balance = GetBalanceOutput.Parser.ParseFrom(balanceResult);
             Assert.True(balance.Balance == (balanceBefore - 1000));
+
+            //verify side chain token address throw main chain token contract
+            var byteString = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
+                "GetCrossChainTransferTokenContractAddress", new GetCrossChainTransferTokenContractAddressInput
+                {
+                    ChainId = sideChainId
+                });
+            var tokenAddress = Address.Parser.ParseFrom(byteString);
+            tokenAddress.ShouldBe(SideTokenContractAddress);
         }
         
         [Fact]

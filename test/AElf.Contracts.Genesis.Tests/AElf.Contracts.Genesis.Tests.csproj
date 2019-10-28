@@ -46,6 +46,9 @@
         <ContractStub Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf\Proto\reference\aedpos_contract.proto</Link>
         </ContractStub>
+        <ContractStub Include="..\..\protobuf\basic_contract_zero.proto">
+            <Link>Protobuf\Proto\basic_contract_zero.proto</Link>
+        </ContractStub>
         <ContractStub Include="..\..\protobuf\basic_contract_zero_update.proto">
             <Link>Protobuf\Proto\basic_contract_zero_update.proto</Link>
         </ContractStub>
