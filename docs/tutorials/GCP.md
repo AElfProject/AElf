@@ -21,11 +21,13 @@ This will bring you to the deployment page (wait a short moment for the instance
     <img src="deployed.png">
 </p>
 
+
 2. Login launched vm instance via SSH: to start the easiest way is to login to the instance from the instance page:
 
 <p align="center">
     <img src="ssh-select.png">
 </p>
+
 
 
 3. The previous step should open a shell to the deployed instance where you can run the chain itself. First you'll need to execute ``sudo bash`` to elevate your privileges.
