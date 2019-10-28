@@ -4,5 +4,6 @@ namespace AElf.Database
         where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
     {
         public string ConnectionString { get; set; }
+        public string CommandMapping { get; set; }
     }
 }

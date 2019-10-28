@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using StackExchange.Redis;
 
 namespace AElf.Database.RedisProtocol
 {
@@ -137,8 +138,17 @@ namespace AElf.Database.RedisProtocol
         {
             if (connectionString == null)
                 throw new ArgumentNullException("connectionString");
+            
+            CommandMap commandMap = CommandMap.Default;
             if (connectionString.StartsWith("redis://"))
+            {
                 connectionString = connectionString.Substring("redis://".Length);
+            }
+            else if (connectionString.StartsWith("ssdb://"))
+            {
+                connectionString = connectionString.Substring("ssdb://".Length);
+                commandMap = CommandMap.Twemproxy;
+            }
 
             var domainParts = connectionString.SplitOnLast('@');
             var qsParts = domainParts.Last().SplitOnFirst('?');
@@ -152,6 +162,8 @@ namespace AElf.Database.RedisProtocol
             }
 
             var endpoint = new RedisEndpoint(hostParts[0], port);
+            endpoint.CommandMap = commandMap;
+            
             if (domainParts.Length > 1)
             {
                 var authParts = domainParts[0].SplitOnFirst(':');
@@ -378,6 +390,7 @@ namespace AElf.Database.RedisProtocol
             this.Db = db;
         }
 
+        public CommandMap CommandMap { get; set; }
         public string Host { get; set; }
         public int Port { get; set; }
         public bool Ssl { get; set; }
