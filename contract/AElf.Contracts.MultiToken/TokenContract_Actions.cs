@@ -19,6 +19,7 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override Empty Create(CreateInput input)
         {
+            AssertValidCreateInput(input);
             RegisterTokenInfo(new TokenInfo
             {
                 Symbol = input.Symbol,
