@@ -1,6 +1,6 @@
 # Getting started with Google cloud 
 
-To run an AElf node on Google cloud, follow these steps:
+This guide will run you through the steps required to run an AElf node on Google cloud (click the images for a more detailed view).
 
 1. From the [Google Cloud Market Place](https://console.cloud.google.com/marketplace) search for "aelf enterprise", click the link, it will direct you to the following page.
 
@@ -17,11 +17,9 @@ Click on the "LAUNCH ON COMPUTE ENGINE", this should give you the following depl
 You can keep the default settings, they are sufficient to get started. If you're satisfied with the settings, just click "DEPLOY" (bottom left of the page).
 This will bring you to the deployment page (wait a short moment for the instance to load), when finished you should see deployment information about the instance:
 
-
 <p align="center">
     <img src="deployed.png">
 </p>
-
 
 2. Login launched vm instance via SSH: to start the easiest way is to login to the instance from the instance page:
 
