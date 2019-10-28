@@ -238,7 +238,6 @@ namespace AElf.Kernel.SmartContract.Application
             }
             finally
             {
-                (txContext.StateCache as TieredStateCache)?.ClearTempValue();
                 await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
                 await LocalEventBus.PublishAsync(new TransactionExecutedEventData
                 {
@@ -326,7 +325,7 @@ namespace AElf.Kernel.SmartContract.Application
                     var stateSets = preTrace.GetStateSets().ToList();
                     internalStateCache.Update(stateSets);
                     var parentStateCache = txContext.StateCache as TieredStateCache;
-                    parentStateCache?.SetTempValues(stateSets);
+                    parentStateCache?.Update(stateSets);
                 }
             }
 
@@ -343,14 +342,11 @@ namespace AElf.Kernel.SmartContract.Application
             var trace = txContext.Trace;
             if (!trace.IsSuccessful())
             {
-                var parentStateCache = txContext.StateCache as TieredStateCache;
-                parentStateCache?.ClearTempValue();
                 internalStateCache = new TieredStateCache(txContext.StateCache);
                 foreach (var preTrace in txContext.Trace.PreTraces)
                 {
-                    var stateSets = preTrace.GetStateSets().ToList();
+                    var stateSets = preTrace.GetStateSets();
                     internalStateCache.Update(stateSets);
-                    parentStateCache?.SetTempValues(stateSets);
                 }
 
                 internalChainContext.StateCache = internalStateCache;

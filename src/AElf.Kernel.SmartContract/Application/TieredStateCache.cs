@@ -9,7 +9,6 @@ namespace AElf.Kernel.SmartContract.Application
         private IStateCache _parent = new NullStateCache();
         private Dictionary<ScopedStatePath, byte[]> _originalValues = new Dictionary<ScopedStatePath, byte[]>();
         private Dictionary<string, byte[]> _currentValues = new Dictionary<string, byte[]>();
-        private Dictionary<string, byte[]> _tempValues = new Dictionary<string, byte[]>();
 
         public TieredStateCache() : this(new NullStateCache())
         {
@@ -32,14 +31,8 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 value = currentValue;
             }
-            
-            var tempFound = _tempValues.TryGetValue(key.ToStateKey(), out var tempValue);
-            if (tempFound)
-            {
-                value = tempValue;
-            }
 
-            return originalFound || currentFound || tempFound;
+            return originalFound || currentFound;
         }
 
         public byte[] this[ScopedStatePath key]
@@ -70,29 +63,6 @@ namespace AElf.Kernel.SmartContract.Application
                     _currentValues[delete.Key] = null;
                 }
             }
-        }
-        
-        public void SetTempValues(IEnumerable<TransactionExecutingStateSet> stateSets)
-        {
-            foreach (var stateSet in stateSets)
-            {
-                var changes = stateSet.Writes;
-                foreach (var change in changes)
-                {
-                    _tempValues[change.Key] = change.Value.ToByteArray();
-                }
-
-                var deletes = stateSet.Deletes;
-                foreach (var delete in deletes)
-                {
-                    _tempValues[delete.Key] = null;
-                }
-            }
-        }
-
-        public void ClearTempValue()
-        {
-            _tempValues.Clear();
         }
 
         private bool TryGetOriginalValue(ScopedStatePath path, out byte[] value)
