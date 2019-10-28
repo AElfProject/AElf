@@ -94,7 +94,10 @@ namespace AElf.Contracts.MultiToken
         
         public override StringValue GetPrimaryTokenSymbol(Empty input)
         {
-            return new StringValue {Value = State.ChainPrimaryTokenSymbol.Value ?? State.NativeTokenSymbol.Value};
+            return new StringValue
+            {
+                Value = (State.ChainPrimaryTokenSymbol.Value ?? State.NativeTokenSymbol.Value) ?? string.Empty
+            };
         }
 
         #region ForTests

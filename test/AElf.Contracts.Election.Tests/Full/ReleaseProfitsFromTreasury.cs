@@ -399,7 +399,7 @@ namespace AElf.Contracts.Election
                     Owner = Address.FromPublicKey(VoterKeyPairs[0].PublicKey),
                     Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                 })).Balance;
-                afterBalance.ShouldBe(beforeBalance + profitAmount - txFee - txSize * 1000);
+                afterBalance.ShouldBe(beforeBalance + profitAmount - txFee - txSize * 0);
             }
 
             await GenerateMiningReward(5);
@@ -487,7 +487,7 @@ namespace AElf.Contracts.Election
                         Owner = Address.FromPublicKey(miner.PublicKey),
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     })).Balance;
-                    var sizeFees = (profitSize + voteSize + reElectionSize + backSize) * 1000;
+                    var sizeFees = (profitSize + voteSize + reElectionSize + backSize) * 0;
                     afterToken.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount +
                                         reElectionBalance + backupBalance - txFee * 4 - sizeFees);
                 }

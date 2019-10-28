@@ -48,7 +48,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     context.GetContractAddressByName(TokenSmartContractAddressNameProvider.Name),
                     // TODO: Try to use contract address name providers - put providers to one place easy to ref.
                     context.GetContractAddressByName(Hash.FromString("AElf.ContractNames.Consensus")),
-                    context.GetContractAddressByName(Hash.FromString("AElf.ContractNames.CrossChain"))
+                    context.GetContractAddressByName(Hash.FromString("AElf.ContractNames.CrossChain")),
+                    context.GetContractAddressByName(Hash.FromString("AElf.ContractNames.Economic")),
                 };
                 if (systemContractAddresses.Contains(transactionContext.Transaction.To))
                 {
@@ -63,7 +64,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                         nameof(TokenContractContainer.TokenContractStub.Create),
                         nameof(TokenContractContainer.TokenContractStub.Issue),
                         nameof(TokenContractContainer.TokenContractStub.CrossChainTransfer),
-                        nameof(TokenContractContainer.TokenContractStub.CrossChainReceiveToken)
+                        nameof(TokenContractContainer.TokenContractStub.CrossChainReceiveToken),
+                        "IssueNativeToken"
                     };
 
                     if (methodNameWhiteList.Contains(transactionContext.Transaction.MethodName))

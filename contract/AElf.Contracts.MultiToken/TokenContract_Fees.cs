@@ -22,6 +22,13 @@ namespace AElf.Contracts.MultiToken
                 "Invalid charge transaction fees input.");
 
             var result = new TransactionFee();
+            
+            var symbolToChargeTxSizeFee = GetPrimaryTokenSymbol(new Empty())?.Value;
+            if (symbolToChargeTxSizeFee == string.Empty)
+            {
+                // Primary token not created yet.
+                return result;
+            }
 
             var fee = Context.Call<MethodFees>(input.ContractAddress, nameof(GetMethodFee),
                 new StringValue {Value = input.MethodName});
@@ -44,9 +51,8 @@ namespace AElf.Contracts.MultiToken
                 result.Value.Add(symbol, amount);
             }
 
-            var symbolToChargeTxSizeFee = GetPrimaryTokenSymbol(new Empty()).Value;
             var balanceAfterChargingBaseFee = State.Balances[fromAddress][symbolToChargeTxSizeFee];
-            var txSizeFeeAmount = input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice);
+            var txSizeFeeAmount = input.TransactionSize.Mul(State.TransactionFeeUnitPrice.Value);
             txSizeFeeAmount = balanceAfterChargingBaseFee > txSizeFeeAmount // Enough to pay tx size fee.
                 ? txSizeFeeAmount
                 // It's safe to convert from long to int here because
@@ -76,8 +82,8 @@ namespace AElf.Contracts.MultiToken
             // If balanceAfterChargingBaseFee < txSizeFeeAmount, make sender's balance of native symbol to 0 and make current execution failed.
             Assert(
                 balanceAfterChargingBaseFee >=
-                input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice),
-                $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {input.TransactionSize.Mul(TokenContractConstants.TransactionSizeUnitPrice)}");
+                input.TransactionSize.Mul(State.TransactionFeeUnitPrice.Value),
+                $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {input.TransactionSize.Mul(State.TransactionFeeUnitPrice.Value)}.\n Primary token: {symbolToChargeTxSizeFee}");
 
             if (result.Value.ContainsKey(symbolToChargeTxSizeFee))
             {

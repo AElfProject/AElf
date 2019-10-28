@@ -8,6 +8,12 @@ namespace AElf.Contracts.MultiToken
     {
         public override MethodFees GetMethodFee(StringValue input)
         {
+            var primaryTokenSymbol = GetPrimaryTokenSymbol(new Empty()).Value;
+            if (primaryTokenSymbol == string.Empty)
+            {
+                return new MethodFees();
+            }
+
             if (input.Value == nameof(Transfer) || input.Value == nameof(TransferFrom))
             {
                 return new MethodFees
@@ -17,7 +23,7 @@ namespace AElf.Contracts.MultiToken
                     {
                         new MethodFee
                         {
-                            Symbol = GetPrimaryTokenSymbol(new Empty()).Value,
+                            Symbol = primaryTokenSymbol,
                             BasicFee = 1000_0000
                         }
                     }

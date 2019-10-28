@@ -176,7 +176,7 @@ namespace AElf.Contracts.Election
             // Check ELF token balance.
             {
                 var balance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
-                balance.ShouldBe(balanceBeforeVoting - actualVotedAmount * 10000_0000);
+                balance.ShouldBeLessThan(balanceBeforeVoting - actualVotedAmount * 10000_0000);
             }
 
             // Check VOTE token balance.
@@ -375,7 +375,7 @@ namespace AElf.Contracts.Election
             // Check ELF token balance
             {
                 var balance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
-                balance.ShouldBe(beforeBalance - 1_00000000 - txSize * 1000);
+                balance.ShouldBe(beforeBalance - 1_00000000 - txSize * 0);
             }
 
             // Check VOTE token balance.
@@ -441,7 +441,7 @@ namespace AElf.Contracts.Election
                 Value = pubkey
             });
 
-            candidateInformation.ShouldBe(new CandidateInformation());
+            candidateInformation.ShouldBe(new CandidateInformation {Pubkey = pubkey});
         }
     }
 }
