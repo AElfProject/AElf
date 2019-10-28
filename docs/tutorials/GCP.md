@@ -2,15 +2,42 @@
 
 To run an AElf node on Google cloud, follow these steps:
 
-1. From the [Google Cloud Market Place](https://console.cloud.google.com/marketplace) search search for "aelf enterprise" and launch a VM instance using the image. 
-2. Login launched vm instance via SSH. 
-3. Next launch the chain. There's two ways to start the node:
-    - run in the foreground: 
-      - ```bash root@test:/# cd /opt/aelf-node && docker-compose up```
-    - run in the background:
-      - ```bash root@test:/# cd /opt/aelf-node && docker-compose up -d```
+1. From the [Google Cloud Market Place](https://console.cloud.google.com/marketplace) search for "aelf enterprise", click the link, it will direct you to the following page.
 
-It will start redis and an aelf node.Once deployed go to the directory containing the docker compose file:
+<p align="center">
+    <img src="gcp-step1.png">
+</p>
+
+Click on the "LAUNCH ON COMPUTE ENGINE", this should give you the following deployment page:
+
+<p align="center">
+    <img src="gcp-step2-b.png">
+</p>
+
+You can keep the default settings, they are sufficient to get started. If you're satisfied with the settings, just click "DEPLOY" (bottom left of the page).
+This will bring you to the deployment page (wait a short moment for the instance to load), when finished you should see deployment information about the instance:
+
+
+<p align="center">
+    <img src="deployed.png">
+</p>
+
+
+2. Login launched vm instance via SSH: to start the easiest way is to login to the instance from the instance page:
+
+<p align="center">
+    <img src="ssh-select.png">
+</p>
+
+
+3. The previous step should open a shell to the deployed instance where you can run the chain itself. First you'll need to execute ``sudo bash`` to elevate your privileges.
+Next, start the chain, there's two ways to do this (for this tutorial we'll use the second method):
+ - either run it in the foreground: 
+   - ```bash root@test:/# cd /opt/aelf-node && docker-compose up```
+ - or run it in the background:
+   - ```bash root@test:/# cd /opt/aelf-node && docker-compose up -d```
+
+It will start redis and an AElf node.
 
 <p align="center">
     <img src="docker-compose.png">
