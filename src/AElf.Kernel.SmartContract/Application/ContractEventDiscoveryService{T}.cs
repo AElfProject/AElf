@@ -88,7 +88,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                 return messages;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Logger.LogError($"Failed to resolve event {typeof(T).FullName}");
                 throw;

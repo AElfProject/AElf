@@ -110,9 +110,8 @@ namespace AElf.Parallel.Tests
                     var transaction = GenerateTransaction(from,
                         BasicFunctionWithParallelContractAddress,
                         nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub
-                            .QueryTwoUserWinMoney),
-                        new QueryTwoUserWinMoneyInput
-                            {First = from, Second = address});
+                            .IncreaseWinMoney),
+                        new IncreaseWinMoneyInput {First = from, Second = address});
                     var signature =
                         CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, transaction.GetHash().ToByteArray());
                     transaction.Signature = ByteString.CopyFrom(signature); 

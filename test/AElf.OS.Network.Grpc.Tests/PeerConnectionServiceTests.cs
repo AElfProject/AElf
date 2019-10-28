@@ -14,7 +14,6 @@ namespace AElf.OS.Network
     {
         private readonly IConnectionService _connectionService;
         private readonly IPeerPool _peerPool;
-        private readonly NetworkOptions _netOptions;
 
         public PeerConnectionServiceTests()
         {

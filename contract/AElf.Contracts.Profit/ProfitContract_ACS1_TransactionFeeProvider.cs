@@ -44,6 +44,7 @@ namespace AElf.Contracts.Profit
             }
 
             Assert(Context.Sender == State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty()));
+            Assert(input.Fees.Count <= ProfitContractConstants.TokenAmountLimit, "Invalid input.");
             State.TransactionFees[input.MethodName] = input;
 
             return new Empty();

@@ -93,6 +93,7 @@ namespace AElf.Contracts.Election
             balanceBeforeAnnouncing.ShouldBe(balanceAfterAnnouncing + ElectionContractConstants.LockTokenForElection);
         }
 
+        #pragma warning disable xUnit1013
         public async Task ElectionContract_QuiteElection_Test()
         {
             const int quitCount = 2;
