@@ -381,7 +381,7 @@ namespace AElf.Contracts.AssociationAuth
         }
 
         [Fact]
-        public async Task Release_Same_Proposal_Success_Test()
+        public async Task Release_Proposal_AlreadyReleased_Test()
         {
             var organizationAddress = await CreateOrganizationAsync();
             var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);

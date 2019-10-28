@@ -84,6 +84,8 @@ namespace AElf.Contracts.ReferendumAuth
             Assert(Validate(proposal), "Invalid proposal.");
             Assert(State.Proposals[hash] == null, "Proposal already exists.");
             State.Proposals[hash] = proposal;
+            Context.Fire(new ProposalCreated { ProposalId = hash});
+            
             return hash;
         }
 
@@ -146,6 +148,9 @@ namespace AElf.Contracts.ReferendumAuth
             Assert(IsReleaseThresholdReached(proposalId, organization), "Not approved.");
             Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
                 proposalInfo.ContractMethodName, proposalInfo.Params);
+            
+            Context.Fire(new ProposalReleased{ ProposalId = proposalId});
+            State.Proposals.Remove(proposalId);
             
             return new Empty();
         }

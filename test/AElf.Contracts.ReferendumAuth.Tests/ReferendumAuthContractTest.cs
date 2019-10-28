@@ -298,6 +298,41 @@ namespace AElf.Contracts.ReferendumAuth
             newToken.Issuer.ShouldBe(organizationAddress);
         }
 
+        [Fact]
+        public async Task Release_Proposal_AlreadyReleased_Test()
+        {
+            var organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
+            await ApproveAsync(SampleECKeyPairs.KeyPairs[3], proposalId, 5000);
+
+            ReferendumAuthContractStub = GetReferendumAuthContractTester(DefaultSenderKeyPair);
+            var result = await ReferendumAuthContractStub.Release.SendAsync(proposalId);
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var proposalReleased = ProposalReleased.Parser.ParseFrom(result.TransactionResult.Logs[0].NonIndexed)
+                .ProposalId;
+            proposalReleased.ShouldBe(proposalId);
+
+            //After release,the proposal will be deleted
+            var getProposal = await ReferendumAuthContractStub.GetProposal.CallAsync(proposalId);
+            getProposal.ShouldBe(new ProposalOutput());
+
+            //approve the same proposal again
+            ReferendumAuthContractStub = GetReferendumAuthContractTester(SampleECKeyPairs.KeyPairs[3]);
+            var transactionResult = await ReferendumAuthContractStub.Approve.SendAsync(new ApproveInput
+            {
+                ProposalId = proposalId,
+                Quantity = 5000
+            });
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.TransactionResult.Error.ShouldContain("Invalid proposal");
+
+            //release the same proposal again
+            ReferendumAuthContractStub = GetReferendumAuthContractTester(DefaultSenderKeyPair);
+            var transactionResult2 = await ReferendumAuthContractStub.Release.SendAsync(proposalId);
+            transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult2.TransactionResult.Error.ShouldContain("Proposal not found.");
+        }
+
         private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair,Address organizationAddress)
         {
             var createInput = new CreateInput()
