@@ -2,7 +2,7 @@
 
 This guide will run you through the steps required to run an AElf node on Google cloud (click the images for a more detailed view).
 
-First go to the [Google Cloud Market Place](https://console.cloud.google.com/marketplace)  and search for "aelf enterprise", click the link, it will direct you to the image's main page.
+First go to the [Google Cloud Market Place](https://console.cloud.google.com/marketplace)  and search for "aelf enterprise", find the image and select it, this will direct you to the image's page.
 
 <p align="center">
     <img src="gcp-step1.png">
@@ -22,7 +22,7 @@ This will bring you to the deployment page (wait a short moment for the instance
     <img src="deployed.png">
 </p>
 
-Next, login to the launched VM instance via SSH, to start the easiest way is to login to the instance from this instance page. To do this click the SSH drop down and select "Open in browser window":
+Next, login to the launched VM instance via SSH. To start the easiest way is to login to the instance directly from this deployment page. To do this click the SSH drop down and select "Open in browser window":
 
 <p align="center">
     <img src="ssh-select.png">
