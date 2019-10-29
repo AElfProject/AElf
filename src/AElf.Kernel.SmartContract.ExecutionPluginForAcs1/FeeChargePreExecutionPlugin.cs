@@ -8,8 +8,6 @@ using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.Reflection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
@@ -17,12 +15,10 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
     public class FeeChargePreExecutionPlugin : IPreExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
-        public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService)
         {
             _contextService = contextService;
-            Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
         private static bool IsAcs1(IReadOnlyList<ServiceDescriptor> descriptors)
         {
@@ -73,7 +69,6 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 // Skip ChargeTransactionFees itself 
                 return new List<Transaction>();
             }
-            Logger.LogDebug($"## Transaction:{context.TransactionContext.Transaction}, Fee: {fee}");
             var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(new ChargeTransactionFeesInput
             {
                 SymbolToAmount = {fee.Amounts.ToDictionary(a => a.Symbol, a => a.Amount)}
