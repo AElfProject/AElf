@@ -58,8 +58,8 @@ namespace AElf.Contracts.Election
                 IsLockToken = false,
                 AcceptedCurrency = Context.Variables.NativeSymbol,
                 TotalSnapshotNumber = long.MaxValue,
-                StartTimestamp = DateTime.SpecifyKind(DateTime.MinValue,DateTimeKind.Utc).ToTimestamp(),
-                EndTimestamp = DateTime.SpecifyKind(DateTime.MaxValue, DateTimeKind.Utc).ToTimestamp()
+                StartTimestamp = TimestampHelper.MinValue,
+                EndTimestamp = TimestampHelper.MaxValue
             };
             State.VoteContract.Register.Send(votingRegisterInput);
 
