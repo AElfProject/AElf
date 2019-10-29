@@ -14,27 +14,62 @@ namespace AElf.Database
     public class RedisDatabase<TKeyValueDbContext> : IKeyValueDatabase<TKeyValueDbContext>
         where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
     {
-        private readonly ConnectionMultiplexer _connectionMultiplexer;
+//        static Lazy<ConnectionMultiplexer> _connectionMultiplexer => 
+//            new Lazy<ConnectionMultiplexer>(() =>
+//            {
+//                var config = new ConfigurationOptions
+//                {
+//                
+//                    EndPoints = { { "localhost", 8888 } },
+//                    DefaultDatabase = 0,
+//                    CommandMap = CommandMap.Twemproxy
+//                };
+//                
+//                return ConnectionMultiplexer.Connect(config);
+//            });
+
+//        private static ConnectionMultiplexer __connectionMultiplexer;
+//        public static ConnectionMultiplexer _connectionMultiplexer
+//        {
+//            get { return __connectionMultiplexer;}
+//            set
+//            {
+//                __connectionMultiplexer = value;
+//            }
+//        }
+
+//        private static readonly Object _multiplexerLock = new Object();
 
         protected CommandMap _commandMap = CommandMap.Default;
         
         public ILogger<RedisDatabase<TKeyValueDbContext>> Logger { get; set; }
+        
+        private readonly IDatabaseConnectionProvider _databaseConnectionProvider;
+        private readonly IConnectionMultiplexer _connectionMultiplexer;
 
-        public RedisDatabase(KeyValueDatabaseOptions<TKeyValueDbContext> options)
+        public RedisDatabase(KeyValueDatabaseOptions<TKeyValueDbContext> options, IDatabaseConnectionProvider databaseConnectionProvider)
         {
             Check.NotNullOrWhiteSpace(options.ConnectionString, nameof(options.ConnectionString));
+            
+            _databaseConnectionProvider = databaseConnectionProvider;
+            _connectionMultiplexer = _databaseConnectionProvider.Connection;
 
-            var endpoint = options.ConnectionString.ToRedisEndpoint();
-            var config = new ConfigurationOptions
-            {
-                
-                EndPoints = { { endpoint.Host, 8888 } },
-                DefaultDatabase = 0,
-                CommandMap = CommandMap.Twemproxy
-            };
-
-            _connectionMultiplexer = ConnectionMultiplexer.Connect(config);
-
+//            lock (_multiplexerLock)
+//            {
+//                if (_connectionMultiplexer == null)
+//                {
+//                    var endpoint = options.ConnectionString.ToRedisEndpoint();
+//                    var config = new ConfigurationOptions
+//                    {
+//                
+//                        EndPoints = { { endpoint.Host, 8888 } },
+//                        DefaultDatabase = 0,
+//                        CommandMap = CommandMap.Twemproxy
+//                    };
+//
+//                    _connectionMultiplexer = ConnectionMultiplexer.Connect(config);
+//                }
+//            }
         }
 
         public bool IsConnected()
@@ -42,9 +77,11 @@ namespace AElf.Database
             return _connectionMultiplexer.IsConnected;
         }
 
+        private static int getCount = 0;
         public async Task<byte[]> GetAsync(string key)
         {
-            //Logger.LogDebug($"logger GetAsync key: {key}");
+            getCount++;
+            Logger.LogDebug($"type: {typeof(TKeyValueDbContext).FullName}, is-co: {IsConnected()}, count: {getCount}, GetAsync key: {key}");
             Check.NotNullOrWhiteSpace(key, nameof(key));
             
             try
@@ -53,15 +90,17 @@ namespace AElf.Database
             }
             catch (Exception e)
             {
-                Logger.LogDebug($"is-co: {IsConnected()}, GetAsync key error: {key}" + e);
+                Logger.LogDebug($"type: {typeof(TKeyValueDbContext).FullName}, is-co: {IsConnected()}, GetAsync key error: {key}" + e);
             }
 
             return null;
         }
 
+        private static int setCount = 0;
         public async Task SetAsync(string key, byte[] bytes)
         {
-            Logger.LogDebug($"is-co: {IsConnected()}, SetAsync key: {key}");
+            setCount++;
+            Logger.LogDebug($"type: {typeof(TKeyValueDbContext).FullName}, is-co: {IsConnected()}, count: {setCount}, SetAsync key: {key}");
             Check.NotNullOrWhiteSpace(key, nameof(key));
             
             try
@@ -70,13 +109,13 @@ namespace AElf.Database
             }
             catch (Exception e)
             {
-                Logger.LogDebug($"is-co: {IsConnected()}, SetAsync key error: {key}" + e);
+                Logger.LogDebug($"type: {typeof(TKeyValueDbContext).FullName}, is-co: {IsConnected()}, SetAsync key error: {key}" + e);
             }
         }
 
         public async Task RemoveAsync(string key)
         {
-            Logger.LogDebug($"is-co: {IsConnected()}, RemoveAsync key: {key}");
+            Logger.LogDebug($"type: {typeof(TKeyValueDbContext).FullName}, is-co: {IsConnected()}, RemoveAsync key: {key}");
             Check.NotNullOrWhiteSpace(key, nameof(key));
 
             try
@@ -85,7 +124,7 @@ namespace AElf.Database
             }
             catch (Exception e)
             {
-                Logger.LogDebug($"is-co: {IsConnected()}, RemoveAsync key error: {key}" + e);
+                Logger.LogDebug($"type: {typeof(TKeyValueDbContext).FullName}, is-co: {IsConnected()}, RemoveAsync key error: {key}" + e);
             }
         }
 
