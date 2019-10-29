@@ -75,11 +75,11 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                 Symbol = "ELF"
             })).Balance;
 
-            var transferAmount = originalBalance - feeAmount;
+            var targetAmount = originalBalance - feeAmount;
             var burnResult = await TokenContractStub.Burn.SendAsync(new BurnInput
             {
                 Symbol = "ELF",
-                Amount = transferAmount
+                Amount = targetAmount + 1
             });
             burnResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
