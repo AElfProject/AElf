@@ -176,20 +176,7 @@ namespace AElf.WebApp.Application.Chain
             {
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
-            
-            var transactionResultList = new List<TransactionResult>();
-            foreach (var item in blockInfo.TransactionIds)
-            {
-                var result = await GetTransactionResultAsync(item);
-                transactionResultList.Add(result);
-            }
-            
-            var transactionResultSet = transactionResultList.Select(txResult => (txResult.TransactionId, txResult.Status));
-            var leafNodes = new List<Hash>();
-            foreach (var (txId, status) in transactionResultSet)
-            {
-                leafNodes.Add(GetHashCombiningTransactionAndStatus(txId, status));
-            }
+            var leafNodes = await GetLeafNodesAsync(blockInfo.TransactionIds);
 
             var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(leafNodes);
             var path = binaryMerkleTree.GenerateMerklePath(index);
@@ -269,15 +256,6 @@ namespace AElf.WebApp.Application.Chain
 
             return transactionResultDto;
         }
-        
-        private Hash GetHashCombiningTransactionAndStatus(Hash txId,
-            TransactionResultStatus executionReturnStatus)
-        {
-            // combine tx result status
-            var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
-                .ToArray();
-            return Hash.FromRawBytes(rawBytes);
-        }
 
         private async Task<TransactionResult> GetMinedTransactionResultAsync(Hash transactionIdHash)
         {
@@ -297,6 +275,34 @@ namespace AElf.WebApp.Application.Chain
             }
 
             return transactionResult;
+        }
+
+        private async Task<List<Hash>> GetLeafNodesAsync(IEnumerable<Hash> transactionIds)
+        {
+            var transactionResultList = new List<TransactionResult>();
+            foreach (var item in transactionIds)
+            {
+                var result = await GetTransactionResultAsync(item);
+                transactionResultList.Add(result);
+            }
+
+            var transactionResultSet = transactionResultList.Select(txResult => (txResult.TransactionId, txResult.Status));
+            var leafNodes = new List<Hash>();
+            foreach (var (txId, status) in transactionResultSet)
+            {
+                leafNodes.Add(GetHashCombiningTransactionAndStatus(txId, status));
+            }
+
+            return leafNodes;
+        }
+
+        private Hash GetHashCombiningTransactionAndStatus(Hash txId,
+            TransactionResultStatus executionReturnStatus)
+        {
+            // combine tx result status
+            var rawBytes = txId.ToByteArray().Concat(Encoding.UTF8.GetBytes(executionReturnStatus.ToString()))
+                .ToArray();
+            return Hash.FromRawBytes(rawBytes);
         }
     }
 }

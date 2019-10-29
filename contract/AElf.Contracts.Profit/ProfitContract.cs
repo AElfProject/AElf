@@ -54,17 +54,7 @@ namespace AElf.Contracts.Profit
                 schemeId = Hash.FromTwoHashes(schemeId, createdSchemeIds.Last());
             }
 
-            var scheme = new Scheme
-            {
-                SchemeId = schemeId,
-                // The address of general ledger for current profit item.
-                VirtualAddress = Context.ConvertVirtualAddressToContractAddress(schemeId),
-                Manager = input.Manager == null ? Context.Sender : input.Manager,
-                ProfitReceivingDuePeriodCount = input.ProfitReceivingDuePeriodCount,
-                CurrentPeriod = 1,
-                IsReleaseAllBalanceEveryTimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault,
-                DelayDistributePeriodCount = input.DelayDistributePeriodCount
-            };
+            var scheme = GetNewScheme(input, schemeId);
             State.SchemeInfos[schemeId] = scheme;
 
             var schemeIds = State.ManagingSchemeIds[scheme.Manager];
@@ -758,6 +748,23 @@ namespace AElf.Contracts.Profit
             if (state.Value != null)
                 return;
             state.Value = Context.GetContractAddressByName(contractSystemName);
+        }
+        
+        private Scheme GetNewScheme(CreateSchemeInput input, Hash schemeId)
+        {
+            var scheme = new Scheme
+            {
+                SchemeId = schemeId,
+                // The address of general ledger for current profit item.
+                VirtualAddress = Context.ConvertVirtualAddressToContractAddress(schemeId),
+                Manager = input.Manager == null ? Context.Sender : input.Manager,
+                ProfitReceivingDuePeriodCount = input.ProfitReceivingDuePeriodCount,
+                CurrentPeriod = 1,
+                IsReleaseAllBalanceEveryTimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault,
+                DelayDistributePeriodCount = input.DelayDistributePeriodCount
+            };
+
+            return scheme;
         }
     }
 }

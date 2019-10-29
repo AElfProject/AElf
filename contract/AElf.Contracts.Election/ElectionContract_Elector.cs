@@ -39,7 +39,7 @@ namespace AElf.Contracts.Election
 
             var candidateVotesAmount = UpdateCandidateInformation(input.CandidatePubkey, input.Amount);
 
-            LockNativeSymbolOfSender(input.Amount);
+            CallTokenContractLock(input.Amount);
 
             CallTokenContractIssue(input.Amount);
 
@@ -355,7 +355,7 @@ namespace AElf.Contracts.Election
                 $"Invalid lock time. At most {State.MaximumLockTime.Value.Div(60).Div(60).Div(24)} days");
         }
 
-        private void LockNativeSymbolOfSender(long amount)
+        private void CallTokenContractLock(long amount)
         {
             State.TokenContract.Lock.Send(new LockInput
             {
