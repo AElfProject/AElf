@@ -4,6 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Threading;
 using AElf.Cryptography.ECDSA;
+using AElf.Cryptography.ECDSA.Exceptions;
 using Secp256k1Net;
 using Virgil.Crypto;
 
@@ -29,7 +30,8 @@ namespace AElf.Cryptography
         {
             if (privateKey == null || privateKey.Length != 32)
             {
-                throw new ArgumentException("Private key has to have length of 32.");
+                throw new InvalidPrivateKeyException(
+                    $"Private key has to have length of 32. Current length is {privateKey?.Length}.");
             }
 
             try
@@ -38,10 +40,10 @@ namespace AElf.Cryptography
                 var secp256K1PubKey = new byte[64];
 
                 if(!Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey))
-                    throw new InvalidOperationException("Create public key failed.");
+                    throw new PublicKeyOperationException("Create public key failed.");
                 var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
                 if(!Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey))
-                    throw new InvalidOperationException("Serialize public key failed.");
+                    throw new PublicKeyOperationException("Serialize public key failed.");
                 return new ECKeyPair(privateKey, pubKey);
             }
             finally
@@ -66,10 +68,10 @@ namespace AElf.Cryptography
                 } while (!Secp256K1.SecretKeyVerify(privateKey));
 
                 if(!Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey))
-                    throw new InvalidOperationException("Create public key failed.");
+                    throw new PublicKeyOperationException("Create public key failed.");
                 var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
                 if(!Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey))
-                    throw new InvalidOperationException("Serialize public key failed.");
+                    throw new PublicKeyOperationException("Serialize public key failed.");
                 return new ECKeyPair(privateKey, pubKey);
             }
             finally
@@ -86,9 +88,9 @@ namespace AElf.Cryptography
                 var recSig = new byte[65];
                 var compactSig = new byte[65];
                 if(!Secp256K1.SignRecoverable(recSig, hash, privateKey))
-                    throw new InvalidOperationException("Create a recoverable ECDSA signature failed.");
+                    throw new SignatureOperationException("Create a recoverable ECDSA signature failed.");
                 if(!Secp256K1.RecoverableSignatureSerializeCompact(compactSig, out var recoverId, recSig))
-                    throw new InvalidOperationException("Serialize an ECDSA signature failed.");
+                    throw new SignatureOperationException("Serialize an ECDSA signature failed.");
                 compactSig[64] = (byte) recoverId; // put recover id at the last slot
                 return compactSig;
             }
@@ -153,10 +155,10 @@ namespace AElf.Cryptography
                 Lock.AcquireWriterLock(Timeout.Infinite);
                 var usablePublicKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
                 if(!Secp256K1.PublicKeyParse(usablePublicKey, publicKey))
-                    throw new InvalidOperationException("Parse public key failed.");
+                    throw new PublicKeyOperationException("Parse public key failed.");
                 var ecdhKey = new byte[Secp256k1.SERIALIZED_COMPRESSED_PUBKEY_LENGTH];
                 if(!Secp256K1.Ecdh(ecdhKey, usablePublicKey, privateKey))
-                    throw new InvalidOperationException("Compute EC Diffie- secret failed.");
+                    throw new EcdhOperationException("Compute EC Diffie- secret failed.");
                 return ecdhKey;
             }
             finally
