@@ -13,17 +13,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         private ValidationResult ValidateBeforeExecution(AElfConsensusHeaderInformation extraData)
         {
-            // We can trust this because we already validated the pubkey
-            // during `AEDPoSExtraDataExtractor.ExtractConsensusExtraData`
-            // This validation focuses on the new round information.
-
             // According to current round information:
             if (!TryToGetCurrentRoundInformation(out var baseRound))
             {
                 return new ValidationResult {Success = false, Message = "Failed to get current round information."};
             }
-
-            /* Ask several questions: */
 
             var validationContext = new ConsensusValidationContext
             {
@@ -35,15 +29,41 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 ExtraData = extraData,
                 RoundsDict = _rounds
             };
-            var service = new HeaderInformationValidationService(new List<IHeaderInformationValidationProvider>
+            
+            /* Ask several questions: */
+            
+            // Add basic providers at first.
+            var validationProviders = new List<IHeaderInformationValidationProvider>
             {
+                // Is sender in miner list?
                 new MiningPermissionValidationProvider(),
-                new RoundTimeSlotsValidationProvider(),
+                
+                // Is this block produced in proper time?
+                new TimeSlotValidationProvider(),
+                
+                // Is sender produced too many blocks at one time?
                 new ContinuousBlocksValidationProvider(),
-                new SenderOrderValidationProvider(),
+                
+                // Is confirmed lib height and lib round number went down? (Which should not happens.)
                 new ConfirmedLibValidationProvider(),
-                new RoundAndTermValidationProvider()
-            });
+            };
+
+            switch (extraData.Behaviour)
+            {
+                case AElfConsensusBehaviour.UpdateValue:
+                    validationProviders.Add(new UpdateValueValidationProvider());
+                    break;
+                case AElfConsensusBehaviour.TinyBlock:
+                    break;
+                case AElfConsensusBehaviour.NextRound:
+                case AElfConsensusBehaviour.NextTerm:
+                    validationProviders.Add(new RoundTerminateValidationProvider());
+                    // Is sender's order of next round correct?
+                    validationProviders.Add(new NextRoundMiningOrderValidationProvider());
+                    break;
+            }
+
+            var service = new HeaderInformationValidationService(validationProviders);
 
             var validationResult = service.ValidateInformation(validationContext);
             if (validationResult.Success == false)

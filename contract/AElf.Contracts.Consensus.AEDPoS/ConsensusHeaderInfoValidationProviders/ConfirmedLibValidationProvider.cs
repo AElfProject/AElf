@@ -6,7 +6,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         public ValidationResult ValidateHeaderInformation(ConsensusValidationContext validationContext)
         {
-            // Is confirmed lib height and lib round number went down?
             var validationResult = new ValidationResult();
             var baseRound = validationContext.BaseRound;
             var providedRound = validationContext.ProvidedRound;
