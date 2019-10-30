@@ -36,7 +36,9 @@ namespace AElf.Kernel.TransactionPool.Application
                 BlockHeight = chain.BestChainHeight
             });
 
-            return (await tokenStub.GetTransactionSizeFeeUnitPrice.CallAsync(new Empty())).Value;
+            _unitPrice = (await tokenStub.GetTransactionSizeFeeUnitPrice.CallAsync(new Empty())).Value;
+
+            return _unitPrice.Value;
         }
     }
 }
