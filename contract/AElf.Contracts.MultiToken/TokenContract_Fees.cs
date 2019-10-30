@@ -22,9 +22,8 @@ namespace AElf.Contracts.MultiToken
                 "Invalid charge transaction fees input.");
 
             var result = new TransactionFee();
-            
-            var symbolToChargeTxSizeFee = GetPrimaryTokenSymbol(new Empty())?.Value;
-            if (symbolToChargeTxSizeFee == string.Empty)
+
+            if (input.PrimaryTokenSymbol == string.Empty)
             {
                 // Primary token not created yet.
                 return result;
@@ -51,7 +50,7 @@ namespace AElf.Contracts.MultiToken
                 result.Value.Add(symbol, amount);
             }
 
-            var balanceAfterChargingBaseFee = State.Balances[fromAddress][symbolToChargeTxSizeFee];
+            var balanceAfterChargingBaseFee = State.Balances[fromAddress][input.PrimaryTokenSymbol];
             var txSizeFeeAmount = input.TransactionSize.Mul(State.TransactionFeeUnitPrice.Value);
             txSizeFeeAmount = balanceAfterChargingBaseFee > txSizeFeeAmount // Enough to pay tx size fee.
                 ? txSizeFeeAmount
@@ -65,7 +64,7 @@ namespace AElf.Contracts.MultiToken
                 TokenToAmount =
                 {
                     {
-                        symbolToChargeTxSizeFee,
+                        input.PrimaryTokenSymbol,
                         txSizeFeeAmount
                     }
                 }
@@ -73,7 +72,7 @@ namespace AElf.Contracts.MultiToken
 
             // Charge tx size fee.
             var finalBalanceOfNativeSymbol = balanceAfterChargingBaseFee.Sub(txSizeFeeAmount);
-            State.Balances[fromAddress][symbolToChargeTxSizeFee] = finalBalanceOfNativeSymbol;
+            State.Balances[fromAddress][input.PrimaryTokenSymbol] = finalBalanceOfNativeSymbol;
 
             // Record the bill finally.
             var oldBill = State.ChargedFees[fromAddress];
@@ -83,16 +82,17 @@ namespace AElf.Contracts.MultiToken
             Assert(
                 balanceAfterChargingBaseFee >=
                 input.TransactionSize.Mul(State.TransactionFeeUnitPrice.Value),
-                $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {input.TransactionSize.Mul(State.TransactionFeeUnitPrice.Value)}.\n Primary token: {symbolToChargeTxSizeFee}");
+                $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {input.TransactionSize.Mul(State.TransactionFeeUnitPrice.Value)}.\n " +
+                $"Primary token: {input.PrimaryTokenSymbol}");
 
-            if (result.Value.ContainsKey(symbolToChargeTxSizeFee))
+            if (result.Value.ContainsKey(input.PrimaryTokenSymbol))
             {
-                result.Value[symbolToChargeTxSizeFee] =
-                    result.Value[symbolToChargeTxSizeFee].Add(txSizeFeeAmount);
+                result.Value[input.PrimaryTokenSymbol] =
+                    result.Value[input.PrimaryTokenSymbol].Add(txSizeFeeAmount);
             }
             else
             {
-                result.Value.Add(symbolToChargeTxSizeFee, txSizeFeeAmount);
+                result.Value.Add(input.PrimaryTokenSymbol, txSizeFeeAmount);
             }
 
             return result;

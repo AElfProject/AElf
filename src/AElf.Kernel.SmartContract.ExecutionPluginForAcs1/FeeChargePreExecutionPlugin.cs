@@ -18,14 +18,17 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly ISystemTransactionMethodNameListProvider _systemTransactionMethodNameListProvider;
+        private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
 
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
-            ISystemTransactionMethodNameListProvider systemTransactionMethodNameListProvider)
+            ISystemTransactionMethodNameListProvider systemTransactionMethodNameListProvider,
+            IPrimaryTokenSymbolProvider primaryTokenSymbolProvider)
         {
             _contextService = contextService;
             _systemTransactionMethodNameListProvider = systemTransactionMethodNameListProvider;
+            _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
 
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
@@ -107,7 +110,8 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     {
                         MethodName = transactionContext.Transaction.MethodName,
                         ContractAddress = transactionContext.Transaction.To,
-                        TransactionSize = transactionContext.Transaction.Size()
+                        TransactionSize = transactionContext.Transaction.Size(),
+                        PrimaryTokenSymbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol()
                     })).Transaction;
                 return new List<Transaction>
                 {
