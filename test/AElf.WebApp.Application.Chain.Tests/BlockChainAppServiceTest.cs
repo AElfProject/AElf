@@ -686,7 +686,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Header.Time.ShouldBe(block.Header.Time.ToDateTime());
             response.Header.ChainId.ShouldBe(ChainHelper.ConvertChainIdToBase58(chain.Id));
             response.Header.Bloom.ShouldBe(block.Header.Bloom.ToBase64());
-            response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToBase64());
+            response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToByteArray().ToHex());
             response.Header.Extra.ShouldBe(block.Header.ExtraData?.ToString());
             response.Body.TransactionsCount.ShouldBe(3);
 
@@ -719,7 +719,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Header.Time.ShouldBe(block.Header.Time.ToDateTime());
             response.Header.ChainId.ShouldBe(ChainHelper.ConvertChainIdToBase58(chain.Id));
             response.Header.Bloom.ShouldBe(block.Header.Bloom.ToBase64());
-            response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToBase64());
+            response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToByteArray().ToHex());
             response.Header.Extra.ShouldBe(block.Header.ExtraData?.ToString());
             response.Body.TransactionsCount.ShouldBe(3);
 
