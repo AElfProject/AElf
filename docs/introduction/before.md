@@ -3,7 +3,7 @@
 
 Before you jump in to the guides and tutorial you'll need to install the following tools and frameworks.
 
-# Development framework
+# Development framework - dotnet sdk
 
 Most of AElf is developed with dotnet core, so you will need to download and install the .NET Core SDK before you start:
 [download page](https://dotnet.microsoft.com/download).
