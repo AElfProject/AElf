@@ -9,7 +9,7 @@ namespace AElf.Kernel.Blockchain.Application
 {
     public interface ITransactionBlockIndexService
     {
-        Task<BlockIndex> GetTransactionBlockIndexAsync(Hash txId);
+        Task<BlockIndex> GetTransactionBlockIndexAsync(Hash txId, Hash chainBranchBlockHash = null);
         Task UpdateTransactionBlockIndexAsync(Hash txId, BlockIndex blockIndex);
     }
     
@@ -25,7 +25,7 @@ namespace AElf.Kernel.Blockchain.Application
             _transactionBlockIndexManager = transactionBlockIndexManager;
         }
 
-        public async Task<BlockIndex> GetTransactionBlockIndexAsync(Hash txId)
+        public async Task<BlockIndex> GetTransactionBlockIndexAsync(Hash txId, Hash chainBranchBlockHash = null)
         {
             var transactionBlockIndex =
                 await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(txId);
@@ -34,6 +34,8 @@ namespace AElf.Kernel.Blockchain.Application
                 return null;
             
             var chain = await _blockchainService.GetChainAsync();
+            if (chainBranchBlockHash == null)
+                chainBranchBlockHash = chain.BestChainHash;
 
             var previousBlockIndexList =
                 transactionBlockIndex.PreviousExecutionBlockIndexList ?? new RepeatedField<BlockIndex>();
@@ -43,7 +45,7 @@ namespace AElf.Kernel.Blockchain.Application
             foreach (var blockIndex in reversedBlockIndexList)
             {
                 var blockHashInBestChain =
-                    await _blockchainService.GetBlockHashByHeightAsync(chain, blockIndex.BlockHeight, chain.BestChainHash);
+                    await _blockchainService.GetBlockHashByHeightAsync(chain, blockIndex.BlockHeight, chainBranchBlockHash);
 
                 // check whether it is on best chain or a fork branch
                 if (blockIndex.BlockHash == blockHashInBestChain)
@@ -67,6 +69,13 @@ namespace AElf.Kernel.Blockchain.Application
                     
             if (preTransactionBlockIndex != null)
             {
+                if (preTransactionBlockIndex.BlockHash.Equals(blockIndex.BlockHash) ||
+                    preTransactionBlockIndex.PreviousExecutionBlockIndexList.Count(l =>
+                        l.BlockHash.Equals(blockIndex.BlockHash)) != 0)
+                {
+                    return;
+                }
+
                 transactionBlockIndex.PreviousExecutionBlockIndexList.Add(preTransactionBlockIndex
                     .PreviousExecutionBlockIndexList);
                 var previousBlockIndex = new BlockIndex(preTransactionBlockIndex.BlockHash,
