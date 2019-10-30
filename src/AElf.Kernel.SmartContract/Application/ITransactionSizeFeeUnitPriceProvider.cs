@@ -8,7 +8,7 @@ namespace AElf.Kernel.SmartContract.Application
         Task<long> GetUnitPriceAsync();
     }
 
-    public class TransactionSizeFeeUnitPriceProvider : ITransactionSizeFeeUnitPriceProvider
+    public class DefaultTransactionSizeFeeUnitPriceProvider : ITransactionSizeFeeUnitPriceProvider
     {
         private long _unitPrice;
 
