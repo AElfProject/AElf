@@ -6,18 +6,16 @@ using Volo.Abp.Application.Services;
 
 namespace AElf.WebApp.Application.Chain
 {
-    public interface IMiningSequenceService : IApplicationService
+    public interface IMiningSequenceAppService : IApplicationService
     {
         List<MiningSequenceDto> GetMiningSequences(int count = 0);
-        void AddMiningInformation(MiningSequenceDto miningInformationUpdated);
     }
 
-    public class MiningSequenceService : IMiningSequenceService
+    public class MiningSequenceAppService : IMiningSequenceAppService
     {
-        private const int KeepRecordsCount = 256;
         private readonly IMiningSequenceRepository _miningSequenceRepository;
 
-        public MiningSequenceService(IMiningSequenceRepository miningSequenceRepository)
+        public MiningSequenceAppService(IMiningSequenceRepository miningSequenceRepository)
         {
             _miningSequenceRepository = miningSequenceRepository;
         }
@@ -27,12 +25,6 @@ namespace AElf.WebApp.Application.Chain
             var sequences = _miningSequenceRepository.GetAllMiningSequences();
             sequences.Reverse();
             return sequences.Take(count < sequences.Count ? count : sequences.Count).ToList();
-        }
-
-        public void AddMiningInformation(MiningSequenceDto miningInformationUpdated)
-        {
-            _miningSequenceRepository.AddMiningSequence(miningInformationUpdated);
-            _miningSequenceRepository.ClearMiningSequences(KeepRecordsCount);
         }
     }
 }
