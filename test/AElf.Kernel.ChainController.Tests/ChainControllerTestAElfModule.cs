@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.Token;
 using AElf.Modularity;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.DependencyInjection;
@@ -21,6 +22,7 @@ namespace AElf.Kernel.ChainController
             
             services.AddTransient<ChainCreationService>();
             services.AddSingleton<ISystemTransactionMethodNameListProvider, SystemTransactionMethodNameListProvider>();
+            services.AddSingleton<IPrimaryTokenSymbolProvider, DefaultPrimaryTokenSymbolProvider>();
         }
     }
     
