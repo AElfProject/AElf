@@ -1,13 +1,18 @@
 
-## Prerequisits 
+## Pre-requisites 
 
 Before you jump in to the guides and tutorial you'll need to install the following tools and frameworks.
+
+# Pre-setup for Windows users
+
+One convenient tool for Windows users is the Chocolatey for installing dependencies. Open this link and follow the installation instructions: [chock](https://chocolatey.org/install). Later, Chocolatey can be very useful for installing dependencies like Git and Protobuf.
+
 
 # Git
 
 If you want to run a node or use our custom smart contract environment, at some point you will have to clone (download the source code) from AElf's repository. For this you will have to use **Git** since we host our code on GitHub.
 
-Click the following link to download Git for your plateform:
+Click the following link to download Git for your platform:
 
 [Getting Started - Installing Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
 

@@ -5,17 +5,7 @@ This article will get you started with AElf's Boilerplate project. You will lear
 - downloading **AElf Boilerplate**'s code and setting up Visual Studio Code.
 - running a template contract and basic interactions from a dApp frontend with the Javascript SDK demo and the browser extension.
 
-> **If you haven't already, be sure to follow the [getting start](../../Introduction/before.md)  tutorial to get all the dependencies installed.**
-
 ## Environment
-
-#### Minimum requirement
-
-To successfully complete this tutorial you first need to install the following dependencies, please refer to your platforms installation guide:
-- Git for version control, follow [these instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
-- Dotnet core sdk for building and testing, you can [download it here](https://dotnet.microsoft.com/download). 
-
-Mac users also need to [install Homebrew](https://brew.sh/).
 
 #### IDE
 

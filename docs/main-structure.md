@@ -1,6 +1,9 @@
 # Summary
 
+* [Environment setup](introduction/before.md)
 * [Tutorials](tutorials/main.md)
+    * [Running a node](introduction/quickstart.md)
+    * [Running multiple nodes](introduction/multi-nodes.md)
     * [How to dev a DAPP](tutorials/DApp/main.md)
         * [Setup env](tutorials/DApp/setup.md)
         * [Develop smart contract](tutorials/DApp/smart-contract-helloworld.md)
@@ -9,14 +12,12 @@
         * [Use browser extension](tutorials/DApp/browser-extension.md)
     * [Enterprise development](tutorials/enterprise.md)
     * [Running on Google cloud](tutorials/GCP.md)
-* [Getting started](introduction/main.md)
-    * [Before you start](introduction/before.md)
-    * [Running a node](introduction/quickstart.md)
-    * [Running multiple nodes](introduction/multi-nodes.md)
-    * [Configuration](introduction/config.md)
     * [Command line interface](cli/cli.md)
         * [Introduction](cli/introduction.md)
         * [Commands](cli/methods.md)
+<!-- * [Getting started](introduction/main.md)
+    * [Before you start](introduction/before.md)
+    * [Configuration](introduction/config.md) -->
 * [AElf protocol](protocol/main.md)
     * [Addresses](protocol/addresses.md)
     * [Transactions](protocol/txs.md)
