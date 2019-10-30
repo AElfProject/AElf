@@ -12,11 +12,9 @@ using Volo.Abp.EventBus;
 
 namespace AElf.WebApp.Application.Chain.Application
 {
-    internal class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>, ISingletonDependency
+    internal class BestChainFoundEventHandler : ILocalEventHandler<BestChainFoundEventData>, ITransientDependency
     {
         private const int KeepRecordsCount = 256;
-        
-        private Address _consensusContractAddress;
 
         private readonly ISmartContractAddressService _smartContractAddressService;
 
@@ -36,18 +34,14 @@ namespace AElf.WebApp.Application.Chain.Application
 
         public async Task HandleEventAsync(BestChainFoundEventData eventData)
         {
-            if (_consensusContractAddress == null)
-            {
-                _consensusContractAddress =
-                    _smartContractAddressService.GetAddressByContractName(
-                        ConsensusSmartContractAddressNameProvider.Name);
-            }
+            var consensusContractAddress = _smartContractAddressService.GetAddressByContractName(
+                ConsensusSmartContractAddressNameProvider.Name);
 
             foreach (var executedBlockHash in eventData.ExecutedBlocks)
             {
                 var miningInformationUpdated =
                     (await _miningInformationUpdatedEventDiscoveryService.GetEventMessagesAsync(executedBlockHash,
-                        _consensusContractAddress)).FirstOrDefault();
+                        consensusContractAddress)).FirstOrDefault();
                 if (miningInformationUpdated != null)
                 {
                     var miningSequenceDto = new MiningSequenceDto
