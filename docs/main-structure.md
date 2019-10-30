@@ -15,9 +15,6 @@
     * [Command line interface](cli/cli.md)
         * [Introduction](cli/introduction.md)
         * [Commands](cli/methods.md)
-<!-- * [Getting started](introduction/main.md)
-    * [Before you start](introduction/before.md)
-    * [Configuration](introduction/config.md) -->
 * [AElf protocol](protocol/main.md)
     * [Addresses](protocol/addresses.md)
     * [Transactions](protocol/txs.md)
