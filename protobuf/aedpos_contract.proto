@@ -186,6 +186,8 @@ message AElfConsensusTriggerInformation {
     aelf.Hash random_hash = 2;// To calculate In Value.
     aelf.Hash previous_random_hash = 3;// Random hash of previous round for validation.
     AElfConsensusBehaviour behaviour = 4;
+    map<string, bytes> secrets = 5;
+    
 }
 
 message TermInfo {
@@ -250,4 +252,10 @@ message MiningInformationUpdated {
     string behaviour = 3 [(aelf.is_indexed) = true];
     sint64 block_height = 4 [(aelf.is_indexed) = true];
     aelf.Hash previous_block_hash = 5 [(aelf.is_indexed) = true];
+}
+
+message SecretSharingJobNotification {
+    option (aelf.is_event) = true;
+    Round previous_round = 1 [(aelf.is_indexed) = true];
+    sint64 current_round_id = 2;
 }

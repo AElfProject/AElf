@@ -132,6 +132,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             State.Rounds.Set(round.RoundNumber, round);
 
+            Context.Fire(new SecretSharingJobNotification
+            {
+                PreviousRound = State.Rounds[round.RoundNumber.Sub(1)]
+            });
+
             // Only clear old round information when the mining status is Normal.
             if (round.RoundNumber > AEDPoSContractConstants.KeepRounds &&
                 GetMaximumBlocksCount() == AEDPoSContractConstants.MaximumTinyBlocksCount)

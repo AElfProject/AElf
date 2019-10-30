@@ -10,49 +10,51 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        private void ProcessConsensusInformation(dynamic input, [CallerMemberName] string caller = null)
+        /// <summary>
+        /// Same process for every behaviour.
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="callerMethodName"></param>
+        private void ProcessConsensusInformation(dynamic input, [CallerMemberName] string callerMethodName = null)
         {
-            Context.LogDebug(() => $"Processing {caller}");
+            Context.LogDebug(() => $"Processing {callerMethodName}");
+
             /* Privilege check. */
             if (!PreCheck())
             {
                 return;
             }
 
-            var behaviour = AElfConsensusBehaviour.Nothing;
-
+            // The only difference.
             switch (input)
             {
-                case Round round when caller == nameof(NextRound):
+                case Round round when callerMethodName == nameof(NextRound):
                     ProcessNextRound(round);
-                    behaviour = AElfConsensusBehaviour.NextRound;
                     break;
-                case Round round when caller == nameof(NextTerm):
+                case Round round when callerMethodName == nameof(NextTerm):
                     ProcessNextTerm(round);
-                    behaviour = AElfConsensusBehaviour.NextTerm;
                     break;
                 case UpdateValueInput updateValueInput:
                     ProcessUpdateValue(updateValueInput);
-                    behaviour = AElfConsensusBehaviour.UpdateValue;
                     break;
                 case TinyBlockInput tinyBlockInput:
                     ProcessTinyBlock(tinyBlockInput);
-                    behaviour = AElfConsensusBehaviour.TinyBlock;
                     break;
             }
 
             var miningInformationUpdated = new MiningInformationUpdated
             {
+                // _processingBlockMinerPubkey is set during above process.
                 Pubkey = _processingBlockMinerPubkey,
-                Behaviour = behaviour.ToString(),
+                Behaviour = callerMethodName,
                 MiningTime = Context.CurrentBlockTime,
                 BlockHeight = Context.CurrentHeight,
                 PreviousBlockHash = Context.PreviousBlockHash
             };
             Context.Fire(miningInformationUpdated);
-            Context.LogDebug(() => miningInformationUpdated.ToString());
+            Context.LogDebug(() => $"Synced mining information: {miningInformationUpdated}");
 
-            // Make sure GetMaximumBlocksCount need to be executed no matter what consensus behaviour is.
+            // Make sure the method GetMaximumBlocksCount executed no matter what consensus behaviour is.
             var minersCountInTheory = GetMaximumBlocksCount();
             ResetLatestProviderToTinyBlocksCount(minersCountInTheory);
             ClearCachedFields();
@@ -68,10 +70,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (currentRound.RoundNumber == 1)
             {
                 // Set blockchain start timestamp.
-                var actualBlockchainStartTimestamp = currentRound.FirstActualMiner()?.ActualMiningTimes.FirstOrDefault() ??
-                                                     Context.CurrentBlockTime;
+                var actualBlockchainStartTimestamp =
+                    currentRound.FirstActualMiner()?.ActualMiningTimes.FirstOrDefault() ??
+                    Context.CurrentBlockTime;
                 SetBlockchainStartTimestamp(actualBlockchainStartTimestamp);
-                //currentRound.RealTimeMinersInformation.First().Value.ActualMiningTimes.First();
 
                 // Initialize current miners' information in Election Contract.
                 if (State.IsMainChain.Value)
@@ -102,7 +104,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             Assert(TryToAddRoundInformation(nextRound), "Failed to add round information.");
-            
+
             Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
 
             ClearExpiredRandomNumberTokens();
@@ -236,6 +238,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
+        private static void PerformSecretSharing(UpdateValueInput input, MinerInRound minerInRound, Round round,
+            string publicKey)
+        {
+            minerInRound.EncryptedInValues.Add(input.EncryptedInValues);
+            foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)
+            {
+                round.RealTimeMinersInformation[decryptedPreviousInValue.Key].DecryptedPreviousInValues
+                    .Add(publicKey, decryptedPreviousInValue.Value);
+            }
+        }
+
         private void ProcessTinyBlock(TinyBlockInput tinyBlockInput)
         {
             TryToGetCurrentRoundInformation(out var currentRound, true);
@@ -276,6 +289,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return true;
         }
 
+        /// <summary>
+        /// To prevent one miner produced too many continuous blocks.
+        /// </summary>
+        /// <param name="minersCountInTheory"></param>
         private void ResetLatestProviderToTinyBlocksCount(int minersCountInTheory)
         {
             LatestProviderToTinyBlocksCount currentValue;

@@ -122,7 +122,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 State.TreasuryContract.Value =
                     Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName);
             }
-            
+
             var amount = previousRound.GetMinedBlocks().Mul(GetMiningRewardPerBlock());
 
             if (amount > 0)
