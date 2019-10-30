@@ -365,7 +365,7 @@ namespace AElf.OS
             var transaction = GenerateTransaction(accountAddress, basicContractZero,
                 nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract), new ContractDeploymentInput()
                 {
-                    Category = 0,
+                    Category = KernelConstants.CodeCoverageRunnerCategory,
                     Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(T).Assembly.Location))
                 });
 
@@ -396,6 +396,7 @@ namespace AElf.OS
                 ChainId = _chainOptions.ChainId
             };
 
+            dto.SmartContractRunnerCategory = KernelConstants.CodeCoverageRunnerCategory;
             dto.InitializationSmartContracts.AddGenesisSmartContract(
                 ConsensusContractCode,
                 ConsensusSmartContractAddressNameProvider.Name);

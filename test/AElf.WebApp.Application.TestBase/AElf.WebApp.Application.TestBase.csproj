@@ -17,4 +17,9 @@
         <ProjectReference Include="..\AElf.OS.Core.Tests\AElf.OS.Core.Tests.csproj"/>
         <ProjectReference Include="..\..\src\AElf.WebApp.Web\AElf.WebApp.Web.csproj"/>
     </ItemGroup>
+    <ItemGroup>
+        <ContractMessage Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf/Proto/aedpos_contract.proto</Link>
+        </ContractMessage>
+    </ItemGroup>
 </Project>

@@ -40,7 +40,7 @@ namespace AElf.Parallel.Tests
         public byte[] BasicFunctionWithParallelContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("BasicFunctionWithParallel")).Value;
         
-        public Address BasicFunctionWithParallelContractAddress { get; private set; }
+        public static Address BasicFunctionWithParallelContractAddress { get; private set; }
 
         public ParallelTestHelper(IOsBlockchainNodeContextService osBlockchainNodeContextService,
             IAccountService accountService,
@@ -110,9 +110,8 @@ namespace AElf.Parallel.Tests
                     var transaction = GenerateTransaction(from,
                         BasicFunctionWithParallelContractAddress,
                         nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub
-                            .QueryTwoUserWinMoney),
-                        new QueryTwoUserWinMoneyInput
-                            {First = from, Second = address});
+                            .IncreaseWinMoney),
+                        new IncreaseWinMoneyInput {First = from, Second = address});
                     var signature =
                         CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, transaction.GetHash().ToByteArray());
                     transaction.Signature = ByteString.CopyFrom(signature); 
