@@ -8,6 +8,7 @@ using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -19,16 +20,19 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
         private readonly IHostSmartContractBridgeContextService _contextService;
         private readonly ISystemTransactionMethodNameListProvider _systemTransactionMethodNameListProvider;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
+        private readonly ITransactionSizeFeeUnitPriceProvider _transactionSizeFeeUnitPriceProvider;
 
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             ISystemTransactionMethodNameListProvider systemTransactionMethodNameListProvider,
-            IPrimaryTokenSymbolProvider primaryTokenSymbolProvider)
+            IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
+            ITransactionSizeFeeUnitPriceProvider transactionSizeFeeUnitPriceProvider)
         {
             _contextService = contextService;
             _systemTransactionMethodNameListProvider = systemTransactionMethodNameListProvider;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
+            _transactionSizeFeeUnitPriceProvider = transactionSizeFeeUnitPriceProvider;
 
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
@@ -105,12 +109,13 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                     return new List<Transaction>();
                 }
 
+                var unitPrice = await _transactionSizeFeeUnitPriceProvider.GetUnitPriceAsync();
                 var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(
                     new ChargeTransactionFeesInput
                     {
                         MethodName = transactionContext.Transaction.MethodName,
                         ContractAddress = transactionContext.Transaction.To,
-                        TransactionSize = transactionContext.Transaction.Size(),
+                        TransactionSizeFee = unitPrice * transactionContext.Transaction.Size(),
                         PrimaryTokenSymbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol()
                     })).Transaction;
                 return new List<Transaction>

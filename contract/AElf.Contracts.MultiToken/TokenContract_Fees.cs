@@ -18,8 +18,7 @@ namespace AElf.Contracts.MultiToken
         /// <returns></returns>
         public override TransactionFee ChargeTransactionFees(ChargeTransactionFeesInput input)
         {
-            Assert(input.MethodName != null && input.ContractAddress != null && input.TransactionSize > 0,
-                "Invalid charge transaction fees input.");
+            Assert(input.MethodName != null && input.ContractAddress != null, "Invalid charge transaction fees input.");
 
             var result = new TransactionFee();
 
@@ -51,7 +50,7 @@ namespace AElf.Contracts.MultiToken
             }
 
             var balanceAfterChargingBaseFee = State.Balances[fromAddress][input.PrimaryTokenSymbol];
-            var txSizeFeeAmount = input.TransactionSize.Mul(State.TransactionFeeUnitPrice.Value);
+            var txSizeFeeAmount = input.TransactionSizeFee;
             txSizeFeeAmount = balanceAfterChargingBaseFee > txSizeFeeAmount // Enough to pay tx size fee.
                 ? txSizeFeeAmount
                 // It's safe to convert from long to int here because
@@ -81,8 +80,8 @@ namespace AElf.Contracts.MultiToken
             // If balanceAfterChargingBaseFee < txSizeFeeAmount, make sender's balance of native symbol to 0 and make current execution failed.
             Assert(
                 balanceAfterChargingBaseFee >=
-                input.TransactionSize.Mul(State.TransactionFeeUnitPrice.Value),
-                $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {input.TransactionSize.Mul(State.TransactionFeeUnitPrice.Value)}.\n " +
+                input.TransactionSizeFee,
+                $"Insufficient balance to pay tx size fee: {balanceAfterChargingBaseFee} < {input.TransactionSizeFee}.\n " +
                 $"Primary token: {input.PrimaryTokenSymbol}");
 
             if (result.Value.ContainsKey(input.PrimaryTokenSymbol))
@@ -152,7 +151,8 @@ namespace AElf.Contracts.MultiToken
             }
 
             // Traversed all available tokens, can't find balance of any token enough to pay transaction fee.
-            Assert(existingBalance >= amount, $"Insufficient balance to pay transaction fee. {existingBalance} < {amount}");
+            Assert(existingBalance >= amount,
+                $"Insufficient balance to pay transaction fee. {existingBalance} < {amount}");
 
             return symbol != null;
         }
@@ -195,7 +195,7 @@ namespace AElf.Contracts.MultiToken
                 State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(amount);
                 TransferTransactionFeesToFeeReceiver(symbol, amount);
             }
-            
+
             Context.LogDebug(() => "Finish claim transaction fee.");
 
             return new Empty();
@@ -345,7 +345,13 @@ namespace AElf.Contracts.MultiToken
                 Context.Sender == Context.GetContractAddressByName(SmartContractConstants.EconomicContractSystemName),
                 "No permission to set tx size unit price.");
 
+            Context.Fire(new TransactionSizeFeeUnitPriceUpdated
+            {
+                UnitPrice = input.Value
+            });
+
             State.TransactionFeeUnitPrice.Value = input.Value;
+
             return new Empty();
         }
     }
