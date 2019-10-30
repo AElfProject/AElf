@@ -159,6 +159,7 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty ClaimTransactionFees(Empty input)
         {
+            Context.LogDebug(() => "Claim transaction fee.");
             if (State.TreasuryContract.Value == null)
             {
                 var treasuryContractAddress =
@@ -194,6 +195,8 @@ namespace AElf.Contracts.MultiToken
                 State.Balances[Context.Self][symbol] = State.Balances[Context.Self][symbol].Add(amount);
                 TransferTransactionFeesToFeeReceiver(symbol, amount);
             }
+            
+            Context.LogDebug(() => "Finish claim transaction fee.");
 
             return new Empty();
         }
@@ -270,6 +273,8 @@ namespace AElf.Contracts.MultiToken
         /// <param name="totalAmount"></param>
         private void TransferTransactionFeesToFeeReceiver(string symbol, long totalAmount)
         {
+            Context.LogDebug(() => "Transfer transaction fee to receiver.");
+
             if (totalAmount <= 0) return;
 
             var burnAmount = totalAmount.Div(10);
