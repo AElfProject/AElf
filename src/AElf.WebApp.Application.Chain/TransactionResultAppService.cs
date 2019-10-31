@@ -243,12 +243,12 @@ namespace AElf.WebApp.Application.Chain
         private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash = null)
         {
             // in tx pool
-            var receipt = await _transactionResultProxyService.TxHub.GetTransactionReceiptAsync(transactionId);
-            if (receipt != null)
+            var queuedTransaction = await _transactionResultProxyService.TxHub.GetQueuedTransactionAsync(transactionId);
+            if (queuedTransaction != null)
             {
                 return new TransactionResult
                 {
-                    TransactionId = receipt.TransactionId,
+                    TransactionId = queuedTransaction.TransactionId,
                     Status = TransactionResultStatus.Pending
                 };
             }
