@@ -53,6 +53,10 @@ namespace AElf.OS.BlockSync
 
                         return Task.FromResult(true);
                     });
+                blockValidationServiceMock.Setup(s =>
+                    s.ValidateBlockBeforeExecuteAsync(It.IsAny<IBlock>())).Returns(Task.FromResult(true));
+                blockValidationServiceMock.Setup(s =>
+                    s.ValidateBlockAfterExecuteAsync(It.IsAny<IBlock>())).Returns(Task.FromResult(true));
 
                 return blockValidationServiceMock.Object;
             });
