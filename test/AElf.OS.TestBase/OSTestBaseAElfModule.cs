@@ -1,5 +1,6 @@
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using AElf.Runtime.CSharp;
 using Microsoft.Extensions.DependencyInjection;

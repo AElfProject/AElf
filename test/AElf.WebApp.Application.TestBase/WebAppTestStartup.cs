@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Builder;
+using AElf.Kernel.TransactionPool.Infrastructure;
+using AElf.OS;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.WebApp.Application
@@ -7,6 +9,7 @@ namespace AElf.WebApp.Application
     {
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<ITxHub, MockTxHub>();
             services.AddApplication<WebAppTestAElfModule>();
         }
 
