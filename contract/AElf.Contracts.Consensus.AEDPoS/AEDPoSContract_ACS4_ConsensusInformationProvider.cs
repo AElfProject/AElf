@@ -134,7 +134,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                                 {
                                     ActualMiningTime = minerInRound.ActualMiningTimes.Last(),
                                     ProducedBlocks = minerInRound.ProducedBlocks,
-                                    RoundId = round.RoundId
+                                    RoundId = round.RoundIdForValidation
                                 })
                         }
                     };

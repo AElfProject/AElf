@@ -50,7 +50,7 @@ namespace AElf.Contracts.TestKit
             var transactionResult = await transactionResultService.GetTransactionResultAsync(transaction.GetHash());
             if (transactionResult.Status != TransactionResultStatus.Mined)
             {
-                Debug.WriteLine($"Failed to execute {transaction.MethodName}");
+                throw new Exception($"Failed to execute {transaction.MethodName}. {transactionResult.Error}");
             }
         }
 
@@ -72,7 +72,7 @@ namespace AElf.Contracts.TestKit
 
             if (transactionTrace.ExecutionStatus != ExecutionStatus.Executed)
             {
-                throw new Exception($"Failed to call {transaction.MethodName}");
+                throw new Exception($"Failed to call {transaction.MethodName}. {transactionTrace.Error}");
             }
 
             return transactionTrace.ReturnValue;

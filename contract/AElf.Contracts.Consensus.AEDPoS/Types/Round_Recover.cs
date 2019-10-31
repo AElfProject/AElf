@@ -20,10 +20,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
             minerInRound.ProducedBlocks = providedInformation.ProducedBlocks;
             minerInRound.ProducedTinyBlocks = providedInformation.ProducedTinyBlocks;
             minerInRound.PreviousInValue = providedInformation.PreviousInValue;
-            minerInRound.SupposedOrderOfNextRound = providedInformation.SupposedOrderOfNextRound;
-            minerInRound.FinalOrderOfNextRound = providedInformation.FinalOrderOfNextRound;
             minerInRound.ImpliedIrreversibleBlockHeight = providedInformation.ImpliedIrreversibleBlockHeight;
             minerInRound.ActualMiningTimes.Add(providedInformation.ActualMiningTimes);
+
+            foreach (var information in providedRound.RealTimeMinersInformation)
+            {
+                RealTimeMinersInformation[information.Key].SupposedOrderOfNextRound =
+                    information.Value.SupposedOrderOfNextRound;
+                RealTimeMinersInformation[information.Key].FinalOrderOfNextRound =
+                    information.Value.FinalOrderOfNextRound;
+            }
 
             return this;
         }

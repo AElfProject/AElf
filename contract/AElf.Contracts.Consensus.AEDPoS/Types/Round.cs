@@ -97,10 +97,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var firstTwoMiners = RealTimeMinersInformation.Values.Where(m => m.Order == 1 || m.Order == 2)
                 .ToList();
-            var distance =
-                (int) (firstTwoMiners[1].ExpectedMiningTime - firstTwoMiners[0].ExpectedMiningTime)
-                .Milliseconds();
-            return distance > 0 ? distance : -distance;
+            if (firstTwoMiners.Count < 2)
+            {
+                // Something wrong.
+                throw new InvalidOperationException($"Something wrong with GetMiningInterval. {this}");
+            }
+
+            return Math.Abs((int) (firstTwoMiners[1].ExpectedMiningTime - firstTwoMiners[0].ExpectedMiningTime)
+                .Milliseconds());
         }
 
         public bool IsTimeSlotPassed(string publicKey, Timestamp currentBlockTime)

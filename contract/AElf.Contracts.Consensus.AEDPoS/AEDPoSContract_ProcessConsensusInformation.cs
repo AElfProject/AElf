@@ -204,8 +204,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             PerformSecretSharing(updateValueInput, minerInRound, currentRound, _processingBlockMinerPubkey);
 
-            UpdatePreviousInValues(updateValueInput, _processingBlockMinerPubkey, currentRound);
-
             foreach (var tuneOrder in updateValueInput.TuneOrderInformation)
             {
                 currentRound.RealTimeMinersInformation[tuneOrder.Key].FinalOrderOfNextRound = tuneOrder.Value;
