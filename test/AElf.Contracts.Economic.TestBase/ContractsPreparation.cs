@@ -89,6 +89,11 @@ namespace AElf.Contracts.Economic.TestBase
         protected Address ReferendumAuthContractAddress =>
             GetOrDeployContract(Contracts.ReferendumAuth, ref _referendumAddress);
 
+        private Address _configurationAddress;
+
+        protected Address ConfigurationContractAddress =>
+            GetOrDeployContract(Contracts.Configuration, ref _configurationAddress);
+
         #endregion
 
         #region Contract Stub
@@ -284,6 +289,7 @@ namespace AElf.Contracts.Economic.TestBase
             _ = MethodCallThresholdContractAddress;
             _ = ReferendumAuthContractAddress;
             _ = TokenContractAddress;
+            _ = ConfigurationContractAddress;
         }
 
         #endregion
