@@ -4,6 +4,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Acs0;
+using Acs3;
 
 namespace AElf.Contracts.Genesis
 {
@@ -152,12 +153,59 @@ namespace AElf.Contracts.Genesis
             return contractAddress;
         }
 
+        public override Empty ProposeNewContract(ContractDeploymentInput input)
+        {
+            // Create proposal for deployment
+            State.ParliamentAuthContract.CreateProposal.Send(new CreateProposalInput
+            {
+                ToAddress = Context.Self,
+                ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract),
+                Params = input.ToByteString(),
+                OrganizationAddress = State.GenesisOwner.Value
+            });
+
+            // Fire event to trigger BPs checking contract code
+            Context.Fire(new CodeCheckRequired
+            {
+                Code = input.Code
+            });
+            
+            return new Empty();
+        }
+
+        public override Empty ReleaseApprovedContract(Hash input)
+        {
+            State.ParliamentAuthContract.Release.Send(input);
+            
+            return new Empty();
+        }
+
         public override Address DeploySmartContract(ContractDeploymentInput input)
         {
             RequireAuthority();
 
             var address = PrivateDeploySystemSmartContract(null, input.Category, input.Code.ToByteArray(), false);
             return address;
+        }
+
+        public override Empty ProposeUpdateContract(ContractUpdateInput input)
+        {
+            // Create proposal for deployment
+            State.ParliamentAuthContract.CreateProposal.Send(new CreateProposalInput
+            {
+                ToAddress = Context.Self,
+                ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroBase.UpdateSmartContract),
+                Params = input.ToByteString(),
+                OrganizationAddress = State.GenesisOwner.Value
+            });
+
+            // Fire event to trigger BPs checking contract code
+            Context.Fire(new CodeCheckRequired
+            {
+                Code = input.Code
+            });
+            
+            return new Empty();
         }
 
         public override Address UpdateSmartContract(ContractUpdateInput input)
