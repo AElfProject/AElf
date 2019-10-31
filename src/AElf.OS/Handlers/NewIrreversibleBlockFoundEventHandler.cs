@@ -24,7 +24,7 @@ namespace AElf.OS.Handlers
             {
                 return Task.CompletedTask;
             }
-            
+
             var _ = _networkService.BroadcastLibAnnounceAsync(eventData.BlockHash, eventData.BlockHeight);
             return Task.CompletedTask;
         }

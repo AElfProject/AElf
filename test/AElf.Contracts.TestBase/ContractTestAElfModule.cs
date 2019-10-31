@@ -11,6 +11,7 @@ using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.Runtime.CSharp;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Volo.Abp.Modularity;
 
@@ -51,6 +52,8 @@ namespace AElf.Contracts.TestBase
             });
 
             context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
+            
+            context.Services.RemoveAll<IPreExecutionPlugin>();
         }
     }
 }

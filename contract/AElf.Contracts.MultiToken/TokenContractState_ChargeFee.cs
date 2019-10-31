@@ -6,6 +6,6 @@ namespace AElf.Contracts.MultiToken
     public partial class TokenContractState
     {
         internal MappedState<string, MethodFees> MethodFees { get; set; }
-        public Int32State TransactionFeeUnitPrice { get; set; }
+        public Int64State TransactionFeeUnitPrice { get; set; }
     }
 }

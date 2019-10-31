@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestContract.BasicFunctionWithParallel;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
@@ -63,6 +64,9 @@ namespace AElf.Parallel.Tests
                 prepareTransactions);
             block = await _blockExecutingService.ExecuteBlockAsync(block.Header, prepareTransactions);
 
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+            
             var systemTransactions = await _parallelTestHelper.GenerateTransferTransactions(1);
             var cancellableTransactions =
                 await _parallelTestHelper.GenerateTransactionsWithoutConflict(keyPairs, tokenAmount);
@@ -78,6 +82,8 @@ namespace AElf.Parallel.Tests
             block = _parallelTestHelper.GenerateBlock(block.GetHash(), block.Height, allTransaction);
             block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
                 cancellableTransactions, CancellationToken.None);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
 
             var codeRemarks =
                 await _codeRemarksManager.GetCodeRemarksAsync(Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
@@ -98,17 +104,23 @@ namespace AElf.Parallel.Tests
             var chain = await _blockchainService.GetChainAsync();
             var tokenAmount = _transactionCount / _groupCount;
             var (prepareTransactions, keyPairs) =
-                await _parallelTestHelper.PrepareTokenForParallel(_groupCount, tokenAmount);
+                await _parallelTestHelper.PrepareTokenForParallel(_groupCount, 1000000000);
             await _parallelTestHelper.BroadcastTransactions(prepareTransactions);
             var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
                 prepareTransactions);
             block = await _blockExecutingService.ExecuteBlockAsync(block.Header, prepareTransactions);
 
-            var transactions = await _parallelTestHelper.GenerateApproveTransactions(keyPairs, tokenAmount);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+            
+            var transactions = await _parallelTestHelper.GenerateApproveTransactions(keyPairs, 1000000000);
             await _parallelTestHelper.BroadcastTransactions(transactions);
             block = _parallelTestHelper.GenerateBlock(block.GetHash(), block.Height, transactions);
             block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
 
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+            
             var systemTransactions = await _parallelTestHelper.GenerateTransferTransactions(1);
             var cancellableTransactions =
                 await _parallelTestHelper.GenerateTransferFromTransactionsWithoutConflict(keyPairs, tokenAmount);
@@ -124,6 +136,8 @@ namespace AElf.Parallel.Tests
                 systemTransactions.Concat(cancellableTransactions));
             block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
                 cancellableTransactions, CancellationToken.None);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
 
             var codeRemarks =
                 await _codeRemarksManager.GetCodeRemarksAsync(Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
@@ -153,6 +167,9 @@ namespace AElf.Parallel.Tests
                 systemTransactions.Concat(cancellableTransactions));
             block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
                 cancellableTransactions, CancellationToken.None);
+            
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
 
             codeRemarks =
                 await _codeRemarksManager.GetCodeRemarksAsync(Hash.FromRawBytes(_parallelTestHelper.TokenContractCode));
@@ -298,7 +315,7 @@ namespace AElf.Parallel.Tests
             var tokenAmount = _transactionCount / _groupCount;
             var accountAddress = await _accountService.GetAccountAsync();
             
-            var (prepareTransactions, keyPairs) = await _parallelTestHelper.PrepareTokenForParallel(_groupCount, tokenAmount);
+            var (prepareTransactions, keyPairs) = await _parallelTestHelper.PrepareTokenForParallel(_groupCount, 100000000);
             
             var transactionWithoutContract = _parallelTestHelper.GenerateTransaction(accountAddress,
                 SampleAddress.AddressList[0], "Transfer", new Empty());
@@ -399,8 +416,11 @@ namespace AElf.Parallel.Tests
             block = await _blockExecutingService.ExecuteBlockAsync(block.Header, systemTransactions,
                 cancellableTransactions, CancellationToken.None);
             
+            var transactionResults = await GetTransactionResultsAsync(block.Body.TransactionIds.ToList(), block.Header);
+            var fee = transactionResults.Sum(t => t.TransactionFee.Value["ELF"]);
+            var amount = allTransactions.Sum(t => TransferInput.Parser.ParseFrom(t.Params).Amount);
             var endBalance = await _parallelTestHelper.QueryBalanceAsync(accountAddress, "ELF", block.GetHash(), block.Height);
-            (startBalance - endBalance).ShouldBe(20);
+            (startBalance - endBalance).ShouldBe(amount + fee);
         }
 
         private async Task<List<TransactionResult>> GetTransactionResultsAsync(List<Hash> transactionIds,BlockHeader blockHeader)

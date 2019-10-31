@@ -66,6 +66,8 @@ namespace AElf.Kernel.TransactionPool
                 
                 return mockService.Object;
             });
+            
+            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
         }
     }
 }
