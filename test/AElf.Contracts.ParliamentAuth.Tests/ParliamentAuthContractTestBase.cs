@@ -17,6 +17,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
+using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
 
 namespace AElf.Contracts.ParliamentAuth
 {
