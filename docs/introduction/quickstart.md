@@ -4,8 +4,6 @@
 
 This method is not as straightforward as the docker quickstart but is a lot more flexible. If your aim is to develop some dApps it's better you follow these more advanced ways of launching a node. This section will walk you through configuring, running and interacting with an AElf node.
 
-Pre-requisite: this guide has a dependency on Redis, so you should install it and run a server. A part from this, only very basic command line knowledge is required and you can just follow the steps.
-
 First, if you haven't already done it, clone our [repository](https://github.com/AElfProject/AElf)
 
 ```bash
@@ -17,11 +15,13 @@ Navigate into the newly created **aelf** directory.
 
 ### Generating the nodes account
 
-Installing **aelf-command**:
+First you need to install the **aelf-command** command packet. Open a terminal and enter the following command:
 
 ```bash
-npm i -g aelf-command # please install Nodejs before this
+npm i -g aelf-command
 ```
+
+Windows Note: it's possible that you get some errors about python not being installed, you can safely ignore these.
 
 After installing **aelf-command** you can use the following command to create an account/key-pair:
 
