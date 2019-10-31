@@ -9,6 +9,6 @@ namespace AElf.WebApp.Application.Chain.Dto
         public Timestamp MiningTime { get; set; }
         public string Behaviour { get; set; }
         public long BlockHeight { get; set; }
-        public Hash PreviousBlockHash { get; set; }
+        public string PreviousBlockHash { get; set; }
     }
 }
