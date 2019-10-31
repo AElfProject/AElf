@@ -213,13 +213,10 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             if (_bestChainHash == Hash.Empty)
                 return;
 
-            if (_processTransactionJobs.InputCount > _transactionOptions.PoolLimit)
-                return;
-
             foreach (var transaction in eventData.Transactions)
             {
-                if (_allTransactions.Count > _transactionOptions.PoolLimit)
-                    break;
+                if (_processTransactionJobs.InputCount > _transactionOptions.PoolLimit)
+                    return;
 
                 var queuedTransaction = new QueuedTransaction
                 {
@@ -233,6 +230,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private async Task ProcessTransactionAsync(QueuedTransaction queuedTransaction)
         {
+            if (_allTransactions.Count > _transactionOptions.PoolLimit)
+                return;
+
             if (_allTransactions.ContainsKey(queuedTransaction.TransactionId))
                 return;
 
