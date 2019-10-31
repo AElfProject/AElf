@@ -6,12 +6,12 @@ using Volo.Abp.Application.Services;
 
 namespace AElf.WebApp.Application.Chain
 {
-    public interface IDeserializationService : IApplicationService
+    public interface IDeserializationAppService : IApplicationService
     {
         RoundDto GetRoundFromBase64(string str);
     }
 
-    public class DeserializationService : IDeserializationService
+    public class DeserializationAppService : IDeserializationAppService
     {
         public RoundDto GetRoundFromBase64(string str)
         {
@@ -25,11 +25,11 @@ namespace AElf.WebApp.Application.Chain
                     {
                         ExpectedMiningTime = i.Value.ExpectedMiningTime.ToDateTime(),
                         ActualMiningTimes = i.Value.ActualMiningTimes?.Select(d => d.ToDateTime()).ToList(),
-                        InValue = i.Value?.InValue.ToHex(),
-                        PreviousInValue = i.Value?.PreviousInValue.ToHex(),
+                        InValue = i.Value.InValue?.ToHex(),
+                        PreviousInValue = i.Value.PreviousInValue?.ToHex(),
                         MissedBlocks = i.Value.MissedTimeSlots,
                         Order = i.Value.Order,
-                        OutValue = i.Value?.OutValue.ToHex(),
+                        OutValue = i.Value.OutValue?.ToHex(),
                         ProducedBlocks = i.Value.ProducedBlocks,
                         ProducedTinyBlocks = i.Value.ProducedTinyBlocks,
                         ImpliedIrreversibleBlockHeight = i.Value.ImpliedIrreversibleBlockHeight
