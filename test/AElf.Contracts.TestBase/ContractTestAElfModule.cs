@@ -5,6 +5,7 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Application;
@@ -35,6 +36,8 @@ namespace AElf.Contracts.TestBase
             // When testing contract and packaging transactions, no need to generate and schedule real consensus stuff.
             context.Services.AddSingleton(o => Mock.Of<IConsensusService>());
             context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
+
+            context.Services.AddSingleton<ITxHub, MockTxHub>();
 
 //            Configure<ChainOptions>(o => { o.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
 
