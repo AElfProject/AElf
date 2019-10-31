@@ -40,7 +40,7 @@ namespace AElf.Contracts.MultiToken
             Assert(from != to, "Can't do transfer to sender itself.");
             var balanceOfSender = State.Balances[from][symbol];
             Assert(balanceOfSender >= amount, $"Insufficient balance. {symbol}: {balanceOfSender} / {amount}");
-            var balanceOfReceiver = State.Balances[to][symbol];
+            var balanceOfReceiver = State.Balances[to][targetSymbol];
             State.Balances[from][symbol] = balanceOfSender.Sub(amount);
             State.Balances[to][targetSymbol] = balanceOfReceiver.Add(amount);
             Context.Fire(new Transferred()
