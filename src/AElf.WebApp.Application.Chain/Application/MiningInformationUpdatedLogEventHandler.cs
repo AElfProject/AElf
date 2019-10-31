@@ -7,6 +7,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using AElf.WebApp.Application.Chain.Dto;
+using AElf.WebApp.Application.Chain.Infrastructure;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.WebApp.Application.Chain.Application
@@ -14,9 +15,11 @@ namespace AElf.WebApp.Application.Chain.Application
     public class MiningInformationUpdatedLogEventHandler : ILogEventHandler, ISingletonDependency
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IMiningSequenceService _miningSequenceService;
+        private readonly IMiningSequenceRepository _miningSequenceRepository;
 
         private LogEvent _interestedEvent;
+        
+        private const int KeepRecordsCount = 256;
 
         public LogEvent InterestedEvent
         {
@@ -36,10 +39,10 @@ namespace AElf.WebApp.Application.Chain.Application
         }
 
         public MiningInformationUpdatedLogEventHandler(ISmartContractAddressService smartContractAddressService,
-            IMiningSequenceService miningSequenceService)
+            IMiningSequenceRepository miningSequenceRepository)
         {
             _smartContractAddressService = smartContractAddressService;
-            _miningSequenceService = miningSequenceService;
+            _miningSequenceRepository = miningSequenceRepository;
         }
 
         public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
@@ -47,14 +50,17 @@ namespace AElf.WebApp.Application.Chain.Application
             var eventData = new MiningInformationUpdated();
             eventData.MergeFrom(logEvent);
 
-            _miningSequenceService.AddMiningInformation(new MiningSequenceDto
+            var miningSequenceDto = new MiningSequenceDto
             {
                 Pubkey = eventData.Pubkey,
                 Behaviour = eventData.Behaviour,
                 MiningTime = eventData.MiningTime,
                 BlockHeight = eventData.BlockHeight,
-                PreviousBlockHash = eventData.PreviousBlockHash
-            });
+                PreviousBlockHash = eventData.PreviousBlockHash.ToHex()
+            };
+
+            _miningSequenceRepository.AddMiningSequence(miningSequenceDto);
+            _miningSequenceRepository.ClearMiningSequences(KeepRecordsCount);
 
             return Task.CompletedTask;
         }
