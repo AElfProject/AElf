@@ -2,17 +2,20 @@ using Acs4;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    public class ConfirmedLibValidationProvider : IHeaderInformationValidationProvider
+    public class LibInformationValidationProvider : IHeaderInformationValidationProvider
     {
         public ValidationResult ValidateHeaderInformation(ConsensusValidationContext validationContext)
         {
             var validationResult = new ValidationResult();
             var baseRound = validationContext.BaseRound;
             var providedRound = validationContext.ProvidedRound;
+            var pubkey = validationContext.Pubkey;
             if (baseRound.ConfirmedIrreversibleBlockHeight > providedRound.ConfirmedIrreversibleBlockHeight ||
-                baseRound.ConfirmedIrreversibleBlockRoundNumber > providedRound.ConfirmedIrreversibleBlockRoundNumber)
+                baseRound.ConfirmedIrreversibleBlockRoundNumber > providedRound.ConfirmedIrreversibleBlockRoundNumber ||
+                baseRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight >
+                providedRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight)
             {
-                validationResult.Message = "Incorrect confirmed lib information.";
+                validationResult.Message = "Incorrect lib information.";
                 return validationResult;
             }
 

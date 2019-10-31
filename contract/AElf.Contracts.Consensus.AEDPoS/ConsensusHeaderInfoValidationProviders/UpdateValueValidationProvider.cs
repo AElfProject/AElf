@@ -10,14 +10,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         public ValidationResult ValidateHeaderInformation(ConsensusValidationContext validationContext)
         {
-            // Need to check round id when updating current round information.
-            if (!IsRoundIdMatched(validationContext))
-            {
-                return new ValidationResult {Message = "Round Id not match."};
-            }
-
             // Only one Out Value should be filled.
-            if (!NewOutValueFilled(validationContext))
+            if (!NewConsensusInformationFilled(validationContext))
             {
                 return new ValidationResult {Message = "Incorrect new Out Value."};
             }
@@ -27,38 +21,36 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return new ValidationResult {Message = "Incorrect previous in value."};
             }
 
+            if (!ValidateProducedTinyBlocksCount(validationContext))
+            {
+                return new ValidationResult {Message = "Incorrect produced tiny blocks count."};
+            }
+
             return new ValidationResult {Success = true};
         }
-
 
         /// <summary>
         /// Check only one Out Value was filled during this updating.
         /// </summary>
         /// <param name="validationContext"></param>
         /// <returns></returns>
-        private bool NewOutValueFilled(ConsensusValidationContext validationContext)
+        private bool NewConsensusInformationFilled(ConsensusValidationContext validationContext)
         {
-            IEnumerable<MinerInRound> minersInformation =
-                validationContext.ExtraData.Round.RealTimeMinersInformation.Values;
-            if (TryToGetCurrentRoundInformation(out var currentRound, validationContext))
-            {
-                return currentRound.RealTimeMinersInformation.Values.Count(info => info.OutValue != null) + 1 ==
-                       minersInformation.Count(info => info.OutValue != null);
-            }
-
-            return false;
+            var minerInRound = validationContext.ProvidedRound.RealTimeMinersInformation[validationContext.Pubkey];
+            return minerInRound.OutValue != null && minerInRound.Signature != null &&
+                   minerInRound.OutValue.Value.Any() && minerInRound.Signature.Value.Any();
         }
 
         private bool ValidatePreviousInValue(ConsensusValidationContext validationContext)
         {
             var extraData = validationContext.ExtraData;
-            var publicKey = extraData.SenderPubkey.ToHex();
+            var publicKey = validationContext.Pubkey;
 
             if (!TryToGetPreviousRoundInformation(out var previousRound, validationContext)) return true;
 
             if (!previousRound.RealTimeMinersInformation.ContainsKey(publicKey)) return true;
 
-            if (extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue == null) return true;
+            if (extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue == null) return false;
 
             var previousOutValue = previousRound.RealTimeMinersInformation[publicKey].OutValue;
             var previousInValue = extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue;
@@ -67,15 +59,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return Hash.FromMessage(previousInValue) == previousOutValue;
         }
 
-
-        private bool IsRoundIdMatched(ConsensusValidationContext validationContext)
+        private bool ValidateProducedTinyBlocksCount(ConsensusValidationContext validationContext)
         {
-            if (TryToGetCurrentRoundInformation(out var currentRound, validationContext))
+            var pubkey = validationContext.Pubkey;
+
+            if (validationContext.BaseRound.ExtraBlockProducerOfPreviousRound != pubkey)
             {
-                return currentRound.RoundId == validationContext.ProvidedRound.RoundId;
+                return validationContext.ProvidedRound.RealTimeMinersInformation[pubkey].ProducedTinyBlocks == 1;
             }
 
-            return false;
+            return true;
         }
 
         private bool TryToGetPreviousRoundInformation(out Round previousRound,
@@ -97,25 +90,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             return !previousRound.IsEmpty;
-        }
-
-        private bool TryToGetCurrentRoundInformation(out Round round, ConsensusValidationContext validationContext,
-            bool useCache = false)
-        {
-            round = null;
-            var rounds = validationContext.RoundsDict;
-            if (!TryToGetRoundNumber(out var roundNumber, validationContext.CurrentRoundNumber)) return false;
-
-            if (useCache && rounds.ContainsKey(roundNumber))
-            {
-                round = rounds[roundNumber];
-            }
-            else
-            {
-                round = validationContext.Rounds[roundNumber];
-            }
-
-            return !round.IsEmpty;
         }
 
         private bool TryToGetRoundNumber(out long roundNumber, long currentRoundNumber)

@@ -4,6 +4,7 @@ using AElf.Contracts.Election;
 using AElf.Contracts.Treasury;
 using AElf.Sdk.CSharp;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
@@ -24,6 +25,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 return;
             }
+
+            State.RoundBeforeLatestExecution.Value = GetCurrentRoundInformation(new Empty());
 
             // The only difference.
             switch (input)

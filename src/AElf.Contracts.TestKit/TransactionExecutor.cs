@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
@@ -31,6 +32,7 @@ namespace AElf.Contracts.TestKit
             var miningService = _serviceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
             var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
+            var transactionResultService = _serviceProvider.GetRequiredService<TransactionResultService>();
 
             var block = await miningService.MineAsync(
                 new RequestMiningDto
@@ -44,6 +46,12 @@ namespace AElf.Contracts.TestKit
             await blockchainService.AddTransactionsAsync(new List<Transaction> {transaction});
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await transactionResultService.GetTransactionResultAsync(transaction.GetHash());
+            if (transactionResult.Status != TransactionResultStatus.Mined)
+            {
+                Debug.WriteLine($"Failed to execute {transaction.MethodName}");
+            }
         }
 
         public async Task<ByteString> ReadAsync(Transaction transaction)
@@ -61,6 +69,11 @@ namespace AElf.Contracts.TestKit
                 },
                 transaction,
                 blockTimeProvider.GetBlockTime());
+
+            if (transactionTrace.ExecutionStatus != ExecutionStatus.Executed)
+            {
+                throw new Exception($"Failed to call {transaction.MethodName}");
+            }
 
             return transactionTrace.ReturnValue;
         }

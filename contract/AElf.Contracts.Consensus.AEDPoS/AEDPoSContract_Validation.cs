@@ -29,23 +29,23 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 ExtraData = extraData,
                 RoundsDict = _rounds
             };
-            
+
             /* Ask several questions: */
-            
+
             // Add basic providers at first.
             var validationProviders = new List<IHeaderInformationValidationProvider>
             {
                 // Is sender in miner list?
                 new MiningPermissionValidationProvider(),
-                
+
                 // Is this block produced in proper time?
                 new TimeSlotValidationProvider(),
-                
+
                 // Is sender produced too many blocks at one time?
                 new ContinuousBlocksValidationProvider(),
-                
+
                 // Is confirmed lib height and lib round number went down? (Which should not happens.)
-                new ConfirmedLibValidationProvider(),
+                new LibInformationValidationProvider(),
             };
 
             switch (extraData.Behaviour)
@@ -54,6 +54,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     validationProviders.Add(new UpdateValueValidationProvider());
                     break;
                 case AElfConsensusBehaviour.TinyBlock:
+                    validationProviders.Add(new TinyBlockValidationProvider());
                     break;
                 case AElfConsensusBehaviour.NextRound:
                 case AElfConsensusBehaviour.NextTerm:

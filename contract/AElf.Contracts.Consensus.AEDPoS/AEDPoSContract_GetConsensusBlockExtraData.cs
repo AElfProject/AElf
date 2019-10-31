@@ -108,7 +108,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new AElfConsensusHeaderInformation
             {
                 SenderPubkey = publicKey.ToByteString(),
-                Round = updatedRound,
+                Round = updatedRound.GetUpdateValueRound(publicKey),
                 Behaviour = triggerInformation.Behaviour
             };
         }

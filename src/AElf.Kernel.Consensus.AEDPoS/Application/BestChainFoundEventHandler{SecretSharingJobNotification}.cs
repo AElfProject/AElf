@@ -69,7 +69,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _taskQueueManager.Enqueue(
                 async () =>
                 {
-                    SecretSharingHelper.EncodeSecret()
+
                 });
         }
     }
