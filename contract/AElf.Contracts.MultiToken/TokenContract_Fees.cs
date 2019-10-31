@@ -174,6 +174,8 @@ namespace AElf.Contracts.MultiToken
             }
 
             var transactions = Context.GetPreviousBlockTransactions();
+            Context.LogDebug(() => $"Got {transactions.Count} transaction(s) from previous block.");
+
             var senders = transactions.Select(t => t.From).ToList();
             var totalBill = new TransactionFeeBill();
             foreach (var sender in senders)
@@ -203,6 +205,8 @@ namespace AElf.Contracts.MultiToken
 
         public override Empty DonateResourceToken(Empty input)
         {
+            Context.LogDebug(() => "Start donate resource token.");
+
             var isMainChain = true;
             if (State.TreasuryContract.Value == null)
             {
@@ -219,6 +223,8 @@ namespace AElf.Contracts.MultiToken
             }
 
             var transactions = Context.GetPreviousBlockTransactions();
+
+            Context.LogDebug(() => $"Got {transactions.Count} transaction(s) from previous block.");
             foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList.Except(new List<string> {"RAM"}))
             {
                 var totalAmount = 0L;
