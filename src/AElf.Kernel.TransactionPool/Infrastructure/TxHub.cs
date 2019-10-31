@@ -216,7 +216,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             foreach (var transaction in eventData.Transactions)
             {
                 if (_processTransactionJobs.InputCount > _transactionOptions.PoolLimit)
-                    return;
+                    break;
 
                 var queuedTransaction = new QueuedTransaction
                 {
