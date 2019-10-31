@@ -85,11 +85,14 @@ namespace AElf.Kernel.Blockchain.Application
     public class BlockValidationProvider : IBlockValidationProvider
     {
         private readonly IBlockchainService _blockchainService;
+        private readonly ITransactionBlockIndexService _transactionBlockIndexService;
         public ILogger<BlockValidationProvider> Logger { get; set; }
 
-        public BlockValidationProvider(IBlockchainService blockchainService)
+        public BlockValidationProvider(IBlockchainService blockchainService,
+            ITransactionBlockIndexService transactionBlockIndexService)
         {
             _blockchainService = blockchainService;
+            _transactionBlockIndexService = transactionBlockIndexService;
         }
 
         public async Task<bool> ValidateBeforeAttachAsync(IBlock block)
@@ -105,7 +108,7 @@ namespace AElf.Kernel.Blockchain.Application
                 Logger.LogWarning("Block transactions is empty");
                 return false;
             }
-            
+
             var hashSet = new HashSet<Hash>();
             if (block.Body.TransactionIds.Select(item => hashSet.Add(item)).Any(addResult => !addResult))
             {
@@ -149,6 +152,18 @@ namespace AElf.Kernel.Blockchain.Application
 
             if (block.Body.TransactionsCount == 0)
                 return false;
+
+            foreach (var transactionId in block.TransactionIds)
+            {
+                var blockIndex =
+                    await _transactionBlockIndexService.GetTransactionBlockIndexAsync(transactionId,
+                        block.Header.PreviousBlockHash);
+                if (blockIndex != null)
+                {
+                    Logger.LogWarning($"Transaction: {transactionId} has been mined.");
+                    return false;
+                }
+            }
 
             return true;
         }
