@@ -87,6 +87,7 @@ namespace AElf.Kernel
 //                            HasFork = block.Height <= chain.BestChainHeight
                         });
                         
+                        Logger.LogTrace("Before enqueue attach job.");
                         _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
                             KernelConstants.UpdateChainQueueName);
                     }
