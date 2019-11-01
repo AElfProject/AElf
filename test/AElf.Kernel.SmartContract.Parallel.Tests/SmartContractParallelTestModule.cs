@@ -4,6 +4,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Parallel.Domain;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.Runtime.CSharp;
@@ -104,6 +105,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            context.Services.AddSingleton<ITxHub, MockTxHub>();
         }
     }
 }
