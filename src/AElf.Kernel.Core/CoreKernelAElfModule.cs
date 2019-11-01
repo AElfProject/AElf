@@ -50,7 +50,7 @@ namespace AElf.Kernel
             services.AddSingleton<ITransactionInclusivenessProvider, TransactionInclusivenessProvider>();
         }
 
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
             var transactionBlockIndexService =
                 context.ServiceProvider.GetRequiredService<ITransactionBlockIndexService>();

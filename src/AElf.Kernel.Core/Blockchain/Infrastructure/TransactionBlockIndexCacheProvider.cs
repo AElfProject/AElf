@@ -2,6 +2,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Blockchain.Infrastructure
@@ -12,16 +14,25 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         private readonly ConcurrentDictionary<Hash, TransactionBlockIndex> _transactionBlockIndices;
         private readonly ConcurrentDictionary<long, ConcurrentBag<Hash>> _transactionBlockHeightMapping;
         
+        public ILogger<TransactionBlockIndexCacheProvider> Logger { get; set; }
+
         public TransactionBlockIndexCacheProvider()
         {
             _transactionBlockIndices = new ConcurrentDictionary<Hash, TransactionBlockIndex>();
             _transactionBlockHeightMapping = new ConcurrentDictionary<long, ConcurrentBag<Hash>>();
+
+            Logger = NullLogger<TransactionBlockIndexCacheProvider>.Instance;
         }
 
         public void AddOrUpdate(Hash transactionId, TransactionBlockIndex transactionBlockIndex)
         {
-            var minBlockHeight = Math.Min(transactionBlockIndex.BlockHeight,
-                transactionBlockIndex.PreviousExecutionBlockIndexList.Min(t => t.BlockHeight));
+            if (transactionBlockIndex == null)
+                return;
+            
+            var minBlockHeight = Math.Max(transactionBlockIndex.BlockHeight,
+                transactionBlockIndex.PreviousExecutionBlockIndexList.Any()
+                    ? transactionBlockIndex.PreviousExecutionBlockIndexList.Max(t => t.BlockHeight)
+                    : 0);
 
             _transactionBlockHeightMapping.AddOrUpdate(minBlockHeight, new ConcurrentBag<Hash> {transactionId},
                 (key, value) =>
