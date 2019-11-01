@@ -156,11 +156,11 @@ namespace AElf.Kernel.Blockchain.Application
             foreach (var transactionId in block.TransactionIds)
             {
                 var blockIndex =
-                    await _transactionBlockIndexService.GetTransactionBlockIndexAsync(transactionId,
+                    await _transactionBlockIndexService.GetCachedTransactionBlockIndexAsync(transactionId,
                         block.Header.PreviousBlockHash);
                 if (blockIndex != null)
                 {
-                    Logger.LogWarning($"Transaction: {transactionId} has been mined.");
+                    Logger.LogWarning($"Transaction: {transactionId} repackaged.");
                     return false;
                 }
             }
