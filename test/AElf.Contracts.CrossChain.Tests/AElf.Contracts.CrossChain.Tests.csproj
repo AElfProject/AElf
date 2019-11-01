@@ -1,9 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+
     <PropertyGroup>
         <TargetFramework>netcoreapp2.2</TargetFramework>
         <AssemblyName>AElf.Contracts.CrossChain.Tests</AssemblyName>
         <RootNamespace>AElf.Contracts.CrossChain.Tests</RootNamespace>
         <IsPackable>false</IsPackable>
+        <NoWarn>0436</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
@@ -14,24 +16,21 @@
         <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\..\src\AElf.Contracts.TestKit\AElf.Contracts.TestKit.csproj" />
-      <ProjectReference Include="..\AElf.Contracts.TestBase\AElf.Contracts.TestBase.csproj" />
-        <ProjectReference Include="..\..\src\AElf.Core\AElf.Core.csproj"/>
-        <ProjectReference Include="..\..\src\AElf.CrossChain.Core\AElf.CrossChain.Core.csproj"/>
+        <ProjectReference Include="..\..\src\AElf.Contracts.TestKit.AEDPoSExtension\AElf.Contracts.TestKit.AEDPoSExtension.csproj" />
         <ProjectReference Include="..\..\contract\AElf.Contracts.Configuration\AElf.Contracts.Configuration.csproj">
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
             <OutputItemType>Contract</OutputItemType>
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </ProjectReference>
+        <ProjectReference Include="..\..\contract\AElf.Contracts.ReferendumAuth\AElf.Contracts.ReferendumAuth.csproj" >
+            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+            <OutputItemType>Contract</OutputItemType>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </ProjectReference>
     </ItemGroup>
+    <Import Project="..\AllContracts.props" />
 
     <ItemGroup>
-        <ContractStub Include="..\..\protobuf\acs3.proto">
-            <Link>Protobuf\Proto\acs3.proto</Link>
-        </ContractStub>
-        <ContractStub Include="..\..\protobuf\acs7.proto">
-            <Link>Protobuf\Proto\acs7.proto</Link>
-        </ContractStub>
         <ContractStub Include="..\..\protobuf\token_contract.proto">
             <Link>Protobuf\Proto\token_contract.proto</Link>
         </ContractStub>
@@ -41,7 +40,29 @@
         <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
             <Link>Protobuf\Proto\parliament_auth_contract.proto</Link>
         </ContractStub>
+
+        <ContractStub Include="..\..\protobuf\acs3.proto">
+            <Link>Protobuf\Proto\acs3.proto</Link>
+        </ContractStub>
+        <ContractMessage Include="..\..\protobuf\acs4.proto">
+            <Link>Protobuf\Proto\acs4.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\acs6.proto">
+            <Link>Protobuf/Proto/acs6.proto</Link>
+        </ContractStub>
+        <ContractStub Include="..\..\protobuf\acs7.proto">
+            <Link>Protobuf\Proto\acs7.proto</Link>
+        </ContractStub>
+        <ContractMessage Include="..\..\protobuf\aedpos_contract.proto">
+            <Link>Protobuf\Proto\aedpos_contract.proto</Link>
+        </ContractMessage>
+        <ContractStub Include="..\..\protobuf\aedpos_contract_impl.proto">
+            <Link>Protobuf\Proto\aedpos_contract_impl.proto</Link>
+        </ContractStub>
+
+        <ContractStub Include="..\..\protobuf\test_basic_function_contract.proto">
+            <Link>Protobuf\Proto\test_basic_function_contract.proto</Link>
+        </ContractStub>
     </ItemGroup>
 
-    <Import Project="..\..\test\AllContracts.props" />
 </Project>

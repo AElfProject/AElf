@@ -4,8 +4,6 @@ package profit;
 
 import "acs1.proto";
 import "aelf/core.proto";
-import "aelf/options.proto";
-import "google/protobuf/empty.proto";
 
 option csharp_namespace = "AElf.Contracts.Profit";
 

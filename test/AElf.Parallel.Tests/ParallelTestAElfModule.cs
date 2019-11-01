@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using AElf.Kernel;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Parallel;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using AElf.OS;
 using Microsoft.Extensions.DependencyInjection;
@@ -20,6 +22,8 @@ namespace AElf.Parallel.Tests
         {
             base.ConfigureServices(context);
             context.Services.AddSingleton<ParallelTestHelper>();
+            context.Services.AddSingleton<ILocalParallelTransactionExecutingService, LocalParallelTransactionExecutingService>();
+            context.Services.AddSingleton<ITxHub, MockTxHub>();
         }
 
         public override void PostConfigureServices(ServiceConfigurationContext context)

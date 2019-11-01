@@ -37,7 +37,7 @@ namespace AElf.Contracts.Economic.TestBase
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
 
             var block = await minerService.MineAsync(preBlock.GetHash(), preBlock.Height,
-                blockTimeProvider.GetBlockTime(), TimestampHelper.DurationFromMilliseconds(5000));
+                blockTimeProvider.GetBlockTime(), TimestampHelper.DurationFromMilliseconds(int.MaxValue));
 
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
