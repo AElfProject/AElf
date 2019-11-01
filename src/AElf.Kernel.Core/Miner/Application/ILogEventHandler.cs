@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Types;
 
-namespace AElf.Kernel
+namespace AElf.Kernel.Miner.Application
 {
     public interface ILogEventHandler
     {
