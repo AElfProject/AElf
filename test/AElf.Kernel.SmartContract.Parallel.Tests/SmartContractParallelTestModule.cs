@@ -4,6 +4,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Parallel.Domain;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.Runtime.CSharp;
@@ -39,6 +40,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                     return mock.Object;
                 });
             context.Services.AddSingleton<ICodeRemarksManager, MockCodeRemarksManager>();
+            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
         }
 
         #region Mocks

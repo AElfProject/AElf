@@ -12,7 +12,6 @@ namespace AElf.WebApp.Application
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             services.AddApplication<WebAppTestAElfModule>(options => { options.UseAutofac(); });
-            services.AddSingleton<ITxHub, MockTxHub>();
             return services.BuildAutofacServiceProvider();
         }
 

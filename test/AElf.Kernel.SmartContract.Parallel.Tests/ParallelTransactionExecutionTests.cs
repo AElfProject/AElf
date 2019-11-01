@@ -22,12 +22,15 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             await OsTestHelper.BroadcastTransactions(PrepareTransactions);
             Block = await MinerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
                 TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4));
+            await BlockchainService.AddBlockAsync(Block);
+            await BlockAttachService.AttachBlockAsync(Block);
 
             SystemTransactions = await OsTestHelper.GenerateTransferTransactions(1);
             CancellableTransactions = await OsTestHelper.GenerateTransactionsWithoutConflict(KeyPairs);
             Block = OsTestHelper.GenerateBlock(Block.GetHash(), Block.Height,
                 SystemTransactions.Concat(CancellableTransactions));
 
+            await OsTestHelper.BroadcastTransactions(SystemTransactions.Concat(CancellableTransactions));
             var block = await BlockExecutingService.ExecuteBlockAsync(Block.Header,
                 SystemTransactions, CancellableTransactions, CancellationToken.None);
             block.TransactionIds.Count().ShouldBeGreaterThan(10);
