@@ -5,9 +5,16 @@ Before you jump in to the guides and tutorials you'll need to install the follow
 
 # Pre-setup for Windows users
 
-A convenient tool for Windows users is **Chocolatey** for installing dependencies. Open this link and follow the installation instructions:
+A convenient tool for Windows users is **Chocolatey** for installing dependencies. Open this link and follow the installation instructions (from [**Chocolatey installation**](https://chocolatey.org/install)):
 
-[**Chocolatey installation**](https://chocolatey.org/install)
+Open and [administrative Powershell](https://www.digitalcitizen.life/ways-launch-powershell-windows-admin) and enter the following commands:
+```Powershell
+Set-ExecutionPolicy AllSigned
+or
+Set-ExecutionPolicy Bypass -Scope Process
+
+Set-ExecutionPolicy Bypass -Scope Process -Force; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+```
 
 Later, **Chocolatey** can be very useful for installing dependencies like **Git** and **Protobuf**.
 
@@ -37,17 +44,28 @@ If you don't have any of the Visual Studio editions installed:
 
 # Pre-setup for macOS users
 
-It is highly recommended that you install **Homebrew (or simply Brew)** to quickly and easily setup dependencies:
+It is highly recommended that you install **Homebrew (or simply Brew)** to quickly and easily setup dependencies (from [**Homebrew install page**](https://brew.sh/)):
 
-[**Homebrew install page**](https://brew.sh/)
+Open a terminal and execute the following command:
+```bash
+/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+```
 
 # Git
 
 If you want to run a node or use our custom smart contract environment, at some point you will have to clone (download the source code) from AElf's repository. For this you will have to use **Git** since we host our code on GitHub.
 
-Click the following link to download Git for your platform (the link provides Chocolatey and Brew packages to use):
+Click the following link to download Git for your platform (from [**Getting Started - Installing Git**](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)):
 
-[**Getting Started - Installing Git**](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
+On macOS/Linux:
+```bash 
+brew install git
+```
+
+On Windows:
+```bash
+choco install git
+```
 
 # Node js
 
