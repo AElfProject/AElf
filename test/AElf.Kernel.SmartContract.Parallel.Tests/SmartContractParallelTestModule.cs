@@ -105,7 +105,6 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddSingleton<ITxHub, MockTxHub>();
         }
     }
 }

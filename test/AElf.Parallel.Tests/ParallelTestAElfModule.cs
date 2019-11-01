@@ -29,7 +29,6 @@ namespace AElf.Parallel.Tests
             context.Services.AddSingleton<IPreExecutionPlugin, DeleteDataFromStateDbPreExecutionPlugin>();
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
             context.Services.AddSingleton<ILocalParallelTransactionExecutingService, LocalParallelTransactionExecutingService>();
-            context.Services.AddSingleton<ITxHub, MockTxHub>();
         }
 
         public override void PostConfigureServices(ServiceConfigurationContext context)
