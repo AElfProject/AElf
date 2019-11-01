@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Sdk.CSharp;
