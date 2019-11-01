@@ -81,6 +81,8 @@ namespace AElf.Kernel
                     {
                         await _blockchainService.AddBlockAsync(block);
 
+                        Logger.LogTrace("Before publish block.");
+
                         await LocalEventBus.PublishAsync(new BlockMinedEventData
                         {
                             BlockHeader = block.Header,
