@@ -32,7 +32,7 @@ If you don't have any of the Visual Studio editions installed:
  After the installation open **Visual Studio Installer**, locate and install the *C++ build tools*.
 
  <p align="center">
-    <img src="build-tools-2.png" height="100">
+    <img src="build-tools-2.png" height="50">
 </p>
 
 # Pre-setup for macOS users
