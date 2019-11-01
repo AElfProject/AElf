@@ -9,16 +9,31 @@ A convenient tool for Windows users is **Chocolatey** for installing dependencie
 
 [**Chocolatey installation**](https://chocolatey.org/install)
 
-Later, Chocolatey can be very useful for installing dependencies like **Git** and **Protobuf**.
-Another consideration is to download and install **Visual Studio Community** with **Desktop development with C++**:
+Later, **Chocolatey** can be very useful for installing dependencies like **Git** and **Protobuf**.
 
-[**Visual Studio Community Edition**](https://visualstudio.microsoft.com/fr/downloads/?rr=https%3A%2F%2Fwww.google.com%2F)
+Another dependency needed to build **AElf** from the command line under Windows is **Visual Studio Build Tools**. The easiest way is to use the **Visual Studio Installer**: 
+
+If you already have an edition of **Visual Studio** installed, open the **Visual Studio Installer** and add the **Desktop development with C++** workload:
 
 <p align="center">
     <img src="vs-cpp-dep.png" height="300">
 </p>
 
-The reason is that this install already includes most dependencies needed to build AElf.
+If you don't have any of the Visual Studio editions installed:
+
+- you can download it here [**Visual Studio Community Edition**](https://visualstudio.microsoft.com/fr/downloads/?rr=https%3A%2F%2Fwww.google.com%2F) for free and after the installation add the **Desktop development with C++** workload.
+
+- or if you don't need or want a full blown installation of **Visual Studio**, you can download the build tools here: [**Download Page**](https://visualstudio.microsoft.com/downloads/#other). Scroll down and under the section *Tools for Visual Studio 2019* download the build tools for Visual Studio:
+
+<p align="center">
+    <img src="build-tools.png" height="100" width="600">
+</p>
+
+ After the installation open **Visual Studio Installer**, locate and install the *C++ build tools*.
+
+ <p align="center">
+    <img src="build-tools-2.png" height="100">
+</p>
 
 # Pre-setup for macOS users
 
@@ -82,5 +97,5 @@ To test the installation (all platforms) you can just open a terminal and type `
 
 # Protobuf
 
-You also need to install protobuf compiler https://developers.google.com/protocol-buffers/.
+**Protobuf** is also a dependency, the next section will show you how to clone our repository and run the install scripts.
 
