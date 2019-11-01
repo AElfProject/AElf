@@ -110,7 +110,7 @@ aelf-command get-blk-height -e http://127.0.0.1:8000
 
 To stop the node you can simply find and kill the process with:
 
-On macOS/Linux:
+On mac/Linux:
 ```bash
 ps -f | grep  [A]Elf.Launcher.dll | awk '{print $2}'
 ```
