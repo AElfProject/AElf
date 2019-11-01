@@ -10,6 +10,7 @@ using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel
 {
@@ -51,6 +52,9 @@ namespace AElf.Kernel
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
+            var transactionBlockIndexService =
+                context.ServiceProvider.GetRequiredService<ITransactionBlockIndexService>();
+            AsyncHelper.RunSync(transactionBlockIndexService.InitializeTransactionBlockIndexCacheAsync);
         }
     }
 
