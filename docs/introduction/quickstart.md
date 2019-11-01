@@ -110,8 +110,15 @@ aelf-command get-blk-height -e http://127.0.0.1:8000
 
 To stop the node you can simply find and kill the process with:
 
+On macOS/Linux:
 ```bash
 ps -f | grep  [A]Elf.Launcher.dll | awk '{print $2}'
+```
+
+On Windows:
+```Powershell
+Get-CimInstance Win32_Process -Filter "name = 'dotnet.exe'" | select CommandLine,ProcessId | Where-Ob
+ject {$_.CommandLine -like "*AElf.Launcher.dll"} | Stop-Process -ID {$_.ProcessId}
 ```
 
 If needed you should also clean your redis database, with either of the following commands:
