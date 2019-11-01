@@ -24,7 +24,7 @@ namespace AElf.Kernel.ChainController.Application
             var chain = await _blockchainService.GetChainAsync();
             chain.ShouldBeNull();
 
-            chain = await _chainCreationService.CreateNewChainAsync(new List<Transaction>());
+            await _chainCreationService.CreateNewChainAsync(new List<Transaction>());
             chain = await _blockchainService.GetChainAsync();
             chain.ShouldNotBeNull();
 

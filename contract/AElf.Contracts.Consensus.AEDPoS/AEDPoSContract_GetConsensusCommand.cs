@@ -28,6 +28,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return new ConsensusCommandProvider(new FirstRoundCommandStrategy(currentRound, pubkey,
                     currentBlockTime, behaviour)).GetConsensusCommand();
 
+            Context.LogDebug(() => $"Params to get command: {behaviour}, {pubkey}, {currentBlockTime}");
             switch (behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValue:
@@ -74,8 +75,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 // Not single node.
 
+                var minedMinersOfCurrentRound = currentRound.GetMinedMiners();
+                isAlone = minedMinersOfCurrentRound.Count == 0;
+
                 // If only this node mined during previous round, stop mining.
-                if (TryToGetPreviousRoundInformation(out var previousRound))
+                if (TryToGetPreviousRoundInformation(out var previousRound) && isAlone)
                 {
                     var minedMiners = previousRound.GetMinedMiners();
                     isAlone = minedMiners.Count == 1 &&

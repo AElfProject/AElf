@@ -53,7 +53,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     }
 
                     var blocksBeforeCurrentRound =
-                        MinerInRound.ActualMiningTimes.Count(t => t < CurrentRound.GetRoundStartTime());
+                        MinerInRound.ActualMiningTimes.Count(t => t <= CurrentRound.GetRoundStartTime());
 
                     if (CurrentRound.ExtraBlockProducerOfPreviousRound == Pubkey &&
                         !CurrentRound.IsMinerListJustChanged &&

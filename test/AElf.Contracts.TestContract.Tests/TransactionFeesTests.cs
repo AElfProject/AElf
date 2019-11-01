@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestContract.TransactionFees;
 using AElf.Contracts.TokenConverter;
+using AElf.Kernel;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract;
 using AElf.Types;
 using Google.Protobuf;
@@ -63,10 +64,11 @@ namespace AElf.Contract.TestContract
             {
                 NetPackage = GenerateBytes(1024)
             });
+            var transactionSize = transactionResult.Transaction.Size();
             CheckResult(transactionResult.TransactionResult);
 
             var afterBalance = await GetBalance(DefaultSender);
-            beforeBalance.ShouldBe(afterBalance + DefaultFee);
+            beforeBalance.ShouldBe(afterBalance + DefaultFee + transactionSize * 0);
             
             var acs8After = await GetContractResourceBalance(Acs8ContractAddress);
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
@@ -162,6 +164,15 @@ namespace AElf.Contract.TestContract
                 var feeContractBalance = await GetBalance(TransactionFeesContractAddress, symbol);
                 feeContractBalance.ShouldBe(4000_00000000L);
             }
+
+            //transfer some token to acs8
+            var transactionResult = await TokenContractStub.Transfer.SendAsync(new TransferInput
+            {
+                Amount = 1000_00000000,
+                Symbol = "ELF", 
+                To = Acs8ContractAddress,
+                Memo = "for execution size fee"
+            });
             
             //initialize transactions fee contract
             var initializeResult = await TransactionFeesContractStub.InitializeFeesContract.SendAsync(Acs8ContractAddress);

@@ -33,8 +33,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             public ConsensusCommand GetConsensusCommand()
             {
-                var command = GetAEDPoSConsensusCommand();
-                return command;
+                return GetAEDPoSConsensusCommand();
             }
             
             // ReSharper disable once InconsistentNaming

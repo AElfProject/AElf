@@ -91,9 +91,17 @@ namespace AElf.OS.Network.Grpc
             
             try
             {
+                var peerPubkey = context.GetPublicKey();
+                var peer = _connectionService.GetPeerByPubkey(peerPubkey);
+                
+                if (peer.SyncState != SyncState.Finished)
+                {
+                    peer.SyncState = SyncState.Finished;
+                }
+                
                 await requestStream.ForEachAsync(r =>
                 {
-                    _ = EventBus.PublishAsync(new BlockReceivedEvent(r, context.GetPublicKey()));
+                    _ = EventBus.PublishAsync(new BlockReceivedEvent(r, peerPubkey));
                     return Task.CompletedTask;
                 });
             }
@@ -140,12 +148,14 @@ namespace AElf.OS.Network.Grpc
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
 
-            if (peer != null)
-            {
-                peer.AddKnowBlock(announcement);
+            peer.AddKnowBlock(announcement);
 
-                _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(announcement, context.GetPublicKey()));
+            if (peer.SyncState != SyncState.Finished)
+            {
+                peer.SyncState = SyncState.Finished;
             }
+
+            _ = EventBus.PublishAsync(new AnnouncementReceivedEventData(announcement, context.GetPublicKey()));
 
             return Task.CompletedTask;
         }
@@ -226,12 +236,19 @@ namespace AElf.OS.Network.Grpc
                 Logger.LogError($"Received null or empty announcement from {context.GetPeerInfo()}.");
                 return Task.CompletedTask;
             }
-        
-            Logger.LogDebug($"Received lib announce hash: {announcement.LibHash}, height {announcement.LibHeight} from {context.GetPeerInfo()}.");
+
+            Logger.LogDebug(
+                $"Received lib announce hash: {announcement.LibHash}, height {announcement.LibHeight} from {context.GetPeerInfo()}.");
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
-            peer?.UpdateLastKnownLib(announcement);
-            
+
+            peer.UpdateLastKnownLib(announcement);
+
+            if (peer.SyncState != SyncState.Finished)
+            {
+                peer.SyncState = SyncState.Finished;
+            }
+
             return Task.CompletedTask;
         }
 

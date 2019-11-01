@@ -22,6 +22,7 @@ namespace AElf.Contracts.Vote
             }
 
             // Accepted currency is in white list means this token symbol supports voting.
+            //Length of symbol has been set and unnecessary to set length of AcceptedCurrency.
             var isInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
             {
                 Symbol = input.AcceptedCurrency,
@@ -69,6 +70,7 @@ namespace AElf.Contracts.Vote
         {
             //the VotingItem is exist in state.
             var votingItem = AssertVotingItem(input.VotingItemId);
+            Assert(input.Option.Length <= VoteContractConstants.OptionLengthLimit, "Invalid input.");
             Assert(votingItem.Options.Contains(input.Option), $"Option {input.Option} not found.");
             Assert(votingItem.CurrentSnapshotNumber <= votingItem.TotalSnapshotNumber,
                 "Current voting item already ended.");
@@ -278,6 +280,7 @@ namespace AElf.Contracts.Vote
         {
             var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
+            Assert(input.Option.Length <= VoteContractConstants.OptionLengthLimit, "Invalid input.");
             Assert(!votingItem.Options.Contains(input.Option), "Option already exists.");
             Assert(votingItem.Options.Count <= VoteContractConstants.MaximumOptionsCount,
                 $"The count of options can't greater than {VoteContractConstants.MaximumOptionsCount}");
@@ -295,6 +298,7 @@ namespace AElf.Contracts.Vote
         {
             var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
+            Assert(input.Option.Length <= VoteContractConstants.OptionLengthLimit, "Invalid input.");
             Assert(votingItem.Options.Contains(input.Option), "Option doesn't exist.");
             votingItem.Options.Remove(input.Option);
             State.VotingItems[votingItem.VotingItemId] = votingItem;
