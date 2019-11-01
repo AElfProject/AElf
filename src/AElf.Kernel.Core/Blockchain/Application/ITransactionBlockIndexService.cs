@@ -82,6 +82,9 @@ namespace AElf.Kernel.Blockchain.Application
         {
             var chain = await _blockchainService.GetChainAsync();
 
+            if (chain == null)
+                return;
+
             var blockHeight = chain.LastIrreversibleBlockHeight;
             var blockHash = chain.LastIrreversibleBlockHash;
             while (true)
