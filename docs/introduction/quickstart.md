@@ -115,7 +115,7 @@ On mac/Linux:
 ps -f | grep  [A]Elf.Launcher.dll | awk '{print $2}'
 ```
 
-On Windows:
+On Windows (Powershell):
 ```Powershell
 Get-CimInstance Win32_Process -Filter "name = 'dotnet.exe'" | select CommandLine,ProcessId | Where-Ob
 ject {$_.CommandLine -like "*AElf.Launcher.dll"} | Stop-Process -ID {$_.ProcessId}
