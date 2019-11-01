@@ -25,14 +25,8 @@ Windows Note: it's possible that you get some errors about python not being inst
 
 After installing **aelf-command** you can use the following command to create an account/key-pair:
 
-On Linux/Mac:
 ```bash
 aelf-command create
-```
-
-On Windows:
-```bash
-aelf-command create -d %homepath%\AppData\Local\aelf
 ```
 
 The command prompts for a password, enter it and don't forget it. The output of the command should look something like this:
