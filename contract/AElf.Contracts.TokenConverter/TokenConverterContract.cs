@@ -120,7 +120,7 @@ namespace AElf.Contracts.TokenConverter
 
         public override Empty UpdateConnector(Connector input)
         {
-            Assert(Context.Sender == State.ManagerAddress.Value, "be not authorized");
+            AssertPerformedByManager();
             Assert(!string.IsNullOrEmpty(input.Symbol), "input symbol can not be empty'");
             var targetConnector = State.Connectors[input.Symbol];
             Assert(targetConnector != null, "Can't find target connector.");
@@ -140,7 +140,7 @@ namespace AElf.Contracts.TokenConverter
 
         public override Empty AddPairConnectors(PairConnector pairConnector)
         {
-            Assert(Context.Sender == State.ManagerAddress.Value, "be not authorized");
+            AssertPerformedByManager();
             Assert(!string.IsNullOrEmpty(pairConnector.ResourceConnectorSymbol),
                 "resource token symbol should not be empty");
             Assert(!string.IsNullOrEmpty(pairConnector.NativeConnectorSymbol),
