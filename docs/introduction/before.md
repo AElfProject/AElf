@@ -44,9 +44,7 @@ If you don't have any of the Visual Studio editions installed:
 
 # Pre-setup for macOS users
 
-It is highly recommended that you install **Homebrew (or simply Brew)** to quickly and easily setup dependencies (from [**Homebrew install page**](https://brew.sh/)):
-
-Open a terminal and execute the following command:
+It is highly recommended that you install **Homebrew (or simply Brew)** to quickly and easily setup dependencies (from [**Homebrew install page**](https://brew.sh/)). Open a terminal and execute the following command:
 ```bash
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
@@ -57,7 +55,7 @@ If you want to run a node or use our custom smart contract environment, at some 
 
 Click the following link to download Git for your platform (from [**Getting Started - Installing Git**](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)):
 
-On macOS/Linux:
+On macOS:
 ```bash 
 brew install git
 ```
@@ -67,11 +65,31 @@ On Windows:
 choco install git
 ```
 
+On Linux:
+```bash
+sudo apt install git-all
+```
+
 # Node js
 
 Next install nodejs by following the instructions here:
 
 [**Nodejs**](https://nodejs.org/en/download/).
+
+On macOS:
+```bash
+brew install node
+```
+
+On Windows:
+```bash
+choco install nodejs
+```
+
+On Linux:
+```bash
+sudo apt-get install nodejs
+```
 
 # Development framework - dotnet core sdk
 
@@ -97,9 +115,20 @@ We currently support two key-value databases to store our nodes data: **Redis** 
 
 [**Redis download page** (sources)](https://redis.io/)
 
-- On Windows we recommend you use the Chocolatey package for Redis: [**Redis Chocolatey Package**](https://chocolatey.org/packages/redis-64#dependencies).
-- On macOS, open a terminal and use Brew:  ```brew install redis```
+On Windows:
+```bash
+choco install redis-64
+```
 
+On macOS: 
+```bash
+brew install redis
+```
+
+On Linux: 
+``` bash 
+sudo apt install redis-server
+```
 
 To test the installation (all platforms) you can just open a terminal and type ```redis-server```. This will show you the servers welcome page as well as the port it's listening on:
 
@@ -109,11 +138,59 @@ To test the installation (all platforms) you can just open a terminal and type `
 
 ## SSDB: 
 
-[**SSDB**](http://ssdb.io/?lang=en) 
+For [**SSDB**](http://ssdb.io/?lang=en): 
 
-- On macOS you can use Brew : ```brew install ssdb```
+On a Windows machine we highly recommend you use Redis. This is an extract from the official website:
+```
+Do not run SSDB server on Windows system for a production environment. If you wish to stick with Windows system, please run a Linux virtual machine on Windows, and run SSDB server on that Linux.
+```
+
+On macOS: 
+```bash
+ brew install ssdb
+ ```
+
+On Linux:
+``` bash
+wget --no-check-certificate https://github.com/ideawu/ssdb/archive/master.zip
+unzip master
+cd ssdb-master
+make
+# optional, install ssdb in /usr/local/ssdb
+sudo make install
+```
 
 # Protobuf
 
-**Protobuf** is also a dependency, the next section will show you how to clone our repository and run the install scripts.
+On Windows, open a **Powershell** and enter the following commands:
+```bash
+choco upgrade protoc -y
+choco upgrade unzip -y
+```
+
+On Linux:
+```bash
+# Make sure you grab the latest version
+curl -OL https://github.com/google/protobuf/releases/download/v3.7.0/protoc-3.7.0-linux-x86_64.zip
+
+# Unzip
+unzip protoc-3.7.0-linux-x86_64.zip -d protoc3
+
+# Move protoc to /usr/local/bin/
+sudo mv protoc3/bin/* /usr/local/bin/
+
+# Move protoc3/include to /usr/local/include/
+sudo mv protoc3/include/* /usr/local/include/
+
+# Optional: change owner
+sudo chown ${USER} /usr/local/bin/protoc
+sudo chown -R ${USER} /usr/local/include/google
+```
+
+on macOS:
+```bash
+brew install protobuf@3.7
+brew link --force --overwrite protobuf@3.7
+```
+
 
