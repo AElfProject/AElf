@@ -142,7 +142,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 GetMaximumBlocksCount() == AEDPoSContractConstants.MaximumTinyBlocksCount)
             {
                 // TODO: Set to null.
-                State.Rounds[round.RoundNumber.Sub(AEDPoSContractConstants.KeepRounds)] = new Round();
+                //State.Rounds[round.RoundNumber.Sub(AEDPoSContractConstants.KeepRounds)] = new Round();
             }
 
             return true;

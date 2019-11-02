@@ -13,7 +13,7 @@ namespace AElf.Contracts.CrossChain
         
         public SingletonState<Address> Owner { get; set; }
         
-        public MappedState<string, TokenAmounts> TransactionFees { get; set; }
+        public MappedState<string, MethodFees> TransactionFees { get; set; }
         
         #region side chain
 

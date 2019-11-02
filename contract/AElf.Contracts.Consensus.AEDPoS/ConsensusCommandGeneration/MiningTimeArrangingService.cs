@@ -16,8 +16,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             public static Timestamp ArrangeNormalBlockMiningTime(Round round, string pubkey, Timestamp currentBlockTime)
             {
-                var miningTime = round.GetExpectedMiningTime(pubkey);
-                return miningTime > currentBlockTime ? miningTime : currentBlockTime;
+                return TimestampExtensions.Max(round.GetExpectedMiningTime(pubkey), currentBlockTime);
             }
 
             public static Timestamp ArrangeExtraBlockMiningTime(Round round, string pubkey, Timestamp currentBlockTime)

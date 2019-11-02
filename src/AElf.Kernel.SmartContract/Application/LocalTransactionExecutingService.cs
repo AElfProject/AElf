@@ -8,6 +8,7 @@ using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.SmartContractExecution.Events;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -116,6 +117,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                     if (result != null)
                     {
+                        result.TransactionFee = trace.TransactionFee;
                         await _transactionResultService.AddTransactionResultAsync(result,
                             transactionExecutingDto.BlockHeader);
                     }
@@ -296,6 +298,12 @@ namespace AElf.Kernel.SmartContract.Application
                         return false;
                     trace.PreTransactions.Add(preTx);
                     trace.PreTraces.Add(preTrace);
+                    if (preTx.MethodName == "ChargeTransactionFees")
+                    {
+                        var txFee = new TransactionFee();
+                        txFee.MergeFrom(preTrace.ReturnValue);
+                        trace.TransactionFee = txFee;
+                    }
                     if (!preTrace.IsSuccessful())
                     {
                         trace.ExecutionStatus = ExecutionStatus.Prefailed;

@@ -34,6 +34,7 @@ namespace AElf.Contracts.Economic
             RegisterElectionVotingEvent();
             SetTreasurySchemeIdsToElectionContract();
             SetResourceTokenUnitPrice();
+            SetTransactionSizeUnitPrice();
 
             InitializeTokenConverterContract();
 
@@ -218,21 +219,19 @@ namespace AElf.Contracts.Economic
             });
         }
 
+        private void SetTransactionSizeUnitPrice()
+        {
+            State.TokenContract.SetTransactionSizeUnitPrice.Send(new SInt32Value
+            {
+                Value = EconomicContractConstants.TransactionSizeUnitPrice
+            });
+        }
+
         private Address InitialConnectorManager()
         {
             State.ParliamentAuthContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
-
-            var createOrganizationInput = new CreateOrganizationInput
-            {
-                ReleaseThreshold = EconomicContractConstants.ConnectorSettingProposalReleaseThreshold
-            };
-            State.ParliamentAuthContract.CreateOrganization.Send(createOrganizationInput);
-
-            var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(State.ParliamentAuthContract.Value),
-                Hash.FromMessage(createOrganizationInput));
-            return Address.FromPublicKey(State.ParliamentAuthContract.Value.Value.Concat(
-                organizationHash.Value.ToByteArray().ComputeHash()).ToArray());
+            return State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty());
         }
 
         private void InitializeTokenConverterContract()

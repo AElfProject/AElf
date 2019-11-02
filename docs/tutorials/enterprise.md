@@ -14,8 +14,7 @@ The process you should follow will look something like this:
 5. Write your own modules.
 
 
-You can find a simple example [here]
-(https://github.com/AElfProject/aelf-examples/tree/demo/chain/mainchain). This repo contains a basic structure showing the basic way to customize our node software.
+You can find a simple example [here](https://github.com/AElfProject/aelf-examples/tree/demo/chain/mainchain). This repo contains a basic structure showing the basic way to customize our node software.
 
 This page will explain some of the components you'll find in the repository:
 
