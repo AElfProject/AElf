@@ -40,7 +40,7 @@ namespace AElf.Contracts.Election
             await tokenTester.Transfer.SendAsync(new TransferInput
             {
                 Symbol = ElectionContractTestConstants.NativeTokenSymbol,
-                Amount = balance - 100,
+                Amount = balance / 2,
                 To = Address.FromPublicKey(VoterKeyPairs[1].PublicKey),
                 Memo = "transfer token to other"
             });

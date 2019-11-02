@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.CrossChain;
 using AElf.Contracts.MultiToken;
-using AElf.Kernel.TransactionPool.Application;
+using AElf.Kernel.SmartContract.Application;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Blockchains.SideChain

@@ -1,3 +1,5 @@
+using System;
+
 namespace AElf.OS.Network
 {
     public static class NetworkConstants
@@ -33,5 +35,6 @@ namespace AElf.OS.Network
         public const int DefaultMaxBufferedAnnouncementCount = 200;
 
         public const int DefaultPeerReconnectionPeriod = 60_000; // 1 min
+        public const int DefaultPeerBlackListTimeoutInSeconds = 300;
     }
 }

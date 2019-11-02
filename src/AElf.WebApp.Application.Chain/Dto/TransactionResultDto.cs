@@ -21,5 +21,7 @@ namespace AElf.WebApp.Application.Chain.Dto
         public string ReadableReturnValue { get; set; }
         
         public string Error { get; set; }
+
+        public TransactionFeeDto TransactionFee { get; set; }
     }
 }

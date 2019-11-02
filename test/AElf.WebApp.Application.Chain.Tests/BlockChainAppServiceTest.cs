@@ -210,7 +210,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var jObject = JObject.Parse(sendTransactionResponse);
             jObject["owner"].ShouldBe(accountAddress.GetFormatted());
             jObject["symbol"].ShouldBe("ELF");
-            jObject.Value<long>("balance").ShouldBe(9999900);
+            jObject.Value<long>("balance").ShouldBe(_osTestHelper.TokenTotalSupply - _osTestHelper.MockChainTokenAmount);
         }
 
         [Fact]
@@ -393,7 +393,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
 
-            var existTransaction = await _txHub.GetTransactionReceiptAsync(transaction.GetHash());
+            var existTransaction = await _txHub.GetQueuedTransactionAsync(transaction.GetHash());
             existTransaction.ShouldBeNull();
         }
 
@@ -564,7 +564,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 $"/api/blockChain/transactionResult?transactionId={transactionHex}");
 
             response.TransactionId.ShouldBe(transactionHex);
-            response.Status.ShouldBe(TransactionResultStatus.NotExisted.ToString());
+            response.Status.ShouldBe(TransactionResultStatus.Failed.ToString().ToUpper());
         }
 
         [Fact]
@@ -685,8 +685,9 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Header.Height.ShouldBe(block.Height);
             response.Header.Time.ShouldBe(block.Header.Time.ToDateTime());
             response.Header.ChainId.ShouldBe(ChainHelper.ConvertChainIdToBase58(chain.Id));
-            response.Header.Bloom.ShouldBe(block.Header.Bloom.ToByteArray().ToHex());
-            response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToHex());
+            response.Header.Bloom.ShouldBe(block.Header.Bloom.ToBase64());
+            response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToByteArray().ToHex());
+            response.Header.Extra.ShouldBe(block.Header.ExtraData?.ToString());
             response.Body.TransactionsCount.ShouldBe(3);
 
             var responseTransactions = response.Body.Transactions;
@@ -717,8 +718,9 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Header.Height.ShouldBe(block.Height);
             response.Header.Time.ShouldBe(block.Header.Time.ToDateTime());
             response.Header.ChainId.ShouldBe(ChainHelper.ConvertChainIdToBase58(chain.Id));
-            response.Header.Bloom.ShouldBe(block.Header.Bloom.ToByteArray().ToHex());
-            response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToHex());
+            response.Header.Bloom.ShouldBe(block.Header.Bloom.ToBase64());
+            response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToByteArray().ToHex());
+            response.Header.Extra.ShouldBe(block.Header.ExtraData?.ToString());
             response.Body.TransactionsCount.ShouldBe(3);
 
             var responseTransactions = response.Body.Transactions;

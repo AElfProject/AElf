@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
@@ -8,13 +7,13 @@ using AElf.Kernel.Consensus.Application;
 using AElf.Modularity;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
+using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using NSubstitute;
 using Volo.Abp.Modularity;
 
 namespace AElf.OS
@@ -33,6 +32,17 @@ namespace AElf.OS
             var recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             
             var osTestHelper = context.Services.GetServiceLazy<OSTestHelper>();
+            
+            peerPoolMock.Setup(p => p.FindPeerByPublicKey(It.Is<string>(adr => adr == "blacklistpeer")))
+                .Returns<string>(adr =>
+            {
+                var endpoint = IpEndPointHelper.Parse("127.0.0.1:5000");
+            
+                var peer = new Mock<IPeer>();
+                peer.Setup(p => p.RemoteEndpoint).Returns(endpoint);
+                peer.Setup(p => p.Info).Returns(new PeerConnectionInfo {Pubkey = "blacklistpeer", ConnectionTime = TimestampHelper.GetUtcNow()});
+                return peer.Object;
+            });
 
             peerPoolMock.Setup(p => p.FindPeerByPublicKey(It.Is<string>(adr => adr == "p1")))
                 .Returns<string>(adr =>
