@@ -11,8 +11,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class Round
     {
-        public long RoundId =>
-            RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds).Sum();
+        public long RoundId
+        {
+            get
+            {
+                if (RealTimeMinersInformation.Values.All(bpInfo => bpInfo.ExpectedMiningTime != null))
+                {
+                    return RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds).Sum();
+                }
+
+                return RoundIdForValidation;
+            }
+        }
 
         public bool IsEmpty => RoundId == 0;
 
