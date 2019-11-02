@@ -19,7 +19,7 @@ namespace AElf.Contracts.TokenConverter
         internal ParliamentAuthContractContainer.ParliamentAuthContractReferenceState ParliamentAuthContract { get; set; }
         public SingletonState<Address> FeeReceiverAddress { get; set; }
         public SingletonState<Address> ManagerAddress { get; set; }
-        public MappedState<string, TokenAmounts> TransactionFees { get; set; }
+        public MappedState<string, MethodFees> TransactionFees { get; set; }
 
 
     }

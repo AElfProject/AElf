@@ -107,6 +107,7 @@ namespace AElf.Contracts.TestKit
             context.Services.AddTransient<IContractTesterFactory, ContractTesterFactory>();
             context.Services.AddTransient<ITransactionExecutor, TransactionExecutor>();
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
+            context.Services.AddSingleton<ITxHub, MockTxHub>();
 
             context.Services
                 .AddTransient(provider =>

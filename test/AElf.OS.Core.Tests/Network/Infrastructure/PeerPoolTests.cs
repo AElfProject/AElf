@@ -17,10 +17,20 @@ namespace AElf.OS.Network
     public class PeerPoolTests : NetworkInfrastructureTestBase
     {
         private readonly IPeerPool _peerPool;
+        private readonly IBlackListedPeerProvider _blackListProvider;
 
         public PeerPoolTests()
         {
             _peerPool = GetRequiredService<IPeerPool>();
+            _blackListProvider = GetRequiredService<IBlackListedPeerProvider>();
+        }
+
+        [Fact]
+        public void AddBlacklistedPeer_ShouldReturnFalse()
+        {
+            IPAddress ipAddress = IPAddress.Parse("12.34.56.67");
+            _blackListProvider.AddIpToBlackList(ipAddress);
+            _peerPool.AddHandshakingPeer(ipAddress, "somePubKey").ShouldBeFalse();
         }
         
         [Fact]
