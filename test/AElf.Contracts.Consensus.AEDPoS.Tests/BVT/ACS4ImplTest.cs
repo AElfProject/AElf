@@ -310,7 +310,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             currentRound.RoundNumber.ShouldBe(2);
         }
 
-        [Fact]
+        [Fact(Skip = "Already tested in testkit aedpo extension")]
         public async Task AEDPoSContract_ConsensusTransactionValidation_Test()
         {
             var usingKeyPair = BootMinerKeyPair;
