@@ -84,6 +84,16 @@ namespace AElf.Parallel.Tests
                 case nameof(BasicFunctionWithParallelContract.IncreaseValueWithPlugin):
                 case nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPlugin):
                 case nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithInlineAndPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueFailedWithPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueFailedWithPostPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueFailedWithInlineAndPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueFailedWithInlineAndPostPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueFailedParallelWithInlineAndPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithFailedInlineAndPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithFailedInlineAndPostPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithFailedInlineAndPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithFailedPrePluginAndPostPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndFailedPrePluginAndPostPlugin):
                 {
                     var input = IncreaseValueInput.Parser.ParseFrom(transactionContext.Transaction.Params);
                     transactions.Add(new Transaction
@@ -96,6 +106,29 @@ namespace AElf.Parallel.Tests
                             Memo = Guid.NewGuid().ToString()
                         }.ToByteString(),
                         MethodName = nameof(BasicFunctionWithParallelContract.IncreaseValue),
+                        RefBlockNumber = transactionContext.BlockHeight - 1,
+                        RefBlockPrefix =
+                            ByteString.CopyFrom(transactionContext.PreviousBlockHash.Value.Take(4).ToArray())
+                    });
+                    break;
+                }
+                
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithFailedPostPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndFailedPostPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithPrePluginAndFailedPostPlugin):
+                case nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPrePluginAndFailedPostPlugin):
+                {
+                    var input = IncreaseValueInput.Parser.ParseFrom(transactionContext.Transaction.Params);
+                    transactions.Add(new Transaction
+                    {
+                        From = transactionContext.Transaction.From,
+                        To = ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                        Params = new IncreaseValueInput
+                        {
+                            Key = input.Key,
+                            Memo = Guid.NewGuid().ToString()
+                        }.ToByteString(),
+                        MethodName = nameof(BasicFunctionWithParallelContract.IncreaseValueFailed),
                         RefBlockNumber = transactionContext.BlockHeight - 1,
                         RefBlockPrefix =
                             ByteString.CopyFrom(transactionContext.PreviousBlockHash.Value.Take(4).ToArray())
