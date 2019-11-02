@@ -161,6 +161,8 @@ sudo make install
 
 # Protobuf
 
+Depending on your platform, enter one of the following commands (see here for more details [**Protobuf Github**](https://github.com/protocolbuffers/protobuf)):
+
 On Windows, open a **Powershell** and enter the following commands:
 ```bash
 choco upgrade protoc -y
