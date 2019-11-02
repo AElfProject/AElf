@@ -90,6 +90,9 @@ namespace AElf.Kernel.Blockchain.Application
             while (true)
             {
                 var block = await _blockchainService.GetBlockByHashAsync(blockHash);
+                if(block == null)
+                    return;
+                
                 foreach (var txId in block.TransactionIds)
                 {
                     await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(txId);
