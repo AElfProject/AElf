@@ -136,7 +136,7 @@ To test the installation (all platforms) you can just open a terminal and type `
     <img src="redis.png" height="300">
 </p>
 
-## SSDB: 
+## SSDB
 Depending on your platform, enter one of the following commands (see here for more details [**SSDB**](http://ssdb.io/?lang=en)):
 
 NOTE: On a Windows machine we highly recommend you use Redis. This is an extract from the official website:
