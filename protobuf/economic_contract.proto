@@ -25,6 +25,7 @@ message InitialEconomicSystemInput {
     sint32 native_token_decimals = 4;
     bool is_native_token_burnable = 5;
     sint64 mining_reward_total_amount = 6;
+    sint64 transaction_size_fee_unit_price = 7;
 }
 
 message IssueNativeTokenInput {
