@@ -4,6 +4,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using AElf.Contracts.Configuration;
+using AElf.Kernel.SmartContractExecution.Application;
 using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -22,8 +23,10 @@ namespace AElf.Kernel.BlockTransactionLimitController
             get
             {
                 if (_interestedEvent != null) return _interestedEvent;
+
                 var address =
-                    _smartContractAddressService.GetAddressByContractName(ConfigurationSmartContractAddressNameProvider.Name);
+                    _smartContractAddressService.GetAddressByContractName(ConfigurationSmartContractAddressNameProvider
+                        .Name);
 
                 _interestedEvent = new BlockTransactionLimitChanged().ToLogEvent(address);
 
