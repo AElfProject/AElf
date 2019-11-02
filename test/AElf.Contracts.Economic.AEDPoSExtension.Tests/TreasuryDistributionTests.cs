@@ -265,7 +265,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             return information;
         }
 
-        [Fact]
+        [Fact(Skip = "Skip for saving time.")]
         public async Task<TreasuryDistributionInformation> TreasuryDistribution_ThirdTerm_Test()
         {
             var information = new TreasuryDistributionInformation();

@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.SmartContract.Application;
@@ -35,7 +36,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public Task Handle(Block block, TransactionResult result, LogEvent log)
         {
-            
+            throw new NotImplementedException();
         }
     }
 }

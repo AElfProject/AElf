@@ -58,7 +58,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 currentRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].DecryptedPreviousInValues
                     .Add(publicKey, ByteString.CopyFrom(decryptedInValue));
             }
-            
+
             Context.LogDebug(() => "Leaving ShareInValueOfCurrentRound");
         }
 

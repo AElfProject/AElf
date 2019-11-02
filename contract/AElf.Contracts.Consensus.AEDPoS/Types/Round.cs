@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs4;
-using AElf.Kernel;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
