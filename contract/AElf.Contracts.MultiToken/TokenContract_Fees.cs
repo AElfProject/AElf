@@ -356,6 +356,8 @@ namespace AElf.Contracts.MultiToken
                 UnitPrice = input.Value
             });
 
+            Context.LogDebug(() => $"SetTransactionSizeUnitPrice: {input.Value}");
+
             State.TransactionFeeUnitPrice.Value = input.Value;
 
             return new Empty();
