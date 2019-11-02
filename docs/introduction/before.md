@@ -3,9 +3,11 @@
 
 Before you jump in to the guides and tutorials you'll need to install the following tools and frameworks.
 
+For most of these dependencies we provide ready-to-use command line instructions. In case of problems or if you have more complex needs, we provide the official link with full instructions.
+
 # Pre-setup for Windows users
 
-A convenient tool for Windows users is **Chocolatey** for installing dependencies. Open this link and follow the installation instructions (from [**Chocolatey installation**](https://chocolatey.org/install)):
+A convenient tool for Windows users is **Chocolatey** for installing dependencies. Open this link and follow the installation instructions (see here for more details [**Chocolatey installation**](https://chocolatey.org/install)):
 
 Open and [administrative Powershell](https://www.digitalcitizen.life/ways-launch-powershell-windows-admin) and enter the following commands:
 ```Powershell
@@ -44,7 +46,7 @@ If you don't have any of the Visual Studio editions installed:
 
 # Pre-setup for macOS users
 
-It is highly recommended that you install **Homebrew (or simply Brew)** to quickly and easily setup dependencies (from [**Homebrew install page**](https://brew.sh/)). Open a terminal and execute the following command:
+It is highly recommended that you install **Homebrew (or simply Brew)** to quickly and easily setup dependencies (see here for more details [**Homebrew install page**](https://brew.sh/)). Open a terminal and execute the following command:
 ```bash
 /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 ```
@@ -53,7 +55,7 @@ It is highly recommended that you install **Homebrew (or simply Brew)** to quick
 
 If you want to run a node or use our custom smart contract environment, at some point you will have to clone (download the source code) from AElf's repository. For this you will have to use **Git** since we host our code on GitHub.
 
-Click the following link to download Git for your platform (from [**Getting Started - Installing Git**](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)):
+Click the following link to download Git for your platform (see here for more details [**Getting Started - Installing Git**](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)):
 
 On macOS:
 ```bash 
@@ -72,9 +74,7 @@ sudo apt install git-all
 
 # Node js
 
-Next install nodejs by following the instructions here:
-
-[**Nodejs**](https://nodejs.org/en/download/).
+Next install nodejs by following the instructions here (see here for more details [**Nodejs**](https://nodejs.org/en/download/)):
 
 On macOS:
 ```bash
@@ -113,7 +113,7 @@ We currently support two key-value databases to store our nodes data: **Redis** 
 
 ## Redis (recommended fo the tutorials): 
 
-[**Redis download page** (sources)](https://redis.io/)
+Depending on your platform, enter one of the following commands (see here for more details [**Redis download page**](https://redis.io/)):
 
 On Windows:
 ```bash
@@ -137,10 +137,9 @@ To test the installation (all platforms) you can just open a terminal and type `
 </p>
 
 ## SSDB: 
+Depending on your platform, enter one of the following commands (see here for more details [**SSDB**](http://ssdb.io/?lang=en)):
 
-For [**SSDB**](http://ssdb.io/?lang=en): 
-
-On a Windows machine we highly recommend you use Redis. This is an extract from the official website:
+NOTE: On a Windows machine we highly recommend you use Redis. This is an extract from the official website:
 ```
 Do not run SSDB server on Windows system for a production environment. If you wish to stick with Windows system, please run a Linux virtual machine on Windows, and run SSDB server on that Linux.
 ```
