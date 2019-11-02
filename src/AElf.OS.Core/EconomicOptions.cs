@@ -11,5 +11,6 @@ namespace AElf.OS
         public long MaximumLockTime { get; set; } = 1080 * 86400;
         public long MinimumLockTime { get; set; } = 90 * 86400;
         public string ResourceTokenSymbolList { get; set; } = "RAM,STO,CPU,NET";
+        public long TransactionSizeFeeUnitPrice { get; set; } = 1000;
     }
 }
