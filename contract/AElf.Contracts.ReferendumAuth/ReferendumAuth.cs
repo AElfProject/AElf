@@ -71,7 +71,7 @@ namespace AElf.Contracts.ReferendumAuth
             var organization = State.Organisations[input.OrganizationAddress];
             Assert(organization != null, "No registered organization.");
 
-            Hash hash = Hash.FromMessage(input);
+            Hash hash = Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId);
             var proposal = new ProposalInfo
             {
                 ContractMethodName = input.ContractMethodName,
@@ -84,7 +84,7 @@ namespace AElf.Contracts.ReferendumAuth
             Assert(Validate(proposal), "Invalid proposal.");
             Assert(State.Proposals[hash] == null, "Proposal already exists.");
             State.Proposals[hash] = proposal;
-            Context.Fire(new ProposalCreated { ProposalId = hash});
+            Context.Fire(new ProposalCreated {ProposalId = hash});
             
             return hash;
         }

@@ -23,6 +23,7 @@ namespace AElf.Contracts.ParliamentAuth
             {
                 return new ProposalOutput();
             }
+            
             var organization = State.Organisations[proposal.OrganizationAddress];
             var minerList = GetCurrentMinerList();
             var readyToRelease = IsReleaseThresholdReached(proposal, organization, minerList);
@@ -93,7 +94,7 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(organization != null, "No registered organization.");
             AssertSenderIsAuthorizedProposer(organization);
 
-            Hash hash = Hash.FromMessage(input);
+            Hash hash = Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId);
             var proposal = new ProposalInfo
             {
                 ContractMethodName = input.ContractMethodName,
@@ -107,7 +108,7 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(Validate(proposal), "Invalid proposal.");
             Assert(State.Proposals[hash] == null, "Proposal already exists.");
             State.Proposals[hash] = proposal;
-            Context.Fire(new ProposalCreated { ProposalId = hash});
+            Context.Fire(new ProposalCreated {ProposalId = hash});
             
             return hash;
         }
@@ -134,7 +135,7 @@ namespace AElf.Contracts.ParliamentAuth
             Assert(IsReleaseThresholdReached(proposalInfo, organization, currentParliament), "Not approved.");
             Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
                 proposalInfo.ContractMethodName, proposalInfo.Params);
-            Context.Fire(new ProposalReleased{ ProposalId = proposalId});
+            Context.Fire(new ProposalReleased {ProposalId = proposalId});
             State.Proposals.Remove(proposalId);
             
             return new Empty();
