@@ -22,7 +22,7 @@ namespace AElf.WebApp.Application.Chain
 
         Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
             int limit = 10);
-        
+
         Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId);
     }
 
@@ -93,6 +93,11 @@ namespace AElf.WebApp.Application.Chain
                 output.Transaction.Params = JsonFormatter.ToDiagnosticString(
                     methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
             }
+
+            output.TransactionFee = transactionResult.TransactionFee == null
+                ? new TransactionFeeDto()
+                : JsonConvert.DeserializeObject<TransactionFeeDto>(transactionResult.TransactionFee.ToString());
+
             return output;
         }
 
@@ -195,27 +200,31 @@ namespace AElf.WebApp.Application.Chain
         private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash = null)
         {
             // in tx pool
-            var receipt = await _transactionResultProxyService.TxHub.GetTransactionReceiptAsync(transactionId);
-            if (receipt != null)
+            var queuedTransaction = await _transactionResultProxyService.TxHub.GetQueuedTransactionAsync(transactionId);
+            if (queuedTransaction != null)
             {
                 return new TransactionResult
                 {
-                    TransactionId = receipt.TransactionId,
+                    TransactionId = queuedTransaction.TransactionId,
                     Status = TransactionResultStatus.Pending
                 };
             }
-            
+
             // in storage
             TransactionResult result;
             if (blockHash != null)
             {
-                result = await _transactionResultProxyService.TransactionResultQueryService.
-                    GetTransactionResultAsync(transactionId, blockHash);
+                result =
+                    await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(
+                        transactionId, blockHash);
             }
             else
             {
-                result = await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(transactionId);
+                result =
+                    await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(
+                        transactionId);
             }
+
             if (result != null)
             {
                 return result;

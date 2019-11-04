@@ -64,7 +64,8 @@ namespace AElf.OS.BlockSync.Worker
                         continue;
                     }
 
-                    Logger.LogDebug($"Execute download job: CurrentTargetBlockHeight: {jobInfo.CurrentTargetBlockHeight}, TargetBlockHeight:{jobInfo.TargetBlockHeight}, SuggestedPeerPubkey:{jobInfo.SuggestedPeerPubkey}.");
+                    Logger.LogDebug(
+                        $"Execute download job: CurrentTargetBlockHeight: {jobInfo.CurrentTargetBlockHeight}, TargetBlockHeight:{jobInfo.TargetBlockHeight}, SuggestedPeerPubkey:{jobInfo.SuggestedPeerPubkey}.");
 
                     var downloadResult = await DownloadBlocksAsync(chain, jobInfo);
 
@@ -178,7 +179,8 @@ namespace AElf.OS.BlockSync.Worker
                 }
 
             }
-            else if (jobInfo.CurrentTargetBlockHeight <= chain.BestChainHeight + 8)
+            // If last target block didn't become the longest chain, stop this job.
+            else if (jobInfo.CurrentTargetBlockHeight <= chain.LongestChainHeight + 8)
             {
                 downloadResult = await _blockDownloadService.DownloadBlocksAsync(new DownloadBlockDto
                 {

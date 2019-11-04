@@ -9,6 +9,7 @@ using AElf.Kernel.SmartContract.Sdk;
 using AElf.Kernel.SmartContractExecution.Events;
 using AElf.Kernel.Types;
 using AElf.Types;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -78,7 +79,7 @@ namespace AElf.Kernel.SmartContract.Application
                         Logger.LogTrace($"transaction canceled");
                         break;
                     }
-
+                    
                     if (trace == null)
                         break;
                     // Will be useful when debugging MerkleTreeRootOfWorldState is different from each miner.
@@ -100,7 +101,19 @@ namespace AElf.Kernel.SmartContract.Application
                         {
                             break;
                         }
+                        
+                        var transactionExecutingStateSets = new List<TransactionExecutingStateSet>();
+                        foreach (var preTrace in trace.PreTraces)
+                        {
+                            if (preTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
+                        }
+                    
+                        foreach (var postTrace in trace.PostTraces)
+                        {
+                            if (postTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(postTrace.GetStateSets());
+                        }
 
+                        groupStateCache.Update(transactionExecutingStateSets);
                         trace.SurfaceUpError();
                     }
                     else
@@ -117,6 +130,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                     if (result != null)
                     {
+                        result.TransactionFee = trace.TransactionFee;
                         await _transactionResultService.AddTransactionResultAsync(result,
                             transactionExecutingDto.BlockHeader);
                     }
@@ -297,6 +311,12 @@ namespace AElf.Kernel.SmartContract.Application
                         return false;
                     trace.PreTransactions.Add(preTx);
                     trace.PreTraces.Add(preTrace);
+                    if (preTx.MethodName == "ChargeTransactionFees")
+                    {
+                        var txFee = new TransactionFee();
+                        txFee.MergeFrom(preTrace.ReturnValue);
+                        trace.TransactionFee = txFee;
+                    }
                     if (!preTrace.IsSuccessful())
                     {
                         trace.ExecutionStatus = ExecutionStatus.Prefailed;
@@ -323,6 +343,17 @@ namespace AElf.Kernel.SmartContract.Application
             CancellationToken cancellationToken)
         {
             var trace = txContext.Trace;
+            if (!trace.IsSuccessful())
+            {
+                internalStateCache = new TieredStateCache(txContext.StateCache);
+                foreach (var preTrace in txContext.Trace.PreTraces)
+                {
+                    var stateSets = preTrace.GetStateSets();
+                    internalStateCache.Update(stateSets);
+                }
+
+                internalChainContext.StateCache = internalStateCache;
+            }
             foreach (var plugin in _postPlugins)
             {
                 var transactions = await plugin.GetPostTransactionsAsync(executive.Descriptors, txContext);
@@ -427,28 +458,49 @@ namespace AElf.Kernel.SmartContract.Application
             if (trace.IsSuccessful())
             {
                 var transactionExecutingStateSets = trace.GetStateSets();
-                foreach (var transactionExecutingStateSet in transactionExecutingStateSets)
+                returnSet = GetReturnSet(returnSet, transactionExecutingStateSets);
+                returnSet.ReturnValue = trace.ReturnValue;
+            }
+            else
+            {
+                var transactionExecutingStateSets = new List<TransactionExecutingStateSet>();
+                foreach (var preTrace in trace.PreTraces)
                 {
-                    foreach (var write in transactionExecutingStateSet.Writes)
-                    {
-                        returnSet.StateChanges[write.Key] = write.Value;
-                        returnSet.StateDeletes.Remove(write.Key);
-                    }
-
-                    foreach (var delete in transactionExecutingStateSet.Deletes)
-                    {
-                        returnSet.StateDeletes[delete.Key] = delete.Value;
-                        returnSet.StateChanges.Remove(delete.Key);
-                    }
+                    if (preTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(preTrace.GetStateSets());
+                }
+                    
+                foreach (var postTrace in trace.PostTraces)
+                {
+                    if (postTrace.IsSuccessful()) transactionExecutingStateSets.AddRange(postTrace.GetStateSets());
                 }
 
-                returnSet.ReturnValue = trace.ReturnValue;
+                returnSet = GetReturnSet(returnSet, transactionExecutingStateSets);
             }
 
             var reads = trace.GetFlattenedReads();
             foreach (var read in reads)
             {
                 returnSet.StateAccesses[read.Key] = read.Value;
+            }
+
+            return returnSet;
+        }
+        
+        private ExecutionReturnSet GetReturnSet(ExecutionReturnSet returnSet,
+            IEnumerable<TransactionExecutingStateSet> transactionExecutingStateSets)
+        {
+            foreach (var transactionExecutingStateSet in transactionExecutingStateSets)
+            {
+                foreach (var write in transactionExecutingStateSet.Writes)
+                {
+                    returnSet.StateChanges[write.Key] = write.Value;
+                    returnSet.StateDeletes.Remove(write.Key);
+                }
+                foreach (var delete in transactionExecutingStateSet.Deletes)
+                {
+                    returnSet.StateDeletes[delete.Key] = delete.Value;
+                    returnSet.StateChanges.Remove(delete.Key);
+                }
             }
 
             return returnSet;

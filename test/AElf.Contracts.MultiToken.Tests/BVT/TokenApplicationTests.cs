@@ -287,7 +287,7 @@ namespace AElf.Contracts.MultiToken
                 IsBurnable = true,
                 Issuer = DefaultAddress,
                 TokenName = "elf test token",
-                TotalSupply = DPoSContractConsts.LockTokenForElection * 100,
+                TotalSupply = DPoSContractConsts.LockTokenForElection * 1000000,
                 LockWhiteList =
                 {
                     BasicFunctionContractAddress,
@@ -298,7 +298,7 @@ namespace AElf.Contracts.MultiToken
             await TokenContractStub.Issue.SendAsync(new IssueInput
             {
                 Symbol = SymbolForTest,
-                Amount = DPoSContractConsts.LockTokenForElection * 20,
+                Amount = DPoSContractConsts.LockTokenForElection * 200000,
                 To = DefaultAddress,
                 Memo = "Issue"
             });
@@ -578,7 +578,7 @@ namespace AElf.Contracts.MultiToken
             unlockResult.Error.ShouldContain("Insufficient balance");
         }
 
-        [Fact(DisplayName = "[MultiToken] A lock the token,but B to unlock.")]
+        [Fact(DisplayName = "[MultiToken] A locked his tokens, B want to unlock with A's lock id'.")]
         public async Task MultiTokenContract_Unlock_NotLocker_Test()
         {
             await Create_BasicFunctionContract_Issue();

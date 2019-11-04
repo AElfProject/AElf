@@ -12,9 +12,9 @@ namespace AElf.Contracts.Profit.BVT
         public async Task ProfitContract_SetMethodFee_WithoutPermission_Test()
         {
             //no permission
-            var transactionResult = await ProfitContractStub.SetMethodFee.SendAsync(new TokenAmounts
+            var transactionResult = await ProfitContractStub.SetMethodFee.SendAsync(new MethodFees
             {
-                Method = "OnlyTest"
+                MethodName = "OnlyTest"
             });
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
             transactionResult.TransactionResult.Error.ShouldContain("Assertion failed");

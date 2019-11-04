@@ -1877,7 +1877,997 @@ namespace AElf.Parallel.Tests
             await CheckValueInVersionStateAsync(keys[6], messageValue.Int64Value,
                 messageValue.StringValue, messageValue);
         }
+        
+        [Fact]
+        public async Task Increase_Value_Failed()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
 
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueFailed), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValueNotExisted(value);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(0);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueNotExistedInVersionStateAsync(key);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_Parallel_Failed()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueParallelFailed), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValueNotExisted(value);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(0);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueNotExistedInVersionStateAsync(key);
+        }
+
+        [Fact]
+        public async Task Increase_Value_Failed_With_Inline()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueFailedWithInline), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValueNotExisted(value);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(0);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueNotExistedInVersionStateAsync(key);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_With_Failed_Inline()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithFailedInline), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValueNotExisted(value);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(0);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueNotExistedInVersionStateAsync(key);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_Failed_With_PrePlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueFailedWithPrePlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            var messageValue = new MessageValue
+            {
+                Int64Value = 1,
+                StringValue = "1"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(3);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value, messageValue.StringValue, messageValue);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_Failed_With_PostPlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueFailedWithPostPlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            var messageValue = new MessageValue
+            {
+                Int64Value = 1,
+                StringValue = "1"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(3);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value, messageValue.StringValue, messageValue);
+        }
+           
+        [Fact]
+        public async Task Increase_Value_Failed_With_Inline_And_PrePlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueFailedWithInlineAndPrePlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            var messageValue = new MessageValue
+            {
+                Int64Value = 1,
+                StringValue = "1"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(3);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value, messageValue.StringValue, messageValue);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_Failed_With_Plugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueFailedWithPlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            var messageValue = new MessageValue
+            {
+                Int64Value = 2,
+                StringValue = "2"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(3);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value, messageValue.StringValue, messageValue);
+        }
+
+        [Fact]
+        public async Task Increase_Value_Failed_With_Inline_And_Plugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueFailedWithInlineAndPlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            var messageValue = new MessageValue
+            {
+                Int64Value = 2,
+                StringValue = "2"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(3);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value, messageValue.StringValue, messageValue);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_Failed_Parallel_With_Inline_And_Plugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueFailedParallelWithInlineAndPlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            var messageValue = new MessageValue
+            {
+                Int64Value = 2,
+                StringValue = "2"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(3);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value, messageValue.StringValue, messageValue);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_With_Failed_Inline_And_PrePlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithFailedInlineAndPrePlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            var messageValue = new MessageValue
+            {
+                Int64Value = 1,
+                StringValue = "1"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(3);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value, messageValue.StringValue, messageValue);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_With_Failed_Inline_And_PostPlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithFailedInlineAndPostPlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            var messageValue = new MessageValue
+            {
+                Int64Value = 1,
+                StringValue = "1"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(3);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value, messageValue.StringValue, messageValue);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_With_Failed_Inline_And_Plugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithFailedInlineAndPlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            var messageValue = new MessageValue
+            {
+                Int64Value = 2,
+                StringValue = "2"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(3);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value, messageValue.StringValue, messageValue);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_Parallel_With_Failed_Inline_And_Plugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueParallelWithFailedInlineAndPlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            var messageValue = new MessageValue
+            {
+                Int64Value = 2,
+                StringValue = "2"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(3);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value, messageValue.StringValue, messageValue);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_Failed_With_Inline_And_PostPlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueFailedWithInlineAndPostPlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            var messageValue = new MessageValue
+            {
+                Int64Value = 1,
+                StringValue = "1"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(3);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value, messageValue.StringValue, messageValue);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_With_Failed_PrePlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithFailedPrePlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValueNotExisted(value);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(0);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueNotExistedInVersionStateAsync(key);
+        }
+
+        [Fact]
+        public async Task Increase_Value_With_Inline_And_Failed_PrePlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndFailedPrePlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValueNotExisted(value);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(0);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueNotExistedInVersionStateAsync(key);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_With_Failed_PrePlugin_And_PostPlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithFailedPrePluginAndPostPlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValueNotExisted(value);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(0);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueNotExistedInVersionStateAsync(key);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_With_Inline_And_Failed_PrePlugin_And_PostPlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndFailedPrePluginAndPostPlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
+            
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValueNotExisted(value);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(0);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueNotExistedInVersionStateAsync(key);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_With_Failed_PostPlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithFailedPostPlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValueNotExisted(value);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(0);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueNotExistedInVersionStateAsync(key);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_With_Inline_And_Failed_PostPlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndFailedPostPlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            var messageValue = new MessageValue
+            {
+                Int64Value = 1,
+                StringValue = "1"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValueNotExisted(value);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(0);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueNotExistedInVersionStateAsync(key);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_With_PrePlugin_And_Failed_PostPlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithPrePluginAndFailedPostPlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            var messageValue = new MessageValue
+            {
+                Int64Value = 1,
+                StringValue = "1"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(3);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value, messageValue.StringValue, messageValue);
+        }
+        
+        [Fact]
+        public async Task Increase_Value_With_Inline_And_PrePlugin_And_Failed_PostPlugin()
+        {
+            var accountAddress = await _accountService.GetAccountAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+
+            const string key = "TestKey";
+            
+            var value = await GetValueAsync(accountAddress, key, chain.BestChainHash, chain.BestChainHeight);
+            CheckValueNotExisted(value);
+
+            var transaction = await GenerateTransactionAsync(accountAddress, ParallelTestHelper.BasicFunctionWithParallelContractAddress,
+                nameof(BasicFunctionWithParallelContract.IncreaseValueWithInlineAndPrePluginAndFailedPostPlugin), new IncreaseValueInput
+                {
+                    Key = key,
+                    Memo = Guid.NewGuid().ToString()
+                });
+            var transactions = new[] {transaction};
+            var block = _parallelTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight, transactions);
+            block = await _blockExecutingService.ExecuteBlockAsync(block.Header, transactions);
+            await _blockchainService.AddTransactionsAsync(transactions);
+            await _blockchainService.AddBlockAsync(block);
+            await _blockAttachService.AttachBlockAsync(block);
+
+            var transactionResult = await GetTransactionResultAsync(transaction.GetHash(), block.Header);
+            transactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            
+            var messageValue = new MessageValue
+            {
+                Int64Value = 1,
+                StringValue = "1"
+            };
+            value = await GetValueAsync(accountAddress, key, block.GetHash(), block.Height);
+            CheckValue(value, messageValue.StringValue, messageValue.Int64Value, messageValue);
+            
+            var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
+            blockStateSet.Changes.Count.ShouldBe(3);
+            blockStateSet.Deletes.Count.ShouldBe(0);
+            
+            chain = await _blockchainService.GetChainAsync();
+            await SetIrreversibleBlockAsync(chain);
+            await CheckValueInVersionStateAsync(key, messageValue.Int64Value, messageValue.StringValue, messageValue);
+        }
+        
         #region private
         private async Task<Transaction> GenerateTransactionAsync(Address from,Address to,string methodName,IMessage input)
         {
