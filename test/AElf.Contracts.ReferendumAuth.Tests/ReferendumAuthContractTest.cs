@@ -205,8 +205,22 @@ namespace AElf.Contracts.ReferendumAuth
             transactionResult.TransactionResult.Error.Contains("Invalid vote.").ShouldBeTrue();
         }
         
-       
-        // TODO: after release proposal can't reclaim token.
+        [Fact]
+        public async Task Reclaim_VoteToken_Test()
+        {
+            var organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair,organizationAddress);
+            await ApproveAsync(SampleECKeyPairs.KeyPairs[3],proposalId,5000);
+  
+            ReferendumAuthContractStub = GetReferendumAuthContractTester(DefaultSenderKeyPair);
+            var result = await ReferendumAuthContractStub.Release.SendAsync(proposalId);
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+            var referendumAuthContractStubApprove = GetReferendumAuthContractTester(SampleECKeyPairs.KeyPairs[3]); 
+            var reclaimResult = await referendumAuthContractStubApprove.ReclaimVoteToken.SendAsync(proposalId);
+            reclaimResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+        
         [Fact]
         public async Task Reclaim_VoteTokenFailed_Test()
         {
@@ -231,7 +245,7 @@ namespace AElf.Contracts.ReferendumAuth
         public async Task Reclaim_VoteTokenWithoutVote_Test()
         {
             var organizationAddress = await CreateOrganizationAsync();
-            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair,organizationAddress);
+            var proposalId = await CreateProposalAsync(DefaultSenderKeyPair, organizationAddress);
             
             ReferendumAuthContractStub = GetReferendumAuthContractTester(SampleECKeyPairs.KeyPairs[1]);  
             var reclaimResult = await ReferendumAuthContractStub.ReclaimVoteToken.SendAsync(proposalId);
