@@ -283,14 +283,9 @@ namespace AElf.OS.Network.Application
 
             var response = await Request(peer, p => p.GetBlocksAsync(previousBlock, count));
 
-            if (response != null && response.Success && response.Payload != null)
-            {
-                if (response.Payload.Count == 0 || response.Payload.Count != count)
-                    Logger.LogWarning($"Requested blocks from {peer} - count miss match, asked for {count} but got {response.Payload.Count} (from {previousBlock})");
-
-                foreach (var block in response.Payload)
-                    peer.AddKnownBlock(block.GetHash());
-            }
+            if (response != null && response.Success && response.Payload != null 
+                && (response.Payload.Count == 0 || response.Payload.Count != count))
+                Logger.LogWarning($"Requested blocks from {peer} - count miss match, asked for {count} but got {response.Payload.Count} (from {previousBlock})");
 
             return response;
         }
