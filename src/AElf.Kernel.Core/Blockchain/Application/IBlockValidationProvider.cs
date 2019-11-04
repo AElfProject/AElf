@@ -153,6 +153,7 @@ namespace AElf.Kernel.Blockchain.Application
             if (block.Body.TransactionsCount == 0)
                 return false;
 
+            // Verify that the transaction has been packaged in the current branch
             foreach (var transactionId in block.TransactionIds)
             {
                 var blockIndex =

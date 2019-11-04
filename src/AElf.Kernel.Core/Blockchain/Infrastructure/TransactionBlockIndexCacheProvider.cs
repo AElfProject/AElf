@@ -29,12 +29,12 @@ namespace AElf.Kernel.Blockchain.Infrastructure
             if (transactionBlockIndex == null)
                 return;
             
-            var minBlockHeight = Math.Max(transactionBlockIndex.BlockHeight,
+            var maxBlockHeight = Math.Max(transactionBlockIndex.BlockHeight,
                 transactionBlockIndex.PreviousExecutionBlockIndexList.Any()
                     ? transactionBlockIndex.PreviousExecutionBlockIndexList.Max(t => t.BlockHeight)
                     : 0);
 
-            _transactionBlockHeightMapping.AddOrUpdate(minBlockHeight, new ConcurrentBag<Hash> {transactionId},
+            _transactionBlockHeightMapping.AddOrUpdate(maxBlockHeight, new ConcurrentBag<Hash> {transactionId},
                 (key, value) =>
                 {
                     value.Add(transactionId);
