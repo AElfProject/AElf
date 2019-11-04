@@ -294,3 +294,7 @@ Contracts.manifest
 coverage*.json
 coverage*.xml
 
+# zip package
+*.gz
+*.zip
+*.zlo

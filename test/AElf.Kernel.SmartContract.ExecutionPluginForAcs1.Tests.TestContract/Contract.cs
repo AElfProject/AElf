@@ -11,15 +11,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests.TestContract
             return new Empty();
         }
 
-        public override Empty SetMethodFee(TokenAmounts input)
+        public override Empty SetMethodFee(MethodFees input)
         {
-            State.MethodFees[input.Method] = input;
+            State.MethodFees[input.MethodName] = input;
             return new Empty();
         }
 
-        public override TokenAmounts GetMethodFee(MethodName input)
+        public override MethodFees GetMethodFee(StringValue input)
         {
-            return State.MethodFees[input.Name];
+            return State.MethodFees[input.Value];
         }
     }
 }

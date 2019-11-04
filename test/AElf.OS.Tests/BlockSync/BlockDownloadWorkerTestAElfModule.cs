@@ -1,8 +1,7 @@
 using AElf.Modularity;
-using AElf.OS.BlockSync;
 using Volo.Abp.Modularity;
 
-namespace AElf.OS
+namespace AElf.OS.BlockSync
 {
     [DependsOn(typeof(BlockSyncTestAElfModule))]
     public class BlockDownloadWorkerTestAElfModule : AElfModule

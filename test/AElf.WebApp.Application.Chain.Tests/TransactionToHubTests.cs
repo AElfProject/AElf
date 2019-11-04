@@ -56,7 +56,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 var transactionId = await SendTransactionAsync(transaction);
                 var transactionResult = await QueryTransactionResultAsync(transactionId);
                 Enum.TryParse<TransactionResultStatus>(transactionResult.Status, true, out var status);
-                status.ShouldBe(TransactionResultStatus.NotExisted);
+                status.ShouldBe(TransactionResultStatus.Failed);
             }
             
             //bp user with token - Mined
@@ -82,7 +82,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var transactionId = await SendTransactionAsync(transaction);
             var transactionResult = await QueryTransactionResultAsync(transactionId);
             Enum.TryParse<TransactionResultStatus>(transactionResult.Status, true, out var status);
-            status.ShouldBe(TransactionResultStatus.NotExisted); 
+            status.ShouldBe(TransactionResultStatus.Failed); 
         }
 
         [Fact]

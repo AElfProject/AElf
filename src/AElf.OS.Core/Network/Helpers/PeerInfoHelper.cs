@@ -17,6 +17,7 @@ namespace AElf.OS.Network.Helpers
                 ConnectionTime = peer.Info.ConnectionTime.Seconds,
                 ConnectionStatus = peer.ConnectionStatus,
                 Inbound = peer.Info.IsInbound,
+                SyncState = peer.SyncState,
                 BufferedAnnouncementsCount = peer.BufferedAnnouncementsCount,
                 BufferedBlocksCount = peer.BufferedBlocksCount,
                 BufferedTransactionsCount = peer.BufferedTransactionsCount,
