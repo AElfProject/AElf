@@ -44,7 +44,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             beforeBalance.ShouldBe(afterBalance + 1_0000_0000 + transactionSize * 0);
         }
 
-        [Fact(Skip = "Current failed transaction cannot charge fee")]
+        [Fact]
         public async Task TransactionFee_Failed_Test()
         {
             var setResult = await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new MethodFees
