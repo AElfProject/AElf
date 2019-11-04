@@ -33,6 +33,9 @@ namespace AElf.OS.Network.Grpc
         private const int UpdateHandshakeTimeout = 3000;
         private const int StreamRecoveryWaitTimeInMilliseconds = 500;
 
+        private const int BlockCacheMaxItems = 10;
+        private const int TransactionCacheMaxItems = 2000;
+
         private enum MetricNames
         {
             Announce,
@@ -96,6 +99,9 @@ namespace AElf.OS.Network.Grpc
 
         public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
+        
+        private readonly ConcurrentDictionary<Hash, Timestamp> _recentBlockHashes;
+        private readonly ConcurrentDictionary<Hash, Timestamp> _recentTransactionHashes;
 
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
@@ -116,6 +122,9 @@ namespace AElf.OS.Network.Grpc
 
             RemoteEndpoint = remoteEndpoint;
             Info = peerConnectionInfo;
+            
+            _recentBlockHashes = new ConcurrentDictionary<Hash, Timestamp>();
+            _recentTransactionHashes = new ConcurrentDictionary<Hash, Timestamp>();
 
             _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
@@ -571,10 +580,23 @@ namespace AElf.OS.Network.Grpc
 
             CurrentBlockHeight = blockAnnouncement.BlockHeight;
             CurrentBlockHash = blockAnnouncement.BlockHash;
+            
             _recentBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;
-            while (_recentBlockHeightAndHashMappings.Count > 10)
+            
+            while (_recentBlockHeightAndHashMappings.Count > BlockCacheMaxItems)
             {
                 _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
+            }
+        }
+
+        public void AddKnownTransaction(Hash hash)
+        {
+            if (!_recentTransactionHashes.TryAdd(hash, TimestampHelper.GetUtcNow())) 
+                return;
+
+            while (_recentTransactionHashes.Count > TransactionCacheMaxItems)
+            {
+                _recentTransactionHashes.TryRemove(_recentTransactionHashes.Keys.Min(), out _);
             }
         }
 

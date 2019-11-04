@@ -206,6 +206,9 @@ namespace AElf.OS.Network.Grpc
             // then don't participate in p2p network
             if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultInitialSyncOffset)
                 return;
+            
+            var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
+            peer.AddKnownTransaction(tx.GetHash());
 
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent {Transactions = new List<Transaction> {tx}});
         }

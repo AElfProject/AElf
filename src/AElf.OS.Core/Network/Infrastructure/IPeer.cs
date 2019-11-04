@@ -34,6 +34,7 @@ namespace AElf.OS.Network.Infrastructure
         Task CheckHealthAsync();
         
         void AddKnowBlock(BlockAnnouncement blockAnnouncement);
+        void AddKnownTransaction(Hash hash);
         void UpdateLastKnownLib(LibAnnouncement libAnnouncement);
 
         void EnqueueAnnouncement(BlockAnnouncement transaction, Action<NetworkException> sendCallback);
