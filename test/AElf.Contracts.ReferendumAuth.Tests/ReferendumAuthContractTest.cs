@@ -127,14 +127,13 @@ namespace AElf.Contracts.ReferendumAuth
                 transactionResult.TransactionResult.Error.Contains("No registered organization.").ShouldBeTrue();
             }
             {
-                //"Proposal already exists."
+                //"Proposal with same input."
                 createProposalInput.OrganizationAddress = organizationAddress;
                 var transactionResult1 = await ReferendumAuthContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
                 
                 var transactionResult2 = await ReferendumAuthContractStub.CreateProposal.SendAsync(createProposalInput);
-                transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult2.TransactionResult.Error.Contains("Proposal already exists.").ShouldBeTrue();
+                transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
         }
         

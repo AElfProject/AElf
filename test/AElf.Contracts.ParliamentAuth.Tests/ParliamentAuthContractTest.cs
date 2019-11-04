@@ -182,15 +182,14 @@ namespace AElf.Contracts.ParliamentAuth
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("No registered organization.").ShouldBeTrue();
             }
-            //"Proposal already exists."
+            //"Proposal with same input."
             {
                 createProposalInput.OrganizationAddress = organizationAddress;
                 var transactionResult1 = await ParliamentAuthContractStub.CreateProposal.SendAsync(createProposalInput);
                 transactionResult1.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                 var transactionResult2 = await ParliamentAuthContractStub.CreateProposal.SendAsync(createProposalInput);
-                transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult2.TransactionResult.Error.Contains("Proposal already exists.").ShouldBeTrue();
+                transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
             //"Not authorized to propose."
             {

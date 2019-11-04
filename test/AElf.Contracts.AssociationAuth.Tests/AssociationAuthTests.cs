@@ -202,7 +202,7 @@ namespace AElf.Contracts.AssociationAuth
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Unable to propose.").ShouldBeTrue();
             }
-            //"Proposal already exists."
+            //"Proposal with same input."
             {
                 AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
                 var transactionResult1 =
@@ -211,8 +211,7 @@ namespace AElf.Contracts.AssociationAuth
 
                 var transactionResult2 =
                     await AssociationAuthContractStub.CreateProposal.SendAsync(createProposalInput);
-                transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult2.TransactionResult.Error.Contains("Proposal already exists.").ShouldBeTrue();
+                transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
         }
 
