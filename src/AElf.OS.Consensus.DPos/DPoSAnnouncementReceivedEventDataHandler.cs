@@ -88,37 +88,37 @@ namespace AElf.OS.Consensus.DPos
             if (senderPeer == null)
                 return null;
 
-            var orderedBlocks = senderPeer.RecentBlockHeightAndHashMappings.OrderByDescending(p => p.Key).ToList();
-
-            var chain = await _blockchainService.GetChainAsync();
-            var chainContext = new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight};
-            var pubkeyList = (await _dpoSInformationProvider.GetCurrentMinerList(chainContext)).ToList();
-
-            var peers = _peerPool.GetPeers().Where(p => pubkeyList.Contains(p.Info.Pubkey)).ToList();
-
-            var pubKey = (await _accountService.GetPublicKeyAsync()).ToHex();
-            if (peers.Count == 0 && !pubkeyList.Contains(pubKey))
-                return null;
-
-            foreach (var block in orderedBlocks)
-            {
-                var peersHadBlockAmount = peers.Where(p =>
-                {
-                    p.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var hash);
-                    return hash == block.Value;
-                }).Count();
-                if (pubkeyList.Contains(pubKey) &&
-                    _knownBlockCacheProvider.TryGetBlockByHeight(block.Key, out var blockHash) &&
-                    blockHash == block.Value)
-                    peersHadBlockAmount++;
-
-                var sureAmount = pubkeyList.Count.Mul(2).Div(3) + 1;
-                if (peersHadBlockAmount >= sureAmount)
-                {
-                    Logger.LogDebug($"LIB found in network layer: height {block.Key}");
-                    return new BlockIndex(block.Value, block.Key);
-                }
-            }
+//            var orderedBlocks = senderPeer.RecentBlockHeightAndHashMappings.OrderByDescending(p => p.Key).ToList();
+//
+//            var chain = await _blockchainService.GetChainAsync();
+//            var chainContext = new ChainContext {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight};
+//            var pubkeyList = (await _dpoSInformationProvider.GetCurrentMinerList(chainContext)).ToList();
+//
+//            var peers = _peerPool.GetPeers().Where(p => pubkeyList.Contains(p.Info.Pubkey)).ToList();
+//
+//            var pubKey = (await _accountService.GetPublicKeyAsync()).ToHex();
+//            if (peers.Count == 0 && !pubkeyList.Contains(pubKey))
+//                return null;
+//
+//            foreach (var block in orderedBlocks)
+//            {
+//                var peersHadBlockAmount = peers.Where(p =>
+//                {
+//                    p.RecentBlockHeightAndHashMappings.TryGetValue(block.Key, out var hash);
+//                    return hash == block.Value;
+//                }).Count();
+//                if (pubkeyList.Contains(pubKey) &&
+//                    _knownBlockCacheProvider.TryGetBlockByHeight(block.Key, out var blockHash) &&
+//                    blockHash == block.Value)
+//                    peersHadBlockAmount++;
+//
+//                var sureAmount = pubkeyList.Count.Mul(2).Div(3) + 1;
+//                if (peersHadBlockAmount >= sureAmount)
+//                {
+//                    Logger.LogDebug($"LIB found in network layer: height {block.Key}");
+//                    return new BlockIndex(block.Value, block.Key);
+//                }
+//            }
 
             return null;
         }

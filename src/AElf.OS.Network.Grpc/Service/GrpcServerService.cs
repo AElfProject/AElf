@@ -99,9 +99,11 @@ namespace AElf.OS.Network.Grpc
                     peer.SyncState = SyncState.Finished;
                 }
                 
-                await requestStream.ForEachAsync(r =>
+                await requestStream.ForEachAsync(block =>
                 {
-                    _ = EventBus.PublishAsync(new BlockReceivedEvent(r, peerPubkey));
+                    peer.AddKnownBlock(block.GetHash());
+                    _ = EventBus.PublishAsync(new BlockReceivedEvent(block, peerPubkey));
+
                     return Task.CompletedTask;
                 });
             }
@@ -147,8 +149,7 @@ namespace AElf.OS.Network.Grpc
             Logger.LogDebug($"Received announce {announcement.BlockHash} from {context.GetPeerInfo()}.");
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
-
-            peer.AddKnowBlock(announcement);
+            peer.AddKnownBlock(announcement.BlockHash);
 
             if (peer.SyncState != SyncState.Finished)
             {

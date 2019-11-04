@@ -29,8 +29,6 @@ namespace AElf.OS
             var p3 = new Mock<IPeer>();
             p3.Setup(p => p.Info).Returns(new PeerConnectionInfo { Pubkey = "pBestPeer" });
             
-            var recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
-            
             var osTestHelper = context.Services.GetServiceLazy<OSTestHelper>();
             
             peerPoolMock.Setup(p => p.FindPeerByPublicKey(It.Is<string>(adr => adr == "blacklistpeer")))

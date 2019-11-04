@@ -97,8 +97,8 @@ namespace AElf.OS.Network.Grpc
 
         public PeerConnectionInfo Info { get; }
 
-        public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
-        private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
+        //public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
+        //private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
         
         private readonly ConcurrentDictionary<Hash, Timestamp> _recentBlockHashes;
         private readonly ConcurrentDictionary<Hash, Timestamp> _recentTransactionHashes;
@@ -126,8 +126,8 @@ namespace AElf.OS.Network.Grpc
             _recentBlockHashes = new ConcurrentDictionary<Hash, Timestamp>();
             _recentTransactionHashes = new ConcurrentDictionary<Hash, Timestamp>();
 
-            _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
-            RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
+//            _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
+//            RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
 
             _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
             RecentRequestsRoundtripTimes =
@@ -570,34 +570,49 @@ namespace AElf.OS.Network.Grpc
             return true;
         }
 
-        public void AddKnowBlock(BlockAnnouncement blockAnnouncement)
+//        public void AddKnowBlock(BlockAnnouncement blockAnnouncement)
+//        {
+//            if (blockAnnouncement.HasFork)
+//            {
+//                _recentBlockHeightAndHashMappings.Clear();
+//                return;
+//            }
+//
+//            CurrentBlockHeight = blockAnnouncement.BlockHeight;
+//            CurrentBlockHash = blockAnnouncement.BlockHash;
+//            
+//            _recentBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;
+//            
+//            while (_recentBlockHeightAndHashMappings.Count > BlockCacheMaxItems)
+//            {
+//                _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
+//            }
+//        }
+
+        public bool AddKnownBlock(Hash blockHash)
         {
-            if (blockAnnouncement.HasFork)
+            if (!_recentBlockHashes.TryAdd(blockHash, TimestampHelper.GetUtcNow())) 
+                return false;
+            
+            while (_recentBlockHashes.Count > BlockCacheMaxItems)
             {
-                _recentBlockHeightAndHashMappings.Clear();
-                return;
+                _recentBlockHashes.TryRemove(_recentBlockHashes.Keys.Min(), out _);
             }
 
-            CurrentBlockHeight = blockAnnouncement.BlockHeight;
-            CurrentBlockHash = blockAnnouncement.BlockHash;
-            
-            _recentBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;
-            
-            while (_recentBlockHeightAndHashMappings.Count > BlockCacheMaxItems)
-            {
-                _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
-            }
+            return true;
         }
 
-        public void AddKnownTransaction(Hash hash)
+        public bool AddKnownTransaction(Hash transactionHash)
         {
-            if (!_recentTransactionHashes.TryAdd(hash, TimestampHelper.GetUtcNow())) 
-                return;
+            if (!_recentTransactionHashes.TryAdd(transactionHash, TimestampHelper.GetUtcNow())) 
+                return false;
 
             while (_recentTransactionHashes.Count > TransactionCacheMaxItems)
             {
                 _recentTransactionHashes.TryRemove(_recentTransactionHashes.Keys.Min(), out _);
             }
+
+            return true;
         }
 
         public async Task DisconnectAsync(bool gracefulDisconnect)
