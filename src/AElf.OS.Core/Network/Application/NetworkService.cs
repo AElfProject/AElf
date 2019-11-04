@@ -283,9 +283,14 @@ namespace AElf.OS.Network.Application
 
             var response = await Request(peer, p => p.GetBlocksAsync(previousBlock, count));
 
-            if (response != null && response.Success && response.Payload != null 
-                && (response.Payload.Count == 0 || response.Payload.Count != count))
-                Logger.LogWarning($"Requested blocks from {peer} - count miss match, asked for {count} but got {response.Payload.Count} (from {previousBlock})");
+            if (response != null && response.Success && response.Payload != null)
+            {
+                if (response.Payload.Count == 0 || response.Payload.Count != count)
+                    Logger.LogWarning($"Requested blocks from {peer} - count miss match, asked for {count} but got {response.Payload.Count} (from {previousBlock})");
+
+                foreach (var block in response.Payload)
+                    peer.AddKnownBlock(block.GetHash());
+            }
 
             return response;
         }
@@ -299,7 +304,12 @@ namespace AElf.OS.Network.Application
             
             Logger.LogDebug($"Getting block by hash, hash: {hash} from {peer}.");
 
-            return await Request(peer, p => p.GetBlockByHashAsync(hash));
+            var response = await Request(peer, p => p.GetBlockByHashAsync(hash));
+
+            if (response != null && response.Success && response.Payload != null)
+                peer.AddKnownBlock(response.Payload.GetHash());
+
+            return response;
         }
         
         public bool IsPeerPoolFull()
