@@ -299,12 +299,7 @@ namespace AElf.OS.Network.Application
             
             Logger.LogDebug($"Getting block by hash, hash: {hash} from {peer}.");
 
-            var response = await Request(peer, p => p.GetBlockByHashAsync(hash));
-
-            if (response != null && response.Success && response.Payload != null)
-                peer.AddKnownBlock(response.Payload.GetHash());
-
-            return response;
+            return await Request(peer, p => p.GetBlockByHashAsync(hash));
         }
         
         public bool IsPeerPoolFull()

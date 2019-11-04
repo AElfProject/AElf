@@ -66,18 +66,18 @@ namespace AElf.OS.Consensus.DPos
         private readonly IAEDPoSInformationProvider _dpoSInformationProvider;
         private readonly IBlockchainService _blockchainService;
         private readonly IAccountService _accountService;
-        private readonly IKnownBlockCacheProvider _knownBlockCacheProvider;
+        //private readonly IKnownBlockCacheProvider _knownBlockCacheProvider;
         public ILogger<AEDPoSLastLastIrreversibleBlockDiscoveryService> Logger { get; set; }
 
         public AEDPoSLastLastIrreversibleBlockDiscoveryService(IPeerPool peerPool,
             IAEDPoSInformationProvider dpoSInformationProvider, IBlockchainService blockchainService,
-            IAccountService accountService, IKnownBlockCacheProvider knownBlockCacheProvider)
+            IAccountService accountService /*IKnownBlockCacheProvider knownBlockCacheProvider*/)
         {
             _peerPool = peerPool;
             _dpoSInformationProvider = dpoSInformationProvider;
             _blockchainService = blockchainService;
             _accountService = accountService;
-            _knownBlockCacheProvider = knownBlockCacheProvider;
+            //_knownBlockCacheProvider = knownBlockCacheProvider;
             //LocalEventBus = NullLocalEventBus.Instance;
         }
 

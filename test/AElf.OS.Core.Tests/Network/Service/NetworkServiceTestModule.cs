@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
@@ -14,6 +15,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using NSubstitute;
 using Volo.Abp.Modularity;
 
 namespace AElf.OS
@@ -132,5 +134,78 @@ namespace AElf.OS
 
             context.Services.AddTransient(o => Mock.Of<IBroadcastPrivilegedPubkeyListProvider>());
         }
+    }
+
+    [DependsOn(typeof(NetworkServiceTestModule))]
+    public class NetworkServicePropagationTestModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            NetworkServicePropagationTestContext testContext = new NetworkServicePropagationTestContext();
+
+            Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
+            List<IPeer> peers = null;
+
+            var previousBlockHashes = new List<Hash>();
+            peerPoolMock.Setup(p => p.GetPeers(It.IsAny<bool>())).Returns<bool>(adr =>
+            {
+                if (peers != null)
+                    return peers;
+
+                peers = new List<IPeer>();
+                
+                var propPeerOne = new Mock<IPeer>();
+//                propPeerOne.Setup(p => p.RemoteEndpoint).Returns(new IPEndPoint(200, 200));
+//                propPeerOne.Setup(p => p.Info).Returns(new PeerConnectionInfo
+//                    {Pubkey = "prop_peer_1", ConnectionTime = TimestampHelper.GetUtcNow()});
+                
+                propPeerOne.Setup(p => p.AddKnownBlock(It.IsAny<Hash>())).Returns<Hash>(blockHash =>
+                {
+                    if (previousBlockHashes.Contains(blockHash))
+                        return false;
+
+                    previousBlockHashes.Add(blockHash);
+                    return true;
+                });
+                
+                var previousTransactionHashes = new List<Hash>();
+                propPeerOne.Setup(p => p.AddKnownTransaction(It.IsAny<Hash>())).Returns<Hash>(blockHash =>
+                {
+                    if (previousTransactionHashes.Contains(blockHash))
+                        return false;
+
+                    previousTransactionHashes.Add(blockHash);
+                    return true;
+                });
+
+//                propPeerOne.Setup(p =>
+//                    p.EnqueueBlock(It.IsAny<BlockWithTransactions>(), It.IsAny<Action<NetworkException>>())).Callback<BlockWithTransactions, Action<NetworkException>>(
+//                    (block, ex) =>
+//                    {
+//                        ;
+//                        Console.WriteLine();
+//                    });
+
+//                propPeerOne.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("block")), It.IsAny<int>()))
+//                    .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { blockWithTransactions }));
+//                propPeerOne.Setup(p => p.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("block"))))
+//                    .Returns<Hash>(h => Task.FromResult(blockWithTransactions));
+                
+                peers.Add(propPeerOne.Object);
+                testContext.MockedPeers.Add(propPeerOne);
+
+                return peers;
+            });
+
+            context.Services.AddSingleton<IPeerPool>(o => peerPoolMock.Object);
+            context.Services.AddSingleton<NetworkServicePropagationTestContext>(o => testContext);
+            context.Services.AddTransient(o => Mock.Of<IBroadcastPrivilegedPubkeyListProvider>());
+
+        }
+    }
+
+    public class NetworkServicePropagationTestContext
+    {
+        public List<Mock<IPeer>> MockedPeers = new List<Mock<IPeer>>();
     }
 }

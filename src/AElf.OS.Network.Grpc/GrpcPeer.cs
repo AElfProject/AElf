@@ -20,6 +20,12 @@ using Grpc.Core;
 
 namespace AElf.OS.Network.Grpc
 {
+    internal class QueuedHash
+    {
+        public Hash ItemHash { get; set; }
+        public Timestamp EnqueueTime { get; set; }
+    }
+    
     /// <summary>
     /// Represents a connection to a peer.
     /// </summary>
@@ -33,8 +39,10 @@ namespace AElf.OS.Network.Grpc
         private const int UpdateHandshakeTimeout = 3000;
         private const int StreamRecoveryWaitTimeInMilliseconds = 500;
 
-        private const int BlockCacheMaxItems = 10;
+        private const int BlockCacheMaxItems = 100;
         private const int TransactionCacheMaxItems = 2000;
+
+        private const int QueuedItemTimeout = 4000;
 
         private enum MetricNames
         {
@@ -100,8 +108,14 @@ namespace AElf.OS.Network.Grpc
         //public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         //private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
         
-        private readonly ConcurrentDictionary<Hash, Timestamp> _recentBlockHashes;
-        private readonly ConcurrentDictionary<Hash, Timestamp> _recentTransactionHashes;
+//        private readonly ConcurrentQueue<QueuedHash> _recentBlockQueue;
+//        private readonly ConcurrentDictionary<Hash, Timestamp> _recentBlockHashes;
+//
+//        private readonly ConcurrentQueue<QueuedHash> _recentTransactionQueue;
+//        private readonly ConcurrentDictionary<Hash, Timestamp> _recentTransactionHashes;
+
+        private BoundedExpirationCache _knownTransactionCache;
+        private BoundedExpirationCache _knownBlockCache;
 
         public IReadOnlyDictionary<string, ConcurrentQueue<RequestMetric>> RecentRequestsRoundtripTimes { get; }
         private readonly ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>> _recentRequestsRoundtripTimes;
@@ -123,8 +137,14 @@ namespace AElf.OS.Network.Grpc
             RemoteEndpoint = remoteEndpoint;
             Info = peerConnectionInfo;
             
-            _recentBlockHashes = new ConcurrentDictionary<Hash, Timestamp>();
-            _recentTransactionHashes = new ConcurrentDictionary<Hash, Timestamp>();
+            _knownTransactionCache = new BoundedExpirationCache(TransactionCacheMaxItems, QueuedItemTimeout);
+            _knownBlockCache = new BoundedExpirationCache(BlockCacheMaxItems, QueuedItemTimeout);
+            
+//            _recentBlockQueue = new ConcurrentQueue<QueuedHash>();
+//            _recentBlockHashes = new ConcurrentDictionary<Hash, Timestamp>();
+//            
+//            _recentTransactionQueue = new ConcurrentQueue<QueuedHash>();
+//            _recentTransactionHashes = new ConcurrentDictionary<Hash, Timestamp>();
 
 //            _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
 //            RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
@@ -591,28 +611,12 @@ namespace AElf.OS.Network.Grpc
 
         public bool AddKnownBlock(Hash blockHash)
         {
-            if (!_recentBlockHashes.TryAdd(blockHash, TimestampHelper.GetUtcNow())) 
-                return false;
-            
-            while (_recentBlockHashes.Count > BlockCacheMaxItems)
-            {
-                _recentBlockHashes.TryRemove(_recentBlockHashes.Keys.Min(), out _);
-            }
-
-            return true;
+            return _knownBlockCache.TryAdd(blockHash);
         }
 
         public bool AddKnownTransaction(Hash transactionHash)
         {
-            if (!_recentTransactionHashes.TryAdd(transactionHash, TimestampHelper.GetUtcNow())) 
-                return false;
-
-            while (_recentTransactionHashes.Count > TransactionCacheMaxItems)
-            {
-                _recentTransactionHashes.TryRemove(_recentTransactionHashes.Keys.Min(), out _);
-            }
-
-            return true;
+            return _knownTransactionCache.TryAdd(transactionHash);
         }
 
         public async Task DisconnectAsync(bool gracefulDisconnect)

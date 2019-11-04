@@ -292,7 +292,14 @@ namespace AElf.OS.Network.Grpc
                 block = await _blockchainService.GetBlockWithTransactionsByHash(request.Hash);
 
                 if (block == null)
+                {
                     Logger.LogDebug($"Could not find block {request.Hash} for {context.GetPeerInfo()}.");
+                }
+                else
+                {
+                    var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
+                    peer.AddKnownBlock(block.GetHash());
+                }
             }
             catch (Exception e)
             {
