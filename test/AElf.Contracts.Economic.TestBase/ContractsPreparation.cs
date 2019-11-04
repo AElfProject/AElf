@@ -272,7 +272,6 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected void DeployAllContracts()
         {
-            _ = TokenContractAddress;
             _ = VoteContractAddress;
             _ = ProfitContractAddress;
             _ = EconomicContractAddress;
@@ -284,6 +283,7 @@ namespace AElf.Contracts.Economic.TestBase
             _ = ConsensusContractAddress;
             _ = MethodCallThresholdContractAddress;
             _ = ReferendumAuthContractAddress;
+            _ = TokenContractAddress;
         }
 
         #endregion
@@ -354,11 +354,14 @@ namespace AElf.Contracts.Economic.TestBase
                     IsNativeTokenBurnable = EconomicContractsTestConstants.IsBurnable,
                     NativeTokenSymbol = EconomicContractsTestConstants.NativeTokenSymbol,
                     NativeTokenTotalSupply = EconomicContractsTestConstants.TotalSupply,
-                    MiningRewardTotalAmount = EconomicContractsTestConstants.TotalSupply / 5
+                    MiningRewardTotalAmount = EconomicContractsTestConstants.TotalSupply / 5,
                 });
                 CheckResult(result.TransactionResult);
             }
+        }
 
+        protected async Task InitialMiningRewards()
+        {
             //Issue native token to core data center keyPairs
             {
                 var result = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput

@@ -22,7 +22,7 @@ namespace AElf.WebApp.Application.Chain
 
         Task<List<TransactionResultDto>> GetTransactionResultsAsync(string blockHash, int offset = 0,
             int limit = 10);
-        
+
         Task<MerklePathDto> GetMerklePathByTransactionIdAsync(string transactionId);
     }
 
@@ -85,13 +85,19 @@ namespace AElf.WebApp.Application.Chain
 
             output.Transaction = JsonConvert.DeserializeObject<TransactionDto>(transaction.ToString());
             var methodDescriptor = await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(
-                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
+                _blockchainService, _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName,
+                false);
 
             if (methodDescriptor != null)
             {
                 output.Transaction.Params = JsonFormatter.ToDiagnosticString(
                     methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
             }
+
+            output.TransactionFee = transactionResult.TransactionFee == null
+                ? new TransactionFeeDto()
+                : JsonConvert.DeserializeObject<TransactionFeeDto>(transactionResult.TransactionFee.ToString());
+
             return output;
         }
 
@@ -155,12 +161,18 @@ namespace AElf.WebApp.Application.Chain
 
                     var methodDescriptor =
                         await ContractMethodDescriptorHelper.GetContractMethodDescriptorAsync(_blockchainService,
-                            _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName);
+                            _transactionReadOnlyExecutionService, transaction.To, transaction.MethodName, false);
 
-                    transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(
-                        methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
+                    if(methodDescriptor != null)
+                        transactionResultDto.Transaction.Params = JsonFormatter.ToDiagnosticString(
+                            methodDescriptor.InputType.Parser.ParseFrom(transaction.Params));
 
                     transactionResultDto.Status = transactionResult.Status.ToString();
+
+                    transactionResultDto.TransactionFee = transactionResult.TransactionFee == null
+                        ? new TransactionFeeDto()
+                        : JsonConvert.DeserializeObject<TransactionFeeDto>(transactionResult.TransactionFee.ToString());
+                    
                     output.Add(transactionResultDto);
                 }
             }
@@ -209,15 +221,16 @@ namespace AElf.WebApp.Application.Chain
             {
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
-            
+
             var transactionResultList = new List<TransactionResult>();
             foreach (var item in blockInfo.TransactionIds)
             {
                 var result = await GetTransactionResultAsync(item);
                 transactionResultList.Add(result);
             }
-            
-            var transactionResultSet = transactionResultList.Select(txResult => (txResult.TransactionId, txResult.Status));
+
+            var transactionResultSet =
+                transactionResultList.Select(txResult => (txResult.TransactionId, txResult.Status));
             var leafNodes = new List<Hash>();
             foreach (var (txId, status) in transactionResultSet)
             {
@@ -241,27 +254,31 @@ namespace AElf.WebApp.Application.Chain
         private async Task<TransactionResult> GetTransactionResultAsync(Hash transactionId, Hash blockHash = null)
         {
             // in tx pool
-            var receipt = await _transactionResultProxyService.TxHub.GetTransactionReceiptAsync(transactionId);
-            if (receipt != null)
+            var queuedTransaction = await _transactionResultProxyService.TxHub.GetQueuedTransactionAsync(transactionId);
+            if (queuedTransaction != null)
             {
                 return new TransactionResult
                 {
-                    TransactionId = receipt.TransactionId,
+                    TransactionId = queuedTransaction.TransactionId,
                     Status = TransactionResultStatus.Pending
                 };
             }
-            
+
             // in storage
             TransactionResult result;
             if (blockHash != null)
             {
-                result = await _transactionResultProxyService.TransactionResultQueryService.
-                    GetTransactionResultAsync(transactionId, blockHash);
+                result =
+                    await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(
+                        transactionId, blockHash);
             }
             else
             {
-                result = await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(transactionId);
+                result =
+                    await _transactionResultProxyService.TransactionResultQueryService.GetTransactionResultAsync(
+                        transactionId);
             }
+
             if (result != null)
             {
                 return result;
@@ -274,7 +291,7 @@ namespace AElf.WebApp.Application.Chain
                 Status = TransactionResultStatus.NotExisted
             };
         }
-        
+
         private Hash GetHashCombiningTransactionAndStatus(Hash txId,
             TransactionResultStatus executionReturnStatus)
         {

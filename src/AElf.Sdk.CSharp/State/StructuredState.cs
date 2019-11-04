@@ -96,6 +96,11 @@ namespace AElf.Sdk.CSharp.State
                 {
                     stateSet.Writes[kv1.Key] = kv1.Value;
                 }
+                
+                foreach (var kv1 in changes.Deletes)
+                {
+                    stateSet.Deletes[kv1.Key] = kv1.Value;
+                }
 
                 foreach (var kv1 in changes.Reads)
                 {

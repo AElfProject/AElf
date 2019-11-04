@@ -173,6 +173,7 @@ namespace AElf.OS.Network
             var context = BuildServerCallContext();
             var requestStream = new TestAsyncStreamReader<BlockWithTransactions>(blocks.ToArray());
             
+            context.RequestHeaders.Add(new Metadata.Entry(GrpcConstants.PubkeyMetadataKey, NetworkTestConstants.FakePubkey2));
             var result = await _service.BlockBroadcastStream(requestStream, context);
             result.ShouldBe(new VoidReply());
             received.Count.ShouldBe(3);
@@ -331,6 +332,20 @@ namespace AElf.OS.Network
             
             Assert.NotNull(reply?.Blocks);
             Assert.Empty(reply.Blocks);
+        }
+
+        [Fact]
+        public async Task RequestBlocks_MoreThenLimit_ReturnsEmpty()
+        {
+            var serverCallContext = BuildServerCallContext();
+            var chain = await _blockchainService.GetChainAsync();
+            var reply = await _service.RequestBlocks(new BlocksRequest
+            {
+                PreviousBlockHash = chain.GenesisBlockHash,
+                Count = GrpcConstants.MaxSendBlockCountLimit + 1
+            }, serverCallContext);
+
+            Assert.True(reply.Blocks.Count == 0);
         }
 
         #endregion RequestBlocks

@@ -6,7 +6,6 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.OS.BlockSync.Events;
 using AElf.OS.Network;
 using AElf.OS.Network.Extensions;
-using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
@@ -44,11 +43,13 @@ namespace AElf.OS.BlockSync.Application
             var blockValid = await _blockSyncValidationService.ValidateBlockBeforeAttachAsync(blockWithTransactions);
             if (!blockValid)
             {
-                await LocalEventBus.PublishAsync(new BlockValidationFailedEventData
+                Logger.LogWarning(
+                    $"Sync block validation failed, peer: {senderPubkey}, block hash: {blockWithTransactions.GetHash()}, block height: {blockWithTransactions.Height}");
+                await LocalEventBus.PublishAsync(new BadPeerFoundEventData
                 {
                     BlockHash = blockWithTransactions.GetHash(),
                     BlockHeight = blockWithTransactions.Height,
-                    BlockSenderPubkey = senderPubkey
+                    PeerPubkey = senderPubkey
                 });
                 
                 return;

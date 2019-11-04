@@ -48,7 +48,6 @@ namespace AElf.Contracts.Election
             {
                 Value = ValidationDataCenterKeyPairs.Last().PublicKey.ToHex()
             });
-
             voteRecords.ShouldBe(new ElectorVote
             {
                 Pubkey = ByteString.CopyFrom(ValidationDataCenterKeyPairs.Last().PublicKey)
@@ -122,7 +121,10 @@ namespace AElf.Contracts.Election
 
             //second term
             {
-                ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+                foreach (var keyPair in ValidationDataCenterKeyPairs)
+                {
+                    await AnnounceElectionAsync(keyPair);
+                }
 
                 var candidates = await ElectionContractStub.GetCandidates.CallAsync(new Empty());
                 candidates.Value.Count.ShouldBe(ValidationDataCenterKeyPairs.Count);
@@ -150,18 +152,35 @@ namespace AElf.Contracts.Election
         [Fact]
         public async Task GetPageableCandidateInformation_Test()
         {
-            ValidationDataCenterKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+            foreach (var keyPair in ValidationDataCenterKeyPairs)
+            {
+                await AnnounceElectionAsync(keyPair);
+            }
+
+            //query before vote
+            var candidateInformation0 =
+                await ElectionContractStub.GetPageableCandidateInformation.CallAsync(new PageInformation
+                {
+                    Start = 0,
+                    Length = 10
+                });
+            candidateInformation0.Value.Count.ShouldBe(10);
+            candidateInformation0.Value.ToList().Select(o=>o.ObtainedVotesAmount).ShouldAllBe(o=>o==0);
 
             var candidates = await ElectionContractStub.GetCandidates.CallAsync(new Empty());
             candidates.Value.Count.ShouldBe(ValidationDataCenterKeyPairs.Count);
             var moreVotesCandidates = ValidationDataCenterKeyPairs
                 .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
-            moreVotesCandidates.ForEach(async kp =>
-                await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 2));
+            foreach (var keyPair in moreVotesCandidates)
+            {
+                await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 2);
+            }
             var fewVotesCandidates = ValidationDataCenterKeyPairs
                 .Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount).Take(10).ToList();
-            fewVotesCandidates.ForEach(async kp =>
-                await VoteToCandidate(VoterKeyPairs[0], kp.PublicKey.ToHex(), 100 * 86400, 1));
+            foreach (var keyPair in fewVotesCandidates)
+            {
+                await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 1);
+            }
 
             var candidateInformation =
                 await ElectionContractStub.GetPageableCandidateInformation.CallAsync(new PageInformation

@@ -39,7 +39,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             throw new System.NotImplementedException();
         }
 
-        public void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds)
+        public void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds,
+            IEnumerable<Address> contractAddresses)
         {
             throw new System.NotImplementedException();
         }

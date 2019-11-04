@@ -131,7 +131,6 @@ namespace AElf.Runtime.CSharp
                     if (retVal != null)
                     {
                         CurrentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);
-                        // TODO: Clean up ReadableReturnValue
                         CurrentTransactionContext.Trace.ReadableReturnValue = handler.ReturnBytesToString(retVal);
                     }
 
@@ -166,6 +165,14 @@ namespace AElf.Runtime.CSharp
                             throw new InvalidOperationException("a contract cannot access other contracts data");
                         }
                     }
+                    
+                    foreach (var (key, value) in changes.Deletes)
+                    {
+                        if (!key.StartsWith(address))
+                        {
+                            throw new InvalidOperationException("a contract cannot access other contracts data");
+                        }
+                    }
 
                     foreach (var key in changes.Reads.Keys)
                     {
@@ -178,6 +185,7 @@ namespace AElf.Runtime.CSharp
                     if (!CurrentTransactionContext.Trace.IsSuccessful())
                     {
                         changes.Writes.Clear();
+                        changes.Deletes.Clear();
                     }
 
                     CurrentTransactionContext.Trace.StateSet = changes;

@@ -43,6 +43,16 @@ namespace AElf.OS.Network
         public int PeerDialTimeoutInMilliSeconds { get; set; } = NetworkConstants.DefaultPeerDialTimeoutInMilliSeconds;
 
         /// <summary>
+        /// Period used to try and reconnect to outbound peers that have disconnected.
+        /// </summary>
+        public int PeerReconnectionPeriod { get; set; } = NetworkConstants.DefaultPeerReconnectionPeriod;
+
+        /// <summary>
+        /// Amount of time a peer will be placed in the networks blacklist.
+        /// </summary>
+        public int PeerBlackListTimeoutInSeconds { get; set; } = NetworkConstants.DefaultPeerBlackListTimeoutInSeconds;
+
+        /// <summary>
         /// Indicates if this node will compress blocks when a peer requests blocks.
         /// </summary>
         public bool CompressBlocksOnRequest { get; set; } = NetworkConstants.DefaultCompressBlocks;

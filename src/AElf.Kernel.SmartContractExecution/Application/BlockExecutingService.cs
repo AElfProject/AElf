@@ -17,12 +17,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
 {
     public class BlockExecutingService : IBlockExecutingService, ITransientDependency
     {
-        private readonly ITransactionExecutingService _executingService;
+        private readonly ILocalParallelTransactionExecutingService _executingService;
         private readonly IBlockchainStateService _blockchainStateService;
         public ILocalEventBus EventBus { get; set; }
         public ILogger<BlockExecutingService> Logger { get; set; }
 
-        public BlockExecutingService(ITransactionExecutingService executingService,
+        public BlockExecutingService(ILocalParallelTransactionExecutingService executingService,
             IBlockchainStateService blockchainStateService)
         {
             _executingService = executingService;
@@ -44,7 +44,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             Logger.LogTrace("Entered ExecuteBlockAsync");
             var nonCancellable = nonCancellableTransactions.ToList();
             var cancellable = cancellableTransactions.ToList();
-
             var nonCancellableReturnSets =
                 await _executingService.ExecuteAsync(
                     new TransactionExecutingDto {BlockHeader = blockHeader, Transactions = nonCancellable},
@@ -53,10 +52,11 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             var returnSetCollection = new ReturnSetCollection(nonCancellableReturnSets);
             List<ExecutionReturnSet> cancellableReturnSets = new List<ExecutionReturnSet>();
+
             if (!cancellationToken.IsCancellationRequested && cancellable.Count > 0)
             {
                 cancellableReturnSets = await _executingService.ExecuteAsync(
-                    new TransactionExecutingDto
+                    new TransactionExecutingDto 
                     {
                         BlockHeader = blockHeader,
                         Transactions = cancellable,
@@ -85,6 +85,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private async Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader, List<Transaction> transactions,
             List<ExecutionReturnSet> blockExecutionReturnSet)
         {
+            Logger.LogTrace("Start block field filling after execution.");
             var bloom = new Bloom();
             var blockStateSet = new BlockStateSet
             {
@@ -96,6 +97,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 foreach (var change in returnSet.StateChanges)
                 {
                     blockStateSet.Changes[change.Key] = change.Value;
+                    blockStateSet.Deletes.Remove(change.Key);
+                }
+
+                foreach (var delete in returnSet.StateDeletes)
+                {
+                    blockStateSet.Deletes.AddIfNotContains(delete.Key);
+                    blockStateSet.Changes.Remove(delete.Key);
                 }
 
                 if (returnSet.Status == TransactionResultStatus.Mined)
@@ -125,14 +133,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 Body = blockBody
             };
             blockStateSet.BlockHash = blockHash;
-
             await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
-
+            //Logger.LogTrace($"BlockStateSet: {blockStateSet}");
             return block;
         }
 
         private Hash CalculateWorldStateMerkleTreeRoot(BlockStateSet blockStateSet)
         {
+            Logger.LogTrace("Start world state calculation.");
             Hash merkleTreeRootOfWorldState;
             var byteArrays = GetDeterministicByteArrays(blockStateSet);
             using (var hashAlgorithm = SHA256.Create())
@@ -157,10 +165,18 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 yield return Encoding.UTF8.GetBytes(k);
                 yield return blockStateSet.Changes[k].ToByteArray();
             }
+
+            keys = blockStateSet.Deletes;
+            foreach (var k in new SortedSet<string>(keys))
+            {
+                yield return Encoding.UTF8.GetBytes(k);
+                yield return ByteString.Empty.ToByteArray();
+            }
         }
         
         private Hash CalculateTransactionStatusMerkleTreeRoot(List<ExecutionReturnSet> blockExecutionReturnSet)
         {
+            Logger.LogTrace("Start transaction status merkle tree root calculation.");
             var executionReturnSet = blockExecutionReturnSet.Select(executionReturn =>
                 (executionReturn.TransactionId, executionReturn.Status));
             var nodes = new List<Hash>();
@@ -174,6 +190,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         private Hash CalculateTransactionMerkleTreeRoot(IEnumerable<Hash> transactionIds)
         {
+            Logger.LogTrace("Start transaction merkle tree root calculation.");
             return BinaryMerkleTree.FromLeafNodes(transactionIds).Root;
         }
         

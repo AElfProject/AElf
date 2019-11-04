@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using AElf.Kernel;
@@ -25,10 +26,11 @@ namespace AElf.OS.Network.Grpc
     public class GrpcPeer : IPeer
     {
         private const int MaxMetricsPerMethod = 100;
-        private const int BlockRequestTimeout = 500;
-        private const int BlocksRequestTimeout = 2000;
+        private const int BlockRequestTimeout = 700;
+        private const int HealthCheckTimeout = 3000;
+        private const int BlocksRequestTimeout = 5000;
         private const int GetNodesTimeout = 500;
-        private const int UpdateHandshakeTimeout = 400;
+        private const int UpdateHandshakeTimeout = 3000;
         private const int StreamRecoveryWaitTimeInMilliseconds = 500;
 
         private enum MetricNames
@@ -60,8 +62,9 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public Hash LastKnownLibHash { get; private set; }
+        public string ConnectionStatus => _channel.State.ToString();
 
+        public Hash LastKnownLibHash { get; private set; }
         public long LastKnownLibHeight { get; private set; }
         public Timestamp LastReceivedHandshakeTime { get; private set; }
         public Timestamp LastSentHandshakeTime { get; private set; }
@@ -70,7 +73,8 @@ namespace AElf.OS.Network.Grpc
         public bool IsShutdown { get; set; }
         public Hash CurrentBlockHash { get; private set; }
         public long CurrentBlockHeight { get; private set; }
-        
+        public SyncState SyncState { get; set; }
+
         /// <summary>
         /// Session ID to use when authenticating messages from this peer, announced to the
         /// remote peer at connection.
@@ -194,6 +198,19 @@ namespace AElf.OS.Network.Grpc
             LastKnownLibHeight = libAnnouncement.LibHeight;
         }
 
+        public async Task CheckHealthAsync()
+        {
+            GrpcRequest request = new GrpcRequest { ErrorMessage = $"Health check failed." };
+
+            Metadata data = new Metadata
+            {
+                { GrpcConstants.TimeoutMetadataKey, HealthCheckTimeout.ToString() },
+                { GrpcConstants.SessionIdMetadataKey, OutboundSessionId }
+            };
+
+            await RequestAsync(() => _client.CheckHealthAsync(new HealthCheckRequest(), data), request);
+        }
+
         public async Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash)
         {
             var blockRequest = new BlockRequest {Hash = hash};
@@ -310,7 +327,7 @@ namespace AElf.OS.Network.Grpc
             }
             catch (RpcException ex)
             {
-                job.SendCallback?.Invoke(CreateNetworkException(ex, $"Error on broadcast to {this}: "));
+                job.SendCallback?.Invoke(HandleRpcException(ex, $"Error on broadcast to {this}: "));
                 await Task.Delay(StreamRecoveryWaitTimeInMilliseconds);
                 return;
             }
@@ -398,7 +415,7 @@ namespace AElf.OS.Network.Grpc
             {
                 await _libAnnouncementStreamCall.RequestStream.WriteAsync(libAnnouncement);
             }
-            catch (RpcException e)
+            catch (RpcException)
             {
                 _libAnnouncementStreamCall.Dispose();
                 _libAnnouncementStreamCall = null;
@@ -444,9 +461,13 @@ namespace AElf.OS.Network.Grpc
 
                 return response;
             }
+            catch (ObjectDisposedException ex)
+            {
+                throw new NetworkException("Peer is closed", ex, NetworkExceptionType.Unrecoverable);
+            }
             catch (AggregateException ex)
             {
-                throw CreateNetworkException(ex.Flatten(), requestParams.ErrorMessage);
+                throw HandleRpcException(ex.InnerException as RpcException, requestParams.ErrorMessage);
             }
             finally
             {
@@ -478,7 +499,7 @@ namespace AElf.OS.Network.Grpc
         /// This method handles the case where the peer is potentially down. If the Rpc call
         /// put the channel in TransientFailure or Connecting, we give the connection a certain time to recover.
         /// </summary>
-        private NetworkException CreateNetworkException(Exception exception, string errorMessage)
+        private NetworkException HandleRpcException(RpcException exception, string errorMessage)
         {
             string message = $"Failed request to {this}: {errorMessage}";
             NetworkExceptionType type = NetworkExceptionType.Rpc;
@@ -507,20 +528,16 @@ namespace AElf.OS.Network.Grpc
             else
             {
                 // there was an exception, not related to connectivity.
-                if (exception.InnerException is RpcException rpcEx)
+                if (exception.StatusCode == StatusCode.Cancelled)
                 {
-                    if (rpcEx.StatusCode == StatusCode.Cancelled)
-                    {
-                        message = $"Request was cancelled {this}: {errorMessage}";
-                        type = NetworkExceptionType.Unrecoverable;
-                    }
-                    else if (rpcEx.StatusCode == StatusCode.Unknown)
-                    {
-                        message = $"Exception in handler {this}: {errorMessage}";
-                        type = NetworkExceptionType.HandlerException;
-                    }
+                    message = $"Request was cancelled {this}: {errorMessage}";
+                    type = NetworkExceptionType.Unrecoverable;
                 }
-                
+                else if (exception.StatusCode == StatusCode.Unknown)
+                {
+                    message = $"Exception in handler {this}: {errorMessage}";
+                    type = NetworkExceptionType.HandlerException;
+                }
             }
 
             return new NetworkException(message, exception, type);

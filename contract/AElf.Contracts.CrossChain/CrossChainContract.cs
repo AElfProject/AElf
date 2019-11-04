@@ -36,16 +36,24 @@ namespace AElf.Contracts.CrossChain
             CheckOwnerAuthority();
 
             Assert(sideChainCreationRequest.LockedTokenAmount > 0
-                   && sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice
-                   && sideChainCreationRequest.SideChainTokenInfo != null,
+                   && sideChainCreationRequest.LockedTokenAmount > sideChainCreationRequest.IndexingPrice,
                 "Invalid chain creation request.");
 
+            var sideChainTokenInfo = new SideChainTokenInfo
+            {
+                TokenName = sideChainCreationRequest.SideChainTokenName,
+                Symbol = sideChainCreationRequest.SideChainTokenSymbol,
+                TotalSupply = sideChainCreationRequest.SideChainTokenTotalSupply,
+                Decimals = sideChainCreationRequest.SideChainTokenDecimals,
+                IsBurnable = sideChainCreationRequest.IsSideChainTokenBurnable
+            };
+            AssertSideChainTokenInfo(sideChainTokenInfo);
             State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value.Add(1);
             var serialNumber = State.SideChainSerialNumber.Value;
             int chainId = ChainHelper.GetChainId(serialNumber);
 
             // lock token and resource
-            CreateSideChainToken(sideChainCreationRequest, chainId);
+            CreateSideChainToken(sideChainCreationRequest, sideChainTokenInfo, chainId);
             var sideChainInfo = new SideChainInfo
             {
                 Proposer = Context.Origin,
@@ -137,7 +145,11 @@ namespace AElf.Contracts.CrossChain
         public override Empty RecordCrossChainData(CrossChainBlockData crossChainBlockData)
         {
             Context.LogDebug(() => "Start RecordCrossChainData.");
-            //Assert(IsMiner(), "Not authorized to do this.");
+            ValidateContractState(State.ConsensusContract,SmartContractConstants.ConsensusContractSystemName);
+            var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value;
+            Context.LogDebug(() => $"Sender is currentMiner : {isCurrentMiner}.");
+            Assert(isCurrentMiner,"Not authorized to do this.");
+            
             var indexedCrossChainData = State.IndexedSideChainBlockData[Context.CurrentHeight];
             Assert(indexedCrossChainData == null); // This should not fail.
 

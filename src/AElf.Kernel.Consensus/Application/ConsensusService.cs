@@ -29,7 +29,7 @@ namespace AElf.Kernel.Consensus.Application
         public ConsensusService(IConsensusScheduler consensusScheduler,
             IConsensusReaderFactory readerFactory,
             ITriggerInformationProvider triggerInformationProvider,
-            IBlockTimeProvider blockTimeProvider)
+            IBlockTimeProvider blockTimeProvider) 
         {
             _readerFactory = readerFactory;
             _triggerInformationProvider = triggerInformationProvider;
