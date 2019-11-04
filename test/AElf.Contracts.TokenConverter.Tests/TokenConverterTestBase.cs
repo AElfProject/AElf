@@ -4,6 +4,7 @@ using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKit;
 using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
+using AElf.Kernel.Token;
 using AElf.Types;
 
 namespace AElf.Contracts.TokenConverter
@@ -31,7 +32,7 @@ namespace AElf.Contracts.TokenConverter
                 // TokenContract
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("MultiToken")).Value;
-                TokenContractAddress = await DeployContractAsync(category, code, Hash.FromString("MultiToken"), DefaultSenderKeyPair);
+                TokenContractAddress = await DeployContractAsync(category, code, TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
 
@@ -56,7 +57,7 @@ namespace AElf.Contracts.TokenConverter
                 // TokenConverterContract
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("TokenConverter")).Value;
-                TokenConverterContractAddress = await DeployContractAsync(category, code, Hash.FromString("TokenConverter"), DefaultSenderKeyPair);
+                TokenConverterContractAddress = await DeployContractAsync(category, code, TokenConverterSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
                 DefaultStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
                     TokenConverterContractAddress, DefaultSenderKeyPair);
                 AuthorizedStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(

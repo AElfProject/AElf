@@ -179,6 +179,20 @@ namespace AElf.Contracts.Economic
             return new Empty();
         }
 
+        public override Empty IssueResourceToken(IssueResourceTokenInput input)
+        {
+            var tokenConverter =
+                Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
+            State.TokenContract.Issue.Send(new IssueInput
+            {
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                To = tokenConverter,
+                Memo = "Initialize for resource trade"
+            });
+            return new Empty();
+        }
+        
         /// <summary>
         /// Transfer all the tokens prepared for rewarding mining to consensus contract.
         /// </summary>

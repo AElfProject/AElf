@@ -155,7 +155,8 @@ namespace AElf.Contracts.TokenConverter
                 VirtualBalance = pairConnector.ResourceVirtualBalance,
                 IsVirtualBalanceEnabled = pairConnector.IsResourceVirtualBalanceEnabled,
                 IsPurchaseEnabled = pairConnector.IsPurchaseEnabled,
-                RelatedSymbol = pairConnector.NativeConnectorSymbol
+                RelatedSymbol = pairConnector.NativeConnectorSymbol,
+                Weight = pairConnector.ResourceWeight
             };
             AssertValidConnectorAndNormalizeWeight(resourceConnector);
             var nativeTokenToResourceConnector = new Connector
@@ -164,54 +165,16 @@ namespace AElf.Contracts.TokenConverter
                 VirtualBalance = pairConnector.NativeVirtualBalance,
                 IsVirtualBalanceEnabled = pairConnector.IsNativeVirtualBalanceEnabled,
                 IsPurchaseEnabled = pairConnector.IsPurchaseEnabled,
-                RelatedSymbol = pairConnector.ResourceConnectorSymbol
+                RelatedSymbol = pairConnector.ResourceConnectorSymbol,
+                Weight = pairConnector.NativeWeight
             };
             AssertValidConnectorAndNormalizeWeight(nativeTokenToResourceConnector);
             int count = State.ConnectorCount.Value;
             State.ConnectorSymbols[count+1] = resourceConnector.Symbol;
             State.Connectors[resourceConnector.Symbol] = resourceConnector;
             State.ConnectorSymbols[count+2] = nativeTokenToResourceConnector.Symbol;
-            State.Connectors[resourceConnector.Symbol] = nativeTokenToResourceConnector;
+            State.Connectors[nativeTokenToResourceConnector.Symbol] = nativeTokenToResourceConnector;
             State.ConnectorCount.Value = count + 2;
-            State.TokenContract.Create.Send(new CreateInput
-            {
-                Symbol = resourceConnector.Symbol,
-                TokenName = $"{resourceConnector.Symbol} Token",
-                TotalSupply = pairConnector.ResourceTotalSupply,
-                Decimals = pairConnector.Decimals,
-                Issuer = Context.Self,
-                IsBurnable = pairConnector.IsResourceConnectorTokenBurnable,
-                LockWhiteList =
-                {
-                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName)
-                },
-            });
-            State.TokenContract.Issue.Send(new IssueInput
-            {
-                Symbol = resourceConnector.Symbol,
-                Amount = pairConnector.ResourceTotalSupply,
-                To = State.TokenContract.Value,
-                Memo = "Initialize for resource trade"
-            });
-            State.TokenContract.Create.Send(new CreateInput
-            {
-                Symbol = nativeTokenToResourceConnector.Symbol,
-                TokenName =nativeTokenToResourceConnector.Symbol + " Native Token",
-                TotalSupply = long.MaxValue,
-                Decimals = pairConnector.Decimals,
-                IsBurnable = pairConnector.IsNativeConnectorTokenBurnable,
-                Issuer = Context.Self,
-                LockWhiteList =
-                {
-                    Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.ProfitContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.ElectionContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.TreasuryContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName),
-                    Context.GetContractAddressByName(SmartContractConstants.ReferendumAuthContractSystemName)
-                }
-            });
             return new Empty();
         }
         public override Empty Buy(BuyInput input)

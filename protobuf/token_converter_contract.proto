@@ -118,16 +118,11 @@ message TokenSold {
 message PairConnector {
     string resource_connector_symbol = 1;
     sint64 resource_virtual_balance = 2;
-    sint64 resource_total_supply = 3;
-    string resource_weight = 4;
-    bool is_resource_virtual_balance_enabled = 5;
-    string native_connector_symbol = 6;
-    sint64 native_virtual_balance = 7;
-    sint64 native_total_supply = 8;
-    string native_weight = 9;
-    bool is_native_virtual_balance_enabled = 10;
-    bool is_purchase_enabled = 11;
-    sint32 decimals = 12;
-    bool is_resource_connector_token_burnable = 13;
-    bool is_native_connector_token_burnable = 14;
+    string resource_weight = 3;
+    bool is_resource_virtual_balance_enabled = 4;
+    string native_connector_symbol = 5;
+    sint64 native_virtual_balance = 6;
+    string native_weight = 7;
+    bool is_native_virtual_balance_enabled = 8;
+    bool is_purchase_enabled = 9;
 }
