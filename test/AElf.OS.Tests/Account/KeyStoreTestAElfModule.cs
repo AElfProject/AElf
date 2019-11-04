@@ -8,7 +8,7 @@ using Moq;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 
-namespace AElf.OS
+namespace AElf.OS.Account
 {
     [DependsOn(
         typeof(OSCoreTestAElfModule)

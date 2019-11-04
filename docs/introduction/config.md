@@ -9,7 +9,7 @@ If you are using AElf **as is** and have not modified the default appsettings yo
 You will need to give the node the **Account** you want to use. This is generated with the CLI. 
 
 - NodeAccount is the address that was printed by the CLI.
-- NodeAccountPassword is the passeword that you used to generate the keypair and address.
+- NodeAccountPassword is the password that you used to generate the keypair and address.
 
 ```json
   "Account": {

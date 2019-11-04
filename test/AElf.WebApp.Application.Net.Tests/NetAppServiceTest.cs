@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
+using AElf.OS.Network.Application;
 using AElf.OS.Network.Helpers;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Metrics;
@@ -18,23 +19,14 @@ namespace AElf.WebApp.Application.Net.Tests
     public sealed class NetAppServiceTest: WebAppTestBase
     {
         private readonly IPeerPool _peerPool;
+        private readonly IReconnectionService _reconnectionService;
+
         public NetAppServiceTest(ITestOutputHelper outputHelper) : base(outputHelper)
         {
             _peerPool = GetRequiredService<IPeerPool>();
+            _reconnectionService = GetRequiredService<IReconnectionService>();
         }
-
-        [Fact]
-        public async Task AddPeer_Test()
-        { 
-            var parameters = new Dictionary<string, string>
-            {
-                { "address","127.0.0.1:1680"}
-            };
-            
-            var responseTrue = await PostResponseAsObjectAsync<bool>("/api/net/peer", parameters);
-            responseTrue.ShouldBeFalse();
-        }
-
+        
         private IPeer BuildPeer(string ipAddress, string pubkey, Timestamp connectionTime, bool isInbound)
         {
             var connectionInfo = new PeerConnectionInfo
@@ -52,7 +44,27 @@ namespace AElf.WebApp.Application.Net.Tests
 
             return peerMock.Object;
         }
-        
+
+        [Fact]
+        public async Task AddPeer_Test()
+        { 
+            var parameters = new Dictionary<string, string>
+            {
+                { "address","127.0.0.1:1680"}
+            };
+            
+            var responseTrue = await PostResponseAsObjectAsync<bool>("/api/net/peer", parameters);
+            responseTrue.ShouldBeFalse();
+        }
+
+        [Fact]
+        public async Task RemovePeer_CancelsReconnection_EvenIfPeerNotInPool()
+        {
+            _reconnectionService.SchedulePeerForReconnection("127.0.0.1:3000");
+            await DeleteResponseAsObjectAsync<bool>($"/api/net/peer?address=127.0.0.1:3000");
+            _reconnectionService.GetPeersReadyForReconnection(null).ShouldBeEmpty();
+        }
+
         [Fact]
         public async Task GetPeers_Test()
         {

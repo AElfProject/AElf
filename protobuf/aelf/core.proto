@@ -45,8 +45,12 @@ message TransactionResult {
     // Merkle proof path for this transaction
     string Error = 10;
     string ReadableReturnValue = 11;
+    TransactionFee TransactionFee = 12;
 }
- 
+
+message TransactionFee {
+    map<string, sint64> Value = 1;// symbol -> amount
+}
 
 message LogEvent {
     Address address = 1;
