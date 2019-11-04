@@ -6,12 +6,12 @@ namespace AElf.Contracts.Election
 {
     public partial class ElectionContract
     {
-        public override TokenAmounts GetMethodFee(MethodName input)
+        public override MethodFees GetMethodFee(StringValue input)
         {
-            return State.TransactionFees[input.Name];
+            return State.TransactionFees[input.Value];
         }
 
-        public override Empty SetMethodFee(TokenAmounts input)
+        public override Empty SetMethodFee(MethodFees input)
         {
             if (State.ParliamentAuthContract.Value == null)
             {
@@ -20,7 +20,7 @@ namespace AElf.Contracts.Election
             }
 
             Assert(Context.Sender == State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty()));
-            State.TransactionFees[input.Method] = input;
+            State.TransactionFees[input.MethodName] = input;
 
             return new Empty();
         }

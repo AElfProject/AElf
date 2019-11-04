@@ -144,6 +144,9 @@ namespace AElf.Kernel.Blockchain.Domain
 
             bool isLinkedToLongestChain = chainBlockLink.PreviousBlockHash == chain.LongestChainHash &&
                                           chainBlockLink.Height == chain.LongestChainHeight + 1;
+
+            Logger.LogTrace($"Start attach block hash {chainBlockLink.BlockHash}, height {chainBlockLink.Height}");
+            
             while (true)
             {
                 var previousHash = chainBlockLink.PreviousBlockHash.ToStorageKey();

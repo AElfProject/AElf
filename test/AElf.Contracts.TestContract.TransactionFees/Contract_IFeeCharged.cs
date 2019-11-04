@@ -7,30 +7,26 @@ namespace AElf.Contracts.TestContract.TransactionFees
     public partial class TransactionFeesContract
     {
         [View]
-        public override TokenAmounts GetMethodFee(MethodName input)
+        public override MethodFees GetMethodFee(StringValue input)
         {
-            var tokenAmounts = State.MethodFees[input.Name];
-            if (tokenAmounts != null)
-                return tokenAmounts;
-            
+            var methodFees = State.MethodFees[input.Value];
+            if (methodFees != null)
+                return methodFees;
+
             //set default tx fee
-            return new TokenAmounts
+            return new MethodFees
             {
-                Amounts =
+                MethodName = input.Value,
+                Fees =
                 {
-                    new TokenAmount
-                    {
-                        Symbol = "ELF",
-                        Amount = 1_00000000
-                    }
+                    new MethodFee {Symbol = "ELF", BasicFee = 1_00000000}
                 }
             };
         }
 
-        public override Empty SetMethodFee(TokenAmounts input)
+        public override Empty SetMethodFee(MethodFees input)
         {
-            State.MethodFees[input.Method] = input;
-
+            State.MethodFees[input.MethodName] = input;
             return new Empty();
         }
     }

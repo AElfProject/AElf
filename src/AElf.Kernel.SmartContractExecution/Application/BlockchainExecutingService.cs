@@ -135,7 +135,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
                     successLinks.Add(blockLink);
                     successBlocks.Add(linkedBlock);
-                    Logger.LogInformation($"Executed block {blockLink.BlockHash} at height {blockLink.Height}.");
+                    Logger.LogInformation(
+                        $"Executed block {blockLink.BlockHash} at height {blockLink.Height}, with {linkedBlock.Body.TransactionsCount} txns.");
                     
                     await LocalEventBus.PublishAsync(new BlockAcceptedEvent {BlockHeader = linkedBlock.Header});
                 }
