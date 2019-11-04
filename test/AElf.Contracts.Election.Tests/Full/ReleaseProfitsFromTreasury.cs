@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.Profit;
+using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -16,6 +17,7 @@ namespace AElf.Contracts.Election
         public async Task CheckTreasuryProfitsDistribution_Test()
         {
             const long txFee = 1_00000000L;
+            const long txSizeFeeUnitPrice = 0;
             long rewardAmount;
             var updatedBackupSubsidy = 0L;
             var updatedBasicReward = 0L;
@@ -390,6 +392,7 @@ namespace AElf.Contracts.Election
                     SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                     Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                 });
+                var txSize = profitResult.Transaction.Size();
                 profitResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                 var afterBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -397,7 +400,7 @@ namespace AElf.Contracts.Election
                     Owner = Address.FromPublicKey(VoterKeyPairs[0].PublicKey),
                     Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                 })).Balance;
-                afterBalance.ShouldBe(beforeBalance + profitAmount - txFee);
+                afterBalance.ShouldBe(beforeBalance + profitAmount - txFee - txSize * txSizeFeeUnitPrice);
             }
 
             await GenerateMiningReward(5);
@@ -453,6 +456,7 @@ namespace AElf.Contracts.Election
                         SchemeId = ProfitItemsIds[ProfitType.BasicMinerReward],
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
+                    var profitSize = profitBasicResult.Transaction.Size();
                     profitBasicResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                     var voteResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
@@ -460,6 +464,7 @@ namespace AElf.Contracts.Election
                         SchemeId = ProfitItemsIds[ProfitType.VotesWeightReward],
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
+                    var voteSize = voteResult.Transaction.Size();
                     voteResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                     var reElectionResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
@@ -467,6 +472,7 @@ namespace AElf.Contracts.Election
                         SchemeId = ProfitItemsIds[ProfitType.ReElectionReward],
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
+                    var reElectionSize = reElectionResult.Transaction.Size();
                     reElectionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                     var backupResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
@@ -474,6 +480,7 @@ namespace AElf.Contracts.Election
                         SchemeId = ProfitItemsIds[ProfitType.BackupSubsidy],
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
+                    var backSize = backupResult.Transaction.Size();
                     backupResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                     var afterToken = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
@@ -481,9 +488,9 @@ namespace AElf.Contracts.Election
                         Owner = Address.FromPublicKey(miner.PublicKey),
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     })).Balance;
-
+                    var sizeFees = (profitSize + voteSize + reElectionSize + backSize) * txSizeFeeUnitPrice;
                     afterToken.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount +
-                                        reElectionBalance + backupBalance - txFee * 4);
+                                        reElectionBalance + backupBalance - txFee * 4 - sizeFees);
                 }
             }
 
@@ -540,14 +547,19 @@ namespace AElf.Contracts.Election
                         SchemeId = ProfitItemsIds[ProfitType.BasicMinerReward],
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
+                    var profitSize = profitBasicResult.Transaction.Size();
                     profitBasicResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+
+                    long sizeFee;
 
                     {
                         var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                         {
                             Owner = Address.FromPublicKey(miner.PublicKey),
                             Symbol = EconomicContractsTestConstants.NativeTokenSymbol
-                        })).Balance;
+                        })).Balance; 
+                        sizeFee = profitSize * txSizeFeeUnitPrice;
+                        balance.ShouldBe(beforeToken + basicMinerRewardAmount - txFee - sizeFee);
                         balance.ShouldBe(beforeToken + basicMinerRewardAmount - txFee);
                     }
 
@@ -556,15 +568,18 @@ namespace AElf.Contracts.Election
                         SchemeId = ProfitItemsIds[ProfitType.VotesWeightReward],
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
+                    var voteSize = voteResult.Transaction.Size();
                     voteResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                     {
-                        var balance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+                        var balance1 = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                         {
                             Owner = Address.FromPublicKey(miner.PublicKey),
                             Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                         })).Balance;
-                        balance.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount - txFee * 2);
+                        sizeFee = (profitSize + voteSize) * txSizeFeeUnitPrice;
+                        balance1.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount
+                                          - 2 * txFee - sizeFee);
                     }
 
                     var reElectionResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
@@ -572,6 +587,7 @@ namespace AElf.Contracts.Election
                         SchemeId = ProfitItemsIds[ProfitType.ReElectionReward],
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
+                    var reElectionSize = reElectionResult.Transaction.Size();
                     reElectionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                     {
@@ -580,8 +596,9 @@ namespace AElf.Contracts.Election
                             Owner = Address.FromPublicKey(miner.PublicKey),
                             Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                         })).Balance;
+                        sizeFee = (profitSize + voteSize + reElectionSize) * txSizeFeeUnitPrice;
                         balance.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount +
-                                         reElectionBalance - txFee * 3);
+                                         reElectionBalance - 3 * txFee - sizeFee);
                     }
 
                     var backupResult = await profitTester.ClaimProfits.SendAsync(new ClaimProfitsInput
@@ -589,6 +606,7 @@ namespace AElf.Contracts.Election
                         SchemeId = ProfitItemsIds[ProfitType.BackupSubsidy],
                         Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                     });
+                    var backSize = backupResult.Transaction.Size();
                     backupResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
                     {
@@ -597,8 +615,9 @@ namespace AElf.Contracts.Election
                             Owner = Address.FromPublicKey(miner.PublicKey),
                             Symbol = EconomicContractsTestConstants.NativeTokenSymbol
                         })).Balance;
+                        sizeFee = (profitSize + voteSize + reElectionSize + backSize) * txSizeFeeUnitPrice;
                         balance.ShouldBe(beforeToken + basicMinerRewardAmount + votesWeightRewardAmount +
-                                         reElectionBalance + backupBalance - txFee * 4);
+                                         reElectionBalance + backupBalance - 4 *txFee - sizeFee);
                     }
                 }
             }

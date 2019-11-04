@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Helpers;
@@ -61,6 +62,8 @@ namespace AElf.OS.Consensus.DPos
                         await Task.FromResult(publicKeys));
                 return mockService.Object;
             });
+            
+            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
         }
     }
 }

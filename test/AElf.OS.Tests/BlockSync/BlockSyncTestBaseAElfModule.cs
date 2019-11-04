@@ -6,7 +6,7 @@ using Moq;
 using Volo.Abp.BackgroundWorkers;
 using Volo.Abp.Modularity;
 
-namespace AElf.OS
+namespace AElf.OS.BlockSync
 {
     [DependsOn(typeof(OSTestAElfModule))]
     public class BlockSyncTestBaseAElfModule : AElfModule

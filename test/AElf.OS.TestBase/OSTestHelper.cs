@@ -34,6 +34,8 @@ namespace AElf.OS
     {
         private IReadOnlyDictionary<string, byte[]> _codes;
 
+        public readonly long TokenTotalSupply = 100_0000_0000_0000_0000L;
+        public long MockChainTokenAmount { get; private set; }
         public IReadOnlyDictionary<string, byte[]> Codes =>
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<OSTestHelper>());
         public byte[] ConsensusContractCode => Codes.Single(kv => kv.Key.Contains("Consensus.AEDPoS")).Value;
@@ -407,7 +409,7 @@ namespace AElf.OS
             {
                 Symbol = "ELF",
                 TokenName = "ELF_Token",
-                TotalSupply = 1000_0000L,
+                TotalSupply = TokenTotalSupply,
                 Decimals = 2,
                 Issuer =  ownAddress,
                 IsBurnable = true
@@ -415,7 +417,7 @@ namespace AElf.OS
             callList.Add(nameof(TokenContractContainer.TokenContractStub.Issue), new IssueInput
             {
                 Symbol = "ELF",
-                Amount = 1000_0000L,
+                Amount = TokenTotalSupply,
                 To = ownAddress,
                 Memo = "Issue"
             });
@@ -445,6 +447,9 @@ namespace AElf.OS
                 var transaction = await GenerateTransferTransaction();
                 await BroadcastTransactions(new List<Transaction> {transaction});
                 var block = await MinedOneBlock(chain.BestChainHash, chain.BestChainHeight);
+                var transactionResult = await _transactionResultService.GetTransactionResultAsync(transaction.GetHash());
+                MockChainTokenAmount += transactionResult.TransactionFee.Value["ELF"] +
+                                        TransferInput.Parser.ParseFrom(transaction.Params).Amount;
                 
                 bestBranchBlockList.Add(block);
             }
