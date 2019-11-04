@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.TransactionPool.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -15,19 +16,22 @@ namespace AElf.Kernel
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockchainService _blockchainService;
+        private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
             IBlockchainStateService blockchainStateService,
-            IBlockchainService blockchainService)
+            IBlockchainService blockchainService,
+            ITransactionInclusivenessProvider transactionInclusivenessProvider)
         {
             _taskQueueManager = taskQueueManager;
             _blockchainStateService = blockchainStateService;
             _blockchainService = blockchainService;
+            _transactionInclusivenessProvider = transactionInclusivenessProvider;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
-        public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
+        public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
             _taskQueueManager.Enqueue(async () =>
             {
@@ -39,7 +43,7 @@ namespace AElf.Kernel
             {
                 var chain = await _blockchainService.GetChainAsync();
                 var discardedBranch = await _blockchainService.GetDiscardedBranchAsync(chain);
-                
+
                 if (discardedBranch.BranchKeys.Count > 0 || discardedBranch.NotLinkedKeys.Count > 0)
                 {
                     _taskQueueManager.Enqueue(
@@ -47,6 +51,11 @@ namespace AElf.Kernel
                         KernelConstants.UpdateChainQueueName);
                 }
             }, KernelConstants.CleanChainBranchQueueName);
+
+            // If lib grows, then set it to package transactions
+            _transactionInclusivenessProvider.IsTransactionPackable = true;
+
+            return Task.CompletedTask;
         }
     }
 }
