@@ -132,7 +132,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             State.Rounds.Set(round.RoundNumber, round);
 
-            Context.Fire(new SecretSharingJobNotification
+            Context.Fire(new SecretSharingInformation
             {
                 PreviousRound = State.Rounds[round.RoundNumber.Sub(1)]
             });

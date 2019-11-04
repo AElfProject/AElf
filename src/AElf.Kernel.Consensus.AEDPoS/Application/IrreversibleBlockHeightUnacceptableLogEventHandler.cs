@@ -12,7 +12,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     public class IrreversibleBlockHeightUnacceptableLogEventHandler : ILogEventHandler
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private ITransactionInclusivenessProvider _transactionInclusivenessProvider;
+        private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
 
         private LogEvent _interestedEvent;
 

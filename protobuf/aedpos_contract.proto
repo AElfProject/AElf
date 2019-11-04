@@ -172,6 +172,7 @@ message AElfConsensusHeaderInformation {
 
 message AElfConsensusHint {
     AElfConsensusBehaviour behaviour = 1;
+    sint64 round_id = 2;
 }
 
 enum AElfConsensusBehaviour {
@@ -188,7 +189,6 @@ message AElfConsensusTriggerInformation {
     aelf.Hash previous_random_hash = 3;// Random hash of previous round for validation.
     AElfConsensusBehaviour behaviour = 4;
     map<string, bytes> secrets = 5;
-    
 }
 
 message TermInfo {
@@ -255,7 +255,7 @@ message MiningInformationUpdated {
     aelf.Hash previous_block_hash = 5 [(aelf.is_indexed) = true];
 }
 
-message SecretSharingJobNotification {
+message SecretSharingInformation {
     option (aelf.is_event) = true;
     Round previous_round = 1 [(aelf.is_indexed) = true];
     sint64 current_round_id = 2;

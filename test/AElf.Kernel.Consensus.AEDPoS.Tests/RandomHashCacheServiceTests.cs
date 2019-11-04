@@ -17,7 +17,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             // Round 1:
             {
                 // When generating block extra data. First time setting a random hash.
-                RandomHashCacheService.SetGeneratedBlockPreviousBlockInformation(previousHashOfGeneratingBlock1,
+                RandomHashCacheService.SetGeneratedBlockBestChainHash(previousHashOfGeneratingBlock1,
                     previousHeightOfGeneratingBlock1);
                 RandomHashCacheService.SetRandomHash(previousHashOfGeneratingBlock1, randomHash1);
 
@@ -47,7 +47,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             // Round 2:
             {
                 // Set a random hash when generating block extra data.
-                RandomHashCacheService.SetGeneratedBlockPreviousBlockInformation(previousHashOfGeneratingBlock2,
+                RandomHashCacheService.SetGeneratedBlockBestChainHash(previousHashOfGeneratingBlock2,
                     previousHeightOfGeneratingBlock2);
                 RandomHashCacheService.SetRandomHash(previousHashOfGeneratingBlock2, randomHash2);
 
@@ -77,7 +77,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             // Round 3:
             {
                 // Set a random hash when generating block extra data.
-                RandomHashCacheService.SetGeneratedBlockPreviousBlockInformation(previousHashOfGeneratingBlock3,
+                RandomHashCacheService.SetGeneratedBlockBestChainHash(previousHashOfGeneratingBlock3,
                     previousHeightOfGeneratingBlock3);
                 RandomHashCacheService.SetRandomHash(previousHashOfGeneratingBlock3, randomHash3);
 
@@ -107,7 +107,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
             // Round 3:
             {
                 // Set a random hash when generating block extra data.
-                RandomHashCacheService.SetGeneratedBlockPreviousBlockInformation(previousHashOfGeneratingBlock4,
+                RandomHashCacheService.SetGeneratedBlockBestChainHash(previousHashOfGeneratingBlock4,
                     previousHeightOfGeneratingBlock4);
                 RandomHashCacheService.SetRandomHash(previousHashOfGeneratingBlock4, randomHash4);
 

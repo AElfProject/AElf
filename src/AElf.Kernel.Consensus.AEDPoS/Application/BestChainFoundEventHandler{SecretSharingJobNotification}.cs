@@ -23,14 +23,14 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             ILocalEventHandler<BestChainFoundEventData>, ITransientDependency
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ContractEventDiscoveryService<SecretSharingJobNotification> _secretSharingDiscoveryService;
+        private readonly ContractEventDiscoveryService<SecretSharingInformation> _secretSharingDiscoveryService;
         private readonly ITaskQueueManager _taskQueueManager;
 
         public ILogger<BestChainFoundEventHandlerForIrreversibleSecretSharingJobNotification> Logger { get; set; }
 
         public BestChainFoundEventHandlerForIrreversibleSecretSharingJobNotification(
             ISmartContractAddressService smartContractAddressService,
-            ContractEventDiscoveryService<SecretSharingJobNotification> secretSharingDiscoveryService,
+            ContractEventDiscoveryService<SecretSharingInformation> secretSharingDiscoveryService,
             ITaskQueueManager taskQueueManager)
         {
             _smartContractAddressService = smartContractAddressService;
