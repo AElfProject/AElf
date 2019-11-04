@@ -281,7 +281,9 @@ namespace AElf.Contracts.MultiToken
                 TransactionBytes = createTransaction.ToByteString(),
                 MerklePath = merklePath
             };
-
+            
+            //transfer some token for size fee
+            
             var result = await SideChainTester.ExecuteContractWithMiningAsync(SideTokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainCreateToken), crossChainCreateTokenInput);
             Assert.True(result.Status == TransactionResultStatus.Failed);
