@@ -36,7 +36,6 @@ namespace AElf.Kernel
             services.AddStoreKeyPrefixProvide<Transaction>("tx");
             services.AddStoreKeyPrefixProvide<TransactionBlockIndex>("ti");
             services.AddStoreKeyPrefixProvide<TransactionResult>("tr");
-            services.AddStoreKeyPrefixProvide<TransactionReceipt>("tc");
             services.AddStoreKeyPrefixProvide<VersionedState>("vs");
             
 

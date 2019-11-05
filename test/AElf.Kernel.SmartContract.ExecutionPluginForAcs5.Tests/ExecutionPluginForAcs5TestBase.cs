@@ -95,7 +95,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                     Decimals = 2,
                     IsBurnable = true,
                     TokenName = "elf token",
-                    TotalSupply = 1000_0000L,
+                    TotalSupply = 1000_00000000L,
                     Issuer = DefaultSender
                 });
 
@@ -104,7 +104,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                 var issueResult = await TokenContractStub.Issue.SendAsync(new IssueInput()
                 {
                     Symbol = "ELF",
-                    Amount = 1000_000L,
+                    Amount = 1000_00000000L,
                     To = DefaultSender,
                     Memo = "Set for elf token converter."
                 });

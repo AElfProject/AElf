@@ -1,9 +1,7 @@
 using System.Collections.Generic;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
-using AElf.Kernel.SmartContract.Sdk;
-using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Volo.Abp.Modularity;

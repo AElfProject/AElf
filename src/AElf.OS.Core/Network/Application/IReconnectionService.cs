@@ -55,11 +55,11 @@ namespace AElf.OS.Network.Application
         {
             if (!_reconnectionStateProvider.RemoveReconnectionPeer(endpoint))
             {
-                Logger.LogDebug($"Could not find {endpoint}");
+                Logger.LogDebug($"Could not find reconnection {endpoint}");
                 return false;
             }
             
-            Logger.LogDebug($"Successfully removed {endpoint}");
+            Logger.LogDebug($"Successfully canceled reconnection {endpoint}");
             
             return true;
         }

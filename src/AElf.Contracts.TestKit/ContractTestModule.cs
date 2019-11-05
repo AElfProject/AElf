@@ -107,6 +107,7 @@ namespace AElf.Contracts.TestKit
             context.Services.AddTransient<IContractTesterFactory, ContractTesterFactory>();
             context.Services.AddTransient<ITransactionExecutor, TransactionExecutor>();
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
+            context.Services.AddSingleton<ITxHub, MockTxHub>();
 
             context.Services
                 .AddTransient(provider =>
@@ -126,6 +127,8 @@ namespace AElf.Contracts.TestKit
 
                     return service.Object;
                 });
+
+            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
         }
 
         public int ChainId { get; } = 500;

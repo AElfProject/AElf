@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.TransactionPool.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -16,17 +17,20 @@ namespace AElf.Kernel
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionBlockIndexService _transactionBlockIndexService;
+        private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
             IBlockchainStateService blockchainStateService,
             IBlockchainService blockchainService,
+            ITransactionInclusivenessProvider transactionInclusivenessProvider,
             ITransactionBlockIndexService transactionBlockIndexService)
         {
             _taskQueueManager = taskQueueManager;
             _blockchainStateService = blockchainStateService;
             _blockchainService = blockchainService;
             _transactionBlockIndexService = transactionBlockIndexService;
+            _transactionInclusivenessProvider = transactionInclusivenessProvider;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
@@ -51,6 +55,9 @@ namespace AElf.Kernel
                 }
             }, KernelConstants.CleanChainBranchQueueName);
 
+            // If lib grows, then set it to package transactions
+            _transactionInclusivenessProvider.IsTransactionPackable = true;
+            
             await _transactionBlockIndexService.CleanTransactionBlockIndexCacheAsync(eventData.BlockHeight);
         }
     }
