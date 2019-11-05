@@ -161,7 +161,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
            createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var proposalHash = Hash.FromMessage(proposal);
+            var proposalHash = createResult.Output;
             var approveResult = await ParliamentAuthContractStub.Approve.SendAsync(new Acs3.ApproveInput
             {
                 ProposalId = proposalHash,
@@ -197,7 +197,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
             createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var proposalHash = Hash.FromMessage(proposal);
+            var proposalHash = createResult.Output;
             var approveResult = await ParliamentAuthContractStub.Approve.SendAsync(new Acs3.ApproveInput
             {
                 ProposalId = proposalHash,
