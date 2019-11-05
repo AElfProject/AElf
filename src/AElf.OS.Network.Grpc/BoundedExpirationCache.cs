@@ -30,21 +30,6 @@ namespace AElf.OS.Network.Grpc
             return _hashLookup.ContainsKey(hash);
         }
 
-        private void CleanExpired()
-        {
-            // clean old items.
-            while (!_expiryHashQueue.IsEmpty && _expiryHashQueue.TryPeek(out var queuedHash)
-                                             && queuedHash.EnqueueTime.AddMilliseconds(_timeout) < TimestampHelper.GetUtcNow())
-            {
-                if (_hashLookup.TryRemove(queuedHash.ItemHash, out _))
-                    _expiryHashQueue.TryDequeue(out _);
-                else
-                {
-                    throw new InvalidOperationException();
-                }
-            }
-        }
-
         public bool TryAdd(Hash itemHash)
         {
             CleanExpired();
@@ -65,6 +50,21 @@ namespace AElf.OS.Network.Grpc
             });
 
             return true;
+        }
+        
+        private void CleanExpired()
+        {
+            // clean old items.
+            while (!_expiryHashQueue.IsEmpty && _expiryHashQueue.TryPeek(out var queuedHash)
+                                             && queuedHash.EnqueueTime.AddMilliseconds(_timeout) < TimestampHelper.GetUtcNow())
+            {
+                if (_hashLookup.TryRemove(queuedHash.ItemHash, out _))
+                    _expiryHashQueue.TryDequeue(out _);
+                else
+                {
+                    throw new InvalidOperationException();
+                }
+            }
         }
     }
 }

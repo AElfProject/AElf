@@ -33,8 +33,8 @@ namespace AElf.OS.Network.Grpc
         private const int UpdateHandshakeTimeout = 3000;
         private const int StreamRecoveryWaitTimeInMilliseconds = 500;
 
-        private const int BlockCacheMaxItems = 100;
-        private const int TransactionCacheMaxItems = 2000;
+        private const int BlockCacheMaxItems = 1024;
+        private const int TransactionCacheMaxItems = 10_000;
 
         private const int QueuedItemTimeout = 4000;
 
