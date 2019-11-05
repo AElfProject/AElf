@@ -26,15 +26,10 @@ namespace AElf.Contracts.Election
         {
             // Check candidate information map instead of candidates. 
             var targetInformation = State.CandidateInformationMap[input.CandidatePubkey];
-            Assert(targetInformation != null, "Candidate not found.");
-            if (targetInformation == null) return new Empty(); // Just to avoid IDE warning.
-            Assert(targetInformation.IsCurrentCandidate, "Candidate quited election.");
+            AssertValidCandidateInformation(targetInformation);
 
             var lockSeconds = (input.EndTimestamp - Context.CurrentBlockTime).Seconds;
-            Assert(lockSeconds >= State.MinimumLockTime.Value,
-                $"Invalid lock time. At least {State.MinimumLockTime.Value.Div(60).Div(60).Div(24)} days");
-            Assert(lockSeconds <= State.MaximumLockTime.Value,
-                $"Invalid lock time. At most {State.MaximumLockTime.Value.Div(60).Div(60).Div(24)} days");
+            AssertValidLockSeconds(lockSeconds);
 
             State.LockTimeMap[Context.TransactionId] = lockSeconds;
 
@@ -44,43 +39,15 @@ namespace AElf.Contracts.Election
 
             var candidateVotesAmount = UpdateCandidateInformation(input.CandidatePubkey, input.Amount);
 
-            State.TokenContract.Lock.Send(new LockInput
-            {
-                Address = Context.Sender,
-                Symbol = Context.Variables.NativeSymbol,
-                LockId = Context.TransactionId,
-                Amount = GetElfAmount(input.Amount),
-                Usage = "Voting for Main Chain Miner Election."
-            });
+            CallTokenContractLock(input.Amount);
 
-            State.TokenContract.Issue.Send(new IssueInput
-            {
-                Symbol = ElectionContractConstants.VoteSymbol,
-                To = Context.Sender,
-                Amount = input.Amount,
-                Memo = "Issue VOTEs."
-            });
+            CallTokenContractIssue(input.Amount);
 
-            State.VoteContract.Vote.Send(new VoteInput
-            {
-                Voter = Context.Sender,
-                VotingItemId = State.MinerElectionVotingItemId.Value,
-                Amount = input.Amount,
-                Option = input.CandidatePubkey,
-                VoteId = Context.TransactionId
-            });
+            CallVoteContractVote(input.Amount, input.CandidatePubkey);
 
             var votesWeight = GetVotesWeight(input.Amount, lockSeconds);
-            State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
-            {
-                SchemeId = State.WelfareHash.Value,
-                BeneficiaryShare = new BeneficiaryShare
-                {
-                    Beneficiary = Context.Sender,
-                    Shares = votesWeight
-                },
-                EndPeriod = GetEndPeriod(lockSeconds)
-            });
+
+            CallProfitContractAddBeneficiary(votesWeight, lockSeconds);
 
             var rankingList = State.DataCentersRankingList.Value;
             if (State.DataCentersRankingList.Value.DataCenters.ContainsKey(input.CandidatePubkey))
@@ -303,34 +270,10 @@ namespace AElf.Contracts.Election
             candidateVotes.ObtainedActiveVotedVotesAmount = candidateVotes.ObtainedActiveVotedVotesAmount.Sub(votingRecord.Amount);
             State.CandidateVotes[votingRecord.Option] = candidateVotes;
 
-            State.TokenContract.Unlock.Send(new UnlockInput
-            {
-                Address = Context.Sender,
-                Symbol = Context.Variables.NativeSymbol,
-                Amount = GetElfAmount(votingRecord.Amount),
-                LockId = input,
-                Usage = "Withdraw votes for Main Chain Miner Election."
-            });
-
-            State.TokenContract.TransferFrom.Send(new TransferFromInput
-            {
-                From = Context.Sender,
-                To = Context.Self,
-                Amount = votingRecord.Amount,
-                Symbol = ElectionContractConstants.VoteSymbol,
-                Memo = "Return VOTE tokens."
-            });
-
-            State.VoteContract.Withdraw.Send(new WithdrawInput
-            {
-                VoteId = input
-            });
-
-            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
-            {
-                SchemeId = State.WelfareHash.Value,
-                Beneficiary = Context.Sender
-            });
+            CallTokenContractUnlock(input, votingRecord.Amount);
+            CallTokenContractTransferFrom(votingRecord.Amount);
+            CallVoteContractWithdraw(input);
+            CallProfitContractRemoveBeneficiary();
 
             var rankingList = State.DataCentersRankingList.Value;
             if (State.DataCentersRankingList.Value.DataCenters.ContainsKey(votingRecord.Option))
@@ -356,6 +299,109 @@ namespace AElf.Contracts.Election
             }
 
             return elfAmount;
+        }
+
+        private void CallTokenContractUnlock(Hash input, long amount)
+        {
+            State.TokenContract.Unlock.Send(new UnlockInput
+            {
+                Address = Context.Sender,
+                Symbol = Context.Variables.NativeSymbol,
+                Amount = GetElfAmount(amount),
+                LockId = input,
+                Usage = "Withdraw votes for Main Chain Miner Election."
+            });
+        }
+        private void CallTokenContractTransferFrom(long amount)
+        {
+            State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = Context.Self,
+                Amount = amount,
+                Symbol = ElectionContractConstants.VoteSymbol,
+                Memo = "Return VOTE tokens."
+            });
+        }
+
+        private void CallVoteContractWithdraw(Hash input)
+        {
+            State.VoteContract.Withdraw.Send(new WithdrawInput
+            {
+                VoteId = input
+            });
+        }
+        private void CallProfitContractRemoveBeneficiary()
+        {
+            State.ProfitContract.RemoveBeneficiary.Send(new RemoveBeneficiaryInput
+            {
+                SchemeId = State.WelfareHash.Value,
+                Beneficiary = Context.Sender
+            });
+        }
+
+        private void AssertValidCandidateInformation(CandidateInformation candidateInformation)
+        {
+            Assert(candidateInformation != null, "Candidate not found.");
+            if (candidateInformation == null) return; // Just to avoid IDE warning.
+            Assert(candidateInformation.IsCurrentCandidate, "Candidate quited election.");
+        }
+        
+        private void AssertValidLockSeconds(long lockSeconds)
+        {
+            Assert(lockSeconds >= State.MinimumLockTime.Value,
+                $"Invalid lock time. At least {State.MinimumLockTime.Value.Div(60).Div(60).Div(24)} days");
+            Assert(lockSeconds <= State.MaximumLockTime.Value,
+                $"Invalid lock time. At most {State.MaximumLockTime.Value.Div(60).Div(60).Div(24)} days");
+        }
+
+        private void CallTokenContractLock(long amount)
+        {
+            State.TokenContract.Lock.Send(new LockInput
+            {
+                Address = Context.Sender,
+                Symbol = Context.Variables.NativeSymbol,
+                LockId = Context.TransactionId,
+                Amount = GetElfAmount(amount),
+                Usage = "Voting for Main Chain Miner Election."
+            });
+        }
+
+        private void CallTokenContractIssue(long amount)
+        {
+            State.TokenContract.Issue.Send(new IssueInput
+            {
+                Symbol = ElectionContractConstants.VoteSymbol,
+                To = Context.Sender,
+                Amount = amount,
+                Memo = "Issue VOTEs."
+            });
+        }
+
+        private void CallVoteContractVote(long amount, string candidatePubkey)
+        {
+            State.VoteContract.Vote.Send(new VoteInput
+            {
+                Voter = Context.Sender,
+                VotingItemId = State.MinerElectionVotingItemId.Value,
+                Amount = amount,
+                Option = candidatePubkey,
+                VoteId = Context.TransactionId
+            });
+        }
+
+        private void CallProfitContractAddBeneficiary(long votesWeight, long lockSeconds)
+        {
+            State.ProfitContract.AddBeneficiary.Send(new AddBeneficiaryInput
+            {
+                SchemeId = State.WelfareHash.Value,
+                BeneficiaryShare = new BeneficiaryShare
+                {
+                    Beneficiary = Context.Sender,
+                    Shares = votesWeight
+                },
+                EndPeriod = GetEndPeriod(lockSeconds)
+            });
         }
     }
 }
