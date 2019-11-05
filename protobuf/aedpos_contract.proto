@@ -186,10 +186,11 @@ enum AElfConsensusBehaviour {
 
 message AElfConsensusTriggerInformation {
     bytes pubkey = 1;// A must-have.
-    aelf.Hash random_hash = 2;// To calculate In Value.
-    aelf.Hash previous_random_hash = 3;// Random hash of previous round for validation.
+    aelf.Hash in_value = 2;
+    aelf.Hash previous_in_value = 3;// Random hash of previous round for validation.
     AElfConsensusBehaviour behaviour = 4;
-    map<string, bytes> secrets = 5;
+    map<string, bytes> encrypted_shares = 5;
+    map<string, bytes> revealed_in_values = 6;
 }
 
 message TermInfo {

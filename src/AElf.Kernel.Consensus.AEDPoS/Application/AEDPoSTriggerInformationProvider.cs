@@ -58,13 +58,12 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             if (hint.Behaviour == AElfConsensusBehaviour.UpdateValue)
             {
-                var newRandomHash = _inValueCacheService.GetInValue(hint.RoundId);
-
+                var inValue = _inValueCacheService.GetInValue(hint.RoundId);
                 var trigger = new AElfConsensusTriggerInformation
                 {
                     Pubkey = Pubkey,
-                    RandomHash = newRandomHash,
-                    PreviousRandomHash = _inValueCacheService.GetInValue(hint.PreviousRoundId),
+                    InValue = inValue,
+                    PreviousInValue = _inValueCacheService.GetInValue(hint.PreviousRoundId),
                     Behaviour = hint.Behaviour
                 };
 
@@ -95,26 +94,25 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             if (hint.Behaviour == AElfConsensusBehaviour.UpdateValue)
             {
-                var newRandomHash = _inValueCacheService.GetInValue(hint.RoundId);
-
+                var inValue = _inValueCacheService.GetInValue(hint.RoundId);
                 var trigger = new AElfConsensusTriggerInformation
                 {
                     Pubkey = Pubkey,
-                    RandomHash = newRandomHash,
-                    PreviousRandomHash = _inValueCacheService.GetInValue(hint.PreviousRoundId),
+                    InValue = inValue,
+                    PreviousInValue = _inValueCacheService.GetInValue(hint.PreviousRoundId),
                     Behaviour = hint.Behaviour,
                 };
 
                 var secretPieces = _secretSharingService.GetSharingPieces(hint.RoundId);
                 foreach (var secretPiece in secretPieces)
                 {
-                    trigger.Secrets.Add(secretPiece.Key, ByteString.CopyFrom(secretPiece.Value));
+                    trigger.EncryptedShares.Add(secretPiece.Key, ByteString.CopyFrom(secretPiece.Value));
                 }
 
                 var revealedInValues = _secretSharingService.GetRevealedInValues(hint.RoundId);
                 foreach (var revealedInValue in revealedInValues)
                 {
-                    trigger.Secrets.Add(revealedInValue.Key, ByteString.CopyFrom(revealedInValue.Value));
+                    trigger.RevealedInValues.Add(revealedInValue.Key, ByteString.CopyFrom(revealedInValue.Value));
                 }
 
                 return trigger.ToBytesValue();
@@ -125,17 +123,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 Pubkey = Pubkey,
                 Behaviour = hint.Behaviour
             }.ToBytesValue();
-        }
-
-        /// <summary>
-        /// For generating in_value.
-        /// </summary>
-        /// <returns></returns>
-        private Hash GetRandomHash(ConsensusCommand consensusCommand)
-        {
-            var data = Hash.FromRawBytes(consensusCommand.ArrangedMiningTime.ToByteArray());
-            var bytes = AsyncHelper.RunSync(() => _accountService.SignAsync(data.ToByteArray()));
-            return Hash.FromRawBytes(bytes);
         }
     }
 }

@@ -52,7 +52,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (!withSecretSharingInformation)
             {
                 information.Round = information.Round.GetUpdateValueRound(pubkey);
-                information.Round.DeleteSecretSharingInformation();
             }
 
             return information.ToBytesValue();
@@ -68,22 +67,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
             currentRound.RealTimeMinersInformation[pubkey].ActualMiningTimes
                 .Add(Context.CurrentBlockTime);
 
-            Assert(triggerInformation.RandomHash != null, "Random hash should not be null.");
+            Assert(triggerInformation.InValue != null, "Random hash should not be null.");
 
-            var inValue = currentRound.CalculateInValue(triggerInformation.RandomHash);
-            var outValue = Hash.FromMessage(inValue);
+            var outValue = Hash.FromMessage(triggerInformation.InValue);
             var signature =
-                Hash.FromTwoHashes(outValue, triggerInformation.RandomHash); // Just initial signature value.
+                Hash.FromTwoHashes(outValue, triggerInformation.InValue); // Just initial signature value.
             var previousInValue = Hash.Empty; // Just initial previous in value.
 
             if (TryToGetPreviousRoundInformation(out var previousRound) && !IsFirstRoundOfCurrentTerm(out _))
             {
-                signature = previousRound.CalculateSignature(inValue);
-                if (triggerInformation.PreviousRandomHash != null &&
-                    triggerInformation.PreviousRandomHash != Hash.Empty)
+                signature = previousRound.CalculateSignature(triggerInformation.InValue);
+                if (triggerInformation.PreviousInValue != null &&
+                    triggerInformation.PreviousInValue != Hash.Empty)
                 {
-                    // If PreviousRandomHash is null or Hash.Empty, it means the sender unable or unwilling to publish his previous in value.
-                    previousInValue = previousRound.CalculateInValue(triggerInformation.PreviousRandomHash);
                     // Self check.
                     if (Hash.FromMessage(previousInValue) !=
                         previousRound.RealTimeMinersInformation[pubkey].OutValue)
@@ -100,9 +96,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
             updatedRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight = Context.CurrentHeight;
 
             // Update secret pieces of latest in value.
-            foreach (var secret in triggerInformation.Secrets)
+            foreach (var encryptedShare in triggerInformation.EncryptedShares)
             {
-                updatedRound.RealTimeMinersInformation[pubkey].EncryptedInValues.Add(secret.Key, secret.Value);
+                updatedRound.RealTimeMinersInformation[pubkey].EncryptedInValues
+                    .Add(encryptedShare.Key, encryptedShare.Value);
+            }
+
+            foreach (var revealedInValue in triggerInformation.RevealedInValues)
+            {
+                if (updatedRound.RealTimeMinersInformation.ContainsKey(revealedInValue.Key))
+                {
+                    updatedRound.RealTimeMinersInformation[revealedInValue.Key].DecryptedPreviousInValues[pubkey] =
+                        revealedInValue.Value;
+                }
             }
 
             // To publish Out Value.
