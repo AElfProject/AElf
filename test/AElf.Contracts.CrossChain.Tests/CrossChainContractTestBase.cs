@@ -212,7 +212,6 @@ namespace AElf.Contracts.CrossChain.Tests
         {
             var res = new SideChainCreationRequest
             {
-                ContractCode = contractCode,
                 IndexingPrice = indexingPrice,
                 LockedTokenAmount = lockedTokenAmount,
                 SideChainTokenDecimals = 2,
