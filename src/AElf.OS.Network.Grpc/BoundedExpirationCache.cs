@@ -33,7 +33,7 @@ namespace AElf.OS.Network.Grpc
                     _expiryHashQueue.TryDequeue(out _);
             }
 
-            // we've reached the maximum buffered transactions.
+            // we've reached the maximum buffered items.
             if (_expiryHashQueue.Count > _maximumCapacity)
                 return false;
 
