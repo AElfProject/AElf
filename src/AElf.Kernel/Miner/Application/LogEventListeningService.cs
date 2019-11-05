@@ -77,7 +77,7 @@ namespace AElf.Kernel.Miner.Application
                         {
                             if (log.Address != interestedEvent.Address || log.Name != interestedEvent.Name)
                                 continue;
-                            await handler.Handle(block, result, log);
+                            await handler.HandleAsync(block, result, log);
                         }
                     }
                 }
