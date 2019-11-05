@@ -43,7 +43,6 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             context.Services.AddSingleton<ITestDataProvider, TestDataProvider>();
             context.Services.AddSingleton<ITransactionTraceProvider, TransactionTraceProvider>();
             context.Services.AddSingleton<TransactionExecutedEventHandler>();
-            context.Services.AddSingleton<IBlockValidationService, BlockValidationService>();
             context.Services.AddSingleton<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
 
             context.Services.RemoveAll<ISystemTransactionGenerator>();

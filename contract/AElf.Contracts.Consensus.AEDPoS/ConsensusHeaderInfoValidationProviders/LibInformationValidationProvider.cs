@@ -12,8 +12,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var pubkey = validationContext.Pubkey;
             if (baseRound.ConfirmedIrreversibleBlockHeight > providedRound.ConfirmedIrreversibleBlockHeight ||
                 baseRound.ConfirmedIrreversibleBlockRoundNumber > providedRound.ConfirmedIrreversibleBlockRoundNumber ||
-                baseRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight >
-                providedRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight)
+                (providedRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight != 0 &&
+                 baseRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight >
+                 providedRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight))
             {
                 validationResult.Message = "Incorrect lib information.";
                 return validationResult;
