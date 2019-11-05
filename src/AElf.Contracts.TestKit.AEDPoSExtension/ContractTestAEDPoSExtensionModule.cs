@@ -49,6 +49,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             context.Services.RemoveAll<ISystemTransactionGenerator>();
             context.Services.RemoveAll<IBlockValidationProvider>();
             context.Services.RemoveAll<ITransactionValidationProvider>();
+            context.Services.RemoveAll<IPreExecutionPlugin>();
 
             context.Services.AddSingleton<IBlockValidationProvider, ConsensusValidationProvider>();
 

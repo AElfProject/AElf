@@ -50,7 +50,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (!previousRound.RealTimeMinersInformation.ContainsKey(publicKey)) return true;
 
-            if (extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue == null) return false;
+            // TODO: Fix this in secret-sharing branch.
+            if (extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue == null) return true;
 
             var previousOutValue = previousRound.RealTimeMinersInformation[publicKey].OutValue;
             var previousInValue = extraData.Round.RealTimeMinersInformation[publicKey].PreviousInValue;

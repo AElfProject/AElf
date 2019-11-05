@@ -94,6 +94,10 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                         Category = KernelConstants.CodeCoverageRunnerCategory,
                         Code = ByteString.CopyFrom(code),
                     })).Output;
+                if (address == null)
+                {
+                    throw new Exception($"Failed to deploy contract {name}");
+                }
                 map.Add(name, address);
                 if (name == ConsensusSmartContractAddressNameProvider.Name)
                 {
