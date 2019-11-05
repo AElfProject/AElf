@@ -36,8 +36,8 @@ namespace AElf.Contracts.CrossChain.Tests
             await ApproveWithMinersAsync(proposalId);
             var transactionResult = await ReleaseProposalAsync(proposalId);
 
-            var chainId = CreationRequested.Parser.ParseFrom(transactionResult.Logs[0].NonIndexed).ChainId;
-            var creator = CreationRequested.Parser.ParseFrom(transactionResult.Logs[0].NonIndexed).Creator;
+            var chainId = CreationRequested.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).ChainId;
+            var creator = CreationRequested.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).Creator;
             Assert.True(creator == DefaultSender);
 
             var chainStatus = await CrossChainContractStub.GetChainStatus.CallAsync(new SInt32Value {Value = chainId});
@@ -98,7 +98,7 @@ namespace AElf.Contracts.CrossChain.Tests
             var proposalId = await CreateSideChainProposalAsync(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test"));
             await ApproveWithMinersAsync(proposalId);
             var transactionResult = await ReleaseProposalAsync(proposalId);
-            var chainId = CreationRequested.Parser.ParseFrom(transactionResult.Logs[0].NonIndexed).ChainId;
+            var chainId = CreationRequested.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).ChainId;
 
             var balance = (await CrossChainContractStub.LockedBalance.CallAsync(new SInt32Value {Value = chainId}))
                 .Value;
@@ -126,7 +126,7 @@ namespace AElf.Contracts.CrossChain.Tests
             var proposalId = await CreateSideChainProposalAsync(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test"));
             await ApproveWithMinersAsync(proposalId);
             var transactionResult = await ReleaseProposalAsync(proposalId);
-            var chainId = CreationRequested.Parser.ParseFrom(transactionResult.Logs[0].NonIndexed).ChainId;
+            var chainId = CreationRequested.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).ChainId;
 
             var ecKeyPair = SampleECKeyPairs.KeyPairs[1];
             var crossChainContractStub2 = GetCrossChainContractStub(ecKeyPair);
