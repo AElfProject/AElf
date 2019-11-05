@@ -90,6 +90,20 @@ namespace AElf.OS.Network
         #region Announce and transaction
 
         [Fact]
+        public async Task Announce_ShouldAddToBlockCache()
+        {
+            var peer = _peerPool.GetPeers(true).First();
+            var pubkey = peer.Info.Pubkey;
+            var metadata = new Metadata {{ GrpcConstants.PubkeyMetadataKey, pubkey }};
+
+            Hash hash = Hash.FromRawBytes(new byte[] {3,6,9});
+            var announcement = new BlockAnnouncement { BlockHeight = 1, BlockHash = hash };
+            await _serverService.SendAnnouncement(announcement, BuildServerCallContext(metadata));
+            
+            peer.AddKnownBlock(hash).ShouldBeFalse();
+        }
+
+        [Fact]
         public async Task Announce_ShouldPublishEvent_Test()
         {
             AnnouncementReceivedEventData received = null;
@@ -154,6 +168,22 @@ namespace AElf.OS.Network
             result.ShouldBe(new VoidReply());
             received.Count.ShouldBe(5);
         }
+        
+        [Fact]
+        public async Task BroadcastBlockWithTxs_ShouldAddToBlockCache()
+        {
+            var peer = _peerPool.GetPeers(true).First();
+            var pubkey = peer.Info.Pubkey;
+            var metadata = new Metadata {{ GrpcConstants.PubkeyMetadataKey, pubkey }};
+
+            var block = _osTestHelper.GenerateBlockWithTransactions(Hash.FromString("block1"), 1, 
+                (await _osTestHelper.GenerateTransferTransactions(1)).ToList());
+            
+            var requestStream = new TestAsyncStreamReader<BlockWithTransactions>(new List<BlockWithTransactions> { block });
+            await _serverService.BlockBroadcastStream(requestStream, BuildServerCallContext(metadata));
+            
+            peer.AddKnownBlock(block.GetHash()).ShouldBeFalse();
+        }
 
         [Fact]
         public async Task BroadcastBlockWithTxs_FromStream_Test()
@@ -177,6 +207,26 @@ namespace AElf.OS.Network
             var result = await _serverService.BlockBroadcastStream(requestStream, context);
             result.ShouldBe(new VoidReply());
             received.Count.ShouldBe(3);
+        }
+        
+        [Fact]
+        public async Task SendTx_ShouldAddToBlockCache()
+        {
+            var peer = _peerPool.GetPeers(true).First();
+            var pubkey = peer.Info.Pubkey;
+            var metadata = new Metadata {{ GrpcConstants.PubkeyMetadataKey, pubkey }};
+
+            var transaction = new Transaction
+            {
+                From = SampleAddress.AddressList[0], 
+                To = SampleAddress.AddressList[1],
+                RefBlockNumber = 1,
+                MethodName = "Hello"
+            };
+
+            await _serverService.SendTransaction(transaction, BuildServerCallContext(metadata));
+            
+            peer.AddKnownTransaction(transaction.GetHash()).ShouldBeFalse();
         }
         
         [Fact]
