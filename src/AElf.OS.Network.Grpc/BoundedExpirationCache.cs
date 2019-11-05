@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using AElf.Kernel;
 using AElf.Sdk.CSharp;
@@ -23,7 +24,13 @@ namespace AElf.OS.Network.Grpc
             _hashLookup = new ConcurrentDictionary<Hash, Timestamp>();
         }
 
-        public bool TryAdd(Hash itemHash)
+        public bool HasHash(Hash hash)
+        {
+            CleanExpired();
+            return _hashLookup.ContainsKey(hash);
+        }
+
+        private void CleanExpired()
         {
             // clean old items.
             while (!_expiryHashQueue.IsEmpty && _expiryHashQueue.TryPeek(out var queuedHash)
@@ -31,10 +38,19 @@ namespace AElf.OS.Network.Grpc
             {
                 if (_hashLookup.TryRemove(queuedHash.ItemHash, out _))
                     _expiryHashQueue.TryDequeue(out _);
+                else
+                {
+                    throw new InvalidOperationException();
+                }
             }
+        }
+
+        public bool TryAdd(Hash itemHash)
+        {
+            CleanExpired();
 
             // we've reached the maximum buffered items.
-            if (_expiryHashQueue.Count > _maximumCapacity)
+            if (_expiryHashQueue.Count >= _maximumCapacity)
                 return false;
 
             var now = TimestampHelper.GetUtcNow();
