@@ -133,8 +133,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 Body = blockBody
             };
             blockStateSet.BlockHash = blockHash;
+            Logger.LogTrace("Set block state set.");
+
             await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
-            //Logger.LogTrace($"BlockStateSet: {blockStateSet}");
+            Logger.LogTrace("Finish block field filling after execution.");
             return block;
         }
 

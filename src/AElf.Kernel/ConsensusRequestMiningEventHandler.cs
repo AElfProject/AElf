@@ -81,14 +81,17 @@ namespace AElf.Kernel
                     {
                         await _blockchainService.AddBlockAsync(block);
 
+                        Logger.LogTrace("Before enqueue attach job.");
+                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
+                            KernelConstants.UpdateChainQueueName);
+                        
+                        Logger.LogTrace("Before publish block.");
+
                         await LocalEventBus.PublishAsync(new BlockMinedEventData
                         {
                             BlockHeader = block.Header,
 //                            HasFork = block.Height <= chain.BestChainHeight
                         });
-                        
-                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
-                            KernelConstants.UpdateChainQueueName);
                     }
                     else
                     {

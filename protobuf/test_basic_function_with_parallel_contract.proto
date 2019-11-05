@@ -45,6 +45,52 @@ service BasicFunctionWithParallelContract {
     }
     rpc IncreaseValueParallelWithInlineAndPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
     }
+    rpc IncreaseValueFailed(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueParallelFailed(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailedWithInline(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithFailedInline(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailedWithPrePlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailedWithPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailedWithInlineAndPrePlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailedWithInlineAndPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailedWithPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailedWithInlineAndPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueFailedParallelWithInlineAndPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithFailedInlineAndPrePlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithFailedInlineAndPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithFailedInlineAndPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueParallelWithFailedInlineAndPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithFailedPrePlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithInlineAndFailedPrePlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithFailedPrePluginAndPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithInlineAndFailedPrePluginAndPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithFailedPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithInlineAndFailedPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithPrePluginAndFailedPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
+    rpc IncreaseValueWithInlineAndPrePluginAndFailedPostPlugin(IncreaseValueInput) returns (google.protobuf.Empty){
+    }
     rpc RemoveValue(RemoveValueInput) returns (google.protobuf.Empty) {
     }
     rpc RemoveValueParallel(RemoveValueInput) returns (google.protobuf.Empty) {
