@@ -42,7 +42,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (miners.Any(m => m.ExpectedMiningTime == null))
             {
-                return new ValidationResult {Message = "Incorrect expected mining time."};
+                return new ValidationResult {Message = $"Incorrect expected mining time.\n{this}"};
             }
 
             var baseMiningInterval =
