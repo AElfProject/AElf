@@ -54,3 +54,13 @@ message InitializeInput{
     aelf.Address privileged_proposer = 2;
     bool proposer_authority_required = 3;
 }
+
+message ProposalCreated{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
+}
+
+message ProposalReleased{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
+}

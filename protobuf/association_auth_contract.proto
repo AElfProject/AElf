@@ -51,3 +51,13 @@ message ProposalInfo {
     int32 approved_weight = 8;
     repeated aelf.Address approved_reviewer = 9;
 }
+
+message ProposalCreated{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
+}
+
+message ProposalReleased{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
+}
