@@ -99,15 +99,6 @@ namespace AElf.OS.Network.Grpc
 
         public PeerConnectionInfo Info { get; }
 
-        //public IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
-        //private readonly ConcurrentDictionary<long, Hash> _recentBlockHeightAndHashMappings;
-        
-//        private readonly ConcurrentQueue<QueuedHash> _recentBlockQueue;
-//        private readonly ConcurrentDictionary<Hash, Timestamp> _recentBlockHashes;
-//
-//        private readonly ConcurrentQueue<QueuedHash> _recentTransactionQueue;
-//        private readonly ConcurrentDictionary<Hash, Timestamp> _recentTransactionHashes;
-
         private BoundedExpirationCache _knownTransactionCache;
         private BoundedExpirationCache _knownBlockCache;
 
@@ -133,15 +124,6 @@ namespace AElf.OS.Network.Grpc
             
             _knownTransactionCache = new BoundedExpirationCache(TransactionCacheMaxItems, QueuedItemTimeout);
             _knownBlockCache = new BoundedExpirationCache(BlockCacheMaxItems, QueuedItemTimeout);
-            
-//            _recentBlockQueue = new ConcurrentQueue<QueuedHash>();
-//            _recentBlockHashes = new ConcurrentDictionary<Hash, Timestamp>();
-//            
-//            _recentTransactionQueue = new ConcurrentQueue<QueuedHash>();
-//            _recentTransactionHashes = new ConcurrentDictionary<Hash, Timestamp>();
-
-//            _recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
-//            RecentBlockHeightAndHashMappings = new ReadOnlyDictionary<long, Hash>(_recentBlockHeightAndHashMappings);
 
             _recentRequestsRoundtripTimes = new ConcurrentDictionary<string, ConcurrentQueue<RequestMetric>>();
             RecentRequestsRoundtripTimes =

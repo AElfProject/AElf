@@ -155,10 +155,6 @@ namespace AElf.OS
                 peers = new List<IPeer>();
                 
                 var propPeerOne = new Mock<IPeer>();
-//                propPeerOne.Setup(p => p.RemoteEndpoint).Returns(new IPEndPoint(200, 200));
-//                propPeerOne.Setup(p => p.Info).Returns(new PeerConnectionInfo
-//                    {Pubkey = "prop_peer_1", ConnectionTime = TimestampHelper.GetUtcNow()});
-                
                 propPeerOne.Setup(p => p.AddKnownBlock(It.IsAny<Hash>())).Returns<Hash>(blockHash =>
                 {
                     if (previousBlockHashes.Contains(blockHash))
@@ -177,19 +173,6 @@ namespace AElf.OS
                     previousTransactionHashes.Add(blockHash);
                     return true;
                 });
-
-//                propPeerOne.Setup(p =>
-//                    p.EnqueueBlock(It.IsAny<BlockWithTransactions>(), It.IsAny<Action<NetworkException>>())).Callback<BlockWithTransactions, Action<NetworkException>>(
-//                    (block, ex) =>
-//                    {
-//                        ;
-//                        Console.WriteLine();
-//                    });
-
-//                propPeerOne.Setup(p => p.GetBlocksAsync(It.Is<Hash>(h => h == Hash.FromString("block")), It.IsAny<int>()))
-//                    .Returns<Hash, int>((h, cnt) => Task.FromResult(new List<BlockWithTransactions> { blockWithTransactions }));
-//                propPeerOne.Setup(p => p.GetBlockByHashAsync(It.Is<Hash>(h => h == Hash.FromString("block"))))
-//                    .Returns<Hash>(h => Task.FromResult(blockWithTransactions));
                 
                 peers.Add(propPeerOne.Object);
                 testContext.MockedPeers.Add(propPeerOne);
