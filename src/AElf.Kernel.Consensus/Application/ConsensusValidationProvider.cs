@@ -96,7 +96,7 @@ namespace AElf.Kernel.Consensus.Application
             if (consensusExtraData == null || consensusExtraData.IsEmpty)
             {
                 Logger.LogWarning($"Invalid consensus extra data {block}");
-                return false;
+                return true;
             }
 
             var isValid = await _consensusService.ValidateConsensusAfterExecutionAsync(new ChainContext

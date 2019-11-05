@@ -28,8 +28,6 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         private readonly ITestDataProvider _testDataProvider;
         private readonly IContractTesterFactory _contractTesterFactory;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IConsensusExtraDataExtractor _consensusExtraDataExtractor;
-        private readonly IBlockchainService _blockchainService;
 
         private Round _currentRound;
 
@@ -48,8 +46,6 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             _contractTesterFactory = serviceProvider.GetRequiredService<IContractTesterFactory>();
             _smartContractAddressService = serviceProvider.GetRequiredService<ISmartContractAddressService>();
             _testDataProvider = serviceProvider.GetRequiredService<ITestDataProvider>();
-            _consensusExtraDataExtractor = serviceProvider.GetRequiredService<IConsensusExtraDataExtractor>();
-            _blockchainService = serviceProvider.GetRequiredService<IBlockchainService>();
         }
 
         private static void RegisterAssemblyResolveEvent()
@@ -211,6 +207,20 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                 PreviousRandomHash = Hash.FromString($"RandomHashOf{pubkey}"),
                 Pubkey = pubkey.Value
             };
+
+            var consensusExtraData = await contractStub.GetConsensusExtraData.CallAsync(new BytesValue
+                {Value = triggerInformation.ToByteString()});
+            // Validate consensus extra data.
+            if (consensusExtraData != null)
+            {
+                var validationResult =
+                    await _contractStubs.First().ValidateConsensusBeforeExecution.CallAsync(consensusExtraData);
+                if (!validationResult.Success)
+                {
+                    throw new Exception($"Consensus extra data validation failed: {validationResult.Message}");
+                }
+            }
+
             var consensusTransaction = await contractStub.GenerateConsensusTransactions.CallAsync(new BytesValue
                 {Value = triggerInformation.ToByteString()});
             await MineAsync(contractStub, consensusTransaction.Transactions.First());
@@ -223,17 +233,6 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                     //throw new BlockMiningException(
                         //$"Someone missed time slot.\n{_currentRound}\n{previousRound}\nCurrent block time: {currentBlockTime}");
                 }
-            }
-            
-            // Validate new block.
-            var chain = await _blockchainService.GetChainAsync();
-            var block = await _blockchainService.GetBlockByHashAsync(chain.BestChainHash);
-            var consensusExtraData = _consensusExtraDataExtractor.ExtractConsensusExtraData(block.Header);
-            var validationResult =
-                await _contractStubs.First().ValidateConsensusBeforeExecution.CallAsync(new BytesValue{Value = consensusExtraData});
-            if (!validationResult.Success)
-            {
-                throw new Exception($"Consensus extra data validation failed: {validationResult.Message}");
             }
 
             _testDataProvider.SetBlockTime(

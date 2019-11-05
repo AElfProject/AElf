@@ -29,7 +29,7 @@ namespace AElf.Contracts.TestKit
             var miningService = _serviceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
             var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
-            var transactionResultService = _serviceProvider.GetRequiredService<TransactionResultService>();
+            var transactionResultService = _serviceProvider.GetRequiredService<ITransactionResultService>();
 
             var block = await miningService.MineAsync(
                 new RequestMiningDto

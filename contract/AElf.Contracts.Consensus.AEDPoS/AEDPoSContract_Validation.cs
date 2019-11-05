@@ -27,7 +27,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (extraData.Behaviour == AElfConsensusBehaviour.TinyBlock)
             {
                 providedRound = baseRound.RecoverFromTinyBlock(extraData.Round, extraData.SenderPubkey.ToHex());
-
             }
 
             var validationContext = new ConsensusValidationContext
