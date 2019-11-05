@@ -278,7 +278,7 @@ namespace AElf.OS.Network
             Metadata metadata = new Metadata {{GrpcConstants.PubkeyMetadataKey, pubKey}};
 
             var reqBlockCtxt = BuildServerCallContext(metadata);
-            _peerPool.TryAddPeer(GrpcTestPeerHelpers.CreateBasicPeer(reqBlockCtxt.Host, pubKey));
+            _peerPool.TryAddPeer(GrpcTestPeerHelpers.CreateBasicPeer("127.0.0.1:1245", pubKey));
 
             var chain = await _blockchainService.GetChainAsync();
             var reply = await _serverService.RequestBlock(new BlockRequest { Hash = chain.LongestChainHash }, reqBlockCtxt);

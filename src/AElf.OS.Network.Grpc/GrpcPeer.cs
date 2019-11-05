@@ -20,12 +20,6 @@ using Grpc.Core;
 
 namespace AElf.OS.Network.Grpc
 {
-    internal class QueuedHash
-    {
-        public Hash ItemHash { get; set; }
-        public Timestamp EnqueueTime { get; set; }
-    }
-    
     /// <summary>
     /// Represents a connection to a peer.
     /// </summary>
