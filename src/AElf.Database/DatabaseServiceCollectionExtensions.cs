@@ -2,7 +2,6 @@ using System;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using StackExchange.Redis;
 using Volo.Abp.Data;
 
 namespace AElf.Database
@@ -25,22 +24,7 @@ namespace AElf.Database
 
                 return o;
             });
-            
-            serviceCollection
-                .AddSingleton<IConnectionMultiplexer>(cx =>
-                {
-                    var config = new ConfigurationOptions
-                    {
-                
-                        EndPoints = { { "localhost", 8888 } },
-                        DefaultDatabase = 0,
-                        CommandMap = CommandMap.Twemproxy
-                    };
 
-                    return ConnectionMultiplexer.Connect(config);
-                });
-
-            serviceCollection.AddSingleton<IDatabaseConnectionProvider, RedisDatabaseConnectionProvider>();
 
             var options = new KeyValueDbContextCreationOptions<TKeyValueDbContext>(serviceCollection);
 
