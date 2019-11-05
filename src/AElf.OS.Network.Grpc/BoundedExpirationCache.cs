@@ -60,10 +60,6 @@ namespace AElf.OS.Network.Grpc
             {
                 if (_hashLookup.TryRemove(queuedHash.ItemHash, out _))
                     _expiryHashQueue.TryDequeue(out _);
-                else
-                {
-                    throw new InvalidOperationException();
-                }
             }
         }
     }
