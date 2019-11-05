@@ -66,7 +66,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     validationProviders.Add(new UpdateValueValidationProvider());
                     break;
                 case AElfConsensusBehaviour.TinyBlock:
-                    validationProviders.Add(new TinyBlockValidationProvider());
+                    //validationProviders.Add(new TinyBlockValidationProvider());
                     break;
                 case AElfConsensusBehaviour.NextRound:
                 case AElfConsensusBehaviour.NextTerm:

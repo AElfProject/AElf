@@ -62,6 +62,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool ValidateProducedTinyBlocksCount(ConsensusValidationContext validationContext)
         {
+            // TODO: Fix this validation in secret-sharing branch.
+            return true;
             var pubkey = validationContext.Pubkey;
 
             if (validationContext.BaseRound.ExtraBlockProducerOfPreviousRound != pubkey)
