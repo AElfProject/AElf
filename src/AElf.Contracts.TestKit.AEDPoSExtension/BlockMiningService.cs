@@ -10,6 +10,7 @@ using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
@@ -24,6 +25,8 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         private readonly ITestDataProvider _testDataProvider;
         private readonly IContractTesterFactory _contractTesterFactory;
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IBlockValidationService _blockValidationService;
+        private readonly IBlockchainService _blockchainService;
 
         private Round _currentRound;
 
@@ -37,12 +40,15 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         private bool _isSkipped;
 
         public BlockMiningService(IContractTesterFactory contractTesterFactory,
-            ISmartContractAddressService smartContractAddressService, ITestDataProvider testDataProvider)
+            ISmartContractAddressService smartContractAddressService, ITestDataProvider testDataProvider,
+            IBlockValidationService blockValidationService, IBlockchainService blockchainService)
         {
             RegisterAssemblyResolveEvent();
             _contractTesterFactory = contractTesterFactory;
             _smartContractAddressService = smartContractAddressService;
             _testDataProvider = testDataProvider;
+            _blockValidationService = blockValidationService;
+            _blockchainService = blockchainService;
         }
 
         private static void RegisterAssemblyResolveEvent()
@@ -212,6 +218,15 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                     //throw new BlockMiningException(
                         //$"Someone missed time slot.\n{_currentRound}\n{previousRound}\nCurrent block time: {currentBlockTime}");
                 }
+            }
+            
+            // Validate new block.
+            var chain = await _blockchainService.GetChainAsync();
+            var block = await _blockchainService.GetBlockByHashAsync(chain.BestChainHash);
+            var validationResultBeforeExecution = await _blockValidationService.ValidateBlockBeforeExecuteAsync(block);
+            if (!validationResultBeforeExecution)
+            {
+                throw new Exception("Validation before execution failed.");
             }
 
             _testDataProvider.SetBlockTime(

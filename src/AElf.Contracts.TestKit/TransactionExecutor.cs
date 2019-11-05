@@ -45,7 +45,7 @@ namespace AElf.Contracts.TestKit
             await blockAttachService.AttachBlockAsync(block);
 
             var transactionResult = await transactionResultService.GetTransactionResultAsync(transaction.GetHash());
-            if (transactionResult.Status != TransactionResultStatus.Mined)
+            if (transactionResult == null || transactionResult.Status != TransactionResultStatus.Mined)
             {
                 //throw new Exception($"Failed to execute {transaction.MethodName}. {transactionResult.Error}");
             }
