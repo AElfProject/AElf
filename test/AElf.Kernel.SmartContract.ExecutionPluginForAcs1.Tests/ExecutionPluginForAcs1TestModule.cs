@@ -1,4 +1,6 @@
 using AElf.Contracts.TestKit;
+using AElf.Kernel.SmartContract.Application;
+using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 
 namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
@@ -10,6 +12,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
         }
     }
 }

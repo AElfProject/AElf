@@ -26,7 +26,7 @@ namespace AElf.OS.Network.Grpc
     public class GrpcPeer : IPeer
     {
         private const int MaxMetricsPerMethod = 100;
-        private const int BlockRequestTimeout = 500;
+        private const int BlockRequestTimeout = 700;
         private const int HealthCheckTimeout = 3000;
         private const int BlocksRequestTimeout = 5000;
         private const int GetNodesTimeout = 500;
@@ -73,7 +73,8 @@ namespace AElf.OS.Network.Grpc
         public bool IsShutdown { get; set; }
         public Hash CurrentBlockHash { get; private set; }
         public long CurrentBlockHeight { get; private set; }
-        
+        public SyncState SyncState { get; set; }
+
         /// <summary>
         /// Session ID to use when authenticating messages from this peer, announced to the
         /// remote peer at connection.

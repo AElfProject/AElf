@@ -9,6 +9,7 @@ namespace AElf.OS.Network.Infrastructure
         int PeerCount { get; }
 
         bool IsFull();
+        bool IsPeerBlackListed(IPAddress ipAddress);
 
         bool AddHandshakingPeer(IPAddress ipAddress, string pubkey);
         bool RemoveHandshakingPeer(IPAddress ipAddress, string pubkey);

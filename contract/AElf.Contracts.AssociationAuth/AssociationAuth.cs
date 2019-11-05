@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using Acs3;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -24,6 +22,7 @@ namespace AElf.Contracts.AssociationAuth
             {
                 return new ProposalOutput();
             }
+            
             var organization = State.Organisations[proposal.OrganizationAddress];
             var readyToRelease = IsReleaseThresholdReached(proposal, organization);
 
@@ -72,7 +71,7 @@ namespace AElf.Contracts.AssociationAuth
             var organization = State.Organisations[input.OrganizationAddress];
             Assert(organization != null, "No registered organization.");
             AssertSenderIsAuthorizedProposer(organization);
-            Hash hash = Hash.FromMessage(input);
+            Hash hash = Hash.FromTwoHashes(Hash.FromMessage(input), Context.TransactionId);
             var proposal = new ProposalInfo
             {
                 ContractMethodName = input.ContractMethodName,
@@ -84,9 +83,10 @@ namespace AElf.Contracts.AssociationAuth
                 Proposer = Context.Sender
             };
             Assert(Validate(proposal), "Invalid proposal.");
-            //TODO: Proposals with the same input is not supported. 
             Assert(State.Proposals[hash] == null, "Proposal already exists.");
             State.Proposals[hash] = proposal;
+            Context.Fire(new ProposalCreated {ProposalId = hash});
+            
             return hash;
         }
 
@@ -109,11 +109,14 @@ namespace AElf.Contracts.AssociationAuth
         {
             var proposalInfo = State.Proposals[proposalId];
             Assert(proposalInfo != null, "Proposal not found.");
-            Assert(Context.Sender.Equals(proposalInfo.Proposer), "Unable to release this proposal.");
+            Assert(Context.Sender == proposalInfo.Proposer, "Unable to release this proposal.");
             var organization = State.Organisations[proposalInfo.OrganizationAddress];
             Assert(IsReleaseThresholdReached(proposalInfo, organization), "Not approved.");
             Context.SendVirtualInline(organization.OrganizationHash, proposalInfo.ToAddress,
                 proposalInfo.ContractMethodName, proposalInfo.Params);
+
+            Context.Fire(new ProposalReleased {ProposalId = proposalId});
+            State.Proposals.Remove(proposalId);
             
             return new Empty();
         }

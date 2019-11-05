@@ -5,12 +5,14 @@ using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using AElf.OS;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.Runtime.CSharp;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Moq;
 using Volo.Abp.Modularity;
 
@@ -35,6 +37,8 @@ namespace AElf.Contracts.TestBase
             context.Services.AddSingleton(o => Mock.Of<IConsensusService>());
             context.Services.AddSingleton(o => Mock.Of<IConsensusScheduler>());
 
+            context.Services.AddSingleton<ITxHub, MockTxHub>();
+
 //            Configure<ChainOptions>(o => { o.ChainId = ChainHelper.ConvertBase58ToChainId("AELF"); });
 
             var ecKeyPair = CryptoHelper.GenerateKeyPair();
@@ -51,6 +55,8 @@ namespace AElf.Contracts.TestBase
             });
 
             context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
+            
+            context.Services.RemoveAll<IPreExecutionPlugin>();
         }
     }
 }
