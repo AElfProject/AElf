@@ -1,7 +1,6 @@
 ﻿using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AElf.Database.RedisProtocol;
 using StackExchange.Redis;
 using Volo.Abp;
 
@@ -15,11 +14,11 @@ namespace AElf.Database
         public RedisDatabase(KeyValueDatabaseOptions<TKeyValueDbContext> options)
         {
             Check.NotNullOrWhiteSpace(options.ConnectionString, nameof(options.ConnectionString));
-            var endpoint = options.ConnectionString.ToRedisEndpoint();
+            var endpoint = DatabaseEndpoint.ParseFromConnectionString(options.ConnectionString);
             var config = new ConfigurationOptions
             {
                 EndPoints = {{endpoint.Host, endpoint.Port}},
-                DefaultDatabase = (int) endpoint.Db,
+                DefaultDatabase = endpoint.DatabaseNumber,
                 CommandMap = CommandMap.Create(new HashSet<string> {"SELECT", "SET", "MSET", "GET", "EXISTS", "DEL"})
             };
             _connectionMultiplexer = ConnectionMultiplexer.Connect(config);
