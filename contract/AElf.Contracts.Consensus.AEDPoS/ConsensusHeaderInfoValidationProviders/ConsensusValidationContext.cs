@@ -19,21 +19,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <summary>
         /// This validation focuses on the new round information.
         /// </summary>
-        public Round ProvidedRound
-        {
-            get
-            {
-                switch (ExtraData.Behaviour)
-                {
-                    case AElfConsensusBehaviour.UpdateValue:
-                        return BaseRound.RecoverFromUpdateValue(ExtraData.Round, Pubkey);
-                    case AElfConsensusBehaviour.TinyBlock:
-                        return BaseRound.RecoverFromTinyBlock(ExtraData.Round, Pubkey);
-                    default:
-                        return ExtraData.Round;
-                }
-            }
-        }
+        public Round ProvidedRound { get; set; }
 
         public Dictionary<long, Round> RoundsDict { get; set; }
         public MappedState<long, Round> Rounds { get; set; }
