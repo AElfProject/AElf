@@ -192,10 +192,17 @@ namespace AElf.OS.Network
             var tx = new Transaction
             {
                 From = SampleAddress.AddressList[0], 
-                To = SampleAddress.AddressList[1]
+                To = SampleAddress.AddressList[1],
+                RefBlockNumber = 1,
+                MethodName = "Hello"
             };
 
-            await _serverService.SendTransaction(tx, BuildServerCallContext());
+            var pubKey = "SomePubKey";
+            Metadata metadata = new Metadata {{GrpcConstants.PubkeyMetadataKey, pubKey}};
+            var reqBlockCtxt = BuildServerCallContext(metadata);
+            _peerPool.TryAddPeer(GrpcTestPeerHelpers.CreateBasicPeer("127.0.0.1:1245", pubKey));
+            
+            await _serverService.SendTransaction(tx, reqBlockCtxt);
             
             received?.Transactions.ShouldNotBeNull();
             received.Transactions.Count().ShouldBe(1);
@@ -211,7 +218,11 @@ namespace AElf.OS.Network
                 received.Add(t);
                 return Task.CompletedTask;
             });
-            var context = BuildServerCallContext();
+            
+            var pubKey = "SomePubKey";
+            Metadata metadata = new Metadata {{GrpcConstants.PubkeyMetadataKey, pubKey}};
+            var context = BuildServerCallContext(metadata);
+            _peerPool.TryAddPeer(GrpcTestPeerHelpers.CreateBasicPeer("127.0.0.1:500", context.GetPublicKey()));
             var transactions = await _osTestHelper.GenerateTransferTransactions(3);
             var requestStream = new TestAsyncStreamReader<Transaction>(transactions.ToArray());
             
@@ -256,10 +267,17 @@ namespace AElf.OS.Network
             var tx = new Transaction
             {
                 From = SampleAddress.AddressList[0], 
-                To = SampleAddress.AddressList[1]
+                To = SampleAddress.AddressList[1],
+                RefBlockNumber = 1,
+                MethodName = "Hello"
             };
 
-            await _serverService.SendTransaction(tx, BuildServerCallContext());
+            var pubKey = "SomePubKey";
+            Metadata metadata = new Metadata {{GrpcConstants.PubkeyMetadataKey, pubKey}};
+            var reqBlockCtxt = BuildServerCallContext(metadata);
+            _peerPool.TryAddPeer(GrpcTestPeerHelpers.CreateBasicPeer("127.0.0.1:1245", pubKey));
+            
+            await _serverService.SendTransaction(tx, reqBlockCtxt);
             
             received?.Transactions.ShouldNotBeNull();
             received.Transactions.Count().ShouldBe(1);
@@ -274,7 +292,6 @@ namespace AElf.OS.Network
         public async Task RequestBlock_WillAddToPeersBlockCache_Test()
         {
             var pubKey = "SomePubKey";
-            
             Metadata metadata = new Metadata {{GrpcConstants.PubkeyMetadataKey, pubKey}};
 
             var reqBlockCtxt = BuildServerCallContext(metadata);
@@ -292,9 +309,12 @@ namespace AElf.OS.Network
         [Fact]
         public async Task RequestBlock_Random_ReturnsBlock_Test()
         {
-            var reqBlockCtxt = BuildServerCallContext();
+            var pubKey = "SomePubKey";
+            Metadata metadata = new Metadata {{GrpcConstants.PubkeyMetadataKey, pubKey}};
+            var context = BuildServerCallContext(metadata);
+            _peerPool.TryAddPeer(GrpcTestPeerHelpers.CreateBasicPeer("127.0.0.1:500", context.GetPublicKey()));
             var chain = await _blockchainService.GetChainAsync();
-            var reply = await _serverService.RequestBlock(new BlockRequest { Hash = chain.LongestChainHash }, reqBlockCtxt);
+            var reply = await _serverService.RequestBlock(new BlockRequest { Hash = chain.LongestChainHash }, context);
             
             Assert.NotNull(reply.Block);
             Assert.True(reply.Block.GetHash() == chain.LongestChainHash);
