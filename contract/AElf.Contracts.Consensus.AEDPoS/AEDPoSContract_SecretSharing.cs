@@ -25,17 +25,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 // Skip himself.
                 if (pair.Key == publicKey) continue;
 
-                var publicKeyOfAnotherMiner = pair.Key;
-                var orderOfAnotherMiner = pair.Value;
+                var pubkey = pair.Key;
+                var order = pair.Value;
 
                 // Share in value of current round:
 
                 // Encrypt every secret share with other miner's public key, then fill EncryptedInValues field.
-                var plainMessage = secretShares[orderOfAnotherMiner - 1];
-                var receiverPublicKey = ByteArrayHelper.HexStringToByteArray(publicKeyOfAnotherMiner);
+                var plainMessage = secretShares[order - 1];
+                var receiverPublicKey = ByteArrayHelper.HexStringToByteArray(pubkey);
                 var encryptedInValue = Context.EncryptMessage(receiverPublicKey, plainMessage);
                 currentRound.RealTimeMinersInformation[publicKey].EncryptedInValues
-                    .Add(publicKeyOfAnotherMiner, ByteString.CopyFrom(encryptedInValue));
+                    .Add(pubkey, ByteString.CopyFrom(encryptedInValue));
 
                 // Decrypt shares published during previous round:
 
@@ -43,19 +43,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 if (IsFirstRoundOfCurrentTerm(out _)) continue;
 
                 // Become a miner from this round.
-                if (!previousRound.RealTimeMinersInformation.ContainsKey(publicKeyOfAnotherMiner)) continue;
+                if (!previousRound.RealTimeMinersInformation.ContainsKey(pubkey)) continue;
 
                 // No need to decrypt shares of miners who already revealed their previous in values.
-                if (currentRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].PreviousInValue != null) continue;
+                if (currentRound.RealTimeMinersInformation[pubkey].PreviousInValue != null) continue;
 
                 var encryptedShares =
-                    previousRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].EncryptedInValues;
+                    previousRound.RealTimeMinersInformation[pubkey].EncryptedInValues;
                 if (!encryptedShares.Any()) continue;
                 var interestingMessage = encryptedShares[publicKey];
-                var senderPublicKey = ByteArrayHelper.HexStringToByteArray(publicKeyOfAnotherMiner);
+                var senderPublicKey = ByteArrayHelper.HexStringToByteArray(pubkey);
                 // Decrypt another miner's secret share then add a result to this miner's DecryptedInValues field.
                 var decryptedInValue = Context.DecryptMessage(senderPublicKey, interestingMessage.ToByteArray());
-                currentRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].DecryptedPreviousInValues
+                currentRound.RealTimeMinersInformation[pubkey].DecryptedPreviousInValues
                     .Add(publicKey, ByteString.CopyFrom(decryptedInValue));
             }
 

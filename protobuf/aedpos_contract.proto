@@ -173,6 +173,7 @@ message AElfConsensusHeaderInformation {
 message AElfConsensusHint {
     AElfConsensusBehaviour behaviour = 1;
     sint64 round_id = 2;
+    sint64 previous_round_id = 3;
 }
 
 enum AElfConsensusBehaviour {

@@ -100,11 +100,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
             updatedRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight = Context.CurrentHeight;
 
             // Update secret pieces of latest in value.
-//            foreach (var secret in triggerInformation.Secrets)
-//            {
-//                updatedRound.RealTimeMinersInformation[publicKey].EncryptedInValues.Add(secret.Key, secret.Value);
-//            }
-            ShareInValueOfCurrentRound(updatedRound, previousRound, inValue, pubkey);
+            foreach (var secret in triggerInformation.Secrets)
+            {
+                updatedRound.RealTimeMinersInformation[pubkey].EncryptedInValues.Add(secret.Key, secret.Value);
+            }
 
             // To publish Out Value.
             return new AElfConsensusHeaderInformation
