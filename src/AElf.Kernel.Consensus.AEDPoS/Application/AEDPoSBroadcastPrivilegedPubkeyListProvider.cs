@@ -5,6 +5,8 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
@@ -15,11 +17,15 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         private readonly List<string> _cachedPubkeyList = new List<string>();
 
+        public ILogger<AEDPoSBroadcastPrivilegedPubkeyListProvider> Logger { get; set; }
+
         public AEDPoSBroadcastPrivilegedPubkeyListProvider(IBlockExtraDataService blockExtraDataService,
             IAccountService accountService)
         {
             _blockExtraDataService = blockExtraDataService;
             _accountService = accountService;
+
+            Logger = NullLogger<AEDPoSBroadcastPrivilegedPubkeyListProvider>.Instance;
         }
 
         public async Task<List<string>> GetPubkeyList(BlockHeader blockHeader)
@@ -33,6 +39,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             var round = information.Round;
             var currentPubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
+            var minersCount = round.RealTimeMinersInformation.Count;
             if (round.RealTimeMinersInformation.Values.Any(m => m.OutValue != null) &&
                 round.RealTimeMinersInformation.ContainsKey(currentPubkey))
             {
@@ -40,7 +47,6 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 var currentMiner =
                     round.RealTimeMinersInformation.Values.Single(m => m.Pubkey == currentPubkey);
                 var currentOrder = currentMiner.Order;
-                var minersCount = round.RealTimeMinersInformation.Count;
                 var ebp = round.RealTimeMinersInformation.Values.Single(m => m.IsExtraBlockProducer).Pubkey;
                 if (currentOrder >= minersCount) return new List<string> {ebp};
                 var nextMiners = round.RealTimeMinersInformation.Values.Where(m => m.Order > currentOrder)

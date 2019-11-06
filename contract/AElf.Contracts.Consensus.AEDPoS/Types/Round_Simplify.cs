@@ -15,6 +15,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     [pubkey] = new MinerInRound
                     {
+                        Pubkey = pubkey,
                         OutValue = minerInRound.OutValue,
                         Signature = minerInRound.Signature,
                         ProducedBlocks = minerInRound.ProducedBlocks,
