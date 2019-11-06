@@ -159,9 +159,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 throw;
             }
 
-            if (successLinks.Count == 0)
+            if (successLinks.Count == 0 || successLinks.Last().Height < chain.BestChainHeight)
             {
-                Logger.LogWarning("No block execution succeed in this branch.");
+                Logger.LogWarning("No block execution succeed or no block is higher than best chain.");
                 await _chainManager.RemoveLongestBranchAsync(chain);
                 return null;
             }

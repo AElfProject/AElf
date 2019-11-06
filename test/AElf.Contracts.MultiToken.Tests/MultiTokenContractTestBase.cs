@@ -193,7 +193,7 @@ namespace AElf.Contracts.MultiToken
             await ApproveWithMinersOnMainChainAsync(proposalId);
 
             var transactionResult = await ReleaseProposalAsync(proposalId,ParliamentAddress,"Main");
-            var chainId = CreationRequested.Parser.ParseFrom(transactionResult.Logs[0].NonIndexed).ChainId;
+            var chainId = CreationRequested.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).ChainId;
 
             return chainId;
         }
@@ -245,7 +245,6 @@ namespace AElf.Contracts.MultiToken
         {
             var res = new SideChainCreationRequest
             {
-                ContractCode = contractCode,
                 IndexingPrice = indexingPrice,
                 LockedTokenAmount = lockedTokenAmount,
                 SideChainTokenDecimals = 2,
@@ -318,10 +317,10 @@ namespace AElf.Contracts.MultiToken
         }
 
         protected async Task<TransactionResult> ReleaseProposalAsync(Hash proposalId,Address parliamentAddress ,string chainType)
-        {
+        { 
             var transactionResult = await ExecuteContractWithMiningAsync(parliamentAddress,
                 nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.Release),proposalId,chainType);
-            return transactionResult;
+            return transactionResult; 
         }
         
         protected async Task<Hash> CreateProposalAsyncOnMainChain(string method, ByteString input, Address contractAddress)

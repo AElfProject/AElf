@@ -4,13 +4,11 @@ using AElf.Contracts.MultiToken;
 using AElf.Kernel.Blockchain.Events;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.Token;
-using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
-    internal class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
-        ITransientDependency
+    internal class NewIrreversibleBlockFoundEventHandler : ILocalEventHandler<NewIrreversibleBlockFoundEvent>
     {
         private readonly ContractEventDiscoveryService<TransactionSizeFeeUnitPriceUpdated>
             _transactionSizeFeeUnitPriceUpdatedDiscoveryService;
@@ -36,7 +34,10 @@ namespace AElf.Kernel.TransactionPool.Application
             var txFeeUnitPrice =
                 (await _transactionSizeFeeUnitPriceUpdatedDiscoveryService.GetEventMessagesAsync(eventData.BlockHash,
                     tokenContractAddress)).FirstOrDefault()?.UnitPrice;
-            _transactionSizeFeeUnitPriceProvider.SetUnitPrice(txFeeUnitPrice ?? 0);
+            if (txFeeUnitPrice != null)
+            {
+                _transactionSizeFeeUnitPriceProvider.SetUnitPrice(txFeeUnitPrice.Value);
+            }
         }
     }
 }
