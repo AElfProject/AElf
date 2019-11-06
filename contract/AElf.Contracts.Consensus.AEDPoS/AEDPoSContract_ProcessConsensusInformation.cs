@@ -242,10 +242,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private static void PerformSecretSharing(UpdateValueInput input, MinerInRound minerInRound, Round round,
             string publicKey)
         {
-            minerInRound.EncryptedInValues.Add(input.EncryptedInValues);
-            foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)
+            minerInRound.EncryptedPieces.Add(input.EncryptedPieces);
+            foreach (var decryptedPreviousInValue in input.DecryptedPieces)
             {
-                round.RealTimeMinersInformation[decryptedPreviousInValue.Key].DecryptedPreviousInValues
+                round.RealTimeMinersInformation[decryptedPreviousInValue.Key].DecryptedPieces
                     .Add(publicKey, decryptedPreviousInValue.Value);
             }
         }

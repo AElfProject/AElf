@@ -36,7 +36,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 new AElfConsensusTriggerInformation
                 {
                     Pubkey = ByteString.CopyFrom(InitialCoreDataCenterKeyPairs[i].PublicKey),
-                    RandomHash = randomHashes[i]
+                    InValue = randomHashes[i]
                 }).ToDictionary(t => t.Pubkey.ToHex(), t => t);
 
             var voter = GetElectionContractTester(VoterKeyPairs[0]);

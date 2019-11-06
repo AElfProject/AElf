@@ -7,40 +7,54 @@ using AElf.Kernel.Account.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.Threading;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    internal class SecretSharingService : ISecretSharingService, ISingletonDependency
+    public class SecretSharingService : ISecretSharingService, ISingletonDependency
     {
-        private readonly Dictionary<long, Dictionary<string, byte[]>> _sharingPieces =
+        private readonly Dictionary<long, Dictionary<string, byte[]>> _encryptedPieces =
             new Dictionary<long, Dictionary<string, byte[]>>();
 
-        private readonly Dictionary<long, Dictionary<string, byte[]>> _revealedInValues =
+        private readonly Dictionary<long, Dictionary<string, byte[]>> _decryptedPieces =
             new Dictionary<long, Dictionary<string, byte[]>>();
+
+        private readonly Dictionary<long, Dictionary<string, Hash>> _revealedInValues =
+            new Dictionary<long, Dictionary<string, Hash>>();
 
         private readonly IInValueCacheService _inValueCacheService;
         private readonly IAccountService _accountService;
+
+        public ILogger<SecretSharingService> Logger { get; set; }
 
         public SecretSharingService(IInValueCacheService inValueCacheService, IAccountService accountService)
         {
             _inValueCacheService = inValueCacheService;
             _accountService = accountService;
+
+            Logger = NullLogger<SecretSharingService>.Instance;
         }
 
-        public Task AddSharingInformationAsync(SecretSharingInformation secretSharingInformation)
+        public Task AddSharingInformationAsync(LogEvent logEvent)
         {
+            var secretSharingInformation = new SecretSharingInformation();
+            secretSharingInformation.MergeFrom(logEvent);
+
             var newInValue = GenerateInValue(secretSharingInformation);
             _inValueCacheService.AddInValue(secretSharingInformation.CurrentRoundId, newInValue);
 
-            var decryptedSecretShares = new Dictionary<string, byte[]>();
-            var revealedSecretShares = new Dictionary<string, byte[]>();
+            Logger.LogTrace($"Handling sharing information: {secretSharingInformation}. New in value: {newInValue}");
+
+            var encryptedPieces = new Dictionary<string, byte[]>();
+            var decryptedPieces = new Dictionary<string, byte[]>();
 
             var minersCount = secretSharingInformation.PreviousRound.RealTimeMinersInformation.Count;
             var minimumCount = minersCount.Mul(2).Div(3);
             var secretShares = SecretSharingHelper.EncodeSecret(newInValue.ToByteArray(), minimumCount, minersCount);
-            var selfPubkey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync);
+            var selfPubkey = AsyncHelper.RunSync(_accountService.GetPublicKeyAsync).ToHex();
             foreach (var pair in secretSharingInformation.PreviousRound.RealTimeMinersInformation
                 .OrderBy(m => m.Value.Order).ToDictionary(m => m.Key, m => m.Value.Order))
             {
@@ -49,41 +63,99 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
                 var plainMessage = secretShares[order - 1];
                 var receiverPublicKey = ByteArrayHelper.HexStringToByteArray(pubkey);
-                var encryptedInValue = AsyncHelper.RunSync(() =>
+                var encryptedPiece = AsyncHelper.RunSync(() =>
                     _accountService.EncryptMessageAsync(receiverPublicKey, plainMessage));
-                decryptedSecretShares.Add(pubkey, encryptedInValue);
+                encryptedPieces.Add(pubkey, encryptedPiece);
+                secretSharingInformation.PreviousRound.RealTimeMinersInformation[selfPubkey].EncryptedPieces
+                    .Add(pubkey, ByteString.CopyFrom(encryptedPiece));
 
                 if (!secretSharingInformation.PreviousRound.RealTimeMinersInformation.ContainsKey(pubkey)) continue;
 
                 var encryptedShares =
-                    secretSharingInformation.PreviousRound.RealTimeMinersInformation[pubkey].EncryptedInValues;
+                    secretSharingInformation.PreviousRound.RealTimeMinersInformation[pubkey].EncryptedPieces;
                 if (!encryptedShares.Any()) continue;
-                var interestingMessage = encryptedShares[selfPubkey.ToHex()];
+                var interestingMessage = encryptedShares[selfPubkey];
                 var senderPublicKey = ByteArrayHelper.HexStringToByteArray(pubkey);
 
-                var decryptedInValue = AsyncHelper.RunSync(() =>
+                var decryptedPiece = AsyncHelper.RunSync(() =>
                     _accountService.DecryptMessageAsync(senderPublicKey, interestingMessage.ToByteArray()));
-                revealedSecretShares[pubkey] = decryptedInValue;
+                decryptedPieces[pubkey] = decryptedPiece;
+                secretSharingInformation.PreviousRound.RealTimeMinersInformation[pubkey].DecryptedPieces
+                    .Add(selfPubkey, ByteString.CopyFrom(decryptedPiece));
             }
 
-            _sharingPieces[secretSharingInformation.CurrentRoundId] = decryptedSecretShares;
-            _revealedInValues[secretSharingInformation.CurrentRoundId] = revealedSecretShares;
+            _encryptedPieces[secretSharingInformation.PreviousRoundId] = encryptedPieces;
+            _decryptedPieces[secretSharingInformation.PreviousRoundId] = decryptedPieces;
+
+            RevealPreviousInValues(secretSharingInformation, selfPubkey);
 
             return Task.CompletedTask;
         }
 
-        public Dictionary<string, byte[]> GetSharingPieces(long roundId)
+        private void RevealPreviousInValues(SecretSharingInformation secretSharingInformation, string selfPubkey)
         {
-            _sharingPieces.TryGetValue(roundId, out var sharingPieces);
-            _sharingPieces.Remove(roundId);
-            return sharingPieces ?? new Dictionary<string, byte[]>();
+            var round = secretSharingInformation.PreviousRound;
+            var minersCount = round.RealTimeMinersInformation.Count;
+            var minimumCount = minersCount.Mul(2).Div(3);
+            minimumCount = minimumCount == 0 ? 1 : minimumCount;
+
+            var revealedInValues = new Dictionary<string, Hash>();
+
+            foreach (var pair in round.RealTimeMinersInformation.OrderBy(m => m.Value.Order))
+            {
+                // Skip himself.
+                if (pair.Key == selfPubkey) continue;
+
+                var pubkey = pair.Key;
+                var minerInRound = pair.Value;
+
+                if (minerInRound.EncryptedPieces.Count < minimumCount) continue;
+                if (minerInRound.DecryptedPieces.Count < minersCount) continue;
+
+                // Reveal another miner's in value for target round:
+
+                var orders = minerInRound.DecryptedPieces.Select((t, i) =>
+                        round.RealTimeMinersInformation.Values
+                            .First(m => m.Pubkey ==
+                                        minerInRound.DecryptedPieces.Keys.ToList()[i]).Order)
+                    .ToList();
+
+                var sharedParts = minerInRound.DecryptedPieces.Values.ToList()
+                    .Select(s => s.ToByteArray()).ToList();
+
+                var revealedInValue =
+                    Hash.FromRawBytes(SecretSharingHelper.DecodeSecret(sharedParts, orders, minimumCount));
+
+                Logger.LogDebug($"Revealed in value of {pubkey} of round {round.RoundNumber}: {revealedInValue}");
+
+                revealedInValues.Add(pubkey, revealedInValue);
+            }
+
+            _revealedInValues.Add(secretSharingInformation.PreviousRoundId, revealedInValues);
         }
 
-        public Dictionary<string, byte[]> GetRevealedInValues(long roundId)
+        public Dictionary<string, byte[]> GetEncryptedPieces(long roundId)
+        {
+            _encryptedPieces.TryGetValue(roundId, out var encryptedPieces);
+            Logger.LogTrace($"Encrypted/Shared {_encryptedPieces.Count} pieces for round of id {roundId}");
+            _encryptedPieces.Remove(roundId);
+            return encryptedPieces ?? new Dictionary<string, byte[]>();
+        }
+
+        public Dictionary<string, byte[]> GetDecryptedPieces(long roundId)
+        {
+            _decryptedPieces.TryGetValue(roundId, out var decryptedPieces);
+            Logger.LogTrace($"Decrypted {_decryptedPieces.Count} pieces for round of id {roundId}");
+            _decryptedPieces.Remove(roundId);
+            return decryptedPieces ?? new Dictionary<string, byte[]>();
+        }
+
+        public Dictionary<string, Hash> GetRevealedInValues(long roundId)
         {
             _revealedInValues.TryGetValue(roundId, out var revealedInValues);
+            Logger.LogTrace($"Revealed {_revealedInValues.Count} in values for round of id {roundId}");
             _revealedInValues.Remove(roundId);
-            return revealedInValues ?? new Dictionary<string, byte[]>();
+            return revealedInValues ?? new Dictionary<string, Hash>();
         }
 
         private Hash GenerateInValue(IMessage message)

@@ -5,17 +5,18 @@ using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    internal class SecretSharingJobNotificationLogEventHandler : ILogEventHandler
+    public class SecretSharingInformationLogEventHandler : ILogEventHandler, ISingletonDependency
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ISecretSharingService _secretSharingService;
 
         private LogEvent _interestedEvent;
 
-        public SecretSharingJobNotificationLogEventHandler(
+        public SecretSharingInformationLogEventHandler(
             ISmartContractAddressService smartContractAddressService,
             ISecretSharingService secretSharingService)
         {
@@ -23,7 +24,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _secretSharingService = secretSharingService;
         }
 
-        public ILogger<SecretSharingJobNotificationLogEventHandler> Logger { get; set; }
+        public ILogger<SecretSharingInformationLogEventHandler> Logger { get; set; }
 
         public LogEvent InterestedEvent
         {
@@ -38,11 +39,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }
         }
 
-        public Task Handle(Block block, TransactionResult result, LogEvent log)
+        public Task HandleAsync(Block block, TransactionResult result, LogEvent logEvent)
         {
-            var secretSharingInformation = new SecretSharingInformation();
-            secretSharingInformation.MergeFrom(log);
-            _secretSharingService.AddSharingInformationAsync(secretSharingInformation);
+            _secretSharingService.AddSharingInformationAsync(logEvent);
             return Task.CompletedTask;
         }
     }

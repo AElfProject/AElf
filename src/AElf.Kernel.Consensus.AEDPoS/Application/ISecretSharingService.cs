@@ -1,13 +1,15 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
+using AElf.Types;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    internal interface ISecretSharingService
+    public interface ISecretSharingService
     {
-        Task AddSharingInformationAsync(SecretSharingInformation secretSharingInformation);
-        Dictionary<string, byte[]> GetSharingPieces(long roundId);
-        Dictionary<string, byte[]> GetRevealedInValues(long roundId);
+        Task AddSharingInformationAsync(LogEvent logEvent);
+        Dictionary<string, byte[]> GetEncryptedPieces(long roundId);
+        Dictionary<string, byte[]> GetDecryptedPieces(long roundId);
+        Dictionary<string, Hash> GetRevealedInValues(long roundId);
     }
 }

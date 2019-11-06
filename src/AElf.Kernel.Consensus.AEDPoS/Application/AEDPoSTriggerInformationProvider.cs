@@ -103,16 +103,16 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     Behaviour = hint.Behaviour,
                 };
 
-                var secretPieces = _secretSharingService.GetSharingPieces(hint.RoundId);
+                var secretPieces = _secretSharingService.GetEncryptedPieces(hint.RoundId);
                 foreach (var secretPiece in secretPieces)
                 {
-                    trigger.EncryptedShares.Add(secretPiece.Key, ByteString.CopyFrom(secretPiece.Value));
+                    trigger.EncryptedPieces.Add(secretPiece.Key, ByteString.CopyFrom(secretPiece.Value));
                 }
 
-                var revealedInValues = _secretSharingService.GetRevealedInValues(hint.RoundId);
+                var revealedInValues = _secretSharingService.GetDecryptedPieces(hint.RoundId);
                 foreach (var revealedInValue in revealedInValues)
                 {
-                    trigger.RevealedInValues.Add(revealedInValue.Key, ByteString.CopyFrom(revealedInValue.Value));
+                    trigger.DecryptedPieces.Add(revealedInValue.Key, ByteString.CopyFrom(revealedInValue.Value));
                 }
 
                 return trigger.ToBytesValue();

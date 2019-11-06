@@ -36,6 +36,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     {
                         information.Round = information.Round.GetUpdateValueRound(pubkey);
                     }
+
                     break;
 
                 case AElfConsensusBehaviour.TinyBlock:
@@ -100,18 +101,28 @@ namespace AElf.Contracts.Consensus.AEDPoS
             updatedRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight = Context.CurrentHeight;
 
             // Update secret pieces of latest in value.
-            foreach (var encryptedShare in triggerInformation.EncryptedShares)
+            foreach (var encryptedPiece in triggerInformation.EncryptedPieces)
             {
-                updatedRound.RealTimeMinersInformation[pubkey].EncryptedInValues
-                    .Add(encryptedShare.Key, encryptedShare.Value);
+                updatedRound.RealTimeMinersInformation[pubkey].EncryptedPieces
+                    .Add(encryptedPiece.Key, encryptedPiece.Value);
+            }
+
+            foreach (var decryptedPiece in triggerInformation.DecryptedPieces)
+            {
+                if (updatedRound.RealTimeMinersInformation.ContainsKey(decryptedPiece.Key))
+                {
+                    updatedRound.RealTimeMinersInformation[decryptedPiece.Key].DecryptedPieces[pubkey] =
+                        decryptedPiece.Value;
+                }
             }
 
             foreach (var revealedInValue in triggerInformation.RevealedInValues)
             {
-                if (updatedRound.RealTimeMinersInformation.ContainsKey(revealedInValue.Key))
+                if (updatedRound.RealTimeMinersInformation.ContainsKey(revealedInValue.Key) &&
+                    (updatedRound.RealTimeMinersInformation[revealedInValue.Key].PreviousInValue == Hash.Empty ||
+                     updatedRound.RealTimeMinersInformation[revealedInValue.Key].PreviousInValue == null))
                 {
-                    updatedRound.RealTimeMinersInformation[revealedInValue.Key].DecryptedPreviousInValues[pubkey] =
-                        revealedInValue.Value;
+                    updatedRound.RealTimeMinersInformation[revealedInValue.Key].PreviousInValue = revealedInValue.Value;
                 }
             }
 

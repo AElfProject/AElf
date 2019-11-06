@@ -45,6 +45,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             context.Services.AddSingleton<TransactionExecutedEventHandler>();
             context.Services.AddSingleton<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
             context.Services.AddSingleton<IBlockValidationProvider, ConsensusValidationProvider>();
+            context.Services.AddSingleton<BestChainFoundEventHandlerForLogEventListening>();
 
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
