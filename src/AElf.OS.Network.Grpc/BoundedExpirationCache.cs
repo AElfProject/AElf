@@ -24,9 +24,11 @@ namespace AElf.OS.Network.Grpc
             _hashLookup = new ConcurrentDictionary<Hash, Timestamp>();
         }
 
-        public bool HasHash(Hash hash)
+        public bool HasHash(Hash hash, bool clean = true)
         {
-            CleanExpired();
+            if (clean)
+                CleanExpired();
+
             return _hashLookup.ContainsKey(hash);
         }
 
@@ -51,7 +53,7 @@ namespace AElf.OS.Network.Grpc
 
             return true;
         }
-        
+
         private void CleanExpired()
         {
             // clean old items.

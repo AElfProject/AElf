@@ -100,7 +100,7 @@ namespace AElf.OS.Network
             var announcement = new BlockAnnouncement { BlockHeight = 1, BlockHash = hash };
             await _serverService.SendAnnouncement(announcement, BuildServerCallContext(metadata));
             
-            peer.AddKnownBlock(hash).ShouldBeFalse();
+            peer.TryAddKnownBlock(hash).ShouldBeFalse();
         }
 
         [Fact]
@@ -182,7 +182,7 @@ namespace AElf.OS.Network
             var requestStream = new TestAsyncStreamReader<BlockWithTransactions>(new List<BlockWithTransactions> { block });
             await _serverService.BlockBroadcastStream(requestStream, BuildServerCallContext(metadata));
             
-            peer.AddKnownBlock(block.GetHash()).ShouldBeFalse();
+            peer.TryAddKnownBlock(block.GetHash()).ShouldBeFalse();
         }
 
         [Fact]
@@ -226,7 +226,7 @@ namespace AElf.OS.Network
 
             await _serverService.SendTransaction(transaction, BuildServerCallContext(metadata));
             
-            peer.AddKnownTransaction(transaction.GetHash()).ShouldBeFalse();
+            peer.TryAddKnownTransaction(transaction.GetHash()).ShouldBeFalse();
         }
         
         [Fact]

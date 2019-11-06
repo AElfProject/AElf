@@ -566,12 +566,22 @@ namespace AElf.OS.Network.Grpc
             return true;
         }
 
-        public bool AddKnownBlock(Hash blockHash)
+        public bool KnowsBlock(Hash hash)
+        {
+            return _knownBlockCache.HasHash(hash, false);
+        }
+
+        public bool TryAddKnownBlock(Hash blockHash)
         {
             return _knownBlockCache.TryAdd(blockHash);
         }
 
-        public bool AddKnownTransaction(Hash transactionHash)
+        public bool KnowsTransaction(Hash hash)
+        {
+            return _knownTransactionCache.HasHash(hash, false);
+        }
+
+        public bool TryAddKnownTransaction(Hash transactionHash)
         {
             return _knownTransactionCache.TryAdd(transactionHash);
         }

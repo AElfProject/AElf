@@ -132,11 +132,15 @@ namespace AElf.OS.Network.Application
         {
             try
             {
-                if (!peer.AddKnownBlock(blockWithTransactions.GetHash()))
+                var blockHash = blockWithTransactions.GetHash();
+
+                if (peer.KnowsBlock(blockHash))
                     return; // block already known to this peer
 
                 peer.EnqueueBlock(blockWithTransactions, async ex =>
                 {
+                    peer.TryAddKnownBlock(blockHash);
+
                     if (ex != null)
                     {
                         Logger.LogError(ex, $"Error while broadcasting block to {peer}.");
@@ -174,11 +178,12 @@ namespace AElf.OS.Network.Application
             {
                 try
                 {
-                    if (!peer.AddKnownBlock(blockHeader.GetHash()))
+                    if (peer.KnowsBlock(blockHash))
                         return Task.CompletedTask; // block already known to this peer
 
                     peer.EnqueueAnnouncement(blockAnnouncement, async ex =>
                     {
+                        peer.TryAddKnownBlock(blockHash);
                         if (ex != null)
                         {
                             Logger.LogError(ex, $"Error while broadcasting announcement to {peer}.");
@@ -197,15 +202,17 @@ namespace AElf.OS.Network.Application
         
         public Task BroadcastTransactionAsync(Transaction transaction)
         {
+            var txHash = transaction.GetHash();
             foreach (var peer in _peerPool.GetPeers())
             {
                 try
                 {
-                    if (!peer.AddKnownTransaction(transaction.GetHash()))
-                        return Task.CompletedTask; // block already known to this peer
-
+                    if (peer.KnowsTransaction(txHash)) 
+                        return Task.CompletedTask; // transaction already known to this peer
+                    
                     peer.EnqueueTransaction(transaction, async ex =>
                     {
+                        peer.TryAddKnownTransaction(txHash);
                         if (ex != null)
                         {
                             Logger.LogError(ex, $"Error while broadcasting transaction to {peer}.");

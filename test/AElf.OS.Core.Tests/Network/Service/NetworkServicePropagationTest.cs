@@ -28,7 +28,7 @@ namespace AElf.OS.Network.Service
             await _networkService.BroadcastBlockWithTransactionsAsync(blockWithTx);
             
             foreach (var peer in _testContext.MockedPeers)
-                peer.Verify(p => p.AddKnownBlock(blockHeader.GetHash()), Times.Once());
+                peer.Verify(p => p.TryAddKnownBlock(blockHeader.GetHash()), Times.Once());
             
             await _networkService.BroadcastBlockWithTransactionsAsync(blockWithTx);
 
@@ -44,7 +44,7 @@ namespace AElf.OS.Network.Service
             await _networkService.BroadcastAnnounceAsync(blockHeader, false);
             
             foreach (var peer in _testContext.MockedPeers)
-                peer.Verify(p => p.AddKnownBlock(blockHeader.GetHash()), Times.Once());
+                peer.Verify(p => p.TryAddKnownBlock(blockHeader.GetHash()), Times.Once());
             
             await _networkService.BroadcastAnnounceAsync(blockHeader, false);
             
@@ -61,7 +61,7 @@ namespace AElf.OS.Network.Service
             await _networkService.BroadcastTransactionAsync(transaction);
 
             foreach (var peer in _testContext.MockedPeers)
-                peer.Verify(p => p.AddKnownTransaction(transaction.GetHash()), Times.Once());
+                peer.Verify(p => p.TryAddKnownTransaction(transaction.GetHash()), Times.Once());
             
             await _networkService.BroadcastTransactionAsync(transaction);
 

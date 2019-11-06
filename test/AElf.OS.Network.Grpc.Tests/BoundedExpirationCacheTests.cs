@@ -43,7 +43,7 @@ namespace AElf.OS.Network
                 cache.TryAdd(Hash.FromString(current)).ShouldBeTrue();
             }
             
-            await Task.Delay(TimeSpan.FromMilliseconds(timeout));
+            await Task.Delay(TimeSpan.FromMilliseconds(timeout+500));
             
             cache.TryAdd(Hash.FromString($"hello_world_{cacheCapacity}")).ShouldBeTrue();
 

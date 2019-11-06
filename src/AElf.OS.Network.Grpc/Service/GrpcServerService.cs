@@ -101,7 +101,7 @@ namespace AElf.OS.Network.Grpc
                 
                 await requestStream.ForEachAsync(block =>
                 {
-                    peer.AddKnownBlock(block.GetHash());
+                    peer.TryAddKnownBlock(block.GetHash());
                     _ = EventBus.PublishAsync(new BlockReceivedEvent(block, peerPubkey));
 
                     return Task.CompletedTask;
@@ -149,7 +149,7 @@ namespace AElf.OS.Network.Grpc
             Logger.LogDebug($"Received announce {announcement.BlockHash} from {context.GetPeerInfo()}.");
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
-            peer.AddKnownBlock(announcement.BlockHash);
+            peer.TryAddKnownBlock(announcement.BlockHash);
 
             if (peer.SyncState != SyncState.Finished)
             {
@@ -209,7 +209,7 @@ namespace AElf.OS.Network.Grpc
                 return;
             
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
-            peer.AddKnownTransaction(tx.GetHash());
+            peer.TryAddKnownTransaction(tx.GetHash());
 
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent {Transactions = new List<Transaction> {tx}});
         }
@@ -298,7 +298,7 @@ namespace AElf.OS.Network.Grpc
                 else
                 {
                     var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
-                    peer.AddKnownBlock(block.GetHash());
+                    peer.TryAddKnownBlock(block.GetHash());
                 }
             }
             catch (Exception e)

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel;
@@ -139,42 +140,56 @@ namespace AElf.OS
     [DependsOn(typeof(NetworkServiceTestModule))]
     public class NetworkServicePropagationTestModule : AElfModule
     {
+        private class KnownHashContainer
+        {
+            private readonly List<Hash> _knownHashes = new List<Hash>();
+            public bool TryAdd(Hash hash)
+            {
+                if (HasHash(hash)) 
+                    return false;
+
+                _knownHashes.Add(hash);
+
+                return true;
+            }
+
+            public bool HasHash(Hash hash)
+            {
+                return _knownHashes.Contains(hash);
+            }
+        }
+
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             NetworkServicePropagationTestContext testContext = new NetworkServicePropagationTestContext();
 
-            Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
             List<IPeer> peers = null;
 
-            var previousBlockHashes = new List<Hash>();
+            var peerPoolMock = new Mock<IPeerPool>();
+            var knownBlockHashes = new KnownHashContainer();
+            var knownTransactionHashes = new KnownHashContainer();
+            
             peerPoolMock.Setup(p => p.GetPeers(It.IsAny<bool>())).Returns<bool>(adr =>
             {
                 if (peers != null)
                     return peers;
 
-                peers = new List<IPeer>();
-                
                 var propPeerOne = new Mock<IPeer>();
-                propPeerOne.Setup(p => p.AddKnownBlock(It.IsAny<Hash>())).Returns<Hash>(blockHash =>
-                {
-                    if (previousBlockHashes.Contains(blockHash))
-                        return false;
 
-                    previousBlockHashes.Add(blockHash);
-                    return true;
-                });
+                propPeerOne.Setup(p => p.TryAddKnownBlock(It.IsAny<Hash>()))
+                    .Returns<Hash>(blockHash => knownBlockHashes.TryAdd(blockHash));
+                propPeerOne.Setup(p => p.KnowsBlock(It.IsAny<Hash>()))
+                    .Returns<Hash>(blockHash => knownBlockHashes.HasHash(blockHash));
                 
-                var previousTransactionHashes = new List<Hash>();
-                propPeerOne.Setup(p => p.AddKnownTransaction(It.IsAny<Hash>())).Returns<Hash>(blockHash =>
-                {
-                    if (previousTransactionHashes.Contains(blockHash))
-                        return false;
-
-                    previousTransactionHashes.Add(blockHash);
-                    return true;
-                });
+                propPeerOne.Setup(p => p.TryAddKnownTransaction(It.IsAny<Hash>()))
+                    .Returns<Hash>(txHash => knownTransactionHashes.TryAdd(txHash));
+                propPeerOne.Setup(p => p.KnowsTransaction(It.IsAny<Hash>()))
+                    .Returns<Hash>(txHash => knownTransactionHashes.HasHash(txHash));
                 
-                peers.Add(propPeerOne.Object);
+                SetupBroadcastCallbacks(propPeerOne);
+                
+                peers = new List<IPeer> { propPeerOne.Object };
+                
                 testContext.MockedPeers.Add(propPeerOne);
 
                 return peers;
@@ -183,7 +198,23 @@ namespace AElf.OS
             context.Services.AddSingleton<IPeerPool>(o => peerPoolMock.Object);
             context.Services.AddSingleton<NetworkServicePropagationTestContext>(o => testContext);
             context.Services.AddTransient(o => Mock.Of<IBroadcastPrivilegedPubkeyListProvider>());
+        }
 
+        private void SetupBroadcastCallbacks(Mock<IPeer> peerMock)
+        {
+            // set up the mock to execute the broadcast callbacks
+
+            peerMock
+                .Setup(p => p.EnqueueBlock(It.IsAny<BlockWithTransactions>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<BlockWithTransactions, Action<NetworkException>>((block, action) => action.Invoke(null));
+                
+            peerMock
+                .Setup(p => p.EnqueueAnnouncement(It.IsAny<BlockAnnouncement>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<BlockAnnouncement, Action<NetworkException>>((announce, action) => action.Invoke(null));
+                
+            peerMock
+                .Setup(p => p.EnqueueTransaction(It.IsAny<Transaction>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<Transaction, Action<NetworkException>>((transaction, action) => action.Invoke(null));
         }
     }
 

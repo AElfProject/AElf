@@ -31,8 +31,10 @@ namespace AElf.OS.Network.Infrastructure
 
         Task CheckHealthAsync();
 
-        bool AddKnownBlock(Hash blockHash);
-        bool AddKnownTransaction(Hash transactionHash);
+        bool KnowsBlock(Hash hash);
+        bool TryAddKnownBlock(Hash blockHash);
+        bool KnowsTransaction(Hash hash);
+        bool TryAddKnownTransaction(Hash transactionHash);
         void UpdateLastKnownLib(LibAnnouncement libAnnouncement);
 
         void EnqueueAnnouncement(BlockAnnouncement transaction, Action<NetworkException> sendCallback);
