@@ -29,11 +29,8 @@ namespace AElf.OS.Network.Infrastructure
 
         PeerConnectionInfo Info { get; }
 
-        //IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
-
         Task CheckHealthAsync();
-        
-        //void AddKnowBlock(BlockAnnouncement blockAnnouncement);
+
         bool AddKnownBlock(Hash blockHash);
         bool AddKnownTransaction(Hash transactionHash);
         void UpdateLastKnownLib(LibAnnouncement libAnnouncement);

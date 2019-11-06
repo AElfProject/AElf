@@ -566,25 +566,6 @@ namespace AElf.OS.Network.Grpc
             return true;
         }
 
-//        public void AddKnowBlock(BlockAnnouncement blockAnnouncement)
-//        {
-//            if (blockAnnouncement.HasFork)
-//            {
-//                _recentBlockHeightAndHashMappings.Clear();
-//                return;
-//            }
-//
-//            CurrentBlockHeight = blockAnnouncement.BlockHeight;
-//            CurrentBlockHash = blockAnnouncement.BlockHash;
-//            
-//            _recentBlockHeightAndHashMappings[CurrentBlockHeight] = CurrentBlockHash;
-//            
-//            while (_recentBlockHeightAndHashMappings.Count > BlockCacheMaxItems)
-//            {
-//                _recentBlockHeightAndHashMappings.TryRemove(_recentBlockHeightAndHashMappings.Keys.Min(), out _);
-//            }
-//        }
-
         public bool AddKnownBlock(Hash blockHash)
         {
             return _knownBlockCache.TryAdd(blockHash);
