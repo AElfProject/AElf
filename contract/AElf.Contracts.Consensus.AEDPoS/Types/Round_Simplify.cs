@@ -60,7 +60,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         Pubkey = minerInRound.Pubkey,
                         ActualMiningTimes = {minerInRound.ActualMiningTimes},
                         ProducedBlocks = minerInRound.ProducedBlocks,
-                        ProducedTinyBlocks = minerInRound.ProducedTinyBlocks
+                        ProducedTinyBlocks = minerInRound.ProducedTinyBlocks,
+                        ImpliedIrreversibleBlockHeight = minerInRound.ImpliedIrreversibleBlockHeight
                     }
                 }
             };

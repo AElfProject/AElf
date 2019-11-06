@@ -1,10 +1,18 @@
 using AElf.Contracts.TestKit;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Account.Infrastructure;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Consensus.AEDPoS.Application;
+using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContractExecution.Application;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;
+using BlockTimeProvider = AElf.Contracts.TestKit.BlockTimeProvider;
+using IBlockTimeProvider = AElf.Contracts.TestKit.IBlockTimeProvider;
 
 // ReSharper disable InconsistentNaming
 namespace AElf.Contracts.TestKet.AEDPoSExtension
@@ -35,6 +43,8 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             context.Services.AddSingleton<ITestDataProvider, TestDataProvider>();
             context.Services.AddSingleton<ITransactionTraceProvider, TransactionTraceProvider>();
             context.Services.AddSingleton<TransactionExecutedEventHandler>();
+            context.Services.AddSingleton<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
+            context.Services.AddSingleton<IBlockValidationProvider, ConsensusValidationProvider>();
 
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }

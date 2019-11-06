@@ -6,31 +6,23 @@ using AElf.Kernel.TransactionPool.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockHeightUnacceptableLogEventHandler : ILogEventHandler
+    public class IrreversibleBlockHeightUnacceptableLogEventHandler : ILogEventHandler, ISingletonDependency
     {
-        private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
-
+        private readonly ISmartContractAddressService _smartContractAddressService;
         private LogEvent _interestedEvent;
-
-        public IrreversibleBlockHeightUnacceptableLogEventHandler(
-            ISmartContractAddressService smartContractAddressService,
-            ITransactionInclusivenessProvider transactionInclusivenessProvider)
-        {
-            _smartContractAddressService = smartContractAddressService;
-            _transactionInclusivenessProvider = transactionInclusivenessProvider;
-        }
-
-        public ILogger<IrreversibleBlockHeightUnacceptableLogEventHandler> Logger { get; set; }
 
         public LogEvent InterestedEvent
         {
             get
             {
-                if (_interestedEvent != null) return _interestedEvent;
+                if (_interestedEvent != null)
+                    return _interestedEvent;
                 var address =
                     _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
                         .Name);
@@ -39,10 +31,23 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }
         }
 
-        public async Task Handle(Block block, TransactionResult result, LogEvent log)
+        public ILogger<IrreversibleBlockHeightUnacceptableLogEventHandler> Logger { get; set; }
+
+        public IrreversibleBlockHeightUnacceptableLogEventHandler(
+            ITransactionInclusivenessProvider transactionInclusivenessProvider,
+            ISmartContractAddressService smartContractAddressService)
+        {
+            _transactionInclusivenessProvider = transactionInclusivenessProvider;
+            _smartContractAddressService = smartContractAddressService;
+
+            Logger = NullLogger<IrreversibleBlockHeightUnacceptableLogEventHandler>.Instance;
+        }
+
+        public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var distanceToLib = new IrreversibleBlockHeightUnacceptable();
-            distanceToLib.MergeFrom(log);
+            distanceToLib.MergeFrom(logEvent);
+
             if (distanceToLib.DistanceToIrreversibleBlockHeight > 0)
             {
                 Logger.LogDebug($"Distance to lib height: {distanceToLib.DistanceToIrreversibleBlockHeight}");
@@ -52,6 +57,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             {
                 _transactionInclusivenessProvider.IsTransactionPackable = true;
             }
+
+            await Task.CompletedTask;
         }
     }
 }

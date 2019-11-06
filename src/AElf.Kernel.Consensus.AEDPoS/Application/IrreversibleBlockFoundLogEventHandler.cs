@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Blockchain.Application;
@@ -7,10 +8,11 @@ using AElf.Sdk.CSharp;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockFoundLogEventHandler : ILogEventHandler
+    public class IrreversibleBlockFoundLogEventHandler : ILogEventHandler, ISingletonDependency
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
@@ -42,27 +44,42 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }
         }
 
-        public async Task Handle(Block block, TransactionResult result, LogEvent log)
+        public Task HandleAsync(Block block, TransactionResult result, LogEvent log)
         {
-            var chain = await _blockchainService.GetChainAsync();
             var irreversibleBlockFound = new IrreversibleBlockFound();
             irreversibleBlockFound.MergeFrom(log);
-            if (chain.LastIrreversibleBlockHeight >= irreversibleBlockFound.IrreversibleBlockHeight)
-                return;
-            var libBlockHash = await _blockchainService.GetBlockHashByHeightAsync(chain,
-                irreversibleBlockFound.IrreversibleBlockHeight, block.GetHash());
-            var blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);
-            Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight}");
-            _taskQueueManager.Enqueue(
-                async () =>
-                {
-                    var currentChain = await _blockchainService.GetChainAsync();
-                    if (currentChain.LastIrreversibleBlockHeight < blockIndex.BlockHeight)
+            var _ = ProcessLogEventAsync(block, irreversibleBlockFound);
+            return Task.CompletedTask;
+        }
+
+        private async Task ProcessLogEventAsync(Block block, IrreversibleBlockFound irreversibleBlockFound)
+        {
+            try
+            {
+                var chain = await _blockchainService.GetChainAsync();
+
+                if (chain.LastIrreversibleBlockHeight >= irreversibleBlockFound.IrreversibleBlockHeight)
+                    return;
+                var libBlockHash = await _blockchainService.GetBlockHashByHeightAsync(chain,
+                    irreversibleBlockFound.IrreversibleBlockHeight, block.GetHash());
+                var blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);
+                Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight}");
+                _taskQueueManager.Enqueue(
+                    async () =>
                     {
-                        await _blockchainService.SetIrreversibleBlockAsync(currentChain, blockIndex.BlockHeight,
-                            blockIndex.BlockHash);
-                    }
-                }, KernelConstants.UpdateChainQueueName);
+                        var currentChain = await _blockchainService.GetChainAsync();
+                        if (currentChain.LastIrreversibleBlockHeight < blockIndex.BlockHeight)
+                        {
+                            await _blockchainService.SetIrreversibleBlockAsync(currentChain, blockIndex.BlockHeight,
+                                blockIndex.BlockHash);
+                        }
+                    }, KernelConstants.UpdateChainQueueName);
+            }
+            catch (Exception e)
+            {
+                Logger.LogError("Failed to resolve IrreversibleBlockFound event.", e);
+                throw;
+            }
         }
     }
 }

@@ -19,6 +19,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return new ValidationResult {Success = false, Message = "Failed to get current round information."};
             }
 
+            var providedRound = extraData.Round;
+            if (extraData.Behaviour == AElfConsensusBehaviour.UpdateValue)
+            {
+                providedRound = baseRound.RecoverFromUpdateValue(extraData.Round, extraData.SenderPubkey.ToHex());
+            }
+            if (extraData.Behaviour == AElfConsensusBehaviour.TinyBlock)
+            {
+                providedRound = baseRound.RecoverFromTinyBlock(extraData.Round, extraData.SenderPubkey.ToHex());
+            }
+
             var validationContext = new ConsensusValidationContext
             {
                 BaseRound = baseRound,
@@ -27,7 +37,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Rounds = State.Rounds,
                 LatestProviderToTinyBlocksCount = State.LatestProviderToTinyBlocksCount.Value,
                 ExtraData = extraData,
-                RoundsDict = _rounds
+                RoundsDict = _rounds,
+                ProvidedRound = providedRound
             };
 
             /* Ask several questions: */
@@ -54,7 +65,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     validationProviders.Add(new UpdateValueValidationProvider());
                     break;
                 case AElfConsensusBehaviour.TinyBlock:
-                    validationProviders.Add(new TinyBlockValidationProvider());
+                    //validationProviders.Add(new TinyBlockValidationProvider());
                     break;
                 case AElfConsensusBehaviour.NextRound:
                 case AElfConsensusBehaviour.NextTerm:

@@ -10,12 +10,16 @@ using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
+using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Contracts.TestKet.AEDPoSExtension
 {
@@ -36,13 +40,12 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         
         private bool _isSkipped;
 
-        public BlockMiningService(IContractTesterFactory contractTesterFactory,
-            ISmartContractAddressService smartContractAddressService, ITestDataProvider testDataProvider)
+        public BlockMiningService(IServiceProvider serviceProvider)
         {
             RegisterAssemblyResolveEvent();
-            _contractTesterFactory = contractTesterFactory;
-            _smartContractAddressService = smartContractAddressService;
-            _testDataProvider = testDataProvider;
+            _contractTesterFactory = serviceProvider.GetRequiredService<IContractTesterFactory>();
+            _smartContractAddressService = serviceProvider.GetRequiredService<ISmartContractAddressService>();
+            _testDataProvider = serviceProvider.GetRequiredService<ITestDataProvider>();
         }
 
         private static void RegisterAssemblyResolveEvent()
@@ -88,6 +91,10 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                         Category = KernelConstants.CodeCoverageRunnerCategory,
                         Code = ByteString.CopyFrom(code),
                     })).Output;
+                if (address == null)
+                {
+                    throw new Exception($"Failed to deploy contract {name}");
+                }
                 map.Add(name, address);
                 if (name == ConsensusSmartContractAddressNameProvider.Name)
                 {
@@ -200,6 +207,20 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                 PreviousRandomHash = Hash.FromString($"RandomHashOf{pubkey}"),
                 Pubkey = pubkey.Value
             };
+
+            var consensusExtraData = await contractStub.GetConsensusExtraData.CallAsync(new BytesValue
+                {Value = triggerInformation.ToByteString()});
+            // Validate consensus extra data.
+            if (consensusExtraData != null)
+            {
+                var validationResult =
+                    await _contractStubs.First().ValidateConsensusBeforeExecution.CallAsync(consensusExtraData);
+                if (!validationResult.Success)
+                {
+                    throw new Exception($"Consensus extra data validation failed: {validationResult.Message}");
+                }
+            }
+
             var consensusTransaction = await contractStub.GenerateConsensusTransactions.CallAsync(new BytesValue
                 {Value = triggerInformation.ToByteString()});
             await MineAsync(contractStub, consensusTransaction.Transactions.First());

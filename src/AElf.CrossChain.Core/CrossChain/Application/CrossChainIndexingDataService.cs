@@ -185,7 +185,8 @@ namespace AElf.CrossChain
 
             foreach (var chainIdHeight in sideChainValidatedHeightDict)
             {
-                Logger.LogTrace($"Validated height {chainIdHeight.Value} from  chain {chainIdHeight.Value} ");
+                Logger.LogTrace(
+                    $"Validated height {chainIdHeight.Value} from  chain {ChainHelper.ConvertChainIdToBase58(chainIdHeight.Key)} ");
             }
 
             return true;

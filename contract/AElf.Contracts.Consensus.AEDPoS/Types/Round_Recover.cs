@@ -46,6 +46,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var providedInformation = providedRound.RealTimeMinersInformation[pubkey];
             minerInRound.ProducedBlocks = providedInformation.ProducedBlocks;
             minerInRound.ProducedTinyBlocks = providedInformation.ProducedTinyBlocks;
+            minerInRound.ImpliedIrreversibleBlockHeight = providedInformation.ImpliedIrreversibleBlockHeight;
             minerInRound.ActualMiningTimes.Add(providedInformation.ActualMiningTimes);
 
             return this;

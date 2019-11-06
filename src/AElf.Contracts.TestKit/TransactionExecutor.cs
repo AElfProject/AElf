@@ -29,7 +29,7 @@ namespace AElf.Contracts.TestKit
             var miningService = _serviceProvider.GetRequiredService<IMiningService>();
             var blockAttachService = _serviceProvider.GetRequiredService<IBlockAttachService>();
             var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
-            var transactionResultService = _serviceProvider.GetRequiredService<TransactionResultService>();
+            var transactionResultService = _serviceProvider.GetRequiredService<ITransactionResultService>();
 
             var block = await miningService.MineAsync(
                 new RequestMiningDto
@@ -45,9 +45,9 @@ namespace AElf.Contracts.TestKit
             await blockAttachService.AttachBlockAsync(block);
 
             var transactionResult = await transactionResultService.GetTransactionResultAsync(transaction.GetHash());
-            if (transactionResult.Status != TransactionResultStatus.Mined)
+            if (transactionResult == null || transactionResult.Status != TransactionResultStatus.Mined)
             {
-                //throw new Exception($"Failed to execute {transaction.MethodName}. {transactionResult.Error}");
+                throw new Exception($"Failed to execute {transaction.MethodName}. {transactionResult?.Error}");
             }
         }
 
