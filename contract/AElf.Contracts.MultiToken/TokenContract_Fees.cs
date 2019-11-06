@@ -330,7 +330,7 @@ namespace AElf.Contracts.MultiToken
             return new Empty();
         }
 
-        public override Empty SetTransactionSizeUnitPrice(SInt32Value input)
+        public override Empty SetTransactionSizeUnitPrice(SInt64Value input)
         {
             if (State.ZeroContract.Value == null)
             {
@@ -355,6 +355,8 @@ namespace AElf.Contracts.MultiToken
             {
                 UnitPrice = input.Value
             });
+
+            Context.LogDebug(() => $"SetTransactionSizeUnitPrice: {input.Value}");
 
             State.TransactionFeeUnitPrice.Value = input.Value;
 
