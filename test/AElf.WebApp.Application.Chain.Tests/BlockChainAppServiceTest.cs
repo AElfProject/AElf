@@ -687,8 +687,8 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Header.ChainId.ShouldBe(ChainHelper.ConvertChainIdToBase58(chain.Id));
             response.Header.Bloom.ShouldBe(block.Header.Bloom.ToBase64());
             response.Header.Extra.ShouldBe(block.Header.ExtraData?.ToString());
-            response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToHex());
             response.Header.MerkleTreeRootOfTransactionState.ShouldBe(block.Header.MerkleTreeRootOfTransactionStatus.ToHex());
+            response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToHex());
             response.Body.TransactionsCount.ShouldBe(3);
 
             var responseTransactions = response.Body.Transactions;
