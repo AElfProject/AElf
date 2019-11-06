@@ -49,3 +49,13 @@ message ProposalInfo {
     aelf.Address proposer = 6;
     aelf.Address organization_address = 7;
 }
+
+message ProposalCreated{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
+}
+
+message ProposalReleased{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
+}

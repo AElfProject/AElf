@@ -171,75 +171,56 @@ namespace AElf.Database.RedisProtocol
                     if (value == null) continue;
 
                     var name = entry[0].ToLower();
-                    switch (name)
-                    {
-                        case "db":
-                            endpoint.Db = int.Parse(value);
-                            break;
-                        case "ssl":
-                            endpoint.Ssl = bool.Parse(value);
-                            if (useDefaultPort)
-                                endpoint.Port = RedisConfig.DefaultPortSsl;
-                            break;
-                        case "client":
-                            endpoint.Client = value;
-                            break;
-                        case "password":
-                            endpoint.Password = value;
-                            break;
-                        case "namespaceprefix":
-                            endpoint.NamespacePrefix = value;
-                            break;
-                        case "connecttimeout":
-                            endpoint.ConnectTimeout = int.Parse(value);
-                            break;
-                        case "sendtimeout":
-                            endpoint.SendTimeout = int.Parse(value);
-                            break;
-                        case "receivetimeout":
-                            endpoint.ReceiveTimeout = int.Parse(value);
-                            break;
-                        case "retrytimeout":
-                            endpoint.RetryTimeout = int.Parse(value);
-                            break;
-                        case "idletimeout":
-                        case "idletimeoutsecs":
-                            endpoint.IdleTimeOutSecs = int.Parse(value);
-                            break;
-                    }
+                    HandleEndpointByName(endpoint, useDefaultPort, name, value);
                 }
             }
 
             return endpoint;
         }
+        
+        private static void HandleEndpointByName(RedisEndpoint endpoint, bool useDefaultPort, string name, string value)
+        {
+            switch (name)
+            {
+                case "db":
+                    endpoint.Db = int.Parse(value);
+                    break;
+                case "ssl":
+                    endpoint.Ssl = bool.Parse(value);
+                    if (useDefaultPort)
+                        endpoint.Port = RedisConfig.DefaultPortSsl;
+                    break;
+                case "client":
+                    endpoint.Client = value;
+                    break;
+                case "password":
+                    endpoint.Password = value;
+                    break;
+                case "namespaceprefix":
+                    endpoint.NamespacePrefix = value;
+                    break;
+                case "connecttimeout":
+                    endpoint.ConnectTimeout = int.Parse(value);
+                    break;
+                case "sendtimeout":
+                    endpoint.SendTimeout = int.Parse(value);
+                    break;
+                case "receivetimeout":
+                    endpoint.ReceiveTimeout = int.Parse(value);
+                    break;
+                case "retrytimeout":
+                    endpoint.RetryTimeout = int.Parse(value);
+                    break;
+                case "idletimeout":
+                case "idletimeoutsecs":
+                    endpoint.IdleTimeOutSecs = int.Parse(value);
+                    break;
+            }
+        }
     }
 
     internal static class RedisExtensionsInternal
     {
-//        public static bool IsConnected(this Socket socket)
-//        {
-//            try
-//            {
-//                return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0);
-//            }
-//            catch (SocketException)
-//            {
-//                return false;
-//            }
-//        }
-
-//
-//        public static string[] GetIds(this IHasStringId[] itemsWithId)
-//        {
-//            var ids = new string[itemsWithId.Length];
-//            for (var i = 0; i < itemsWithId.Length; i++)
-//            {
-//                ids[i] = itemsWithId[i].Id;
-//            }
-//
-//            return ids;
-//        }
-
         public static List<string> ToStringList(this byte[][] multiDataList)
         {
             if (multiDataList == null)
@@ -253,36 +234,6 @@ namespace AElf.Database.RedisProtocol
 
             return results;
         }
-//
-//        public static string[] ToStringArray(this byte[][] multiDataList)
-//        {
-//            if (multiDataList == null)
-//                return TypeConstants.EmptyStringArray;
-//
-//            var to = new string[multiDataList.Length];
-//            for (int i = 0; i < multiDataList.Length; i++)
-//            {
-//                to[i] = multiDataList[i].FromUtf8Bytes();
-//            }
-//
-//            return to;
-//        }
-//
-//        public static Dictionary<string, string> ToStringDictionary(this byte[][] multiDataList)
-//        {
-//            if (multiDataList == null)
-//                return TypeConstants.EmptyStringDictionary;
-//
-//            var map = new Dictionary<string, string>();
-//
-//            for (var i = 0; i < multiDataList.Length; i += 2)
-//            {
-//                var key = multiDataList[i].FromUtf8Bytes();
-//                map[key] = multiDataList[i + 1].FromUtf8Bytes();
-//            }
-//
-//            return map;
-//        }
 
         private static readonly NumberFormatInfo DoubleFormatProvider = new NumberFormatInfo
         {
@@ -303,14 +254,6 @@ namespace AElf.Database.RedisProtocol
 
             return bytes;
         }
-//
-//        public static byte[][] ToMultiByteArray(this string[] args)
-//        {
-//            var byteArgs = new byte[args.Length][];
-//            for (var i = 0; i < args.Length; ++i)
-//                byteArgs[i] = args[i].ToUtf8Bytes();
-//            return byteArgs;
-//        }
 
         public static byte[][] PrependByteArray(this byte[][] args, byte[] valueToPrepend)
         {
