@@ -36,5 +36,10 @@ namespace AElf.Sdk.CSharp
                 ? long.MaxValue
                 : duration.Seconds.Mul(1000).Add(duration.Nanos.Div(1000000));
         }
+
+        public static Timestamp Max(Timestamp timestamp1, Timestamp timestamp2)
+        {
+            return timestamp1 > timestamp2 ? timestamp1 : timestamp2;
+        }
     }
 }

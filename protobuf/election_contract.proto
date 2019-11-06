@@ -2,9 +2,7 @@ syntax = "proto3";
 
 package Election;
 
-import "aelf/options.proto";
 import "aelf/core.proto";
-import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 import "acs1.proto";

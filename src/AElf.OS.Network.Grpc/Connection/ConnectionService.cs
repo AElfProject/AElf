@@ -94,6 +94,12 @@ namespace AElf.OS.Network.Grpc.Connection
                 return false;
             }
 
+            if (_peerPool.IsPeerBlackListed(endpoint.Address))
+            {
+                Logger.LogWarning($"Peer with endpoint {endpoint} is blacklisted.");
+                return false;
+            }
+
             var dialedPeer = await _peerDialer.DialPeerAsync(endpoint);
 
             if (dialedPeer == null)
@@ -165,6 +171,7 @@ namespace AElf.OS.Network.Grpc.Connection
             }
 
             currentPeer.IsConnected = true;
+            currentPeer.SyncState = SyncState.Syncing;
             
             Logger.LogWarning($"Connected to: {currentPeer.RemoteEndpoint} - {currentPeer.Info.Pubkey.Substring(0, 45)}" +
                               $" - in-token {currentPeer.InboundSessionId?.ToHex()}, out-token {currentPeer.OutboundSessionId?.ToHex()}" +
@@ -213,8 +220,8 @@ namespace AElf.OS.Network.Grpc.Connection
                     return new HandshakeReply {Error = HandshakeError.ConnectionRefused};
 
                 // create the connection to the peer
-                var peerAddress = new IPEndPoint(endpoint.Address, handshake.HandshakeData.ListeningPort);
-                var grpcPeer = await _peerDialer.DialBackPeerAsync(peerAddress, handshake);
+                var peerEndpoint = new IPEndPoint(endpoint.Address, handshake.HandshakeData.ListeningPort);
+                var grpcPeer = await _peerDialer.DialBackPeerAsync(peerEndpoint, handshake);
 
                 // add the new peer to the pool
                 if (!_peerPool.TryAddPeer(grpcPeer))
@@ -282,6 +289,7 @@ namespace AElf.OS.Network.Grpc.Connection
                               $" - best chain [{peer.CurrentBlockHeight}, {peer.CurrentBlockHash}]");
 
             peer.IsConnected = true;
+            peer.SyncState = SyncState.Syncing;
             
             FireConnectionEvent(peer);
         }

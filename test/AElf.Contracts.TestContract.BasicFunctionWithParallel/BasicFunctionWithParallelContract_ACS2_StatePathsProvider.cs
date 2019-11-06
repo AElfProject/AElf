@@ -21,6 +21,19 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
                         }
                     };
                 }
+
+                case nameof(IncreaseWinMoney):
+                {
+                    var args = IncreaseWinMoneyInput.Parser.ParseFrom(txn.Params);
+                    return new ResourceInfo
+                    {
+                        Paths =
+                        {
+                            GetPath(nameof(BasicFunctionWithParallelContractState.WinerHistory), args.Second.ToString())
+                        }
+                    };
+                }
+
                 case nameof(SetValue):
                 {
                     var args = SetValueInput.Parser.ParseFrom(txn.Params);
@@ -51,6 +64,9 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
                 
                 case nameof(IncreaseValueParallel):
                 case nameof(IncreaseValueParallelWithInlineAndPlugin):
+                case nameof(IncreaseValueFailedParallelWithInlineAndPlugin):  
+                case nameof(IncreaseValueParallelFailed):
+                case nameof(IncreaseValueParallelWithFailedInlineAndPlugin):
                 {
                     var args = IncreaseValueInput.Parser.ParseFrom(txn.Params);
                     return new ResourceInfo

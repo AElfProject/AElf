@@ -14,6 +14,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
         {
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
             context.Services.AddSingleton<ISystemTransactionMethodNameListProvider, SystemTransactionMethodNameListProvider>();
+            context.Services.AddSingleton<IPreExecutionPlugin, MethodCallingThresholdPreExecutionPlugin>();
         }
     }
 }

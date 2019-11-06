@@ -68,7 +68,7 @@ namespace AElf.Contract.TestContract
             CheckResult(transactionResult.TransactionResult);
 
             var afterBalance = await GetBalance(DefaultSender);
-            beforeBalance.ShouldBe(afterBalance + DefaultFee + transactionSize * 1000);
+            beforeBalance.ShouldBe(afterBalance + DefaultFee + transactionSize * 0);
             
             var acs8After = await GetContractResourceBalance(Acs8ContractAddress);
             var feesAfter = await GetContractResourceBalance(TransactionFeesContractAddress);
@@ -103,7 +103,7 @@ namespace AElf.Contract.TestContract
             feesAfter["STO"].ShouldBeLessThan(feesBefore["STO"]);
         }
 
-        [Fact(Skip = "Wait issue about execution order")]
+        [Fact]
         public async Task TransactionFee_InlineFailed_Test()
         {
             var beforeBalance = await GetBalance(DefaultSender);

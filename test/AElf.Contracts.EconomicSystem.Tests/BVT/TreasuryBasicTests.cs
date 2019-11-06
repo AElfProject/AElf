@@ -78,7 +78,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Owner = chosenOneAddress,
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol
             });
-            balanceAfter.Balance.ShouldBe(balanceBefore.Balance - 10L - transactionSize * 1000);
+            balanceAfter.Balance.ShouldBe(balanceBefore.Balance - 10L - transactionSize * 0);
         }
 
         [Fact]
@@ -109,7 +109,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Owner = chosenOneAddress,
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol
             });
-            balanceAfter.Balance.ShouldBe(balanceBefore.Balance);
+            balanceAfter.Balance.ShouldBe(balanceBefore.Balance - feeAmount);
         }
 
         private async Task<long> EconomistSystem_SetMethodTransactionFee_MultipleSymbol_Test()

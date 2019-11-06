@@ -13,8 +13,6 @@ namespace AElf.Contracts.Economic
         public const int TokenConverterTokenDecimals = 8;
         public const long TokenConverterTokenConnectorInitialVirtualBalance = 100_000_00000000;
 
-        public const int ConnectorSettingProposalReleaseThreshold = 6666;
-
         // Resource token related.
         public const long ResourceTokenTotalSupply = 1_000_000_000_00000000;
         public const int ResourceTokenDecimals = 8;

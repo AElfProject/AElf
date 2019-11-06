@@ -75,7 +75,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = BootMinerAddress
             })).Balance;
-            beforeBalance.ShouldBe(afterBalance + NewFeeAmount + transactionSize * 1000);
+            beforeBalance.ShouldBe(afterBalance + NewFeeAmount + transactionSize * 0);
         }
 
         private async Task Profit_SetMethodFee_Test()
@@ -133,7 +133,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = testerAddress
             })).Balance;
-            beforeBalance.ShouldBe(afterBalance + NewFeeAmount + transactionSize * 1000); 
+            beforeBalance.ShouldBe(afterBalance + NewFeeAmount + transactionSize * 0); 
         }
 
         private async Task Vote_SetMethodFee(string method, string symbol, long feeAmount)
@@ -161,7 +161,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
            createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var proposalHash = Hash.FromMessage(proposal);
+            var proposalHash = createResult.Output;
             var approveResult = await ParliamentAuthContractStub.Approve.SendAsync(new Acs3.ApproveInput
             {
                 ProposalId = proposalHash,
@@ -197,7 +197,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
             createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var proposalHash = Hash.FromMessage(proposal);
+            var proposalHash = createResult.Output;
             var approveResult = await ParliamentAuthContractStub.Approve.SendAsync(new Acs3.ApproveInput
             {
                 ProposalId = proposalHash,

@@ -4,5 +4,6 @@ namespace AElf.Contracts.Profit
     {
         public const int ProfitReceivingLimitForEachTime = 10;
         public const int DefaultProfitReceivingDuePeriodCount = 10;
+        public const int TokenAmountLimit = 5;
     }
 }

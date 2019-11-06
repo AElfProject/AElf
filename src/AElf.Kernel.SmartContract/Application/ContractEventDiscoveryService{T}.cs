@@ -46,21 +46,7 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     var transactionExecutingResult =
                         await _transactionResultQueryService.GetTransactionResultAsync(transactionId);
-                    if (transactionExecutingResult == null)
-                    {
-                        Logger.LogTrace($"Transaction result is null, transactionId: {transactionId}");
-                        continue;
-                    }
-
-                    if (transactionExecutingResult.Status == TransactionResultStatus.Failed)
-                    {
-                        Logger.LogTrace(
-                            $"Transaction failed, transactionId: {transactionId}, error: {transactionExecutingResult.Error}");
-                        continue;
-                    }
-
-                    if (transactionExecutingResult.Bloom.Length == 0 ||
-                        !_bloom.IsIn(new Bloom(transactionExecutingResult.Bloom.ToByteArray())))
+                    if (!CheckTransactionExecutingResult(transactionExecutingResult, transactionId))
                     {
                         continue;
                     }
@@ -88,7 +74,7 @@ namespace AElf.Kernel.SmartContract.Application
 
                 return messages;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 Logger.LogError($"Failed to resolve event {typeof(T).FullName}");
                 throw;
@@ -105,6 +91,30 @@ namespace AElf.Kernel.SmartContract.Application
 
             _logEvent = new T().ToLogEvent(contractAddress);
             _bloom = _logEvent.GetBloom();
+        }
+
+        private bool CheckTransactionExecutingResult(TransactionResult transactionExecutingResult, Hash transactionId)
+        {
+            if (transactionExecutingResult == null)
+            {
+                Logger.LogTrace($"Transaction result is null, transactionId: {transactionId}");
+                return false;
+            }
+
+            if (transactionExecutingResult.Status == TransactionResultStatus.Failed)
+            {
+                Logger.LogTrace(
+                    $"Transaction failed, transactionId: {transactionId}, error: {transactionExecutingResult.Error}");
+                return false;
+            }
+
+            if (transactionExecutingResult.Bloom.Length == 0 ||
+                !_bloom.IsIn(new Bloom(transactionExecutingResult.Bloom.ToByteArray())))
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

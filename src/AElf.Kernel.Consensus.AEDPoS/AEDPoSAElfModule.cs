@@ -32,7 +32,6 @@ namespace AElf.Kernel.Consensus.AEDPoS
                     ConstrainedAEDPoSTransactionValidationProvider>();
             context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
 
-
             var configuration = context.Services.GetConfiguration();
 
             Configure<ConsensusOptions>(option =>
