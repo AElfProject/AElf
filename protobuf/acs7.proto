@@ -2,10 +2,10 @@ syntax = "proto3";
 
 package acs7;
 
-import "aelf/core.proto";
+import public "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
+import public "google/protobuf/timestamp.proto";
 
 option (aelf.identity) = "acs7";
 
@@ -147,7 +147,6 @@ message SideChainInfo {
 message SideChainCreationRequest {
     int64 indexing_price = 1;
     int64 locked_token_amount = 2;
-    bytes contract_code = 3;
     bool is_privilege_preserved = 4;
     string side_chain_token_symbol = 5;
     string side_chain_token_name = 6;

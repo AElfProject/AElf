@@ -202,7 +202,7 @@ namespace AElf.Contracts.AssociationAuth
                 transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 transactionResult.TransactionResult.Error.Contains("Unable to propose.").ShouldBeTrue();
             }
-            //"Proposal already exists."
+            //"Proposal with same input."
             {
                 AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
                 var transactionResult1 =
@@ -211,8 +211,7 @@ namespace AElf.Contracts.AssociationAuth
 
                 var transactionResult2 =
                     await AssociationAuthContractStub.CreateProposal.SendAsync(createProposalInput);
-                transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-                transactionResult2.TransactionResult.Error.Contains("Proposal already exists.").ShouldBeTrue();
+                transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
         }
 
@@ -371,12 +370,6 @@ namespace AElf.Contracts.AssociationAuth
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
             var result = await AssociationAuthContractStub.Release.SendAsync(proposalId);
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
-            //After release,the proposal will be deleted
-            //var getProposal = await AssociationAuthContractStub.GetProposal.SendAsync(proposalId.Result);
-            //getProposal.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
-            //getProposal.TransactionResult.Error.Contains("Not found proposal.").ShouldBeTrue();
-            
             // Check inline transaction result
             var getBalance = TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
@@ -384,6 +377,39 @@ namespace AElf.Contracts.AssociationAuth
                 Owner = Reviewer1
             }).Result.Balance;
             getBalance.ShouldBe(100);
+        }
+
+        [Fact]
+        public async Task Release_Proposal_AlreadyReleased_Test()
+        {
+            var organizationAddress = await CreateOrganizationAsync();
+            var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);
+            await TransferToOrganizationAddressAsync(organizationAddress);
+            await ApproveAsync(Reviewer3KeyPair,proposalId);
+  
+            AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
+            var result = await AssociationAuthContractStub.Release.SendAsync(proposalId);
+            result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var proposalReleased = ProposalReleased.Parser.ParseFrom(result.TransactionResult.Logs[0].NonIndexed)
+                .ProposalId;
+            proposalReleased.ShouldBe(proposalId);
+            
+            //After release,the proposal will be deleted
+            var getProposal = await AssociationAuthContractStub.GetProposal.CallAsync(proposalId);
+            getProposal.ShouldBe(new ProposalOutput());
+            
+            //approve the same proposal again
+            AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer3KeyPair);
+            var transactionResult =
+                await AssociationAuthContractStub.Approve.SendAsync(new ApproveInput {ProposalId = proposalId});
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult.TransactionResult.Error.ShouldContain("Invalid proposal");
+            
+            //release the same proposal again
+            AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer2KeyPair);
+            var transactionResult2 = await AssociationAuthContractStub.Release.SendAsync(proposalId);
+            transactionResult2.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            transactionResult2.TransactionResult.Error.ShouldContain("Proposal not found.");
         }
 
         private async Task<Hash> CreateProposalAsync(ECKeyPair proposalKeyPair,Address organizationAddress)
@@ -405,6 +431,10 @@ namespace AElf.Contracts.AssociationAuth
                 OrganizationAddress = organizationAddress
             };
             var proposal = await AssociationAuthContractStub.CreateProposal.SendAsync(createProposalInput);
+            var proposalCreated = ProposalCreated.Parser.ParseFrom(proposal.TransactionResult.Logs[0].NonIndexed)
+                .ProposalId;
+            proposal.Output.ShouldBe(proposalCreated);
+            
             return proposal.Output;
         }
 

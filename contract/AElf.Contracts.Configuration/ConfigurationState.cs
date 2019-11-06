@@ -10,6 +10,6 @@ namespace AElf.Contracts.Configuration
         
         public SingletonState<Address> Owner { get; set; }
 
-        public MappedState<string, TokenAmounts> TransactionFees { get; set; }
+        public MappedState<string, MethodFees> TransactionFees { get; set; }
     }
 }

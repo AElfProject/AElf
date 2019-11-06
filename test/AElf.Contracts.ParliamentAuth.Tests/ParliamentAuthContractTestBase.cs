@@ -17,6 +17,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Threading;
+using SampleECKeyPairs = AElf.Contracts.TestKit.SampleECKeyPairs;
 
 namespace AElf.Contracts.ParliamentAuth
 {
@@ -162,7 +163,7 @@ namespace AElf.Contracts.ParliamentAuth
         protected long TotalSupply;
         protected long BalanceOfStarter;
         protected bool IsPrivilegePreserved;
-        protected ContractTester<ParliamentAuthContractPrivilegeTestAElfModule> Tester;
+        protected new ContractTester<ParliamentAuthContractPrivilegeTestAElfModule> Tester;
 
 
         public ParliamentAuthContractPrivilegeTestBase()

@@ -38,20 +38,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         {
             Logger.LogTrace($"Entered GroupAsync");
 
-            var groupedTransactions = new GroupedTransactions();
-
-            List<Transaction> toBeGrouped;
-            if (transactions.Count > _options.MaxTransactions)
-            {
-                groupedTransactions.NonParallelizables.AddRange(
-                    transactions.GetRange(_options.MaxTransactions, transactions.Count - _options.MaxTransactions));
-
-                toBeGrouped = transactions.GetRange(0, _options.MaxTransactions);
-            }
-            else
-            {
-                toBeGrouped = transactions;
-            }
+            var toBeGrouped = GetTransactionsToBeGrouped(transactions, out var groupedTransactions);
 
             using (var cts = new CancellationTokenSource(_options.GroupingTimeOut))
             {
@@ -102,6 +89,25 @@ namespace AElf.Kernel.SmartContract.Parallel
                             $"{groupedTransactions.NonParallelizables.Count} as non-parallelizable transactions.");
 
             return groupedTransactions;
+        }
+
+        private List<Transaction> GetTransactionsToBeGrouped(List<Transaction> transactions, out GroupedTransactions groupedTransactions)
+        {
+            List<Transaction> toBeGrouped;
+            groupedTransactions = new GroupedTransactions();
+            if (transactions.Count > _options.MaxTransactions)
+            {
+                groupedTransactions.NonParallelizables.AddRange(
+                    transactions.GetRange(_options.MaxTransactions, transactions.Count - _options.MaxTransactions));
+
+                toBeGrouped = transactions.GetRange(0, _options.MaxTransactions);
+            }
+            else
+            {
+                toBeGrouped = transactions;
+            }
+
+            return toBeGrouped;
         }
 
         private List<List<Transaction>> GroupParallelizables(List<(Transaction, TransactionResourceInfo)> txsWithResources)

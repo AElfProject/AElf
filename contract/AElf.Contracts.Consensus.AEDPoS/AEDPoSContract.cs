@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
@@ -194,7 +193,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var minerList = State.MainChainCurrentMinerList.Value.Pubkeys;
-            foreach (var symbol in new List<string> {"RAM", "STO", "CPU", "NET"})
+            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList)
             {
                 var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {

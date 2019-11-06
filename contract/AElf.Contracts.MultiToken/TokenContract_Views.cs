@@ -24,7 +24,7 @@ namespace AElf.Contracts.MultiToken
             {
                 Value =
                 {
-                    TokenContractConstants.ResourceTokenSymbols.Select(symbol =>
+                    Context.Variables.ResourceTokenSymbolNameList.Select(symbol =>
                         State.TokenInfos[symbol] ?? new TokenInfo())
                 }
             };
@@ -87,14 +87,23 @@ namespace AElf.Contracts.MultiToken
             return virtualAddress;
         }
 
-        public override Address GetCrossChainTransferTokenContractAddress(GetCrossChainTransferTokenContractAddressInput input)
+        public override Address GetCrossChainTransferTokenContractAddress(
+            GetCrossChainTransferTokenContractAddressInput input)
         {
             return State.CrossChainTransferWhiteList[input.ChainId];
         }
-        
+
         public override StringValue GetPrimaryTokenSymbol(Empty input)
         {
-            return new StringValue {Value = State.ChainPrimaryTokenSymbol.Value ?? State.NativeTokenSymbol.Value};
+            return new StringValue
+            {
+                Value = (State.ChainPrimaryTokenSymbol.Value ?? State.NativeTokenSymbol.Value) ?? string.Empty
+            };
+        }
+
+        public override SInt64Value GetTransactionSizeFeeUnitPrice(Empty input)
+        {
+            return new SInt64Value {Value = State.TransactionFeeUnitPrice.Value};
         }
 
         #region ForTests

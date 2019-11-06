@@ -217,7 +217,8 @@ namespace AElf.Contracts.Election
                 output.Value.Add(new CandidateDetail
                 {
                     CandidateInformation = State.CandidateInformationMap[candidate.ToHex()],
-                    ObtainedVotesAmount = State.CandidateVotes[candidate.ToHex()].ObtainedActiveVotedVotesAmount
+                    ObtainedVotesAmount = GetCandidateVote(new StringInput {Value = candidate.ToHex()})
+                        .ObtainedActiveVotedVotesAmount
                 });
             }
 
@@ -276,25 +277,6 @@ namespace AElf.Contracts.Election
             return State.DataCentersRankingList.Value;
         }
 
-        /*
-        public override SInt64Value GetNextElectCountDown(Empty input)
-        {
-            var round = State.AEDPoSContract.GetRoundInformation.Call(new SInt64Value {Value = 2L});
-            var orderOneMiner = round.RealTimeMinersInformation.Values.FirstOrDefault(x => x.Order == 1);
-            if (orderOneMiner == null)
-                return new SInt64Value {Value = 0};
-            var expectedMiningTime = orderOneMiner.ExpectedMiningTime;
-            int bpCount = round.RealTimeMinersInformation.Count;
-            long blockChainStartTime = expectedMiningTime.Seconds.Sub(bpCount.Add(1).Mul(4));
-            var electionTimeSpan = State.TimeEachTerm.Value;
-            var countDown = new SInt64Value
-            {
-                Value = electionTimeSpan.Sub((int) Context.CurrentBlockTime.Seconds.Sub(blockChainStartTime) %
-                                             electionTimeSpan)
-            };
-            return countDown;
-        }
-        */
         public override SInt64Value GetElectionTermTimeSpan(Empty input)
         {
             return new SInt64Value 
@@ -302,6 +284,7 @@ namespace AElf.Contracts.Election
                 Value = State.TimeEachTerm.Value
             };
         }
+
         private ElectionVotingRecord TransferVotingRecordToElectionVotingRecord(VotingRecord votingRecord, Hash voteId)
         {
             var lockSeconds = State.LockTimeMap[voteId];

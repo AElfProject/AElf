@@ -207,7 +207,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
         {
             var cpuConsumingResult = await DefaultTester.CpuConsumingMethod.SendAsync(new Empty());
             cpuConsumingResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
-            cpuConsumingResult.TransactionResult.Error.ShouldContain("CPU token is not enough");
+            cpuConsumingResult.TransactionResult.Error.ShouldContain("is not enough");
         }
 
         [Fact]
@@ -245,7 +245,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
 
             await action(new Empty());
             // Mine a block to use plugin to really consume resource tokens.
-            await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
+            var result = await DefaultTester.BuyResourceToken.SendAsync(new BuyResourceTokenInput());
 
             var afterCpu = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {

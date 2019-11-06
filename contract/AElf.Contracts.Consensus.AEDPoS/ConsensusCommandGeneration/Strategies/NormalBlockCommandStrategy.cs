@@ -25,9 +25,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 {
                     Hint = new AElfConsensusHint
                     {
-                        Behaviour = CurrentRound.IsMinerListJustChanged
-                            ? AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue
-                            : AElfConsensusBehaviour.UpdateValue
+                        Behaviour = AElfConsensusBehaviour.UpdateValue
                     }.ToByteString(),
                     ArrangedMiningTime = arrangedMiningTime,
                     // Cancel mining after time slot of current miner because of the task queue.

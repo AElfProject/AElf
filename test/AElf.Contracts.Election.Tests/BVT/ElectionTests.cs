@@ -5,6 +5,7 @@ using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.Profit;
 using AElf.Contracts.Vote;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
@@ -50,7 +51,10 @@ namespace AElf.Contracts.Election
             var balanceBeforeAnnouncing = await GetNativeTokenBalance(candidatesKeyPairs[0].PublicKey);
             balanceBeforeAnnouncing.ShouldBe(ElectionContractConstants.UserInitializeTokenAmount);
 
-            candidatesKeyPairs.ForEach(async kp => await AnnounceElectionAsync(kp));
+            foreach (var keyPair in candidatesKeyPairs)
+            {
+                await AnnounceElectionAsync(keyPair);
+            }
 
             var balanceAfterAnnouncing = await GetNativeTokenBalance(candidatesKeyPairs[0].PublicKey);
 
@@ -89,6 +93,7 @@ namespace AElf.Contracts.Election
             balanceBeforeAnnouncing.ShouldBe(balanceAfterAnnouncing + ElectionContractConstants.LockTokenForElection);
         }
 
+        #pragma warning disable xUnit1013
         public async Task ElectionContract_QuiteElection_Test()
         {
             const int quitCount = 2;
@@ -113,7 +118,10 @@ namespace AElf.Contracts.Election
                 balancesBeforeQuiting.Add(quitCandidate, await GetNativeTokenBalance(quitCandidate.PublicKey));
             }
 
-            quitCandidates.ForEach(async kp => await QuitElectionAsync(kp));
+            foreach (var keyPair in quitCandidates)
+            {
+                await QuitElectionAsync(keyPair);
+            }
 
             // Check balances after quiting election.
             foreach (var quitCandidate in quitCandidates)
@@ -361,12 +369,13 @@ namespace AElf.Contracts.Election
                 SchemeId = ProfitItemsIds[ProfitType.CitizenWelfare],
                 Symbol = "ELF"
             });
+            var txSize = claimResult.Transaction.Size();
             claimResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             // Check ELF token balance
             {
                 var balance = await GetNativeTokenBalance(voterKeyPair.PublicKey);
-                balance.ShouldBe(beforeBalance - 1_00000000);
+                balance.ShouldBe(beforeBalance - 1_00000000 - txSize * 0);
             }
 
             // Check VOTE token balance.
@@ -414,12 +423,12 @@ namespace AElf.Contracts.Election
         {
             await ElectionContract_AnnounceElection_Test();
 
-            var publicKey = ValidationDataCenterKeyPairs.First().PublicKey.ToHex();
+            var pubkey = ValidationDataCenterKeyPairs.First().PublicKey.ToHex();
             var transactionResult = (await ElectionContractStub.UpdateCandidateInformation.SendAsync(
                 new UpdateCandidateInformationInput
                 {
                     IsEvilNode = true,
-                    Pubkey = publicKey,
+                    Pubkey = pubkey,
                     RecentlyProducedBlocks = 10,
                     RecentlyMissedTimeSlots = 100
                 })).TransactionResult;
@@ -429,10 +438,10 @@ namespace AElf.Contracts.Election
             //get candidate information
             var candidateInformation = await ElectionContractStub.GetCandidateInformation.CallAsync(new StringInput
             {
-                Value = publicKey
+                Value = pubkey
             });
 
-            candidateInformation.ShouldBe(new CandidateInformation());
+            candidateInformation.ShouldBe(new CandidateInformation {Pubkey = pubkey});
         }
     }
 }
