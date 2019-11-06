@@ -35,7 +35,7 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             if (_unitPrice != null)
             {
-                Logger.LogTrace($"Get tx size fee unit price: {_unitPrice.Value}");
+//                Logger.LogTrace($"Get tx size fee unit price: {_unitPrice.Value}");
                 return _unitPrice.Value;
             }
 
