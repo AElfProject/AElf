@@ -21,7 +21,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         ProducedTinyBlocks = minerInRound.ProducedTinyBlocks,
                         PreviousInValue = minerInRound.PreviousInValue,
                         ActualMiningTimes = {minerInRound.ActualMiningTimes},
-                        ImpliedIrreversibleBlockHeight = minerInRound.ImpliedIrreversibleBlockHeight
+                        ImpliedIrreversibleBlockHeight = minerInRound.ImpliedIrreversibleBlockHeight,
+                        Order = minerInRound.Order,
+                        IsExtraBlockProducer = minerInRound.IsExtraBlockProducer
                     }
                 }
             };
@@ -39,7 +41,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     {
                         Pubkey = information.Value.Pubkey,
                         SupposedOrderOfNextRound = information.Value.SupposedOrderOfNextRound,
-                        FinalOrderOfNextRound = information.Value.FinalOrderOfNextRound
+                        FinalOrderOfNextRound = information.Value.FinalOrderOfNextRound,
+                        Order = information.Value.Order,
+                        IsExtraBlockProducer = information.Value.IsExtraBlockProducer
                     });
                 }
             }

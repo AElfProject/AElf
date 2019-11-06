@@ -13,6 +13,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         private readonly IBlockExtraDataService _blockExtraDataService;
         private readonly IAccountService _accountService;
 
+        private readonly List<string> _cachedPubkeyList = new List<string>();
+
         public AEDPoSBroadcastPrivilegedPubkeyListProvider(IBlockExtraDataService blockExtraDataService,
             IAccountService accountService)
         {
@@ -24,15 +26,22 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         {
             var consensusExtraData = _blockExtraDataService.GetExtraDataFromBlockHeader("Consensus", blockHeader);
             var information = AElfConsensusHeaderInformation.Parser.ParseFrom(consensusExtraData);
+            if (information.Behaviour == AElfConsensusBehaviour.TinyBlock)
+            {
+                return _cachedPubkeyList;
+            }
+
             var round = information.Round;
             var currentPubkey = (await _accountService.GetPublicKeyAsync()).ToHex();
             if (round.RealTimeMinersInformation.Values.Any(m => m.OutValue != null) &&
                 round.RealTimeMinersInformation.ContainsKey(currentPubkey))
             {
                 // At least someone mined blocks during current round.
-                var currentOrder = round.RealTimeMinersInformation.Values.First(m => m.Pubkey == currentPubkey).Order;
+                var currentMiner =
+                    round.RealTimeMinersInformation.Values.Single(m => m.Pubkey == currentPubkey);
+                var currentOrder = currentMiner.Order;
                 var minersCount = round.RealTimeMinersInformation.Count;
-                var ebp = round.RealTimeMinersInformation.Values.First(m => m.IsExtraBlockProducer).Pubkey;
+                var ebp = round.RealTimeMinersInformation.Values.Single(m => m.IsExtraBlockProducer).Pubkey;
                 if (currentOrder >= minersCount) return new List<string> {ebp};
                 var nextMiners = round.RealTimeMinersInformation.Values.Where(m => m.Order > currentOrder)
                     .OrderBy(m => m.Order).Select(m => m.Pubkey).ToList();
