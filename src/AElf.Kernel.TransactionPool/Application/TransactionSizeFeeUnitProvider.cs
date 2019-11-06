@@ -2,6 +2,8 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using Google.Protobuf.WellKnownTypes;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.TransactionPool.Application
 {
@@ -10,6 +12,8 @@ namespace AElf.Kernel.TransactionPool.Application
         private readonly ITokenContractReaderFactory _tokenStTokenContractReaderFactory;
         private readonly IBlockchainService _blockchainService;
 
+        public ILogger<TransactionSizeFeeUnitProvider> Logger { get; set; }
+
         private long? _unitPrice;
 
         public TransactionSizeFeeUnitProvider(ITokenContractReaderFactory tokenStTokenContractReaderFactory,
@@ -17,16 +21,23 @@ namespace AElf.Kernel.TransactionPool.Application
         {
             _tokenStTokenContractReaderFactory = tokenStTokenContractReaderFactory;
             _blockchainService = blockchainService;
+
+            Logger = NullLogger<TransactionSizeFeeUnitProvider>.Instance;
         }
 
         public void SetUnitPrice(long unitPrice)
         {
+            Logger.LogTrace($"Set tx size fee unit price: {unitPrice}");
             _unitPrice = unitPrice;
         }
 
         public async Task<long> GetUnitPriceAsync()
         {
-            if (_unitPrice != null) return _unitPrice.Value;
+            if (_unitPrice != null)
+            {
+//                Logger.LogTrace($"Get tx size fee unit price: {_unitPrice.Value}");
+                return _unitPrice.Value;
+            }
 
             var chain = await _blockchainService.GetChainAsync();
 
@@ -37,6 +48,8 @@ namespace AElf.Kernel.TransactionPool.Application
             });
 
             _unitPrice = (await tokenStub.GetTransactionSizeFeeUnitPrice.CallAsync(new Empty())).Value;
+
+            Logger.LogTrace($"Get tx size fee unit price: {_unitPrice.Value}");
 
             return _unitPrice.Value;
         }

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Miner.Application
@@ -19,6 +20,8 @@ namespace AElf.Kernel.Miner.Application
             (_blooms = _eventHandlers.Select(h => h.InterestedEvent).ToDictionary(e => e, e => e.GetBloom()));
 
         private readonly List<ILogEventHandler> _eventHandlers;
+        
+        public ILogger<LogEventListeningService> Logger { get; set; }
 
         public LogEventListeningService(IBlockchainService blockchainService,
             ITransactionResultQueryService transactionResultQueryService,
@@ -31,6 +34,7 @@ namespace AElf.Kernel.Miner.Application
 
         public async Task ApplyAsync(IEnumerable<Hash> blockHashes)
         {
+            Logger.LogTrace("Apply log event handler.");
             foreach (var blockId in blockHashes)
             {
                 var block = await _blockchainService.GetBlockByHashAsync(blockId);
@@ -83,6 +87,8 @@ namespace AElf.Kernel.Miner.Application
                     }
                 }
             }
+            
+            Logger.LogTrace("Finish apply log event handler.");
         }
     }
 }

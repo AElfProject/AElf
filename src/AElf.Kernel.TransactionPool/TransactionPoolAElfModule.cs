@@ -26,6 +26,8 @@ namespace AElf.Kernel.TransactionPool
             services.AddSingleton<ITransactionReadOnlyExecutionService, TransactionReadOnlyExecutionService>();
             services.AddSingleton<ITransactionSizeFeeUnitPriceProvider, TransactionSizeFeeUnitProvider>();
 
+            services.AddSingleton<NewIrreversibleBlockFoundEventHandler>();
+
             var configuration = context.Services.GetConfiguration();
             Configure<TransactionOptions>(configuration.GetSection("Transaction"));
         }
