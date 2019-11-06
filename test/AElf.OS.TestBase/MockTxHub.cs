@@ -97,6 +97,11 @@ namespace AElf.OS
             return Task.FromResult(_allTransactions.Count);
         }
 
+        public Task<bool> IsTransactionExistsAsync(Hash transactionId)
+        {
+            throw new System.NotImplementedException();
+        }
+
         private void CleanTransactions(IEnumerable<Hash> transactionIds)
         {
             foreach (var transactionId in transactionIds)
