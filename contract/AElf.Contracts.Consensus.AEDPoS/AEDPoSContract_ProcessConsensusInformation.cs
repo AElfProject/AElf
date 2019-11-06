@@ -248,6 +248,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 round.RealTimeMinersInformation[decryptedPreviousInValue.Key].DecryptedPieces
                     .Add(publicKey, decryptedPreviousInValue.Value);
             }
+
+            foreach (var previousInValue in input.MinersPreviousInValues)
+            {
+                round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue = previousInValue.Value;
+            }
         }
 
         private void ProcessTinyBlock(TinyBlockInput tinyBlockInput)

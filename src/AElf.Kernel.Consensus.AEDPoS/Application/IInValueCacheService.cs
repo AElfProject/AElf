@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using AElf.Types;
+using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
@@ -9,7 +10,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         Hash GetInValue(long roundId);
     }
 
-    public class InValueCacheService : IInValueCacheService
+    public class InValueCacheService : IInValueCacheService, ISingletonDependency
     {
         private readonly Dictionary<long, Hash> _inValues = new Dictionary<long, Hash>();
 

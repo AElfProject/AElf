@@ -59,6 +59,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             if (hint.Behaviour == AElfConsensusBehaviour.UpdateValue)
             {
                 var inValue = _inValueCacheService.GetInValue(hint.RoundId);
+                Logger.LogTrace($"Got in value {inValue} for round of id {hint.RoundId}");
                 var trigger = new AElfConsensusTriggerInformation
                 {
                     Pubkey = Pubkey,
@@ -109,10 +110,16 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     trigger.EncryptedPieces.Add(secretPiece.Key, ByteString.CopyFrom(secretPiece.Value));
                 }
 
-                var revealedInValues = _secretSharingService.GetDecryptedPieces(hint.RoundId);
+                var decryptedPieces = _secretSharingService.GetDecryptedPieces(hint.RoundId);
+                foreach (var decryptedPiece in decryptedPieces)
+                {
+                    trigger.DecryptedPieces.Add(decryptedPiece.Key, ByteString.CopyFrom(decryptedPiece.Value));
+                }
+
+                var revealedInValues = _secretSharingService.GetRevealedInValues(hint.RoundId);
                 foreach (var revealedInValue in revealedInValues)
                 {
-                    trigger.DecryptedPieces.Add(revealedInValue.Key, ByteString.CopyFrom(revealedInValue.Value));
+                    trigger.RevealedInValues.Add(revealedInValue.Key, revealedInValue.Value);
                 }
 
                 return trigger.ToBytesValue();

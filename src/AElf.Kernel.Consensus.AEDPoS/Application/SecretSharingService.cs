@@ -137,7 +137,10 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public Dictionary<string, byte[]> GetEncryptedPieces(long roundId)
         {
             _encryptedPieces.TryGetValue(roundId, out var encryptedPieces);
-            Logger.LogTrace($"Encrypted/Shared {_encryptedPieces.Count} pieces for round of id {roundId}");
+            if (encryptedPieces != null)
+            {
+                Logger.LogTrace($"Encrypted/Shared {encryptedPieces.Count} pieces for round of id {roundId}");
+            }
             _encryptedPieces.Remove(roundId);
             return encryptedPieces ?? new Dictionary<string, byte[]>();
         }
@@ -145,7 +148,10 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public Dictionary<string, byte[]> GetDecryptedPieces(long roundId)
         {
             _decryptedPieces.TryGetValue(roundId, out var decryptedPieces);
-            Logger.LogTrace($"Decrypted {_decryptedPieces.Count} pieces for round of id {roundId}");
+            if (decryptedPieces != null)
+            {
+                Logger.LogTrace($"Decrypted {decryptedPieces.Count} pieces for round of id {roundId}");
+            }
             _decryptedPieces.Remove(roundId);
             return decryptedPieces ?? new Dictionary<string, byte[]>();
         }
@@ -153,7 +159,10 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public Dictionary<string, Hash> GetRevealedInValues(long roundId)
         {
             _revealedInValues.TryGetValue(roundId, out var revealedInValues);
-            Logger.LogTrace($"Revealed {_revealedInValues.Count} in values for round of id {roundId}");
+            if (revealedInValues != null)
+            {
+                Logger.LogTrace($"Revealed {revealedInValues.Count} in values for round of id {roundId}");
+            }
             _revealedInValues.Remove(roundId);
             return revealedInValues ?? new Dictionary<string, Hash>();
         }
