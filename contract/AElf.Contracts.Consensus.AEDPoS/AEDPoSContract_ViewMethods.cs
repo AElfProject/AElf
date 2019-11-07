@@ -398,7 +398,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     var previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.Pubkey].OutValue;
                     if (previousOutValue != null &&
                         Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue)
+                    {
+                        Context.LogDebug(() => $"Incorrect previous in value: {minerInCurrentRound.Pubkey}");
                         evilMinersPubKey.Add(minerInCurrentRound.Pubkey);
+                    }
                 }
             }
 
@@ -407,10 +410,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // If one miner is not a candidate anymore.
             var candidates = State.ElectionContract.GetCandidates.Call(new Empty()).Value.Select(p => p.ToHex())
                 .ToList();
+            var initialMiners = State.Rounds[1].RealTimeMinersInformation.Keys;
             if (candidates.Any())
             {
-                evilMinersPubKey.AddRange(
-                    currentRound.RealTimeMinersInformation.Keys.Where(pubkey => !candidates.Contains(pubkey)));
+                var keys = currentRound.RealTimeMinersInformation.Keys.Where(pubkey =>
+                    !candidates.Contains(pubkey) && !initialMiners.Contains(pubkey));
+                evilMinersPubKey.AddRange(keys);
             }
 
             return evilMinersPubKey;
