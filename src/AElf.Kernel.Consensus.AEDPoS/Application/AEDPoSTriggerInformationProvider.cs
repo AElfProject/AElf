@@ -1,24 +1,18 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Acs4;
 using AElf.Kernel.Account.Application;
 using Google.Protobuf;
 using Volo.Abp.Threading;
 using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.Application;
 using Google.Protobuf.WellKnownTypes;
-using AElf.Types;
 using Microsoft.Extensions.Logging;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    internal class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
+    // ReSharper disable once InconsistentNaming
+    public class AEDPoSTriggerInformationProvider : ITriggerInformationProvider
     {
         private readonly IAccountService _accountService;
-        private readonly IRandomHashCacheService _randomHashCacheService;
         private readonly IInValueCacheService _inValueCacheService;
-        private readonly IBlockchainService _blockchainService;
         private readonly ISecretSharingService _secretSharingService;
 
         private ByteString Pubkey => ByteString.CopyFrom(AsyncHelper.RunSync(_accountService.GetPublicKeyAsync));
@@ -26,12 +20,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public ILogger<AEDPoSTriggerInformationProvider> Logger { get; set; }
 
         public AEDPoSTriggerInformationProvider(IAccountService accountService,
-            IRandomHashCacheService randomHashCacheService, IBlockchainService blockchainService,
             ISecretSharingService secretSharingService, IInValueCacheService inValueCacheService)
         {
             _accountService = accountService;
-            _randomHashCacheService = randomHashCacheService;
-            _blockchainService = blockchainService;
             _secretSharingService = secretSharingService;
             _inValueCacheService = inValueCacheService;
         }
@@ -41,8 +32,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             return new BytesValue {Value = Pubkey};
         }
 
-        public async Task<BytesValue> GetTriggerInformationForBlockHeaderExtraDataAsync(
-            BytesValue consensusCommandBytes)
+        public BytesValue GetTriggerInformationForBlockHeaderExtraData(BytesValue consensusCommandBytes)
         {
             if (consensusCommandBytes == null)
             {
@@ -58,13 +48,15 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
             if (hint.Behaviour == AElfConsensusBehaviour.UpdateValue)
             {
-                var inValue = _inValueCacheService.GetInValue(hint.RoundId);
-                Logger.LogTrace($"Got in value {inValue} for round of id {hint.RoundId}");
+                var newInValue = _inValueCacheService.GetInValue(hint.RoundId);
+                var previousInValue = _inValueCacheService.GetInValue(hint.PreviousRoundId);
+                Logger.LogTrace($"New in value {newInValue} for round of id {hint.RoundId}");
+                Logger.LogTrace($"Previous in value {previousInValue} for round of id {hint.PreviousRoundId}");
                 var trigger = new AElfConsensusTriggerInformation
                 {
                     Pubkey = Pubkey,
-                    InValue = inValue,
-                    PreviousInValue = _inValueCacheService.GetInValue(hint.PreviousRoundId),
+                    InValue = newInValue,
+                    PreviousInValue = previousInValue,
                     Behaviour = hint.Behaviour
                 };
 
@@ -78,8 +70,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }.ToBytesValue();
         }
 
-        public async Task<BytesValue> GetTriggerInformationForConsensusTransactionsAsync(
-            BytesValue consensusCommandBytes)
+        public BytesValue GetTriggerInformationForConsensusTransactions(BytesValue consensusCommandBytes)
         {
             if (consensusCommandBytes == null)
             {
