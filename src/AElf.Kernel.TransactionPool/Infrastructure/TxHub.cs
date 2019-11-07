@@ -39,9 +39,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         private ConcurrentDictionary<long, ConcurrentDictionary<Hash, QueuedTransaction>> _expiredByExpiryBlock =
             new ConcurrentDictionary<long, ConcurrentDictionary<Hash, QueuedTransaction>>();
 
-        private ConcurrentDictionary<long, ConcurrentDictionary<Hash, QueuedTransaction>> _futureByBlock =
-            new ConcurrentDictionary<long, ConcurrentDictionary<Hash, QueuedTransaction>>();
-
         private readonly ActionBlock<QueuedTransaction> _processTransactionJobs;
 
         private long _bestChainHeight = Constants.GenesisBlockHeight - 1;
@@ -123,12 +120,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 return;
             }
 
-            if (prefix == null)
-            {
-                queuedTransaction.RefBlockStatus = RefBlockStatus.FutureRefBlock;
-                return;
-            }
-
             if (queuedTransaction.Transaction.RefBlockPrefix == prefix)
             {
                 queuedTransaction.RefBlockStatus = RefBlockStatus.RefBlockValid;
@@ -164,7 +155,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
         {
             _expiredByExpiryBlock = new ConcurrentDictionary<long, ConcurrentDictionary<Hash, QueuedTransaction>>();
             _invalidatedByBlock = new ConcurrentDictionary<long, ConcurrentDictionary<Hash, QueuedTransaction>>();
-            _futureByBlock = new ConcurrentDictionary<long, ConcurrentDictionary<Hash, QueuedTransaction>>();
             _validatedTransactions = new ConcurrentDictionary<Hash, QueuedTransaction>();
         }
 
@@ -174,9 +164,6 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             {
                 case RefBlockStatus.RefBlockExpired:
                     AddToCollection(_expiredByExpiryBlock, queuedTransaction);
-                    break;
-                case RefBlockStatus.FutureRefBlock:
-                    AddToCollection(_futureByBlock, queuedTransaction);
                     break;
                 case RefBlockStatus.RefBlockInvalid:
                     AddToCollection(_invalidatedByBlock, queuedTransaction);
@@ -234,6 +221,9 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
                 return;
 
             if (_allTransactions.ContainsKey(queuedTransaction.TransactionId))
+                return;
+
+            if (!queuedTransaction.Transaction.VerifyExpiration(_bestChainHeight))
                 return;
 
             var validationResult =
