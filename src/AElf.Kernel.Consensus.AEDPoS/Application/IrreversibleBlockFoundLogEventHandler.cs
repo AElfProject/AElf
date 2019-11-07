@@ -62,8 +62,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     return;
                 var libBlockHash = await _blockchainService.GetBlockHashByHeightAsync(chain,
                     irreversibleBlockFound.IrreversibleBlockHeight, block.GetHash());
+                if (libBlockHash == null) return;
                 var blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);
-                Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight}");
+                Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight}\nEvent: {irreversibleBlockFound}");
                 _taskQueueManager.Enqueue(
                     async () =>
                     {

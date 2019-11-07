@@ -93,12 +93,15 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 _decryptedPieces[secretSharingInformation.PreviousRoundId] = decryptedPieces;
 
                 RevealPreviousInValues(secretSharingInformation, selfPubkey);
+                
+                Logger.LogTrace($"Final secret sharing information: {secretSharingInformation}");
+
             }
             catch (Exception e)
             {
                 Logger.LogError($"Error in AddSharingInformationAsync.\n{e.Message}\n{e.StackTrace}");
             }
-            
+
             return Task.CompletedTask;
         }
 
@@ -147,9 +150,10 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public Dictionary<string, byte[]> GetEncryptedPieces(long roundId)
         {
             _encryptedPieces.TryGetValue(roundId, out var encryptedPieces);
+            Logger.LogTrace($"[GetEncryptedPieces]Round id: {roundId}");
             if (encryptedPieces != null)
             {
-                Logger.LogTrace($"Encrypted/Shared {encryptedPieces.Count} pieces for round of id {roundId}");
+                Logger.LogTrace($"Encrypted/Shared {encryptedPieces.Count} pieces.");
             }
 
             _encryptedPieces.Remove(roundId);
@@ -159,6 +163,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public Dictionary<string, byte[]> GetDecryptedPieces(long roundId)
         {
             _decryptedPieces.TryGetValue(roundId, out var decryptedPieces);
+            Logger.LogTrace($"[GetDecryptedPieces]Round id: {roundId}");
             if (decryptedPieces != null)
             {
                 Logger.LogTrace($"Decrypted {decryptedPieces.Count} pieces for round of id {roundId}");
@@ -171,6 +176,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public Dictionary<string, Hash> GetRevealedInValues(long roundId)
         {
             _revealedInValues.TryGetValue(roundId, out var revealedInValues);
+            Logger.LogTrace($"[GetRevealedInValues]Round id: {roundId}");
             if (revealedInValues != null)
             {
                 Logger.LogTrace($"Revealed {revealedInValues.Count} in values for round of id {roundId}");
