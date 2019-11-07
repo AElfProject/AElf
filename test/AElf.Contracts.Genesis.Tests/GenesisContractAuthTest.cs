@@ -70,6 +70,22 @@ namespace AElf.Contracts.Genesis
             newHash.ShouldBe(codeHash);
         }
         
+        
+        [Fact]
+        public async Task DeploySmartContractWithApprovalDummyTest()
+        {
+            var result = await Tester.ExecuteContractWithMiningAsync(
+                BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroBase.ProposeNewContract),
+                new ContractDeploymentInput()
+                {
+                    Category = KernelConstants.DefaultRunnerCategory,
+                    Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
+                });
+            
+            result.Status.ShouldBe(TransactionResultStatus.Mined);
+        }
+        
         [Fact]
         public async Task Update_ZeroContract_Test()
         {

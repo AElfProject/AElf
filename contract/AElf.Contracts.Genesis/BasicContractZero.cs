@@ -157,13 +157,20 @@ namespace AElf.Contracts.Genesis
         
         public override Empty ProposeNewContract(ContractDeploymentInput input)
         {
+            if (State.ParliamentAuthContract.Value == null)
+            {
+                State.ParliamentAuthContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
+            }
+            
             // Create proposal for deployment
             State.ParliamentAuthContract.CreateProposal.Send(new CreateProposalInput
             {
                 ToAddress = Context.Self,
                 ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract),
                 Params = input.ToByteString(),
-                OrganizationAddress = State.GenesisOwner.Value
+                OrganizationAddress = State.GenesisOwner.Value,
+                ExpiredTime = Context.CurrentBlockTime.AddMinutes(1)
             });
 
             // Fire event to trigger BPs checking contract code
@@ -190,7 +197,8 @@ namespace AElf.Contracts.Genesis
                 ToAddress = Context.Self,
                 ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroBase.UpdateSmartContract),
                 Params = input.ToByteString(),
-                OrganizationAddress = State.GenesisOwner.Value
+                OrganizationAddress = State.GenesisOwner.Value,
+                ExpiredTime = Context.CurrentBlockTime.AddMinutes(1)
             });
 
             // Fire event to trigger BPs checking contract code
