@@ -99,7 +99,7 @@ namespace AElf.Kernel.Blockchain.Application
                 }
 
                 if (blockHeight == Constants.GenesisBlockHeight || blockHeight <=
-                    chain.LastIrreversibleBlockHeight - KernelConstants.ReferenceBlockValidPeriod)
+                    chain.LastIrreversibleBlockHeight - KernelConstants.ReferenceBlockValidPeriod +1)
                     break;
 
                 blockHash = block.Header.PreviousBlockHash;
