@@ -43,10 +43,10 @@ namespace AElf.Kernel.Consensus
                 var mockService = new Mock<ITriggerInformationProvider>();
                 mockService.Setup(m => m.GetTriggerInformationForConsensusCommand(It.IsAny<BytesValue>()))
                     .Returns(new BytesValue());
-                mockService.Setup(m => m.GetTriggerInformationForBlockHeaderExtraDataAsync(It.IsAny<BytesValue>()))
-                    .Returns(Task.FromResult(new BytesValue()));
-                mockService.Setup(m => m.GetTriggerInformationForConsensusTransactionsAsync(It.IsAny<BytesValue>()))
-                    .Returns(Task.FromResult(new BytesValue()));
+                mockService.Setup(m => m.GetTriggerInformationForBlockHeaderExtraData(It.IsAny<BytesValue>()))
+                    .Returns(new BytesValue());
+                mockService.Setup(m => m.GetTriggerInformationForConsensusTransactions(It.IsAny<BytesValue>()))
+                    .Returns(new BytesValue());
 
                 return mockService.Object;
             });

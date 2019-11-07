@@ -143,7 +143,7 @@ namespace AElf.Kernel.Consensus.Application
                 $"Set block time to next mining time: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}. Extra Data.");
 
             return (await _readerFactory.Create(chainContext).GetConsensusExtraData
-                    .CallAsync(await _triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraDataAsync(
+                    .CallAsync(_triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraData(
                         _consensusCommand.ToBytesValue()))).Value
                 .ToByteArray();
         }
@@ -157,7 +157,7 @@ namespace AElf.Kernel.Consensus.Application
 
             var generatedTransactions =
                 (await _readerFactory.Create(chainContext).GenerateConsensusTransactions
-                    .CallAsync(await _triggerInformationProvider.GetTriggerInformationForConsensusTransactionsAsync(
+                    .CallAsync(_triggerInformationProvider.GetTriggerInformationForConsensusTransactions(
                         _consensusCommand.ToBytesValue())))
                 .Transactions
                 .ToList();
