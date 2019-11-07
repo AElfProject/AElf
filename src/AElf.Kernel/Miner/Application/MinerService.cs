@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Globalization;
+using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
@@ -37,6 +39,9 @@ namespace AElf.Kernel.Miner.Application
         public async Task<Block> MineAsync(Hash previousBlockHash, long previousBlockHeight, Timestamp blockTime,
             Duration blockExecutionTime)
         {
+            var res = CultureInfo.CurrentCulture;
+            Logger.LogInformation($"Culture is : {res.NativeName} & {res.Name}; Thread: {Thread.CurrentThread.CurrentCulture.NativeName}");
+
             var limit = await _blockTransactionLimitProvider.GetLimitAsync();
             var executableTransactionSet =
                 await _txHub.GetExecutableTransactionSetAsync(_transactionInclusivenessProvider.IsTransactionPackable

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using AElf.Contracts.Deployer;
 using AElf.CrossChain;
 using AElf.Kernel;
@@ -82,6 +84,9 @@ namespace AElf.Blockchains.SideChain
                 _codes.Single(kv => kv.Key.Contains("AssociationAuth")).Value,
                 AssociationAuthSmartContractAddressNameProvider.Name
             );
+            
+            var res = CultureInfo.CurrentCulture;
+            Logger.LogInformation($"Culture is : {res.NativeName} & {res.Name}; Thread: {Thread.CurrentThread.CurrentCulture.NativeName}");
 
             return genesisSmartContractDtoList;
         }

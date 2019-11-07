@@ -6,6 +6,7 @@ using AElf.Blockchains.SideChain;
 using AElf.Kernel;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
@@ -47,6 +48,10 @@ namespace AElf.Launcher
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            app.UseRequestLocalization(new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture("en-US")
+            });
             app.UseCors(builder => builder
                 .WithOrigins(_configuration["CorsOrigins"]
                     .Split(",", StringSplitOptions.RemoveEmptyEntries)
