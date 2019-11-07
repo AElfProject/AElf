@@ -89,8 +89,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                         .Add(selfPubkey, ByteString.CopyFrom(decryptedPiece));
                 }
 
-                _encryptedPieces[secretSharingInformation.PreviousRoundId] = encryptedPieces;
-                _decryptedPieces[secretSharingInformation.PreviousRoundId] = decryptedPieces;
+                _encryptedPieces[secretSharingInformation.CurrentRoundId] = encryptedPieces;
+                _decryptedPieces[secretSharingInformation.CurrentRoundId] = decryptedPieces;
 
                 RevealPreviousInValues(secretSharingInformation, selfPubkey);
                 
@@ -144,7 +144,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 revealedInValues.Add(pubkey, revealedInValue);
             }
 
-            _revealedInValues.Add(secretSharingInformation.PreviousRoundId, revealedInValues);
+            _revealedInValues.Add(secretSharingInformation.CurrentRoundId, revealedInValues);
         }
 
         public Dictionary<string, byte[]> GetEncryptedPieces(long roundId)
