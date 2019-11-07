@@ -118,17 +118,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     continue;
                 }
 
-                var filledValue = round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue;
-                if (filledValue != null && filledValue != previousInValue.Value)
-                {
-                    Context.LogDebug(() => $"Something wrong happened to previous in value of {previousInValue.Key}.");
-                    State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
-                    {
-                        Pubkey = publicKey,
-                        IsEvilNode = true
-                    });
-                }
-
                 round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue = previousInValue.Value;
             }
         }
