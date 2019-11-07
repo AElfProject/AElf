@@ -389,22 +389,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             var evilMinersPubKey = new List<string>();
 
-            // If hash(pre_in) != pre_out
-            foreach (var minerInCurrentRound in currentRound.RealTimeMinersInformation.Values)
-            {
-                if (previousRound.RealTimeMinersInformation.ContainsKey(minerInCurrentRound.Pubkey) &&
-                    minerInCurrentRound.PreviousInValue != null)
-                {
-                    var previousOutValue = previousRound.RealTimeMinersInformation[minerInCurrentRound.Pubkey].OutValue;
-                    if (previousOutValue != null &&
-                        Hash.FromMessage(minerInCurrentRound.PreviousInValue) != previousOutValue)
-                    {
-                        Context.LogDebug(() => $"Incorrect previous in value: {minerInCurrentRound.Pubkey}");
-                        evilMinersPubKey.Add(minerInCurrentRound.Pubkey);
-                    }
-                }
-            }
-
             if (State.ElectionContract.Value == null) return evilMinersPubKey;
 
             // If one miner is not a candidate anymore.
