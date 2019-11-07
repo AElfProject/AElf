@@ -50,7 +50,6 @@ namespace AElf.Blockchains.MainChain
                     Memo = "Issue native token"
                 });
 
-
             return economicContractMethodCallList;
         }
     }

@@ -34,7 +34,7 @@ namespace AElf.Contracts.Economic
             RegisterElectionVotingEvent();
             SetTreasurySchemeIdsToElectionContract();
             SetResourceTokenUnitPrice();
-            SetTransactionSizeUnitPrice();
+            SetTransactionSizeUnitPrice(input.TransactionSizeFeeUnitPrice);
 
             InitializeTokenConverterContract();
 
@@ -219,11 +219,11 @@ namespace AElf.Contracts.Economic
             });
         }
 
-        private void SetTransactionSizeUnitPrice()
+        private void SetTransactionSizeUnitPrice(long transactionSizeUnitPrice)
         {
-            State.TokenContract.SetTransactionSizeUnitPrice.Send(new SInt32Value
+            State.TokenContract.SetTransactionSizeUnitPrice.Send(new SInt64Value
             {
-                Value = EconomicContractConstants.TransactionSizeUnitPrice
+                Value = transactionSizeUnitPrice
             });
         }
 
