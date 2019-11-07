@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using AElf.Blockchains.BasicBaseChain;
 using AElf.Blockchains.MainChain;
@@ -48,10 +50,10 @@ namespace AElf.Launcher
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            app.UseRequestLocalization(new RequestLocalizationOptions
-            {
-                DefaultRequestCulture = new RequestCulture("en-US")
-            });
+            var cultureInfo = new CultureInfo("en-US");
+            CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+            CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+            
             app.UseCors(builder => builder
                 .WithOrigins(_configuration["CorsOrigins"]
                     .Split(",", StringSplitOptions.RemoveEmptyEntries)
