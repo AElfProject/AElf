@@ -9,7 +9,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        private BytesValue GetConsensusBlockExtraData(BytesValue input, bool withSecretSharingInformation = false)
+        private BytesValue GetConsensusBlockExtraData(BytesValue input, bool isGeneratingTransactions = false)
         {
             var triggerInformation = new AElfConsensusTriggerInformation();
             triggerInformation.MergeFrom(input.Value);
@@ -32,7 +32,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 case AElfConsensusBehaviour.UpdateValue:
                     information = GetConsensusExtraDataToPublishOutValue(currentRound, pubkey,
                         triggerInformation);
-                    if (!withSecretSharingInformation)
+                    if (!isGeneratingTransactions)
                     {
                         information.Round = information.Round.GetUpdateValueRound(pubkey);
                     }
@@ -54,7 +54,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     break;
             }
 
-            if (!withSecretSharingInformation)
+            if (!isGeneratingTransactions)
             {
                 information.Round.DeleteSecretSharingInformation();
             }
@@ -82,21 +82,30 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (TryToGetPreviousRoundInformation(out var previousRound) && !IsFirstRoundOfCurrentTerm(out _))
             {
                 signature = previousRound.CalculateSignature(triggerInformation.InValue);
+                Context.LogDebug(
+                    () => $"Previous in value in trigger information: {triggerInformation.PreviousInValue}");
                 if (triggerInformation.PreviousInValue != null &&
                     triggerInformation.PreviousInValue != Hash.Empty)
                 {
                     // Self check.
-                    if (Hash.FromMessage(previousInValue) !=
+                    if (Hash.FromMessage(triggerInformation.PreviousInValue) !=
                         previousRound.RealTimeMinersInformation[pubkey].OutValue)
                     {
                         Context.LogDebug(() => "Failed to produce block at previous round?");
                         previousInValue = Hash.Empty;
+                    }
+                    else
+                    {
+                        previousInValue = triggerInformation.PreviousInValue;
                     }
                 }
             }
 
             var updatedRound = currentRound.ApplyNormalConsensusData(pubkey, previousInValue,
                 outValue, signature);
+
+            Context.LogDebug(
+                () => $"Previous in value after ApplyNormalConsensusData: {updatedRound.RealTimeMinersInformation[pubkey].PreviousInValue}");
 
             updatedRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight = Context.CurrentHeight;
 

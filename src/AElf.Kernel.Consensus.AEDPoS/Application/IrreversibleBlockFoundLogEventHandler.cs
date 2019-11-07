@@ -77,7 +77,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }
             catch (Exception e)
             {
-                Logger.LogError("Failed to resolve IrreversibleBlockFound event.", e);
+                Logger.LogError($"Failed to resolve IrreversibleBlockFound event.\n{e.Message}\n{e.StackTrace}");
                 throw;
             }
         }

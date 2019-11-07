@@ -115,6 +115,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             switch (behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValue:
+                    Context.LogDebug(() => $"Previous in value in extra data:{round.RealTimeMinersInformation[pubkey.ToHex()].PreviousInValue}");
                     return new TransactionList
                     {
                         Transactions =
