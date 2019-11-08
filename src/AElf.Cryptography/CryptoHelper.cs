@@ -68,7 +68,7 @@ namespace AElf.Cryptography
                 } while (!Secp256K1.SecretKeyVerify(privateKey));
 
                 if(!Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey))
-                    throw new PublicKeyOperationException("Create public key failed.");
+                    throw new InvalidPrivateKeyException("Create public key failed.");
                 var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
                 if(!Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey))
                     throw new PublicKeyOperationException("Serialize public key failed.");
