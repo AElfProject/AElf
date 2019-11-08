@@ -76,7 +76,7 @@ namespace AElf.WebApp.Web
         private void ConfigureSwaggerServices(IServiceCollection services)
         {
             services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
-            services.AddSwaggerGen(c => c.DocumentFilter<HiddenApiFilter>());
+            services.AddSwaggerGen(c => c.DocumentFilter<ApiOptionFilter>());
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

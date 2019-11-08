@@ -9,7 +9,7 @@ namespace AElf.WebApp.Web
     /// <summary>
     /// To hide api of ABP.
     /// </summary>
-    internal class HiddenApiFilter : IDocumentFilter
+    internal class ApiOptionFilter : IDocumentFilter
     {
         public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
         {
