@@ -12,7 +12,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.0.0" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning.ApiExplorer" Version="4.0.0" />
         <PackageReference Include="Microsoft.Extensions.Primitives" Version="3.0.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="5.0.0-rc4" />
