@@ -95,11 +95,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             // Last miner of next round != Extra block producer of next round
-            var lastMinerOfNextRound = nextRound.RealTimeMinersInformation.Values.FirstOrDefault(i => i.Order == minersCount);
+            var lastMinerOfNextRound =
+                nextRound.RealTimeMinersInformation.Values.FirstOrDefault(i => i.Order == minersCount);
             if (lastMinerOfNextRound == null)
             {
-                throw new Exception($"Something wrong with BreakContinuousMining. {nextRound}");
+                return;
             }
+
             var extraBlockProducerOfNextRound = nextRound.GetExtraBlockProducerInformation();
             if (lastMinerOfNextRound.Pubkey == extraBlockProducerOfNextRound.Pubkey)
             {

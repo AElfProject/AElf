@@ -155,7 +155,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         }
                     };
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    return new TransactionList();
             }
         }
     }
