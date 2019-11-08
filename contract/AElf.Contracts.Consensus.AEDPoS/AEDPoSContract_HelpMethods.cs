@@ -138,11 +138,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             });
 
             // Only clear old round information when the mining status is Normal.
-            if (round.RoundNumber > AEDPoSContractConstants.KeepRounds &&
+            var roundNumberToRemove = round.RoundNumber.Sub(AEDPoSContractConstants.KeepRounds);
+            if (
+                roundNumberToRemove >
+                1 && // Which means we won't remove the information of the first round of first term.
                 GetMaximumBlocksCount() == AEDPoSContractConstants.MaximumTinyBlocksCount)
             {
-                // TODO: Set to null.
-                //State.Rounds[round.RoundNumber.Sub(AEDPoSContractConstants.KeepRounds)] = new Round();
+                State.Rounds.Remove(roundNumberToRemove);
             }
 
             return true;
