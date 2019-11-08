@@ -8,5 +8,6 @@ namespace AElf.Kernel.Blockchain.Domain
         Task<Hash> AddTransactionAsync(Transaction tx);
         Task<Transaction> GetTransactionAsync(Hash txId);
         Task RemoveTransactionAsync(Hash txId);
+        Task<bool> IsTransactionExistsAsync(Hash txId);
     }
 }
