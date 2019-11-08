@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Threading;
 using AElf.Cryptography.ECDSA;
-using AElf.Cryptography.ECDSA.Exceptions;
+using AElf.Cryptography.Exceptions;
 using Secp256k1Net;
 using Virgil.Crypto;
 
@@ -40,7 +40,7 @@ namespace AElf.Cryptography
                 var secp256K1PubKey = new byte[64];
 
                 if(!Secp256K1.PublicKeyCreate(secp256K1PubKey, privateKey))
-                    throw new PublicKeyOperationException("Create public key failed.");
+                    throw new InvalidPrivateKeyException("Create public key failed.");
                 var pubKey = new byte[Secp256k1.SERIALIZED_UNCOMPRESSED_PUBKEY_LENGTH];
                 if(!Secp256K1.PublicKeySerialize(pubKey, secp256K1PubKey))
                     throw new PublicKeyOperationException("Serialize public key failed.");

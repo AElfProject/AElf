@@ -1,6 +1,6 @@
 using System;
 
-namespace AElf.Cryptography.ECDSA.Exceptions
+namespace AElf.Cryptography.Exceptions
 {
     public class InvalidPrivateKeyException : Exception
     {
