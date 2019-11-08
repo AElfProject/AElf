@@ -4,9 +4,8 @@ namespace AElf.Cryptography.ECDSA.Exceptions
 {
     public class PublicKeyOperationException : Exception
     {
-        public PublicKeyOperationException(string msg) : base(msg)
+        public PublicKeyOperationException(string message) : base(message)
         {
-            
         }
     }
 }

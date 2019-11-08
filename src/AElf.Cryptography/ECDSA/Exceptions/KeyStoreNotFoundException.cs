@@ -4,7 +4,7 @@ namespace AElf.Cryptography.ECDSA.Exceptions
 {
     public class KeyStoreNotFoundException : Exception
     {
-        public KeyStoreNotFoundException(string msg, Exception ex) : base(msg, ex)
+        public KeyStoreNotFoundException(string message, Exception innerException) : base(message, innerException)
         {
         }
     }
