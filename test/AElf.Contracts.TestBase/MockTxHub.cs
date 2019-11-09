@@ -87,6 +87,11 @@ namespace AElf.Contracts.TestBase
             throw new System.NotImplementedException();
         }
 
+        public Task<bool> IsTransactionExistsAsync(Hash transactionId)
+        {
+            throw new System.NotImplementedException();
+        }
+
         private void CleanTransactions(IEnumerable<Hash> transactionIds)
         {
             foreach (var transactionId in transactionIds)

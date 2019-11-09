@@ -213,7 +213,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public bool TryToDetectEvilMiners(out List<string> evilMiners)
         {
             evilMiners = RealTimeMinersInformation.Values
-                .Where(m => m.MissedTimeSlots >= AEDPoSContractConstants.MaximumMissedBlocksCount)
+                .Where(m => m.MissedTimeSlots >= AEDPoSContractConstants.TolerableMissedTimeSlotsCount)
                 .Select(m => m.Pubkey).ToList();
             return evilMiners.Count > 0;
         }

@@ -13,8 +13,6 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task MultipleUsers_Vote_Scenario_Test()
         {
-            const long txFee = 1_00000000;
-            
             var registerItem = await RegisterVotingItemAsync(100, 3, true, DefaultSender, 3);
 
             var user1 = SampleECKeyPairs.KeyPairs[1];
