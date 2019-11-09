@@ -122,7 +122,7 @@ namespace AElf.Contracts.CrossChain.Tests
             await ApproveWithMinersAsync(proposalId);
 
             var transactionResult = await ReleaseProposalAsync(proposalId);
-            var chainId = CreationRequested.Parser.ParseFrom(transactionResult.Logs[0].NonIndexed).ChainId;
+            var chainId = CreationRequested.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).ChainId;
 
             return chainId;
         }
@@ -212,7 +212,6 @@ namespace AElf.Contracts.CrossChain.Tests
         {
             var res = new SideChainCreationRequest
             {
-                ContractCode = contractCode,
                 IndexingPrice = indexingPrice,
                 LockedTokenAmount = lockedTokenAmount,
                 SideChainTokenDecimals = 2,

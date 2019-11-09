@@ -208,7 +208,7 @@ namespace AElf.Kernel.Blockchain.Application
         }
 
         [Fact]
-        public async Task Query_TransactionResult_On_Irreversible_Chain()
+        public async Task Query_TransactionResult_After_Execution()
         {
             var tx1 = _kernelTestHelper.GenerateTransaction();
             var (block11, results11) =
@@ -249,20 +249,9 @@ namespace AElf.Kernel.Blockchain.Application
                         block11.Header.GetHash());
                 resultWithPostMiningHash.ShouldBeNull();
             }
-
-            #endregion
-
-            var bestChainFoundEventData = new BestChainFoundEventData
-            {
-                BlockHash = block11.GetHash(),
-                BlockHeight = block11.Height,
-                ExecutedBlocks = new List<Hash>()
-            };
-
-            bestChainFoundEventData.ExecutedBlocks.Add(block11.GetHash());
-            await _localEventBus.PublishAsync(bestChainFoundEventData);
-
-            #region After Best Chain Found
+            
+            await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block11.Header,
+                block11.Body.TransactionIds.ToList());
 
             // After LIB, transaction result is re-saved with PostMiningHash (normal BlockHash)
             {

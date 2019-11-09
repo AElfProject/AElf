@@ -203,14 +203,14 @@ namespace AElf.Contracts.Election
 
             foreach (var votedFullNodeKeyPair in ValidationDataCenterKeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount - 1))
             {
-                var votes = await ElectionContractStub.GetCandidateVote.CallAsync(new StringInput
+                var votes = await ElectionContractStub.GetCandidateVote.CallAsync(new StringValue
                     {Value = votedFullNodeKeyPair.PublicKey.ToHex()});
                 votes.ObtainedActiveVotedVotesAmount.ShouldBe(amount);
             }
 
             foreach (var votedFullNodeKeyPair in ValidationDataCenterKeyPairs.Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount - 1))
             {
-                var votes = await ElectionContractStub.GetCandidateVote.CallAsync(new StringInput
+                var votes = await ElectionContractStub.GetCandidateVote.CallAsync(new StringValue
                     {Value = votedFullNodeKeyPair.PublicKey.ToHex()});
                 votes.ObtainedActiveVotedVotesAmount.ShouldBe(0);
             }

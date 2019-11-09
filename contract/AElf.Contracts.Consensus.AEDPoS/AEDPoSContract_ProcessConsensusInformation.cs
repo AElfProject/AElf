@@ -92,6 +92,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Context.LogDebug(() => "Evil miners detected.");
                 foreach (var evilMiner in evilMiners)
                 {
+                    Context.LogDebug(() => 
+                        $"Evil miner {evilMiner}, missed time slots: {currentRound.RealTimeMinersInformation[evilMiner].MissedTimeSlots}.");
                     // Mark these evil miners.
                     State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
                     {
