@@ -12,14 +12,17 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         ISingletonDependency
     {
         private readonly ConcurrentDictionary<Hash, TransactionBlockIndex> _transactionBlockIndices;
-        private readonly ConcurrentDictionary<long, ConcurrentBag<Hash>> _transactionBlockHeightMapping;
+
+        private readonly ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionBlockIndex>>
+            _transactionBlockHeightMapping;
         
         public ILogger<TransactionBlockIndexCacheProvider> Logger { get; set; }
 
         public TransactionBlockIndexCacheProvider()
         {
             _transactionBlockIndices = new ConcurrentDictionary<Hash, TransactionBlockIndex>();
-            _transactionBlockHeightMapping = new ConcurrentDictionary<long, ConcurrentBag<Hash>>();
+            _transactionBlockHeightMapping =
+                new ConcurrentDictionary<long, ConcurrentDictionary<Hash, TransactionBlockIndex>>();
 
             Logger = NullLogger<TransactionBlockIndexCacheProvider>.Instance;
         }
@@ -28,18 +31,29 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         {
             if (transactionBlockIndex == null)
                 return;
-            
+
+            if (_transactionBlockIndices.TryGetValue(transactionId, out var existingTransactionBlockIndex))
+            {
+                var blockHeight = Math.Max(existingTransactionBlockIndex.BlockHeight,
+                    existingTransactionBlockIndex.PreviousExecutionBlockIndexList.Any()
+                        ? existingTransactionBlockIndex.PreviousExecutionBlockIndexList.Max(t => t.BlockHeight)
+                        : 0);
+
+                _transactionBlockHeightMapping[blockHeight].TryRemove(transactionId, out _);
+            }
+
             var maxBlockHeight = Math.Max(transactionBlockIndex.BlockHeight,
                 transactionBlockIndex.PreviousExecutionBlockIndexList.Any()
                     ? transactionBlockIndex.PreviousExecutionBlockIndexList.Max(t => t.BlockHeight)
                     : 0);
 
-            _transactionBlockHeightMapping.AddOrUpdate(maxBlockHeight, new ConcurrentBag<Hash> {transactionId},
-                (key, value) =>
-                {
-                    value.Add(transactionId);
-                    return value;
-                });
+            if (!_transactionBlockHeightMapping.TryGetValue(maxBlockHeight, out var mapping))
+            {
+                mapping = new ConcurrentDictionary<Hash, TransactionBlockIndex>();
+                _transactionBlockHeightMapping.TryAdd(maxBlockHeight, mapping);
+            }
+
+            mapping.TryAdd(transactionId, transactionBlockIndex);
 
             _transactionBlockIndices[transactionId] = transactionBlockIndex;
         }
@@ -53,7 +67,7 @@ namespace AElf.Kernel.Blockchain.Infrastructure
         {
             foreach (var mapping in _transactionBlockHeightMapping.Where(m => m.Key <= blockHeight).ToList())
             {
-                foreach (var txId in mapping.Value)
+                foreach (var txId in mapping.Value.Keys)
                 {
                     _transactionBlockIndices.TryRemove(txId, out _);
                 }
