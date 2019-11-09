@@ -74,7 +74,7 @@ namespace AElf.CrossChain
             var sideChainBlockData = new SideChainBlockData
             {
                 Height = 1,
-                TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
+                TransactionStatusMerkleTreeRoot = fakeMerkleTreeRoot1,
                 ChainId = chainId
             };
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new[] {sideChainBlockData});
@@ -188,14 +188,14 @@ namespace AElf.CrossChain
             block.Header.ExtraData.Clear();
 
             block.Header.ExtraData.Add(
-                new CrossChainExtraData {SideChainTransactionsRoot = merkleTreeRoot}.ToByteString());
+                new CrossChainExtraData {TransactionStatusMerkleTreeRoot = merkleTreeRoot}.ToByteString());
             return block;
         }
 
         private Hash ComputeRootHash(IEnumerable<SideChainBlockData> blockInfo)
         {
             var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(blockInfo.Select(sideChainBlockData =>
-                sideChainBlockData.TransactionMerkleTreeRoot));
+                sideChainBlockData.TransactionStatusMerkleTreeRoot));
             return binaryMerkleTree.Root;
         }
 
@@ -227,7 +227,7 @@ namespace AElf.CrossChain
             return new SideChainBlockData
             {
                 Height = height,
-                TransactionMerkleTreeRoot = transactionMerkleTreeRoot,
+                TransactionStatusMerkleTreeRoot = transactionMerkleTreeRoot,
                 ChainId = chainId
             };
         }

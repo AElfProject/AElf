@@ -90,8 +90,7 @@ namespace AElf.CrossChain.Communication
                         {
                             var crossExtraData = new CrossChainExtraData
                             {
-                                SideChainBlockHeadersRoot = Hash.FromString("SideChainBlockHeadersRoot"),
-                                SideChainTransactionsRoot = Hash.FromString("SideChainTransactionsRoot")
+                                TransactionStatusMerkleTreeRoot = Hash.FromString("SideChainBlockHeadersRoot"),
                             };
                             return ByteString.CopyFrom(crossExtraData.ToByteArray());
                         });
@@ -112,7 +111,7 @@ namespace AElf.CrossChain.Communication
                                 new SideChainBlockData
                                 {
                                     ChainId = 123, Height = 1,
-                                    TransactionMerkleTreeRoot = Hash.FromString("fakeTransactionMerkleTree")
+                                    TransactionStatusMerkleTreeRoot = Hash.FromString("fakeTransactionMerkleTree")
                                 }
                             }
                         };
@@ -129,7 +128,7 @@ namespace AElf.CrossChain.Communication
                                     new SideChainBlockData
                                     {
                                         ChainId = 123, Height = 1,
-                                        TransactionMerkleTreeRoot = Hash.FromString("fakeTransactionMerkleTree")
+                                        TransactionStatusMerkleTreeRoot = Hash.FromString("fakeTransactionMerkleTree")
                                     }
                                 }
                             };
