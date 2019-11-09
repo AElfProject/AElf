@@ -100,6 +100,7 @@ message SideChainIndexingInformation {
 message CrossChainBlockData {
     repeated SideChainBlockData side_chain_block_data = 1;
     repeated ParentChainBlockData parent_chain_block_data = 2;
+    int64 previous_block_height = 3;
 }
 
 message CrossChainMerkleProofContext {

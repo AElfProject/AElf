@@ -37,7 +37,7 @@ namespace AElf.Contracts.CrossChain
             Assert(merklePath != null);
             return new CrossChainMerkleProofContext
             {
-                MerklePathForParentChainRoot = merklePath,
+                MerklePathFromParentChain = merklePath,
                 BoundParentChainHeight = boundParentChainHeight
             };
         }
@@ -90,7 +90,7 @@ namespace AElf.Contracts.CrossChain
             return new SInt32Value() {Value = parentChainId};
         }
 
-        public override SInt64Value LockedBalance(SInt32Value input)
+        public override SInt64Value GetSideChainBalance(SInt32Value input)
         {
             var chainId = input.Value;
             var sideChainInfo = State.SideChainInfo[chainId];
@@ -150,19 +150,10 @@ namespace AElf.Contracts.CrossChain
             return sideChainIndexingInformationList;
         }
 
-        public override SInt64Value LockedToken(SInt32Value input)
+        public override Address GetSideChainCreator(SInt32Value input)
         {
             var info = State.SideChainInfo[input.Value];
             Assert(info != null, "Side chain not found.");
-            Assert(info.SideChainStatus != SideChainStatus.Terminated, "Disposed side chain.");
-            return new SInt64Value() {Value = info.SideChainCreationRequest.LockedTokenAmount};
-        }
-
-        public override Address LockedAddress(SInt32Value input)
-        {
-            var info = State.SideChainInfo[input.Value];
-            Assert(info != null, "Side chain not found.");
-            Assert(info.SideChainStatus != SideChainStatus.Terminated, "Disposed side chain.");
             return info.Proposer;
         }
 

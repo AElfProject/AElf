@@ -97,10 +97,10 @@ namespace AElf.CrossChain
 
         private bool ValidateBlockExtraDataAsync(CrossChainBlockData crossChainBlockData, CrossChainExtraData extraData)
         {
-            var txRootHashList = crossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMerkleTreeRoot).ToList();
+            var txRootHashList = crossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionStatusMerkleTreeRoot).ToList();
             var calculatedSideChainTransactionsRoot = BinaryMerkleTree.FromLeafNodes(txRootHashList).Root;
 
-            return calculatedSideChainTransactionsRoot.Equals(extraData.SideChainTransactionsRoot);
+            return calculatedSideChainTransactionsRoot.Equals(extraData.TransactionStatusMerkleTreeRoot);
         }
 
         private CrossChainExtraData ExtractCrossChainExtraData(BlockHeader header)

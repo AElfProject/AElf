@@ -54,7 +54,8 @@ namespace AElf.Contracts.CrossChain
             State.TxRootMerklePathInParentChain[height] = path;
         }
 
-        private void CreateSideChainToken(SideChainCreationRequest sideChainCreationRequest, SideChainTokenInfo sideChainTokenInfo, int chainId)
+        private void CreateSideChainToken(SideChainCreationRequest sideChainCreationRequest, 
+            SideChainTokenInfo sideChainTokenInfo, int chainId)
         {
             TransferFrom(new TransferFromInput
             {
@@ -65,8 +66,7 @@ namespace AElf.Contracts.CrossChain
             });
             State.IndexingBalance[chainId] = sideChainCreationRequest.LockedTokenAmount;
             
-            CreateSideChainToken(sideChainTokenInfo, chainId);   
-            // Todo: enable resource
+            CreateSideChainToken(sideChainTokenInfo, chainId);
         }
 
         private void UnlockTokenAndResource(SideChainInfo sideChainInfo)
@@ -172,7 +172,7 @@ namespace AElf.Contracts.CrossChain
         {
             var indexedSideChainData = State.IndexedSideChainBlockData[parentChainHeight];
             return ComputeRootWithMultiHash(
-                indexedSideChainData.SideChainBlockData.Select(d => d.TransactionMerkleTreeRoot));
+                indexedSideChainData.SideChainBlockData.Select(d => d.TransactionStatusMerkleTreeRoot));
         }
         
         private Hash GetCousinChainMerkleTreeRoot(long parentChainHeight)
@@ -208,6 +208,22 @@ namespace AElf.Contracts.CrossChain
         {
             var owner = GetOwnerAddress();
             Assert(owner.Equals(Context.Sender), "Not authorized to do this.");
+        }
+
+        private void AssertCurrentMiner()
+        {
+            var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value;
+            Context.LogDebug(() => $"Sender is currentMiner : {isCurrentMiner}.");
+            Assert(isCurrentMiner, "No permission.");
+        }
+
+        private void AssertParentChainBlock(int parentChainId, long currentRecordedHeight, ParentChainBlockData parentChainBlockData)
+        {
+            Assert(parentChainId == parentChainBlockData.ChainId, "Wrong parent chain id.");
+            Assert(currentRecordedHeight + 1 == parentChainBlockData.Height,
+                $"Parent chain block info at height {currentRecordedHeight + 1} is needed, not {parentChainBlockData.Height}");
+            Assert(parentChainBlockData.TransactionStatusMerkleTreeRoot != null,
+                "Parent chain transaction status merkle tree root needed.");
         }
     }
 }
