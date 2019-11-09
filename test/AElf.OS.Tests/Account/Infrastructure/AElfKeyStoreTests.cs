@@ -2,7 +2,7 @@
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using AElf.Cryptography.ECDSA.Exceptions;
+using AElf.Cryptography.Exceptions;
 using AElf.Kernel;
 using AElf.OS.Node.Application;
 using AElf.Types;

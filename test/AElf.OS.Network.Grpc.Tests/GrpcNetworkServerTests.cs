@@ -82,7 +82,7 @@ namespace AElf.OS.Network
         }
         
         [Fact] 
-        public async Task DialPeerAsync_ShouldThrowException()
+        public void DialPeerAsync_ShouldThrowException()
         {
             IpEndPointHelper.TryParse(NetworkTestConstants.DialExceptionIpEndpoint, out var endpoint);
             _networkServer.ConnectAsync(endpoint).ShouldThrow<Exception>();
@@ -123,7 +123,7 @@ namespace AElf.OS.Network
         }
         
         [Fact] 
-        public async Task DialPeerAsync_HandshakeNetProblem_ShouldThrowException()
+        public void DialPeerAsync_HandshakeNetProblem_ShouldThrowException()
         {
             IpEndPointHelper.TryParse(NetworkTestConstants.HandshakeWithNetExceptionIp, out var endpoint);
             _networkServer.ConnectAsync(endpoint).ShouldThrow<Exception>();
@@ -132,7 +132,7 @@ namespace AElf.OS.Network
         }
         
         [Fact]
-        public async Task DialPeerAsync_HandshakeDataProblem_ShouldThrowException()
+        public void DialPeerAsync_HandshakeDataProblem_ShouldThrowException()
         {
             IpEndPointHelper.TryParse(NetworkTestConstants.HandshakeWithNetExceptionIp, out var endpoint);
             _networkServer.ConnectAsync(endpoint).ShouldThrow<Exception>();
@@ -141,7 +141,7 @@ namespace AElf.OS.Network
         }
         
         [Fact] 
-        public async Task DialPeerAsync_HandshakeError_ShouldThrowException()
+        public void DialPeerAsync_HandshakeError_ShouldThrowException()
         {
             IpEndPointHelper.TryParse(NetworkTestConstants.BadHandshakeIp, out var endpoint);
             _networkServer.ConnectAsync(endpoint).ShouldThrow<NetworkException>();

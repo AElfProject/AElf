@@ -113,20 +113,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             foreach (var previousInValue in input.MinersPreviousInValues)
             {
-                if (previousInValue.Key == publicKey)
+                if (previousInValue.Key == publicKey || previousInValue.Value == null)
                 {
                     continue;
-                }
-
-                var filledValue = round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue;
-                if (filledValue != null && filledValue != previousInValue.Value)
-                {
-                    Context.LogDebug(() => $"Something wrong happened to previous in value of {previousInValue.Key}.");
-                    State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
-                    {
-                        Pubkey = publicKey,
-                        IsEvilNode = true
-                    });
                 }
 
                 round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue = previousInValue.Value;

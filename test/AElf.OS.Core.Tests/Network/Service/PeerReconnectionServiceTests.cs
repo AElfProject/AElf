@@ -21,7 +21,7 @@ namespace AElf.OS.Network.Service
         }
 
         [Fact]
-        public async Task GetPeersReadyForReconnection_WithNull_ReturnsAll()
+        public void GetPeersReadyForReconnection_WithNull_ReturnsAll()
         {
             var endpoint = "127.0.0.1:5677";
             var endpointBeforeNow = "127.0.0.1:5678";
@@ -37,7 +37,7 @@ namespace AElf.OS.Network.Service
         }
         
         [Fact]
-        public async Task ScheduledPeer_CannotAddPeerTwice()
+        public void ScheduledPeer_CannotAddPeerTwice()
         {
             var endpoint = "127.0.0.1:5677";
             
@@ -51,7 +51,7 @@ namespace AElf.OS.Network.Service
         }
 
         [Fact]
-        public async Task ScheduledPeer_ShouldBeRetrievableWithTheProvider()
+        public void ScheduledPeer_ShouldBeRetrievableWithTheProvider()
         {
             var endpoint = "127.0.0.1:5677";
             
@@ -63,7 +63,7 @@ namespace AElf.OS.Network.Service
         }
 
         [Fact]
-        public async Task RemovePeer_ShouldNotRetrievableWithTheProvider()
+        public void RemovePeer_ShouldNotRetrievableWithTheProvider()
         {
             var endpoint = "127.0.0.1:5677";
             

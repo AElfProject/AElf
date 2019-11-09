@@ -1,10 +1,8 @@
 using AElf.Kernel.SmartContract.Application;
 using System.Collections.Generic;
 using AElf.Kernel;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.ExecutionPluginForAcs1;
 using AElf.Kernel.SmartContract.Parallel;
-using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using AElf.OS;
 using Microsoft.Extensions.DependencyInjection;
