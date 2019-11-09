@@ -11,6 +11,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         private void ShareInValueOfCurrentRound(Round currentRound, Round previousRound, Hash inValue, string publicKey)
         {
+            Context.LogDebug(() => "Entered ShareInValueOfCurrentRound");
             if (!currentRound.RealTimeMinersInformation.ContainsKey(publicKey)) return;
 
             var minersCount = currentRound.RealTimeMinersInformation.Count;
@@ -23,6 +24,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 // Skip himself.
                 if (pair.Key == publicKey) continue;
+
+                if (!currentRound.RealTimeMinersInformation.ContainsKey(publicKey)) break;
 
                 var publicKeyOfAnotherMiner = pair.Key;
                 var orderOfAnotherMiner = pair.Value;
@@ -45,7 +48,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 if (!previousRound.RealTimeMinersInformation.ContainsKey(publicKeyOfAnotherMiner)) continue;
 
                 // No need to decrypt shares of miners who already revealed their previous in values.
-                if (currentRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].PreviousInValue != null) continue;
+                if (!currentRound.RealTimeMinersInformation.ContainsKey(publicKeyOfAnotherMiner) ||
+                    currentRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].PreviousInValue != null)
+                    continue;
 
                 var encryptedShares =
                     previousRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].EncryptedInValues;
@@ -57,6 +62,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 currentRound.RealTimeMinersInformation[publicKeyOfAnotherMiner].DecryptedPreviousInValues
                     .Add(publicKey, ByteString.CopyFrom(decryptedInValue));
             }
+
+            Context.LogDebug(() => "Leaving ShareInValueOfCurrentRound");
         }
 
         private void RevealSharedInValues(Round currentRound, string publicKey)

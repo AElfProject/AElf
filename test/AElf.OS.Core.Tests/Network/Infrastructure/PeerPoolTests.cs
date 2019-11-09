@@ -17,10 +17,20 @@ namespace AElf.OS.Network
     public class PeerPoolTests : NetworkInfrastructureTestBase
     {
         private readonly IPeerPool _peerPool;
+        private readonly IBlackListedPeerProvider _blackListProvider;
 
         public PeerPoolTests()
         {
             _peerPool = GetRequiredService<IPeerPool>();
+            _blackListProvider = GetRequiredService<IBlackListedPeerProvider>();
+        }
+
+        [Fact]
+        public void AddBlacklistedPeer_ShouldReturnFalse()
+        {
+            IPAddress ipAddress = IPAddress.Parse("12.34.56.67");
+            _blackListProvider.AddIpToBlackList(ipAddress);
+            _peerPool.AddHandshakingPeer(ipAddress, "somePubKey").ShouldBeFalse();
         }
         
         [Fact]
@@ -102,7 +112,7 @@ namespace AElf.OS.Network
         }
 
         [Fact]
-        public async Task RemovePeerByPublicKey_ShouldNotBeFindable()
+        public void RemovePeerByPublicKey_ShouldNotBeFindable()
         {
             var peer = CreatePeer();
             
@@ -115,7 +125,7 @@ namespace AElf.OS.Network
         }
 
         [Fact]
-        public async Task CannotAddPeerTwice()
+        public void CannotAddPeerTwice()
         {
             var peer = CreatePeer();
             _peerPool.TryAddPeer(peer);
@@ -127,7 +137,7 @@ namespace AElf.OS.Network
         }
 
         [Fact]
-        public async Task AddPeer_MultipleTimes_Test()
+        public void AddPeer_MultipleTimes_Test()
         {
             var peer = CreatePeer("127.0.0.1:1000");
             _peerPool.TryAddPeer(peer);

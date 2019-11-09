@@ -6,30 +6,36 @@ namespace AElf.Contracts.Vote
 {
     public partial class VoteContract
     {
-        public override TokenAmounts GetMethodFee(MethodName input)
+        public override MethodFees GetMethodFee(StringValue input)
         {
-            var tokenAmounts = State.TransactionFees[input.Name];
+            var tokenAmounts = State.TransactionFees[input.Value];
             if (tokenAmounts != null)
             {
                 return tokenAmounts;
             }
 
-            switch (input.Name)
+            switch (input.Value)
             {
                 case nameof(Register):
-                    return new TokenAmounts
+                    return new MethodFees
                     {
-                        Amounts = {new TokenAmount {Symbol = Context.Variables.NativeSymbol, Amount = 10_00000000}}
+                        Fees =
+                        {
+                            new MethodFee {Symbol = Context.Variables.NativeSymbol, BasicFee = 10_00000000}
+                        }
                     };
                 default:
-                    return new TokenAmounts
+                    return new MethodFees
                     {
-                        Amounts = {new TokenAmount {Symbol = Context.Variables.NativeSymbol, Amount = 1_00000000}}
+                        Fees =
+                        {
+                            new MethodFee {Symbol = Context.Variables.NativeSymbol, BasicFee = 1_00000000}
+                        }
                     };
             }
         }
 
-        public override Empty SetMethodFee(TokenAmounts input)
+        public override Empty SetMethodFee(MethodFees input)
         {
             if (State.ParliamentAuthContract.Value == null)
             {
@@ -38,7 +44,7 @@ namespace AElf.Contracts.Vote
             }
 
             Assert(Context.Sender == State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty()));
-            State.TransactionFees[input.Method] = input;
+            State.TransactionFees[input.MethodName] = input;
 
             return new Empty();
         }

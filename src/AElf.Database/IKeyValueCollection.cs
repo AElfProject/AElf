@@ -10,7 +10,8 @@ namespace AElf.Database
         Task<byte[]> GetAsync(string key);
         Task SetAsync(string key, byte[] value);
         Task RemoveAsync(string key);
-        
+        Task<bool> IsExistsAsync(string key);
+
         Task SetAllAsync(IDictionary<string, byte[]> cache);
 
     }
@@ -37,7 +38,6 @@ namespace AElf.Database
             await _keyValueDatabase.SetAsync(GetKey(key), value);
         }
 
-
         protected virtual string GetKey(string key)
         {
             return Name + key;
@@ -46,6 +46,11 @@ namespace AElf.Database
         public async Task RemoveAsync(string key)
         {
             await _keyValueDatabase.RemoveAsync(GetKey(key));
+        }
+
+        public async Task<bool> IsExistsAsync(string key)
+        {
+            return await _keyValueDatabase.IsExists(key);
         }
 
         public async Task SetAllAsync(IDictionary<string, byte[]> cache)

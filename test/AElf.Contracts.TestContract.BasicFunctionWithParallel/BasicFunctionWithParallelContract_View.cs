@@ -45,7 +45,17 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
             return new TwoUserMoneyOut
             {
                 FirstInt64Value = State.WinerHistory[input.First],
-                SecondInt64Value = State.WinerHistory[input.First]
+                SecondInt64Value = State.WinerHistory[input.Second]
+            };
+        }
+
+        public override GetValueOutput GetValue(GetValueInput input)
+        {
+            return new GetValueOutput
+            {
+                StringValue = State.StringValueMap[input.Key] ?? string.Empty,
+                Int64Value = State.LongValueMap[input.Key],
+                MessageValue = State.MessageValueMap[input.Key]
             };
         }
     }

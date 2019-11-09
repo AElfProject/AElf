@@ -22,6 +22,7 @@ namespace AElf.Contracts.Vote
             }
 
             // Accepted currency is in white list means this token symbol supports voting.
+            //Length of symbol has been set and unnecessary to set length of AcceptedCurrency.
             var isInWhiteList = State.TokenContract.IsInWhiteList.Call(new IsInWhiteListInput
             {
                 Symbol = input.AcceptedCurrency,
@@ -67,24 +68,7 @@ namespace AElf.Contracts.Vote
         /// <returns></returns>
         public override Empty Vote(VoteInput input)
         {
-            //the VotingItem is exist in state.
-            var votingItem = AssertVotingItem(input.VotingItemId);
-            Assert(votingItem.Options.Contains(input.Option), $"Option {input.Option} not found.");
-            Assert(votingItem.CurrentSnapshotNumber <= votingItem.TotalSnapshotNumber,
-                "Current voting item already ended.");
-            if (!votingItem.IsLockToken)
-            {
-                Assert(votingItem.Sponsor == Context.Sender, "Sender of delegated voting event must be the Sponsor.");
-                Assert(input.Voter != null, "Voter cannot be null if voting event is delegated.");
-                Assert(input.VoteId != null, "Vote Id cannot be null if voting event is delegated.");
-            }
-            else
-            {
-                //Voter just is the transaction sponsor
-                input.Voter = Context.Sender;
-                //VoteId just is the transaction ID;
-                input.VoteId = Context.TransactionId;
-            }
+            var votingItem = AssertValidVoteInput(input);
 
             var votingRecord = new VotingRecord
             {
@@ -94,7 +78,8 @@ namespace AElf.Contracts.Vote
                 Option = input.Option,
                 IsWithdrawn = false,
                 VoteTimestamp = Context.CurrentBlockTime,
-                Voter = input.Voter
+                Voter = input.Voter,
+                IsChangeTarget = input.IsChangeTarget
             };
             //save the VotingRecords into the state.
             State.VotingRecords[input.VoteId] = votingRecord;
@@ -277,6 +262,7 @@ namespace AElf.Contracts.Vote
         {
             var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
+            Assert(input.Option.Length <= VoteContractConstants.OptionLengthLimit, "Invalid input.");
             Assert(!votingItem.Options.Contains(input.Option), "Option already exists.");
             Assert(votingItem.Options.Count <= VoteContractConstants.MaximumOptionsCount,
                 $"The count of options can't greater than {VoteContractConstants.MaximumOptionsCount}");
@@ -294,6 +280,7 @@ namespace AElf.Contracts.Vote
         {
             var votingItem = AssertVotingItem(input.VotingItemId);
             Assert(votingItem.Sponsor == Context.Sender, "Only sponsor can update options.");
+            Assert(input.Option.Length <= VoteContractConstants.OptionLengthLimit, "Invalid input.");
             Assert(votingItem.Options.Contains(input.Option), "Option doesn't exist.");
             votingItem.Options.Remove(input.Option);
             State.VotingItems[votingItem.VotingItemId] = votingItem;
@@ -365,6 +352,30 @@ namespace AElf.Contracts.Vote
                 VotingItemId = votingItemId,
                 SnapshotNumber = snapshotNumber
             }.GetHash();
+        }
+
+        private VotingItem AssertValidVoteInput(VoteInput input)
+        {
+            var votingItem = AssertVotingItem(input.VotingItemId);
+            Assert(input.Option.Length <= VoteContractConstants.OptionLengthLimit, "Invalid input.");
+            Assert(votingItem.Options.Contains(input.Option), $"Option {input.Option} not found.");
+            Assert(votingItem.CurrentSnapshotNumber <= votingItem.TotalSnapshotNumber,
+                "Current voting item already ended.");
+            if (!votingItem.IsLockToken)
+            {
+                Assert(votingItem.Sponsor == Context.Sender, "Sender of delegated voting event must be the Sponsor.");
+                Assert(input.Voter != null, "Voter cannot be null if voting event is delegated.");
+                Assert(input.VoteId != null, "Vote Id cannot be null if voting event is delegated.");
+            }
+            else
+            {
+                //Voter just is the transaction sponsor
+                input.Voter = Context.Sender;
+                //VoteId just is the transaction ID;
+                input.VoteId = Context.TransactionId;
+            }
+
+            return votingItem;
         }
     }
 }
