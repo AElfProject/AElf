@@ -147,7 +147,7 @@ namespace AElf.OS.Network
         }
 
         [Fact]
-        public async Task BroadcastBlockWithTransactionsAsync_Test()
+        public void BroadcastBlockWithTransactionsAsync_Test()
         {
             var blockWithTransaction = new BlockWithTransactions
             {
