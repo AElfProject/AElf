@@ -150,11 +150,6 @@ namespace AElf.Contracts.CrossChain
             return sideChainIndexingInformationList;
         }
 
-        public override SInt64Value CurrentSideChainSerialNumber(Empty input)
-        {
-            return new SInt64Value() {Value = State.SideChainSerialNumber.Value};
-        }
-
         public override SInt64Value LockedToken(SInt32Value input)
         {
             var info = State.SideChainInfo[input.Value];

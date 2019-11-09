@@ -11,8 +11,7 @@ message CrossChainRequest {
 }
 
 message CrossChainExtraData {
-    aelf.Hash side_chain_block_headers_root = 1; // Merkle tree root of side chain block headers
-    aelf.Hash side_chain_transactions_root = 2; // Merkle tree root of side chain block transaction roots
+    aelf.Hash transaction_status_merkle_tree_root = 1; // Merkle tree root of side chain block transaction roots
 }
 
 message HandShake {

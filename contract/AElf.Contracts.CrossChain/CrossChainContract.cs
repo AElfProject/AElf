@@ -148,7 +148,7 @@ namespace AElf.Contracts.CrossChain
             ValidateContractState(State.ConsensusContract,SmartContractConstants.ConsensusContractSystemName);
             var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value;
             Context.LogDebug(() => $"Sender is currentMiner : {isCurrentMiner}.");
-            Assert(isCurrentMiner,"Not authorized to do this.");
+            Assert(isCurrentMiner, "No permission.");
             
             var indexedCrossChainData = State.IndexedSideChainBlockData[Context.CurrentHeight];
             Assert(indexedCrossChainData == null); // This should not fail.

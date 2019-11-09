@@ -45,7 +45,7 @@ service ACS7 {
 message SideChainBlockData {
     int64 height = 1;
     aelf.Hash block_header_hash = 2;
-    aelf.Hash transaction_merkle_tree_root = 3;
+    aelf.Hash transaction_status_merkle_tree_root = 3;
     int32 chain_id = 4;
 }
 
@@ -64,7 +64,7 @@ message ParentChainBlockData {
     int64 height = 1;
     CrossChainExtraData cross_chain_extra_data = 2;
     int32 chain_id = 3;
-    aelf.Hash transaction_status_merkle_root = 4;
+    aelf.Hash transaction_status_merkle_tree_root = 4;
 
     // Indexed block height from side chain and merkle path for this side chain block
     map<int64, aelf.MerklePath> indexed_merkle_path = 5;
@@ -72,11 +72,8 @@ message ParentChainBlockData {
 }
 
 message CrossChainExtraData {
-    // Merkle tree root of side chain block headers
-    aelf.Hash side_chain_block_headers_root = 1;
-
-    // Merkle tree root of side chain block transaction roots
-    aelf.Hash side_chain_transactions_root = 2;
+    // Merkle tree root of side chain block transaction status root
+    aelf.Hash transaction_status_merkle_tree_root = 1;
 }
 
 enum SideChainStatus
@@ -103,12 +100,11 @@ message SideChainIndexingInformation {
 message CrossChainBlockData {
     repeated SideChainBlockData side_chain_block_data = 1;
     repeated ParentChainBlockData parent_chain_block_data = 2;
-    int64 previous_block_height = 3;
 }
 
 message CrossChainMerkleProofContext {
     int64 bound_parent_chain_height = 1;
-    aelf.MerklePath merkle_path_for_parent_chain_root = 2;
+    aelf.MerklePath merkle_path_from_parent_chain = 2;
 }
 
 message ChainInitializationData {
