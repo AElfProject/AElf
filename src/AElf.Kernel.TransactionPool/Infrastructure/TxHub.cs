@@ -230,7 +230,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         private async Task ProcessTransactionAsync(QueuedTransaction queuedTransaction)
         {
-            if (_allTransactions.Count > _transactionOptions.PoolLimit)
+            if (_allTransactions.Count >= _transactionOptions.PoolLimit)
                 return;
 
             if (_allTransactions.ContainsKey(queuedTransaction.TransactionId))
