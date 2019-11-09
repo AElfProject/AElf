@@ -189,6 +189,8 @@ namespace AElf.WebApp.Application.Chain
             {
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
+
+            var bloom = block.Header.Bloom;
             var blockDto = new BlockDto
             {
                 BlockHash = block.GetHash().ToHex(),
