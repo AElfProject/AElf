@@ -73,7 +73,7 @@ namespace AElf.WebApp.Application.Chain
                 output.BlockHash = block.GetHash().ToHex();
                 output.ReturnValue = transactionResult.ReturnValue.ToHex();
                 var bloom = transactionResult.Bloom;
-                output.Bloom = bloom.Length == 0 ? new byte[256].ToHex() : bloom.ToByteArray().ToHex();
+                output.Bloom = bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64() : bloom.ToBase64();
             }
 
             if (transactionResult.Status == TransactionResultStatus.Failed)
