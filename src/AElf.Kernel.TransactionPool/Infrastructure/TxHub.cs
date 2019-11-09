@@ -255,10 +255,11 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             }
         }
 
-        public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
+        public Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
-            var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
-            CleanTransactions(block.Body.TransactionIds.ToList());
+            CleanTransactions(eventData.Block.Body.TransactionIds.ToList());
+            
+            return Task.CompletedTask;
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)

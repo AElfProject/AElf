@@ -139,7 +139,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     Logger.LogInformation(
                         $"Executed block {blockLink.BlockHash} at height {blockLink.Height}, with {linkedBlock.Body.TransactionsCount} txns.");
                     
-                    await LocalEventBus.PublishAsync(new BlockAcceptedEvent {BlockHeader = linkedBlock.Header});
+                    await LocalEventBus.PublishAsync(new BlockAcceptedEvent {Block = linkedBlock});
                 }
             }
             catch (BlockValidationException ex)
