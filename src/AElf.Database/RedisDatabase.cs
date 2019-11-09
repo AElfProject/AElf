@@ -24,6 +24,12 @@ namespace AElf.Database
             _connectionMultiplexer = ConnectionMultiplexer.Connect(config);
         }
 
+        public async Task<bool> IsExists(string key)
+        {
+            Check.NotNullOrWhiteSpace(key, nameof(key));
+            return _pooledRedisLite.Exists(key);
+        }
+
         public bool IsConnected()
         {
             return _connectionMultiplexer.IsConnected;
