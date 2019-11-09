@@ -11,5 +11,6 @@ namespace AElf.Kernel.Infrastructure
         Task SetAllAsync(Dictionary<string, T> pipelineSet);
         Task<T> GetAsync(string key);
         Task RemoveAsync(string key);
+        Task<bool> IsExistsAsync(string key);
     }
 }
