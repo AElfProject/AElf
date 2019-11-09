@@ -112,7 +112,7 @@ namespace AElf.OS.Network
         }
 
         [Fact]
-        public async Task RemovePeerByPublicKey_ShouldNotBeFindable()
+        public void RemovePeerByPublicKey_ShouldNotBeFindable()
         {
             var peer = CreatePeer();
             
@@ -125,7 +125,7 @@ namespace AElf.OS.Network
         }
 
         [Fact]
-        public async Task CannotAddPeerTwice()
+        public void CannotAddPeerTwice()
         {
             var peer = CreatePeer();
             _peerPool.TryAddPeer(peer);
@@ -137,7 +137,7 @@ namespace AElf.OS.Network
         }
 
         [Fact]
-        public async Task AddPeer_MultipleTimes_Test()
+        public void AddPeer_MultipleTimes_Test()
         {
             var peer = CreatePeer("127.0.0.1:1000");
             _peerPool.TryAddPeer(peer);
