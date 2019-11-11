@@ -117,18 +117,18 @@ namespace AElf.OS.Network.Application
             
             var nextPeer = _peerPool.FindPeerByPublicKey(nextMinerPubkey);
             if (nextPeer != null)
-                await SendBlockAsync(nextPeer, blockWithTransactions);
+                EnqueueBlock(nextPeer, blockWithTransactions);
 
             foreach (var peer in _peerPool.GetPeers())
             {
                 if (nextPeer != null && peer.Info.Pubkey == nextPeer.Info.Pubkey)
                     continue;
 
-                await SendBlockAsync(peer, blockWithTransactions);
+                EnqueueBlock(peer, blockWithTransactions);
             }
         }
         
-        private async Task SendBlockAsync(IPeer peer, BlockWithTransactions blockWithTransactions)
+        private void EnqueueBlock(IPeer peer, BlockWithTransactions blockWithTransactions)
         {
             try
             {

@@ -66,12 +66,12 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public override async Task<VoidReply> ConfirmHandshake(ConfirmHandshakeRequest request,
+        public override Task<VoidReply> ConfirmHandshake(ConfirmHandshakeRequest request,
             ServerCallContext context)
         {
             try
             {
-                Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a confirm handshake.");
+                Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a handshake confirmation.");
 
                 _connectionService.ConfirmHandshake(context.GetPublicKey());
             }
@@ -81,7 +81,7 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            return new VoidReply();
+            return Task.FromResult(new VoidReply());
         }
 
         public override async Task<VoidReply> BlockBroadcastStream(
