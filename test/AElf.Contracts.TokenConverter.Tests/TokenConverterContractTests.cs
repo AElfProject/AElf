@@ -181,7 +181,7 @@ namespace AElf.Contracts.TokenConverter
                     IsNativeVirtualBalanceEnabled = true
                 })).TransactionResult;
                 result.Status.ShouldBe(TransactionResultStatus.Mined);
-                var cpuInfo = await DefaultStub.GetConnector.CallAsync(new TokenSymbol() {Symbol = "CPU"});
+                var cpuInfo = await DefaultStub.GetConnector.CallAsync(new TokenSymbol {Symbol = "CPU"});
                 cpuInfo.Symbol.ShouldBe("CPU");
             }
         }
@@ -497,7 +497,6 @@ namespace AElf.Contracts.TokenConverter
         public async Task Add_Pair_Connector_Success_Test()
         {
             await DeployContractsAsync();
-            await CreateRamToken();
             await InitializeTokenConverterContract();
             var pairConnector = new PairConnector
             {

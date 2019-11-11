@@ -181,6 +181,15 @@ namespace AElf.Contracts.Economic
 
         public override Empty IssueResourceToken(IssueResourceTokenInput input)
         {
+            if (State.ZeroContract.Value == null)
+            {
+                State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
+            }
+            var contractOwner = State.ZeroContract.GetContractAuthor.Call(Context.Self);
+            if (contractOwner != Context.Sender)
+            {
+                return new Empty();
+            }
             var tokenConverter =
                 Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
             State.TokenContract.Issue.Send(new IssueInput

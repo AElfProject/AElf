@@ -359,9 +359,10 @@ message Transferred {
     option (aelf.is_event) = true;
     aelf.Address from = 1 [(aelf.is_indexed) = true];
     aelf.Address to = 2 [(aelf.is_indexed) = true];
-    string symbol = 3 [(aelf.is_indexed) = true];
+    string from_symbol = 3 [(aelf.is_indexed) = true];
     sint64 amount = 4;
     string memo = 5;
+    string to_symbol = 6[(aelf.is_indexed) = true];
 }
 
 message Approved {

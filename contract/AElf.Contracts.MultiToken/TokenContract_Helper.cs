@@ -43,13 +43,15 @@ namespace AElf.Contracts.MultiToken
             var balanceOfReceiver = State.Balances[to][targetSymbol];
             State.Balances[from][symbol] = balanceOfSender.Sub(amount);
             State.Balances[to][targetSymbol] = balanceOfReceiver.Add(amount);
-            Context.Fire(new Transferred()
+            Context.Fire(new Transferred
             {
                 From = from,
                 To = to,
-                Symbol = symbol,
+                FromSymbol = symbol,
                 Amount = amount,
-                Memo = memo
+                Memo = memo,
+                ToSymbol = targetSymbol
+                
             });
         }
 
