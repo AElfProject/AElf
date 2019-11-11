@@ -139,7 +139,6 @@ namespace AElf.Contracts.CrossChain
         {
             Context.LogDebug(() => "Start RecordCrossChainData.");
             
-            ValidateContractState(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
             AssertCurrentMiner();
 
             var indexedCrossChainData = State.IndexedSideChainBlockData[Context.CurrentHeight];

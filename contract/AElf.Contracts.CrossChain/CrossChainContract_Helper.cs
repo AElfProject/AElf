@@ -212,6 +212,7 @@ namespace AElf.Contracts.CrossChain
 
         private void AssertCurrentMiner()
         {
+            ValidateContractState(State.ConsensusContract, SmartContractConstants.ConsensusContractSystemName);
             var isCurrentMiner = State.ConsensusContract.IsCurrentMiner.Call(Context.Sender).Value;
             Context.LogDebug(() => $"Sender is currentMiner : {isCurrentMiner}.");
             Assert(isCurrentMiner, "No permission.");
