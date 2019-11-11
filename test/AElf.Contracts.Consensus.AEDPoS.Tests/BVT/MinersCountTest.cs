@@ -103,7 +103,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 newMinerStub = GetAEDPoSContractStub(ValidationDataCenterKeyPairs.First(o =>o.PublicKey.ToHex() == firstPubKey));
                 
                 minerCount = currentRound.RealTimeMinersInformation.Count;
-                Assert.Equal(9.Add(termCount.Mul(2)), minerCount);
+                Assert.Equal(AEDPoSContractTestConstants.InitialMinersCount.Add(termCount.Mul(2)), minerCount);
 
                 changeTermTime = BlockchainStartTimestamp.ToDateTime()
                     .AddMinutes((termCount + 2).Mul(termIntervalMin)).AddSeconds(10);
