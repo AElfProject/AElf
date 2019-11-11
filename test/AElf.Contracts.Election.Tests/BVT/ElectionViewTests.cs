@@ -44,7 +44,7 @@ namespace AElf.Contracts.Election
         {
             await ElectionContract_Vote_Test();
 
-            var voteRecords = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringInput
+            var voteRecords = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
             {
                 Value = ValidationDataCenterKeyPairs.Last().PublicKey.ToHex()
             });
@@ -60,7 +60,7 @@ namespace AElf.Contracts.Election
             var voters = await UserVotesCandidate(2, 500, 100);
             var voterKeyPair = voters[0];
             //without withdraw
-            var allRecords = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(new StringInput
+            var allRecords = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(new StringValue
             {
                 Value = voterKeyPair.PublicKey.ToHex()
             });
@@ -71,12 +71,12 @@ namespace AElf.Contracts.Election
             await NextTerm(InitialCoreDataCenterKeyPairs[0]);
             BlockTimeProvider.SetBlockTime(StartTimestamp.AddSeconds(100 * 60 * 60 * 24 + 1));
             var voteId =
-                (await ElectionContractStub.GetElectorVote.CallAsync(new StringInput
+                (await ElectionContractStub.GetElectorVote.CallAsync(new StringValue
                     {Value = voterKeyPair.PublicKey.ToHex()})).ActiveVotingRecordIds.First();
             var executionResult = await WithdrawVotes(voterKeyPair, voteId);
             executionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            allRecords = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(new StringInput
+            allRecords = await ElectionContractStub.GetElectorVoteWithAllRecords.CallAsync(new StringValue
             {
                 Value = voterKeyPair.PublicKey.ToHex()
             });
