@@ -5,7 +5,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using MartinCostello.Logging.XUnit;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
@@ -24,9 +24,9 @@ namespace AElf.WebApp.Application
             OutputHelper = outputHelper;
         }
         
-        protected override IWebHostBuilder CreateWebHostBuilder()
+        protected override IHostBuilder CreateHostBuilder()
         {
-            return base.CreateWebHostBuilder()
+            return base.CreateHostBuilder()
                 .ConfigureLogging(builder =>
                 {
                     builder
