@@ -9,7 +9,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        private BytesValue GetConsensusBlockExtraData(BytesValue input, bool withSecretSharingInformation = false)
+        private BytesValue GetConsensusBlockExtraData(BytesValue input, bool isGeneratingTransactions = false)
         {
             var triggerInformation = new AElfConsensusTriggerInformation();
             triggerInformation.MergeFrom(input.Value);
@@ -32,6 +32,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 case AElfConsensusBehaviour.UpdateValue:
                     information = GetConsensusExtraDataToPublishOutValue(currentRound, pubkey,
                         triggerInformation);
+                    if (!isGeneratingTransactions)
+                    {
+                        information.Round = information.Round.GetUpdateValueRound(pubkey);
+                    }
+
                     break;
 
                 case AElfConsensusBehaviour.TinyBlock:
@@ -49,7 +54,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     break;
             }
 
-            if (!withSecretSharingInformation)
+            if (!isGeneratingTransactions)
             {
                 information.Round.DeleteSecretSharingInformation();
             }
@@ -58,107 +63,137 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         private AElfConsensusHeaderInformation GetConsensusExtraDataToPublishOutValue(Round currentRound,
-            string publicKey, AElfConsensusTriggerInformation triggerInformation)
+            string pubkey, AElfConsensusTriggerInformation triggerInformation)
         {
-            currentRound.RealTimeMinersInformation[publicKey].ProducedTinyBlocks = currentRound
-                .RealTimeMinersInformation[publicKey].ProducedTinyBlocks.Add(1);
-            currentRound.RealTimeMinersInformation[publicKey].ProducedBlocks =
-                currentRound.RealTimeMinersInformation[publicKey].ProducedBlocks.Add(1);
-            currentRound.RealTimeMinersInformation[publicKey].ActualMiningTimes
+            currentRound.RealTimeMinersInformation[pubkey].ProducedTinyBlocks = currentRound
+                .RealTimeMinersInformation[pubkey].ProducedTinyBlocks.Add(1);
+            currentRound.RealTimeMinersInformation[pubkey].ProducedBlocks =
+                currentRound.RealTimeMinersInformation[pubkey].ProducedBlocks.Add(1);
+            currentRound.RealTimeMinersInformation[pubkey].ActualMiningTimes
                 .Add(Context.CurrentBlockTime);
 
-            Assert(triggerInformation.RandomHash != null, "Random hash should not be null.");
+            Assert(triggerInformation.InValue != null, "Random hash should not be null.");
 
-            var inValue = currentRound.CalculateInValue(triggerInformation.RandomHash);
-            var outValue = Hash.FromMessage(inValue);
+            var outValue = Hash.FromMessage(triggerInformation.InValue);
             var signature =
-                Hash.FromTwoHashes(outValue, triggerInformation.RandomHash); // Just initial signature value.
+                Hash.FromTwoHashes(outValue, triggerInformation.InValue); // Just initial signature value.
             var previousInValue = Hash.Empty; // Just initial previous in value.
 
             if (TryToGetPreviousRoundInformation(out var previousRound) && !IsFirstRoundOfCurrentTerm(out _))
             {
-                signature = previousRound.CalculateSignature(inValue);
-                if (triggerInformation.PreviousRandomHash != null &&
-                    triggerInformation.PreviousRandomHash != Hash.Empty)
+                signature = previousRound.CalculateSignature(triggerInformation.InValue);
+                Context.LogDebug(
+                    () => $"Previous in value in trigger information: {triggerInformation.PreviousInValue}");
+                if (triggerInformation.PreviousInValue != null &&
+                    triggerInformation.PreviousInValue != Hash.Empty)
                 {
-                    // If PreviousRandomHash is null or Hash.Empty, it means the sender unable or unwilling to publish his previous in value.
-                    previousInValue = previousRound.CalculateInValue(triggerInformation.PreviousRandomHash);
                     // Self check.
-                    if (Hash.FromMessage(previousInValue) !=
-                        previousRound.RealTimeMinersInformation[publicKey].OutValue)
+                    if (Hash.FromMessage(triggerInformation.PreviousInValue) !=
+                        previousRound.RealTimeMinersInformation[pubkey].OutValue)
                     {
                         Context.LogDebug(() => "Failed to produce block at previous round?");
                         previousInValue = Hash.Empty;
                     }
+                    else
+                    {
+                        previousInValue = triggerInformation.PreviousInValue;
+                    }
                 }
             }
 
-            var updatedRound = currentRound.ApplyNormalConsensusData(publicKey, previousInValue,
+            var updatedRound = currentRound.ApplyNormalConsensusData(pubkey, previousInValue,
                 outValue, signature);
 
-            updatedRound.RealTimeMinersInformation[publicKey].ImpliedIrreversibleBlockHeight = Context.CurrentHeight;
+            Context.LogDebug(
+                () => $"Previous in value after ApplyNormalConsensusData: {updatedRound.RealTimeMinersInformation[pubkey].PreviousInValue}");
 
-            ShareInValueOfCurrentRound(updatedRound, previousRound, inValue, publicKey);
+            updatedRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight = Context.CurrentHeight;
+
+            // Update secret pieces of latest in value.
+            foreach (var encryptedPiece in triggerInformation.EncryptedPieces)
+            {
+                updatedRound.RealTimeMinersInformation[pubkey].EncryptedPieces
+                    .Add(encryptedPiece.Key, encryptedPiece.Value);
+            }
+
+            foreach (var decryptedPiece in triggerInformation.DecryptedPieces)
+            {
+                if (updatedRound.RealTimeMinersInformation.ContainsKey(decryptedPiece.Key))
+                {
+                    updatedRound.RealTimeMinersInformation[decryptedPiece.Key].DecryptedPieces[pubkey] =
+                        decryptedPiece.Value;
+                }
+            }
+
+            foreach (var revealedInValue in triggerInformation.RevealedInValues)
+            {
+                if (updatedRound.RealTimeMinersInformation.ContainsKey(revealedInValue.Key) &&
+                    (updatedRound.RealTimeMinersInformation[revealedInValue.Key].PreviousInValue == Hash.Empty ||
+                     updatedRound.RealTimeMinersInformation[revealedInValue.Key].PreviousInValue == null))
+                {
+                    updatedRound.RealTimeMinersInformation[revealedInValue.Key].PreviousInValue = revealedInValue.Value;
+                }
+            }
 
             // To publish Out Value.
             return new AElfConsensusHeaderInformation
             {
-                SenderPubkey = publicKey.ToByteString(),
+                SenderPubkey = pubkey.ToByteString(),
                 Round = updatedRound,
                 Behaviour = triggerInformation.Behaviour
             };
         }
 
         private AElfConsensusHeaderInformation GetConsensusExtraDataForTinyBlock(Round currentRound,
-            string publicKey, AElfConsensusTriggerInformation triggerInformation)
+            string pubkey, AElfConsensusTriggerInformation triggerInformation)
         {
-            currentRound.RealTimeMinersInformation[publicKey].ProducedTinyBlocks = currentRound
-                .RealTimeMinersInformation[publicKey].ProducedTinyBlocks.Add(1);
-            currentRound.RealTimeMinersInformation[publicKey].ProducedBlocks =
-                currentRound.RealTimeMinersInformation[publicKey].ProducedBlocks.Add(1);
-            currentRound.RealTimeMinersInformation[publicKey].ActualMiningTimes
+            currentRound.RealTimeMinersInformation[pubkey].ProducedTinyBlocks = currentRound
+                .RealTimeMinersInformation[pubkey].ProducedTinyBlocks.Add(1);
+            currentRound.RealTimeMinersInformation[pubkey].ProducedBlocks =
+                currentRound.RealTimeMinersInformation[pubkey].ProducedBlocks.Add(1);
+            currentRound.RealTimeMinersInformation[pubkey].ActualMiningTimes
                 .Add(Context.CurrentBlockTime);
 
             return new AElfConsensusHeaderInformation
             {
-                SenderPubkey = publicKey.ToByteString(),
-                Round = currentRound,
+                SenderPubkey = pubkey.ToByteString(),
+                Round = currentRound.GetTinyBlockRound(pubkey),
                 Behaviour = triggerInformation.Behaviour
             };
         }
 
         private AElfConsensusHeaderInformation GetConsensusExtraDataForNextRound(Round currentRound,
-            string publicKey, AElfConsensusTriggerInformation triggerInformation)
+            string pubkey, AElfConsensusTriggerInformation triggerInformation)
         {
             if (!GenerateNextRoundInformation(currentRound, Context.CurrentBlockTime, out var nextRound))
             {
                 Assert(false, "Failed to generate next round information.");
             }
 
-            if (!nextRound.RealTimeMinersInformation.Keys.Contains(publicKey))
+            if (!nextRound.RealTimeMinersInformation.Keys.Contains(pubkey))
             {
                 return new AElfConsensusHeaderInformation
                 {
-                    SenderPubkey = publicKey.ToByteString(),
+                    SenderPubkey = pubkey.ToByteString(),
                     Round = nextRound,
                     Behaviour = triggerInformation.Behaviour
                 };
             }
 
-            RevealSharedInValues(currentRound, publicKey);
+            RevealSharedInValues(currentRound, pubkey);
 
-            nextRound.RealTimeMinersInformation[publicKey].ProducedBlocks =
-                nextRound.RealTimeMinersInformation[publicKey].ProducedBlocks.Add(1);
+            nextRound.RealTimeMinersInformation[pubkey].ProducedBlocks =
+                nextRound.RealTimeMinersInformation[pubkey].ProducedBlocks.Add(1);
             Context.LogDebug(() => $"Mined blocks: {nextRound.GetMinedBlocks()}");
-            nextRound.ExtraBlockProducerOfPreviousRound = publicKey;
+            nextRound.ExtraBlockProducerOfPreviousRound = pubkey;
 
-            nextRound.RealTimeMinersInformation[publicKey].ProducedTinyBlocks = 1;
-            nextRound.RealTimeMinersInformation[publicKey].ActualMiningTimes
+            nextRound.RealTimeMinersInformation[pubkey].ProducedTinyBlocks = 1;
+            nextRound.RealTimeMinersInformation[pubkey].ActualMiningTimes
                 .Add(Context.CurrentBlockTime);
 
             return new AElfConsensusHeaderInformation
             {
-                SenderPubkey = publicKey.ToByteString(),
+                SenderPubkey = pubkey.ToByteString(),
                 Round = nextRound,
                 Behaviour = triggerInformation.Behaviour
             };

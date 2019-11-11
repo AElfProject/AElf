@@ -40,7 +40,7 @@ namespace AElf.Contracts.Economic.TestBase
     
     public class MockRandomHashCacheService : IRandomHashCacheService
     {
-        public void SetRandomHash(Hash bestChainBlockHash, Hash randomHash)
+        public void SetRandomHash(Hash bestChainHash, Hash randomHash)
         {
         }
 
@@ -49,7 +49,7 @@ namespace AElf.Contracts.Economic.TestBase
             return Hash.FromMessage(bestChainBlockHash);
         }
 
-        public void SetGeneratedBlockPreviousBlockInformation(Hash blockHash, long blockHeight)
+        public void SetGeneratedBlockBestChainHash(Hash blockHash, long blockHeight)
         {
         }
 

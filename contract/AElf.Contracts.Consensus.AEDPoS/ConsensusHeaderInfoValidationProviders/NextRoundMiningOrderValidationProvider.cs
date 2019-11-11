@@ -3,11 +3,10 @@ using Acs4;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    public class SenderOrderValidationProvider : IHeaderInformationValidationProvider
+    public class NextRoundMiningOrderValidationProvider : IHeaderInformationValidationProvider
     {
         public ValidationResult ValidateHeaderInformation(ConsensusValidationContext validationContext)
         {
-            // Is sender's order of next round correct?
             // Miners that have determined the order of the next round should be equal to
             // miners that mined blocks during current round.
             var validationResult = new ValidationResult();

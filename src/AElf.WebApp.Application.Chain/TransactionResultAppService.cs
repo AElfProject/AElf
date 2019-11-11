@@ -263,6 +263,10 @@ namespace AElf.WebApp.Application.Chain
 
             transactionResultDto.Status = transactionResult.Status.ToString();
 
+            transactionResultDto.TransactionFee = transactionResult.TransactionFee == null
+                ? new TransactionFeeDto()
+                : JsonConvert.DeserializeObject<TransactionFeeDto>(transactionResult.TransactionFee.ToString());
+
             return transactionResultDto;
         }
 

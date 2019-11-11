@@ -1,4 +1,3 @@
-using AElf.Kernel;
 using AElf.Types;
 
 //using AElf.Kernel.SmartContract.Sdk;

@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -23,13 +23,10 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             {
                 if (_interestedEvent != null)
                     return _interestedEvent;
-
                 var address =
                     _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
                         .Name);
-
                 _interestedEvent = new IrreversibleBlockHeightUnacceptable().ToLogEvent(address);
-
                 return _interestedEvent;
             }
         }
@@ -48,12 +45,12 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
-            var eventData = new IrreversibleBlockHeightUnacceptable();
-            eventData.MergeFrom(logEvent);
+            var distanceToLib = new IrreversibleBlockHeightUnacceptable();
+            distanceToLib.MergeFrom(logEvent);
 
-            if (eventData.DistanceToIrreversibleBlockHeight > 0)
+            if (distanceToLib.DistanceToIrreversibleBlockHeight > 0)
             {
-                Logger.LogDebug($"Distance to lib height: {eventData.DistanceToIrreversibleBlockHeight}");
+                Logger.LogDebug($"Distance to lib height: {distanceToLib.DistanceToIrreversibleBlockHeight}");
                 _transactionInclusivenessProvider.IsTransactionPackable = false;
             }
             else

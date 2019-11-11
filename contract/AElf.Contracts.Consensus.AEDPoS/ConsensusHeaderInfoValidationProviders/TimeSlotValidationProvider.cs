@@ -4,7 +4,7 @@ using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    public class RoundTimeSlotsValidationProvider : IHeaderInformationValidationProvider
+    public class TimeSlotValidationProvider : IHeaderInformationValidationProvider
     {
         public ValidationResult ValidateHeaderInformation(ConsensusValidationContext validationContext)
         {
@@ -12,7 +12,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // If provided round is a new round
             if (validationContext.ProvidedRound.RoundId != validationContext.BaseRound.RoundId)
             {
-                // Is round information fits time slot rule?
+                // Is new round information fits time slot rule?
                 validationResult = validationContext.ProvidedRound.CheckRoundTimeSlots();
                 if (!validationResult.Success)
                 {

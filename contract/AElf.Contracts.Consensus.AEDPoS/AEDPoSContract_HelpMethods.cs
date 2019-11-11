@@ -132,6 +132,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             State.Rounds.Set(round.RoundNumber, round);
 
+            if (round.RoundNumber > 1)
+            {
+                Context.Fire(new SecretSharingInformation
+                {
+                    CurrentRoundId = round.RoundId,
+                    PreviousRound = State.Rounds[round.RoundNumber.Sub(1)],
+                    PreviousRoundId = State.Rounds[round.RoundNumber.Sub(1)].RoundId
+                });
+            }
+
             // Only clear old round information when the mining status is Normal.
             var roundNumberToRemove = round.RoundNumber.Sub(AEDPoSContractConstants.KeepRounds);
             if (
