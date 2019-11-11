@@ -93,5 +93,10 @@ namespace AElf.Kernel.Infrastructure
         {
             await _collection.RemoveAsync(key);
         }
+
+        public async Task<bool> IsExistsAsync(string key)
+        {
+            return await _collection.IsExistsAsync(key);
+        }
     }
 }

@@ -43,6 +43,14 @@ namespace AElf.Database.RedisProtocol
             }
         }
 
+        public bool Exists(string key)
+        {
+            using (var client = GetRedisClient())
+            {
+                return client.Exists(key) > 0;
+            }
+        }
+
         public bool Ping()
         {
             using (var client = GetRedisClient(true))
