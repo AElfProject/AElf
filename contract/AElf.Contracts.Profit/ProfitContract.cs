@@ -257,15 +257,15 @@ namespace AElf.Contracts.Profit
 
             State.ProfitDetailsMap[input.SchemeId][input.Beneficiary] = currentDetail;
 
-            // TODO: Recover this after key deletion in contract feature impled.
-//            if (currentDetail.Details.Count != 0)
-//            {
-//                State.ProfitDetailsMap[input.SchemeId][input.Beneficiary] = currentDetail;
-//            }
-//            else
-//            {
-//                State.ProfitDetailsMap[input.SchemeId][input.Beneficiary] = null;
-//            }
+            // Clear old profit details.
+            if (currentDetail.Details.Count != 0)
+            {
+                State.ProfitDetailsMap[input.SchemeId][input.Beneficiary] = currentDetail;
+            }
+            else
+            {
+                State.ProfitDetailsMap[input.SchemeId].Remove(input.Beneficiary);
+            }
 
             scheme.TotalShares = scheme.TotalShares.Sub(shares);
             State.SchemeInfos[input.SchemeId] = scheme;

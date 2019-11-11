@@ -42,7 +42,6 @@ namespace AElf.Contracts.MultiToken
                     };
                 }
 
-                // TODO: Support more methods
                 default:
                     return new ResourceInfo();
             }
