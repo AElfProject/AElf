@@ -9,11 +9,7 @@ namespace AElf.Sdk.CSharp.Tests.TestContract
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
-            // TODO: State.ZeroContract.GetContractAuthor.Call(Context.Self) failed.
-//            State.ZeroContract.Value = Context.GetZeroSmartContractAddress();
-//            var contractAuthor = State.ZeroContract.GetContractAuthor.Call(Context.Self);
-//            Assert(contractAuthor == Context.Sender, "Only author can initialize the contract state.");
-
+            
             // Set token info
             State.TokenInfo.Symbol.Value = symbol;
             State.TokenInfo.TokenName.Value = tokenName;
