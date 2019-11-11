@@ -19,7 +19,7 @@ namespace AElf.Database
             {
                 EndPoints = {{endpoint.Host, endpoint.Port}},
                 DefaultDatabase = endpoint.DatabaseNumber,
-                CommandMap = CommandMap.Create(new HashSet<string> {"SELECT", "SET", "MSET", "GET", "EXISTS", "DEL"})
+                CommandMap = CommandMap.Create(new HashSet<string> {"SELECT", "SET", "MSET", "GET", "MGET", "EXISTS", "DEL"})
             };
             _connectionMultiplexer = ConnectionMultiplexer.Connect(config);
         }
@@ -29,7 +29,7 @@ namespace AElf.Database
             return _connectionMultiplexer.IsConnected;
         }
         
-        public async Task<bool> IsExists(string key)
+        public async Task<bool> IsExistsAsync(string key)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
             return await _connectionMultiplexer.GetDatabase().KeyExistsAsync(key);
@@ -52,13 +52,44 @@ namespace AElf.Database
             Check.NotNullOrWhiteSpace(key, nameof(key));
             await _connectionMultiplexer.GetDatabase().KeyDeleteAsync(key);
         }
-
-        public async Task SetAllAsync(Dictionary<string, byte[]> cache)
+        
+        public async Task<List<byte[]>> GetAllAsync(List<string> keys)
         {
-            if (cache.Count == 0)
+            if (keys.Count == 0)
+                return null;
+            foreach (var key in keys)
+            {
+                Check.NotNullOrWhiteSpace(key, nameof(key));
+            }
+
+            var values = await _connectionMultiplexer.GetDatabase()
+                .StringGetAsync(keys.Select(k => (RedisKey) k).ToArray());
+
+            return values.Select(v => (byte[]) v).ToList();
+        }
+        public async Task SetAllAsync(Dictionary<string, byte[]> values)
+        {
+            if (values.Count == 0)
                 return;
-            var keyPairs = cache.Select(entry => new KeyValuePair<RedisKey, RedisValue>(entry.Key, entry.Value));
+            foreach (var key in values.Keys)
+            {
+                Check.NotNullOrWhiteSpace(key, nameof(key));
+            }
+            
+            var keyPairs = values.Select(entry => new KeyValuePair<RedisKey, RedisValue>(entry.Key, entry.Value));
             await _connectionMultiplexer.GetDatabase().StringSetAsync(keyPairs.ToArray());
+        }
+        
+        public async Task RemoveAllAsync(List<string> keys)
+        {
+            if (keys.Count == 0)
+                return;
+            foreach (var key in keys)
+            {
+                Check.NotNullOrWhiteSpace(key, nameof(key));
+            }
+
+            await _connectionMultiplexer.GetDatabase().KeyDeleteAsync(keys.Select(k => (RedisKey) k).ToArray());
         }
     }
 }

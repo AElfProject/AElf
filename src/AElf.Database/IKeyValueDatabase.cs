@@ -9,8 +9,10 @@ namespace AElf.Database
         Task<byte[]> GetAsync(string key);
         Task SetAsync(string key, byte[] bytes);
         Task RemoveAsync(string key);
-        Task SetAllAsync(Dictionary<string, byte[]> cache);
-        Task<bool> IsExists(string key);
+        Task<List<byte[]>> GetAllAsync(List<string> keys);
+        Task SetAllAsync(Dictionary<string, byte[]> values);
+        Task RemoveAllAsync(List<string> keys);
+        Task<bool> IsExistsAsync(string key);
         bool IsConnected();
     }
 }
