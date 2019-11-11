@@ -9,6 +9,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AElf.Contracts.TestKit
@@ -23,6 +24,18 @@ namespace AElf.Contracts.TestKit
         }
 
         public async Task ExecuteAsync(Transaction transaction)
+        {
+            var transactionResult = await ExecuteTransactionAsync(transaction);
+            if (transactionResult == null || transactionResult.Status != TransactionResultStatus.Mined)
+                throw new Exception($"Failed to execute {transaction.MethodName}. {transactionResult?.Error}");
+        }
+
+        public async Task<TransactionResult> ExecuteWithExceptionAsync(Transaction transaction)
+        {
+            return await ExecuteTransactionAsync(transaction);
+        }
+
+        private async Task<TransactionResult> ExecuteTransactionAsync(Transaction transaction)
         {
             var blockchainService = _serviceProvider.GetRequiredService<IBlockchainService>();
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
@@ -44,14 +57,24 @@ namespace AElf.Contracts.TestKit
             await blockchainService.AddBlockAsync(block);
             await blockAttachService.AttachBlockAsync(block);
 
-            var transactionResult = await transactionResultService.GetTransactionResultAsync(transaction.GetHash());
-            if (transactionResult == null || transactionResult.Status != TransactionResultStatus.Mined)
-            {
-                //throw new Exception($"Failed to execute {transaction.MethodName}. {transactionResult?.Error}");
-            }
+            return await transactionResultService.GetTransactionResultAsync(transaction.GetHash());
         }
 
         public async Task<ByteString> ReadAsync(Transaction transaction)
+        {
+            var transactionTrace = await ReadTransactionResultAsync(transaction);
+            if (transactionTrace.ExecutionStatus != ExecutionStatus.Executed)
+                throw new Exception($"Failed to call {transaction.MethodName}. {transactionTrace.Error}");
+            return transactionTrace.ReturnValue;
+        }
+
+        public async Task<StringValue> ReadWithExceptionAsync(Transaction transaction)
+        {
+            var transactionTrace = await ReadTransactionResultAsync(transaction);
+            return new StringValue {Value = transactionTrace.Error};
+        }
+
+        private async Task<TransactionTrace> ReadTransactionResultAsync(Transaction transaction)
         {
             var blockchainService = _serviceProvider.GetRequiredService<IBlockchainService>();
             var transactionReadOnlyExecutionService =
@@ -59,20 +82,13 @@ namespace AElf.Contracts.TestKit
             var blockTimeProvider = _serviceProvider.GetRequiredService<IBlockTimeProvider>();
 
             var preBlock = await blockchainService.GetBestChainLastBlockHeaderAsync();
-            var transactionTrace = await transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
+            return await transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
                 {
                     BlockHash = preBlock.GetHash(),
                     BlockHeight = preBlock.Height
                 },
                 transaction,
                 blockTimeProvider.GetBlockTime());
-
-            if (transactionTrace.ExecutionStatus != ExecutionStatus.Executed)
-            {
-                //throw new Exception($"Failed to call {transaction.MethodName}. {transactionTrace.Error}");
-            }
-
-            return transactionTrace.ReturnValue;
         }
     }
 }
