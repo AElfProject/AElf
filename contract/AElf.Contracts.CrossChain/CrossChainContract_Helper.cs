@@ -226,5 +226,10 @@ namespace AElf.Contracts.CrossChain
             Assert(parentChainBlockData.TransactionStatusMerkleTreeRoot != null,
                 "Parent chain transaction status merkle tree root needed.");
         }
+
+        private int GetChainId(long serialNumber)
+        {
+            return ChainHelper.GetChainId(serialNumber + Context.ChainId);
+        }
     }
 }

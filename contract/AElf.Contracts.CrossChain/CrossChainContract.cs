@@ -50,7 +50,7 @@ namespace AElf.Contracts.CrossChain
             AssertSideChainTokenInfo(sideChainTokenInfo);
             State.SideChainSerialNumber.Value = State.SideChainSerialNumber.Value.Add(1);
             var serialNumber = State.SideChainSerialNumber.Value;
-            int chainId = ChainHelper.GetChainId(serialNumber + Context.ChainId);
+            int chainId = GetChainId(serialNumber);
 
             // lock token and resource
             CreateSideChainToken(sideChainCreationRequest, sideChainTokenInfo, chainId);
