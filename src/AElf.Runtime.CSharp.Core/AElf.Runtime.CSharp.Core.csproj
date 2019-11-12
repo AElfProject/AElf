@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <TargetFramework>netcoreapp3.0</TargetFramework>
         <RootNamespace>AElf.Runtime.CSharp.Core</RootNamespace>
         <PackageId>AElf.Runtime.CSharp.Core</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -9,7 +9,7 @@
 
     <ItemGroup>
       <PackageReference Include="Mono.Cecil" Version="0.11.0" />
-      <PackageReference Include="Hyperion" Version="0.9.8" />
+      <PackageReference Include="Hyperion" Version="0.9.10" />
       <PackageReference Include="Unofficial.CoreRT.ILVerify" Version="0.0.1" />
 
     </ItemGroup>

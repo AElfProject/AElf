@@ -295,7 +295,7 @@ namespace AElf.Contracts.TokenConverter
 
         private static bool IsValidSymbol(string symbol)
         {
-            return symbol.Length > 0 && symbol.Length < TokenConverterContractConstants.SymbolMaxLength &&
+            return symbol.Length > 0 &&
                    symbol.All(c => c >= 'A' && c <= 'Z');
         }
 
