@@ -8,6 +8,7 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.CSharp.Core;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.DependencyInjection;
 
@@ -103,7 +104,7 @@ namespace AElf.Contracts.TestKit
                 return method.ResponseMarshaller.Deserializer(returnValue.ToByteArray());
             }
 
-            async Task<TOutput> CallWithExceptionAsync(TInput input)
+            async Task<StringValue> CallWithExceptionAsync(TInput input)
             {
                 var transaction = new Transaction
                 {
@@ -113,7 +114,7 @@ namespace AElf.Contracts.TestKit
                     Params = ByteString.CopyFrom(method.RequestMarshaller.Serializer(input))
                 };
                 var returnValue = await _transactionExecutor.ReadWithExceptionAsync(transaction);
-                return method.ResponseMarshaller.Deserializer(returnValue.ToByteArray());
+                return new StringValue {Value = returnValue.Value};
             }
 
             return new MethodStub<TInput, TOutput>(method, SendAsync, CallAsync, GetTransaction, SendWithExceptionAsync,

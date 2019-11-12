@@ -14,7 +14,7 @@ namespace AElf.Contracts.Vote
             var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 1);
 
             var otherUser = SampleECKeyPairs.KeyPairs[2];
-            var transactionResult = (await GetVoteContractTester(otherUser).TakeSnapshot.SendAsync(
+            var transactionResult = (await GetVoteContractTester(otherUser).TakeSnapshot.SendWithExceptionAsync(
                 new TakeSnapshotInput
                 {
                     VotingItemId = votingItem.VotingItemId,
@@ -28,7 +28,7 @@ namespace AElf.Contracts.Vote
         [Fact]
         public async Task VoteContract_TakeSnapshot_WithoutVotingItem_Test()
         {
-            var transactionResult = (await VoteContractStub.TakeSnapshot.SendAsync(
+            var transactionResult = (await VoteContractStub.TakeSnapshot.SendWithExceptionAsync(
                 new TakeSnapshotInput
                 {
                     VotingItemId = Hash.FromString("hash"),
@@ -43,7 +43,7 @@ namespace AElf.Contracts.Vote
         public async Task VoteContract_TakeSnapshot_WithWrongSnapshotNumber_Test()
         {
             var votingItem = await RegisterVotingItemAsync(10, 4, true, DefaultSender, 2);
-            var transactionResult = (await VoteContractStub.TakeSnapshot.SendAsync(
+            var transactionResult = (await VoteContractStub.TakeSnapshot.SendWithExceptionAsync(
                 new TakeSnapshotInput
                 {
                     VotingItemId = votingItem.VotingItemId,

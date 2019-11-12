@@ -32,7 +32,13 @@ namespace AElf.Contracts.TestKit
 
         public async Task<TransactionResult> ExecuteWithExceptionAsync(Transaction transaction)
         {
-            return await ExecuteTransactionAsync(transaction);
+            var transactionResult = await ExecuteTransactionAsync(transaction);
+            if (transactionResult.Status == TransactionResultStatus.Mined)
+            {
+                throw new Exception($"Succeed to execute {transaction.MethodName}.");
+            }
+
+            return transactionResult;
         }
 
         private async Task<TransactionResult> ExecuteTransactionAsync(Transaction transaction)
@@ -71,6 +77,10 @@ namespace AElf.Contracts.TestKit
         public async Task<StringValue> ReadWithExceptionAsync(Transaction transaction)
         {
             var transactionTrace = await ReadTransactionResultAsync(transaction);
+            if (transactionTrace.ExecutionStatus == ExecutionStatus.Executed)
+            {
+                throw new Exception($"Succeed to call {transaction.MethodName}.");
+            }
             return new StringValue {Value = transactionTrace.Error};
         }
 

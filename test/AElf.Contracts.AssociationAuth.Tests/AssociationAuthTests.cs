@@ -245,11 +245,11 @@ namespace AElf.Contracts.AssociationAuth
             var proposalId = await CreateProposalAsync(Reviewer2KeyPair,organizationAddress);
             AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
             BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
-            var transactionResult = await AssociationAuthContractStub.Approve.CallWithExceptionAsync(new ApproveInput
+            var error = await AssociationAuthContractStub.Approve.CallWithExceptionAsync(new ApproveInput
             {
                 ProposalId = proposalId
             });
-            transactionResult.Value.ShouldBe(false);
+            error.Value.ShouldContain("Invalid proposal.");
         }
 
         [Fact]
@@ -298,11 +298,11 @@ namespace AElf.Contracts.AssociationAuth
             {
                 AssociationAuthContractStub = GetAssociationAuthContractTester(Reviewer1KeyPair);
                 BlockTimeProvider.SetBlockTime(BlockTimeProvider.GetBlockTime().AddDays(5));
-                var transactionResult = await AssociationAuthContractStub.Approve.CallWithExceptionAsync(new ApproveInput
+                var error = await AssociationAuthContractStub.Approve.CallWithExceptionAsync(new ApproveInput
                 {
                     ProposalId = proposalId
                 });
-                transactionResult.Value.ShouldBe(false);
+                error.Value.ShouldContain("Invalid proposal.");
             }
             
             //already exist

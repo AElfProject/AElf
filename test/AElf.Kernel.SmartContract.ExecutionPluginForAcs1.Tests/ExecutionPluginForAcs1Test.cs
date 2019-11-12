@@ -168,7 +168,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             });
             res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var dummy = await TestContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
+            var dummy = await TestContractStub.DummyMethod.SendWithExceptionAsync(new Empty()); // This will deduct the fee
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
 
             var afterFee = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
@@ -206,7 +206,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
                 res.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
             }
 
-            await TestContractStub.DummyMethod.SendAsync(new Empty());
+            await TestContractStub.DummyMethod.SendWithExceptionAsync(new Empty());
 
             var before = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput()
             {
@@ -215,7 +215,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
             }); 
             // before.Balance.ShouldBe(feeAmount);
 
-            var dummy = await TestContractStub.DummyMethod.SendAsync(new Empty()); // This will deduct the fee
+            var dummy = await TestContractStub.DummyMethod.SendWithExceptionAsync(new Empty()); // This will deduct the fee
             dummy.TransactionResult.Status.ShouldBe(TransactionResultStatus.Unexecutable);
         }
     }

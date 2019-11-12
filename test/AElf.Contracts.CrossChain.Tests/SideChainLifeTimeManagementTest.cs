@@ -81,7 +81,7 @@ namespace AElf.Contracts.CrossChain.Tests
             await InitializeCrossChainContractAsync();
             await ApproveBalanceAsync(lockedTokenAmount);
 
-            var result = await CrossChainContractStub.CreateSideChain.SendAsync(
+            var result = await CrossChainContractStub.CreateSideChain.SendWithExceptionAsync(
                 CreateSideChainCreationRequest(1, lockedTokenAmount, ByteString.CopyFromUtf8("Test")));
             var status = result.TransactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
@@ -109,7 +109,7 @@ namespace AElf.Contracts.CrossChain.Tests
         public async Task CheckLockedBalance_NotExist()
         {
             var chainId = ChainHelper.GetChainId(1);
-            var txResult = (await CrossChainContractStub.LockedBalance.SendAsync(new SInt32Value {Value = chainId}))
+            var txResult = (await CrossChainContractStub.LockedBalance.SendWithExceptionAsync(new SInt32Value {Value = chainId}))
                 .TransactionResult;
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
@@ -475,7 +475,7 @@ namespace AElf.Contracts.CrossChain.Tests
         [Fact]
         public async Task ChangeOwnerAddress_NotAuthorized()
         {
-            var res = (await CrossChainContractStub.ChangOwnerAddress.SendAsync(DefaultSender)).TransactionResult;
+            var res = (await CrossChainContractStub.ChangOwnerAddress.SendWithExceptionAsync(DefaultSender)).TransactionResult;
 
             var status = res.Status;
             Assert.True(status == TransactionResultStatus.Failed);
