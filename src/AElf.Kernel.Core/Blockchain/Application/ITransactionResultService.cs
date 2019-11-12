@@ -102,15 +102,17 @@ namespace AElf.Kernel.Blockchain.Application
             }
 
             // Add TransactionBlockIndex
+            var toBeRemovedTransactionResults = new List<Hash>();
             foreach (var txId in transactionIds)
             {
                 if (withPreMiningHash != null)
                 {
-                    await _transactionResultManager.RemoveTransactionResultAsync(txId, preMiningHash);
+                    toBeRemovedTransactionResults.Add(txId);
                 }
-
                 await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex);
             }
+
+            await _transactionResultManager.RemoveTransactionResultAsync(toBeRemovedTransactionResults, preMiningHash);
         }
     }
 }

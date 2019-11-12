@@ -83,12 +83,10 @@ namespace AElf.Benchmark
         public async Task IterationCleanup()
         {
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
-            foreach (var transaction in _systemTransactions.Concat(_cancellableTransactions))
-            {
-                await _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(), _block.GetHash());
-                await _transactionResultManager.RemoveTransactionResultAsync(transaction.GetHash(),
-                    _block.Header.GetPreMiningHash());
-            }
+            var transactionIds = _systemTransactions.Concat(_cancellableTransactions).Select(t => t.GetHash()).ToList();
+            await _transactionResultManager.RemoveTransactionResultAsync(transactionIds, _block.GetHash());
+            await _transactionResultManager.RemoveTransactionResultAsync(transactionIds,
+                _block.Header.GetPreMiningHash());
         }
     }
 }
