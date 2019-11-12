@@ -13,6 +13,7 @@ namespace AElf.Contracts.Economic.TestBase
         public const int ValidateDataCenterCount = 35;
         public const int ValidateDataCenterCandidateCount = 13;
         public const int VoterCount = 10;
+        public const int SupposedMinersCount = 17;
         
         public const int MiningInterval = 4000;
         public const long TimeEachTerm = 604800;

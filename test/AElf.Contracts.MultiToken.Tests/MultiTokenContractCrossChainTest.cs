@@ -54,7 +54,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         #pragma warning disable xUnit1013
-        public async Task SideChain_RegisterCrossChainTokenContractAddress_Test()
+        public async Task<int> SideChain_RegisterCrossChainTokenContractAddress_Test()
         {
             var sideChainId = await InitAndCreateSideChainAsync(ParentChainHeightOfCreation, MainChainId);
             StartSideChain(sideChainId);
@@ -84,6 +84,7 @@ namespace AElf.Contracts.MultiToken
             await ApproveWithMinersOnSideChainAsync(proposalId);
             var result = await ReleaseProposalAsync(proposalId, SideParliamentAddress, "Side");
             Assert.True(result.Status == TransactionResultStatus.Mined);
+            return sideChainId;
         }
 
         [Fact]
@@ -195,10 +196,13 @@ namespace AElf.Contracts.MultiToken
             Assert.Contains("Cross chain verification failed.", result.Error);
         }
 
-        #pragma warning disable xUnit1013
-        public async Task SideChain_CrossChainCreateToken_Test()
+        
+        
+#pragma warning disable xUnit1013
+        
+        public async Task<int> SideChain_CrossChainCreateToken_Test()
         {
-            await SideChain_RegisterCrossChainTokenContractAddress_Test();
+            int sideChainId = await SideChain_RegisterCrossChainTokenContractAddress_Test();
             // Main chain create token
             var createTransaction = await CreateTransactionAsync(TokenContractAddress,
                 MainChainTester.GetCallOwnerAddress(), SymbolForTesting, "Main");
@@ -228,6 +232,7 @@ namespace AElf.Contracts.MultiToken
                     Symbol = SymbolForTesting
                 }));
             Assert.True(newTokenInfo.TotalSupply == _totalSupply);
+            return sideChainId;
         }
 
         [Fact]
@@ -378,9 +383,8 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task MainChain_CrossChainTransfer_NativeToken_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
             // side chain register and cross chain create token
-            await SideChain_RegisterCrossChainTokenContractAddress_Test();
+            var sideChainId = await SideChain_RegisterCrossChainTokenContractAddress_Test();
             // main chain register 
             var validateTransaction = await ValidateTransactionAsync(SideBasicContractZeroAddress,
                 SideTokenContractAddress, TokenSmartContractAddressNameProvider.Name, "Side");
@@ -443,9 +447,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task MainChain_CrossChainTransfer_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
-            // side chain register and cross chain create token
-            await SideChain_CrossChainCreateToken_Test();
+            var sideChainId = await SideChain_CrossChainCreateToken_Test();
             // main chain register 
             var validateTransaction = await ValidateTransactionAsync(SideBasicContractZeroAddress,
                 SideTokenContractAddress, TokenSmartContractAddressNameProvider.Name, "Side");
@@ -500,8 +502,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task MainChain_CrossChainTransfer_IncorrectChainId_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
-            await SideChain_CrossChainCreateToken_Test();
+            var sideChainId = await SideChain_CrossChainCreateToken_Test();
             var validateTransaction = await ValidateTransactionAsync(SideBasicContractZeroAddress,
                 SideTokenContractAddress, TokenSmartContractAddressNameProvider.Name, "Side");
             await SideChainTester.MineAsync(new List<Transaction> {validateTransaction});
@@ -566,8 +567,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task MainChain_CrossChainTransfer_WithoutCrossChainCreate_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
-            await SideChain_RegisterCrossChainTokenContractAddress_Test();
+            var sideChainId = await SideChain_RegisterCrossChainTokenContractAddress_Test();
             var createTransaction = await CreateTransactionAsync(TokenContractAddress,
                 MainChainTester.GetCallOwnerAddress(), SymbolForTesting, "Main");
             await MainChainTester.MineAsync(new List<Transaction> {createTransaction});
@@ -623,9 +623,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task SideChain_CrossChainReceived_NativeToken_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
-            // side chain register 
-            await SideChain_RegisterCrossChainTokenContractAddress_Test();
+            var sideChainId = await SideChain_RegisterCrossChainTokenContractAddress_Test();
             // main chain register 
             var validateTransaction = await ValidateTransactionAsync(SideBasicContractZeroAddress,
                 SideTokenContractAddress, TokenSmartContractAddressNameProvider.Name, "Side");
@@ -691,10 +689,10 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task SideChain_CrossChainReceived_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
+            var sideChainId = await SideChain_CrossChainCreateToken_Test();
+
             var transferAmount = 900;
             // side chain register and cross chain create token
-            await SideChain_CrossChainCreateToken_Test();
             // main chain register 
             var validateTransaction = await ValidateTransactionAsync(SideBasicContractZeroAddress,
                 SideTokenContractAddress, TokenSmartContractAddressNameProvider.Name, "Side");
@@ -799,10 +797,9 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task SideChain_CrossChainReceived_Twice_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
+            var sideChainId = await SideChain_CrossChainCreateToken_Test();
             var transferAmount = 1000;
-            await SideChain_CrossChainCreateToken_Test();
-
+            
             var validateTransaction = await ValidateTransactionAsync(SideBasicContractZeroAddress,
                 SideTokenContractAddress, TokenSmartContractAddressNameProvider.Name, "Side");
             await SideChainTester.MineAsync(new List<Transaction> {validateTransaction});
@@ -865,10 +862,10 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task SideChain_CrossChainReceived_InvalidToken_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
+            var sideChainId = await SideChain_CrossChainCreateToken_Test();
             var transferAmount = 1000;
             var otherSymbol = "TEST";
-            await SideChain_CrossChainCreateToken_Test();
+            
             var validateTransaction = await ValidateTransactionAsync(SideBasicContractZeroAddress,
                 SideTokenContractAddress, TokenSmartContractAddressNameProvider.Name, "Side");
             await SideChainTester.MineAsync(new List<Transaction> {validateTransaction});
@@ -931,8 +928,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task SideChain_CrossChainReceive_WithoutCrossChainCreate_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
-            await SideChain_RegisterCrossChainTokenContractAddress_Test();
+            var sideChainId = await SideChain_RegisterCrossChainTokenContractAddress_Test();
             var createTransaction = await CreateTransactionAsync(TokenContractAddress,
                 MainChainTester.GetCallOwnerAddress(), SymbolForTesting, "Main");
             await MainChainTester.MineAsync(new List<Transaction> {createTransaction});
@@ -1004,9 +1000,9 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task SideChain_CrossChainReceived_WrongReceiver_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
+            var sideChainId = await SideChain_CrossChainCreateToken_Test();
             var transferAmount = 1000;
-            await SideChain_CrossChainCreateToken_Test();
+            
             var validateTransaction = await ValidateTransactionAsync(SideBasicContractZeroAddress,
                 SideTokenContractAddress, TokenSmartContractAddressNameProvider.Name, "Side");
             await SideChainTester.MineAsync(new List<Transaction> {validateTransaction});
