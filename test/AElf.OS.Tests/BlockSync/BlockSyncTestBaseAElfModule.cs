@@ -24,7 +24,7 @@ namespace AElf.OS.BlockSync
                 return taskQueue.Object;
             });
             
-            Configure<BackgroundWorkerOptions>(o => { o.IsEnabled = false; });
+            Configure<AbpBackgroundWorkerOptions>(o => { o.IsEnabled = false; });
         }
     }
 }
