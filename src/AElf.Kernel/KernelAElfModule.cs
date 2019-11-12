@@ -25,7 +25,6 @@ namespace AElf.Kernel
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            context.Services.AddTransient<ISystemTransactionGenerator, ProposalApprovalTransactionGenerator>();
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
