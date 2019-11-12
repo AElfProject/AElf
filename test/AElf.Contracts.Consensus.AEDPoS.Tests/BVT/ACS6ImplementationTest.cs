@@ -21,7 +21,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 (await AEDPoSContractStub.RequestRandomNumber.SendAsync(new Empty())).Output;
             randomNumberOrder.TokenHash.ShouldNotBeNull();
             randomNumberOrder.BlockHeight.ShouldBeGreaterThan(
-                AEDPoSContractTestConstants.InitialMinersCount.Mul(AEDPoSContractTestConstants.TinySlots));
+                AEDPoSContractTestConstants.SupposedMinersCount.Mul(AEDPoSContractTestConstants.TinySlots));
             return randomNumberOrder;
         }
 
