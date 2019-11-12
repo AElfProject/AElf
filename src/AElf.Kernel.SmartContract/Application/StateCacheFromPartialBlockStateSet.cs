@@ -13,7 +13,14 @@ namespace AElf.Kernel.SmartContract.Application
 
         public bool TryGetValue(ScopedStatePath key, out byte[] value)
         {
-            var found = _blockStateSet.Changes.TryGetValue(key.ToStateKey(), out var bs);
+            var stateKey = key.ToStateKey();
+            var found = _blockStateSet.Deletes.Contains(stateKey);
+            if (found)
+            {
+                value = null;
+                return true;
+            }
+            found = _blockStateSet.Changes.TryGetValue(stateKey, out var bs);
             value = found ? bs.ToByteArray() : null;
             return found;
         }

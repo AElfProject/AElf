@@ -1,4 +1,4 @@
-FROM microsoft/dotnet
+FROM microsoft/dotnet:3.0.100
 
 WORKDIR /app
 

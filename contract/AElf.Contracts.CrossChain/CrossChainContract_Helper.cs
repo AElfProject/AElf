@@ -54,18 +54,18 @@ namespace AElf.Contracts.CrossChain
             State.TxRootMerklePathInParentChain[height] = path;
         }
 
-        private void CreateSideChainToken(SideChainCreationRequest sideChainInfo, int chainId)
+        private void CreateSideChainToken(SideChainCreationRequest sideChainCreationRequest, SideChainTokenInfo sideChainTokenInfo, int chainId)
         {
             TransferFrom(new TransferFromInput
             {
                 From = Context.Origin,
                 To = Context.Self,
-                Amount = sideChainInfo.LockedTokenAmount,
+                Amount = sideChainCreationRequest.LockedTokenAmount,
                 Symbol = Context.Variables.NativeSymbol
             });
-            State.IndexingBalance[chainId] = sideChainInfo.LockedTokenAmount;
+            State.IndexingBalance[chainId] = sideChainCreationRequest.LockedTokenAmount;
             
-            CreateSideChainToken(sideChainInfo.SideChainTokenInfo, chainId);   
+            CreateSideChainToken(sideChainTokenInfo, chainId);   
             // Todo: enable resource
         }
 
@@ -82,6 +82,15 @@ namespace AElf.Contracts.CrossChain
                     Symbol = Context.Variables.NativeSymbol
                 });
             State.IndexingBalance[chainId] = 0;
+        }
+        
+        private void AssertSideChainTokenInfo(SideChainTokenInfo sideChainTokenInfo)
+        {
+            Assert(
+                !string.IsNullOrEmpty(sideChainTokenInfo.Symbol) 
+                && !string.IsNullOrEmpty(sideChainTokenInfo.TokenName),
+                "Invalid side chain token name,");
+            Assert(sideChainTokenInfo.TotalSupply > 0, "Invalid side chain token supply.");
         }
 
         private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)
@@ -199,6 +208,11 @@ namespace AElf.Contracts.CrossChain
         {
             var owner = GetOwnerAddress();
             Assert(owner.Equals(Context.Sender), "Not authorized to do this.");
+        }
+        
+        private int GetChainId(long serialNumber)
+        {
+            return ChainHelper.GetChainId(serialNumber + Context.ChainId);
         }
     }
 }

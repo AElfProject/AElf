@@ -47,6 +47,7 @@ namespace AElf.OS
             }
 
             backgroundWorkerManager.Add(context.ServiceProvider.GetService<BlockDownloadWorker>());
+            backgroundWorkerManager.Add(context.ServiceProvider.GetService<PeerReconnectionWorker>());
         }
     }
 }

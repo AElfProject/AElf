@@ -8,7 +8,7 @@ using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Contracts.TokenConverter
 {
-    public class TokenConverterContract : TokenConverterContractContainer.TokenConverterContractBase
+    public partial class TokenConverterContract : TokenConverterContractContainer.TokenConverterContractBase
     {
         #region Views
 
@@ -295,7 +295,8 @@ namespace AElf.Contracts.TokenConverter
 
         private static bool IsValidSymbol(string symbol)
         {
-            return symbol.Length > 0 && symbol.All(c => c >= 'A' && c <= 'Z');
+            return symbol.Length > 0 &&
+                   symbol.All(c => c >= 'A' && c <= 'Z');
         }
 
         private decimal GetFeeRate()

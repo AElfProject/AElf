@@ -105,7 +105,7 @@ namespace AElf.Contracts.CrossChain
             var serialNumber = State.SideChainSerialNumber.Value;
             for (long i = 1; i <= serialNumber; i++)
             {
-                int chainId = ChainHelper.GetChainId(i);
+                int chainId = GetChainId(i);
                 var sideChainInfo = State.SideChainInfo[chainId];
                 if (sideChainInfo.SideChainStatus != SideChainStatus.Active)
                     continue;
@@ -192,7 +192,7 @@ namespace AElf.Contracts.CrossChain
             ByteString resourceTokenInformation = GetResourceTokenInfo().ToByteString();
             res.ExtraInformation.Add(resourceTokenInformation);
 
-            ByteString sideChainTokenInformation = GetTokenInfo(sideChainInfo.SideChainCreationRequest.SideChainTokenInfo.Symbol)
+            ByteString sideChainTokenInformation = GetTokenInfo(sideChainInfo.SideChainCreationRequest.SideChainTokenSymbol)
                 .ToByteString();
             res.ExtraInformation.Add(sideChainTokenInformation);
             return res;

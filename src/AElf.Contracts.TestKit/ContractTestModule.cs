@@ -10,6 +10,7 @@ using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.TransactionPool;
@@ -55,7 +56,8 @@ namespace AElf.Contracts.TestKit
         typeof(SmartContractExecutionAElfModule),
         typeof(TransactionPoolAElfModule),
         typeof(ChainControllerAElfModule),
-        typeof(CSharpRuntimeAElfModule)
+        typeof(CSharpRuntimeAElfModule),
+        typeof(TransactionExecutingDependencyTestModule)
     )]
     public class ContractTestModule : AbpModule
     {
@@ -66,6 +68,7 @@ namespace AElf.Contracts.TestKit
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = "ELF";
+                options.ContextVariables[ContextVariableDictionary.ResourceTokenSymbolList] = "RAM,STO,CPU,NET";
             });
 
             #region Infra
@@ -104,6 +107,7 @@ namespace AElf.Contracts.TestKit
             context.Services.AddTransient<IContractTesterFactory, ContractTesterFactory>();
             context.Services.AddTransient<ITransactionExecutor, TransactionExecutor>();
             context.Services.AddSingleton<IBlockTimeProvider, BlockTimeProvider>();
+            context.Services.AddSingleton<ITxHub, MockTxHub>();
 
             context.Services
                 .AddTransient(provider =>
@@ -123,6 +127,8 @@ namespace AElf.Contracts.TestKit
 
                     return service.Object;
                 });
+
+            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
         }
 
         public int ChainId { get; } = 500;

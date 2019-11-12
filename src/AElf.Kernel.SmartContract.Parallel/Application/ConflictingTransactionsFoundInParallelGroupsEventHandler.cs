@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Parallel.Domain;
@@ -12,7 +13,7 @@ namespace AElf.Kernel.SmartContract.Parallel
         private readonly IConflictingTransactionIdentificationService _conflictingTransactionIdentificationService;
         private readonly ICodeRemarksService _codeRemarksService;
         private readonly IResourceExtractionService _resourceExtractionService;
-
+ 
         public ConflictingTransactionsFoundInParallelGroupsEventHandler(
             IConflictingTransactionIdentificationService conflictingTransactionIdentificationService,
             ICodeRemarksService codeRemarksService,IResourceExtractionService resourceExtractionService)
@@ -31,12 +32,18 @@ namespace AElf.Kernel.SmartContract.Parallel
             };
             var wrong = await _conflictingTransactionIdentificationService.IdentifyConflictingTransactionsAsync(
                 chainContext, eventData.ExistingSets, eventData.ConflictingSets);
-            _resourceExtractionService.ClearConflictingTransactionsResourceCache(wrong.Select(t => t.GetHash()));
-            var wrongTransactionAddresses = wrong.Select(t => t.To).Distinct();
+            
+            var wrongTransactionIds = wrong.Select(t => t.GetHash()).ToArray();
+            eventData.ConflictingSets.RemoveAll(t => !t.TransactionId.IsIn(wrongTransactionIds));
+
+            var wrongTransactionAddresses = wrong.Select(t => t.To).Distinct().ToList();
             foreach (var address in wrongTransactionAddresses)
             {
                 await _codeRemarksService.MarkUnparallelizableAsync(chainContext, address);
             }
+
+            _resourceExtractionService.ClearConflictingTransactionsResourceCache(wrongTransactionIds,
+                wrongTransactionAddresses);
         }
     }
 }

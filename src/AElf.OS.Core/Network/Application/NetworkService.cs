@@ -25,11 +25,12 @@ namespace AElf.OS.Network.Application
         private readonly IAElfNetworkServer _networkServer;
         private readonly IKnownBlockCacheProvider _knownBlockCacheProvider;
         private readonly IBroadcastPrivilegedPubkeyListProvider _broadcastPrivilegedPubkeyListProvider;
+        private readonly IBlackListedPeerProvider _blackListedPeerProvider;
 
         public ILogger<NetworkService> Logger { get; set; }
 
         public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager, IAElfNetworkServer networkServer,
-            IKnownBlockCacheProvider knownBlockCacheProvider,
+            IKnownBlockCacheProvider knownBlockCacheProvider, IBlackListedPeerProvider blackListedPeerProvider,
             IBroadcastPrivilegedPubkeyListProvider broadcastPrivilegedPubkeyListProvider)
         {
             _peerPool = peerPool;
@@ -37,6 +38,7 @@ namespace AElf.OS.Network.Application
             _networkServer = networkServer;
             _knownBlockCacheProvider = knownBlockCacheProvider;
             _broadcastPrivilegedPubkeyListProvider = broadcastPrivilegedPubkeyListProvider;
+            _blackListedPeerProvider = blackListedPeerProvider;
 
             Logger = NullLogger<NetworkService>.Instance;
         }
@@ -60,24 +62,13 @@ namespace AElf.OS.Network.Application
                 Logger.LogWarning($"Could not find peer at address {address}");
                 return false;
             }
-            
+
             await _networkServer.DisconnectAsync(peer);
 
             return true;
         }
-
-        public List<PeerInfo> GetPeers()
-        {   
-            return _peerPool.GetPeers(true).Select(PeerInfoHelper.FromNetworkPeer).ToList();
-        }
-
-        public PeerInfo GetPeerByPubkey(string peerPubkey)
-        {
-            var peer = _peerPool.FindPeerByPublicKey(peerPubkey);
-            return peer == null ? null : PeerInfoHelper.FromNetworkPeer(peer);
-        }
         
-        public async Task<bool> RemovePeerByPubkeyAsync(string peerPubKey)
+        public async Task<bool> RemovePeerByPubkeyAsync(string peerPubKey, bool blacklistPeer = false)
         {
             var peer = _peerPool.FindPeerByPublicKey(peerPubKey);
             if (peer == null)
@@ -86,9 +77,26 @@ namespace AElf.OS.Network.Application
                 return false;
             }
             
+            if (blacklistPeer)
+            {
+                _blackListedPeerProvider.AddIpToBlackList(peer.RemoteEndpoint.Address);
+                Logger.LogDebug($"Blacklisted {peer.RemoteEndpoint.Address} ({peerPubKey})");
+            }
+            
             await _networkServer.DisconnectAsync(peer);
 
             return true;
+        }
+
+        public List<PeerInfo> GetPeers(bool includeFailing = true)
+        {   
+            return _peerPool.GetPeers(includeFailing).Select(PeerInfoHelper.FromNetworkPeer).ToList();
+        }
+
+        public PeerInfo GetPeerByPubkey(string peerPubkey)
+        {
+            var peer = _peerPool.FindPeerByPublicKey(peerPubkey);
+            return peer == null ? null : PeerInfoHelper.FromNetworkPeer(peer);
         }
 
         private bool IsOldBlock(BlockHeader header)
@@ -261,6 +269,27 @@ namespace AElf.OS.Network.Application
             return Task.CompletedTask;
         }
 
+        public async Task SendHealthChecksAsync()
+        {
+            foreach (var peer in _peerPool.GetPeers())
+            {
+                Logger.LogDebug($"Health checking: {peer}");
+                
+                try
+                {
+                    await peer.CheckHealthAsync();
+                }
+                catch (NetworkException ex)
+                {
+                    if (ex.ExceptionType == NetworkExceptionType.Unrecoverable)
+                    {
+                        Logger.LogError(ex, $"Removing unhealthy peer {peer}.");
+                        await _networkServer.TrySchedulePeerReconnectionAsync(peer);
+                    }
+                }
+            }
+        }
+
         public async Task<Response<List<BlockWithTransactions>>> GetBlocksAsync(Hash previousBlock, int count, 
             string peerPubkey)
         {
@@ -273,7 +302,7 @@ namespace AElf.OS.Network.Application
 
             if (response != null && response.Success && response.Payload != null 
                 && (response.Payload.Count == 0 || response.Payload.Count != count))
-                Logger.LogWarning($"Block count miss match, asked for {count} but got {response.Payload.Count}");
+                Logger.LogWarning($"Requested blocks from {peer} - count miss match, asked for {count} but got {response.Payload.Count} (from {previousBlock})");
 
             return response;
         }
@@ -319,7 +348,7 @@ namespace AElf.OS.Network.Application
             if (exception.ExceptionType == NetworkExceptionType.Unrecoverable)
             {
                 Logger.LogError(exception, $"Removing unrecoverable {peer}.");
-                await _networkServer.DisconnectAsync(peer);
+                await _networkServer.TrySchedulePeerReconnectionAsync(peer);
             }
             else if (exception.ExceptionType == NetworkExceptionType.PeerUnstable)
             {
@@ -336,7 +365,7 @@ namespace AElf.OS.Network.Application
             var success = await peer.TryRecoverAsync();
 
             if (!success)
-                await _networkServer.DisconnectAsync(peer);
+                await _networkServer.TrySchedulePeerReconnectionAsync(peer);
         }
         
         private void QueueNetworkTask(Func<Task> task)

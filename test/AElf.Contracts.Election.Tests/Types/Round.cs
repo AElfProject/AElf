@@ -170,24 +170,24 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// Maybe tune other miners' supposed order of next round,
         /// will record this purpose to their FinalOrderOfNextRound field.
         /// </summary>
-        /// <param name="publicKey"></param>
+        /// <param name="pubkey"></param>
         /// <returns></returns>
-        public UpdateValueInput ExtractInformationToUpdateConsensus(string publicKey)
+        public UpdateValueInput ExtractInformationToUpdateConsensus(string pubkey)
         {
-            if (!RealTimeMinersInformation.ContainsKey(publicKey))
+            if (!RealTimeMinersInformation.ContainsKey(pubkey))
             {
                 return null;
             }
 
-            var minerInRound = RealTimeMinersInformation[publicKey];
+            var minerInRound = RealTimeMinersInformation[pubkey];
 
             var tuneOrderInformation = RealTimeMinersInformation.Values
                 .Where(m => m.FinalOrderOfNextRound != m.SupposedOrderOfNextRound)
                 .ToDictionary(m => m.Pubkey, m => m.FinalOrderOfNextRound);
 
             var decryptedPreviousInValues = RealTimeMinersInformation.Values.Where(v =>
-                    v.Pubkey != publicKey && v.DecryptedPreviousInValues.ContainsKey(publicKey))
-                .ToDictionary(info => info.Pubkey, info => info.DecryptedPreviousInValues[publicKey]);
+                    v.Pubkey != pubkey && v.DecryptedPreviousInValues.ContainsKey(pubkey))
+                .ToDictionary(info => info.Pubkey, info => info.DecryptedPreviousInValues[pubkey]);
 
             var minersPreviousInValues =
                 RealTimeMinersInformation.Values.Where(info => info.PreviousInValue != null).ToDictionary(info => info.Pubkey,

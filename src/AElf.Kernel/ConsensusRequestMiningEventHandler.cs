@@ -77,23 +77,28 @@ namespace AElf.Kernel
                         throw;
                     }
 
-                    if (TimestampHelper.GetUtcNow() <= eventData.MiningDueTime)
+                    if (TimestampHelper.GetUtcNow() <= eventData.MiningDueTime - blockExecutionDuration)
                     {
                         await _blockchainService.AddBlockAsync(block);
+
+                        Logger.LogTrace("Before enqueue attach job.");
+                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
+                            KernelConstants.UpdateChainQueueName);
+                        
+                        Logger.LogTrace("Before publish block.");
 
                         await LocalEventBus.PublishAsync(new BlockMinedEventData
                         {
                             BlockHeader = block.Header,
 //                            HasFork = block.Height <= chain.BestChainHeight
                         });
-                        
-                        _taskQueueManager.Enqueue(async () => await _blockAttachService.AttachBlockAsync(block),
-                            KernelConstants.UpdateChainQueueName);
                     }
                     else
                     {
                         Logger.LogWarning(
-                            $"Discard block {block.Height} and trigger once again because mining time slot expired. MiningDueTime : {eventData.MiningDueTime}");
+                            $"Discard block {block.Height} and trigger once again because mining time slot expired. " +
+                            $"MiningDueTime : {eventData.MiningDueTime}, " +
+                            $"block execution duration limit : {blockExecutionDuration}");
                         await TriggerConsensusEventAsync(chain.BestChainHash, chain.BestChainHeight);
                     }
                 }, KernelConstants.ConsensusRequestMiningQueueName);

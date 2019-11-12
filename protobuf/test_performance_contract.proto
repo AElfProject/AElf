@@ -3,7 +3,6 @@ syntax = "proto3";
 import "aelf/options.proto";
 import "aelf/core.proto";
 import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.TestContract.Performance";
 
@@ -13,6 +12,9 @@ service PerformanceContract {
     rpc InitialPerformanceContract (InitialPerformanceInput) returns (google.protobuf.Empty) {
     }
 
+    rpc WriteKContentByte (WriteInput) returns (google.protobuf.Empty) {
+    }
+    
     rpc Write1KContentByte (WriteInput) returns (google.protobuf.Empty) {
     }
 
@@ -25,6 +27,9 @@ service PerformanceContract {
     rpc Write10KContentByte (WriteInput) returns (google.protobuf.Empty) {
     }
 
+    rpc ComputeLevel (NumberInput) returns (google.protobuf.Empty) {
+    }
+    
     rpc ComputeLevel1 (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
 
@@ -39,9 +44,11 @@ service PerformanceContract {
 
     //View
     rpc QueryReadInfo (aelf.Address) returns (ReadOutput) {
+        option (aelf.is_view) = true;
     }
     
     rpc QueryFibonacci(NumberInput) returns (NumberOutput){
+        option (aelf.is_view) = true;
     }
 }
 

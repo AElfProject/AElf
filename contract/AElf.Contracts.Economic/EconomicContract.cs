@@ -12,7 +12,7 @@ using InitializeInput = AElf.Contracts.TokenConverter.InitializeInput;
 
 namespace AElf.Contracts.Economic
 {
-    public class EconomicContract : EconomicContractContainer.EconomicContractBase
+    public partial class EconomicContract : EconomicContractContainer.EconomicContractBase
     {
         public override Empty InitialEconomicSystem(InitialEconomicSystemInput input)
         {
@@ -34,6 +34,7 @@ namespace AElf.Contracts.Economic
             RegisterElectionVotingEvent();
             SetTreasurySchemeIdsToElectionContract();
             SetResourceTokenUnitPrice();
+            SetTransactionSizeUnitPrice(input.TransactionSizeFeeUnitPrice);
 
             InitializeTokenConverterContract();
 
@@ -85,7 +86,7 @@ namespace AElf.Contracts.Economic
         {
             var tokenConverter =
                 Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
-            foreach (var resourceTokenSymbol in EconomicContractConstants.ResourceTokenSymbols)
+            foreach (var resourceTokenSymbol in Context.Variables.ResourceTokenSymbolNameList)
             {
                 State.TokenContract.Create.Send(new CreateInput
                 {
@@ -218,21 +219,19 @@ namespace AElf.Contracts.Economic
             });
         }
 
+        private void SetTransactionSizeUnitPrice(long transactionSizeUnitPrice)
+        {
+            State.TokenContract.SetTransactionSizeUnitPrice.Send(new SInt64Value
+            {
+                Value = transactionSizeUnitPrice
+            });
+        }
+
         private Address InitialConnectorManager()
         {
             State.ParliamentAuthContract.Value =
                 Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
-
-            var createOrganizationInput = new CreateOrganizationInput
-            {
-                ReleaseThreshold = EconomicContractConstants.ConnectorSettingProposalReleaseThreshold
-            };
-            State.ParliamentAuthContract.CreateOrganization.Send(createOrganizationInput);
-
-            var organizationHash = Hash.FromTwoHashes(Hash.FromMessage(State.ParliamentAuthContract.Value),
-                Hash.FromMessage(createOrganizationInput));
-            return Address.FromPublicKey(State.ParliamentAuthContract.Value.Value.Concat(
-                organizationHash.Value.ToByteArray().ComputeHash()).ToArray());
+            return State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty());
         }
 
         private void InitializeTokenConverterContract()
@@ -260,7 +259,7 @@ namespace AElf.Contracts.Economic
                 }
             };
 
-            foreach (var resourceTokenSymbol in EconomicContractConstants.ResourceTokenSymbols)
+            foreach (var resourceTokenSymbol in Context.Variables.ResourceTokenSymbolNameList)
             {
                 connectors.Add(new Connector
                 {
