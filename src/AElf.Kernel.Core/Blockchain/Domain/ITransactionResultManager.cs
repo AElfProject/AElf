@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using AElf.Types;
@@ -9,6 +11,7 @@ namespace AElf.Kernel.Blockchain.Domain
     {
         Task AddTransactionResultAsync(TransactionResult transactionResult, Hash disambiguationHash);
         Task RemoveTransactionResultAsync(Hash txId, Hash disambiguationHash);
+        Task RemoveTransactionResultAsync(IList<Hash> txIds, Hash disambiguationHash);
         Task<TransactionResult> GetTransactionResultAsync(Hash txId, Hash disambiguationHash);
     }
 
@@ -30,6 +33,15 @@ namespace AElf.Kernel.Blockchain.Domain
         public async Task RemoveTransactionResultAsync(Hash txId, Hash disambiguationHash)
         {
             await _transactionResultStore.RemoveAsync(txId.Xor(disambiguationHash).ToStorageKey());
+        }
+
+        public async Task RemoveTransactionResultAsync(IList<Hash> txIds, Hash disambiguationHash)
+        {
+            if (txIds.Count == 0)
+                return;
+
+            await _transactionResultStore.RemoveAllAsync(txIds.Select(t => t.Xor(disambiguationHash).ToStorageKey())
+                .ToList());
         }
 
         public async Task<TransactionResult> GetTransactionResultAsync(Hash txId, Hash disambiguationHash)

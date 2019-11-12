@@ -120,23 +120,26 @@ namespace AElf.Benchmark
                 {
                     BlockHeader = block.Header
                 });
-                
+
                 foreach (var tx in block.Body.TransactionIds)
                 {
                     await _transactionManager.RemoveTransactionAsync(tx);
-                    await _transactionResultManager.RemoveTransactionResultAsync(tx, block.GetHash());
-                    await _transactionResultManager.RemoveTransactionResultAsync(tx, block.Header.GetPreMiningHash());
                 }
+
+                await _transactionResultManager.RemoveTransactionResultAsync(block.Body.TransactionIds,
+                    block.GetHash());
+                await _transactionResultManager.RemoveTransactionResultAsync(block.Body.TransactionIds,
+                    block.Header.GetPreMiningHash());
                 await _chainManager.RemoveChainBlockLinkAsync(block.GetHash());
                 await _blockManager.RemoveBlockAsync(block.GetHash());
             }
-            
+
             await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
             {
                 BlockHash = _chain.BestChainHash,
                 BlockHeight = _chain.BestChainHeight
             });
-            
+
             await _chains.SetAsync(_chain.Id.ToStorageKey(), _chain);
         }
     }

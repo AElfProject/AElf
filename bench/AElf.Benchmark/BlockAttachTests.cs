@@ -69,10 +69,12 @@ namespace AElf.Benchmark
             foreach (var transactionId in _block.Body.TransactionIds)
             {
                 await _transactionManager.RemoveTransactionAsync(transactionId);
-                await _transactionResultManager.RemoveTransactionResultAsync(transactionId, _block.GetHash());
-                await _transactionResultManager.RemoveTransactionResultAsync(transactionId,_block.Header.GetPreMiningHash());
             }
-            
+
+            await _transactionResultManager.RemoveTransactionResultAsync(_block.Body.TransactionIds, _block.GetHash());
+            await _transactionResultManager.RemoveTransactionResultAsync(_block.Body.TransactionIds,
+                _block.Header.GetPreMiningHash());
+
             await _chainManager.RemoveChainBlockLinkAsync(_block.GetHash());
             await _blockManager.RemoveBlockAsync(_block.GetHash());
             await _chains.SetAsync(_chain.Id.ToStorageKey(), _chain);
