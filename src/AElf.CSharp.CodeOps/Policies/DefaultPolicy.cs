@@ -4,16 +4,16 @@ using AElf.Sdk.CSharp;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using AElf.Cryptography.SecretSharing;
+using AElf.CSharp.CodeOps.Validators;
+using AElf.CSharp.CodeOps.Validators.Method;
+using AElf.CSharp.CodeOps.Validators.Whitelist;
 using AElf.CSharp.Core;
-using AElf.Runtime.CSharp.Validators;
 using Mono.Cecil;
 
-using AElf.Runtime.CSharp.Validators.Method;
-using AElf.Runtime.CSharp.Validators.Whitelist;
 using AElf.Types;
 
 
-namespace AElf.Runtime.CSharp.Policies
+namespace AElf.CSharp.CodeOps.Policies
 {
     public class DefaultPolicy : AbstractPolicy
     {

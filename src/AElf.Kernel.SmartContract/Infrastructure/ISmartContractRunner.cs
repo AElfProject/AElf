@@ -9,6 +9,5 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         int Category { get; }
         Task<IExecutive> RunAsync(SmartContractRegistration reg);
         byte[] CodePatch(byte[] code);
-        void CodeCheck(byte[] code, bool isPrivileged = false);
     }
 }

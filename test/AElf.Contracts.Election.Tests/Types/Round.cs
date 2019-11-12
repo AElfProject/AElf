@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using Acs4;
 using AElf.Kernel;
-using AElf.Runtime.CSharp.Validators;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;

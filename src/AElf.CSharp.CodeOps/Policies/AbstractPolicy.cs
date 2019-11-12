@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.ComponentModel;
-using AElf.Runtime.CSharp.Validators;
-using AElf.Runtime.CSharp.Validators.Whitelist;
+using AElf.CSharp.CodeOps.Validators;
+using AElf.CSharp.CodeOps.Validators.Whitelist;
 using Mono.Cecil;
 
-namespace AElf.Runtime.CSharp.Policies
+namespace AElf.CSharp.CodeOps.Policies
 {
     public abstract class AbstractPolicy
     {

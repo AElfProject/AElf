@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -8,7 +9,7 @@ using Mono.Cecil.Cil;
 using AssemblyDefinition = Mono.Cecil.AssemblyDefinition;
 using TypeDefinition = Mono.Cecil.TypeDefinition;
 
-namespace AElf.Runtime.CSharp
+namespace AElf.CSharp.CodeOps
 {
     public static class ContractPatcher
     {
@@ -88,7 +89,7 @@ namespace AElf.Runtime.CSharp
             var replaceFrom = TargetMethods[$"{methodRef.DeclaringType}::{methodRef.Name}"];
             var methodDefinition = sdkTypeDefs[replaceFrom].Methods.Single(
                 m => m.ReturnType.FullName == methodRef.ReturnType.FullName && // Return type
-                     m.FullName.Split("::")[1] == methodRef.FullName.Split("::")[1] // Method Name & Parameters
+                     m.FullName.Split(new [] {"::"}, StringSplitOptions.None)[1] == methodRef.FullName.Split(new [] {"::"}, StringSplitOptions.None)[1] // Method Name & Parameters
             );
 
             return methodDefinition;

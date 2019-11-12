@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AElf.Runtime.CSharp.Validators
+namespace AElf.CSharp.CodeOps.Validators
 {
     public interface IValidator<T>
     {

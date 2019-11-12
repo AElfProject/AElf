@@ -12,13 +12,13 @@ using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Profit;
 using AElf.Contracts.ReferendumAuth;
 using AElf.Contracts.TokenConverter;
+using AElf.CSharp.CodeOps;
+using AElf.CSharp.CodeOps.Validators;
+using AElf.CSharp.CodeOps.Validators.Method;
 using AElf.Runtime.CSharp.Helper;
-using AElf.Runtime.CSharp.Validators;
-using AElf.Runtime.CSharp.Validators.Method;
 using Mono.Cecil.Cil;
 using Shouldly;
 using Xunit;
-using ValidationResult = AElf.Runtime.CSharp.Validators.ValidationResult;
 
 namespace AElf.Runtime.CSharp.Tests
 {
@@ -195,10 +195,6 @@ namespace AElf.Runtime.CSharp.Tests
             
             // Ensure contract auditor doesn't throw any exception
             Should.NotThrow(()=>_auditorFixture.Audit(validAssembly.ToArray()));
-            
-            // Ensure ILVerifier is doing its job
-            Should.Throw<InvalidCodeException>(()=>_auditorFixture.Audit(invalidAssembly.ToArray()))
-                .Findings.FirstOrDefault(f => f is ILVerifierResult).ShouldNotBeNull();
         }
 
         #endregion

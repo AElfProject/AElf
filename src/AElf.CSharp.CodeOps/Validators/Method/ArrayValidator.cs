@@ -5,7 +5,7 @@ using AElf.Sdk.CSharp;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 
-namespace AElf.Runtime.CSharp.Validators.Method
+namespace AElf.CSharp.CodeOps.Validators.Method
 {
     public class ArrayValidator : IValidator<MethodDefinition>
     {

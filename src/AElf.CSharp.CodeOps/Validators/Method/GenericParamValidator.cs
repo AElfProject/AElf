@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Mono.Cecil;
 
-namespace AElf.Runtime.CSharp.Validators.Method
+namespace AElf.CSharp.CodeOps.Validators.Method
 {
     public class GenericParamValidator : IValidator<MethodDefinition>
     {

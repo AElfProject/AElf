@@ -1,7 +1,7 @@
 using System;
 using System.Dynamic;
 
-namespace AElf.Runtime.CSharp.Validators
+namespace AElf.CSharp.CodeOps.Validators
 {
     public abstract class ValidationResult
     {
