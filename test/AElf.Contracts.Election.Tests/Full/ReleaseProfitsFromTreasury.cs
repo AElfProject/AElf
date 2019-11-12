@@ -56,7 +56,6 @@ namespace AElf.Contracts.Election
                     await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 1);
                 }
 
-                // Check the count of voted candidates, should be 10.
                 var votedCandidates = await ElectionContractStub.GetVotedCandidates.CallAsync(new Empty());
                 votedCandidates.Value.Count.ShouldBe(EconomicContractsTestConstants.SupposedMinersCount);
             }

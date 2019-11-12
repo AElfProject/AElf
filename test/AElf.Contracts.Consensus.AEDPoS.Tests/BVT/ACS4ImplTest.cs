@@ -251,7 +251,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
             {
-                Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.SupposedMinersCount)
+                Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount)
                     .Div(1000)
             });
 
@@ -276,7 +276,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
             {
-                Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.SupposedMinersCount)
+                Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount)
                     .Div(1000)
             });
 
@@ -300,7 +300,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
             {
-                Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.SupposedMinersCount)
+                Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(AEDPoSContractTestConstants.InitialMinersCount)
                     .Div(1000)
             });
 
@@ -402,7 +402,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
                 {
                     Seconds = AEDPoSContractTestConstants.MiningInterval
-                        .Mul(AEDPoSContractTestConstants.SupposedMinersCount)
+                        .Mul(AEDPoSContractTestConstants.InitialMinersCount)
                         .Div(1000)
                 });
 
@@ -434,7 +434,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
                 {
                     Seconds = AEDPoSContractTestConstants.MiningInterval
-                        .Mul(AEDPoSContractTestConstants.SupposedMinersCount)
+                        .Mul(AEDPoSContractTestConstants.InitialMinersCount)
                         .Div(1000)
                 });
 
