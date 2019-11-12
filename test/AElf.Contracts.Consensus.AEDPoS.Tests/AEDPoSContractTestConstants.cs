@@ -8,7 +8,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         internal const int TinySlots = 8;
 
-        internal const int InitialMinersCount = 17;
+        internal const int InitialMinersCount = 5;
+
+        internal const int SupposedMinersCount = 17;
 
         internal const int MiningInterval = 4000;
 
