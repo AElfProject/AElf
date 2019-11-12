@@ -27,7 +27,7 @@ namespace AElf.Contracts.Economic
 
         // Resource token related.
         public static readonly Dictionary<string, string> ResourceTokenToNativeTokenDic;
-        public const long ResourceTokenTotalSupply = 1_000_000_000_00000000;
+        public const long ResourceTokenTotalSupply = 50_000_000_00000000;
         public const int ResourceTokenDecimals = 8;
         public const string ResourceTokenConnectorWeight = "0.2";
         public const long ResourceTokenConnectorInitialVirtualBalance = 100_000_00000000;
