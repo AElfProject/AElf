@@ -210,7 +210,7 @@ namespace AElf.CrossChain.Communication.Grpc
                     new SideChainInitializationRequest
                     {
                         ChainId = chainId
-                    }, CreateOption());
+                    });
                 return sideChainInitializationResponse;
             }
             catch (RpcException)
