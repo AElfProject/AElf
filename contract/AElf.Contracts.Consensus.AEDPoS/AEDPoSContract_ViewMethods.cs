@@ -458,13 +458,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             if (State.BlockchainStartTimestamp.Value == null)
             {
-                return AEDPoSContractConstants.InitialMinersCount;
+                return AEDPoSContractConstants.SupposedMinersCount;
             }
 
             if (!TryToGetRoundInformation(1, out _)) return 0;
-            return Math.Min(input.RealTimeMinersInformation.Count < AEDPoSContractConstants.InitialMinersCount
-                ? AEDPoSContractConstants.InitialMinersCount
-                : AEDPoSContractConstants.InitialMinersCount.Add(
+            return Math.Min(input.RealTimeMinersInformation.Count < AEDPoSContractConstants.SupposedMinersCount
+                ? AEDPoSContractConstants.SupposedMinersCount
+                : AEDPoSContractConstants.SupposedMinersCount.Add(
                     (int) (Context.CurrentBlockTime - State.BlockchainStartTimestamp.Value).Seconds
                     .Div(State.MinerIncreaseInterval.Value).Mul(2)), State.MaximumMinersCount.Value);
         }
