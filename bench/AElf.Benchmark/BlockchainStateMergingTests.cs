@@ -121,10 +121,7 @@ namespace AElf.Benchmark
                     Block = block
                 });
 
-                foreach (var tx in block.Body.TransactionIds)
-                {
-                    await _transactionManager.RemoveTransactionAsync(tx);
-                }
+                await _transactionManager.RemoveTransactionAsync(block.Body.TransactionIds);
 
                 await _transactionResultManager.RemoveTransactionResultAsync(block.Body.TransactionIds,
                     block.GetHash());
