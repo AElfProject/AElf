@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Acs1;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 using Shouldly;
 using Xunit;
 
@@ -11,46 +12,40 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
     {
         private Address Tester => Address.FromPublicKey(InitialCoreDataCenterKeyPairs.First().PublicKey);
         private const string MethodName = "SetMethodFee";
-        private TokenAmount TokenAmount = new TokenAmount
+        private MethodFee TokenAmount = new MethodFee
         {
-            Amount = 5000_0000,
+            BasicFee = 5000_0000,
             Symbol = "ELF"
         };
 
         [Fact]
         public async Task Economic_FeeProvider_Test()
         {
-            await ExecuteProposalTransaction(Tester, EconomicContractAddress, MethodName, new TokenAmounts
+            await ExecuteProposalTransaction(Tester, EconomicContractAddress, MethodName, new MethodFees
             {
-                Method = nameof(EconomicContractStub.IssueNativeToken),
-                Amounts = {TokenAmount}
+                MethodName = nameof(EconomicContractStub.IssueNativeToken),
+                Fees = {TokenAmount}
             });
-            var result = await EconomicContractStub.GetMethodFee.CallAsync(new MethodName
+            var result = await EconomicContractStub.GetMethodFee.CallAsync(new StringValue
             {
-                Name = nameof(EconomicContractStub.IssueNativeToken)
+                Value = nameof(EconomicContractStub.IssueNativeToken)
             });
-            result.Amounts.First().ShouldBe(TokenAmount);
+            result.Fees.First().ShouldBe(TokenAmount);
         }
 
         [Fact]
         public async Task Genesis_FeeProvider_Test()
         {
-            await ExecuteProposalTransaction(Tester, ContractZeroAddress, MethodName, new TokenAmounts
+            await ExecuteProposalTransaction(Tester, ContractZeroAddress, MethodName, new MethodFees
             {
-                Method = nameof(BasicContractZeroStub.DeploySmartContract),
-                Amounts = {TokenAmount}
+                MethodName = nameof(BasicContractZeroStub.DeploySmartContract),
+                Fees = {TokenAmount}
             });
-            var result = await BasicContractZeroStub.GetMethodFee.CallAsync(new MethodName
+            var result = await BasicContractZeroStub.GetMethodFee.CallAsync(new StringValue
             {
-                Name = nameof(BasicContractZeroStub.DeploySmartContract)
+                Value = nameof(BasicContractZeroStub.DeploySmartContract)
             });
-            result.Amounts.First().ShouldBe(TokenAmount);
-        }
-
-        [Fact]
-        public async Task Configuration_FeeProvider_Test()
-        {
-            
+            result.Fees.First().ShouldBe(TokenAmount);
         }
     }
 }
