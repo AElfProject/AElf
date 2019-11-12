@@ -105,7 +105,7 @@ namespace AElf.Contracts.CrossChain
             var serialNumber = State.SideChainSerialNumber.Value;
             for (long i = 1; i <= serialNumber; i++)
             {
-                int chainId = ChainHelper.GetChainId(i);
+                int chainId = GetChainId(i);
                 var sideChainInfo = State.SideChainInfo[chainId];
                 if (sideChainInfo.SideChainStatus != SideChainStatus.Active)
                     continue;
