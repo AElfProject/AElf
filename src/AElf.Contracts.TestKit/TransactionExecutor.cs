@@ -81,6 +81,7 @@ namespace AElf.Contracts.TestKit
             {
                 throw new Exception($"Succeed to call {transaction.MethodName}.");
             }
+
             return new StringValue {Value = transactionTrace.Error};
         }
 

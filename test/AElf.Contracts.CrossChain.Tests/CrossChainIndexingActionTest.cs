@@ -305,7 +305,7 @@ namespace AElf.Contracts.CrossChain.Tests
             await BlockMiningService.MineBlockAsync(new List<Transaction>
             {
                 CrossChainContractStub.CreateSideChain.GetTransaction(sideChainCreationRequest)
-            });
+            }, true);
 
             var fakeSideChainBlockHash = Hash.FromString("sideChainBlockHash");
             var fakeTxMerkleTreeRoot = Hash.FromString("txMerkleTreeRoot");
