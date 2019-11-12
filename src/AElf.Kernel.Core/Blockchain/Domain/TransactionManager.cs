@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using AElf.Types;
@@ -34,6 +36,15 @@ namespace AElf.Kernel.Blockchain.Domain
         {
             await _transactionStore.RemoveAsync(GetStringKey(txId));
         }
+        
+        public async Task RemoveTransactionAsync(IList<Hash> txIds)
+        {
+            if (txIds.Count == 0)
+                return;
+
+            await _transactionStore.RemoveAllAsync(txIds.Select(GetStringKey).ToList());
+        }
+
 
         public async Task<bool> IsTransactionExistsAsync(Hash txId)
         {
