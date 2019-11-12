@@ -6,10 +6,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Volo.Abp.Core" Version="0.19.0" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.Core\AElf.Kernel.Core.csproj" />
       <ProjectReference Include="..\AElf.Kernel.SmartContract\AElf.Kernel.SmartContract.csproj" />
     </ItemGroup>
@@ -24,6 +20,10 @@
         <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
             <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
         </ContractStub>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Volo.Abp.Core" Version="1.0.2" />
     </ItemGroup>
 
 </Project>

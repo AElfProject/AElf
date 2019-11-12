@@ -3,7 +3,7 @@
     <PropertyGroup>
         <PackageId>AElf.Contracts.Deployer</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <TargetFramework>netcoreapp3.0</TargetFramework>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DefineConstants>TRACE;UNIT_TEST</DefineConstants>

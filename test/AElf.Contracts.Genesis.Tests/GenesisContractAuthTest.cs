@@ -82,6 +82,10 @@ namespace AElf.Contracts.Genesis
                     Category = KernelConstants.DefaultRunnerCategory,
                     Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
                 });
+
+            var block  = await Tester.MineEmptyBlockAsync();
+            
+            block  = await Tester.MineEmptyBlockAsync();
             
             result.Status.ShouldBe(TransactionResultStatus.Mined);
         }

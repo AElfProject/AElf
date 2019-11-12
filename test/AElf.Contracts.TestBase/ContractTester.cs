@@ -489,6 +489,16 @@ namespace AElf.Contracts.TestBase
         }
 
         /// <summary>
+        /// Mine a block with only system txs.
+        /// </summary>
+        /// <param name="txs"></param>
+        /// <returns></returns>
+        public async Task<Block> MineEmptyBlockAsync()
+        {
+            return await MineAsync(new List<Transaction> {});
+        }
+
+        /// <summary>
         /// In test cases, we can't distinguish normal txs and system txs,
         /// so just keep in mind if some txs looks like system txs,
         /// just add them first manually.
