@@ -33,7 +33,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private bool ValidateProducedBlocksCount(ConsensusValidationContext validationContext)
         {
-            var pubkey = validationContext.Pubkey;
+            var pubkey = validationContext.SenderPubkey;
             return validationContext.BaseRound.RealTimeMinersInformation[pubkey].ProducedBlocks.Add(1) ==
                    validationContext.ProvidedRound.RealTimeMinersInformation[pubkey].ProducedBlocks;
         }

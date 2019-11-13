@@ -94,6 +94,12 @@ namespace AElf.Kernel.Consensus.Application
             var validationResult = await _readerFactory.Create(chainContext).ValidateConsensusBeforeExecution
                 .CallAsync(new BytesValue {Value = ByteString.CopyFrom(consensusExtraData)});
 
+            if (validationResult == null)
+            {
+                Logger.LogError("Failed to execute ValidateConsensusBeforeExecution.");
+                return false;
+            }
+
             if (!validationResult.Success)
             {
                 Logger.LogError($"Consensus validating before execution failed: {validationResult.Message}");
@@ -116,6 +122,12 @@ namespace AElf.Kernel.Consensus.Application
 
             var validationResult = await _readerFactory.Create(chainContext).ValidateConsensusAfterExecution
                 .CallAsync(new BytesValue {Value = ByteString.CopyFrom(consensusExtraData)});
+
+            if (validationResult == null)
+            {
+                Logger.LogError("Failed to execute ValidateConsensusAfterExecution.");
+                return false;
+            }
 
             if (!validationResult.Success)
             {

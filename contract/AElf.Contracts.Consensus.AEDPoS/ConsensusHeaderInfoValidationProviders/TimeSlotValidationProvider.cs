@@ -37,7 +37,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private bool CheckMinerTimeSlot(ConsensusValidationContext validationContext)
         {
             var round = validationContext.ProvidedRound;
-            var pubkey = validationContext.Pubkey;
+            var pubkey = validationContext.SenderPubkey;
 
             if (IsFirstRoundOfCurrentTerm(out _, validationContext)) return true;
             var minerInRound = round.RealTimeMinersInformation[pubkey];

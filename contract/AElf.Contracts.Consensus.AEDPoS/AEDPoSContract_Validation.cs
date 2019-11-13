@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Acs4;
 
@@ -24,6 +25,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 providedRound = baseRound.RecoverFromUpdateValue(extraData.Round, extraData.SenderPubkey.ToHex());
             }
+
             if (extraData.Behaviour == AElfConsensusBehaviour.TinyBlock)
             {
                 providedRound = baseRound.RecoverFromTinyBlock(extraData.Round, extraData.SenderPubkey.ToHex());
@@ -46,7 +48,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // Add basic providers at first.
             var validationProviders = new List<IHeaderInformationValidationProvider>
             {
-                // Is sender in miner list?
+                // Is sender in miner list (of base round)?
                 new MiningPermissionValidationProvider(),
 
                 // Is this block produced in proper time?
@@ -64,23 +66,33 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 case AElfConsensusBehaviour.UpdateValue:
                     validationProviders.Add(new UpdateValueValidationProvider());
                     break;
-                case AElfConsensusBehaviour.TinyBlock:
-                    //validationProviders.Add(new TinyBlockValidationProvider());
-                    break;
                 case AElfConsensusBehaviour.NextRound:
-                case AElfConsensusBehaviour.NextTerm:
-                    validationProviders.Add(new RoundTerminateValidationProvider());
                     // Is sender's order of next round correct?
                     validationProviders.Add(new NextRoundMiningOrderValidationProvider());
+                    validationProviders.Add(new RoundTerminateValidationProvider());
+                    break;
+                case AElfConsensusBehaviour.NextTerm:
+                    validationProviders.Add(new RoundTerminateValidationProvider());
                     break;
             }
 
             var service = new HeaderInformationValidationService(validationProviders);
 
-            var validationResult = service.ValidateInformation(validationContext);
+            Context.LogDebug(() => $"Validating behaviour: {extraData.Behaviour.ToString()}");
+
+            var validationResult = new ValidationResult();
+            try
+            {
+                validationResult = service.ValidateInformation(validationContext);
+            }
+            catch (Exception e)
+            {
+                Context.LogDebug(() => $"{e.Message}\n{e.StackTrace}");
+            }
+
             if (validationResult.Success == false)
             {
-                Context.LogDebug(() => $" Validate failed : {validationResult.Message}");
+                Context.LogDebug(() => $"Consensus Validation before execution failed : {validationResult.Message}");
             }
 
             return validationResult;
