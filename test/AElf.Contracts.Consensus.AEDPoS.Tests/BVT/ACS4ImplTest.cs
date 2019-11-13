@@ -334,9 +334,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public async Task AEDPoSContract_ValidateConsensusBeforeExecution_UpdateValue_WithoutMiner_Test()
         {
             var usingKeyPair = ValidationDataCenterKeyPairs[0];
-            KeyPairProvider.SetKeyPair(usingKeyPair);
 
             var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_ExtraBlockMiner_Test();
+
+            KeyPairProvider.SetKeyPair(usingKeyPair);
+
             var updateValue = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.UpdateValue}
                 .ToByteString();
             consensusCommand.Hint = updateValue;
@@ -344,9 +346,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var triggerForCommand = TriggerInformationProvider
                 .GetTriggerInformationForBlockHeaderExtraData(consensusCommand.ToBytesValue());
             var extraDataBytes = await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggerForCommand);
-            
+
             await NextTerm(BootMinerKeyPair);
-            
+
             var otherUser = GetAEDPoSContractStub(usingKeyPair);
             var validateBeforeResult =
                 await otherUser.ValidateConsensusBeforeExecution.CallAsync(extraDataBytes);
