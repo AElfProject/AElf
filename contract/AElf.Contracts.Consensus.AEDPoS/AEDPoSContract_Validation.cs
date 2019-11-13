@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Acs4;
 
@@ -80,15 +79,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Context.LogDebug(() => $"Validating behaviour: {extraData.Behaviour.ToString()}");
 
-            var validationResult = new ValidationResult();
-            try
-            {
-                validationResult = service.ValidateInformation(validationContext);
-            }
-            catch (Exception e)
-            {
-                Context.LogDebug(() => $"{e.Message}\n{e.StackTrace}");
-            }
+            var validationResult = service.ValidateInformation(validationContext);
 
             if (validationResult.Success == false)
             {
