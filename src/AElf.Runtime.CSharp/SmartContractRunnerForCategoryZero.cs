@@ -68,15 +68,5 @@ namespace AElf.Runtime.CSharp
 
             return await Task.FromResult(executive);
         }
-
-        public byte[] CodePatch(byte[] code)
-        {
-            // Disabled due to timeout during unit tests
-#if !UNIT_TEST
-            return ContractPatcher.Patch(code);
-#else
-            return code;
-#endif
-        }
     }
 }

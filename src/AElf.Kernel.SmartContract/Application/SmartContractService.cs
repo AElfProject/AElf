@@ -23,12 +23,6 @@ namespace AElf.Kernel.SmartContract.Application
             _smartContractExecutiveService = smartContractExecutiveService;
         }
 
-        public async Task<byte[]> PatchContractAsync(byte[] code, int category)
-        {
-            var runner = _smartContractRunnerContainer.GetRunner(category);
-            return await Task.Run(() => runner.CodePatch(code));
-        }
-
         /// <inheritdoc/>
         public async Task DeployContractAsync(ContractDto contractDto)
         {

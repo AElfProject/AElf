@@ -17,8 +17,6 @@ namespace AElf.Kernel.SmartContract.Application
 
         Task UpdateContractAsync(ContractDto contractDto);
 
-        Task<byte[]> PatchContractAsync(byte[] code, int category);
-
 //        Task<IExecutive> GetExecutiveAsync(Address contractAddress, );
 //        Task PutExecutiveAsync(Address account, IExecutive executive);
 //
