@@ -535,7 +535,7 @@ namespace AElf.Contracts.Economic.TestBase
             var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
             CheckResult(createResult.TransactionResult);
 
-            var proposalHash = Hash.FromMessage(proposal);
+            var proposalHash = HashHelper.HexStringToHash(createResult.TransactionResult.ReadableReturnValue.Replace("\"", ""));
             foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
                 var tester = GetParliamentAuthContractTester(bp);
