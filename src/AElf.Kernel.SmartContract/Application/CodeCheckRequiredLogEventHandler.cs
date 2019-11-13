@@ -1,11 +1,12 @@
+using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Threading.Tasks;
 using AElf.Kernel.Miner.Application;
-using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Acs0;
+using AElf.Contracts.ParliamentAuth;
 using AElf.CSharp.CodeOps;
 using Volo.Abp.DependencyInjection;
 
@@ -53,15 +54,29 @@ namespace AElf.Kernel.SmartContract.Application
             var eventData = new CodeCheckRequired();
             eventData.MergeFrom(logEvent);
 
-            // Check contract code
-            _contractAuditor.Audit(eventData.Code.ToByteArray(), true);
-            
-            // Approve proposal related to CodeCheckRequired event
-            var proposalId = Hash.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed);
-            
-            _readyToApproveProposalCacheProvider.TryCacheProposalToApprove(proposalId);
+            var _ = ProcessLogEventAsync(transactionResult, eventData);
 
             return Task.CompletedTask;
+        }
+
+        private async Task ProcessLogEventAsync(TransactionResult transactionResult, CodeCheckRequired eventData)
+        {
+            try
+            {
+                // Check contract code
+                _contractAuditor.Audit(eventData.Code.ToByteArray(), true);
+
+                // Approve proposal related to CodeCheckRequired event
+                var proposalId = ProposalCreated.Parser
+                    .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
+                    .ProposalId;
+
+                _readyToApproveProposalCacheProvider.TryCacheProposalToApprove(proposalId);
+            }
+            catch (InvalidCodeException e)
+            {
+                Logger.LogError("Contract code did not pass audit.", e);
+            }
         }
     }
 }
