@@ -41,8 +41,9 @@ namespace AElf.Kernel.Blockchain.Application
             var disambiguatingHash = blockHeader.IsMined() ? blockHeader.GetHash() : blockHeader.GetPreMiningHash();
             await _transactionResultManager.AddTransactionResultAsync(transactionResult, disambiguatingHash);
         }
-        
-        public async Task AddTransactionResultsAsync(IList<TransactionResult> transactionResults, BlockHeader blockHeader)
+
+        public async Task AddTransactionResultsAsync(IList<TransactionResult> transactionResults,
+            BlockHeader blockHeader)
         {
             var disambiguatingHash = blockHeader.IsMined() ? blockHeader.GetHash() : blockHeader.GetPreMiningHash();
             await _transactionResultManager.AddTransactionResultsAsync(transactionResults, disambiguatingHash);
@@ -106,17 +107,12 @@ namespace AElf.Kernel.Blockchain.Application
             }
 
             // Add TransactionBlockIndex
-            var toBeRemovedTransactionResults = new List<Hash>();
-            foreach (var txId in transactionIds)
+            if (withPreMiningHash != null)
             {
-                if (withPreMiningHash != null)
-                {
-                    toBeRemovedTransactionResults.Add(txId);
-                }
-                await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex);
+                await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, preMiningHash);
             }
 
-            await _transactionResultManager.RemoveTransactionResultsAsync(toBeRemovedTransactionResults, preMiningHash);
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(transactionIds, blockIndex);
         }
     }
 }

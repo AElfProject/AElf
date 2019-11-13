@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Domain;
@@ -10,15 +12,15 @@ namespace AElf.Kernel.Blockchain.Application
     public interface ITransactionBlockIndexService
     {
         Task<BlockIndex> GetTransactionBlockIndexAsync(Hash txId);
-        Task UpdateTransactionBlockIndexAsync(Hash txId, BlockIndex blockIndex);
+        Task UpdateTransactionBlockIndexAsync(IList<Hash> txIds, BlockIndex blockIndex);
     }
-    
+
     public class TransactionBlockIndexService : ITransactionBlockIndexService, ITransientDependency
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionBlockIndexManager _transactionBlockIndexManager;
 
-        public TransactionBlockIndexService(IBlockchainService blockchainService, 
+        public TransactionBlockIndexService(IBlockchainService blockchainService,
             ITransactionBlockIndexManager transactionBlockIndexManager)
         {
             _blockchainService = blockchainService;
@@ -32,18 +34,19 @@ namespace AElf.Kernel.Blockchain.Application
 
             if (transactionBlockIndex == null)
                 return null;
-            
+
             var chain = await _blockchainService.GetChainAsync();
 
             var previousBlockIndexList =
                 transactionBlockIndex.PreviousExecutionBlockIndexList ?? new RepeatedField<BlockIndex>();
             var lastBlockIndex = new BlockIndex(transactionBlockIndex.BlockHash, transactionBlockIndex.BlockHeight);
             var reversedBlockIndexList = previousBlockIndexList.Concat(new[] {lastBlockIndex}).Reverse().ToList();
-            
+
             foreach (var blockIndex in reversedBlockIndexList)
             {
                 var blockHashInBestChain =
-                    await _blockchainService.GetBlockHashByHeightAsync(chain, blockIndex.BlockHeight, chain.BestChainHash);
+                    await _blockchainService.GetBlockHashByHeightAsync(chain, blockIndex.BlockHeight,
+                        chain.BestChainHash);
 
                 // check whether it is on best chain or a fork branch
                 if (blockIndex.BlockHash == blockHashInBestChain)
@@ -53,28 +56,34 @@ namespace AElf.Kernel.Blockchain.Application
 
             return null;
         }
-        
-        public async Task UpdateTransactionBlockIndexAsync(Hash txId, BlockIndex blockIndex)
-        {
-            var preTransactionBlockIndex =
-                await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(txId);
 
-            var transactionBlockIndex = new TransactionBlockIndex
+        public async Task UpdateTransactionBlockIndexAsync(IList<Hash> txIds, BlockIndex blockIndex)
+        {
+            var transactionBlockIndexes = new Dictionary<Hash, TransactionBlockIndex>();
+            foreach (var txId in txIds)
             {
-                BlockHash = blockIndex.BlockHash,
-                BlockHeight = blockIndex.BlockHeight
-            };
-                    
-            if (preTransactionBlockIndex != null)
-            {
-                transactionBlockIndex.PreviousExecutionBlockIndexList.Add(preTransactionBlockIndex
-                    .PreviousExecutionBlockIndexList);
-                var previousBlockIndex = new BlockIndex(preTransactionBlockIndex.BlockHash,
-                    preTransactionBlockIndex.BlockHeight);
-                transactionBlockIndex.PreviousExecutionBlockIndexList.Add(previousBlockIndex);
+                var preTransactionBlockIndex =
+                    await _transactionBlockIndexManager.GetTransactionBlockIndexAsync(txId);
+
+                var transactionBlockIndex = new TransactionBlockIndex
+                {
+                    BlockHash = blockIndex.BlockHash,
+                    BlockHeight = blockIndex.BlockHeight
+                };
+
+                if (preTransactionBlockIndex != null)
+                {
+                    transactionBlockIndex.PreviousExecutionBlockIndexList.Add(preTransactionBlockIndex
+                        .PreviousExecutionBlockIndexList);
+                    var previousBlockIndex = new BlockIndex(preTransactionBlockIndex.BlockHash,
+                        preTransactionBlockIndex.BlockHeight);
+                    transactionBlockIndex.PreviousExecutionBlockIndexList.Add(previousBlockIndex);
+                }
+
+                transactionBlockIndexes.Add(txId, transactionBlockIndex);
             }
 
-            await _transactionBlockIndexManager.SetTransactionBlockIndexAsync(txId, transactionBlockIndex);
+            await _transactionBlockIndexManager.SetTransactionBlockIndexesAsync(transactionBlockIndexes);
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Types;
@@ -29,7 +30,7 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex);
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex);
             
             var actual = await _transactionBlockIndexService.GetTransactionBlockIndexAsync(txId);
             Assert.Null(actual);
@@ -46,7 +47,7 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHash = block.GetHash(),
                 BlockHeight = block.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex);
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex);
             var chain = await _blockchainService.GetChainAsync();
             await SetBestChain(chain, block);
 
@@ -67,14 +68,14 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHash = block1.GetHash(),
                 BlockHeight = block1.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex1);
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex1);
             
             var blockIndex2 = new BlockIndex
             {
                 BlockHash = block2.GetHash(),
                 BlockHeight = block2.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex2);
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex2);
             
             var actual = await _transactionBlockIndexService.GetTransactionBlockIndexAsync(txId);
             Assert.Null(actual);
@@ -93,14 +94,14 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHash = block1.GetHash(),
                 BlockHeight = block1.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex1);
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex1);
             
             var blockIndex2 = new BlockIndex
             {
                 BlockHash = block2.GetHash(),
                 BlockHeight = block2.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex2);
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex2);
             
             var chain = await _blockchainService.GetChainAsync();
             await SetBestChain(chain, block1);
@@ -122,14 +123,14 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHash = block1.GetHash(),
                 BlockHeight = block1.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex1);
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex1);
             
             var blockIndex2 = new BlockIndex
             {
                 BlockHash = block2.GetHash(),
                 BlockHeight = block2.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex2);
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex2);
             
             var chain = await _blockchainService.GetChainAsync();
             await SetBestChain(chain, block2);
@@ -151,7 +152,7 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHash = block1.GetHash(),
                 BlockHeight = block1.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex1);
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex1);
             var chain1 = await _blockchainService.GetChainAsync();
             await SetBestChain(chain1, block1);
             var actual1 = await _transactionBlockIndexService.GetTransactionBlockIndexAsync(txId);
@@ -162,7 +163,7 @@ namespace AElf.Kernel.Blockchain.Application
                 BlockHash = block2.GetHash(),
                 BlockHeight = block2.Height
             };
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex2);
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {txId}, blockIndex2);
             
             var chain = await _blockchainService.GetChainAsync();
             await SetBestChain(chain, block2);
