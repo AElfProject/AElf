@@ -13,9 +13,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public ValidationResult ValidateHeaderInformation(ConsensusValidationContext validationContext)
         {
             var validationResult = new ValidationResult();
-            if (!validationContext.BaseRound.RealTimeMinersInformation.Keys.Contains(validationContext.Pubkey))
+            if (!validationContext.BaseRound.RealTimeMinersInformation.Keys.Contains(validationContext.SenderPubkey))
             {
-                validationResult.Message = $"Sender {validationContext.Pubkey} is not a miner.";
+                validationResult.Message = $"Sender {validationContext.SenderPubkey} is not a miner.";
                 return validationResult;
             }
 

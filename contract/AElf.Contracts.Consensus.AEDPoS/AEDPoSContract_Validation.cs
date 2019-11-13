@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Acs4;
 
@@ -47,7 +48,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // Add basic providers at first.
             var validationProviders = new List<IHeaderInformationValidationProvider>
             {
-                // Is sender in miner list?
+                // Is sender in miner list (of base round)?
                 new MiningPermissionValidationProvider(),
 
                 // Is this block produced in proper time?
@@ -82,7 +83,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             Context.LogDebug(() => $"Validating behaviour: {extraData.Behaviour.ToString()}");
 
-            var validationResult = service.ValidateInformation(validationContext);
+            var validationResult = new ValidationResult();
+            try
+            {
+                validationResult = service.ValidateInformation(validationContext);
+            }
+            catch (Exception e)
+            {
+                Context.LogDebug(() => $"{e.Message}\n{e.StackTrace}");
+            }
+
             if (validationResult.Success == false)
             {
                 Context.LogDebug(() => $"Consensus Validation before execution failed : {validationResult.Message}");

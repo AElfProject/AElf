@@ -36,7 +36,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         private bool NewConsensusInformationFilled(ConsensusValidationContext validationContext)
         {
-            var minerInRound = validationContext.ProvidedRound.RealTimeMinersInformation[validationContext.Pubkey];
+            var minerInRound = validationContext.ProvidedRound.RealTimeMinersInformation[validationContext.SenderPubkey];
             return minerInRound.OutValue != null && minerInRound.Signature != null &&
                    minerInRound.OutValue.Value.Any() && minerInRound.Signature.Value.Any();
         }
@@ -44,7 +44,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private bool ValidatePreviousInValue(ConsensusValidationContext validationContext)
         {
             var extraData = validationContext.ExtraData;
-            var publicKey = validationContext.Pubkey;
+            var publicKey = validationContext.SenderPubkey;
 
             if (!TryToGetPreviousRoundInformation(out var previousRound, validationContext)) return true;
 
@@ -64,7 +64,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             // TODO: Fix this validation in secret-sharing branch.
             return true;
-            var pubkey = validationContext.Pubkey;
+            var pubkey = validationContext.SenderPubkey;
 
             if (validationContext.BaseRound.ExtraBlockProducerOfPreviousRound != pubkey)
             {
