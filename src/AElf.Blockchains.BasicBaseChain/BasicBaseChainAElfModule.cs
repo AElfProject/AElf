@@ -18,6 +18,7 @@ using AElf.RuntimeSetup;
 using AElf.WebApp.Web;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.AspNetCore;
@@ -51,12 +52,17 @@ namespace AElf.Blockchains.BasicBaseChain
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
+            var hostBuilderContext = context.Services.GetSingletonInstanceOrNull<HostBuilderContext>();
 
             var chainType = context.Services.GetConfiguration().GetValue("ChainType", ChainType.MainChain);
             var netType = context.Services.GetConfiguration().GetValue("NetType", NetType.MainNet);
-            context.Services.SetConfiguration(new ConfigurationBuilder().AddConfiguration(configuration)
-                .AddJsonFile($"appsettings.{chainType}.{netType}.json").SetBasePath(context.Services.GetHostingEnvironment().ContentRootPath)
-                .Build());
+
+            var newConfig = new ConfigurationBuilder().AddConfiguration(configuration)
+                .AddJsonFile($"appsettings.{chainType}.{netType}.json")
+                .SetBasePath(context.Services.GetHostingEnvironment().ContentRootPath)
+                .Build();
+            
+            hostBuilderContext.Configuration = newConfig;
         }
 
         public override void ConfigureServices(ServiceConfigurationContext context)

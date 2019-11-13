@@ -47,18 +47,17 @@ namespace AElf.Contracts.Election
                     await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 2);
                 }
 
-                // SampleKeyPairs[18...22] get 1 votes.
+                // SampleKeyPairs[18...30] get 1 votes.
                 var lessVotesCandidates = ValidationDataCenterKeyPairs
                     .Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount)
-                    .Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
+                    .Take(EconomicContractsTestConstants.SupposedMinersCount - EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
                 foreach (var keyPair in lessVotesCandidates)
                 {
                     await VoteToCandidate(VoterKeyPairs[0], keyPair.PublicKey.ToHex(), 100 * 86400, 1);
                 }
 
-                // Check the count of voted candidates, should be 10.
                 var votedCandidates = await ElectionContractStub.GetVotedCandidates.CallAsync(new Empty());
-                votedCandidates.Value.Count.ShouldBe(EconomicContractsTestConstants.InitialCoreDataCenterCount * 2);
+                votedCandidates.Value.Count.ShouldBe(EconomicContractsTestConstants.SupposedMinersCount);
             }
 
             // Produce 10 blocks and change term.
@@ -206,7 +205,7 @@ namespace AElf.Contracts.Election
                 {
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.BasicMinerReward, currentPeriod);
-                    releasedInformation.TotalShares.ShouldBe(9);
+                    releasedInformation.TotalShares.ShouldBe(EconomicContractsTestConstants.SupposedMinersCount);
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
                         .ShouldBe(rewardAmount * 2 / 5);
                 }
@@ -214,7 +213,7 @@ namespace AElf.Contracts.Election
                 // Amount of basic reward.
                 {
                     var amount = await GetProfitAmount(ProfitType.BasicMinerReward);
-                    updatedBasicReward += rewardAmount * 2 / 5 / 9;
+                    updatedBasicReward += rewardAmount * 2 / 5 / EconomicContractsTestConstants.SupposedMinersCount;
                     amount.ShouldBe(updatedBasicReward);
                 }
 
@@ -222,8 +221,9 @@ namespace AElf.Contracts.Election
                 {
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.VotesWeightReward, currentPeriod);
-                    // First 5 victories each obtained 2 votes, last 4 victories each obtained 1 vote.
-                    releasedInformation.TotalShares.ShouldBe(2 * 5 + 4);
+                    // First 5 victories each obtained 2 votes, last 12 victories each obtained 1 vote.
+                    releasedInformation.TotalShares.ShouldBe(EconomicContractsTestConstants.InitialCoreDataCenterCount +
+                                                             EconomicContractsTestConstants.SupposedMinersCount);
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
                         .ShouldBe(rewardAmount / 10);
                 }
@@ -231,7 +231,9 @@ namespace AElf.Contracts.Election
                 // Amount of votes weights reward.
                 {
                     var amount = await GetProfitAmount(ProfitType.VotesWeightReward);
-                    updatedVotesWeightReward += rewardAmount / 10 * 2 / 14;
+                    updatedVotesWeightReward +=
+                        rewardAmount / 10 * 2 / (EconomicContractsTestConstants.InitialCoreDataCenterCount +
+                                                 EconomicContractsTestConstants.SupposedMinersCount);
                     amount.ShouldBe(updatedVotesWeightReward);
                 }
 
@@ -259,7 +261,7 @@ namespace AElf.Contracts.Election
                         .ShouldBe(rewardAmount / 5);
 
                     // Amount of citizen welfare.
-                    var electorVote = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringInput
+                    var electorVote = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
                         {Value = VoterKeyPairs[0].PublicKey.ToHex()});
                     var electorWeights = electorVote.ActiveVotingRecords.Sum(r => r.Weight);
                     electorWeights.ShouldBe(releasedInformation.TotalShares);
@@ -308,7 +310,7 @@ namespace AElf.Contracts.Election
                 {
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.BasicMinerReward, currentPeriod);
-                    releasedInformation.TotalShares.ShouldBe(9);
+                    releasedInformation.TotalShares.ShouldBe(EconomicContractsTestConstants.SupposedMinersCount);
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
                         .ShouldBe(rewardAmount * 2 / 5);
                 }
@@ -316,7 +318,7 @@ namespace AElf.Contracts.Election
                 // Amount of basic reward.
                 {
                     var amount = await GetProfitAmount(ProfitType.BasicMinerReward);
-                    updatedBasicReward += rewardAmount * 2 / 5 / 9;
+                    updatedBasicReward += rewardAmount * 2 / 5 / EconomicContractsTestConstants.SupposedMinersCount;
                     amount.ShouldBe(updatedBasicReward);
                 }
 
@@ -325,7 +327,8 @@ namespace AElf.Contracts.Election
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.VotesWeightReward, currentPeriod);
                     // First 5 victories each obtained 2 votes, last 4 victories each obtained 1 vote.
-                    releasedInformation.TotalShares.ShouldBe(2 * 5 + 4);
+                    releasedInformation.TotalShares.ShouldBe(EconomicContractsTestConstants.InitialCoreDataCenterCount +
+                                                             EconomicContractsTestConstants.SupposedMinersCount);
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
                         .ShouldBe(rewardAmount / 10);
                 }
@@ -333,7 +336,9 @@ namespace AElf.Contracts.Election
                 // Amount of votes weights reward.
                 {
                     var amount = await GetProfitAmount(ProfitType.VotesWeightReward);
-                    updatedVotesWeightReward += rewardAmount / 10 * 2 / 14;
+                    updatedVotesWeightReward +=
+                        rewardAmount / 10 * 2 / (EconomicContractsTestConstants.InitialCoreDataCenterCount +
+                                                 EconomicContractsTestConstants.SupposedMinersCount);
                     amount.ShouldBe(updatedVotesWeightReward);
                 }
 
@@ -342,7 +347,7 @@ namespace AElf.Contracts.Election
                     var releasedInformation =
                         await GetDistributedProfitsInfo(ProfitType.ReElectionReward, currentPeriod);
                     releasedInformation.IsReleased.ShouldBeTrue();
-                    releasedInformation.TotalShares.ShouldBe(9);
+                    releasedInformation.TotalShares.ShouldBe(EconomicContractsTestConstants.SupposedMinersCount);
                     releasedInformation.ProfitsAmount[EconomicContractsTestConstants.NativeTokenSymbol]
                         .ShouldBe(rewardAmount / 10);
                 }
@@ -350,7 +355,7 @@ namespace AElf.Contracts.Election
                 // Amount of re-election reward.
                 {
                     var amount = await GetProfitAmount(ProfitType.ReElectionReward);
-                    amount.ShouldBe(rewardAmount / 10 / 9);
+                    amount.ShouldBe(rewardAmount / 10 / EconomicContractsTestConstants.SupposedMinersCount);
                 }
 
                 // Citizen welfare.
@@ -361,7 +366,7 @@ namespace AElf.Contracts.Election
                         .ShouldBe(rewardAmount / 5);
 
                     // Amount of citizen welfare.
-                    var electorVote = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringInput
+                    var electorVote = await ElectionContractStub.GetElectorVoteWithRecords.CallAsync(new StringValue
                         {Value = VoterKeyPairs[0].PublicKey.ToHex()});
                     var electorWeights = electorVote.ActiveVotingRecords.Sum(r => r.Weight);
                     electorWeights.ShouldBe(releasedInformation.TotalShares);

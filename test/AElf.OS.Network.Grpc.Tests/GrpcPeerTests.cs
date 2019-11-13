@@ -111,13 +111,11 @@ namespace AElf.OS.Network
             AutoResetEvent executed = new AutoResetEvent(false);
 
             NetworkException exception = null;
-            bool called = false;
             _grpcPeer.IsConnected = false;
             Should.Throw<NetworkException>(() =>
                 _grpcPeer.EnqueueAnnouncement(new BlockAnnouncement(), ex =>
                 {
                     exception = ex;
-                    called = true;
                     executed.Set();
                 }));
 
@@ -125,7 +123,6 @@ namespace AElf.OS.Network
                 _grpcPeer.EnqueueBlock(new BlockWithTransactions(), ex =>
                 {
                     exception = ex;
-                    called = true;
                     executed.Set();
                 }));
         }
