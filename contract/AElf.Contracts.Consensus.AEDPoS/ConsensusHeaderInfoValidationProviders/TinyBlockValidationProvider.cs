@@ -18,7 +18,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private bool ValidateProducedTinyBlocksCount(ConsensusValidationContext validationContext)
         {
             var pubkey = validationContext.SenderPubkey;
-
+            if (!validationContext.BaseRound.RealTimeMinersInformation.ContainsKey(pubkey))
+                return true;
             return validationContext.BaseRound.RealTimeMinersInformation[pubkey].ProducedTinyBlocks.Add(1) ==
                    validationContext.ProvidedRound.RealTimeMinersInformation[pubkey].ProducedTinyBlocks;
         }
