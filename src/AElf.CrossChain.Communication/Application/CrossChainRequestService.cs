@@ -44,6 +44,7 @@ namespace AElf.CrossChain.Communication.Application
 
         public async Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId)
         {
+            Logger.LogTrace("Request chain initialization data.");
             var chainInitializationData = await _crossChainClientService.RequestChainInitializationData(chainId);
             return chainInitializationData;
         }
