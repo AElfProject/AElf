@@ -26,10 +26,20 @@ namespace AElf.Kernel.Blockchain.Domain
             await _transactionStore.SetAsync(GetStringKey(transactionId), tx);
             return transactionId;
         }
+        
+        public async Task AddTransactionsAsync(IList<Transaction> txs)
+        {
+            await _transactionStore.SetAllAsync(txs.ToDictionary(t => GetStringKey(t.GetHash()), t => t));
+        }
 
         public async Task<Transaction> GetTransactionAsync(Hash txId)
         {
             return await _transactionStore.GetAsync(GetStringKey(txId));
+        }
+        
+        public async Task<List<Transaction>> GetTransactionsAsync(IList<Hash> txIds)
+        {
+            return await _transactionStore.GetAllAsync(txIds.Select(GetStringKey).ToList());
         }
 
         public async Task RemoveTransactionAsync(Hash txId)
@@ -37,11 +47,8 @@ namespace AElf.Kernel.Blockchain.Domain
             await _transactionStore.RemoveAsync(GetStringKey(txId));
         }
         
-        public async Task RemoveTransactionAsync(IList<Hash> txIds)
+        public async Task RemoveTransactionsAsync(IList<Hash> txIds)
         {
-            if (txIds.Count == 0)
-                return;
-
             await _transactionStore.RemoveAllAsync(txIds.Select(GetStringKey).ToList());
         }
 

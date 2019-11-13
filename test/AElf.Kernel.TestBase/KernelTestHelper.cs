@@ -82,7 +82,7 @@ namespace AElf.Kernel
             foreach (var block in LongestBranchBlockList)
             {
                 var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(block.GetHash());
-                await _chainManager.SetChainBlockLinkExecutionStatus(chainBlockLink,
+                await _chainManager.SetChainBlockLinkExecutionStatusAsync(chainBlockLink,
                     ChainBlockLinkExecutionStatus.ExecutionFailed);
             }
             
@@ -229,7 +229,7 @@ namespace AElf.Kernel
             await _blockchainService.SetBestChainAsync(chain, block.Height, block.GetHash());
 
             var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(block.GetHash());
-            await _chainManager.SetChainBlockLinkExecutionStatus(chainBlockLink,
+            await _chainManager.SetChainBlockLinkExecutionStatusAsync(chainBlockLink,
                 ChainBlockLinkExecutionStatus.ExecutionSuccess);
 
             return block;
@@ -257,7 +257,7 @@ namespace AElf.Kernel
                 bestBranchBlockList.Add(newBlock);
                 
                 var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(newBlock.GetHash());
-                await _chainManager.SetChainBlockLinkExecutionStatus(chainBlockLink,
+                await _chainManager.SetChainBlockLinkExecutionStatusAsync(chainBlockLink,
                     ChainBlockLinkExecutionStatus.ExecutionSuccess);
                 
                 chain = await _blockchainService.GetChainAsync();

@@ -173,15 +173,7 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task<List<Transaction>> GetTransactionsAsync(IEnumerable<Hash> transactionIds)
         {
-            List<Transaction> transactions = new List<Transaction>();
-
-            foreach (var transactionId in transactionIds)
-            {
-                var transaction = await _transactionManager.GetTransactionAsync(transactionId);
-                transactions.Add(transaction);
-            }
-
-            return transactions;
+            return await _transactionManager.GetTransactionsAsync(transactionIds.ToList());
         }
 
         public async Task AddBlockAsync(Block block)
@@ -192,8 +184,7 @@ namespace AElf.Kernel.Blockchain.Application
 
         public async Task AddTransactionsAsync(IEnumerable<Transaction> transactions)
         {
-            foreach (var transaction in transactions)
-                await _transactionManager.AddTransactionAsync(transaction);
+            await _transactionManager.AddTransactionsAsync(transactions.ToList());
         }
 
         public async Task<bool> HasBlockAsync(Hash blockId)

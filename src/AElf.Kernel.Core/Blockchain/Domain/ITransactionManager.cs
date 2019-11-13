@@ -7,9 +7,11 @@ namespace AElf.Kernel.Blockchain.Domain
     public interface ITransactionManager
     {
         Task<Hash> AddTransactionAsync(Transaction tx);
+        Task AddTransactionsAsync(IList<Transaction> txs);
         Task<Transaction> GetTransactionAsync(Hash txId);
+        Task<List<Transaction>> GetTransactionsAsync(IList<Hash> txIds);
         Task RemoveTransactionAsync(Hash txId);
-        Task RemoveTransactionAsync(IList<Hash> txIds);
+        Task RemoveTransactionsAsync(IList<Hash> txIds);
         Task<bool> IsTransactionExistsAsync(Hash txId);
     }
 }

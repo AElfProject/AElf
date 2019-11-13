@@ -66,10 +66,10 @@ namespace AElf.Benchmark
         public async Task IterationCleanup()
         {
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
-            await _transactionManager.RemoveTransactionAsync(_block.Body.TransactionIds);
+            await _transactionManager.RemoveTransactionsAsync(_block.Body.TransactionIds);
 
-            await _transactionResultManager.RemoveTransactionResultAsync(_block.Body.TransactionIds, _block.GetHash());
-            await _transactionResultManager.RemoveTransactionResultAsync(_block.Body.TransactionIds,
+            await _transactionResultManager.RemoveTransactionResultsAsync(_block.Body.TransactionIds, _block.GetHash());
+            await _transactionResultManager.RemoveTransactionResultsAsync(_block.Body.TransactionIds,
                 _block.Header.GetPreMiningHash());
 
             await _chainManager.RemoveChainBlockLinkAsync(_block.GetHash());
