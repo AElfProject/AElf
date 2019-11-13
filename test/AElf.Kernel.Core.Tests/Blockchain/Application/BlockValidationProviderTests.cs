@@ -151,11 +151,12 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 transaction
             });
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(transaction.GetHash(), new BlockIndex
-            {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
-            });
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {transaction.GetHash()},
+                new BlockIndex
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Height
+                });
 
             var validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             validateResult.ShouldBeTrue();
@@ -179,11 +180,12 @@ namespace AElf.Kernel.Blockchain.Application
                 {
                     transaction
                 });
-            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(transaction.GetHash(), new BlockIndex
-            {
-                BlockHash = block.GetHash(),
-                BlockHeight = block.Height
-            });
+            await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(new List<Hash> {transaction.GetHash()},
+                new BlockIndex
+                {
+                    BlockHash = block.GetHash(),
+                    BlockHeight = block.Height
+                });
 
             var validateResult = await _blockValidationProvider.ValidateBlockBeforeExecuteAsync(block);
             validateResult.ShouldBeTrue();
