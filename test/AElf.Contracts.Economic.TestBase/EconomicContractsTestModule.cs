@@ -32,6 +32,9 @@ namespace AElf.Contracts.Economic.TestBase
             context.Services.AddSingleton<IPostExecutionPlugin, ResourceConsumptionPostExecutionPlugin>();
             context.Services.AddSingleton<IRandomHashCacheService, MockRandomHashCacheService>();
             context.Services.AddSingleton<ITransactionInclusivenessProvider, TransactionInclusivenessProvider>();
+                        
+            context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
+            context.Services.AddSingleton<IInValueCacheService, InValueCacheService>();
 
             context.Services
                 .AddSingleton<ISystemTransactionMethodNameListProvider, SystemTransactionMethodNameListProvider>();

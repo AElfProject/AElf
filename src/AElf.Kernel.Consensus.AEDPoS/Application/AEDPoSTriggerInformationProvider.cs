@@ -5,6 +5,7 @@ using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Consensus.Application;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
@@ -25,6 +26,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             _accountService = accountService;
             _secretSharingService = secretSharingService;
             _inValueCacheService = inValueCacheService;
+            
+            Logger = NullLogger<AEDPoSTriggerInformationProvider>.Instance;
         }
 
         public BytesValue GetTriggerInformationForConsensusCommand(BytesValue consensusCommandBytes)

@@ -44,8 +44,8 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             context.Services.AddSingleton<ITransactionTraceProvider, TransactionTraceProvider>();
             context.Services.AddSingleton<TransactionExecutedEventHandler>();
             context.Services.AddSingleton<IConsensusExtraDataExtractor, AEDPoSExtraDataExtractor>();
-            context.Services.AddSingleton<IBlockValidationProvider, ConsensusValidationProvider>();
-            context.Services.AddSingleton<BestChainFoundEventHandlerForLogEventListening>();
+            context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
+            context.Services.AddSingleton<IInValueCacheService, InValueCacheService>();
 
             Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
         }
