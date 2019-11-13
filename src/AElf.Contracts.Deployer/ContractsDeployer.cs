@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using AElf.CSharp.CodeOps;
 using AElf.Runtime.CSharp;
 
 namespace AElf.Contracts.Deployer
@@ -19,16 +20,14 @@ namespace AElf.Contracts.Deployer
             return contractNames.Select(n => (n, GetCode(n, contractDir))).ToDictionary(x => x.Item1, x => x.Item2);
         }
 
-        private static byte[] GetCode(string dllName,string contractDir)
+        private static byte[] GetCode(string dllName, string contractDir)
         {
             var dllPath = Directory.Exists(contractDir)
                 ? Path.Combine(contractDir, $"{dllName}.dll")
                 : Assembly.Load(dllName).Location;
-#if !UNIT_TEST
+
             return ContractPatcher.Patch(File.ReadAllBytes(dllPath));
-#else
-            return File.ReadAllBytes(dllPath);
-#endif
+            //File.ReadAllBytes(dllPath);
         }
 
         private static IEnumerable<string> GetContractNames(Assembly assembly)

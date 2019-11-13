@@ -1,6 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
+using AElf.Contracts.Deployer;
 using AElf.Contracts.ParliamentAuth;
 using AElf.Kernel;
 using AElf.Kernel.Token;
@@ -82,11 +83,42 @@ namespace AElf.Contracts.Genesis
                     Category = KernelConstants.DefaultRunnerCategory,
                     Code = ByteString.CopyFrom(Codes.Single(kv => kv.Key.Contains("MultiToken")).Value)
                 });
+            
+            result.Status.ShouldBe(TransactionResultStatus.Mined);
+            
+            result.Logs.Select(l => l.Name).ShouldContain(nameof(CodeCheckRequired));
+            result.Logs.Select(l => l.Name).ShouldContain(nameof(ProposalCreated));
 
+            // Get proposal id for contract deployment
+            var proposalId = ProposalCreated.Parser.ParseFrom(result.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed).ProposalId;
+            
+            // Wait for contract code check event handler to finish its job
+            await Task.Run(async () => 
+            {
+                await Task.Delay(5000);
+            });
+            
+            // Mine a block, should include approval transaction
             var block  = await Tester.MineEmptyBlockAsync();
             
-            block  = await Tester.MineEmptyBlockAsync();
+            // Check deployment proposal after approval
+            result = await Tester.ExecuteContractWithMiningAsync(
+                ParliamentAddress,
+                nameof(ParliamentAuthContractContainer.ParliamentAuthContractStub.GetProposal),
+                proposalId
+            );
+
+            var proposalInfo = ProposalInfo.Parser.ParseFrom(result.ReturnValue);
             
+            proposalInfo.ApprovedRepresentatives.Count.ShouldBeGreaterThan(0);
+
+            // Release approved contract
+            result = await Tester.ExecuteContractWithMiningAsync(
+                BasicContractZeroAddress,
+                nameof(BasicContractZeroContainer.BasicContractZeroBase.ReleaseApprovedContract),
+                proposalId
+            );
+
             result.Status.ShouldBe(TransactionResultStatus.Mined);
         }
         

@@ -6,7 +6,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Acs0;
-
+using AElf.CSharp.CodeOps;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
@@ -16,6 +16,8 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly ISmartContractAddressService _smartContractAddressService;
         
         private readonly IReadyToApproveProposalCacheProvider _readyToApproveProposalCacheProvider;
+        
+        private readonly ContractAuditor _contractAuditor = new ContractAuditor(null, null);
 
         private LogEvent _interestedEvent;
         
@@ -51,7 +53,8 @@ namespace AElf.Kernel.SmartContract.Application
             var eventData = new CodeCheckRequired();
             eventData.MergeFrom(logEvent);
 
-            // TODO: Verify the code in log event handler
+            // Check contract code
+            _contractAuditor.Audit(eventData.Code.ToByteArray(), true);
             
             // Approve proposal related to CodeCheckRequired event
             var proposalId = Hash.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed);
