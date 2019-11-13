@@ -1,4 +1,6 @@
+using System.Net;
 using System.Threading.Tasks;
+using AElf.Kernel.Helper;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
@@ -13,9 +15,15 @@ namespace AElf.CrossChain.Communication.Grpc
         
         public override Task<HandShakeReply> CrossChainHandShake(HandShake request, ServerCallContext context)
         {
-            Logger.LogTrace($"Received shake from chain {ChainHelper.ConvertChainIdToBase58(request.FromChainId)}.");
-            _ = PublishCrossChainRequestReceivedEvent(request.Host, request.ListeningPort, request.FromChainId);
-            return Task.FromResult(new HandShakeReply {Success = true});
+            Logger.LogTrace($"Received shake from chain {ChainHelper.ConvertChainIdToBase58(request.ChainId)}.");
+
+            if (!UriHelper.TryParsePrefixedEndpoint(context.Peer, out IPEndPoint peerEndpoint))
+                return Task.FromResult(new HandShakeReply
+                    {Status = HandShakeReply.Types.HandShakeStatus.InvalidHandShakeRequest});
+            
+            _ = PublishCrossChainRequestReceivedEvent(peerEndpoint.Address.ToString(), request.ListeningPort,
+                request.ChainId);
+            return Task.FromResult(new HandShakeReply {Status = HandShakeReply.Types.HandShakeStatus.Success});
         }
         
         private Task PublishCrossChainRequestReceivedEvent(string host, int port, int chainId)

@@ -18,9 +18,7 @@ namespace AElf.CrossChain.Communication.Grpc
         
         public int RemoteChainId { get; set; }
         public int DialTimeout { get; set; }
-        public int LocalServerPort { get; set; }
-        
-        public string LocalServerHost { get; set; }
+        public int ListeningPort { get; set; }
     }
     
     public abstract class GrpcCrossChainClient<TData, TClient> : ICrossChainClient where TData : IBlockCacheEntity where TClient : ClientBase<TClient>
@@ -30,9 +28,8 @@ namespace AElf.CrossChain.Communication.Grpc
         protected TClient GrpcClient;
 
         private readonly int _localChainId;
-        private readonly int _localListeningPort;
+        private readonly int _listeningPort;
         private readonly BasicCrossChainRpc.BasicCrossChainRpcClient _basicGrpcClient;
-        private readonly string _host;
         
         public string TargetUriString => Channel.Target;
         public bool IsConnected { get; private set; }
@@ -46,8 +43,7 @@ namespace AElf.CrossChain.Communication.Grpc
             DialTimeout = grpcClientInitializationContext.DialTimeout;
             Channel = CreateChannel(grpcClientInitializationContext.UriStr);
             _basicGrpcClient = new BasicCrossChainRpc.BasicCrossChainRpcClient(Channel);
-            _localListeningPort = grpcClientInitializationContext.LocalServerPort;
-            _host = grpcClientInitializationContext.LocalServerHost;
+            _listeningPort = grpcClientInitializationContext.ListeningPort;
         }
         
         /// <summary>
@@ -102,7 +98,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             var requestData = new CrossChainRequest
             {
-                FromChainId = _localChainId,
+                ChainId = _localChainId,
                 NextHeight = targetHeight
             };
 
@@ -158,11 +154,10 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             var reply = await _basicGrpcClient.CrossChainHandShakeAsync(new HandShake
             {
-                FromChainId = _localChainId,
-                ListeningPort = _localListeningPort,
-                Host = _host
+                ChainId = _localChainId,
+                ListeningPort = _listeningPort
             }, CreateOption());
-            IsConnected = reply != null && reply.Success;
+            IsConnected = reply != null && reply.Status == HandShakeReply.Types.HandShakeStatus.Success;
         }
 
         public abstract Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId);
@@ -213,7 +208,7 @@ namespace AElf.CrossChain.Communication.Grpc
                     });
                 return sideChainInitializationResponse;
             }
-            catch (RpcException)
+            catch (RpcException e)
             {
                 return null;
             }
