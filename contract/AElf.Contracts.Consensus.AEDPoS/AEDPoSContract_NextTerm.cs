@@ -17,20 +17,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void UpdateProducedBlocksNumberOfSender(Round input)
         {
-            var senderPublicKey = Context.RecoverPublicKey().ToHex();
+            var senderPubkey = Context.RecoverPublicKey().ToHex();
 
             // Update produced block number of transaction sender.
-            if (input.RealTimeMinersInformation.ContainsKey(senderPublicKey))
+            if (input.RealTimeMinersInformation.ContainsKey(senderPubkey))
             {
-                input.RealTimeMinersInformation[senderPublicKey].ProducedBlocks =
-                    input.RealTimeMinersInformation[senderPublicKey].ProducedBlocks + 1;
+                input.RealTimeMinersInformation[senderPubkey].ProducedBlocks =
+                    input.RealTimeMinersInformation[senderPubkey].ProducedBlocks.Add(1);
             }
             else
             {
                 // If the sender isn't in miner list of next term.
                 State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
                 {
-                    Pubkey = senderPublicKey,
+                    Pubkey = senderPubkey,
                     RecentlyProducedBlocks = 1
                 });
             }

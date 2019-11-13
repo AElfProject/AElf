@@ -19,6 +19,12 @@ namespace AElf.Database
             _pooledRedisLite = new PooledRedisLite(endpoint.Host, endpoint.Port, db: (int) endpoint.Db);
         }
 
+        public async Task<bool> IsExists(string key)
+        {
+            Check.NotNullOrWhiteSpace(key, nameof(key));
+            return _pooledRedisLite.Exists(key);
+        }
+
         public bool IsConnected()
         {
             return _pooledRedisLite.Ping();
