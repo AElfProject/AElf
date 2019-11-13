@@ -14,7 +14,7 @@ namespace AElf.Kernel.Types.Tests
         public void Length_Test()
         {
             var bloom = new Bloom();
-            Assert.Equal(256, bloom.Data.Length);
+            bloom.Data.Length.ShouldBe(0);
             
             var bloomData = Guid.NewGuid().ToByteArray();
             Should.Throw<InvalidOperationException>(
