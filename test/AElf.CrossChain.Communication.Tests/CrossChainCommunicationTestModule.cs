@@ -36,11 +36,9 @@ namespace AElf.CrossChain.Communication
 
             Configure<GrpcCrossChainConfigOption>(option =>
             {
-                option.ListeningHost = "127.0.0.1";
-                option.LocalServerPort = 5001;
-                option.LocalServerHost = "127.0.0.1";
-                option.RemoteParentChainServerHost = "127.0.0.1";
-                option.RemoteParentChainServerPort = 5000;
+                option.ListeningPort = 5001;
+                option.ParentChainServerIp = "127.0.0.1";
+                option.ParentChainServerPort = 5000;
             });
 
             Configure<CrossChainConfigOptions>(option =>

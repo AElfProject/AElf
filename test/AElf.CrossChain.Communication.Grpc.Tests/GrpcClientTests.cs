@@ -8,7 +8,7 @@ namespace AElf.CrossChain.Communication.Grpc
 {
     public class GrpcClientTests : GrpcCrossChainClientTestBase
     {
-        private const string Host = "localhost";
+        private const string Host = "127.0.0.1";
         private const int ListenPort = 2200;
         private BasicCrossChainRpc.BasicCrossChainRpcClient _basicClient;
         private GrpcCrossChainCommunicationTestHelper _grpcCrossChainCommunicationTestHelper;
@@ -27,10 +27,9 @@ namespace AElf.CrossChain.Communication.Grpc
             var result = await _basicClient.CrossChainHandShakeAsync(new HandShake
             {
                 ListeningPort = ListenPort,
-                FromChainId = 0,
-                Host = Host
+                ChainId = 0
             });
-            Assert.True(result.Success);
+            Assert.True(result.Status == HandShakeReply.Types.HandShakeStatus.Success);
             Dispose();
         }
 
@@ -38,7 +37,7 @@ namespace AElf.CrossChain.Communication.Grpc
         public async Task RequestChainInitializationData_ParentClient_Test()
         {
             var chainId = ChainHelper.GetChainId(1);
-            await Server.StartAsync(Host, 5000);
+            await Server.StartAsync(5000);
 
             var grpcClientInitializationContext = new GrpcClientInitializationContext
             {
@@ -60,7 +59,7 @@ namespace AElf.CrossChain.Communication.Grpc
             var remoteChainId = ChainOptions.ChainId;
             var height = 2;
             var port = 5000;
-            await Server.StartAsync(Host, port);
+            await Server.StartAsync(port);
             
             var grpcClientInitializationContext = new GrpcClientInitializationContext
             {
@@ -82,7 +81,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
         private async Task InitServerAndClientAsync(int port)
         {
-            await Server.StartAsync(Host, port);
+            await Server.StartAsync(port);
             _basicClient =
                 new BasicCrossChainRpc.BasicCrossChainRpcClient(new Channel(Host, port, ChannelCredentials.Insecure));
         }
