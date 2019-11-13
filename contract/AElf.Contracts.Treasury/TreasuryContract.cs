@@ -138,7 +138,7 @@ namespace AElf.Contracts.Treasury
 
         public override Empty Donate(DonateInput input)
         {
-            Assert(input.Amount > 0, "Invalid amount of donating.");
+            Assert(input.Amount > 0, "Invalid amount of donating. Amount need to greater than 0.");
             if (State.TokenContract.Value == null)
             {
                 State.TokenContract.Value =

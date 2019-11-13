@@ -12,7 +12,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// We can trust this because we already validated the pubkey
         /// during `AEDPoSExtraDataExtractor.ExtractConsensusExtraData`
         /// </summary>
-        public string Pubkey => ExtraData.SenderPubkey.ToHex();
+        public string SenderPubkey => ExtraData.SenderPubkey.ToHex();
 
         public Round BaseRound { get; set; }
 
