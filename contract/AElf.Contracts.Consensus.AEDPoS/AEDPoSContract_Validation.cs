@@ -24,6 +24,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 providedRound = baseRound.RecoverFromUpdateValue(extraData.Round, extraData.SenderPubkey.ToHex());
             }
+
             if (extraData.Behaviour == AElfConsensusBehaviour.TinyBlock)
             {
                 providedRound = baseRound.RecoverFromTinyBlock(extraData.Round, extraData.SenderPubkey.ToHex());
@@ -68,19 +69,23 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     //validationProviders.Add(new TinyBlockValidationProvider());
                     break;
                 case AElfConsensusBehaviour.NextRound:
-                case AElfConsensusBehaviour.NextTerm:
-                    validationProviders.Add(new RoundTerminateValidationProvider());
                     // Is sender's order of next round correct?
                     validationProviders.Add(new NextRoundMiningOrderValidationProvider());
+                    validationProviders.Add(new RoundTerminateValidationProvider());
+                    break;
+                case AElfConsensusBehaviour.NextTerm:
+                    validationProviders.Add(new RoundTerminateValidationProvider());
                     break;
             }
 
             var service = new HeaderInformationValidationService(validationProviders);
 
+            Context.LogDebug(() => $"Validating behaviour: {extraData.Behaviour.ToString()}");
+
             var validationResult = service.ValidateInformation(validationContext);
             if (validationResult.Success == false)
             {
-                Context.LogDebug(() => $" Validate failed : {validationResult.Message}");
+                Context.LogDebug(() => $"Consensus Validation before execution failed : {validationResult.Message}");
             }
 
             return validationResult;

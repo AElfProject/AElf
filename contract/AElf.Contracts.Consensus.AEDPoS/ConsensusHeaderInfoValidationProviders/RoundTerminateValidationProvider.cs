@@ -27,6 +27,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private ValidationResult ValidationForNextRound(ConsensusValidationContext validationContext)
         {
             // Is next round information correct?
+            // Currently two aspects:
+            //   Round Number
+            //   In Values Should Be Null
             var extraData = validationContext.ExtraData;
             if (TryToGetCurrentRoundInformation(out var currentRound, validationContext, true) &&
                 currentRound.RoundNumber.Add(1) != extraData.Round.RoundNumber)
@@ -39,13 +42,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return new ValidationResult {Message = "Incorrect next round information."};
             }
 
-
             return new ValidationResult {Success = true};
         }
 
         private ValidationResult ValidationForNextTerm(ConsensusValidationContext validationContext)
         {
-            // Is next round information correct?
             var extraData = validationContext.ExtraData;
             var validationResult = ValidationForNextRound(validationContext);
             if (!validationResult.Success)
@@ -53,6 +54,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return validationResult;
             }
 
+            // Is next term information correct?
+            //   Term Number
             if (TryToGetCurrentRoundInformation(out var currentRound, validationContext, true) &&
                 currentRound.TermNumber.Add(1) != extraData.Round.TermNumber)
             {
@@ -86,6 +89,5 @@ namespace AElf.Contracts.Consensus.AEDPoS
             roundNumber = currentRoundNumber;
             return roundNumber != 0;
         }
-
     }
 }
