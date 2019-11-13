@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using System.Linq;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
-using AElf.Contracts.ParliamentAuth;
 using AElf.Contracts.Profit;
 using AElf.Contracts.TokenConverter;
 using AElf.Sdk.CSharp;
@@ -34,6 +32,7 @@ namespace AElf.Contracts.Economic
             RegisterElectionVotingEvent();
             SetTreasurySchemeIdsToElectionContract();
             SetResourceTokenUnitPrice();
+            SetTransactionSizeUnitPrice(input.TransactionSizeFeeUnitPrice);
 
             InitializeTokenConverterContract();
 
@@ -61,11 +60,11 @@ namespace AElf.Contracts.Economic
                     Context.GetContractAddressByName(SmartContractConstants.ReferendumAuthContractSystemName)
                 }
             });
-            foreach (var symbol in EconomicContractConstants.ResourceTokenToNativeTokenDic.Values)
+            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList)
             {
                 State.TokenContract.Create.Send(new CreateInput
                 {
-                    Symbol = symbol,
+                    Symbol = EconomicContractConstants.NativeTokenPrefix + symbol,
                     TokenName = symbol + " Native Token",
                     TotalSupply = long.MaxValue,
                     Decimals = input.NativeTokenDecimals,
@@ -105,7 +104,7 @@ namespace AElf.Contracts.Economic
         {
             var tokenConverter =
                 Context.GetContractAddressByName(SmartContractConstants.TokenConverterContractSystemName);
-            foreach (var resourceTokenSymbol in EconomicContractConstants.ResourceTokenToNativeTokenDic.Keys)
+            foreach (var resourceTokenSymbol in Context.Variables.ResourceTokenSymbolNameList)
             {
                 State.TokenContract.Create.Send(new CreateInput
                 {
@@ -261,6 +260,14 @@ namespace AElf.Contracts.Economic
             });
         }
 
+        private void SetTransactionSizeUnitPrice(long transactionSizeUnitPrice)
+        {
+            State.TokenContract.SetTransactionSizeUnitPrice.Send(new SInt64Value
+            {
+                Value = transactionSizeUnitPrice
+            });
+        }
+
         private Address InitialConnectorManager()
         {
             State.ParliamentAuthContract.Value =
@@ -291,80 +298,31 @@ namespace AElf.Contracts.Economic
                     Weight = "0.5",
                     VirtualBalance = EconomicContractConstants.TokenConverterTokenConnectorInitialVirtualBalance,
                     RelatedSymbol = Context.Variables.NativeSymbol
-                },
-                new Connector
-                {
-                    Symbol = EconomicContractConstants.CpuConnectorSymbol,
-                    IsPurchaseEnabled = true,
-                    IsVirtualBalanceEnabled = true,
-                    Weight = "0.005",
-                    VirtualBalance = EconomicContractConstants.CpuInitialVirtualBalance,
-                    RelatedSymbol = EconomicContractConstants.NativeTokenToCpuSymbol
-                },
-                new Connector
-                {
-                    Symbol = EconomicContractConstants.NativeTokenToCpuSymbol,
-                    IsPurchaseEnabled = true,
-                    IsVirtualBalanceEnabled = true,
-                    Weight = "0.005",
-                    VirtualBalance = EconomicContractConstants.NativeTokenToCpuBalance,
-                    RelatedSymbol = EconomicContractConstants.CpuConnectorSymbol
-                },
-                new Connector
-                {
-                    Symbol = EconomicContractConstants.RamConnectorSymbol,
-                    IsPurchaseEnabled = true,
-                    IsVirtualBalanceEnabled = true,
-                    Weight = "0.005",
-                    VirtualBalance = EconomicContractConstants.RamInitialVirtualBalance,
-                    RelatedSymbol = EconomicContractConstants.NativeTokenToRamSymbol
-                },
-                new Connector
-                {
-                    Symbol = EconomicContractConstants.NativeTokenToRamSymbol,
-                    IsPurchaseEnabled = true,
-                    IsVirtualBalanceEnabled = true,
-                    Weight = "0.005",
-                    VirtualBalance = EconomicContractConstants.NativeTokenToRamBalance,
-                    RelatedSymbol = EconomicContractConstants.RamConnectorSymbol
-                },
-                new Connector
-                {
-                    Symbol = EconomicContractConstants.NetConnectorSymbol,
-                    IsPurchaseEnabled = true,
-                    IsVirtualBalanceEnabled = true,
-                    Weight = "0.005",
-                    VirtualBalance = EconomicContractConstants.NetInitialVirtualBalance,
-                    RelatedSymbol = EconomicContractConstants.NativeTokenToNetSymbol
-                },
-                new Connector
-                {
-                    Symbol = EconomicContractConstants.NativeTokenToNetSymbol,
-                    IsPurchaseEnabled = true,
-                    IsVirtualBalanceEnabled = true,
-                    Weight = "0.005",
-                    VirtualBalance = EconomicContractConstants.NativeTokenToNetBalance,
-                    RelatedSymbol = EconomicContractConstants.NetConnectorSymbol
-                },
-                new Connector
-                {
-                    Symbol = EconomicContractConstants.StoConnectorSymbol,
-                    IsPurchaseEnabled = true,
-                    IsVirtualBalanceEnabled = true,
-                    Weight = "0.005",
-                    VirtualBalance = EconomicContractConstants.StoInitialVirtualBalance,
-                    RelatedSymbol = EconomicContractConstants.NativeTokenToStoSymbol
-                },
-                new Connector
-                {
-                    Symbol = EconomicContractConstants.NativeTokenToStoSymbol,
-                    IsPurchaseEnabled = true,
-                    IsVirtualBalanceEnabled = true,
-                    Weight = "0.005",
-                    VirtualBalance = EconomicContractConstants.NativeTokenToStoBalance,
-                    RelatedSymbol = EconomicContractConstants.StoConnectorSymbol
                 }
             };
+            foreach (var resourceTokenSymbol in Context.Variables.ResourceTokenSymbolNameList)
+            {
+                var resourceTokenConnector = new Connector
+                {
+                    Symbol = resourceTokenSymbol,
+                    IsPurchaseEnabled = true,
+                    IsVirtualBalanceEnabled = true,
+                    Weight = "0.005",
+                    VirtualBalance = EconomicContractConstants.ResourceTokenInitialVirtualBalance,
+                    RelatedSymbol = EconomicContractConstants.NativeTokenPrefix + resourceTokenSymbol
+                };
+                var nativeTokenConnector = new Connector
+                {
+                    Symbol = EconomicContractConstants.NativeTokenPrefix + resourceTokenSymbol,
+                    IsPurchaseEnabled = true,
+                    IsVirtualBalanceEnabled = true,
+                    Weight = "0.005",
+                    VirtualBalance = EconomicContractConstants.NativeTokenToResourceBalance,
+                    RelatedSymbol = resourceTokenSymbol
+                };
+                connectors.Add(resourceTokenConnector);
+                connectors.Add(nativeTokenConnector);
+            }
             State.TokenConverterContract.Initialize.Send(new InitializeInput
             {
                 FeeRate = EconomicContractConstants.TokenConverterFeeRate,

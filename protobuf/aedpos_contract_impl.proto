@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package AEDPoSImpl;
 
-import "aelf/options.proto";
 import "acs1.proto";
 import "acs4.proto";
 import "acs6.proto";

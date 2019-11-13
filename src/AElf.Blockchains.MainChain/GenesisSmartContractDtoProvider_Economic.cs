@@ -35,7 +35,8 @@ namespace AElf.Blockchains.MainChain
                     NativeTokenName = _economicOptions.TokenName,
                     NativeTokenTotalSupply = _economicOptions.TotalSupply,
                     MiningRewardTotalAmount =
-                        Convert.ToInt64(_economicOptions.TotalSupply * _economicOptions.DividendPoolRatio)
+                        Convert.ToInt64(_economicOptions.TotalSupply * _economicOptions.DividendPoolRatio),
+                    TransactionSizeFeeUnitPrice = _economicOptions.TransactionSizeFeeUnitPrice
                 });
 
             //TODO: Maybe should be removed after testing.
@@ -48,7 +49,6 @@ namespace AElf.Blockchains.MainChain
                         ByteArrayHelper.HexStringToByteArray(_consensusOptions.InitialMinerList[0])),
                     Memo = "Issue native token"
                 });
-
 
             return economicContractMethodCallList;
         }

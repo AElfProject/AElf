@@ -25,7 +25,7 @@ namespace AElf.OS.Network
         }
         
         [Fact]
-        public async Task Initial_State_Is_Syncing()
+        public void Initial_State_Is_Syncing()
         {
             _syncStateService.SyncState.ShouldBe(SyncState.UnInitialized);
         }

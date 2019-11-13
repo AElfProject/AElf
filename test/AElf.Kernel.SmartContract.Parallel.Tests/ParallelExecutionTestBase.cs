@@ -16,6 +16,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
     {
         protected IBlockExecutingService BlockExecutingService { get; set; }
         protected IBlockchainService BlockchainService { get; set; }
+        protected IBlockAttachService BlockAttachService { get; set; }
         protected IMinerService MinerService { get; set; }
         
         protected ISmartContractAddressService SmartContractAddressService { get; set; }
@@ -40,6 +41,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             TransactionReadOnlyExecutionService = GetRequiredService<ITransactionReadOnlyExecutionService>();
             BlockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
             OsTestHelper = GetRequiredService<OSTestHelper>();
+            BlockAttachService = GetRequiredService<IBlockAttachService>();
             
             PrepareTransactions = new List<Transaction>();
             SystemTransactions = new List<Transaction>();

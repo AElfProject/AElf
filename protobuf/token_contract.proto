@@ -29,14 +29,14 @@ service TokenContract {
     }
     rpc Burn (BurnInput) returns (google.protobuf.Empty) {
     }
-    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (google.protobuf.Empty) {
+    rpc ChargeTransactionFees (ChargeTransactionFeesInput) returns (aelf.TransactionFee) {
     }
     rpc ClaimTransactionFees (google.protobuf.Empty) returns (google.protobuf.Empty) {
     }
     rpc RegisterCrossChainTokenContractAddress (RegisterCrossChainTokenContractAddressInput) returns (google.protobuf.Empty) {
     }
     rpc RegisterNativeAndResourceTokenInfo(RegisterNativeAndResourceTokenInfoInput) returns (google.protobuf.Empty) {
-    }  
+    }
     rpc RegisterNativeTokenInfo(RegisterNativeTokenInfoInput) returns (google.protobuf.Empty) {
     }
     rpc CrossChainTransfer (CrossChainTransferInput) returns (google.protobuf.Empty) {
@@ -66,6 +66,8 @@ service TokenContract {
     rpc TakeResourceTokenBack (TakeResourceTokenBackInput) returns (google.protobuf.Empty) {
     }
     rpc SetFeeReceiver (aelf.Address) returns (google.protobuf.Empty) {
+    }
+    rpc SetTransactionSizeUnitPrice (aelf.SInt64Value) returns (google.protobuf.Empty) {
     }
 
     // Views
@@ -100,6 +102,9 @@ service TokenContract {
         option (aelf.is_view) = true;
     }
     rpc GetPrimaryTokenSymbol (google.protobuf.Empty) returns (google.protobuf.StringValue) {
+        option (aelf.is_view) = true;
+    }
+    rpc GetTransactionSizeFeeUnitPrice (google.protobuf.Empty) returns (aelf.SInt64Value) {
         option (aelf.is_view) = true;
     }
 }
@@ -203,7 +208,14 @@ message BurnInput {
 }
 
 message ChargeTransactionFeesInput {
-    map<string, sint64> symbol_to_amount = 1;
+    string method_name = 1;
+    aelf.Address contract_address = 2;
+    sint64 transaction_size_fee = 3;
+    string primary_token_symbol = 4;
+}
+
+message TransactionFeeBill {
+    map<string, sint64> token_to_amount = 1;
 }
 
 message ChargeResourceTokenInput {
@@ -211,10 +223,6 @@ message ChargeResourceTokenInput {
     sint32 writes_count = 2;
     sint32 reads_count = 3;
     aelf.Address caller = 4;
-}
-
-message TokenSymbolList {
-    repeated string symbol_list = 1;
 }
 
 message GetTokenInfoInput {
@@ -392,4 +400,9 @@ message Burned
 message ChainPrimaryTokenSymbolSet {
     option (aelf.is_event) = true;
     string token_symbol = 1;
+}
+
+message TransactionSizeFeeUnitPriceUpdated {
+    option (aelf.is_event) = true;
+    sint64 UnitPrice = 1;
 }

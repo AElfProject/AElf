@@ -407,7 +407,6 @@ namespace AElf.CrossChain
         [Fact]
         public async Task GetCrossChainBlockDataForNextMining_Test()
         {
-            var parentChainId = 123;
             var sideChainId = 456;
             var parentBlockInfoCache = new List<IBlockCacheEntity>();
             var cachingCount = 5;

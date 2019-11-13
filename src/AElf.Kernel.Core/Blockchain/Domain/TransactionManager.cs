@@ -7,10 +7,10 @@ using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.Blockchain.Domain
 {
-    public class TransactionManager: ITransactionManager
+    public class TransactionManager : ITransactionManager
     {
         private readonly IBlockchainStore<Transaction> _transactionStore;
-        public ILogger<TransactionManager> Logger {get;set;}
+        public ILogger<TransactionManager> Logger { get; set; }
 
         public TransactionManager(IBlockchainStore<Transaction> transactionStore)
         {
@@ -34,7 +34,12 @@ namespace AElf.Kernel.Blockchain.Domain
         {
             await _transactionStore.RemoveAsync(GetStringKey(txId));
         }
-        
+
+        public async Task<bool> IsTransactionExistsAsync(Hash txId)
+        {
+            return await _transactionStore.IsExistsAsync(GetStringKey(txId));
+        }
+
         private string GetStringKey(Hash txId)
         {
             return txId.ToStorageKey();

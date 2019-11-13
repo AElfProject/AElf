@@ -8,9 +8,7 @@ using Volo.Abp.EventBus;
 
 namespace AElf.OS.Handlers
 {
-    public class BadPeerEventHandler : ILocalEventHandler<BlockValidationFailedEventData>,
-        ILocalEventHandler<IncorrectIrreversibleBlockEventData>,
-        ITransientDependency
+    public class BadPeerEventHandler : ILocalEventHandler<BadPeerFoundEventData>, ITransientDependency
     {
         private readonly INetworkService _networkService;
 
@@ -23,27 +21,12 @@ namespace AElf.OS.Handlers
             _networkService = networkService;
         }
 
-        private async Task HandleBadPeerAsync(string peerPubkey)
+        public async Task HandleEventAsync(BadPeerFoundEventData eventData)
         {
-            // Because of the peer reconnection feature, temporarily disable remove bad peer
-            return;
-            await _networkService.RemovePeerByPubkeyAsync(peerPubkey);
-        }
+            Logger.LogWarning(
+                $"Remove bad peer: {eventData.PeerPubkey}, block hash: {eventData.BlockHash}, block height: {eventData.BlockHeight}");
 
-        public Task HandleEventAsync(BlockValidationFailedEventData eventData)
-        {
-            Logger.LogDebug(
-                $"BlockValidationFailed: Found and remove bad peer: {eventData.BlockSenderPubkey}, block hash: {eventData.BlockHash}, block height: {eventData.BlockHeight}");
-            _ = HandleBadPeerAsync(eventData.BlockSenderPubkey);
-            return Task.CompletedTask;
-        }
-
-        public Task HandleEventAsync(IncorrectIrreversibleBlockEventData eventData)
-        {
-            Logger.LogDebug(
-                $"IncorrectIrreversibleBlock: Found and remove bad peer: {eventData.BlockSenderPubkey}, block hash: {eventData.BlockHash}, block height: {eventData.BlockHeight}");
-            _ = HandleBadPeerAsync(eventData.BlockSenderPubkey);
-            return Task.CompletedTask;
+            await _networkService.RemovePeerByPubkeyAsync(eventData.PeerPubkey, true);
         }
     }
 }

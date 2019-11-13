@@ -19,21 +19,38 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return;
             }
 
+            var behaviour = AElfConsensusBehaviour.Nothing;
+
             switch (input)
             {
                 case Round round when caller == nameof(NextRound):
                     ProcessNextRound(round);
+                    behaviour = AElfConsensusBehaviour.NextRound;
                     break;
                 case Round round when caller == nameof(NextTerm):
                     ProcessNextTerm(round);
+                    behaviour = AElfConsensusBehaviour.NextTerm;
                     break;
                 case UpdateValueInput updateValueInput:
                     ProcessUpdateValue(updateValueInput);
+                    behaviour = AElfConsensusBehaviour.UpdateValue;
                     break;
                 case TinyBlockInput tinyBlockInput:
                     ProcessTinyBlock(tinyBlockInput);
+                    behaviour = AElfConsensusBehaviour.TinyBlock;
                     break;
             }
+
+            var miningInformationUpdated = new MiningInformationUpdated
+            {
+                Pubkey = _processingBlockMinerPubkey,
+                Behaviour = behaviour.ToString(),
+                MiningTime = Context.CurrentBlockTime,
+                BlockHeight = Context.CurrentHeight,
+                PreviousBlockHash = Context.PreviousBlockHash
+            };
+            Context.Fire(miningInformationUpdated);
+            Context.LogDebug(() => miningInformationUpdated.ToString());
 
             // Make sure GetMaximumBlocksCount need to be executed no matter what consensus behaviour is.
             var minersCountInTheory = GetMaximumBlocksCount();
@@ -75,6 +92,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Context.LogDebug(() => "Evil miners detected.");
                 foreach (var evilMiner in evilMiners)
                 {
+                    Context.LogDebug(() => 
+                        $"Evil miner {evilMiner}, missed time slots: {currentRound.RealTimeMinersInformation[evilMiner].MissedTimeSlots}.");
                     // Mark these evil miners.
                     State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
                     {

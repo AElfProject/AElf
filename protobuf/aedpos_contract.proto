@@ -40,6 +40,9 @@ service AEDPoSContract {
     rpc GetCurrentMinerList (google.protobuf.Empty) returns (MinerList) {
         option (aelf.is_view) = true;
     }
+    rpc GetCurrentMinerPubkeyList (google.protobuf.Empty) returns (PubkeyList) {
+        option (aelf.is_view) = true;
+    }
     rpc GetCurrentMinerListWithRoundNumber (google.protobuf.Empty) returns (MinerListWithRoundNumber) {
         option (aelf.is_view) = true;
     }
@@ -79,6 +82,9 @@ service AEDPoSContract {
     rpc IsCurrentMiner (aelf.Address) returns (google.protobuf.BoolValue) {
         option (aelf.is_view) = true;
     }
+    rpc GetNextElectCountDown (google.protobuf.Empty) returns (aelf.SInt64Value) {
+        option (aelf.is_view) = true;
+    }
 }
 
 message InitialAElfConsensusContractInput {
@@ -107,6 +113,10 @@ message UpdateValueInput {
 // The miners public key list for each term.
 message MinerList {
     repeated bytes pubkeys = 1;
+}
+
+message PubkeyList {
+    repeated string pubkeys = 1;
 }
 
 // To query first round number of each term.
@@ -167,9 +177,8 @@ enum AElfConsensusBehaviour {
     UPDATE_VALUE = 0;
     NEXT_ROUND = 1;
     NEXT_TERM = 2;
-    UPDATE_VALUE_WITHOUT_PREVIOUS_IN_VALUE = 3;
-    NOTHING = 4;
-    TINY_BLOCK = 5;
+    NOTHING = 3;
+    TINY_BLOCK = 4;
 }
 
 message AElfConsensusTriggerInformation {
@@ -226,10 +235,19 @@ message LatestProviderToTinyBlocksCount {
 // Events
 message IrreversibleBlockFound {
     option (aelf.is_event) = true;
-    sint64 irreversible_block_height = 1;
+    sint64 irreversible_block_height = 1 [(aelf.is_indexed) = true];
 }
 
 message IrreversibleBlockHeightUnacceptable {
     option (aelf.is_event) = true;
     sint64 distance_to_irreversible_block_height = 1;
+}
+
+message MiningInformationUpdated {
+    option (aelf.is_event) = true;
+    string pubkey = 1 [(aelf.is_indexed) = true];
+    google.protobuf.Timestamp mining_time = 2 [(aelf.is_indexed) = true];
+    string behaviour = 3 [(aelf.is_indexed) = true];
+    sint64 block_height = 4 [(aelf.is_indexed) = true];
+    aelf.Hash previous_block_hash = 5 [(aelf.is_indexed) = true];
 }

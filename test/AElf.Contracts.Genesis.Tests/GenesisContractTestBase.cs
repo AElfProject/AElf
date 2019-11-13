@@ -21,10 +21,10 @@ namespace AElf.Contracts.Genesis
         AuthorityNotRequiredBasicContractZeroTestBase : TestKit.ContractTestBase<
             AuthorityNotRequiredBasicContractZeroTestModule>
     {
-        protected ISmartContractAddressService ContractAddressService =>
+        protected new ISmartContractAddressService ContractAddressService =>
             Application.ServiceProvider.GetRequiredService<ISmartContractAddressService>();
 
-        protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
+        protected new Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
 
         internal ACS0Container.ACS0Stub DefaultTester =>
             GetTester<ACS0Container.ACS0Stub>(ContractZeroAddress, DefaultSenderKeyPair);

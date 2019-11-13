@@ -39,7 +39,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             return behaviour == AElfConsensusBehaviour.Nothing
                 ? ConsensusCommandProvider.InvalidConsensusCommand
-                : GetConsensusCommand(behaviour, currentRound, _processingBlockMinerPubkey);
+                : GetConsensusCommand(behaviour, currentRound, _processingBlockMinerPubkey, Context.CurrentBlockTime);
         }
 
         public override BytesValue GetConsensusExtraData(BytesValue input)
@@ -55,25 +55,57 @@ namespace AElf.Contracts.Consensus.AEDPoS
             Assert(triggerInformation.Pubkey.Any(),
                 "Data to request consensus information should contain public key.");
 
-            var publicKey = triggerInformation.Pubkey;
+            var pubkey = triggerInformation.Pubkey;
             var consensusInformation = new AElfConsensusHeaderInformation();
             consensusInformation.MergeFrom(GetConsensusBlockExtraData(input, true).Value);
+            var transactionList = GenerateTransactionListByInfo(consensusInformation, pubkey);
+            return transactionList;
+        }
+
+        public override ValidationResult ValidateConsensusBeforeExecution(BytesValue input)
+        {
+            var extraData = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Value.ToByteArray());
+            return ValidateBeforeExecution(extraData);
+        }
+
+        public override ValidationResult ValidateConsensusAfterExecution(BytesValue input1)
+        {
+            var input = new AElfConsensusHeaderInformation();
+            input.MergeFrom(input1.Value);
+            if (TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                var isContainPreviousInValue = !currentRound.IsMinerListJustChanged;
+                if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
+                {
+                    Context.LogDebug(() => $"Round information of block header:\n{input.Round}");
+                    Context.LogDebug(() => $"Round information of executing result:\n{currentRound}");
+                    return new ValidationResult
+                    {
+                        Success = false, Message = "Current round information is different with consensus extra data."
+                    };
+                }
+            }
+
+            return new ValidationResult {Success = true};
+        }
+
+        private TransactionList GenerateTransactionListByInfo(AElfConsensusHeaderInformation consensusInformation, ByteString pubkey)
+        {
             var round = consensusInformation.Round;
             var behaviour = consensusInformation.Behaviour;
             switch (behaviour)
             {
-                case AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue:
                 case AElfConsensusBehaviour.UpdateValue:
                     return new TransactionList
                     {
                         Transactions =
                         {
                             GenerateTransaction(nameof(UpdateValue),
-                                round.ExtractInformationToUpdateConsensus(publicKey.ToHex()))
+                                round.ExtractInformationToUpdateConsensus(pubkey.ToHex()))
                         }
                     };
                 case AElfConsensusBehaviour.TinyBlock:
-                    var minerInRound = round.RealTimeMinersInformation[publicKey.ToHex()];
+                    var minerInRound = round.RealTimeMinersInformation[pubkey.ToHex()];
                     return new TransactionList
                     {
                         Transactions =
@@ -106,34 +138,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-
-        public override ValidationResult ValidateConsensusBeforeExecution(BytesValue input)
-        {
-            var extraData = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Value.ToByteArray());
-            return ValidateBeforeExecution(extraData);
-        }
-
-        public override ValidationResult ValidateConsensusAfterExecution(BytesValue input1)
-        {
-            var input = new AElfConsensusHeaderInformation();
-            input.MergeFrom(input1.Value);
-            if (TryToGetCurrentRoundInformation(out var currentRound))
-            {
-                var isContainPreviousInValue =
-                    input.Behaviour != AElfConsensusBehaviour.UpdateValueWithoutPreviousInValue;
-                if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
-                {
-                    Context.LogDebug(() => $"Round information of block header:\n{input.Round}");
-                    Context.LogDebug(() => $"Round information of executing result:\n{currentRound}");
-                    return new ValidationResult
-                    {
-                        Success = false, Message = "Current round information is different with consensus extra data."
-                    };
-                }
-            }
-
-            return new ValidationResult {Success = true};
         }
     }
 }

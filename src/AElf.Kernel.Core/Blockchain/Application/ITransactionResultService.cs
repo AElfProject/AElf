@@ -1,10 +1,9 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Domain;
-using AElf.Kernel.Blockchain.Events;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;
-using Volo.Abp.EventBus;
 
 namespace AElf.Kernel.Blockchain.Application
 {
@@ -17,6 +16,8 @@ namespace AElf.Kernel.Blockchain.Application
     public interface ITransactionResultService : ITransactionResultQueryService
     {
         Task AddTransactionResultAsync(TransactionResult transactionResult, BlockHeader blockHeader);
+
+        Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader, List<Hash> transactionIds);
     }
 
 
@@ -26,7 +27,7 @@ namespace AElf.Kernel.Blockchain.Application
         private readonly ITransactionBlockIndexService _transactionBlockIndexService;
         private readonly IBlockchainService _blockchainService;
 
-        public TransactionResultService(ITransactionResultManager transactionResultManager, 
+        public TransactionResultService(ITransactionResultManager transactionResultManager,
             IBlockchainService blockchainService, ITransactionBlockIndexService transactionBlockIndexService)
         {
             _transactionResultManager = transactionResultManager;
@@ -59,12 +60,57 @@ namespace AElf.Kernel.Blockchain.Application
             {
                 return txResult;
             }
-            
+
             var header = await _blockchainService.GetBlockHeaderByHashAsync(blockHash);
             txResult = await _transactionResultManager.GetTransactionResultAsync(transactionId,
                 header.GetPreMiningHash());
-            
+
             return txResult;
+        }
+
+        public async Task ProcessTransactionResultAfterExecutionAsync(BlockHeader blockHeader,
+            List<Hash> transactionIds)
+        {
+            var preMiningHash = blockHeader.GetPreMiningHash();
+            var blockIndex = new BlockIndex
+            {
+                BlockHash = blockHeader.GetHash(),
+                BlockHeight = blockHeader.Height
+            };
+
+            if (transactionIds.Count == 0)
+            {
+                // This will only happen during test environment
+                return;
+            }
+
+            var firstTransaction = transactionIds.First();
+            var withBlockHash = await _transactionResultManager.GetTransactionResultAsync(
+                firstTransaction, blockHeader.GetHash());
+            var withPreMiningHash = await _transactionResultManager.GetTransactionResultAsync(
+                firstTransaction, preMiningHash);
+
+            if (withBlockHash == null)
+            {
+                // TransactionResult is not saved with real BlockHash
+                // Save results with real (post mining) Hash, so that it can be queried with TransactionBlockIndex
+                foreach (var txId in transactionIds)
+                {
+                    var result = await _transactionResultManager.GetTransactionResultAsync(txId, preMiningHash);
+                    await _transactionResultManager.AddTransactionResultAsync(result, blockIndex.BlockHash);
+                }
+            }
+
+            // Add TransactionBlockIndex
+            foreach (var txId in transactionIds)
+            {
+                if (withPreMiningHash != null)
+                {
+                    await _transactionResultManager.RemoveTransactionResultAsync(txId, preMiningHash);
+                }
+
+                await _transactionBlockIndexService.UpdateTransactionBlockIndexAsync(txId, blockIndex);
+            }
         }
     }
 }

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>netcoreapp3.0</TargetFramework>
         <RootNamespace>AElf.WebApp.Application.Chain</RootNamespace>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <NoWarn>$(NoWarn);1591</NoWarn>
@@ -11,12 +11,13 @@
 
     <ItemGroup>
       <ProjectReference Include="..\AElf.Kernel.TransactionPool\AElf.Kernel.TransactionPool.csproj" />
+      <ProjectReference Include="..\AElf.Kernel\AElf.Kernel.csproj" />
       <ProjectReference Include="..\AElf.WebApp.Application.Core\AElf.WebApp.Application.Core.csproj" />
     </ItemGroup>
     <ItemGroup>
-        <CommonMessage Include="..\..\protobuf\aedpos_contract.proto">
+        <ContractMessage Include="..\..\protobuf\aedpos_contract.proto">
             <Link>Protobuf/Proto/aedpos_contract.proto</Link>
-        </CommonMessage>
+        </ContractMessage>
     </ItemGroup>
 
 </Project>

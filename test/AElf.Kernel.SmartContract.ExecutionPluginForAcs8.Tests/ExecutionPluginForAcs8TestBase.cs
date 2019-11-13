@@ -140,7 +140,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                         DefaultSenderKeyPair);
             }
             
-            // Token converter
+            // Treasury
             {
                 var code = Codes.Single(kv => kv.Key.Contains("Treasury")).Value;
                 TreasuryContractAddress = await DeploySystemSmartContract(category, code,

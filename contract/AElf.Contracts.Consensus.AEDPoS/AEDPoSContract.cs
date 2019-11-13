@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
@@ -114,20 +113,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             foreach (var previousInValue in input.MinersPreviousInValues)
             {
-                if (previousInValue.Key == publicKey)
+                if (previousInValue.Key == publicKey || previousInValue.Value == null)
                 {
                     continue;
-                }
-
-                var filledValue = round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue;
-                if (filledValue != null && filledValue != previousInValue.Value)
-                {
-                    Context.LogDebug(() => $"Something wrong happened to previous in value of {previousInValue.Key}.");
-                    State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
-                    {
-                        Pubkey = publicKey,
-                        IsEvilNode = true
-                    });
                 }
 
                 round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue = previousInValue.Value;
@@ -194,7 +182,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             var minerList = State.MainChainCurrentMinerList.Value.Pubkeys;
-            foreach (var symbol in new List<string> {"RAM", "STO", "CPU", "NET"})
+            foreach (var symbol in Context.Variables.ResourceTokenSymbolNameList)
             {
                 var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
                 {
