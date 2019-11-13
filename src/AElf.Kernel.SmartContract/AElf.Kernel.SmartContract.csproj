@@ -19,5 +19,14 @@
     <ContractMessage Include="..\..\protobuf\acs0.proto">
       <Link>Protobuf\Proto\acs0.proto</Link>
     </ContractMessage>
+    <ContractStub Include="..\..\protobuf\acs1.proto">
+      <Link>Protobuf/Proto/acs1.proto</Link>
+    </ContractStub>
+    <ContractStub Include="..\..\protobuf\acs3.proto">
+      <Link>Protobuf/Proto/acs3.proto</Link>
+    </ContractStub>
+    <ContractStub Include="..\..\protobuf\parliament_auth_contract.proto">
+      <Link>Protobuf\Proto\reference\parliament_auth_contract.proto</Link>
+    </ContractStub>
   </ItemGroup>
 </Project>

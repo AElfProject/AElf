@@ -75,6 +75,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
             catch (InvalidCodeException e)
             {
+                // May do something else to indicate that the contract has an issue
                 Logger.LogError("Contract code did not pass audit.", e);
             }
         }

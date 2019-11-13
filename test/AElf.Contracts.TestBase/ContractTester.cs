@@ -491,11 +491,21 @@ namespace AElf.Contracts.TestBase
         /// <summary>
         /// Mine a block with only system txs.
         /// </summary>
-        /// <param name="txs"></param>
         /// <returns></returns>
         public async Task<Block> MineEmptyBlockAsync()
         {
             return await MineAsync(new List<Transaction> {});
+        }
+        
+        /// <summary>
+        /// Gets a specified transactions from their ids
+        /// </summary>
+        /// <param name="txs"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<Transaction>> GetTransactionsAsync(IEnumerable<Hash> txs)
+        {
+            var blockchainService = Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+            return await blockchainService.GetTransactionsAsync(txs);
         }
 
         /// <summary>

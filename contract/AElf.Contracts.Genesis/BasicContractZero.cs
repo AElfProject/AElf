@@ -155,11 +155,7 @@ namespace AElf.Contracts.Genesis
         
         public override Empty ProposeNewContract(ContractDeploymentInput input)
         {
-            if (State.ParliamentAuthContract.Value == null)
-            {
-                State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
-            }
+            RequireParliamentAuthAddressSet();
             
             // Create proposal for deployment
             State.ParliamentAuthContract.CreateProposal.Send(new CreateProposalInput
@@ -168,7 +164,7 @@ namespace AElf.Contracts.Genesis
                 ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract),
                 Params = input.ToByteString(),
                 OrganizationAddress = State.GenesisOwner.Value,
-                ExpiredTime = Context.CurrentBlockTime.AddMinutes(1)
+                ExpiredTime = Context.CurrentBlockTime.AddMinutes(3) // Maybe, get the interval from configuration
             });
 
             // Fire event to trigger BPs checking contract code
@@ -189,6 +185,11 @@ namespace AElf.Contracts.Genesis
 
         public override Empty ProposeUpdateContract(ContractUpdateInput input)
         {
+            RequireParliamentAuthAddressSet();
+            var contractAddress = input.Address;
+            var info = State.ContractInfos[contractAddress];
+            Assert(info != null, "Contract does not exist.");
+            
             // Create proposal for deployment
             State.ParliamentAuthContract.CreateProposal.Send(new CreateProposalInput
             {
@@ -196,7 +197,7 @@ namespace AElf.Contracts.Genesis
                 ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroBase.UpdateSmartContract),
                 Params = input.ToByteString(),
                 OrganizationAddress = State.GenesisOwner.Value,
-                ExpiredTime = Context.CurrentBlockTime.AddMinutes(1)
+                ExpiredTime = Context.CurrentBlockTime.AddMinutes(3) // // Maybe, get the interval from configuration
             });
 
             // Fire event to trigger BPs checking contract code
@@ -321,6 +322,15 @@ namespace AElf.Contracts.Genesis
             else if (requiredAddress != null)
             {
                 AssertSenderAddressWith(requiredAddress);
+            }
+        }
+
+        private void RequireParliamentAuthAddressSet()
+        {
+            if (State.ParliamentAuthContract.Value == null)
+            {
+                State.ParliamentAuthContract.Value =
+                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
             }
         }
 
