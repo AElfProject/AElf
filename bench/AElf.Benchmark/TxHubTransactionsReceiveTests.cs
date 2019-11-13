@@ -65,7 +65,7 @@ namespace AElf.Benchmark
                 BlockHeight = _chain.BestChainHeight
             });
 
-            await _transactionManager.RemoveTransactionAsync(_transactions.Select(t => t.GetHash()).ToList());
+            await _transactionManager.RemoveTransactionsAsync(_transactions.Select(t => t.GetHash()).ToList());
         }
     }
 }

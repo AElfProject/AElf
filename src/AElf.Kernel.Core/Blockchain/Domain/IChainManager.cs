@@ -30,7 +30,9 @@ namespace AElf.Kernel.Blockchain.Domain
         Task<BlockAttachOperationStatus> AttachBlockToChainAsync(Chain chain, ChainBlockLink chainBlockLink);
         Task<bool> SetIrreversibleBlockAsync(Chain chain, Hash irreversibleBlockHash);
         Task<List<ChainBlockLink>> GetNotExecutedBlocks(Hash blockHash);
-        Task SetChainBlockLinkExecutionStatus(ChainBlockLink blockLink, ChainBlockLinkExecutionStatus status);
+        Task SetChainBlockLinkExecutionStatusAsync(ChainBlockLink blockLink, ChainBlockLinkExecutionStatus status);
+        Task SetChainBlockLinkExecutionStatusesAsync(IList<ChainBlockLink> blockLinks,
+            ChainBlockLinkExecutionStatus status);
         Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
         int GetChainId();
         Task RemoveLongestBranchAsync(Chain chain);
@@ -120,6 +122,13 @@ namespace AElf.Kernel.Blockchain.Domain
         public async Task SetChainBlockLinkAsync(ChainBlockLink chainBlockLink)
         {
             await _chainBlockLinks.SetAsync(ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator + chainBlockLink.BlockHash.ToStorageKey(), chainBlockLink);
+        }
+        
+        public async Task SetChainBlockLinksAsync(IList<ChainBlockLink> chainBlockLinks)
+        {
+            var prefix = ChainId.ToStorageKey() + KernelConstants.StorageKeySeparator;
+            await _chainBlockLinks.SetAllAsync(chainBlockLinks.ToDictionary(l => prefix + l.BlockHash.ToStorageKey(),
+                l => l));
         }
 
         private async Task SetChainBlockIndexAsync(long blockHeight, Hash blockHash)
@@ -278,7 +287,7 @@ namespace AElf.Kernel.Blockchain.Domain
             return output;
         }
 
-        public async Task SetChainBlockLinkExecutionStatus(ChainBlockLink blockLink,
+        public async Task SetChainBlockLinkExecutionStatusAsync(ChainBlockLink blockLink,
             ChainBlockLinkExecutionStatus status)
         {
             if (blockLink.ExecutionStatus != ChainBlockLinkExecutionStatus.ExecutionNone ||
@@ -287,6 +296,21 @@ namespace AElf.Kernel.Blockchain.Domain
 
             blockLink.ExecutionStatus = status;
             await SetChainBlockLinkAsync(blockLink);
+        }
+        
+        public async Task SetChainBlockLinkExecutionStatusesAsync(IList<ChainBlockLink> blockLinks,
+            ChainBlockLinkExecutionStatus status)
+        {
+            foreach (var blockLink in blockLinks)
+            {
+                if (blockLink.ExecutionStatus != ChainBlockLinkExecutionStatus.ExecutionNone ||
+                    status == ChainBlockLinkExecutionStatus.ExecutionNone)
+                    throw new InvalidOperationException();
+
+                blockLink.ExecutionStatus = status;
+            }
+
+            await SetChainBlockLinksAsync(blockLinks);
         }
 
         public async Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash)
