@@ -1,4 +1,3 @@
-using AElf.Contracts.Configuration;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Contracts.Economic;
 using AElf.Contracts.Economic.TestBase;
