@@ -21,11 +21,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return new ValidationResult {Message = "Incorrect previous in value."};
             }
 
-            if (!ValidateProducedTinyBlocksCount(validationContext))
-            {
-                return new ValidationResult {Message = "Incorrect produced tiny blocks count."};
-            }
-
             return new ValidationResult {Success = true};
         }
 
@@ -58,20 +53,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             if (previousInValue == Hash.Empty) return true;
 
             return Hash.FromMessage(previousInValue) == previousOutValue;
-        }
-
-        private bool ValidateProducedTinyBlocksCount(ConsensusValidationContext validationContext)
-        {
-            // TODO: Fix this validation in secret-sharing branch.
-            return true;
-            var pubkey = validationContext.SenderPubkey;
-
-            if (validationContext.BaseRound.ExtraBlockProducerOfPreviousRound != pubkey)
-            {
-                return validationContext.ProvidedRound.RealTimeMinersInformation[pubkey].ProducedTinyBlocks == 1;
-            }
-
-            return true;
         }
 
         private bool TryToGetPreviousRoundInformation(out Round previousRound,

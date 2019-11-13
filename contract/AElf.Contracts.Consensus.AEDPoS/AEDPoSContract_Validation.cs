@@ -66,9 +66,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 case AElfConsensusBehaviour.UpdateValue:
                     validationProviders.Add(new UpdateValueValidationProvider());
                     break;
-                case AElfConsensusBehaviour.TinyBlock:
-                    validationProviders.Add(new TinyBlockValidationProvider());
-                    break;
                 case AElfConsensusBehaviour.NextRound:
                     // Is sender's order of next round correct?
                     validationProviders.Add(new NextRoundMiningOrderValidationProvider());
