@@ -28,4 +28,4 @@ message Address
 }
 ```
 
-To sum up, if you need an AElf keypair, you can either directly use the **create** command or use the js-sdk. Note that this keypair files should be located in the keys folder of the data directory (datadir). You can read more about this in the [Getting started](../Introduction/quickstart.md) section.
+To sum up, if you need an AElf keypair, you can either directly use the **create** command or use the js-sdk. Note that this keypair files should be located in the keys folder of the data directory (datadir). You can read more about this in the [Getting started](../introduction/run-node.md) section.
