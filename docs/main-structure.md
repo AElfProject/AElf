@@ -2,7 +2,7 @@
 
 * [Tutorials](tutorials/main.md)
     * [Environment setup](introduction/before.md)
-    * [Running a node](tutorials/quickstart.md)
+    * [Running a node](tutorials/run-node.md)
     * [Running multiple nodes](introduction/multi-nodes.md)
     * [How to dev a DAPP](tutorials/DApp/main.md)
         * [Setup env](tutorials/DApp/setup.md)
