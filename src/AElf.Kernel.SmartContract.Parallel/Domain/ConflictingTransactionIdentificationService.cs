@@ -1,11 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace AElf.Kernel.SmartContract.Parallel.Domain
 {
@@ -13,12 +13,16 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
     {
         private readonly IResourceExtractionService _resourceExtractionService;
         private readonly IBlockchainService _blockchainService;
+        
+        public ILogger<ConflictingTransactionIdentificationService> Logger { get; set; }
 
         public ConflictingTransactionIdentificationService(IResourceExtractionService resourceExtractionService,
             IBlockchainService blockchainService)
         {
             _resourceExtractionService = resourceExtractionService;
             _blockchainService = blockchainService;
+            
+            Logger = NullLogger<ConflictingTransactionIdentificationService>.Instance;
         }
 
         public async Task<List<Transaction>> IdentifyConflictingTransactionsAsync(IChainContext chainContext,
@@ -57,6 +61,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
                 actual.ExceptWith(extracted);
                 if (actual.Count > 0)
                 {
+                    Logger.LogWarning($"Conflict keys:{string.Join(";", actual)}");
                     wrongTxns.Add(txnWithResource.Item1);
                 }
             }
