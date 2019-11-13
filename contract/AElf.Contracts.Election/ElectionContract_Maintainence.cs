@@ -56,14 +56,13 @@ namespace AElf.Contracts.Election
 
             State.VoteContract.Value = Context.GetContractAddressByName(SmartContractConstants.VoteContractSystemName);
 
-            var startTime = DateTime.MinValue.ToUniversalTime();
             var votingRegisterInput = new VotingRegisterInput
             {
                 IsLockToken = false,
                 AcceptedCurrency = Context.Variables.NativeSymbol,
                 TotalSnapshotNumber = long.MaxValue,
-                StartTimestamp = startTime.ToTimestamp(),
-                EndTimestamp = startTime.AddTicks(DateTime.MaxValue.Ticks - DateTime.MinValue.Ticks).ToTimestamp()
+                StartTimestamp = TimestampHelper.MinValue,
+                EndTimestamp = TimestampHelper.MaxValue
             };
             State.VoteContract.Register.Send(votingRegisterInput);
 
@@ -180,6 +179,10 @@ namespace AElf.Contracts.Election
         public override Empty UpdateCandidateInformation(UpdateCandidateInformationInput input)
         {
             var candidateInformation = State.CandidateInformationMap[input.Pubkey];
+            if (candidateInformation == null)
+            {
+                return new Empty();
+            }
 
             if (input.IsEvilNode)
             {
@@ -191,8 +194,7 @@ namespace AElf.Contracts.Election
                     Beneficiary = Address.FromPublicKey(publicKeyByte)
                 });
                 Context.LogDebug(() => $"Marked {input.Pubkey.Substring(0, 10)} as an evil node.");
-                // TODO: Set to null.
-                State.CandidateInformationMap[input.Pubkey] = new CandidateInformation();
+                State.CandidateInformationMap.Remove(input.Pubkey);
                 var candidates = State.Candidates.Value;
                 candidates.Value.Remove(ByteString.CopyFrom(publicKeyByte));
                 State.Candidates.Value = candidates;

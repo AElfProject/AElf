@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Acs1;
 using AElf.Contracts.MultiToken;
 using AElf.Cryptography.ECDSA;
+using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -21,16 +22,12 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         public async Task TransactionFee_Mined_Test()
         {
             //set method fee
-            var setResult = await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new TokenAmounts
+            var setResult = await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new MethodFees
             {
-                Method = "SendForFun",
-                Amounts =
+                MethodName = "SendForFun",
+                Fees =
                 {
-                    new TokenAmount
-                    {
-                        Symbol = "ELF",
-                        Amount = 1_0000_0000
-                    }
+                    new MethodFee {Symbol = "ELF", BasicFee = 1_0000_0000}
                 }
             });
             setResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
@@ -40,25 +37,22 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 
             var transactionStub = GetTransactionFeeChargingContractTester(tester);
             var transactionResult = await transactionStub.SendForFun.SendAsync(new Empty());
+            var transactionSize = transactionResult.Transaction.Size();
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var afterBalance = await GetUserBalance(tester);
-            beforeBalance.ShouldBe(afterBalance + 1_0000_0000);
+            beforeBalance.ShouldBe(afterBalance + 1_0000_0000 + transactionSize * 0);
         }
 
-        [Fact(Skip = "Current failed transaction cannot charge fee")]
+        [Fact]
         public async Task TransactionFee_Failed_Test()
         {
-            var setResult = await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new TokenAmounts
+            var setResult = await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new MethodFees
             {
-                Method = "SupposedToFail",
-                Amounts =
+                MethodName = "SupposedToFail",
+                Fees =
                 {
-                    new TokenAmount
-                    {
-                        Symbol = "ELF",
-                        Amount = 2_0000_0000
-                    }
+                    new MethodFee {Symbol = "ELF", BasicFee = 2_0000_0000}
                 }
             });
             setResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);

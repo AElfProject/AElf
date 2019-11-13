@@ -18,9 +18,7 @@ namespace AElf.Contracts.MultiToken
 
         private TokenInfo AssertValidToken(string symbol, long amount)
         {
-            Assert(!string.IsNullOrEmpty(symbol) & symbol.All(IsValidSymbolChar),
-                "Invalid symbol.");
-            Assert(amount > 0, "Invalid amount.");
+            AssertValidSymbolAndAmount(symbol, amount);
             var tokenInfo = State.TokenInfos[symbol];
             Assert(tokenInfo != null && !string.IsNullOrEmpty(tokenInfo.Symbol), $"Token is not found. {symbol}");
             return tokenInfo;
@@ -131,6 +129,8 @@ namespace AElf.Contracts.MultiToken
         private void AssertValidCreateInput(CreateInput input)
         {
             var isValid = input.TokenName.Length <= TokenContractConstants.TokenNameLength
+                          && input.Symbol.Length > 0
+                          && input.Symbol.Length <= TokenContractConstants.SymbolMaxLength
                           && input.Decimals >= 0
                           && input.Decimals <= TokenContractConstants.MaxDecimals;
             Assert(isValid, "Invalid input.");

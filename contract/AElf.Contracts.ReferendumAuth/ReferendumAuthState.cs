@@ -12,7 +12,7 @@ namespace AElf.Contracts.ReferendumAuth
         public MappedState<Hash, long> ApprovedTokenAmount { get; set; }
         public MappedState<Address, Organization> Organisations { get; set; }
         public MappedState<Hash, ProposalInfo> Proposals { get; set; }
-        public MappedState<string, TokenAmounts> TransactionFees { get; set; }
+        public MappedState<string, MethodFees> TransactionFees { get; set; }
         internal TokenContractContainer.TokenContractReferenceState TokenContract { get; set; }
         internal ParliamentAuthContractContainer.ParliamentAuthContractReferenceState ParliamentAuthContract { get; set; }
     }

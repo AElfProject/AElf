@@ -6,7 +6,7 @@ using AElf.WebApp.Application.Net;
 using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Swashbuckle.AspNetCore.Swagger;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace AElf.WebApp.Web
@@ -44,9 +44,9 @@ namespace AElf.WebApp.Web
             });
         }
 
-        static Info CreateInfoForApiVersion( ApiVersionDescription description )
+        static OpenApiInfo CreateInfoForApiVersion( ApiVersionDescription description )
         {
-            var info = new Info()
+            var info = new OpenApiInfo()
             {
                 Title = $"AELF API {description.ApiVersion.ToString()}",
                 Version = description.ApiVersion.ToString()

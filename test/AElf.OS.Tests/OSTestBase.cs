@@ -1,3 +1,4 @@
+using AElf.OS.Account;
 using AElf.OS.BlockSync;
 using AElf.TestBase;
 
@@ -27,5 +28,13 @@ namespace AElf.OS
     public class BlockSyncManyJobsTestBase : AElfIntegratedTest<BlockDownloadWorkerTestAElfModule>
     {
         
+    }
+
+    public class BlockSyncBadPeerTestBase : AElfIntegratedTest<BlockSyncBadPeerTestAElfModule>
+    {
+    }
+    
+    public class BlockSyncAttachBlockBadPeerTestBase : AElfIntegratedTest<BlockSyncAttachBlockBadPeerTestAElfModule>
+    {
     }
 }

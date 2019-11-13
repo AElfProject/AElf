@@ -1,23 +1,21 @@
-using System;
+using Microsoft.AspNetCore.Builder;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.OS;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Volo.Abp;
 
 namespace AElf.WebApp.Application
 {
     public class WebAppTestStartup
     {
-        public IServiceProvider ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
-            services.AddApplication<WebAppTestAElfModule>(options => { options.UseAutofac(); });
             services.AddSingleton<ITxHub, MockTxHub>();
-            return services.BuildAutofacServiceProvider();
+            services.AddApplication<WebAppTestAElfModule>();
         }
 
         public void Configure(IApplicationBuilder app)
         {
+            app.UseRouting();
             app.InitializeApplication();
             app.UseCors(builder =>
                 builder.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());

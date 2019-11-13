@@ -14,6 +14,7 @@ namespace AElf.OS.Network.Infrastructure
     /// </summary>
     public class PeerPool : IPeerPool, ISingletonDependency
     {
+        private readonly IBlackListedPeerProvider _blackListedPeerProvider;
         public ILogger<PeerPool> Logger { get; set; }
 
         private NetworkOptions NetworkOptions => NetworkOptionsSnapshot.Value;
@@ -26,8 +27,9 @@ namespace AElf.OS.Network.Infrastructure
         protected readonly ConcurrentDictionary<string, IPeer> Peers;
         protected readonly ConcurrentDictionary<IPAddress, ConcurrentDictionary<string, string>> HandshakingPeers;
 
-        public PeerPool()
+        public PeerPool(IBlackListedPeerProvider blackListedPeerProvider)
         {
+            _blackListedPeerProvider = blackListedPeerProvider;
             Peers = new ConcurrentDictionary<string, IPeer>();
             HandshakingPeers = new ConcurrentDictionary<IPAddress, ConcurrentDictionary<string, string>>();
             Logger = NullLogger<PeerPool>.Instance;
@@ -37,6 +39,11 @@ namespace AElf.OS.Network.Infrastructure
         {
             var peerCount = Peers.Where(p => !p.Value.IsInvalid).ToList().Count;
             return NetworkOptions.MaxPeers != 0 && peerCount >= NetworkOptions.MaxPeers;
+        }
+
+        public bool IsPeerBlackListed(IPAddress ipAddress)
+        {
+            return _blackListedPeerProvider.IsIpBlackListed(ipAddress);
         }
 
         private bool IsOverIpLimit(IPAddress ipAddress)
@@ -62,6 +69,12 @@ namespace AElf.OS.Network.Infrastructure
 
         public bool AddHandshakingPeer(IPAddress ipAddress, string pubkey)
         {
+            if (IsPeerBlackListed(ipAddress))
+            {
+                Logger.LogWarning($"{ipAddress} - peer pool is blacklisted.");
+                return false;
+            }
+
             // check if we have room for a new peer
             if (IsFull() || IsOverIpLimit(ipAddress))
             {
