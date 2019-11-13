@@ -209,5 +209,10 @@ namespace AElf.Contracts.CrossChain
             var owner = GetOwnerAddress();
             Assert(owner.Equals(Context.Sender), "Not authorized to do this.");
         }
+        
+        private int GetChainId(long serialNumber)
+        {
+            return ChainHelper.GetChainId(serialNumber + Context.ChainId);
+        }
     }
 }
