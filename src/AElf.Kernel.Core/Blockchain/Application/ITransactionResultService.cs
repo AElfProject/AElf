@@ -93,9 +93,9 @@ namespace AElf.Kernel.Blockchain.Application
             }
 
             var firstTransaction = transactionIds.First();
-            var withBlockHash = await _transactionResultManager.HasTransactionResultsAsync(
+            var withBlockHash = await _transactionResultManager.HasTransactionResultAsync(
                 firstTransaction, blockHeader.GetHash());
-            var withPreMiningHash = await _transactionResultManager.HasTransactionResultsAsync(
+            var withPreMiningHash = await _transactionResultManager.HasTransactionResultAsync(
                 firstTransaction, preMiningHash);
 
             if (!withBlockHash)
