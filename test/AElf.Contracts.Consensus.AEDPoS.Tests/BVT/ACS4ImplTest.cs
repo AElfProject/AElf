@@ -260,7 +260,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             extraData.Round.RoundNumber.ShouldBe(2);
         }
 
-        private async Task<TransactionList> AEDPoSContract_GenerateConsensusTransactions_FirstRound_ExtraBlockMiner_Test()
+        private async Task<TransactionList>
+            AEDPoSContract_GenerateConsensusTransactions_FirstRound_ExtraBlockMiner_Test()
         {
             var usingKeyPair = BootMinerKeyPair;
             KeyPairProvider.SetKeyPair(usingKeyPair);
@@ -288,7 +289,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public async Task AEDPoSContract_FirstRound_Terminate_Test()
         {
             var transaction =
-                (await AEDPoSContract_GenerateConsensusTransactions_FirstRound_ExtraBlockMiner_Test()).Transactions.First();
+                (await AEDPoSContract_GenerateConsensusTransactions_FirstRound_ExtraBlockMiner_Test()).Transactions
+                .First();
 
             BlockTimeProvider.SetBlockTime(BlockchainStartTimestamp + new Duration
             {
@@ -355,7 +357,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             validateBeforeResult.Success.ShouldBeFalse();
             validateBeforeResult.Message.ShouldContain("is not a miner");
         }
-        
+
         [Fact]
         public async Task AEDPoSContract_ValidateConsensusBeforeExecution_UpdateValue_Test()
         {
@@ -372,7 +374,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             triggerForCommand = TriggerInformationProvider
                 .GetTriggerInformationForBlockHeaderExtraData(consensusCommand.ToBytesValue());
             var extraDataBytes = await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggerForCommand);
-            
+
             var validateBeforeResult =
                 await AEDPoSContractStub.ValidateConsensusBeforeExecution.CallAsync(extraDataBytes);
             validateBeforeResult.Success.ShouldBeTrue();

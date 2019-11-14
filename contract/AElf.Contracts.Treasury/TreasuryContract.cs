@@ -158,6 +158,17 @@ namespace AElf.Contracts.Treasury
                 Memo = "Donate to treasury."
             });
 
+            Context.Fire(new DonationReceived
+            {
+                From = Context.Sender,
+                To = isNativeSymbol
+                    ? State.TreasuryVirtualAddress.Value
+                    : Context.Self,
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                Memo = "Donate to treasury."
+            });
+
             if (input.Symbol != Context.Variables.NativeSymbol)
             {
                 ConvertToNativeToken(input.Symbol, input.Amount);

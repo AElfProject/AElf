@@ -132,6 +132,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     Symbol = Context.Variables.NativeSymbol,
                     Amount = amount,
                 });
+
+                Context.Fire(new MiningRewardGenerated
+                {
+                    TermNumber = previousRound.TermNumber,
+                    Amount = amount
+                });
             }
 
             Context.LogDebug(() => $"Released {amount} mining rewards.");
