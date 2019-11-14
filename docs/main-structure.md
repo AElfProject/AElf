@@ -11,7 +11,7 @@
         * [Use JS SDK](tutorials/DApp/jssdk.md)
         * [Use browser extension](tutorials/DApp/browser-extension.md)
     * [Enterprise development](tutorials/enterprise.md)
-    * [Running on Google cloud](tutorials/gcp.md)
+    * [Running on Google cloud](tutorials/GCP.md)
     * [Command line interface](cli/cli.md)
         * [Introduction](cli/introduction.md)
         * [Commands](cli/methods.md)
