@@ -41,7 +41,11 @@ The token contract permits the creation of an entirely new token and the first a
 
 TODO: issuer, is_burnable, lock_white_list, is_transfer_disabled
 
-The creation method on the token contract takes an **CreateInput** message as define bellow:
+The creation method on the token contract takes a **CreateInput**, here's an example in JSON:
+
+```json
+{"issuer":"2KTYvsWxcnjQPNnD1zWFCm83aLvmRGAQ8bvLnLFUV7XrrnYWNv","symbol":"TOK","tokenName":"Token name","decimals":2,"isBurnable":true,"totalSupply":100000}
+```
 
 **issuance**
 
