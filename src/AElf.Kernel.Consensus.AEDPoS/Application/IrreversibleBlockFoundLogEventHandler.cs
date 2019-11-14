@@ -70,18 +70,11 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 _taskQueueManager.Enqueue(
                     async () =>
                     {
-                        try
+                        var currentChain = await _blockchainService.GetChainAsync();
+                        if (currentChain.LastIrreversibleBlockHeight < blockIndex.BlockHeight)
                         {
-                            var currentChain = await _blockchainService.GetChainAsync();
-                            if (currentChain.LastIrreversibleBlockHeight < blockIndex.BlockHeight)
-                            {
-                                await _blockchainService.SetIrreversibleBlockAsync(currentChain, blockIndex.BlockHeight,
-                                    blockIndex.BlockHash);
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.LogError($"Error while setting lib.\n{e.Message}\n{e.StackTrace}");
+                            await _blockchainService.SetIrreversibleBlockAsync(currentChain, blockIndex.BlockHeight,
+                                blockIndex.BlockHash);
                         }
                     }, KernelConstants.UpdateChainQueueName);
             }
