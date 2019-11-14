@@ -17,7 +17,7 @@ A few key points concerning DDD:
 
 The main programming language used to code and build AElf is C# and is built with the dotnet core framework. It’s a choice that was made due to the excellent performances observed with the framework. Dotnet core also comes with the benefit of being cross platform, at least for the three main ones that are Windows, MacOS and Linux. Dotnet core also is a dynamic and open source framework and comes with many advantages of current modern development patterns and is backed by big actors in the IT space.
 
-At a higher level we use an application framework named ABP (https://abp.io/documents/abp/latest/Index). From a functional point of view, a blockchain node is a set of endpoints, like RPC, P2P and cross-chain and some higher level protocol on top of this. So ABP is a natural fit for this, because it offers a framework for building these types of applications.
+At a higher level we use an application framework named [ABP](https://abp.io/documents/abp/latest/Index). From a functional point of view, a blockchain node is a set of endpoints, like RPC, P2P and cross-chain and some higher level protocol on top of this. So ABP is a natural fit for this, because it offers a framework for building these types of applications.
 
 We use the Xunit framework for our unit tests. We also have some custom made frameworks for testing smart contracts.
 
