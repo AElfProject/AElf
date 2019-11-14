@@ -53,7 +53,7 @@ namespace AElf.Kernel.Blockchain.Domain
         }
 
 
-        public async Task<bool> IsTransactionExistsAsync(Hash txId)
+        public async Task<bool> HasTransactionAsync(Hash txId)
         {
             return await _transactionStore.IsExistsAsync(GetStringKey(txId));
         }

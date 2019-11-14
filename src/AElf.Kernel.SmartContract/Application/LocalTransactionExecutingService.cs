@@ -53,7 +53,6 @@ namespace AElf.Kernel.SmartContract.Application
                     transactionExecutingDto.BlockHeader.PreviousBlockHash,
                     transactionExecutingDto.BlockHeader.Height - 1, groupStateCache);
 
-                var transactionResults = new List<TransactionResult>();
                 var returnSets = new List<ExecutionReturnSet>();
                 foreach (var transaction in transactionExecutingDto.Transactions)
                 {
@@ -131,15 +130,14 @@ namespace AElf.Kernel.SmartContract.Application
                     if (result != null)
                     {
                         result.TransactionFee = trace.TransactionFee;
-                        transactionResults.Add(result);
+                        await _transactionResultService.AddTransactionResultAsync(result,
+                            transactionExecutingDto.BlockHeader);
                     }
 
                     var returnSet = GetReturnSet(trace, result);
                     returnSets.Add(returnSet);
                 }
 
-                await _transactionResultService.AddTransactionResultsAsync(transactionResults,
-                    transactionExecutingDto.BlockHeader);
                 return returnSets;
             }
             catch (Exception e)
