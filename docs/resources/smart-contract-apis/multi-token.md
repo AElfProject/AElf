@@ -37,7 +37,7 @@ The token contract permits the creation of an entirely new token and the first a
 -  a **token name**: a more descriptive name for your token or the long name. For example, "RMB" could be the token symbol and "RenMinBi" the token's name. This is non-optional field up to 80 characters in length. 
 - the **total supply** for the token, that is the amount of tokens that will exist. This must be larger than 0.
 - **decimals**: a positive integer between 0-18.
-- **issue_chain_id**: the if of the chain, this defaults to the chain id of the node.
+- **issue_chain_id**: the id of the chain, this defaults to the chain id of the node.
 
 TODO: issuer, is_burnable, lock_white_list
 
@@ -70,7 +70,6 @@ The issue method takes as IssueInput message parameter:
 TODO: memo
 
 JSON template:
-
 ```json
 {"to":"2KTYvsWxcnjQPNnD1zWFCm83aLvmRGAQ8bvLnLFUV7XrrnYWNv","symbol":"TOK","amount":100,"memo":"some memo"}
 ```
@@ -94,8 +93,7 @@ The issue method takes as TransferInput message parameter:
 - symbol: the symbol of the token to transfer.
 - amount: the amount of tokens to transfer. 
 
-Transferring 
-
+JSON template:
 ```json
 {"to":"2KTYvsWxcnjQPNnD1zWFCm83aLvmRGAQ8bvLnLFUV7XrrnYWNv","symbol":"TOK","amount":100,"memo":"some memo"}
 ```
