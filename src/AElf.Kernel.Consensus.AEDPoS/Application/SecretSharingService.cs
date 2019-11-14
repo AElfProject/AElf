@@ -70,9 +70,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     var receiverPublicKey = ByteArrayHelper.HexStringToByteArray(pubkey);
                     var encryptedPiece = AsyncHelper.RunSync(() =>
                         _accountService.EncryptMessageAsync(receiverPublicKey, plainMessage));
-                    encryptedPieces.Add(pubkey, encryptedPiece);
-                    secretSharingInformation.PreviousRound.RealTimeMinersInformation[selfPubkey].EncryptedPieces
-                        .Add(pubkey, ByteString.CopyFrom(encryptedPiece));
+                    encryptedPieces[pubkey] = encryptedPiece;
+                    secretSharingInformation.PreviousRound.RealTimeMinersInformation[selfPubkey].EncryptedPieces[pubkey]
+                        = ByteString.CopyFrom(encryptedPiece);
 
                     if (!secretSharingInformation.PreviousRound.RealTimeMinersInformation.ContainsKey(pubkey)) continue;
 
@@ -85,8 +85,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     var decryptedPiece = AsyncHelper.RunSync(() =>
                         _accountService.DecryptMessageAsync(senderPublicKey, interestingMessage.ToByteArray()));
                     decryptedPieces[pubkey] = decryptedPiece;
-                    secretSharingInformation.PreviousRound.RealTimeMinersInformation[pubkey].DecryptedPieces
-                        .Add(selfPubkey, ByteString.CopyFrom(decryptedPiece));
+                    secretSharingInformation.PreviousRound.RealTimeMinersInformation[pubkey].DecryptedPieces[selfPubkey]
+                        = ByteString.CopyFrom(decryptedPiece);
                 }
 
                 _encryptedPieces[secretSharingInformation.CurrentRoundId] = encryptedPieces;
@@ -141,7 +141,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
                 Logger.LogDebug($"Revealed in value of {pubkey} of round {round.RoundNumber}: {revealedInValue}");
 
-                revealedInValues.Add(pubkey, revealedInValue);
+                revealedInValues[pubkey] = revealedInValue;
             }
 
             _revealedInValues.Add(secretSharingInformation.CurrentRoundId, revealedInValues);
