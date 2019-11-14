@@ -260,3 +260,9 @@ message SecretSharingJobNotification {
     Round previous_round = 1 [(aelf.is_indexed) = true];
     sint64 current_round_id = 2;
 }
+
+message MiningRewardGenerated {
+    option (aelf.is_event) = true;
+    sint64 term_number = 1 [(aelf.is_indexed) = true];
+    sint64 amount = 2;
+}
