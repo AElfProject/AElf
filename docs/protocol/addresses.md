@@ -21,7 +21,7 @@ For more information about how the js-sdk works, please refer to the [documentat
 Finally here is the Protobuf message we use for representing an address, it is often used by other types to represent addresses:
 
 ```Proto
-option csharp_namespace = "AElf.Common";
+option csharp_namespace = "AElf.Types";
 message Address
 {
     bytes value = 1;
