@@ -16,22 +16,25 @@ namespace AElf.Kernel
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockchainService _blockchainService;
+        private readonly ITransactionBlockIndexService _transactionBlockIndexService;
         private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
             IBlockchainStateService blockchainStateService,
             IBlockchainService blockchainService,
-            ITransactionInclusivenessProvider transactionInclusivenessProvider)
+            ITransactionInclusivenessProvider transactionInclusivenessProvider,
+            ITransactionBlockIndexService transactionBlockIndexService)
         {
             _taskQueueManager = taskQueueManager;
             _blockchainStateService = blockchainStateService;
             _blockchainService = blockchainService;
+            _transactionBlockIndexService = transactionBlockIndexService;
             _transactionInclusivenessProvider = transactionInclusivenessProvider;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
-        public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
+        public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
             _taskQueueManager.Enqueue(async () =>
             {
@@ -54,8 +57,8 @@ namespace AElf.Kernel
 
             // If lib grows, then set it to package transactions
             _transactionInclusivenessProvider.IsTransactionPackable = true;
-
-            return Task.CompletedTask;
+            
+            await _transactionBlockIndexService.CleanTransactionBlockIndexCacheAsync(eventData.BlockHeight);
         }
     }
 }

@@ -92,6 +92,9 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 return false;
             }
 
+            await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
+                block.Body.TransactionIds.ToList());
+
             return true;
         }
 
@@ -115,7 +118,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
 
             var successLinks = new List<ChainBlockLink>();
-            var successBlocks = new List<Block>();
             var blockLinks = await _chainManager.GetNotExecutedBlocks(chain.LongestChainHash);
 
             try
@@ -134,7 +136,6 @@ namespace AElf.Kernel.SmartContractExecution.Application
                     }
 
                     successLinks.Add(blockLink);
-                    successBlocks.Add(linkedBlock);
                     Logger.LogInformation(
                         $"Executed block {blockLink.BlockHash} at height {blockLink.Height}, with {linkedBlock.Body.TransactionsCount} txns.");
                     
@@ -168,8 +169,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
             await SetBestChainAsync(successLinks, chain);
             await ProcessChainBlockLinkAsync(successLinks);
-            await ProcessTransactionResultAsync(successBlocks);
-            await PublishBestChainFoundEventAsync(chain, successBlocks);
+            await PublishBestChainFoundEventAsync(chain, successLinks);
 
             Logger.LogInformation(
                 $"Attach blocks to best chain, status: {status}, best chain hash: {chain.BestChainHash}, height: {chain.BestChainHeight}");
@@ -186,22 +186,13 @@ namespace AElf.Kernel.SmartContractExecution.Application
             }
         }
 
-        private async Task ProcessTransactionResultAsync(List<Block> successBlocks)
-        {
-            foreach (var block in successBlocks)
-            {
-                await _transactionResultService.ProcessTransactionResultAfterExecutionAsync(block.Header,
-                    block.Body.TransactionIds.ToList());
-            }
-        }
-
-        private async Task PublishBestChainFoundEventAsync(Chain chain, List<Block> successBlocks)
+        private async Task PublishBestChainFoundEventAsync(Chain chain, List<ChainBlockLink> successLinks)
         {
             await LocalEventBus.PublishAsync(new BestChainFoundEventData
             {
                 BlockHash = chain.BestChainHash,
                 BlockHeight = chain.BestChainHeight,
-                ExecutedBlocks = successBlocks.Select(p => p.GetHash()).ToList()
+                ExecutedBlocks = successLinks.Select(p => p.BlockHash).ToList()
             });
         }
     }
