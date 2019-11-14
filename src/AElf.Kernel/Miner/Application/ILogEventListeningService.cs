@@ -6,6 +6,6 @@ namespace AElf.Kernel.Miner.Application
 {
     public interface ILogEventListeningService
     {
-        Task ApplyAsync(IEnumerable<Hash> blockHashes);
+        Task ApplyAsync(IEnumerable<Block> blocks);
     }
 }
