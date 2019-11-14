@@ -34,7 +34,7 @@ namespace AElf.Kernel
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
-        public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
+        public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
             _taskQueueManager.Enqueue(async () =>
             {
@@ -44,6 +44,7 @@ namespace AElf.Kernel
 
             _taskQueueManager.Enqueue(async () =>
             {
+                // Clean chain branch
                 var chain = await _blockchainService.GetChainAsync();
                 var discardedBranch = await _blockchainService.GetDiscardedBranchAsync(chain);
 
@@ -53,12 +54,15 @@ namespace AElf.Kernel
                         async () => { await _blockchainService.CleanChainBranchAsync(discardedBranch); },
                         KernelConstants.UpdateChainQueueName);
                 }
-            }, KernelConstants.CleanChainBranchQueueName);
+                
+                // Clean transaction block index cache
+                await _transactionBlockIndexService.CleanTransactionBlockIndexCacheAsync(eventData.BlockHeight);
+            }, KernelConstants.ChainCleaningQueueName);
 
             // If lib grows, then set it to package transactions
             _transactionInclusivenessProvider.IsTransactionPackable = true;
             
-            await _transactionBlockIndexService.CleanTransactionBlockIndexCacheAsync(eventData.BlockHeight);
+            return Task.CompletedTask;
         }
     }
 }
