@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using AElf.Database.RedisProtocol;
 using Volo.Abp;
@@ -21,38 +23,77 @@ namespace AElf.Database
 
         public async Task<bool> IsExists(string key)
         {
-            Check.NotNullOrWhiteSpace(key, nameof(key));
-            return _pooledRedisLite.Exists(key);
+            Stopwatch stopwatch = null;
+            try
+            {
+                stopwatch = Stopwatch.StartNew();
+                Check.NotNullOrWhiteSpace(key, nameof(key));
+                return _pooledRedisLite.Exists(key);
+            }
+            finally
+            {
+                stopwatch.Stop();
+                Console.WriteLine($"## IsExists: {stopwatch.ElapsedMilliseconds}");
+            }
         }
 
         public bool IsConnected()
         {
-            return _pooledRedisLite.Ping();
+            Stopwatch stopwatch = null;
+            try
+            {
+                stopwatch = Stopwatch.StartNew();
+                return _pooledRedisLite.Ping();
+            }
+            finally
+            {
+                stopwatch.Stop();
+                Console.WriteLine($"## IsConnected: {stopwatch.ElapsedMilliseconds}");
+            }
         }
 
         public async Task<byte[]> GetAsync(string key)
         {
-            Check.NotNullOrWhiteSpace(key, nameof(key));
-            return _pooledRedisLite.Get(key);
+            Stopwatch stopwatch = null;
+            try
+            {
+                stopwatch = Stopwatch.StartNew();
+                Check.NotNullOrWhiteSpace(key, nameof(key));
+                return _pooledRedisLite.Get(key);
+            }
+            finally
+            {
+                stopwatch.Stop();
+                Console.WriteLine($"## GetAsync: {stopwatch.ElapsedMilliseconds}");
+            }
         }
 
         public async Task SetAsync(string key, byte[] bytes)
         {
+            var stopwatch = Stopwatch.StartNew();
             Check.NotNullOrWhiteSpace(key, nameof(key));
             _pooledRedisLite.Set(key, bytes);
+            stopwatch.Stop();
+            Console.WriteLine($"## SetAsync: {stopwatch.ElapsedMilliseconds}");
         }
 
         public async Task RemoveAsync(string key)
         {
+            var stopwatch = Stopwatch.StartNew();
             Check.NotNullOrWhiteSpace(key, nameof(key));
             _pooledRedisLite.Remove(key);
+            stopwatch.Stop();
+            Console.WriteLine($"## RemoveAsync: {stopwatch.ElapsedMilliseconds}");
         }
 
         public async Task SetAllAsync(Dictionary<string, byte[]> cache)
         {
+            var stopwatch = Stopwatch.StartNew();
             if (cache.Count == 0)
                 return;
             _pooledRedisLite.SetAll(cache);
+            stopwatch.Stop();
+            Console.WriteLine($"## SetAllAsync: {stopwatch.ElapsedMilliseconds}");
         }
     }
 }
