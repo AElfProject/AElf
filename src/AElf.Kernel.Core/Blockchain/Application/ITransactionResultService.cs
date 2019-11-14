@@ -93,12 +93,12 @@ namespace AElf.Kernel.Blockchain.Application
             }
 
             var firstTransaction = transactionIds.First();
-            var withBlockHash = await _transactionResultManager.GetTransactionResultAsync(
+            var withBlockHash = await _transactionResultManager.HasTransactionResultsAsync(
                 firstTransaction, blockHeader.GetHash());
-            var withPreMiningHash = await _transactionResultManager.GetTransactionResultAsync(
+            var withPreMiningHash = await _transactionResultManager.HasTransactionResultsAsync(
                 firstTransaction, preMiningHash);
 
-            if (withBlockHash == null)
+            if (!withBlockHash)
             {
                 // TransactionResult is not saved with real BlockHash
                 // Save results with real (post mining) Hash, so that it can be queried with TransactionBlockIndex
@@ -107,7 +107,7 @@ namespace AElf.Kernel.Blockchain.Application
             }
 
             // Add TransactionBlockIndex
-            if (withPreMiningHash != null)
+            if (withPreMiningHash)
             {
                 await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, preMiningHash);
             }

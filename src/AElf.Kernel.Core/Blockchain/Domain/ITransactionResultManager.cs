@@ -15,6 +15,7 @@ namespace AElf.Kernel.Blockchain.Domain
         Task RemoveTransactionResultsAsync(IList<Hash> txIds, Hash disambiguationHash);
         Task<TransactionResult> GetTransactionResultAsync(Hash txId, Hash disambiguationHash);
         Task<List<TransactionResult>> GetTransactionResultsAsync(IList<Hash> txIds, Hash disambiguationHash);
+        Task<bool> HasTransactionResultsAsync(Hash transactionId, Hash disambiguationHash);
     }
 
     public class TransactionResultManager : ITransactionResultManager
@@ -58,6 +59,11 @@ namespace AElf.Kernel.Blockchain.Domain
         {
             return await _transactionResultStore.GetAllAsync(txIds.Select(t => t.Xor(disambiguationHash).ToStorageKey())
                 .ToList());
+        }
+
+        public async Task<bool> HasTransactionResultsAsync(Hash transactionId, Hash disambiguationHash)
+        {
+            return await _transactionResultStore.IsExistsAsync(transactionId.Xor(disambiguationHash).ToStorageKey());
         }
     }
 }

@@ -241,8 +241,8 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             if (!validationResult)
                 return;
 
-            var transaction = await _transactionManager.GetTransactionAsync(queuedTransaction.TransactionId);
-            if (transaction != null)
+            var hasTransaction = await _blockchainService.HasTransactionAsync(queuedTransaction.TransactionId);
+            if (hasTransaction)
                 return;
 
             await _transactionManager.AddTransactionAsync(queuedTransaction.Transaction);
@@ -326,7 +326,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
         public async Task<bool> IsTransactionExistsAsync(Hash transactionId)
         {
-            return await _transactionManager.IsTransactionExistsAsync(transactionId);
+            return await _transactionManager.HasTransactionAsync(transactionId);
         }
     }
 }

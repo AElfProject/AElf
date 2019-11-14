@@ -12,6 +12,6 @@ namespace AElf.Kernel.Blockchain.Domain
         Task<List<Transaction>> GetTransactionsAsync(IList<Hash> txIds);
         Task RemoveTransactionAsync(Hash txId);
         Task RemoveTransactionsAsync(IList<Hash> txIds);
-        Task<bool> IsTransactionExistsAsync(Hash txId);
+        Task<bool> HasTransactionAsync(Hash txId);
     }
 }
