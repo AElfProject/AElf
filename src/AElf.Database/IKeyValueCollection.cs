@@ -51,7 +51,7 @@ namespace AElf.Database
 
         public async Task<bool> IsExistsAsync(string key)
         {
-            return await _keyValueDatabase.IsExistsAsync(key);
+            return await _keyValueDatabase.IsExistsAsync(GetKey(key));
         }
 
         public async Task SetAllAsync(IDictionary<string, byte[]> cache)
