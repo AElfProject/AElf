@@ -64,15 +64,24 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     irreversibleBlockFound.IrreversibleBlockHeight, block.GetHash());
                 if (libBlockHash == null) return;
                 var blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);
-                Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight}\nEvent: {irreversibleBlockFound}");
+                Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight}\n" +
+                                $"Event: {irreversibleBlockFound}\n" +
+                                $"BlockIndex: {blockIndex.BlockHash} - {blockIndex.BlockHeight}");
                 _taskQueueManager.Enqueue(
                     async () =>
                     {
-                        var currentChain = await _blockchainService.GetChainAsync();
-                        if (currentChain.LastIrreversibleBlockHeight < blockIndex.BlockHeight)
+                        try
                         {
-                            await _blockchainService.SetIrreversibleBlockAsync(currentChain, blockIndex.BlockHeight,
-                                blockIndex.BlockHash);
+                            var currentChain = await _blockchainService.GetChainAsync();
+                            if (currentChain.LastIrreversibleBlockHeight < blockIndex.BlockHeight)
+                            {
+                                await _blockchainService.SetIrreversibleBlockAsync(currentChain, blockIndex.BlockHeight,
+                                    blockIndex.BlockHash);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.LogError($"Error while setting lib.\n{e.Message}\n{e.StackTrace}");
                         }
                     }, KernelConstants.UpdateChainQueueName);
             }
