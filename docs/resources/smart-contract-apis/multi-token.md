@@ -39,9 +39,9 @@ The token contract permits the creation of an entirely new token and the first a
 - **decimals**: a positive integer between 0-18.
 - **issue_chain_id**: the if of the chain, this defaults to the chain id of the node.
 
-TODO: issuer, is_burnable, lock_white_list, is_transfer_disabled
+TODO: issuer, is_burnable, lock_white_list
 
-The creation method on the token contract takes a **CreateInput**, here's an example in JSON:
+JSON template:
 
 ```json
 {"issuer":"2KTYvsWxcnjQPNnD1zWFCm83aLvmRGAQ8bvLnLFUV7XrrnYWNv","symbol":"TOK","tokenName":"Token name","decimals":2,"isBurnable":true,"totalSupply":100000}
@@ -60,6 +60,21 @@ message IssueInput {
 rpc Issue (IssueInput) returns (google.protobuf.Empty) { }
 ```
 
+Issuing some amount of tokens to an address is the action of increasing that addresses balance for the given token. The total amount of issued tokens must not exceed the total supply and only the issuer (creator) of the token can issue tokens. Issuing tokens effectively increases the circulating supply (token info Supply in the contract).
+
+The issue method takes as IssueInput message parameter:
+- symbol : the symbol that identifies the token, must exist.
+- amount : the amount to issue.
+- to : the receiver address of the newly issued tokens.
+
+TODO: memo
+
+JSON template:
+
+```json
+{"to":"2KTYvsWxcnjQPNnD1zWFCm83aLvmRGAQ8bvLnLFUV7XrrnYWNv","symbol":"TOK","amount":100,"memo":"some memo"}
+```
+
 **transfer**
 
 ``` Protobuf
@@ -71,4 +86,16 @@ message TransferInput {
 }
 
 rpc Transfer (TransferInput) returns (google.protobuf.Empty) { }
+```
+
+Transferring tokens simply is the action of taking a given amount of tokens from one address to another. The origin address is the signer of the transaction. The balance of the sender must be higher than the amount that's transferred.
+The issue method takes as TransferInput message parameter:
+- to: destination address.
+- symbol: the symbol of the token to transfer.
+- amount: the amount of tokens to transfer. 
+
+Transferring 
+
+```json
+{"to":"2KTYvsWxcnjQPNnD1zWFCm83aLvmRGAQ8bvLnLFUV7XrrnYWNv","symbol":"TOK","amount":100,"memo":"some memo"}
 ```
