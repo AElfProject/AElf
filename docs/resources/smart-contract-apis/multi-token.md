@@ -6,7 +6,7 @@ The multi-token contract is most essentially used for managing balances.
 
 These methods constitute the basic functionality needed to maintain balances for tokens. 
 
-``` Protobuf
+```Protobuf
 rpc Create (CreateInput) returns (google.protobuf.Empty) { }
 rpc Issue (IssueInput) returns (google.protobuf.Empty) { }
 rpc Transfer (TransferInput) returns (google.protobuf.Empty) { }
@@ -77,7 +77,7 @@ JSON template:
 
 **transfer**
 
-``` Protobuf
+```Protobuf
 message TransferInput {
     aelf.Address to = 1;
     string symbol = 2;
