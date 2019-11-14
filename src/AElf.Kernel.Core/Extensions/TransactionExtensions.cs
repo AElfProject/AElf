@@ -28,5 +28,14 @@ namespace AElf.Kernel
 
             return Address.FromPublicKey(publicKey).Equals(transaction.From);
         }
+
+        public static bool VerifyExpiration(this Transaction transaction, long chainBranchBlockHeight)
+        {
+            if (transaction.RefBlockNumber > chainBranchBlockHeight ||
+                transaction.RefBlockNumber <= chainBranchBlockHeight - KernelConstants.ReferenceBlockValidPeriod)
+                return false;
+
+            return true;
+        }
     }
 }
