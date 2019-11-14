@@ -32,13 +32,11 @@ namespace AElf.Kernel.Miner.Application
             _eventHandlers = eventHandlers.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
         }
 
-        public async Task ApplyAsync(IEnumerable<Hash> blockHashes)
+        public async Task ApplyAsync(IEnumerable<Block> blocks)
         {
             Logger.LogTrace("Apply log event handler.");
-            foreach (var blockId in blockHashes)
+            foreach (var block in blocks)
             {
-                var block = await _blockchainService.GetBlockByHashAsync(blockId);
-
                 var blockBloom = new Bloom(block.Header.Bloom.ToByteArray());
                 if (!Blooms.Values.Any(b => b.IsIn(blockBloom)))
                 {
