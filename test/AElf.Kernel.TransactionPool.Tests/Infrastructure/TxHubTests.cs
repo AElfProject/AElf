@@ -96,7 +96,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
                 await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
                 {
-                    BlockHeader = newBlock.Header
+                    Block = newBlock
                 });
 
                 TransactionPoolSizeShouldBe(0);
@@ -177,7 +177,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
 
                     await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
                     {
-                        BlockHeader = newBlock.Header
+                        Block = newBlock
                     });
 
                     chain = await _blockchainService.GetChainAsync();
