@@ -83,7 +83,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             Dictionary<ECKeyPair, long> balancesBefore = null)
         {
             const long tolerance = 10;
-            balancesBefore = balancesBefore ?? new Dictionary<ECKeyPair, long>();
+            balancesBefore ??= new Dictionary<ECKeyPair, long>();
             foreach (var keyPair in keyPairs)
             {
                 var amount = await GetBalanceAsync(Address.FromPublicKey(keyPair.PublicKey));

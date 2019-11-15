@@ -26,22 +26,22 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         /// Distribute treasury after first term and check each profit scheme.
         /// </summary>
         /// <returns></returns>
-        [Fact(Skip = "Skip for saving time.")]
+        [Fact]
         public async Task<long> TreasuryDistribution_FirstTerm_Test()
         {
             const long period = 1;
             long distributedAmount;
 
-            // First 5 core data centers announce election.
+            // First 7 core data centers announce election.
             var announceTransactions = new List<Transaction>();
             ConvertKeyPairsToElectionStubs(
-                MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(5)).ForEach(stub =>
+                MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(7)).ForEach(stub =>
                 announceTransactions.Add(stub.AnnounceElection.GetTransaction(new Empty())));
             await BlockMiningService.MineBlockAsync(announceTransactions);
 
             // Check candidates.
             var candidates = await ElectionStub.GetCandidates.CallAsync(new Empty());
-            candidates.Value.Count.ShouldBe(5);
+            candidates.Value.Count.ShouldBe(7);
 
             // First 10 citizens do some votes.
             var votesTransactions = new List<Transaction>();
@@ -51,7 +51,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 
             // Check voted candidates
             var votedCandidates = await ElectionStub.GetVotedCandidates.CallAsync(new Empty());
-            votedCandidates.Value.Count.ShouldBe(5);
+            votedCandidates.Value.Count.ShouldBe(7);
 
             var minedBlocksInFirstRound = await MineBlocksToNextTermAsync(1);
 
@@ -60,12 +60,12 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
                 round.TermNumber.ShouldBe(2);
 
-                // Now we have 9 miners.
+                // Now we have 12 miners.
                 var currentMiners = await ConsensusStub.GetCurrentMinerList.CallAsync(new Empty());
-                currentMiners.Pubkeys.Count.ShouldBe(9);
-                // And one of the initial miners was replaced.
+                currentMiners.Pubkeys.Count.ShouldBe(12);
+                // And none of the initial miners was replaced.
                 MissionedECKeyPairs.InitialKeyPairs.Select(p => p.PublicKey.ToHex())
-                    .Except(currentMiners.Pubkeys.Select(p => p.ToHex())).Count().ShouldBe(1);
+                    .Except(currentMiners.Pubkeys.Select(p => p.ToHex())).Count().ShouldBe(0);
             }
 
             // Check distributed total amount.
@@ -124,7 +124,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             }
         }
 
-        [Fact(Skip = "Skip for saving time.")]
+        [Fact]
         public async Task<TreasuryDistributionInformation> TreasuryDistribution_SecondTerm_Test()
         {
             var information = new TreasuryDistributionInformation();
@@ -140,13 +140,13 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             // Remain 4 core data centers announce election.
             var announceTransactions = new List<Transaction>();
             ConvertKeyPairsToElectionStubs(
-                MissionedECKeyPairs.CoreDataCenterKeyPairs.Skip(5).Take(4)).ForEach(stub =>
+                MissionedECKeyPairs.CoreDataCenterKeyPairs.Skip(7).Take(10)).ForEach(stub =>
                 announceTransactions.Add(stub.AnnounceElection.GetTransaction(new Empty())));
             await BlockMiningService.MineBlockAsync(announceTransactions);
 
             // Check candidates.
             var candidates = await ElectionStub.GetCandidates.CallAsync(new Empty());
-            candidates.Value.Count.ShouldBe(9);
+            candidates.Value.Count.ShouldBe(AEDPoSExtensionConstants.CoreDataCenterKeyPairCount);
 
             // First 10 citizens do some votes.
             var votesTransactions = new List<Transaction>();
@@ -156,7 +156,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 
             // Check voted candidates
             var votedCandidates = await ElectionStub.GetVotedCandidates.CallAsync(new Empty());
-            votedCandidates.Value.Count.ShouldBe(9);
+            votedCandidates.Value.Count.ShouldBe(AEDPoSExtensionConstants.CoreDataCenterKeyPairCount);
 
             var minedBlocksInFirstRound = await MineBlocksToNextTermAsync(2);
 
@@ -186,9 +186,9 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     var distributedInformation =
                         await GetDistributedInformationAsync(_schemes[SchemeType.MinerBasicReward].SchemeId, period);
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
-                    amount.ShouldBe(distributedAmount * 2 / 5);
+                    amount.ShouldBe(distributedAmount * 2 / 7);
                     var totalShares = distributedInformation.TotalShares;
-                    totalShares.ShouldBe(9);
+                    totalShares.ShouldBe(AEDPoSExtensionConstants.CoreDataCenterKeyPairCount);
 
                     information[SchemeType.MinerBasicReward] = new DistributionInformation
                     {
@@ -202,9 +202,9 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     var distributedInformation =
                         await GetDistributedInformationAsync(_schemes[SchemeType.BackupSubsidy].SchemeId, period);
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
-                    amount.ShouldBe(distributedAmount / 5);
+                    amount.ShouldBe(distributedAmount / 7);
                     var totalShares = distributedInformation.TotalShares;
-                    totalShares.ShouldBe(9);
+                    totalShares.ShouldBe(AEDPoSExtensionConstants.CoreDataCenterKeyPairCount);
 
                     information[SchemeType.BackupSubsidy] = new DistributionInformation
                     {
@@ -218,7 +218,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     var distributedInformation =
                         await GetDistributedInformationAsync(_schemes[SchemeType.CitizenWelfare].SchemeId, period);
                     var amount = distributedInformation.ProfitsAmount[EconomicTestConstants.TokenSymbol];
-                    amount.ShouldBe(distributedAmount / 5);
+                    amount.ShouldBe(distributedAmount / 7);
                     var totalShares = distributedInformation.TotalShares;
                     totalShares.ShouldBePositive();
 
@@ -265,7 +265,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
             return information;
         }
 
-        [Fact(Skip = "Skip for saving time.")]
+        [Fact]
         public async Task<TreasuryDistributionInformation> TreasuryDistribution_ThirdTerm_Test()
         {
             var information = new TreasuryDistributionInformation();

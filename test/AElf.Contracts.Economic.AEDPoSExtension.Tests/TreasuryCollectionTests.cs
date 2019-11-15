@@ -10,22 +10,22 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
 {
     public partial class EconomicTests : EconomicTestBase
     {
-        [Fact(Skip = "Skip for saving time.")]
+        [Fact]
         public async Task TreasuryCollection_FirstTerm_Test()
         {
             var distributedAmount = await TreasuryDistribution_FirstTerm_Test();
 
-            // First 5 core data centers can profit from backup subsidy
-            var firstFiveCoreDataCenters = MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(5).ToList();
-            var balancesBefore = firstFiveCoreDataCenters.ToDictionary(k => k, k =>
+            // First 7 core data centers can profit from backup subsidy
+            var firstSevenCoreDataCenters = MissionedECKeyPairs.CoreDataCenterKeyPairs.Take(7).ToList();
+            var balancesBefore = firstSevenCoreDataCenters.ToDictionary(k => k, k =>
                 AsyncHelper.RunSync(() => TokenStub.GetBalance.CallAsync(new GetBalanceInput
                 {
                     Owner = Address.FromPublicKey(k.PublicKey),
                     Symbol = EconomicTestConstants.TokenSymbol
                 })).Balance);
-            await ClaimProfits(firstFiveCoreDataCenters, _schemes[SchemeType.BackupSubsidy].SchemeId);
-            await CheckBalancesAsync(firstFiveCoreDataCenters,
-                distributedAmount / 5 / 5 - EconomicTestConstants.TransactionFeeOfClaimProfit, balancesBefore);
+            await ClaimProfits(firstSevenCoreDataCenters, _schemes[SchemeType.BackupSubsidy].SchemeId);
+            await CheckBalancesAsync(firstSevenCoreDataCenters,
+                distributedAmount / 5 / 7 - EconomicTestConstants.TransactionFeeOfClaimProfit, balancesBefore);
         }
 
         [Fact(Skip = "Skip for saving time.")]
