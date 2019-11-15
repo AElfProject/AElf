@@ -13,8 +13,8 @@ AElf will improve overall blockchain performance by executing transactions in pa
 ## This Gitbook
 
 This Gitbook contains various different types of documentation and depending on what you will use AElf for, you should navigate to different sections. Here are a few links you can follow to get you started:
-- [**how to start a node**](Introduction/quickstart.md)
-- [**how to develop dApp**](Tutorials/DApp/main.md)
+- [**how to start a node**](tutorials/run-node.md)
+- [**how to develop dApp**](tutorials/DApp/main.md)
 
 #### Guides and tutorials
 

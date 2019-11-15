@@ -25,7 +25,7 @@ Another dependency needed to build **AElf** from the command line under Windows 
 If you already have an edition of **Visual Studio** installed, open the **Visual Studio Installer** and add the **Desktop development with C++** workload:
 
 <p align="center">
-    <img src="vs-cpp-dep.png" height="300">
+    <img src="setup-vs-cpp-dep.png" height="300">
 </p>
 
 If you don't have any of the Visual Studio editions installed:
@@ -35,13 +35,13 @@ If you don't have any of the Visual Studio editions installed:
 - or if you don't need or want a full blown installation of **Visual Studio**, you can download the build tools here: [**Download Page**](https://visualstudio.microsoft.com/downloads/#other). Scroll down and under the section *Tools for Visual Studio 2019* download the build tools for Visual Studio:
 
 <p align="center">
-    <img src="build-tools.png" height="100" width="600">
+    <img src="setup-build-tools.png" height="100" width="600">
 </p>
 
  After the installation open **Visual Studio Installer**, locate and install the *C++ build tools*.
 
  <p align="center">
-    <img src="build-tools-2.png" height="50">
+    <img src="setup-build-tools-2.png" height="50">
 </p>
 
 # Pre-setup for macOS users
@@ -95,15 +95,15 @@ sudo apt-get install nodejs
 
 Most of AElf is developed with dotnet core, so you will need to download and install the .NET Core SDK before you start:
 
-[**Download .NET Core 2.2**](https://dotnet.microsoft.com/download/dotnet-core/2.2)
+[**Download .NET Core 3.0**](https://dotnet.microsoft.com/download/dotnet-core/3.0)
 
-For now AElf depends on version 2.2 of the SDK, on the provided link find the download for your platform (for Windows and macOS the installer for x64 is the most convenient if your platform is compatible - most are these days), the page looks like this: 
+For now AElf depends on version 3.0 of the SDK, on the provided link find the download for your platform (for Windows and macOS the installer for x64 is the most convenient if your platform is compatible - most are these days), the page looks like this: 
 
 <p align="center">
-    <img src="dotnet-sdk-dl-link.png" height="200">
+    <img src="setup-dotnet-sdk-dl-link.png" height="200">
 </p>
 
-Wait for the download to finish and follow the instructions: for AElf all defaults provided in the installer should be correct.
+Wait for the download to finish, launch the installer and follow the instructions (for AElf all defaults provided in the installer should be correct).
 
 To check the installation, you can open a terminal and run the ``dotnet`` command. If everything went fine it will show you dotnet options for the command line.
 
@@ -133,7 +133,7 @@ sudo apt install redis-server
 To test the installation (all platforms) you can just open a terminal and type ```redis-server```. This will show you the servers welcome page as well as the port it's listening on:
 
 <p align="center">
-    <img src="redis.png" height="300">
+    <img src="setup-redis.png" height="300">
 </p>
 
 ## SSDB

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netcoreapp2.2</TargetFramework>
+        <TargetFramework>netcoreapp3.0</TargetFramework>
         <RootNamespace>AElf.Contract.TestContract</RootNamespace>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
@@ -113,10 +113,6 @@
         <ContractStub Include="..\..\protobuf\test_basic_function_with_parallel_contract.proto">
             <Link>Protobuf/Proto/stub/test_basic_function_with_parallel_contract.proto</Link>
         </ContractStub>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="Protobuf\Generated"/>
     </ItemGroup>
 
 </Project>

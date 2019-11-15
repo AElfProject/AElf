@@ -19,13 +19,13 @@ You can keep the default settings, they are sufficient to get started. If you're
 This will bring you to the deployment page (wait a short moment for the instance to load), when finished you should see deployment information about the instance:
 
 <p align="center">
-    <img src="deployed.png">
+    <img src="gcp-deployed.png">
 </p>
 
 Next, login to the launched VM instance via SSH. To start the easiest way is to login to the instance directly from this deployment page. To do this click the SSH drop down and select "Open in browser window":
 
 <p align="center">
-    <img src="ssh-select.png">
+    <img src="gcp-ssh-select.png">
 </p>
 
 After loading the session, you'll get a shell to the deployed instance where you can run the chain itself. 
@@ -40,7 +40,7 @@ Next, start the chain with one of the following commands (for this tutorial we'l
 These commands will start redis and an AElf node (the command prints 'done' when finished).
 
 <p align="center">
-    <img src="docker-compose.png">
+    <img src="gcp-docker-compose.png">
 </p>
 
 Finally to verify that the node is correctly working, enter the following command that will send an http request to the node in order to get the current status of the chain: 
@@ -50,7 +50,7 @@ curl -X GET "http://127.0.0.1:8001/api/blockChain/chainStatus" -H "accept: text/
 ```
 
 <p align="center">
-    <img src="curl-chain-stat.png">
+    <img src="gcp-curl-chain-stat.png">
 </p>
 
 If everything is working normally you should be able to see the chain increase by repeating the last command.

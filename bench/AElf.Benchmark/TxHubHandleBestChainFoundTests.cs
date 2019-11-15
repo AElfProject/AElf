@@ -81,7 +81,7 @@ namespace AElf.Benchmark
         {
             await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
             {
-                BlockHeader = _block.Header
+                Block = _block
             });
 
             await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData

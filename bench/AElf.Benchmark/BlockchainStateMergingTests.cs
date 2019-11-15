@@ -118,7 +118,7 @@ namespace AElf.Benchmark
             {
                 await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
                 {
-                    BlockHeader = block.Header
+                    Block = block
                 });
 
                 await _transactionManager.RemoveTransactionsAsync(block.Body.TransactionIds);

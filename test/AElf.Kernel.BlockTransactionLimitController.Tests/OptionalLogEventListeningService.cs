@@ -17,11 +17,11 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
 
         public static bool Enabled { get; set; }
 
-        public async Task ApplyAsync(IEnumerable<Hash> blockHashes)
+        public async Task ApplyAsync(IEnumerable<Block> blocks)
         {
             if (Enabled)
             {
-                await _inner.ApplyAsync(blockHashes);
+                await _inner.ApplyAsync(blocks);
             }
         }
     }

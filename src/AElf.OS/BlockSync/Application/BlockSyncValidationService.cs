@@ -91,6 +91,11 @@ namespace AElf.OS.BlockSync.Application
         {
             foreach (var transaction in blockWithTransactions.Transactions)
             {
+                if (!transaction.VerifyExpiration(blockWithTransactions.Height - 1))
+                {
+                    return false;
+                }
+
                 // No need to validate again if this tx already in local database.
                 if (await _blockchainService.HasTransactionAsync(transaction.GetHash()))
                 {

@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Google.Protobuf;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.EventBus.Local;
@@ -87,6 +88,7 @@ namespace AElf.WebApp.Application.Chain
             }
 
             var block = await GetBlockAsync(realBlockHash);
+
             var blockDto = CreateBlockDto(block, includeTransactions);
 
             return blockDto;
@@ -103,8 +105,8 @@ namespace AElf.WebApp.Application.Chain
             if (blockHeight == 0)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             var blockInfo = await GetBlockAtHeightAsync(blockHeight);
+
             var blockDto = CreateBlockDto(blockInfo, includeTransactions);
-            
             return blockDto;
         }
 
@@ -188,6 +190,8 @@ namespace AElf.WebApp.Application.Chain
             {
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             }
+
+            var bloom = block.Header.Bloom;
             var blockDto = new BlockDto
             {
                 BlockHash = block.GetHash().ToHex(),
@@ -201,7 +205,7 @@ namespace AElf.WebApp.Application.Chain
                     Height = block.Header.Height,
                     Time = block.Header.Time.ToDateTime(),
                     ChainId = ChainHelper.ConvertChainIdToBase58(block.Header.ChainId),
-                    Bloom = block.Header.Bloom.ToBase64(),
+                    Bloom = bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64(): bloom.ToBase64(),
                     SignerPubkey = block.Header.SignerPubkey.ToByteArray().ToHex()
                 },
                 Body = new BlockBodyDto()
