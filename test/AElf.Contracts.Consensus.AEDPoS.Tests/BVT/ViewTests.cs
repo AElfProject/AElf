@@ -9,7 +9,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSTest
     {
-        [Fact]
+        [Fact(Skip = "Need to be refactored via testkit aedpos extension")]
         public async Task Query_RoundInformation_Test()
         {
             //first round

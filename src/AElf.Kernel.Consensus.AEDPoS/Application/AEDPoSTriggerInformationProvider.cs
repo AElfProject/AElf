@@ -61,13 +61,15 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 var newRandomHash = GetRandomHash(command);
                 _randomHashCacheService.SetRandomHash(bestChainLastBlockHash, newRandomHash);
 
-                return new AElfConsensusTriggerInformation
+                var information = new AElfConsensusTriggerInformation
                 {
                     Pubkey = PublicKey,
                     RandomHash = newRandomHash,
                     PreviousRandomHash = _randomHashCacheService.GetLatestGeneratedBlockRandomHash(),
                     Behaviour = behaviour
-                }.ToBytesValue();
+                };
+                
+                return information.ToBytesValue();
             }
 
             return new AElfConsensusTriggerInformation
