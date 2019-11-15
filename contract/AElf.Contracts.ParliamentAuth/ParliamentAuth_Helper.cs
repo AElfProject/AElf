@@ -21,10 +21,13 @@ namespace AElf.Contracts.ParliamentAuth
         {
             // It is a valid proposer if
             // authority check is disable,
+            // or sender is GenesisContract (for new contract deployment)
             // or sender is in proposer white list,
             // or sender is one of miners.
             if (!organization.ProposerAuthorityRequired)
-                return; 
+                return;
+            if (Context.Sender == State.GenesisContract.Value)
+                return;
             if (organization.ProposerWhiteList.Any(p => p == Context.Sender))
                 return;
             var minerList = GetCurrentMinerList();
