@@ -22,17 +22,17 @@ namespace AElf.Kernel
         /// 12 Blocks: a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k
         /// </summary>
         public List<Block> BestBranchBlockList { get; set; }
-        
+
         /// <summary>
         /// 5 Blocks: l -> m -> n -> o -> p 
         /// </summary>
         public List<Block> LongestBranchBlockList { get; set; }
-        
+
         /// <summary>
         /// 5 Blocks: q -> r -> s -> t -> u
         /// </summary>
         public List<Block> ForkBranchBlockList { get; set; }
-        
+
         /// <summary>
         /// 5 Blocks: v -> w -> x -> y -> z
         /// </summary>
@@ -73,9 +73,9 @@ namespace AElf.Kernel
 
             var genesisBlock = await _blockchainService.GetBlockByHashAsync(chain.GenesisBlockHash);
             BestBranchBlockList.Add(genesisBlock);
-            
+
             BestBranchBlockList.AddRange(await AddBestBranch(chain));
-            
+
             LongestBranchBlockList =
                 await AddForkBranch(chain, BestBranchBlockList[7].Height, BestBranchBlockList[7].GetHash(), 11);
 
@@ -85,7 +85,7 @@ namespace AElf.Kernel
                 await _chainManager.SetChainBlockLinkExecutionStatusAsync(chainBlockLink,
                     ChainBlockLinkExecutionStatus.ExecutionFailed);
             }
-            
+
             ForkBranchBlockList =
                 await AddForkBranch(chain, BestBranchBlockList[4].Height, BestBranchBlockList[4].GetHash());
 
@@ -98,7 +98,7 @@ namespace AElf.Kernel
 
             return chain;
         }
-        
+
         public Transaction GenerateTransaction(long refBlockNumber = 0, Hash refBlockHash = null)
         {
             var transaction = new Transaction
@@ -117,7 +117,7 @@ namespace AElf.Kernel
             transaction.Signature = ByteString.CopyFrom(signature);
             return transaction;
         }
-        
+
         public TransactionResult GenerateTransactionResult(Transaction transaction, TransactionResultStatus status,
             LogEvent logEvent = null)
         {
@@ -131,13 +131,15 @@ namespace AElf.Kernel
             {
                 transactionResult.Logs.Add(logEvent);
             }
+
             transactionResult.UpdateBloom();
             return transactionResult;
         }
 
-        public Block GenerateBlock(long previousBlockHeight, Hash previousBlockHash, List<Transaction> transactions = null, ByteString extraData = null)
+        public Block GenerateBlock(long previousBlockHeight, Hash previousBlockHash,
+            List<Transaction> transactions = null, ByteString extraData = null)
         {
-            
+
             var newBlock = new Block
             {
                 Header = new BlockHeader
@@ -148,7 +150,7 @@ namespace AElf.Kernel
                     MerkleTreeRootOfWorldState = Hash.Empty,
                     MerkleTreeRootOfTransactionStatus = Hash.Empty,
                     MerkleTreeRootOfTransactions = Hash.Empty,
-                    ExtraData = { extraData==null? ByteString.Empty : extraData },
+                    ExtraData = {extraData == null ? ByteString.Empty : extraData},
                     SignerPubkey = ByteString.CopyFrom(KeyPair.PublicKey)
                 },
                 Body = new BlockBody()
@@ -160,12 +162,13 @@ namespace AElf.Kernel
                 {
                     newBlock.AddTransaction(transaction);
                 }
+
                 newBlock.Header.MerkleTreeRootOfTransactions = newBlock.Body.CalculateMerkleTreeRoot();
             }
 
             return newBlock;
         }
-        
+
         public async Task<Block> AttachBlock(long previousBlockHeight, Hash previousBlockHash,
             List<Transaction> transactions = null, List<TransactionResult> transactionResults = null)
         {
@@ -200,16 +203,13 @@ namespace AElf.Kernel
                 transactionResult.UpdateBloom();
                 if (transactionResult.Status == TransactionResultStatus.Mined)
                 {
-                    bloom.Combine(new[] {new Bloom(transactionResult.Bloom.ToByteArray())});    
+                    bloom.Combine(new[] {new Bloom(transactionResult.Bloom.ToByteArray())});
                 }
             }
 
             newBlock.Header.Bloom = ByteString.CopyFrom(bloom.Data);
 
-            foreach (var transactionResult in transactionResults)
-            {
-                await _transactionResultService.AddTransactionResultAsync(transactionResult, newBlock.Header);
-            }
+            await _transactionResultService.AddTransactionResultsAsync(transactionResults, newBlock.Header);
 
             await _blockchainService.AddBlockAsync(newBlock);
             await _blockchainService.AddTransactionsAsync(transactions);
@@ -240,12 +240,12 @@ namespace AElf.Kernel
         private async Task<Chain> CreateChain()
         {
             var genesisBlock = GenerateBlock(0, Hash.Empty, new List<Transaction>());
-            
+
             var chain = await _blockchainService.CreateChainAsync(genesisBlock, new List<Transaction>());
-            
+
             return chain;
         }
-        
+
         private async Task<List<Block>> AddBestBranch(Chain chain)
         {
             var bestBranchBlockList = new List<Block>();
@@ -255,19 +255,20 @@ namespace AElf.Kernel
                 chain = await _blockchainService.GetChainAsync();
                 var newBlock = await AttachBlock(chain.BestChainHeight, chain.BestChainHash);
                 bestBranchBlockList.Add(newBlock);
-                
+
                 var chainBlockLink = await _chainManager.GetChainBlockLinkAsync(newBlock.GetHash());
                 await _chainManager.SetChainBlockLinkExecutionStatusAsync(chainBlockLink,
                     ChainBlockLinkExecutionStatus.ExecutionSuccess);
-                
+
                 chain = await _blockchainService.GetChainAsync();
                 await _blockchainService.SetBestChainAsync(chain, newBlock.Height, newBlock.GetHash());
             }
 
             return bestBranchBlockList;
         }
-        
-        private async Task<List<Block>> AddForkBranch(Chain chain, long previousHeight, Hash previousHash, int count = 5)
+
+        private async Task<List<Block>> AddForkBranch(Chain chain, long previousHeight, Hash previousHash,
+            int count = 5)
         {
             var forkBranchBlockList = new List<Block>();
 
@@ -282,7 +283,7 @@ namespace AElf.Kernel
 
             return forkBranchBlockList;
         }
-                
+
         #endregion
     }
 }

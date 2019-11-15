@@ -11,7 +11,6 @@ namespace AElf.Kernel.Blockchain.Domain
     public interface ITransactionBlockIndexManager
     {
         Task<TransactionBlockIndex> GetTransactionBlockIndexAsync(Hash transactionId);
-        Task<IList<TransactionBlockIndex>> GetTransactionBlockIndexesAsync(IList<Hash> transactionIds);
         Task SetTransactionBlockIndexAsync(Hash transactionId, TransactionBlockIndex transactionBlockIndex);
         Task SetTransactionBlockIndexesAsync(IDictionary<Hash, TransactionBlockIndex> transactionBlockIndexes);
         Task<TransactionBlockIndex> GetCachedTransactionBlockIndexAsync(Hash transactionId);
@@ -40,11 +39,6 @@ namespace AElf.Kernel.Blockchain.Domain
 
             return transactionBlockIndex;
         }
-        
-        public async Task<IList<TransactionBlockIndex>> GetTransactionBlockIndexesAsync(IList<Hash> transactionIds)
-        {
-            return await _transactionBlockIndexes.GetAllAsync(transactionIds.Select(t => t.ToStorageKey()).ToList());
-        }
 
         public async Task SetTransactionBlockIndexAsync(Hash transactionId, TransactionBlockIndex transactionBlockIndex)
         {
@@ -54,6 +48,11 @@ namespace AElf.Kernel.Blockchain.Domain
         
         public async Task SetTransactionBlockIndexesAsync(IDictionary<Hash,TransactionBlockIndex> transactionBlockIndexes)
         {
+            foreach (var index in transactionBlockIndexes)
+            {
+                _transactionBlockIndexCacheProvider.AddOrUpdate(index.Key, index.Value);
+            }
+            
             await _transactionBlockIndexes.SetAllAsync(
                 transactionBlockIndexes.ToDictionary(t => t.Key.ToStorageKey(), t => t.Value));
         }

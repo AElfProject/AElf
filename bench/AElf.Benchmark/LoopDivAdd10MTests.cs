@@ -19,13 +19,12 @@ namespace AElf.Benchmark
         private OSTestHelper _osTestHelper;
 
         private Transaction _transaction;
-        private Block _block;
         private Address _contractAddress;
         private Chain _chain;
         private TransactionTrace _transactionTrace;
 
-        private const double executeResult = 501.67224080267556; 
-        
+        private const double ExecuteResult = 501.67224080267556;
+
         [GlobalSetup]
         public async Task GlobalSetup()
         {
@@ -38,7 +37,7 @@ namespace AElf.Benchmark
         }
 
         [IterationSetup]
-        public async Task IterationSetup()
+        public Task IterationSetup()
         {
             _transaction = _osTestHelper.GenerateTransaction(SampleAddress.AddressList[0], _contractAddress,
                 nameof(PerformanceTestContract.PerformanceTestContract.LoopDivAdd), new DivAddTestInput()
@@ -48,6 +47,8 @@ namespace AElf.Benchmark
                     K = 500,
                     N = 10000000
                 });
+            
+            return Task.CompletedTask;
         }
 
         [Benchmark]
@@ -63,13 +64,15 @@ namespace AElf.Benchmark
         }
 
         [IterationCleanup]
-        public async Task IterationCleanup()
+        public Task IterationCleanup()
         {
             var calResult = DoubleValue.Parser.ParseFrom(_transactionTrace.ReturnValue).Value;
-            if (calResult != executeResult)
+            if (calResult != ExecuteResult)
             {
                 throw new Exception("execute fail");
             }
+            
+            return Task.CompletedTask;
         }
     }
 }

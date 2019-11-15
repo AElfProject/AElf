@@ -16,7 +16,7 @@ using BenchmarkDotNet.Attributes;
 
 namespace AElf.Benchmark
 {
-   [MarkdownExporterAttribute.GitHub]
+    [MarkdownExporterAttribute.GitHub]
     public class BlockExecutingParalleGroupslTests : BenchmarkParallelTestBase
     {
         private IBlockExecutingService _blockExecutingService;
@@ -31,14 +31,13 @@ namespace AElf.Benchmark
         private List<Transaction> _cancellableTransactions;
         private List<ECKeyPair> _keyPairs;
         private Block _block;
-        
-        [Params(1, 2, 5, 10, 50, 100)]
-        public int GroupCount;
+
+        [Params(1, 2, 5, 10, 50, 100)] public int GroupCount;
 
         public int TransactionCount = 200;
 
         [GlobalSetup]
-        public async Task GlobalSetup()
+        public Task GlobalSetup()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockExecutingService = GetRequiredService<IBlockExecutingService>();
@@ -46,11 +45,13 @@ namespace AElf.Benchmark
             _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
-            
+
             _prepareTransactions = new List<Transaction>();
             _systemTransactions = new List<Transaction>();
             _cancellableTransactions = new List<Transaction>();
             _keyPairs = new List<ECKeyPair>();
+            
+            return Task.CompletedTask;
         }
 
         [IterationSetup]
@@ -64,18 +65,18 @@ namespace AElf.Benchmark
             await _osTestHelper.BroadcastTransactions(_prepareTransactions);
             _block = await _minerService.MineAsync(chain.BestChainHash, chain.BestChainHeight,
                 TimestampHelper.GetUtcNow(), TimestampHelper.DurationFromSeconds(4));
-            
+
             _systemTransactions = await _osTestHelper.GenerateTransferTransactions(1);
             _cancellableTransactions = await _osTestHelper.GenerateTransactionsWithoutConflict(_keyPairs, tokenAmount);
             chain = await _blockchainService.GetChainAsync();
             _block = _osTestHelper.GenerateBlock(chain.BestChainHash, chain.BestChainHeight,
                 _systemTransactions.Concat(_cancellableTransactions));
         }
-        
+
         [Benchmark]
         public async Task ExecuteBlock()
         {
-            _block = await _blockExecutingService.ExecuteBlockAsync(_block.Header, 
+            _block = await _blockExecutingService.ExecuteBlockAsync(_block.Header,
                 _systemTransactions, _cancellableTransactions, CancellationToken.None);
         }
 

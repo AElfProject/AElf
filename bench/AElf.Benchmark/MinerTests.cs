@@ -20,7 +20,7 @@ using Volo.Abp.Threading;
 namespace AElf.Benchmark
 {
     [MarkdownExporterAttribute.GitHub]
-    public class MinerTests: BenchmarkTestBase
+    public class MinerTests : BenchmarkTestBase
     {
         private IBlockchainService _blockchainService;
         private IMinerService _minerService;
@@ -33,9 +33,8 @@ namespace AElf.Benchmark
         private Chain _chain;
         private Block _block;
         private List<Transaction> _transactions;
-                        
-        [Params(1, 10, 100, 1000, 3000, 5000)]
-        public int TransactionCount;
+
+        [Params(1, 10, 100, 1000, 3000, 5000)] public int TransactionCount;
 
         [GlobalSetup]
         public async Task GlobalSetup()
@@ -58,7 +57,7 @@ namespace AElf.Benchmark
             _transactions = await _osTestHelper.GenerateTransferTransactions(TransactionCount);
             await _osTestHelper.BroadcastTransactions(_transactions);
         }
-        
+
         [Benchmark]
         public async Task MineBlockTest()
         {
@@ -72,13 +71,13 @@ namespace AElf.Benchmark
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
             var transactionIds = _transactions.Select(t => t.GetHash()).ToList();
             await _transactionManager.RemoveTransactionsAsync(transactionIds);
-            await  _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
+            await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
             await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds,
                 _block.Header.GetPreMiningHash());
-            
+
             await _txHub.HandleUnexecutableTransactionsFoundAsync(new UnexecutableTransactionsFoundEvent
                 (null, _transactions.Select(t => t.GetHash()).ToList()));
-            
+
             await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
             {
                 BlockHash = _chain.BestChainHash,
