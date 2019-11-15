@@ -4,7 +4,7 @@ This tutorial will guide you through the steps to create and deploy a simple con
 
 First, note that most of the steps involve the command line, but if you’re a C# developer and you recognize these steps you can use Visual Studio/Rider or any other IDE that supports csproj and nugget packages, feel free to use them.
 
-This tutorial assumes that you have already built the **aelf command line tool** and **node executable** (if not please follow [this](../Introduction/quickstart.md) guide).
+This tutorial assumes that you have already built the **aelf command line tool** and **node executable** (if not please follow [this](../introduction/run-node.md) guide).
 
 Open a terminal and create a new directory and navigate into it:
 

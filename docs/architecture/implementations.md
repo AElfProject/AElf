@@ -1,6 +1,8 @@
 ## Design principles:
 
-![](node-architecture.png)
+<p align="center">
+  <img src="node-archi.png" width="300">
+</p>
 
 The above diagram shows the conceptual structure of the node and the separation between OS and Kernel.
 

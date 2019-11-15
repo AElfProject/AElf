@@ -16,13 +16,13 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly TaskQueueManager _taskQueueManager;
+        private readonly ITaskQueueManager _taskQueueManager;
         private LogEvent _interestedEvent;
 
         public ILogger<IrreversibleBlockFoundLogEventHandler> Logger { get; set; }
 
         public IrreversibleBlockFoundLogEventHandler(ISmartContractAddressService smartContractAddressService,
-            IBlockchainService blockchainService, TaskQueueManager taskQueueManager)
+            IBlockchainService blockchainService, ITaskQueueManager taskQueueManager)
         {
             _smartContractAddressService = smartContractAddressService;
             _blockchainService = blockchainService;
@@ -64,7 +64,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     irreversibleBlockFound.IrreversibleBlockHeight, block.GetHash());
                 if (libBlockHash == null) return;
                 var blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);
-                Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight}\nEvent: {irreversibleBlockFound}");
+                Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight}\n" +
+                                $"Event: {irreversibleBlockFound}\n" +
+                                $"BlockIndex: {blockIndex.BlockHash} - {blockIndex.BlockHeight}");
                 _taskQueueManager.Enqueue(
                     async () =>
                     {
