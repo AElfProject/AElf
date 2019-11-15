@@ -12,13 +12,18 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
+
     public class CodeCheckRequiredLogEventHandler : ILogEventHandler, ISingletonDependency
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         
         private readonly IReadyToApproveProposalCacheProvider _readyToApproveProposalCacheProvider;
+
+        private readonly ICodeCheckActivationService _codeCheckActivationService;
         
         private readonly ContractAuditor _contractAuditor = new ContractAuditor(null, null);
+
+        private bool _active = false;
 
         private LogEvent _interestedEvent;
         
@@ -38,19 +43,25 @@ namespace AElf.Kernel.SmartContract.Application
                 return _interestedEvent;
             }
         }
-        
-        public CodeCheckRequiredLogEventHandler(ISmartContractAddressService smartContractAddressService, 
-            IReadyToApproveProposalCacheProvider readyToApproveProposalCacheProvider)
+
+        public CodeCheckRequiredLogEventHandler(ISmartContractAddressService smartContractAddressService,
+            IReadyToApproveProposalCacheProvider readyToApproveProposalCacheProvider,
+            ICodeCheckActivationService codeCheckActivationService)
         {
             _smartContractAddressService = smartContractAddressService;
 
             _readyToApproveProposalCacheProvider = readyToApproveProposalCacheProvider;
 
+            _codeCheckActivationService = codeCheckActivationService;
+
             Logger = NullLogger<CodeCheckRequiredLogEventHandler>.Instance;
         }
-        
+
         public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
+            if (!_codeCheckActivationService.IsActive())
+                return Task.CompletedTask;
+            
             var eventData = new CodeCheckRequired();
             eventData.MergeFrom(logEvent);
 

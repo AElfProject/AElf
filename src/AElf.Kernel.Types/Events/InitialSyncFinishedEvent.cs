@@ -1,4 +1,4 @@
-namespace AElf.Kernel.Node.Events
+namespace AElf.Kernel.Events
 {
     public class InitialSyncFinishedEvent
     {

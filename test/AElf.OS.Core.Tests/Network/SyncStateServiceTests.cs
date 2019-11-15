@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using AElf.Cryptography;
-using AElf.Kernel.Node.Events;
+using AElf.Kernel.Events;
 using AElf.OS.Network.Application;
 using AElf.OS.Network.Infrastructure;
 using AElf.OS.Network.Protocol.Types;
