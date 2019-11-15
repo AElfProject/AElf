@@ -1,11 +1,11 @@
 using System.Threading.Tasks;
-using AElf.Kernel.Miner.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Acs0;
 using Volo.Abp.DependencyInjection;
+using AElf.Kernel.SmartContract.Application;
 
-namespace AElf.Kernel.SmartContract.Application
+namespace AElf.Kernel.SmartContractExecution.Application
 {
 
     public class CodeCheckRequiredLogEventHandler : ILogEventHandler, ISingletonDependency
