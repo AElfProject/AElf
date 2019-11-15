@@ -8,16 +8,16 @@ namespace AElf.Kernel.SmartContract
 {
     internal class SmartContractModuleEventHandler : ILocalEventHandler<InitialSyncFinishedEvent>, ITransientDependency
     {
-        private readonly ICodeCheckActivationService _codeCheckActivationService;
+        private readonly ICodeCheckService _codeCheckService;
             
-        public SmartContractModuleEventHandler(ICodeCheckActivationService codeCheckActivationService)
+        public SmartContractModuleEventHandler(ICodeCheckService codeCheckService)
         {
-            _codeCheckActivationService = codeCheckActivationService;
+            _codeCheckService = codeCheckService;
         }
         
         public async Task HandleEventAsync(InitialSyncFinishedEvent eventData)
         {
-            _codeCheckActivationService.Enable();
+            _codeCheckService.Enable();
         }
     }
 }

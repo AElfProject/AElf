@@ -17,7 +17,7 @@ namespace AElf.Contracts.Genesis
     {
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)
         {
-            var codeCheck = context.ServiceProvider.GetRequiredService<ICodeCheckActivationService>();
+            var codeCheck = context.ServiceProvider.GetRequiredService<ICodeCheckService>();
             codeCheck.Enable();
         }
     }
