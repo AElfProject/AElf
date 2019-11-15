@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.ChainController.Application;
 using AElf.Kernel.Consensus.Application;
-using AElf.Kernel.Events;
+using AElf.Kernel.Node.Events;
 using AElf.Kernel.Node.Domain;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Kernel.SmartContractExecution.Application;

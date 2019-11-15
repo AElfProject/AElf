@@ -1,22 +1,23 @@
 using System.Threading.Tasks;
-using AElf.Kernel.Events;
+using AElf.Kernel.Node.Events;
 using AElf.Kernel.SmartContract.Application;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus;
 
-namespace AElf.Kernel.SmartContract
+namespace AElf.Kernel.Node
 {
-    internal class SmartContractModuleEventHandler : ILocalEventHandler<InitialSyncFinishedEvent>, ITransientDependency
+    internal class NodeModuleEventHandler : ILocalEventHandler<InitialSyncFinishedEvent>, ITransientDependency
     {
         private readonly ICodeCheckService _codeCheckService;
             
-        public SmartContractModuleEventHandler(ICodeCheckService codeCheckService)
+        public NodeModuleEventHandler(ICodeCheckService codeCheckService)
         {
             _codeCheckService = codeCheckService;
         }
         
         public async Task HandleEventAsync(InitialSyncFinishedEvent eventData)
         {
+            // Activate code check service in smart contract module
             _codeCheckService.Enable();
         }
     }
