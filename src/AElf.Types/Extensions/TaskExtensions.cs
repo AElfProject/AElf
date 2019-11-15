@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace AElf.Kernel
+namespace AElf
 {
     public static class TaskExtensions
     {
