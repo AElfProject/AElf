@@ -95,7 +95,7 @@ namespace AElf.Contracts.Genesis
             // Wait for contract code check event handler to finish its job
             await Task.Run(async () => 
             {
-                await Task.Delay(20000);
+                await Task.Delay(30000);
             });
             
             // Mine a block, should include approval transaction
@@ -128,7 +128,7 @@ namespace AElf.Contracts.Genesis
             // Wait for contract code check event handler to finish its job
             await Task.Run(async () => 
             {
-                await Task.Delay(20000);
+                await Task.Delay(30000);
             });
             
             // Mine a block, should include approval transaction

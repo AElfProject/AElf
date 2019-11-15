@@ -1,29 +1,21 @@
-using System.Linq;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using System.Threading.Tasks;
 using AElf.Kernel.Miner.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Acs0;
-using AElf.Contracts.ParliamentAuth;
-using AElf.CSharp.CodeOps;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.SmartContract.Application
 {
+
     public class CodeCheckRequiredLogEventHandler : ILogEventHandler, ISingletonDependency
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
         
-        private readonly IReadyToApproveProposalCacheProvider _readyToApproveProposalCacheProvider;
-        
-        private readonly ContractAuditor _contractAuditor = new ContractAuditor(null, null);
+        private readonly ICodeCheckService _codeCheckService;
 
         private LogEvent _interestedEvent;
-        
-        public ILogger<CodeCheckRequiredLogEventHandler> Logger { get; set; }
-        
+
         public LogEvent InterestedEvent
         {
             get
@@ -38,46 +30,20 @@ namespace AElf.Kernel.SmartContract.Application
                 return _interestedEvent;
             }
         }
-        
-        public CodeCheckRequiredLogEventHandler(ISmartContractAddressService smartContractAddressService, 
-            IReadyToApproveProposalCacheProvider readyToApproveProposalCacheProvider)
+
+        public CodeCheckRequiredLogEventHandler(ISmartContractAddressService smartContractAddressService,
+            ICodeCheckService codeCheckService)
         {
             _smartContractAddressService = smartContractAddressService;
-
-            _readyToApproveProposalCacheProvider = readyToApproveProposalCacheProvider;
-
-            Logger = NullLogger<CodeCheckRequiredLogEventHandler>.Instance;
+            
+            _codeCheckService = codeCheckService;
         }
-        
+
         public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
-            var eventData = new CodeCheckRequired();
-            eventData.MergeFrom(logEvent);
-
-            var _ = ProcessLogEventAsync(transactionResult, eventData);
+            var _ = _codeCheckService.PerformCodeCheckAsync(transactionResult, logEvent);
 
             return Task.CompletedTask;
-        }
-
-        private async Task ProcessLogEventAsync(TransactionResult transactionResult, CodeCheckRequired eventData)
-        {
-            try
-            {
-                // Check contract code
-                _contractAuditor.Audit(eventData.Code.ToByteArray(), true);
-
-                // Approve proposal related to CodeCheckRequired event
-                var proposalId = ProposalCreated.Parser
-                    .ParseFrom(transactionResult.Logs.First(l => l.Name == nameof(ProposalCreated)).NonIndexed)
-                    .ProposalId;
-
-                _readyToApproveProposalCacheProvider.TryCacheProposalToApprove(proposalId);
-            }
-            catch (InvalidCodeException e)
-            {
-                // May do something else to indicate that the contract has an issue
-                Logger.LogError("Contract code did not pass audit.", e);
-            }
         }
     }
 }
