@@ -17,7 +17,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class AEDPoSTest
     {
-        [Fact]
+        [Fact(Skip = "Need to be refactored via testkit aedpos extension")]
         public async Task Candidates_NotEnough_Test()
         {
             //await ElectionContractStub.RegisterElectionVotingEvent.SendAsync(new Empty());

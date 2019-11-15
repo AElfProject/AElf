@@ -38,7 +38,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 OutValue = minerInRound.OutValue,
                 Signature = minerInRound.Signature,
                 PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
-                RoundId = RoundId,
+                RoundId = RoundIdForValidation,
                 ProducedBlocks = minerInRound.ProducedBlocks,
                 ActualMiningTime = minerInRound.ActualMiningTimes.Last(),
                 SupposedOrderOfNextRound = minerInRound.SupposedOrderOfNextRound,

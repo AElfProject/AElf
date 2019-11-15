@@ -26,7 +26,7 @@ namespace AElf.Kernel.Consensus.Application
 
             var consensusInformation = await _consensusService.GetConsensusExtraDataAsync(new ChainContext
             {
-                BlockHash = blockHeader.PreviousBlockHash, 
+                BlockHash = blockHeader.PreviousBlockHash,
                 BlockHeight = blockHeader.Height - 1
             });
 

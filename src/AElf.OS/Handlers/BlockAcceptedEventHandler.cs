@@ -29,12 +29,12 @@ namespace AElf.OS.Handlers
                 if (_syncStateService.SyncState == SyncState.Finished)
                 {
                     // if sync is finished we announce the block
-                    _networkService.BroadcastAnnounceAsync(eventData.BlockHeader, eventData.HasFork);
+                    _networkService.BroadcastAnnounceAsync(eventData.Block.Header, eventData.HasFork);
                 }
                 else if (_syncStateService.SyncState == SyncState.Syncing)
                 {
                     // if syncing and the block is higher the current target, try and update.
-                    if (_syncStateService.GetCurrentSyncTarget() <= eventData.BlockHeader.Height)
+                    if (_syncStateService.GetCurrentSyncTarget() <= eventData.Block.Header.Height)
                     {
                         _taskQueueManager.Enqueue(async () => {
                             await _syncStateService.UpdateSyncStateAsync();
