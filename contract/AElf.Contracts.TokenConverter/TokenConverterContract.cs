@@ -102,22 +102,6 @@ namespace AElf.Contracts.TokenConverter
 
             return new Empty();
         }
-
-        public override Empty SetConnector(Connector input)
-        {
-            AssertPerformedByManager();
-            AssertValidConnectorAndNormalizeWeight(input);
-            var existing = State.Connectors[input.Symbol];
-            if (existing == null)
-            {
-                State.ConnectorSymbols[State.ConnectorCount.Value] = input.Symbol;
-                State.ConnectorCount.Value = State.ConnectorCount.Value.Add(1);
-            }
-
-            State.Connectors[input.Symbol] = input;
-            return new Empty();
-        }
-
         public override Empty UpdateConnector(Connector input)
         {
             AssertPerformedByManager();
