@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -35,40 +36,46 @@ namespace AElf.Contracts.Vote
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
 
             //deploy vote contract
+            var voteContractCode = File.ReadAllBytes(typeof(VoteContract).Assembly.Location);
             VoteContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(VoteContract).Assembly.Location)),
+                        Code = ByteString.CopyFrom(voteContractCode),
                         Name = VoteSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateVoteInitializationCallList()
                     })).Output;
+            AsyncHelper.RunSync(() => SetContractCacheAsync(VoteContractAddress, Hash.FromRawBytes(voteContractCode)));
             VoteContractStub = GetVoteContractTester(DefaultSenderKeyPair);
             
             //deploy token contract
+            var tokenContractCode = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
             TokenContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location)),
-                        Name = TokenSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateTokenInitializationCallList()
+                        Code = ByteString.CopyFrom(tokenContractCode),
+                        Name = TokenSmartContractAddressNameProvider.Name
                     })).Output;
+            AsyncHelper.RunSync(() => SetContractCacheAsync(TokenContractAddress, Hash.FromRawBytes(tokenContractCode)));
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
+            AsyncHelper.RunSync(InitializeTokenContractAsync);
             
             //deploy parliament auth contract
+            var parliamentAuthContractCode = File.ReadAllBytes(typeof(ParliamentAuthContract).Assembly.Location);
             ParliamentAuthContractAddress = AsyncHelper.RunSync(()=>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ParliamentAuthContract).Assembly.Location)),
-                        Name = ParliamentAuthSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateParliamentInitializationCallList()
+                        Code = ByteString.CopyFrom(parliamentAuthContractCode),
+                        Name = ParliamentAuthSmartContractAddressNameProvider.Name
                     })).Output;
+            AsyncHelper.RunSync(() => SetContractCacheAsync(ParliamentAuthContractAddress, Hash.FromRawBytes(parliamentAuthContractCode)));
             ParliamentAuthContractStub = GetParliamentAuthContractTester(DefaultSenderKeyPair);
+            AsyncHelper.RunSync(InitializeParliamentAuthContractAsync);
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
@@ -138,6 +145,46 @@ namespace AElf.Contracts.Vote
 
             return tokenContractCallList;
         }
+
+        private async Task InitializeTokenContractAsync()
+        {
+            const long totalSupply = 1_000_000_000_0000_0000;
+
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = TestTokenSymbol,
+                Decimals = 2,
+                IsBurnable = true,
+                TokenName = "elf token for testing",
+                TotalSupply = totalSupply,
+                Issuer = DefaultSender,
+                LockWhiteList =
+                {
+                    VoteContractAddress
+                }
+            });
+
+            //issue default user
+            await TokenContractStub.Issue.SendAsync(new IssueInput
+            {
+                Symbol = TestTokenSymbol,
+                Amount = totalSupply - 20 * 100_000_0000_0000L,
+                To = DefaultSender,
+                Memo = "Issue token to default user for vote.",
+            });
+            
+            //issue some amount to voter
+            for (int i = 1; i < 20; i++)
+            {
+                await TokenContractStub.Issue.SendAsync(new IssueInput
+                {
+                    Symbol = TestTokenSymbol,
+                    Amount = 100_000_0000_0000L,
+                    To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
+                    Memo = "set voters few amount for voting."
+                });
+            }
+        }
         
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateParliamentInitializationCallList()
         {
@@ -150,6 +197,17 @@ namespace AElf.Contracts.Vote
             });
 
             return parliamentContractCallList;
+        }
+
+        private async Task InitializeParliamentAuthContractAsync()
+        {
+            await ParliamentAuthContractStub.Initialize.SendAsync(new InitializeInput
+            {
+                GenesisOwnerReleaseThreshold = 1,
+                PrivilegedProposer = DefaultSender,
+                ProposerAuthorityRequired = true
+            });
+
         }
 
         protected long GetUserBalance(Address owner)

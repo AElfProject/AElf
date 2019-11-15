@@ -7,6 +7,7 @@ using AElf.Contracts.Genesis;
 using AElf.Cryptography.ECDSA;
 using AElf.CSharp.Core;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
@@ -44,6 +45,12 @@ namespace AElf.Contracts.TestKit
 
         protected Address ContractZeroAddress => ContractAddressService.GetZeroSmartContractAddress();
 
+        protected ISmartContractExecutiveProvider SmartContractExecutiveProvider =>
+            Application.ServiceProvider.GetRequiredService<ISmartContractExecutiveProvider>();
+
+        protected IBlockchainService BlockchainService =>
+            Application.ServiceProvider.GetRequiredService<IBlockchainService>();
+
         protected async Task<Address> DeployContractAsync(int category, byte[] code, Hash hashName, ECKeyPair senderKey)
         {
             var zeroStub = GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, senderKey);
@@ -78,6 +85,15 @@ namespace AElf.Contracts.TestKit
         {
             var factory = Application.ServiceProvider.GetRequiredService<IContractTesterFactory>();
             return factory.Create<T>(contractAddress, senderKey);
+        }
+
+        protected async Task SetContractCacheAsync(Address address,Hash codeHash)
+        {
+            var chain = await BlockchainService.GetChainAsync();
+            SmartContractExecutiveProvider.AddSmartContractRegistration(
+                new BlockIndex {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight},
+                address, codeHash);
+            SmartContractExecutiveProvider.SetIrreversedCache(chain.BestChainHash);
         }
     }
 }

@@ -87,8 +87,9 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
             // Profit contract
             {
                 var code = Codes.Single(kv => kv.Key.Contains("Profit")).Value;
-                await DeploySystemSmartContract(category, code,
+                var address = await DeploySystemSmartContract(category, code,
                     ProfitSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
+                await SetContractCacheAsync(address, Hash.FromRawBytes(code));
             }
 
             // Token contract
@@ -98,6 +99,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                     TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
+                await SetContractCacheAsync(TokenContractAddress, Hash.FromRawBytes(code));
             }
 
             // Token converter
@@ -108,6 +110,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 TokenConverterContractStub =
                     GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterAddress,
                         DefaultSenderKeyPair);
+                await SetContractCacheAsync(TokenConverterAddress, Hash.FromRawBytes(code));
             }
             
             // Treasury
@@ -118,6 +121,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                 TreasuryContractStub =
                     GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress,
                         DefaultSenderKeyPair);
+                await SetContractCacheAsync(TreasuryContractAddress, Hash.FromRawBytes(code));
             }
 
             // Test contract
@@ -127,6 +131,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8.Tests
                     DefaultSenderKeyPair);
                 DefaultTester =
                     GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);
+                await SetContractCacheAsync(TestContractAddress, Hash.FromRawBytes(code));
             }
         }
 

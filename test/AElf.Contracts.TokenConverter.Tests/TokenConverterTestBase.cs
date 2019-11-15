@@ -31,6 +31,7 @@ namespace AElf.Contracts.TokenConverter
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("MultiToken")).Value;
                 TokenContractAddress = await DeployContractAsync(category, code, Hash.FromString("MultiToken"), DefaultSenderKeyPair);
+                await SetContractCacheAsync(TokenContractAddress, Hash.FromRawBytes(code));
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
 
@@ -56,6 +57,7 @@ namespace AElf.Contracts.TokenConverter
                 var category = KernelConstants.CodeCoverageRunnerCategory;
                 var code = Codes.Single(kv => kv.Key.Split(",").First().EndsWith("TokenConverter")).Value;
                 TokenConverterContractAddress = await DeployContractAsync(category, code, Hash.FromString("TokenConverter"), DefaultSenderKeyPair);
+                await SetContractCacheAsync(TokenConverterContractAddress, Hash.FromRawBytes(code));
                 DefaultStub = GetTester<TokenConverterContractContainer.TokenConverterContractStub>(
                     TokenConverterContractAddress, DefaultSenderKeyPair);
             }

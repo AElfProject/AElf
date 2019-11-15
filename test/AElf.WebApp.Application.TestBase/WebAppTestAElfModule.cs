@@ -28,8 +28,7 @@ namespace AElf.WebApp.Application
         typeof(AbpAutofacModule),
         typeof(AbpAspNetCoreTestBaseModule),
         typeof(WebWebAppAElfModule),
-        typeof(OSCoreWithChainTestAElfModule),
-        typeof(TransactionExecutingDependencyTestModule)
+        typeof(OSCoreWithChainTestAElfModule)
     )]
     public class WebAppTestAElfModule : AElfModule
     {
@@ -103,6 +102,7 @@ namespace AElf.WebApp.Application
                 .AddTransient<ITransactionValidationProvider, TransactionFromAddressBalanceValidationProvider>();
             context.Services.AddTransient<ITransactionValidationProvider, TransactionToAddressValidationProvider>();
             context.Services.AddSingleton<IPreExecutionPlugin, FeeChargePreExecutionPlugin>();
+            context.Services.Replace(ServiceDescriptor.Singleton<ILocalParallelTransactionExecutingService, LocalTransactionExecutingService>());
         }
     }
 }

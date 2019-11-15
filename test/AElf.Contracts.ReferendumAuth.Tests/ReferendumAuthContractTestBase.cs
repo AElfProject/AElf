@@ -37,26 +37,32 @@ namespace AElf.Contracts.ReferendumAuth
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
             
             //deploy ReferendumAuth contract
+            var referendumAuthContractCode = File.ReadAllBytes(typeof(ReferendumAuthContract).Assembly.Location);
             ReferendumAuthContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput
                 {
                     Category = KernelConstants.CodeCoverageRunnerCategory,
-                    Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ReferendumAuthContract).Assembly.Location)),
+                    Code = ByteString.CopyFrom(referendumAuthContractCode),
                     Name = Hash.FromString("AElf.ContractNames.ReferendumAuth"),
-                    TransactionMethodCallList = GenerateReferendumAuthInitializationCallList()
                 })).Output;
+            AsyncHelper.RunSync(() =>
+                SetContractCacheAsync(ReferendumAuthContractAddress, Hash.FromRawBytes(referendumAuthContractCode)));
             ReferendumAuthContractStub = GetReferendumAuthContractTester(DefaultSenderKeyPair);
-            
+            AsyncHelper.RunSync(InitializeReferendumAuthContractAsync);
+
+            var tokenContractCode = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
             TokenContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location)),
-                        Name = TokenSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateTokenInitializationCallList()
+                        Code = ByteString.CopyFrom(tokenContractCode),
+                        Name = TokenSmartContractAddressNameProvider.Name
                     })).Output;
+            AsyncHelper.RunSync(() =>
+                SetContractCacheAsync(TokenContractAddress, Hash.FromRawBytes(tokenContractCode)));
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
+            AsyncHelper.RunSync(InitializeTokenContractAsync);
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
@@ -79,6 +85,11 @@ namespace AElf.Contracts.ReferendumAuth
             var referendumAuthContractCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList();
             referendumAuthContractCallList.Add(nameof(ReferendumAuthContract.Initialize), new Empty());
             return referendumAuthContractCallList;
+        }
+
+        private async Task InitializeReferendumAuthContractAsync()
+        {
+            await ReferendumAuthContractStub.Initialize.SendAsync(new Empty());
         }
         
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList GenerateTokenInitializationCallList()
@@ -121,6 +132,46 @@ namespace AElf.Contracts.ReferendumAuth
                 });
             }
             return tokenContractCallList;
+        }
+
+        private async Task InitializeTokenContractAsync()
+        {
+            const string symbol = "ELF";
+            const long totalSupply = 100_000_000;
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = symbol,
+                Decimals = 2,
+                IsBurnable = true,
+                TokenName = "elf token",
+                TotalSupply = totalSupply,
+                Issuer = DefaultSender,
+                LockWhiteList =
+                {
+                    ReferendumAuthContractAddress
+                }
+            });
+
+            //issue default user
+            await TokenContractStub.Issue.SendAsync(new IssueInput
+            {
+                Symbol = symbol,
+                Amount = totalSupply - 20 * 100_000L,
+                To = DefaultSender,
+                Memo = "Issue token to default user.",
+            });
+            
+            //issue some user
+            for (int i = 1; i <6; i++)
+            {
+                await TokenContractStub.Issue.SendAsync(new IssueInput
+                {
+                    Symbol = symbol,
+                    Amount = 10000,
+                    To = Address.FromPublicKey(SampleECKeyPairs.KeyPairs[i].PublicKey),
+                    Memo = "Issue token to users"
+                });
+            }
         }
         
         protected async Task<long> GetBalanceAsync(string symbol, Address owner)

@@ -36,6 +36,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
                     TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
+                await SetContractCacheAsync(TokenContractAddress, Hash.FromRawBytes(code));
             }
             {
                 var category = KernelConstants.CodeCoverageRunnerCategory;
@@ -44,6 +45,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
                     DefaultSenderKeyPair);
                 TestContractStub =
                     GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);
+                await SetContractCacheAsync(TestContractAddress, Hash.FromRawBytes(code));
             }
         }
 

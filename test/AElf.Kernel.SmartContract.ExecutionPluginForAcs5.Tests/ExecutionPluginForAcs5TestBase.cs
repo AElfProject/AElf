@@ -63,6 +63,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                     TokenSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
+                await SetContractCacheAsync(TokenContractAddress, Hash.FromRawBytes(code));
             }
 
             //Token converter
@@ -73,6 +74,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                 TokenConverterContractStub =
                     GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterAddress,
                         DefaultSenderKeyPair);
+                await SetContractCacheAsync(TokenConverterAddress, Hash.FromRawBytes(code));
             }
 
             //Test contract
@@ -82,6 +84,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs5.Tests
                     DefaultSenderKeyPair);
                 DefaultTester =
                     GetTester<TestContract.ContractContainer.ContractStub>(TestContractAddress, DefaultSenderKeyPair);
+                await SetContractCacheAsync(TestContractAddress, Hash.FromRawBytes(code));
             }
         }
 

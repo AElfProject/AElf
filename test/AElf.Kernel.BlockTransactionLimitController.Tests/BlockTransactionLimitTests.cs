@@ -12,7 +12,7 @@ using Xunit;
 
 namespace AElf.Kernel.BlockTransactionLimitController.Tests
 {
-    public class BlockTransactionLimitTests : ContractTestBase<BlockTransactionLimitTestModule>
+    public sealed class BlockTransactionLimitTests : ContractTestBase<BlockTransactionLimitTestModule>
     {
         private Address ConfigurationContractAddress { get; set; }
         private ConfigurationContainer.ConfigurationStub ConfigurationStub;
@@ -27,6 +27,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
             ConfigurationStub =
                 GetTester<ConfigurationContainer.ConfigurationStub>(ConfigurationContractAddress,
                     DefaultSenderKeyPair);
+            await SetContractCacheAsync(ConfigurationContractAddress, Hash.FromRawBytes(code));
         }
 
         [Fact]
@@ -45,7 +46,7 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
                 Assert.Equal(0, limit.Value);
             }
             var provider = Application.ServiceProvider.GetRequiredService<IBlockTransactionLimitProvider>();
-            var limitNum = await provider.GetLimitAsync();
+            var limitNum = provider.GetLimit();
             Assert.Equal(0, limitNum);
         }
     }

@@ -10,6 +10,7 @@ using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.TestKit;
 using AElf.Kernel;
+using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
@@ -24,6 +25,8 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         private readonly ITestDataProvider _testDataProvider;
         private readonly IContractTesterFactory _contractTesterFactory;
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly ISmartContractExecutiveProvider _smartContractExecutiveProvider;
+        private readonly IBlockchainService _blockchainService;
 
         private Round _currentRound;
 
@@ -35,12 +38,16 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         private bool _isSystemContractsDeployed;
 
         public BlockMiningService(IContractTesterFactory contractTesterFactory,
-            ISmartContractAddressService smartContractAddressService, ITestDataProvider testDataProvider)
+            ISmartContractAddressService smartContractAddressService, ITestDataProvider testDataProvider, 
+            ISmartContractExecutiveProvider smartContractExecutiveProvider, 
+            IBlockchainService blockchainService)
         {
             RegisterAssemblyResolveEvent();
             _contractTesterFactory = contractTesterFactory;
             _smartContractAddressService = smartContractAddressService;
             _testDataProvider = testDataProvider;
+            _smartContractExecutiveProvider = smartContractExecutiveProvider;
+            _blockchainService = blockchainService;
         }
 
         private static void RegisterAssemblyResolveEvent()
@@ -86,6 +93,11 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                         Category = KernelConstants.CodeCoverageRunnerCategory,
                         Code = ByteString.CopyFrom(code),
                     })).Output;
+                var chain = await _blockchainService.GetChainAsync();
+                _smartContractExecutiveProvider.AddSmartContractRegistration(
+                    new BlockIndex {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight}, address,
+                    Hash.FromRawBytes(code));
+                _smartContractExecutiveProvider.SetIrreversedCache(chain.BestChainHash);
                 map.Add(name, address);
                 if (name == ConsensusSmartContractAddressNameProvider.Name)
                 {

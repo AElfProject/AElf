@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
@@ -16,16 +17,15 @@ namespace AElf.Kernel.TransactionPool.Application
             _deployedContractAddressProvider = deployedContractAddressProvider;
         }
 
-        public async Task<bool> ValidateTransactionAsync(Transaction transaction)
+        public Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
-            var deployedContractAddressList = await _deployedContractAddressProvider.GetDeployedContractAddressListAsync();
-            if (deployedContractAddressList.Value.Contains(transaction.To))
+            if (_deployedContractAddressProvider.CheckContractAddress(transaction.To))
             {
-                return true;
+                return Task.FromResult(true);
             }
 
             Logger.LogError($"Invalid contract address: {transaction}");
-            return false;
+            return Task.FromResult(false);
         }
     }
 }

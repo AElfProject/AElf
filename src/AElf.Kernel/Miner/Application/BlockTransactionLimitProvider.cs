@@ -1,4 +1,7 @@
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContract.Application;
@@ -22,6 +25,8 @@ namespace AElf.Kernel.Miner.Application
         private Address ConfigurationContractAddress => _smartContractAddressService.GetAddressByContractName(
             ConfigurationSmartContractAddressNameProvider.Name);
 
+        private readonly ConcurrentDictionary<Hash, int> _forkCache =
+            new ConcurrentDictionary<Hash, int>();
         private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
 
         private int _limit = -1;
@@ -36,40 +41,67 @@ namespace AElf.Kernel.Miner.Application
             Logger = NullLogger<BlockTransactionLimitProvider>.Instance;
         }
 
-        public async Task<int> GetLimitAsync()
+        public async Task InitAsync()
         {
-            if (_limit != -1)
+            var chain = await _blockchainService.GetChainAsync();
+            if (_limit == -1)
             {
-                return _limit;
-            }
-
-            // Call ConfigurationContract GetBlockTransactionLimit()
-            try
-            {
-                var result = await CallContractMethodAsync(
-                    ConfigurationContractAddress,
-                    nameof(ConfigurationContainer.ConfigurationStub.GetBlockTransactionLimit),
-                    new Empty());
-                _limit = Int32Value.Parser.ParseFrom(result).Value;
-                Logger.LogInformation($"Get blockTransactionLimit: {_limit} by ConfigurationStub");
-                return _limit;
-            }
-            catch (InvalidOperationException e)
-            {
-                Logger.LogWarning($"Invalid ConfigurationContractAddress :{e.Message}");
-                return _limit = 0;
+                // Call ConfigurationContract GetBlockTransactionLimit()
+                try
+                {
+                    var result = await CallContractMethodAsync(new ChainContext{BlockHash = chain.LastIrreversibleBlockHash,BlockHeight = chain.LastIrreversibleBlockHeight}, 
+                        ConfigurationContractAddress,
+                        nameof(ConfigurationContainer.ConfigurationStub.GetBlockTransactionLimit),
+                        new Empty());
+                    _limit = Int32Value.Parser.ParseFrom(result).Value;
+                    Logger.LogInformation($"Init blockTransactionLimit: {_limit} by ConfigurationStub");
+                }
+                catch (InvalidOperationException e)
+                {
+                    Logger.LogWarning($"Invalid ConfigurationContractAddress :{e.Message}");
+                }
             }
         }
 
-        public void SetLimit(int limit)
+        public int GetLimit()
         {
+            return _limit == -1 ? 0 : _limit;
+        }
+
+        public void RemoveForkCache(List<Hash> blockHashes)
+        {
+            foreach (var blockHash in blockHashes)
+            {
+                if (!_forkCache.TryGetValue(blockHash, out _)) continue;
+                _forkCache.TryRemove(blockHash, out _);
+            }
+        }
+
+        public void SetIrreversedCache(List<Hash> blockHashes)
+        {
+            foreach (var blockHash in blockHashes)
+            {
+                SetIrreversedCache(blockHash);
+            }
+        }
+
+        public void SetIrreversedCache(Hash blockHash)
+        {
+            if (!_forkCache.TryGetValue(blockHash, out var limit)) return;
             _limit = limit;
+            _forkCache.TryRemove(blockHash, out _);
+            Logger.LogInformation($"BlockTransactionLimit has been changed to {_limit}");
+        }
+
+        public void SetLimit(int limit,Hash blockHash)
+        {
+            _forkCache[blockHash] = limit;
         }
 
         #region GetLimit
 
-        private async Task<ByteString> CallContractMethodAsync(Address contractAddress, string methodName,
-            IMessage input)
+        private async Task<ByteString> CallContractMethodAsync(IChainContext chainContext, Address contractAddress,
+            string methodName, IMessage input)
         {
             var tx = new Transaction
             {
@@ -79,12 +111,8 @@ namespace AElf.Kernel.Miner.Application
                 Params = input.ToByteString(),
                 Signature = ByteString.CopyFromUtf8("SignaturePlaceholder")
             };
-            var preBlock = await _blockchainService.GetBestChainLastBlockHeaderAsync();
-            var transactionTrace = await _transactionReadOnlyExecutionService.ExecuteAsync(new ChainContext
-            {
-                BlockHash = preBlock.GetHash(),
-                BlockHeight = preBlock.Height
-            }, tx, TimestampHelper.GetUtcNow());
+            var transactionTrace =
+                await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, tx, TimestampHelper.GetUtcNow());
 
             return transactionTrace.ReturnValue;
         }

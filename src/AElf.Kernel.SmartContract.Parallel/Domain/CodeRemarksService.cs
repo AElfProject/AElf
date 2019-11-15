@@ -18,7 +18,6 @@ namespace AElf.Kernel.SmartContract.Parallel.Domain
 
         public async Task MarkUnparallelizableAsync(IChainContext chainContext, Address contractAddress)
         {
-            if (_smartContractExecutiveService.IsContractDeployOrUpdating(contractAddress)) return;
             await MarkAsync(chainContext, contractAddress, true);
         }
 

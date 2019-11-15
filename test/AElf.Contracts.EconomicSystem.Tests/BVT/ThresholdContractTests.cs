@@ -9,6 +9,10 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
 {
     public class ThresholdContractTests : EconomicSystemTestBase
     {
+        public ThresholdContractTests()
+        {
+            InitializeContracts();
+        }
         [Fact]
         public async Task MethodCallingThreshold_Test()
         {

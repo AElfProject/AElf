@@ -65,6 +65,8 @@ namespace AElf.Contracts.ParliamentAuth
                     ParliamentAuthSmartContractAddressNameProvider.Name,
                     DefaultSenderKeyPair
                 ));
+            AsyncHelper.RunSync(() =>
+                SetContractCacheAsync(ParliamentAuthContractAddress, Hash.FromRawBytes(ParliamentAuthCode)));
             ParliamentAuthContractStub = GetParliamentAuthContractTester(DefaultSenderKeyPair);
 
             var otherParliamentAuthContractAddress = AsyncHelper.RunSync(() =>
@@ -73,6 +75,8 @@ namespace AElf.Contracts.ParliamentAuth
                     ParliamentAuthCode,
                     Hash.FromString("ParliamentAuth"),
                     DefaultSenderKeyPair));
+            AsyncHelper.RunSync(() =>
+                SetContractCacheAsync(otherParliamentAuthContractAddress, Hash.FromRawBytes(ParliamentAuthCode)));
             OtherParliamentAuthContractStub =
                 GetTester<ParliamentAuthContractContainer.ParliamentAuthContractStub>(
                     otherParliamentAuthContractAddress, DefaultSenderKeyPair);
@@ -84,6 +88,8 @@ namespace AElf.Contracts.ParliamentAuth
                     TokenContractCoe,
                     TokenSmartContractAddressNameProvider.Name,
                     DefaultSenderKeyPair));
+            AsyncHelper.RunSync(() =>
+                SetContractCacheAsync(TokenContractAddress, Hash.FromRawBytes(TokenContractCoe)));
             TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
             AsyncHelper.RunSync(async () => await InitializeTokenAsync());
 
@@ -92,6 +98,8 @@ namespace AElf.Contracts.ParliamentAuth
                 DPoSConsensusCode,
                 ConsensusSmartContractAddressNameProvider.Name,
                 DefaultSenderKeyPair));
+            AsyncHelper.RunSync(() =>
+                SetContractCacheAsync(ConsensusContractAddress, Hash.FromRawBytes(DPoSConsensusCode)));
             ConsensusContractStub = GetConsensusContractTester(DefaultSenderKeyPair);
             AsyncHelper.RunSync(async () => await InitializeConsensusAsync());
         }

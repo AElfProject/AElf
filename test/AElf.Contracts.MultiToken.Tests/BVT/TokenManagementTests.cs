@@ -92,6 +92,7 @@ namespace AElf.Contracts.MultiToken
                 var code = TokenContractCode;
                 TokenContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
                     TokenSmartContractAddressNameProvider.Name, DefaultKeyPair));
+                AsyncHelper.RunSync(() => SetContractCacheAsync(TokenContractAddress, Hash.FromRawBytes(code)));
                 TokenContractStub =
                     GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultKeyPair);
                 Acs2BaseStub = GetTester<ACS2BaseContainer.ACS2BaseStub>(TokenContractAddress, DefaultKeyPair);
@@ -104,6 +105,7 @@ namespace AElf.Contracts.MultiToken
                     DeploySystemSmartContract(category, code, ProfitSmartContractAddressNameProvider.Name,
                         DefaultKeyPair)
                 );
+                AsyncHelper.RunSync(() => SetContractCacheAsync(ProfitContractAddress, Hash.FromRawBytes(code)));
                 ProfitContractStub =
                     GetTester<ProfitContractContainer.ProfitContractStub>(ProfitContractAddress,
                         DefaultKeyPair);
@@ -114,6 +116,7 @@ namespace AElf.Contracts.MultiToken
                 var code = TreasuryContractCode;
                 TreasuryContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
                     TreasurySmartContractAddressNameProvider.Name, DefaultKeyPair));
+                AsyncHelper.RunSync(() => SetContractCacheAsync(TreasuryContractAddress, Hash.FromRawBytes(code)));
                 TreasuryContractStub =
                     GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress,
                         DefaultKeyPair);
@@ -124,6 +127,7 @@ namespace AElf.Contracts.MultiToken
                 var code = TokenConverterContractCode;
                 TokenConverterContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(category, code,
                     TokenConverterSmartContractAddressNameProvider.Name, DefaultKeyPair));
+                AsyncHelper.RunSync(() => SetContractCacheAsync(TokenConverterContractAddress, Hash.FromRawBytes(code)));
                 TokenConverterContractStub =
                     GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
                         DefaultKeyPair);
@@ -134,6 +138,7 @@ namespace AElf.Contracts.MultiToken
                 BasicFunctionContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
                     category, BasicFunctionContractCode,
                     BasicFunctionContractName, DefaultKeyPair));
+                AsyncHelper.RunSync(() => SetContractCacheAsync(BasicFunctionContractAddress, Hash.FromRawBytes(BasicFunctionContractCode)));
                 BasicFunctionContractStub =
                     GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(BasicFunctionContractAddress,
                         DefaultKeyPair);
@@ -141,6 +146,7 @@ namespace AElf.Contracts.MultiToken
                 OtherBasicFunctionContractAddress = AsyncHelper.RunSync(() => DeploySystemSmartContract(
                     category, BasicFunctionContractCode,
                     OtherBasicFunctionContractName, DefaultKeyPair));
+                AsyncHelper.RunSync(() => SetContractCacheAsync(OtherBasicFunctionContractAddress, Hash.FromRawBytes(BasicFunctionContractCode)));
                 OtherBasicFunctionContractStub =
                     GetTester<BasicFunctionContractContainer.BasicFunctionContractStub>(
                         OtherBasicFunctionContractAddress,

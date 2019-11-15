@@ -44,9 +44,7 @@ namespace AElf.Kernel.TransactionPool.Application
         public async Task<bool> ValidateTransactionAsync(Transaction transaction)
         {
             // Skip if the sender is a contract.
-            var deployedContractAddressList =
-                await _deployedContractAddressProvider.GetDeployedContractAddressListAsync();
-            if (deployedContractAddressList.Value.Contains(transaction.From))
+            if (_deployedContractAddressProvider.CheckContractAddress(transaction.From))
             {
                 return true;
             }

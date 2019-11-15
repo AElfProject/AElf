@@ -49,40 +49,47 @@ namespace AElf.Contracts.Profit
         {
             BasicContractZeroStub = GetContractZeroTester(StarterKeyPair);
             
+            var profitContractCode = File.ReadAllBytes(typeof(ProfitContract).Assembly.Location);
             ProfitContractAddress = AsyncHelper.RunSync(() =>
                 BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ProfitContract).Assembly.Location)),
+                        Code = ByteString.CopyFrom(profitContractCode),
                         Name = ProfitSmartContractAddressNameProvider.Name,
                         TransactionMethodCallList = GenerateProfitInitializationCallList()
                     })).Output;
+            AsyncHelper.RunSync(() => SetContractCacheAsync(ProfitContractAddress, Hash.FromRawBytes(profitContractCode)));
             ProfitContractStub = GetProfitContractTester(StarterKeyPair);
 
             //deploy token contract
+            var tokenContractCode = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
             TokenContractAddress = AsyncHelper.RunSync(() => GetContractZeroTester(StarterKeyPair)
                 .DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location)),
-                        Name = TokenSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateTokenInitializationCallList()
+                        Code = ByteString.CopyFrom(tokenContractCode),
+                        Name = TokenSmartContractAddressNameProvider.Name
                     })).Output;
+            AsyncHelper.RunSync(() => SetContractCacheAsync(TokenContractAddress, Hash.FromRawBytes(tokenContractCode)));
             TokenContractStub = GetTokenContractTester(StarterKeyPair);
+
+            AsyncHelper.RunSync(InitializeTokenContractAsync);
             
             //deploy parliament auth contract
+            var parliamentAuthCode = File.ReadAllBytes(typeof(ParliamentAuthContract).Assembly.Location);
             ParliamentAuthAddress = AsyncHelper.RunSync(()=>GetContractZeroTester(StarterKeyPair)
                 .DeploySystemSmartContract.SendAsync(
                     new SystemContractDeploymentInput
                     {
                         Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(ParliamentAuthContract).Assembly.Location)),
-                        Name = ParliamentAuthSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateParliamentInitializationCallList()
+                        Code = ByteString.CopyFrom(parliamentAuthCode),
+                        Name = ParliamentAuthSmartContractAddressNameProvider.Name
                     })).Output;
+            AsyncHelper.RunSync(() => SetContractCacheAsync(ParliamentAuthAddress, Hash.FromRawBytes(parliamentAuthCode)));
             ParliamentContractStub = GetParliamentContractTester(StarterKeyPair);
+            AsyncHelper.RunSync(InitializeParliamentContractAsync);
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
@@ -158,6 +165,55 @@ namespace AElf.Contracts.Profit
             return tokenContractCallList;
         }
 
+        private async Task InitializeTokenContractAsync()
+        {
+            const string symbol = "ELF";
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = symbol,
+                Decimals = 2,
+                IsBurnable = true,
+                TokenName = "elf token",
+                TotalSupply = ProfitContractTestConstants.NativeTokenTotalSupply,
+                Issuer = Starter,
+                LockWhiteList =
+                {
+                    ProfitContractAddress
+                }
+            });
+
+            // For creating `Treasury` profit item.
+            await TokenContractStub.Issue.SendAsync(new IssueInput
+            {
+                Symbol = symbol,
+                Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.2),
+                To = Address.FromPublicKey(StarterKeyPair.PublicKey),
+                Memo = "Issue token to default user for vote.",
+            });
+
+            foreach (var creatorKeyPair in CreatorKeyPair)
+            {
+                await TokenContractStub.Issue.SendAsync(new IssueInput
+                {
+                    Symbol = symbol,
+                    Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.1),
+                    To = Address.FromPublicKey(creatorKeyPair.PublicKey),
+                    Memo = "set voters few amount for voting."
+                });
+            }
+
+            foreach (var normalKeyPair in NormalKeyPair)
+            {
+                await TokenContractStub.Issue.SendAsync(new IssueInput
+                {
+                    Symbol = symbol,
+                    Amount = (long) (ProfitContractTestConstants.NativeTokenTotalSupply * 0.05),
+                    To = Address.FromPublicKey(normalKeyPair.PublicKey),
+                    Memo = "set voters few amount for voting."
+                });
+            }
+        }
+        
         private SystemContractDeploymentInput.Types.SystemTransactionMethodCallList
             GenerateParliamentInitializationCallList()
         {
@@ -170,6 +226,16 @@ namespace AElf.Contracts.Profit
             });
 
             return parliamentContractCallList;
+        }
+
+        private async Task InitializeParliamentContractAsync()
+        {
+            await ParliamentContractStub.Initialize.SendAsync(new InitializeInput
+            {
+                GenesisOwnerReleaseThreshold = 1,
+                PrivilegedProposer = Starter,
+                ProposerAuthorityRequired = true
+            });
         }
     }
 }

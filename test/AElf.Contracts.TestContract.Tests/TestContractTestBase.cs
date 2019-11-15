@@ -82,22 +82,28 @@ namespace AElf.Contract.TestContract
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
 
             //deploy test contract1
+            var basicFunctionContractCode = Codes.Single(kv => kv.Key.EndsWith("BasicFunction")).Value;
             BasicFunctionContractAddress = AsyncHelper.RunSync(async () =>
                 await DeployContractAsync(
                     KernelConstants.CodeCoverageRunnerCategory,
-                    Codes.Single(kv => kv.Key.EndsWith("BasicFunction")).Value,
+                    basicFunctionContractCode,
                     TestBasicFunctionContractSystemName,
                     DefaultSenderKeyPair));
+            AsyncHelper.RunSync(() =>
+                SetContractCacheAsync(BasicFunctionContractAddress, Hash.FromRawBytes(basicFunctionContractCode)));
             TestBasicFunctionContractStub = GetTestBasicFunctionContractStub(DefaultSenderKeyPair);
             AsyncHelper.RunSync(async () => await InitialBasicFunctionContract());
 
             //deploy test contract2
+            var basicSecurityContractCode = Codes.Single(kv => kv.Key.EndsWith("BasicSecurity")).Value;
             BasicSecurityContractAddress = AsyncHelper.RunSync(async () =>
                 await DeployContractAsync(
                     KernelConstants.CodeCoverageRunnerCategory,
-                    Codes.Single(kv => kv.Key.EndsWith("BasicSecurity")).Value,
+                    basicSecurityContractCode,
                     TestBasicSecurityContractSystemName,
                     DefaultSenderKeyPair));
+            AsyncHelper.RunSync(() =>
+                SetContractCacheAsync(BasicSecurityContractAddress, Hash.FromRawBytes(basicSecurityContractCode)));
             TestBasicSecurityContractStub = GetTestBasicSecurityContractStub(DefaultSenderKeyPair);
             AsyncHelper.RunSync(async () => await InitializeSecurityContract());
         }
@@ -152,15 +158,17 @@ namespace AElf.Contract.TestContract
             BasicContractZeroStub = GetTester<ACS0Container.ACS0Stub>(ContractZeroAddress, DefaultSenderKeyPair);
 
             var code = Codes.Single(kv => kv.Key.Contains("Profit")).Value;
-            await DeploySystemSmartContract(KernelConstants.CodeCoverageRunnerCategory, code,
+            var address = await DeploySystemSmartContract(KernelConstants.CodeCoverageRunnerCategory, code,
                 ProfitSmartContractAddressNameProvider.Name, DefaultSenderKeyPair);
-            
+            await SetContractCacheAsync(address, Hash.FromRawBytes(code));
+
             TokenContractAddress = await DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
                 Codes.Single(kv => kv.Key.EndsWith("MultiToken")).Value,
                 SmartContractConstants.TokenContractSystemName,
                 DefaultSenderKeyPair
             );
+            await SetContractCacheAsync(TokenContractAddress, Hash.FromRawBytes(Codes.Single(kv => kv.Key.EndsWith("MultiToken")).Value));
             TokenContractStub =
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, DefaultSenderKeyPair);
 
@@ -170,12 +178,16 @@ namespace AElf.Contract.TestContract
                 SmartContractConstants.TokenConverterContractSystemName,
                 DefaultSenderKeyPair
             );
+            await SetContractCacheAsync(TokenConverterContractAddress,
+                Hash.FromRawBytes(Codes.Single(kv => kv.Key.EndsWith("TokenConverter")).Value));
 
             TreasuryContractAddress = await DeploySystemSmartContract(
                 KernelConstants.CodeCoverageRunnerCategory,
                 Codes.Single(kv => kv.Key.EndsWith("Treasury")).Value,
                 SmartContractConstants.TreasuryContractSystemName,
                 DefaultSenderKeyPair);
+            await SetContractCacheAsync(TreasuryContractAddress,
+                Hash.FromRawBytes(Codes.Single(kv => kv.Key.EndsWith("Treasury")).Value));
             TreasuryContractStub =
                 GetTester<TreasuryContractContainer.TreasuryContractStub>(TreasuryContractAddress,
                     DefaultSenderKeyPair);
@@ -191,6 +203,7 @@ namespace AElf.Contract.TestContract
                 null,
                 DefaultSenderKeyPair
             );
+            await SetContractCacheAsync(Acs8ContractAddress, Hash.FromRawBytes(acs8Code));
             Acs8ContractStub =
                 GetTester<Kernel.SmartContract.ExecutionPluginForAcs8.Tests.TestContract.ContractContainer.
                     ContractStub>(Acs8ContractAddress, DefaultSenderKeyPair);
@@ -202,6 +215,7 @@ namespace AElf.Contract.TestContract
                 null,
                 DefaultSenderKeyPair
             );
+            await SetContractCacheAsync(TransactionFeesContractAddress, Hash.FromRawBytes(feesCode));
             TransactionFeesContractStub =
                 GetTester<TransactionFeesContractContainer.TransactionFeesContractStub>(TransactionFeesContractAddress,
                     DefaultSenderKeyPair);

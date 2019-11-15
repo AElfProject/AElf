@@ -275,6 +275,9 @@ namespace AElf.Contract.TestContract
             var transaction = CreateTransaction(DefaultSender, ContractZeroAddress,
                 nameof(BasicContractZeroStub.UpdateSmartContract), input, blockHeight, blockHash);
             var block = await ExecuteAsync(transaction, blockHeight, blockHash);
+            var transactionResult =
+                await _transactionResultManager.GetTransactionResultAsync(transaction.GetHash(),
+                    block.Header.GetPreMiningHash());
 
             var basicFunctionContractStub = GetTestBasicFunctionContractStub(DefaultSenderKeyPair);
             await basicFunctionContractStub.QueryWinMoney.CallAsync(new Empty());
@@ -423,7 +426,7 @@ namespace AElf.Contract.TestContract
                 var basicFunctionContractStub = GetTestBasicFunctionContractStub(DefaultSenderKeyPair);
                 await basicFunctionContractStub.QueryWinMoney.CallAsync(new Empty());
                 
-                _smartContractExecutiveService.ClearContractInfoCache(100);
+                //_smartContractExecutiveService.ClearContractInfoCache(100);
 
                 var queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
                 {
@@ -442,7 +445,22 @@ namespace AElf.Contract.TestContract
                 queryTwoUserWinMoneyTransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 queryTwoUserWinMoneyTransactionResult.Error.ShouldContain("Failed to find handler for QueryTwoUserWinMoney");
 
-                await _smartContractExecutiveService.InitContractInfoCacheAsync();
+                //await _smartContractExecutiveService.InitContractInfoCacheAsync();
+                
+                queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
+                {
+                    First = SampleAddress.AddressList[0],
+                    Second = SampleAddress.AddressList[1]
+                }.ToByteString();
+                queryTwoUserWinMoneyTransaction = CreateTransaction(DefaultSender, BasicFunctionContractAddress,
+                    "QueryTwoUserWinMoney", queryTwoUserWinMoneyInput, branchTwoBlock.Height, branchTwoBlock.GetHash());
+                branchTwoBlock = await ExecuteAsync(queryTwoUserWinMoneyTransaction, branchTwoBlock.Height,
+                    branchTwoBlock.GetHash());
+                await _blockAttachService.AttachBlockAsync(branchTwoBlock);
+                queryTwoUserWinMoneyTransactionResult =
+                    await _transactionResultManager.GetTransactionResultAsync(queryTwoUserWinMoneyTransaction
+                        .GetHash(), branchTwoBlock.Header.GetPreMiningHash());
+                queryTwoUserWinMoneyTransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
                 
                 queryTwoUserWinMoneyInput = new QueryTwoUserWinMoneyInput
                 {

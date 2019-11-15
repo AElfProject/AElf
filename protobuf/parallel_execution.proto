@@ -8,6 +8,7 @@ message TransactionResourceInfo {
     repeated aelf.ScopedStatePath paths = 1;
     ParallelType parallel_type = 2;
     aelf.Hash transaction_id = 3;
+    aelf.Hash contract_hash = 4;
 }
 
 enum ParallelType {

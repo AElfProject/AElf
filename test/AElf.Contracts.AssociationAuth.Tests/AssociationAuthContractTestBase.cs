@@ -1,4 +1,5 @@
 using System.IO;
+using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
@@ -40,26 +41,37 @@ namespace AElf.Contracts.AssociationAuth
             BasicContractZeroStub = GetContractZeroTester(DefaultSenderKeyPair);
 
             //deploy AssociationAuth contract
-            AssociationAuthContractAddress = AsyncHelper.RunSync(() =>
-                BasicContractZeroStub.DeploySmartContract.SendAsync(
-                    new ContractDeploymentInput()
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(AssociationAuthContract).Assembly.Location))
-                    })).Output;
-            AssociationAuthContractStub = GetAssociationAuthContractTester(DefaultSenderKeyPair);
-            
-            TokenContractAddress = AsyncHelper.RunSync(() =>
-                BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
-                    new SystemContractDeploymentInput
-                    {
-                        Category = KernelConstants.CodeCoverageRunnerCategory,
-                        Code = ByteString.CopyFrom(File.ReadAllBytes(typeof(TokenContract).Assembly.Location)),
-                        Name = TokenSmartContractAddressNameProvider.Name,
-                        TransactionMethodCallList = GenerateTokenInitializationCallList()
-                    })).Output;
-            TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
-            
+            {
+                var code = File.ReadAllBytes(typeof(AssociationAuthContract).Assembly.Location);
+                AssociationAuthContractAddress = AsyncHelper.RunSync(() =>
+                    BasicContractZeroStub.DeploySmartContract.SendAsync(
+                        new ContractDeploymentInput()
+                        {
+                            Category = KernelConstants.CodeCoverageRunnerCategory,
+                            Code = ByteString.CopyFrom(code)
+                        })).Output;
+                AsyncHelper.RunSync(() =>
+                    SetContractCacheAsync(AssociationAuthContractAddress, Hash.FromRawBytes(code)));
+                AssociationAuthContractStub = GetAssociationAuthContractTester(DefaultSenderKeyPair);
+            }
+
+            {
+                var code = File.ReadAllBytes(typeof(TokenContract).Assembly.Location);
+                TokenContractAddress = AsyncHelper.RunSync(() =>
+                    BasicContractZeroStub.DeploySystemSmartContract.SendAsync(
+                        new SystemContractDeploymentInput
+                        {
+                            Category = KernelConstants.CodeCoverageRunnerCategory,
+                            Code = ByteString.CopyFrom(code),
+                            Name = TokenSmartContractAddressNameProvider.Name,
+                            //TransactionMethodCallList = GenerateTokenInitializationCallList()
+                        })).Output;
+                
+                AsyncHelper.RunSync(() =>
+                    SetContractCacheAsync(TokenContractAddress, Hash.FromRawBytes(code)));
+                TokenContractStub = GetTokenContractTester(DefaultSenderKeyPair);
+                AsyncHelper.RunSync(InitializeTokenAsync);
+            }
         }
 
         internal BasicContractZeroContainer.BasicContractZeroStub GetContractZeroTester(ECKeyPair keyPair)
@@ -100,6 +112,28 @@ namespace AElf.Contracts.AssociationAuth
                 Memo = "Issue token to default user",
             });
             return tokenContractCallList;
+        }
+
+        private async Task InitializeTokenAsync()
+        {
+            const string symbol = "ELF";
+            const long totalSupply = 100_000_000;
+            await TokenContractStub.Create.SendAsync(new CreateInput
+            {
+                Symbol = symbol,
+                Decimals = 2,
+                IsBurnable = true,
+                TokenName = "elf token",
+                TotalSupply = totalSupply,
+                Issuer = DefaultSender
+            });
+            await TokenContractStub.Issue.SendAsync(new IssueInput
+            {
+                Symbol = symbol,
+                Amount = totalSupply - 20 * 100_000L,
+                To = DefaultSender,
+                Memo = "Issue token to default user"
+            });
         }
     }
 }

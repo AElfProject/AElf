@@ -33,6 +33,8 @@ namespace AElf.Parallel.Tests
         private readonly IAccountService _accountService;
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly ISmartContractExecutiveProvider _smartContractExecutiveProvider;
+        private readonly IBlockchainService _blockchainService;
         
         public new IReadOnlyDictionary<string, byte[]> Codes =>
             _codes ?? (_codes = ContractsDeployer.GetContractCodes<ParallelTestHelper>());
@@ -52,14 +54,15 @@ namespace AElf.Parallel.Tests
             IStaticChainInformationProvider staticChainInformationProvider,
             ITransactionResultService transactionResultService,
             IOptionsSnapshot<ChainOptions> chainOptions,
-            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService
-            ) : base(osBlockchainNodeContextService, accountService,
+            ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService, ISmartContractExecutiveProvider smartContractExecutiveProvider) : base(osBlockchainNodeContextService, accountService,
             minerService, blockchainService, txHub, smartContractAddressService, blockAttachService,
             staticChainInformationProvider, transactionResultService, chainOptions)
         {
             _accountService = accountService;
+            _blockchainService = blockchainService;
             _staticChainInformationProvider = staticChainInformationProvider;
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
+            _smartContractExecutiveProvider = smartContractExecutiveProvider;
             _smartContractAddressService = smartContractAddressService;
 
         }
@@ -92,6 +95,12 @@ namespace AElf.Parallel.Tests
         public async Task DeployBasicFunctionWithParallelContract()
         {
             BasicFunctionWithParallelContractAddress = await DeployContract<BasicFunctionWithParallelContract>();
+            var chain = await _blockchainService.GetChainAsync();
+            var codeHash = Hash.FromRawBytes(BasicFunctionWithParallelContractCode);
+            _smartContractExecutiveProvider.AddSmartContractRegistration(
+                new BlockIndex {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight},
+                BasicFunctionWithParallelContractAddress, codeHash);
+            _smartContractExecutiveProvider.SetIrreversedCache(chain.BestChainHash);
         }
         
         public List<Transaction> GenerateBasicFunctionWithParallelTransactions(List<ECKeyPair> groupUsers, int transactionCount)

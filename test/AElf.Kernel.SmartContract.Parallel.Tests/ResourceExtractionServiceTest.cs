@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Acs2;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +17,9 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
     {
         private IResourceExtractionService Service =>
             Application.ServiceProvider.GetRequiredService<IResourceExtractionService>();
+
+        private ISmartContractExecutiveService SmartContractExecutiveService =>
+            Application.ServiceProvider.GetRequiredService<ISmartContractExecutiveService>();
 
         [Fact]
         public async Task GetResourcesAsync_NonAcs2_Test()
@@ -46,7 +50,7 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
             var resourceInfos =
                 (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, CancellationToken.None))
                 .ToList();
-
+            var executive = await SmartContractExecutiveService.GetExecutiveAsync(new Mock<IChainContext>().Object, txn.To);
             resourceInfos.Count.ShouldBe(1);
             resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
             {
@@ -54,7 +58,8 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 Paths =
                 {
                     GetPath(12345)
-                }
+                },
+                ContractHash = executive.ContractHash
             });
         }
 
@@ -96,11 +101,13 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, CancellationToken.None))
                 .ToList();
 
+            var executive = await SmartContractExecutiveService.GetExecutiveAsync(new Mock<IChainContext>().Object, txn.To);
             resourceInfos.Count.ShouldBe(1);
             resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
             {
                 TransactionId = txn.GetHash(),
-                ParallelType = ParallelType.NonParallelizable
+                ParallelType = ParallelType.NonParallelizable,
+                ContractHash = executive.ContractHash
             });
         }
 
@@ -115,11 +122,13 @@ namespace AElf.Kernel.SmartContract.Parallel.Tests
                 (await Service.GetResourcesAsync(new Mock<IChainContext>().Object, new[] {txn}, CancellationToken.None))
                 .ToList();
 
+            var executive = await SmartContractExecutiveService.GetExecutiveAsync(new Mock<IChainContext>().Object, txn.To);
             resourceInfos.Count.ShouldBe(1);
             resourceInfos.First().Item2.ShouldBe(new TransactionResourceInfo()
             {
                 TransactionId = txn.GetHash(),
-                ParallelType = ParallelType.NonParallelizable
+                ParallelType = ParallelType.NonParallelizable,
+                ContractHash = executive.ContractHash
             });
         }
 

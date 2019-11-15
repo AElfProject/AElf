@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
@@ -17,6 +18,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockchainService _blockchainService;
+        private readonly ICachedBlockProvider _cachedBlockProvider;
+        private readonly IForkCacheService _forkCacheService;
 
         private LogEvent _interestedEvent;
 
@@ -40,11 +43,14 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public ILogger<IrreversibleBlockFoundLogEventHandler> Logger { get; set; }
 
         public IrreversibleBlockFoundLogEventHandler(ISmartContractAddressService smartContractAddressService,
-            ITaskQueueManager taskQueueManager, IBlockchainService blockchainService)
+            ITaskQueueManager taskQueueManager, IBlockchainService blockchainService, 
+            ICachedBlockProvider cachedBlockProvider, IForkCacheService forkCacheService)
         {
             _smartContractAddressService = smartContractAddressService;
             _taskQueueManager = taskQueueManager;
             _blockchainService = blockchainService;
+            _cachedBlockProvider = cachedBlockProvider;
+            _forkCacheService = forkCacheService;
 
             Logger = NullLogger<IrreversibleBlockFoundLogEventHandler>.Instance;
         }
@@ -68,7 +74,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 var libBlockHash = await _blockchainService.GetBlockHashByHeightAsync(chain,
                     irreversibleBlockFound.IrreversibleBlockHeight, block.GetHash());
                 var blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);
-
+                ProcessForkCache(chain, blockIndex.BlockHash);
+                    
                 Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight}");
                 _taskQueueManager.Enqueue(
                     async () =>
@@ -85,6 +92,17 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             {
                 Logger.LogError("Failed to resolve IrreversibleBlockFound event.", e);
                 throw;
+            }
+        }
+
+        private void ProcessForkCache(Chain chain, Hash irreversibleBlockHash)
+        {
+            var block = _cachedBlockProvider.GetBlock(irreversibleBlockHash);
+            var lastLibHeight = chain.LastIrreversibleBlockHeight;
+            while (block != null && block.Height > lastLibHeight)
+            {
+                _forkCacheService.SetIrreversible(block.BlockHash);
+                block = _cachedBlockProvider.GetBlock(block.PreviousBlockHash);
             }
         }
     }
