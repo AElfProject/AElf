@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// test:Change the number of miners when term changed
         /// </summary>
         /// <returns></returns>
-        [Fact]
+        [Fact(Skip = "Need to be refactored via testkit aedpos extension")]
         public async Task AEDPoSContract_ChangeMinersCount_Test()
         {
             const int termIntervalMin = 31536000 / 60;

@@ -130,27 +130,34 @@ namespace AElf.OS.Network.Application
 
         public async Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
         {
-            if (!TryAddKnownBlock(blockWithTransactions.Header))
-                return;
-
-            if (IsOldBlock(blockWithTransactions.Header))
-                return;
-            
-            var nextMinerPubkey = await GetNextMinerPubkey(blockWithTransactions.Header);
-            
-            var nextPeer = _peerPool.FindPeerByPublicKey(nextMinerPubkey);
-            if (nextPeer != null)
-                await SendBlockAsync(nextPeer, blockWithTransactions);
-
-            foreach (var peer in _peerPool.GetPeers())
+            try
             {
-                if (nextPeer != null && peer.Info.Pubkey == nextPeer.Info.Pubkey)
-                    continue;
+                if (!TryAddKnownBlock(blockWithTransactions.Header))
+                    return;
 
-                await SendBlockAsync(peer, blockWithTransactions);
+                if (IsOldBlock(blockWithTransactions.Header))
+                    return;
+
+                var nextMinerPubkey = await GetNextMinerPubkey(blockWithTransactions.Header);
+
+                var nextPeer = _peerPool.FindPeerByPublicKey(nextMinerPubkey);
+                if (nextPeer != null)
+                    await SendBlockAsync(nextPeer, blockWithTransactions);
+
+                foreach (var peer in _peerPool.GetPeers())
+                {
+                    if (nextPeer != null && peer.Info.Pubkey == nextPeer.Info.Pubkey)
+                        continue;
+
+                    await SendBlockAsync(peer, blockWithTransactions);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError($"Error in BroadcastBlockWithTransactionsAsync. \n{e.Message}\n{e.StackTrace}");
             }
         }
-        
+
         private async Task SendBlockAsync(IPeer peer, BlockWithTransactions blockWithTransactions)
         {
             try

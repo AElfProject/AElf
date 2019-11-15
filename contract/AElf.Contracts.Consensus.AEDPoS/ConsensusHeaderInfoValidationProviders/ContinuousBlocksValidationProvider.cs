@@ -15,7 +15,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 var latestProviderToTinyBlocksCount = validationContext.LatestProviderToTinyBlocksCount;
                 if (latestProviderToTinyBlocksCount != null &&
-                    latestProviderToTinyBlocksCount.Pubkey == validationContext.Pubkey &&
+                    latestProviderToTinyBlocksCount.Pubkey == validationContext.SenderPubkey &&
                     latestProviderToTinyBlocksCount.BlocksCount < 0)
                 {
                     validationResult.Message = "Sender produced too many continuous blocks.";

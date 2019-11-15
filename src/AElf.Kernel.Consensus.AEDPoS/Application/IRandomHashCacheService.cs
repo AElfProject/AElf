@@ -1,10 +1,7 @@
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Types;
-using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
