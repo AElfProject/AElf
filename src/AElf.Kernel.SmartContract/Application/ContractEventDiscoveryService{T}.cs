@@ -70,7 +70,7 @@ namespace AElf.Kernel.SmartContract.Application
                     }
                 }
 
-                Logger.LogTrace($"Event of type {typeof(T).FullName} found. {messages.FirstOrDefault()}");
+                Logger.LogTrace($"Event of type {typeof(T).FullName} found.");
 
                 return messages;
             }
