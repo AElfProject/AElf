@@ -27,17 +27,18 @@ namespace AElf.Benchmark
         private List<Transaction> _transactions;
         private Block _block;
 
-        [Params(1, 10, 100, 1000, 3000, 5000)] 
-        public int TransactionCount;
+        [Params(1, 10, 100, 1000, 3000, 5000)] public int TransactionCount;
 
         [GlobalSetup]
-        public async Task GlobalSetup()
+        public Task GlobalSetup()
         {
             _blockchainService = GetRequiredService<IBlockchainService>();
             _blockExecutingService = GetRequiredService<IBlockExecutingService>();
             _transactionResultManager = GetRequiredService<ITransactionResultManager>();
             _blockStateSets = GetRequiredService<INotModifiedCachedStateStore<BlockStateSet>>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
+            
+            return Task.CompletedTask;
         }
 
         [IterationSetup]
@@ -61,8 +62,8 @@ namespace AElf.Benchmark
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
             var transactionIds = _transactions.Select(t => t.GetHash()).ToList();
             await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds, _block.GetHash());
-                await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds,
-                    _block.Header.GetPreMiningHash());
+            await _transactionResultManager.RemoveTransactionResultsAsync(transactionIds,
+                _block.Header.GetPreMiningHash());
         }
     }
 }
