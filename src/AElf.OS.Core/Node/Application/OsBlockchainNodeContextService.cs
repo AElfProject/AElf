@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Contracts.Genesis;
@@ -13,6 +14,7 @@ using AElf.OS.Network.Infrastructure;
 using AElf.OS.Node.Domain;
 using AElf.Types;
 using Google.Protobuf;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 
@@ -25,6 +27,8 @@ namespace AElf.OS.Node.Application
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IServiceContainer<INodePlugin> _nodePlugins;
         private readonly ContractOptions _contractOptions;
+        
+        public ILogger<OsBlockchainNodeContextService> Logger { get; set; }
 
         public OsBlockchainNodeContextService(IBlockchainNodeContextService blockchainNodeContextService,
             IAElfNetworkServer networkServer, ISmartContractAddressService smartContractAddressService,
@@ -39,6 +43,14 @@ namespace AElf.OS.Node.Application
 
         public async Task<OsBlockchainNodeContext> StartAsync(OsBlockchainNodeContextStartDto dto)
         {
+            //ThreadPool.SetMinThreads(100, 100);
+            
+            ThreadPool.GetMinThreads(out var workerThreads, out var completionPortThreads);
+            Logger.LogDebug($"Start - workers: {workerThreads}, IOCP: {completionPortThreads}");
+
+            ThreadPool.GetMaxThreads(out workerThreads,out completionPortThreads);
+            Logger.LogDebug($"Start - max workers: {workerThreads}, IOCP: {completionPortThreads}");
+            
             var transactions = new List<Transaction>();
 
             transactions.Add(GetTransactionForDeployment(dto.ZeroSmartContract, Hash.Empty,
