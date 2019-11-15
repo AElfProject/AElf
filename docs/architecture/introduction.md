@@ -11,7 +11,7 @@ A few key points concerning DDD:
 - domain represents the specific events related to our blockchain system and also domain objects.
 - finally infra are the third party libraries we use for database, networking...
 
-[AElf coding standard](https://github.com/AElfProject/AElf/issues/1040)
+We also have a Github issue where we list some of the [coding standards](https://github.com/AElfProject/AElf/issues/1040) that we follow while developing AElf.
 
 ### Frameworks and libraries:
 
