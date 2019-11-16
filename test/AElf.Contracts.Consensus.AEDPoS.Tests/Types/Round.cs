@@ -11,9 +11,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     internal partial class Round
     {
-        public long RoundId =>
-            RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds).Sum();
-        
+        public long RoundId
+        {
+            get
+            {
+                if (RealTimeMinersInformation.Values.All(bpInfo => bpInfo.ExpectedMiningTime != null))
+                {
+                    return RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds).Sum();
+                }
+
+                return RoundIdForValidation;
+            }
+        }
+
         /// <summary>
         /// This method is only available when the miners of this round is more than 1.
         /// </summary>
@@ -128,7 +138,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 OutValue = minerInRound.OutValue,
                 Signature = minerInRound.Signature,
                 PreviousInValue = minerInRound.PreviousInValue ?? Hash.Empty,
-                RoundId = RoundId,
+                RoundId = RoundIdForValidation,
                 ProducedBlocks = minerInRound.ProducedBlocks,
                 ActualMiningTime = minerInRound.ActualMiningTimes.First(),
                 SupposedOrderOfNextRound = minerInRound.SupposedOrderOfNextRound,

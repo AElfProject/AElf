@@ -140,6 +140,7 @@ message Round {
     sint64 confirmed_irreversible_block_height = 9;
     sint64 confirmed_irreversible_block_round_number = 10;
     bool is_miner_list_just_changed = 11;
+    sint64 round_id_for_validation = 12;
 }
 
 // The information of a miner in a specific round.
@@ -186,6 +187,8 @@ message AElfConsensusTriggerInformation {
     aelf.Hash random_hash = 2;// To calculate In Value.
     aelf.Hash previous_random_hash = 3;// Random hash of previous round for validation.
     AElfConsensusBehaviour behaviour = 4;
+    map<string, bytes> secrets = 5;
+    
 }
 
 message TermInfo {
@@ -250,4 +253,16 @@ message MiningInformationUpdated {
     string behaviour = 3 [(aelf.is_indexed) = true];
     sint64 block_height = 4 [(aelf.is_indexed) = true];
     aelf.Hash previous_block_hash = 5 [(aelf.is_indexed) = true];
+}
+
+message SecretSharingJobNotification {
+    option (aelf.is_event) = true;
+    Round previous_round = 1 [(aelf.is_indexed) = true];
+    sint64 current_round_id = 2;
+}
+
+message MiningRewardGenerated {
+    option (aelf.is_event) = true;
+    sint64 term_number = 1 [(aelf.is_indexed) = true];
+    sint64 amount = 2;
 }
