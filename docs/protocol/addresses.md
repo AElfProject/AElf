@@ -16,7 +16,7 @@ import Aelf from 'aelf-sdk';
 const address = aelf.wallet.getAddressFromPubKey(pubKey);
 ```
 
-For more information about how the js-sdk works, please refer to the [documentation](https://github.com/AElfProject/aelf-sdk.js/blob/doc-2.0/docs/Wallet.md)
+For more information about how the js-sdk works, please refer to the [[SDK reference](../sdk/../SDK/javascript/js-sdk.md).
 
 Finally here is the Protobuf message we use for representing an address, it is often used by other types to represent addresses:
 
@@ -28,4 +28,4 @@ message Address
 }
 ```
 
-To sum up, if you need an AElf keypair, you can either directly use the **create** command or use the js-sdk. Note that this keypair files should be located in the keys folder of the data directory (datadir). You can read more about this in the [Getting started](../introduction/run-node.md) section.
+To sum up, if you need an AElf keypair, you can either directly use the **create** command or use the js-sdk. Note that this keypair files should be located in the keys folder of the data directory (datadir). You can read more about this in the [getting started](../tutorials/run-node.md) section.
