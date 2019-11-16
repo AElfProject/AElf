@@ -1,4 +1,4 @@
-Welcome to AElf's official documentation. This Gitbook is where we centralize our guides, documents and api references. Wether you're a dApp developer looking to build some awesome apps on top of AElf or simply just interested in seeing what a running node looks like, this place is for you!
+Welcome to AElf's official documentation. This GitBook is where we centralize our guides, documents and api references. Wether you're a dApp developer looking to build some awesome apps on top of AElf or simply just interested in seeing what a running node looks like, this place is for you!
 
 As of today the documentation is correct but still a work in progress so we invite you to frequently visit and discover any new content.
 
@@ -10,16 +10,15 @@ AElf also aims to make it as easy as possible to extend/customize the system by 
 
 AElf will improve overall blockchain performance by executing transactions in parallel and isolating smart contracts in their own side-chains in order to segregate the systems resources.
 
-## This Gitbook
+## This GitBook
 
-This Gitbook contains various different types of documentation and depending on what you will use AElf for, you should navigate to different sections. Here are a few links you can follow to get you started:
+This GitBook contains various different types of documentation and depending on what you will use AElf for, you should navigate to different sections. Here are a few links you can follow to get you started:
 - [**how to start a node**](tutorials/run-node.md)
 - [**how to develop dApp**](tutorials/DApp/main.md)
 
 #### Guides and tutorials
 
-- [**tutorials**](Tutorials/main.md) - groups end-to-end guides and tutorials about various topics.
-- [**getting started**](Introduction/main.md) - if you've never run an AElf node, we recommend you start with this section contains.
+- [**tutorials**](tutorials/main.md) - groups end-to-end guides and tutorials about various topics.
 
 #### AElf concepts
 
@@ -38,6 +37,8 @@ This Gitbook contains various different types of documentation and depending on 
 Finally we have a more complete API references for the Command Line Interface, the js-sdk and the nodes RPC interface.
 
 ## Some resources
+
+- [**contract APIs**](resources/smart-contract-apis/index.md) - API explanation for certain important smart contracts.
 
 You can find the original whitepaper [here](https://aelf.io/gridcn/aelf_whitepaper_EN.pdf?v=1.6). It will give you a more thorough explanation on the concepts that drive AElf and its development.
 
