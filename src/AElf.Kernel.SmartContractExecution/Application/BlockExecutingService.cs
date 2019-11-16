@@ -70,7 +70,8 @@ namespace AElf.Kernel.SmartContractExecution.Application
             if (returnSetCollection.Unexecutable.Count > 0)
             {
                 await EventBus.PublishAsync(
-                    new UnexecutableTransactionsFoundEvent(blockHeader, returnSetCollection.Unexecutable));
+                    new UnexecutableTransactionsFoundEvent(blockHeader,
+                        returnSetCollection.Unexecutable.Select(rs => rs.TransactionId).ToList()));
             }
 
             var executedCancellableTransactions = new HashSet<Hash>(cancellableReturnSets.Select(x => x.TransactionId));
@@ -78,12 +79,12 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 nonCancellable.Concat(cancellable.Where(x => executedCancellableTransactions.Contains(x.GetHash())))
                     .ToList();
             var block = await FillBlockAfterExecutionAsync(blockHeader, allExecutedTransactions,
-                returnSetCollection.Executed);
+                returnSetCollection.Executed, returnSetCollection.Unexecutable);
             return block;
         }
         
         private async Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader, List<Transaction> transactions,
-            List<ExecutionReturnSet> blockExecutionReturnSet)
+            List<ExecutionReturnSet> executableReturnSet, List<ExecutionReturnSet> nonExecutableReturnSets)
         {
             Logger.LogTrace("Start block field filling after execution.");
             var bloom = new Bloom();
@@ -92,7 +93,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 BlockHeight = blockHeader.Height,
                 PreviousHash = blockHeader.PreviousBlockHash
             };
-            foreach (var returnSet in blockExecutionReturnSet)
+            foreach (var returnSet in executableReturnSet)
             {
                 foreach (var change in returnSet.StateChanges)
                 {
@@ -116,10 +117,10 @@ namespace AElf.Kernel.SmartContractExecution.Application
             blockHeader.MerkleTreeRootOfWorldState = CalculateWorldStateMerkleTreeRoot(blockStateSet);
             
             var allExecutedTransactionIds = transactions.Select(x => x.GetHash()).ToList();
-            blockExecutionReturnSet = blockExecutionReturnSet.AsParallel()
+            var orderedReturnSets = executableReturnSet.Concat(nonExecutableReturnSets).AsParallel()
                 .OrderBy(d => allExecutedTransactionIds.IndexOf(d.TransactionId)).ToList();
             blockHeader.MerkleTreeRootOfTransactionStatus =
-                CalculateTransactionStatusMerkleTreeRoot(blockExecutionReturnSet);
+                CalculateTransactionStatusMerkleTreeRoot(orderedReturnSets);
             
             blockHeader.MerkleTreeRootOfTransactions = CalculateTransactionMerkleTreeRoot(allExecutedTransactionIds);
             
