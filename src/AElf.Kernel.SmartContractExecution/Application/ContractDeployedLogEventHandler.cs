@@ -1,22 +1,23 @@
 using System.Threading.Tasks;
 using Acs0;
-using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
 
-namespace AElf.Kernel.SmartContract.Application
+namespace AElf.Kernel.SmartContractExecution.Application
 {
-    public class CodeUpdatedLogEventHandler: ILogEventHandler,ISingletonDependency
+    public class ContractDeployedLogEventHandler: ILogEventHandler, ISingletonDependency
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
+        private readonly IDeployedContractAddressProvider _deployedContractAddressProvider;
         private readonly ISmartContractExecutiveProvider _smartContractExecutiveProvider;
 
         private LogEvent _interestedEvent;
 
-        public ILogger<CodeUpdatedLogEventHandler> Logger { get; set; }
+        public ILogger<ContractDeployedLogEventHandler> Logger { get; set; }
 
         public LogEvent InterestedEvent
         {
@@ -27,29 +28,33 @@ namespace AElf.Kernel.SmartContract.Application
 
                 var address = _smartContractAddressService.GetZeroSmartContractAddress();
 
-                _interestedEvent = new CodeUpdated().ToLogEvent(address);
+                _interestedEvent = new ContractDeployed().ToLogEvent(address);
 
                 return _interestedEvent;
             }
         }
 
-        public CodeUpdatedLogEventHandler(ISmartContractAddressService smartContractAddressService,
+        public ContractDeployedLogEventHandler(ISmartContractAddressService smartContractAddressService,
+            IDeployedContractAddressProvider deployedContractAddressProvider,
             ISmartContractExecutiveProvider smartContractRegistrationProvider)
         {
             _smartContractAddressService = smartContractAddressService;
+            _deployedContractAddressProvider = deployedContractAddressProvider;
             _smartContractExecutiveProvider = smartContractRegistrationProvider;
 
-            Logger = NullLogger<CodeUpdatedLogEventHandler>.Instance;
+            Logger = NullLogger<ContractDeployedLogEventHandler>.Instance;
         }
 
         public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
-            var eventData = new CodeUpdated();
+            var eventData = new ContractDeployed();
             eventData.MergeFrom(logEvent);
 
+            _deployedContractAddressProvider.AddDeployedContractAddress(eventData.Address, block.GetHash());
+            Logger.LogTrace($"Added deployed contract address of {eventData}");
             _smartContractExecutiveProvider.AddSmartContractRegistration(
                 new BlockIndex {BlockHash = block.GetHash(), BlockHeight = block.Height}, eventData.Address,
-                eventData.NewCodeHash);
+                eventData.CodeHash);
 
             return Task.CompletedTask;
         }

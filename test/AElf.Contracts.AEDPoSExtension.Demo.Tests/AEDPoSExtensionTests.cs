@@ -1,7 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Acs6;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestKet.AEDPoSExtension;
 using AElf.Contracts.TestKit;
@@ -16,7 +16,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
     // ReSharper disable once InconsistentNaming
     public class AEDPoSExtensionTests : AEDPoSExtensionDemoTestBase
     {
-        [Fact(Skip = "May fails due to task queue.")]
+        [Fact(Skip = "First block cannot pass ConsensusValidationProvider.")]
         public async Task Demo_Test()
         {
             // Check round information after initialization.
@@ -80,7 +80,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             {
                 await BlockMiningService.MineBlockAsync();
             }
-            
+
             // Check miner information
             {
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
@@ -140,6 +140,11 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
             // Check round number.
             {
                 var round = await ConsensusStub.GetCurrentRoundInformation.CallAsync(new Empty());
+                if (round.RoundNumber != 2)
+                {
+                    throw new Exception(round.ToString());
+                }
+
                 round.RoundNumber.ShouldBe(2);
             }
 
@@ -155,7 +160,7 @@ namespace AElf.Contracts.AEDPoSExtension.Demo.Tests
                 round.RoundNumber.ShouldBe(3);
             }
         }
-        
+
         [Fact(Skip = "Redo this later.")]
         public async Task<Hash> RequestRandomNumber_Test()
         {
