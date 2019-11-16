@@ -49,6 +49,11 @@ namespace AElf.Contracts.Genesis
                 var author = await DefaultTester.GetContractAuthor.CallAsync(contractAddress);
                 author.ShouldBe(DefaultSender);
             }
+
+            {
+                var contracts = await ZeroTester.GetDeployedContractAddressList.CallAsync(new Empty());
+                contracts.Value.ShouldContain(contractAddress);
+            }
         }
 
         [Fact]
