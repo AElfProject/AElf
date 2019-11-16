@@ -37,7 +37,7 @@ As stated before AElf's Authority contracts implement **ACS3** and are centered 
 
 Before talking about the difference it's useful to introduce some common characteristics between the different Organizations and Proposals in AElf's authority contracts: 
 - Organizations common properties:
-  - a **Hash** and **Address** used to identify the organization.
+  - a **hash** and **address** used to identify the organization.
   - a **release threshold** which is the amount of approvals needed before **proposals** of this organization are *releasable*.
 - Proposals common properties:
   - an **Hash** (ID) to identify the proposal.
