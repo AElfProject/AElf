@@ -4,6 +4,7 @@ using Acs2;
 using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using Volo.Abp.Threading;
@@ -48,6 +49,8 @@ namespace AElf.Contracts.MultiToken
                 To = DefaultAddress,
                 Memo = "Set for token converter."
             });
+            var tokenSymbol = await TokenContractStub.GetPrimaryTokenSymbol.CallAsync(new Empty());
+            tokenSymbol.Value.ShouldBe(DefaultSymbol);
         }
 
         [Fact]

@@ -8,8 +8,7 @@ namespace AElf.Kernel
         UnknownRefBlockStatus = 0,
         RefBlockValid = 1,
         RefBlockInvalid = -1,
-        RefBlockExpired = -2,
-        FutureRefBlock = -3,
+        RefBlockExpired = -2
     }
 
     public class QueuedTransaction

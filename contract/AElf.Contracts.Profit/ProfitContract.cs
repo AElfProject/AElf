@@ -555,6 +555,7 @@ namespace AElf.Contracts.Profit
         public override Empty ContributeProfits(ContributeProfitsInput input)
         {
             Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
+            Assert(input.Amount > 0, "Amount need to greater than 0.");
             if (input.Symbol == null) return new Empty(); // Just to avoid IDE warning.
 
             var scheme = State.SchemeInfos[input.SchemeId];
