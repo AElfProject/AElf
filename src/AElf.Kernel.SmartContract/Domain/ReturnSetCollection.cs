@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Domain
@@ -52,6 +53,11 @@ namespace AElf.Kernel.SmartContract.Domain
             }
 
             return blockStateSet;
+        }
+
+        public List<ExecutionReturnSet> ToList()
+        {
+            return _executed.Concat(_unexecutable).ToList();
         }
     }
 }
