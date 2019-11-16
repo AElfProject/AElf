@@ -39,7 +39,7 @@
     * [AElf consensus](public-chain/dpos.md)
     * [Crosschain tokens](public-chain/crosschain-multitoken.md)
     * [Resource system](public-chain/resources.md)
-    * [Authority contract](public-chain/auth-contract.md)
+    * [Authority contracts](public-chain/auth-contract.md)
     <!--* [Multilevel chain system](public-chain/multi-level-chain.md)-->
 * [Architecture](architecture/main.md)
     * [Introduction](architecture/introduction.md)
