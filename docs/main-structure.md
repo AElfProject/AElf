@@ -36,7 +36,6 @@
     * [Set up](crosschain/setup.md)
 * [Public chain ecosystem](public-chain/main.md)
     * [Introduction](public-chain/introduction.md)
-    * [Architecture](public-chain/architecture.md)
     * [AElf consensus](public-chain/dpos.md)
     * [Crosschain tokens](public-chain/crosschain-multitoken.md)
     * [Resource system](public-chain/resources.md)
