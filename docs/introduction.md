@@ -22,7 +22,7 @@ This GitBook contains various different types of documentation and depending on 
 
 #### AElf concepts
 
-- [**protocol**](Protocol/main.md) - some articles about blockchain related concepts and how they are used and implemented in AElf.
+- [**protocol**](protocol/main.md) - some articles about blockchain related concepts and how they are used and implemented in AElf.
 - [**smart contract**](Contract/main.md) - a more advanced section with more in-depth explanations of AElf smart contracts.
 - [**cross chain**](Crosschain/main.md) - information about how AElf implements side chains.
 - [**public chain ecosystem**](PublicChain/main.md) - information related to AElf's public blockchain and ecosystem.
