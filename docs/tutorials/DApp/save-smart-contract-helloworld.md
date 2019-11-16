@@ -134,13 +134,13 @@ Open another terminal and navigate to AElfs root directory then enter **AElf.Lau
 
 ```bash
 cd AElf.Launcher/
-dotnet bin/Release/netcoreapp2.2/AElf.Launcher.dll
+dotnet bin/Release/netcoreapp3.0/AElf.Launcher.dll
 ```
 
 In the previous terminal, alias the cli:
 
 ```bash
-alias aelf-cli="dotnet path/to/aelf/src/AElf.CLI/bin/Release/netcoreapp2.2/AElf.CLI.dll"
+alias aelf-cli="dotnet path/to/aelf/src/AElf.CLI/bin/Release/netcoreapp3.0/AElf.CLI.dll"
 ```
 
 Start the CLI and execute the following command, note that here we explicitly specify the datadir (the directory where you keep your keys).

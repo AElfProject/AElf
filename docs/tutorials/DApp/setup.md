@@ -68,7 +68,7 @@ dotnet build
 To actually run the node, use the following command.
 
 ```bash
-dotnet run bin/Debug/netcoreapp2.2/AElf.Boilerplate.Launcher
+dotnet run bin/Debug/netcoreapp3.0/AElf.Boilerplate.Launcher
 ```
 
 At this point the smart contract has been deployed and is ready to use. You should see the node's logs. You can now stop the node by killing the process (usually **control-c** or **ctrl-c** in the terminal).
