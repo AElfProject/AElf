@@ -134,7 +134,7 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
         {
             if (votersCount > AEDPoSExtensionConstants.CitizenKeyPairsCount)
             {
-                throw new ArgumentOutOfRangeException(nameof(votersCount), "Didn't prepare this amount of citizens.");
+                throw new ArgumentOutOfRangeException(nameof(votersCount), $"Didn't prepare this amount of citizens. {votersCount} > {AEDPoSExtensionConstants.CitizenKeyPairsCount}");
             }
 
             votersCount = votersCount == 0 ? AEDPoSExtensionConstants.CitizenKeyPairsCount : votersCount;

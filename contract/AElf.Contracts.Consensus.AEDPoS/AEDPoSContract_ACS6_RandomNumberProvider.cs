@@ -158,31 +158,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public override Hash GetRandomNumber(Hash input)
         {
             var randomNumberRequestInformation = State.RandomNumberInformationMap[input];
-            if (randomNumberRequestInformation == null)
+            if (randomNumberRequestInformation == null || 
+                randomNumberRequestInformation.TargetRoundNumber == 0 ||
+                randomNumberRequestInformation.ExpectedBlockHeight > Context.CurrentHeight ||
+                !TryToGetRoundNumber(out var currentRoundNumber))
             {
-                Assert(false, "Random number token not found.");
-                // Won't reach here.
                 return Hash.Empty;
             }
 
-            if (randomNumberRequestInformation.TargetRoundNumber == 0)
-            {
-                Assert(false, "Random number token was cleared.");
-                // Won't reach here.
-                return Hash.Empty;
-            }
-
-            if (randomNumberRequestInformation.ExpectedBlockHeight > Context.CurrentHeight)
-            {
-                Assert(false, "Still preparing random number.");
-            }
-
-            var roundNumber = randomNumberRequestInformation.TargetRoundNumber;
-            TryToGetRoundNumber(out var currentRoundNumber);
+            var targetRoundNumber = randomNumberRequestInformation.TargetRoundNumber;
             var provider = new RandomNumberProvider(randomNumberRequestInformation);
-            while (roundNumber <= currentRoundNumber)
+            while (targetRoundNumber <= currentRoundNumber)
             {
-                if (TryToGetRoundInformation(roundNumber, out var round))
+                if (TryToGetRoundInformation(targetRoundNumber, out var round))
                 {
                     var randomHash = provider.GetRandomNumber(round);
                     if (randomHash != Hash.Empty)
@@ -192,17 +180,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         return finalRandomHash;
                     }
 
-                    roundNumber = roundNumber.Add(1);
-                }
-                else
-                {
-                    Assert(false, "Still preparing random number, try later.");
+                    targetRoundNumber = targetRoundNumber.Add(1);
                 }
             }
 
-            Assert(false, "Still preparing random number, try later.");
-
-            // Won't reach here.
             return Hash.Empty;
         }
 

@@ -187,8 +187,8 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                 }
             }
 
-            var (contractStub, pubkey) =
-                GetProperContractStub(currentBlockTime);
+            var maximumBlocksCount = (await _contractStubs.First().GetMaximumBlocksCount.CallAsync(new Empty())).Value;
+            var (contractStub, pubkey) = GetProperContractStub(currentBlockTime, maximumBlocksCount);
             currentBlockTime = _testDataProvider.GetBlockTime();
 
             {
@@ -214,6 +214,9 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             {
                 Value = triggerInformation.ToByteString()
             });
+            var consensusHeaderInformation = new AElfConsensusHeaderInformation();
+            consensusHeaderInformation.MergeFrom(consensusExtraData.Value);
+            Debug.WriteLine($"Current header information: {consensusHeaderInformation}");
             // Validate consensus extra data.
             if (consensusExtraData != null)
             {
@@ -301,18 +304,21 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                 case nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.UpdateTinyBlockInformation):
                     if (withException)
                     {
-                        await contractStub.UpdateTinyBlockInformation.SendWithExceptionAsync(TinyBlockInput.Parser.ParseFrom(transaction.Params));
+                        await contractStub.UpdateTinyBlockInformation.SendWithExceptionAsync(
+                            TinyBlockInput.Parser.ParseFrom(transaction.Params));
                     }
                     else
                     {
-                        await contractStub.UpdateTinyBlockInformation.SendAsync(TinyBlockInput.Parser.ParseFrom(transaction.Params));
+                        await contractStub.UpdateTinyBlockInformation.SendAsync(
+                            TinyBlockInput.Parser.ParseFrom(transaction.Params));
                     }
 
                     break;
                 case nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.UpdateValue):
                     if (withException)
                     {
-                        await contractStub.UpdateValue.SendWithExceptionAsync(UpdateValueInput.Parser.ParseFrom(transaction.Params));
+                        await contractStub.UpdateValue.SendWithExceptionAsync(
+                            UpdateValueInput.Parser.ParseFrom(transaction.Params));
                     }
                     else
                     {
@@ -329,6 +335,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                     {
                         await contractStub.NextRound.SendAsync(Round.Parser.ParseFrom(transaction.Params));
                     }
+
                     break;
                 case nameof(AEDPoSContractImplContainer.AEDPoSContractImplStub.NextTerm):
                     if (withException)
@@ -345,7 +352,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
         }
 
         private (AEDPoSContractImplContainer.AEDPoSContractImplStub, BytesValue) GetProperContractStub(
-            Timestamp currentBlockTime)
+            Timestamp currentBlockTime, int maximumBlocksCount)
         {
             try
             {
@@ -356,19 +363,32 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
 
                 var roundStartTime = _currentRound.RealTimeMinersInformation.Single(i => i.Value.Order == 1).Value
                     .ExpectedMiningTime;
-                if (_currentRound.RealTimeMinersInformation.Values.All(i => i.OutValue == null) &&
-                    currentBlockTime < roundStartTime)
+
+                var roundEndTime = _currentRound.RealTimeMinersInformation
+                    .Single(i => i.Value.Order == _currentRound.RealTimeMinersInformation.Count).Value
+                    .ExpectedMiningTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval);
+                if (currentBlockTime > roundEndTime)
+                {
+                    throw new BlockMiningException("Failed to find proper contract stub.");
+                }
+
+                var ebp = _currentRound.RealTimeMinersInformation.Values.FirstOrDefault(i =>
+                    i.Pubkey == _currentRound.ExtraBlockProducerOfPreviousRound);
+                if (ebp != null && _currentRound.RealTimeMinersInformation.Values.All(i => i.OutValue == null) &&
+                    currentBlockTime < roundStartTime && ebp.ActualMiningTimes.Count + 1 <= maximumBlocksCount)
                 {
                     Debug.WriteLine("Tiny block before new round.");
-                    return ProperContractStub(_currentRound.RealTimeMinersInformation.Values.Single(i =>
-                        i.Pubkey == _currentRound.ExtraBlockProducerOfPreviousRound));
+                    return ProperContractStub(ebp);
                 }
 
                 foreach (var minerInRound in _currentRound.RealTimeMinersInformation.Values.OrderBy(m => m.Order)
                     .ToList())
                 {
                     if (minerInRound.ExpectedMiningTime <= currentBlockTime && currentBlockTime <
-                        minerInRound.ExpectedMiningTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval))
+                        minerInRound.ExpectedMiningTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval) &&
+                        (minerInRound.ActualMiningTimes.Count + 1 <= maximumBlocksCount ||
+                         minerInRound.Pubkey == _currentRound.ExtraBlockProducerOfPreviousRound &&
+                         minerInRound.ActualMiningTimes.Count + 1 <= maximumBlocksCount * 2))
                     {
                         Debug.WriteLine("Normal block or tiny block.");
                         return ProperContractStub(minerInRound);
@@ -389,8 +409,9 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             }
 
             _testDataProvider.SetBlockTime(AEDPoSExtensionConstants.ActualMiningInterval);
+            Debug.WriteLine("Move forward time.");
             return GetProperContractStub(
-                currentBlockTime.AddMilliseconds(AEDPoSExtensionConstants.ActualMiningInterval));
+                currentBlockTime.AddMilliseconds(AEDPoSExtensionConstants.ActualMiningInterval), maximumBlocksCount);
         }
 
         private (AEDPoSContractImplContainer.AEDPoSContractImplStub, BytesValue) ProperContractStub(
