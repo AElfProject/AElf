@@ -20,7 +20,6 @@ namespace AElf.Contracts.Economic.TestBase
 
         protected Address BootMinerAddress => Address.FromPublicKey(BootMinerKeyPair.PublicKey);
 
-        protected Address ConnectorManagerAddress => Address.FromPublicKey(BootMinerKeyPair.PublicKey);
         protected static List<ECKeyPair> InitialCoreDataCenterKeyPairs =>
             SampleECKeyPairs.KeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount).ToList();
 
