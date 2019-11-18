@@ -182,15 +182,19 @@ namespace AElf.Contracts.CrossChain
 
         private Hash GetMerkleTreeRoot(int chainId, long parentChainHeight)
         {
-            if (State.ParentChainId.Value == 0)
+            if (chainId == State.ParentChainId.Value)
             {
-                // Local is main chain
+                // it is parent chain
+                return GetParentChainMerkleTreeRoot(parentChainHeight);
+            }
+
+            if (State.SideChainInfo[chainId] != null)
+            {
+                // it is child chain
                 return GetSideChainMerkleTreeRoot(parentChainHeight);
             }
 
-            return chainId != State.ParentChainId.Value
-                ? GetCousinChainMerkleTreeRoot(parentChainHeight)
-                : GetParentChainMerkleTreeRoot(parentChainHeight);
+            return GetCousinChainMerkleTreeRoot(parentChainHeight);
         }
 
         private Address GetOwnerAddress()
