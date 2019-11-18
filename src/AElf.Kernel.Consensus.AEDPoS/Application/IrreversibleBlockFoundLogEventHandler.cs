@@ -2,7 +2,6 @@ using System;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
 using AElf.Kernel.Blockchain.Application;
-using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Sdk.CSharp;
@@ -18,7 +17,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockchainService _blockchainService;
-        private readonly ICachedBlockProvider _cachedBlockProvider;
+        private readonly IChainBlockLinkService _chainBlockLinkService;
         private readonly IForkCacheService _forkCacheService;
 
         private LogEvent _interestedEvent;
@@ -43,26 +42,24 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
         public ILogger<IrreversibleBlockFoundLogEventHandler> Logger { get; set; }
 
         public IrreversibleBlockFoundLogEventHandler(ISmartContractAddressService smartContractAddressService,
-            ITaskQueueManager taskQueueManager, IBlockchainService blockchainService, 
-            ICachedBlockProvider cachedBlockProvider, IForkCacheService forkCacheService)
+            ITaskQueueManager taskQueueManager, IBlockchainService blockchainService, IForkCacheService forkCacheService, 
+            IChainBlockLinkService chainBlockLinkService)
         {
             _smartContractAddressService = smartContractAddressService;
             _taskQueueManager = taskQueueManager;
             _blockchainService = blockchainService;
-            _cachedBlockProvider = cachedBlockProvider;
             _forkCacheService = forkCacheService;
+            _chainBlockLinkService = chainBlockLinkService;
 
             Logger = NullLogger<IrreversibleBlockFoundLogEventHandler>.Instance;
         }
 
-        public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
+        public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new IrreversibleBlockFound();
             eventData.MergeFrom(logEvent);
 
-            var _ = ProcessLogEventAsync(block, eventData);
-
-            return Task.CompletedTask;
+            await ProcessLogEventAsync(block, eventData);
         }
 
         private async Task ProcessLogEventAsync(Block block, IrreversibleBlockFound irreversibleBlockFound)
@@ -97,12 +94,12 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         private void ProcessForkCache(Chain chain, Hash irreversibleBlockHash)
         {
-            var block = _cachedBlockProvider.GetBlock(irreversibleBlockHash);
+            var link = _chainBlockLinkService.GetCachedChainBlockLink(irreversibleBlockHash);
             var lastLibHeight = chain.LastIrreversibleBlockHeight;
-            while (block != null && block.Height > lastLibHeight)
+            while (link != null && link.Height > lastLibHeight)
             {
-                _forkCacheService.SetIrreversible(block.BlockHash);
-                block = _cachedBlockProvider.GetBlock(block.PreviousBlockHash);
+                _forkCacheService.SetIrreversible(link.BlockHash);
+                link = _chainBlockLinkService.GetCachedChainBlockLink(link.PreviousBlockHash);
             }
         }
     }

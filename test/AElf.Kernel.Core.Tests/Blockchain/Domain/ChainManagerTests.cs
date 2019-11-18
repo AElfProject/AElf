@@ -62,6 +62,8 @@ namespace AElf.Kernel.Blockchain.Domain
             blockLink.PreviousBlockHash.ShouldBe(Hash.Empty);
             blockLink.IsLinked.ShouldBeTrue();
             blockLink.ExecutionStatus.ShouldBe(ChainBlockLinkExecutionStatus.ExecutionNone);
+            var cachedChainBlockLink = _chainManager.GetCachedChainBlockLink(_genesis);
+            cachedChainBlockLink.ShouldBe(blockLink);
 
             var chainBlockIndex = await _chainManager.GetChainBlockIndexAsync(Constants.GenesisBlockHeight);
             chainBlockIndex.BlockHash.ShouldBe(_genesis);

@@ -18,18 +18,21 @@ namespace AElf.Kernel
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionBlockIndexService _transactionBlockIndexService;
         private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
+        private readonly IForkCacheService _forkCacheService;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
             IBlockchainStateService blockchainStateService,
             IBlockchainService blockchainService,
             ITransactionInclusivenessProvider transactionInclusivenessProvider,
-            ITransactionBlockIndexService transactionBlockIndexService)
+            ITransactionBlockIndexService transactionBlockIndexService, 
+            IForkCacheService forkCacheService)
         {
             _taskQueueManager = taskQueueManager;
             _blockchainStateService = blockchainStateService;
             _blockchainService = blockchainService;
             _transactionBlockIndexService = transactionBlockIndexService;
+            _forkCacheService = forkCacheService;
             _transactionInclusivenessProvider = transactionInclusivenessProvider;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
@@ -54,6 +57,14 @@ namespace AElf.Kernel
                         async () => { await _blockchainService.CleanChainBranchAsync(discardedBranch); },
                         KernelConstants.UpdateChainQueueName);
                 }
+                
+                _taskQueueManager.Enqueue(
+                    async () =>
+                    {
+                        _forkCacheService.CleanCache(eventData.BlockHash, eventData.BlockHeight);
+                        await Task.CompletedTask;
+                    },
+                    KernelConstants.UpdateChainQueueName);
                 
                 // Clean transaction block index cache
                 await _transactionBlockIndexService.CleanTransactionBlockIndexCacheAsync(eventData.BlockHeight);
