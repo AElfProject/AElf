@@ -29,7 +29,7 @@ namespace AElf.Kernel.Consensus.Application
         public ConsensusService(IConsensusScheduler consensusScheduler,
             IConsensusReaderFactory readerFactory,
             ITriggerInformationProvider triggerInformationProvider,
-            IBlockTimeProvider blockTimeProvider) 
+            IBlockTimeProvider blockTimeProvider)
         {
             _readerFactory = readerFactory;
             _triggerInformationProvider = triggerInformationProvider;
@@ -94,6 +94,12 @@ namespace AElf.Kernel.Consensus.Application
             var validationResult = await _readerFactory.Create(chainContext).ValidateConsensusBeforeExecution
                 .CallAsync(new BytesValue {Value = ByteString.CopyFrom(consensusExtraData)});
 
+            if (validationResult == null)
+            {
+                Logger.LogError("Failed to execute ValidateConsensusBeforeExecution.");
+                return false;
+            }
+
             if (!validationResult.Success)
             {
                 Logger.LogError($"Consensus validating before execution failed: {validationResult.Message}");
@@ -117,6 +123,12 @@ namespace AElf.Kernel.Consensus.Application
             var validationResult = await _readerFactory.Create(chainContext).ValidateConsensusAfterExecution
                 .CallAsync(new BytesValue {Value = ByteString.CopyFrom(consensusExtraData)});
 
+            if (validationResult == null)
+            {
+                Logger.LogError("Failed to execute ValidateConsensusAfterExecution.");
+                return false;
+            }
+
             if (!validationResult.Success)
             {
                 Logger.LogError($"Consensus validating after execution failed: {validationResult.Message}");
@@ -139,7 +151,8 @@ namespace AElf.Kernel.Consensus.Application
         {
             _blockTimeProvider.SetBlockTime(_nextMiningTime);
 
-            Logger.LogTrace($"Set block time to next mining time: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}. Extra Data.");
+            Logger.LogTrace(
+                $"Set block time to next mining time: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}. Extra Data.");
 
             return (await _readerFactory.Create(chainContext).GetConsensusExtraData
                     .CallAsync(await _triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraDataAsync(
@@ -151,7 +164,8 @@ namespace AElf.Kernel.Consensus.Application
         {
             _blockTimeProvider.SetBlockTime(_nextMiningTime);
 
-            Logger.LogTrace($"Set block time to next mining time: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}. Txs.");
+            Logger.LogTrace(
+                $"Set block time to next mining time: {_nextMiningTime.ToDateTime():hh:mm:ss.ffffff}. Txs.");
 
             var generatedTransactions =
                 (await _readerFactory.Create(chainContext).GenerateConsensusTransactions
@@ -167,7 +181,7 @@ namespace AElf.Kernel.Consensus.Application
                 generatedTransaction.RefBlockPrefix =
                     ByteString.CopyFrom(chainContext.BlockHash.Value.Take(4).ToArray());
             }
-            
+
             Logger.LogTrace("Consensus transaction generated.");
 
             return generatedTransactions;

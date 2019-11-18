@@ -172,9 +172,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
-            var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
-
-            ClearResourceCache(block.TransactionIds);
+            ClearResourceCache(eventData.Block.TransactionIds);
 
             await Task.CompletedTask;
         }

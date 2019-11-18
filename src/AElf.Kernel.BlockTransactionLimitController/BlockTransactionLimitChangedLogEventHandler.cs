@@ -4,7 +4,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using AElf.Contracts.Configuration;
-using Google.Protobuf;
+using AElf.Kernel.SmartContractExecution.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;

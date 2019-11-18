@@ -4,7 +4,7 @@ using AElf.Sdk.CSharp;
 
 namespace AElf.Contracts.Consensus.AEDPoS
 {
-    public class RoundTimeSlotsValidationProvider : IHeaderInformationValidationProvider
+    public class TimeSlotValidationProvider : IHeaderInformationValidationProvider
     {
         public ValidationResult ValidateHeaderInformation(ConsensusValidationContext validationContext)
         {
@@ -12,7 +12,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // If provided round is a new round
             if (validationContext.ProvidedRound.RoundId != validationContext.BaseRound.RoundId)
             {
-                // Is round information fits time slot rule?
+                // Is new round information fits time slot rule?
                 validationResult = validationContext.ProvidedRound.CheckRoundTimeSlots();
                 if (!validationResult.Success)
                 {
@@ -37,7 +37,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         private bool CheckMinerTimeSlot(ConsensusValidationContext validationContext)
         {
             var round = validationContext.ProvidedRound;
-            var pubkey = validationContext.Pubkey;
+            var pubkey = validationContext.SenderPubkey;
 
             if (IsFirstRoundOfCurrentTerm(out _, validationContext)) return true;
             var minerInRound = round.RealTimeMinersInformation[pubkey];

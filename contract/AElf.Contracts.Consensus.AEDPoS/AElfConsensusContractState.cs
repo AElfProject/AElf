@@ -52,5 +52,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         public MappedState<long, MinerList> MinedMinerListMap { get; set; }
         public MappedState<string, MethodFees> TransactionFees { get; set; }
+
+        public SingletonState<Round> RoundBeforeLatestExecution { get; set; }
     }
 }
