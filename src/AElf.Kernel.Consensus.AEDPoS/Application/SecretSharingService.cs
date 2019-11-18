@@ -71,8 +71,18 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                     var encryptedPiece = AsyncHelper.RunSync(() =>
                         _accountService.EncryptMessageAsync(receiverPublicKey, plainMessage));
                     encryptedPieces[pubkey] = encryptedPiece;
-                    secretSharingInformation.PreviousRound.RealTimeMinersInformation[selfPubkey].EncryptedPieces[pubkey]
-                        = ByteString.CopyFrom(encryptedPiece);
+                    if (secretSharingInformation.PreviousRound.RealTimeMinersInformation.ContainsKey(selfPubkey) &&
+                        secretSharingInformation.PreviousRound.RealTimeMinersInformation[selfPubkey].EncryptedPieces
+                            .ContainsKey(pubkey))
+                    {
+                        secretSharingInformation.PreviousRound.RealTimeMinersInformation[selfPubkey]
+                                .EncryptedPieces[pubkey]
+                            = ByteString.CopyFrom(encryptedPiece);
+                    }
+                    else
+                    {
+                        continue;
+                    }
 
                     if (!secretSharingInformation.PreviousRound.RealTimeMinersInformation.ContainsKey(pubkey)) continue;
 
@@ -93,7 +103,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 _decryptedPieces[secretSharingInformation.CurrentRoundId] = decryptedPieces;
 
                 RevealPreviousInValues(secretSharingInformation, selfPubkey);
-                
+
                 Logger.LogTrace($"Final secret sharing information: {secretSharingInformation}");
 
             }
