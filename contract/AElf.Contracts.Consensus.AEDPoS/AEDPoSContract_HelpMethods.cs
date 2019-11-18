@@ -132,8 +132,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             State.Rounds.Set(round.RoundNumber, round);
 
-            if (round.RoundNumber > 1)
+            if (round.RoundNumber > 1 && !round.IsMinerListJustChanged)
             {
+                // No need to share secret pieces if miner list just changed.
+
                 Context.Fire(new SecretSharingInformation
                 {
                     CurrentRoundId = round.RoundId,
