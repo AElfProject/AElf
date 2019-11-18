@@ -1,33 +1,5 @@
 # Cross Chain Contract
 
-## Functions
-
-### Detailed Description
-
-Defines C# API  functions for cross chain contract.
-
-## Functions Documentation
-
-### function Initialize
-
-```protobuf
-rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {}
-message InitializeInput 
-{
-    int32 parent_chain_id = 1;
-    int64 creation_height_on_parent_chain = 2;
-}
-```
-
-Initialize cross-chain-contract on parent-chain
-
-**Parameters:**
-
-***InitializeInput***
-
-- **parent_chain_id** - id of parent-chain
-- **creation_height_on_parent_chain** - creation height of side-chain on parent-chain
-
 ### function ChangeOwnerAddress
 
 ```protobuf
@@ -38,10 +10,9 @@ message Address
 }
 ```
 
-Change the address of owner of cross-chain-contract
+Change the address of the owner of cross chain contract.
 
 **Parameters:**
-
 - ***Address*** - the address owner wants to change to 
 
 ### function CreateSideChain
