@@ -318,7 +318,9 @@ namespace AElf.Kernel.SmartContract.Application
                     }
                     if (!preTrace.IsSuccessful())
                     {
-                        trace.ExecutionStatus = ExecutionStatus.Prefailed;
+                        trace.ExecutionStatus = IsTransactionCanceled(preTrace)
+                            ? ExecutionStatus.Canceled
+                            : ExecutionStatus.Prefailed;
                         preTrace.SurfaceUpError();
                         trace.Error += preTrace.Error;
                         return false;
