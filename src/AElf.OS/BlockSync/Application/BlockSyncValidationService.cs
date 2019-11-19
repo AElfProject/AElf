@@ -93,6 +93,7 @@ namespace AElf.OS.BlockSync.Application
             {
                 if (!transaction.VerifyExpiration(blockWithTransactions.Height - 1))
                 {
+                    Logger.LogWarning($"Transaction {transaction.GetHash()} expired.");
                     return false;
                 }
 
@@ -114,6 +115,7 @@ namespace AElf.OS.BlockSync.Application
                     .GetHash());
                 if (!constrainedTransactionValidationResult)
                 {
+                    Logger.LogWarning($"Transaction {transaction} validation failed for constraint.");
                     return false;
                 }
             }

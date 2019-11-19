@@ -15,7 +15,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
     {
         private readonly IBlockchainService _blockchainService;
         private readonly IBlockchainExecutingService _blockchainExecutingService;
-        
+
         public ILogger<BlockAttachService> Logger { get; set; }
 
         public BlockAttachService(IBlockchainService blockchainService,
@@ -31,6 +31,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         {
             var chain = await _blockchainService.GetChainAsync();
             var status = await _blockchainService.AttachBlockToChainAsync(chain, block);
+
             await _blockchainExecutingService.ExecuteBlocksAttachedToLongestChain(chain, status);
         }
     }
