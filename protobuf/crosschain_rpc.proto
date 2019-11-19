@@ -21,9 +21,9 @@ message HandShake {
 message HandShakeReply {
     HandShakeStatus status = 1;
     enum HandShakeStatus{
-        Success = 0;
-        InvalidHandShakeRequest = 1;
-        Fatal = 2;
+        SUCCESS = 0;
+        INVALID_HANDSHAKE_REQUEST = 1;
+        FATAL = 2;
     }
 }
 
