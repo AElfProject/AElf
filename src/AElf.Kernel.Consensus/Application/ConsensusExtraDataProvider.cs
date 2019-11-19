@@ -26,12 +26,17 @@ namespace AElf.Kernel.Consensus.Application
 
             var consensusInformation = await _consensusService.GetConsensusExtraDataAsync(new ChainContext
             {
-                BlockHash = blockHeader.PreviousBlockHash, 
+                BlockHash = blockHeader.PreviousBlockHash,
                 BlockHeight = blockHeader.Height - 1
             });
 
-            Logger.LogTrace("Consensus extra data generated.");
-            return consensusInformation == null ? ByteString.Empty : ByteString.CopyFrom(consensusInformation);
+            if (consensusInformation == null)
+            {
+                return ByteString.Empty;
+            }
+
+            Logger.LogTrace($"Consensus extra data generated. Of size {consensusInformation.Length}");
+            return ByteString.CopyFrom(consensusInformation);
         }
     }
 }

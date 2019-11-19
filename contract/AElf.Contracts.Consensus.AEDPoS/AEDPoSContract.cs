@@ -98,35 +98,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new Empty();
         }
 
-        private static void PerformSecretSharing(UpdateValueInput input, MinerInRound minerInRound, Round round,
-            string publicKey)
-        {
-            minerInRound.EncryptedInValues.Add(input.EncryptedInValues);
-            foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)
-            {
-                round.RealTimeMinersInformation[decryptedPreviousInValue.Key].DecryptedPreviousInValues
-                    .Add(publicKey, decryptedPreviousInValue.Value);
-            }
-        }
-
         private void UpdatePreviousInValues(UpdateValueInput input, string publicKey, Round round)
         {
             foreach (var previousInValue in input.MinersPreviousInValues)
             {
-                if (previousInValue.Key == publicKey)
+                if (previousInValue.Key == publicKey || previousInValue.Value == null)
                 {
                     continue;
-                }
-
-                var filledValue = round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue;
-                if (filledValue != null && filledValue != previousInValue.Value)
-                {
-                    Context.LogDebug(() => $"Something wrong happened to previous in value of {previousInValue.Key}.");
-                    State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
-                    {
-                        Pubkey = publicKey,
-                        IsEvilNode = true
-                    });
                 }
 
                 round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue = previousInValue.Value;

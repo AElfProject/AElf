@@ -47,10 +47,11 @@ namespace AElf.Contracts.TestBase
             }
         }
 
-        public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
+        public Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
-            var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
-            CleanTransactions(block.Body.TransactionIds.ToList());
+            CleanTransactions(eventData.Block.Body.TransactionIds.ToList());
+            
+            return Task.CompletedTask;
         }
 
         public async Task HandleBestChainFoundAsync(BestChainFoundEventData eventData)
@@ -82,6 +83,11 @@ namespace AElf.Contracts.TestBase
         }
 
         public Task<int> GetValidatedTransactionCountAsync()
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public Task<bool> IsTransactionExistsAsync(Hash transactionId)
         {
             throw new System.NotImplementedException();
         }

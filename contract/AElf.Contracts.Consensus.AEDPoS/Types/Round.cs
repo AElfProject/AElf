@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Acs4;
-using AElf.Kernel;
 using AElf.Types;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
@@ -12,8 +11,18 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class Round
     {
-        public long RoundId =>
-            RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds).Sum();
+        public long RoundId
+        {
+            get
+            {
+                if (RealTimeMinersInformation.Values.All(bpInfo => bpInfo.ExpectedMiningTime != null))
+                {
+                    return RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds).Sum();
+                }
+
+                return RoundIdForValidation;
+            }
+        }
 
         public bool IsEmpty => RoundId == 0;
 
@@ -33,7 +42,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (miners.Any(m => m.ExpectedMiningTime == null))
             {
-                return new ValidationResult {Message = "Incorrect expected mining time."};
+                return new ValidationResult {Message = $"Incorrect expected mining time.\n{this}"};
             }
 
             var baseMiningInterval =
@@ -97,10 +106,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var firstTwoMiners = RealTimeMinersInformation.Values.Where(m => m.Order == 1 || m.Order == 2)
                 .ToList();
-            var distance =
-                (int) (firstTwoMiners[1].ExpectedMiningTime - firstTwoMiners[0].ExpectedMiningTime)
-                .Milliseconds();
-            return distance > 0 ? distance : -distance;
+
+            return Math.Abs((int) (firstTwoMiners[1].ExpectedMiningTime - firstTwoMiners[0].ExpectedMiningTime)
+                .Milliseconds());
         }
 
         public bool IsTimeSlotPassed(string publicKey, Timestamp currentBlockTime)
@@ -213,7 +221,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public bool TryToDetectEvilMiners(out List<string> evilMiners)
         {
             evilMiners = RealTimeMinersInformation.Values
-                .Where(m => m.MissedTimeSlots >= AEDPoSContractConstants.MaximumMissedBlocksCount)
+                .Where(m => m.MissedTimeSlots >= AEDPoSContractConstants.TolerableMissedTimeSlotsCount)
                 .Select(m => m.Pubkey).ToList();
             return evilMiners.Count > 0;
         }
