@@ -32,8 +32,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             switch (behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValue:
+                    TryToGetPreviousRoundInformation(out var previousRound);
                     return new ConsensusCommandProvider(new NormalBlockCommandStrategy(currentRound, pubkey,
-                        currentBlockTime)).GetConsensusCommand();
+                        currentBlockTime, previousRound.RoundId)).GetConsensusCommand();
 
                 case AElfConsensusBehaviour.NextRound:
                 case AElfConsensusBehaviour.NextTerm:
