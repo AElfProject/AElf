@@ -98,19 +98,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return new Empty();
         }
 
-        private void UpdatePreviousInValues(UpdateValueInput input, string publicKey, Round round)
-        {
-            foreach (var previousInValue in input.MinersPreviousInValues)
-            {
-                if (previousInValue.Key == publicKey || previousInValue.Value == null)
-                {
-                    continue;
-                }
-
-                round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue = previousInValue.Value;
-            }
-        }
-
         #endregion
 
         #region UpdateTinyBlockInformation

@@ -5,19 +5,19 @@ namespace AElf.Contracts.Consensus.AEDPoS
 {
     public partial class Round
     {
-        public Round ApplyNormalConsensusData(string publicKey, Hash previousInValue,
-            Hash outValue, Hash signature)
+        public Round ApplyNormalConsensusData(string pubkey, Hash previousInValue, Hash outValue, Hash signature)
         {
-            if (!RealTimeMinersInformation.ContainsKey(publicKey))
+            if (!RealTimeMinersInformation.ContainsKey(pubkey))
             {
                 return this;
             }
 
-            RealTimeMinersInformation[publicKey].OutValue = outValue;
-            RealTimeMinersInformation[publicKey].Signature = signature;
-            if (previousInValue != Hash.Empty)
+            RealTimeMinersInformation[pubkey].OutValue = outValue;
+            RealTimeMinersInformation[pubkey].Signature = signature;
+            if (RealTimeMinersInformation[pubkey].PreviousInValue == Hash.Empty ||
+                RealTimeMinersInformation[pubkey].PreviousInValue == null)
             {
-                RealTimeMinersInformation[publicKey].PreviousInValue = previousInValue;
+                RealTimeMinersInformation[pubkey].PreviousInValue = previousInValue;
             }
 
             var minersCount = RealTimeMinersInformation.Count;
@@ -46,9 +46,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 }
             }
 
-            RealTimeMinersInformation[publicKey].SupposedOrderOfNextRound = supposedOrderOfNextRound;
+            RealTimeMinersInformation[pubkey].SupposedOrderOfNextRound = supposedOrderOfNextRound;
             // Initialize FinalOrderOfNextRound as the value of SupposedOrderOfNextRound
-            RealTimeMinersInformation[publicKey].FinalOrderOfNextRound = supposedOrderOfNextRound;
+            RealTimeMinersInformation[pubkey].FinalOrderOfNextRound = supposedOrderOfNextRound;
 
             return this;
         }
