@@ -36,7 +36,7 @@ namespace AElf.CrossChain.Communication.Grpc
         [Fact]
         public async Task RequestChainInitializationData_ParentClient_Test()
         {
-            var chainId = ChainHelper.GetChainId(1);
+            var chainId = ChainHelper.GetChainId(ChainHelper.ConvertBase58ToChainId("AELF") + 1);
             await Server.StartAsync(5000);
 
             var grpcClientInitializationContext = new GrpcClientInitializationContext
@@ -55,7 +55,7 @@ namespace AElf.CrossChain.Communication.Grpc
         [Fact]
         public async Task RequestCrossChainData_Test()
         {
-            var chainId = ChainHelper.GetChainId(1);
+            var chainId = ChainHelper.GetChainId(ChainHelper.ConvertBase58ToChainId("AELF") + 1);
             var remoteChainId = ChainOptions.ChainId;
             var height = 2;
             var port = 5000;

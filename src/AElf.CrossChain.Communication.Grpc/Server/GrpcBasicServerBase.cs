@@ -19,7 +19,7 @@ namespace AElf.CrossChain.Communication.Grpc
 
             if (!UriHelper.TryParsePrefixedEndpoint(context.Peer, out IPEndPoint peerEndpoint))
                 return Task.FromResult(new HandShakeReply
-                    {Status = HandShakeReply.Types.HandShakeStatus.InvalidHandShakeRequest});
+                    {Status = HandShakeReply.Types.HandShakeStatus.InvalidHandshakeRequest});
             
             _ = PublishCrossChainRequestReceivedEvent(peerEndpoint.Address.ToString(), request.ListeningPort,
                 request.ChainId);

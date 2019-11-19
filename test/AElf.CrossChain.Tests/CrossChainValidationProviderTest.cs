@@ -55,7 +55,12 @@ namespace AElf.CrossChain
         [Fact]
         public async Task Validate_EmptyHeader_WithIndexedData_Test()
         {
-            var block = _kernelTestHelper.GenerateBlock(10, Hash.Empty);
+            var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
+            var fakeSideChainId = ChainHelper.ConvertBase58ToChainId("2112");
+            var fakeSideChainBlockData = CreateSideChainBlockData(fakeSideChainId, 1, fakeMerkleTreeRoot1);
+
+            CreateFakeCacheAndStateData(fakeSideChainId, fakeSideChainBlockData, 2);
+            var block = _kernelTestHelper.GenerateBlock(1, Hash.Empty);
             var bloom = new Bloom();
             bloom.Combine(new []{
                 GetSideChainBlockDataIndexedEventBloom(), GetParentChainBlockDataIndexedEventBloom()
