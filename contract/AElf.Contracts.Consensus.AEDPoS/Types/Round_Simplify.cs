@@ -44,7 +44,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         SupposedOrderOfNextRound = information.Value.SupposedOrderOfNextRound,
                         FinalOrderOfNextRound = information.Value.FinalOrderOfNextRound,
                         Order = information.Value.Order,
-                        IsExtraBlockProducer = information.Value.IsExtraBlockProducer
+                        IsExtraBlockProducer = information.Value.IsExtraBlockProducer,
+                        PreviousInValue = information.Value.PreviousInValue
                     });
                 }
             }
