@@ -14,48 +14,41 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     public class IrreversibleBlockFoundLogEventHandler : ILogEventHandler, ISingletonDependency
     {
+        private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITaskQueueManager _taskQueueManager;
-        private readonly IBlockchainService _blockchainService;
-
         private LogEvent _interestedEvent;
+
+        public ILogger<IrreversibleBlockFoundLogEventHandler> Logger { get; set; }
+
+        public IrreversibleBlockFoundLogEventHandler(ISmartContractAddressService smartContractAddressService,
+            IBlockchainService blockchainService, ITaskQueueManager taskQueueManager)
+        {
+            _smartContractAddressService = smartContractAddressService;
+            _blockchainService = blockchainService;
+            _taskQueueManager = taskQueueManager;
+
+            Logger = NullLogger<IrreversibleBlockFoundLogEventHandler>.Instance;
+        }
 
         public LogEvent InterestedEvent
         {
             get
             {
-                if (_interestedEvent != null)
-                    return _interestedEvent;
-
+                if (_interestedEvent != null) return _interestedEvent;
                 var address =
                     _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider
                         .Name);
-
                 _interestedEvent = new IrreversibleBlockFound().ToLogEvent(address);
-
                 return _interestedEvent;
             }
         }
 
-        public ILogger<IrreversibleBlockFoundLogEventHandler> Logger { get; set; }
-
-        public IrreversibleBlockFoundLogEventHandler(ISmartContractAddressService smartContractAddressService,
-            ITaskQueueManager taskQueueManager, IBlockchainService blockchainService)
+        public Task HandleAsync(Block block, TransactionResult result, LogEvent log)
         {
-            _smartContractAddressService = smartContractAddressService;
-            _taskQueueManager = taskQueueManager;
-            _blockchainService = blockchainService;
-
-            Logger = NullLogger<IrreversibleBlockFoundLogEventHandler>.Instance;
-        }
-
-        public Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
-        {
-            var eventData = new IrreversibleBlockFound();
-            eventData.MergeFrom(logEvent);
-
-            var _ = ProcessLogEventAsync(block, eventData);
-
+            var irreversibleBlockFound = new IrreversibleBlockFound();
+            irreversibleBlockFound.MergeFrom(log);
+            var _ = ProcessLogEventAsync(block, irreversibleBlockFound);
             return Task.CompletedTask;
         }
 
@@ -65,11 +58,15 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             {
                 var chain = await _blockchainService.GetChainAsync();
 
+                if (chain.LastIrreversibleBlockHeight >= irreversibleBlockFound.IrreversibleBlockHeight)
+                    return;
                 var libBlockHash = await _blockchainService.GetBlockHashByHeightAsync(chain,
                     irreversibleBlockFound.IrreversibleBlockHeight, block.GetHash());
+                if (libBlockHash == null) return;
                 var blockIndex = new BlockIndex(libBlockHash, irreversibleBlockFound.IrreversibleBlockHeight);
-
-                Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight}");
+                Logger.LogDebug($"About to set new lib height: {blockIndex.BlockHeight}\n" +
+                                $"Event: {irreversibleBlockFound}\n" +
+                                $"BlockIndex: {blockIndex.BlockHash} - {blockIndex.BlockHeight}");
                 _taskQueueManager.Enqueue(
                     async () =>
                     {
@@ -83,7 +80,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             }
             catch (Exception e)
             {
-                Logger.LogError("Failed to resolve IrreversibleBlockFound event.", e);
+                Logger.LogError($"Failed to resolve IrreversibleBlockFound event.\n{e.Message}\n{e.StackTrace}");
                 throw;
             }
         }

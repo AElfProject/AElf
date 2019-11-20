@@ -232,8 +232,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             foreach (var minerInRound in RealTimeMinersInformation.Clone())
             {
                 var checkableMinerInRound = minerInRound.Value.Clone();
-                checkableMinerInRound.EncryptedInValues.Clear();
-                checkableMinerInRound.DecryptedPreviousInValues.Clear();
+                checkableMinerInRound.EncryptedPieces.Clear();
+                checkableMinerInRound.DecryptedPieces.Clear();
                 checkableMinerInRound.ActualMiningTimes.Clear();
                 if (!isContainPreviousInValue)
                 {
@@ -259,8 +259,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             foreach (var minerInRound in RealTimeMinersInformation.Clone())
             {
                 var checkableMinerInRound = minerInRound.Value.Clone();
-                checkableMinerInRound.EncryptedInValues.Clear();
-                checkableMinerInRound.DecryptedPreviousInValues.Clear();
+                checkableMinerInRound.EncryptedPieces.Clear();
+                checkableMinerInRound.DecryptedPieces.Clear();
                 checkableMinerInRound.ActualMiningTimes.Clear();
                 minersInformation.Add(minerInRound.Key, checkableMinerInRound);
             }

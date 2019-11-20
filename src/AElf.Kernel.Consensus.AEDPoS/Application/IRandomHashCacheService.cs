@@ -9,9 +9,9 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
     public interface IRandomHashCacheService
     {
-        void SetRandomHash(Hash bestChainBlockHash, Hash randomHash);
+        void SetRandomHash(Hash bestChainHash, Hash randomHash);
         Hash GetRandomHash(Hash bestChainBlockHash);
-        void SetGeneratedBlockPreviousBlockInformation(Hash blockHash, long blockHeight);
+        void SetGeneratedBlockBestChainHash(Hash blockHash, long blockHeight);
         Hash GetLatestGeneratedBlockRandomHash();
     }
 
@@ -22,10 +22,12 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
 
         public ILogger<RandomHashCacheService> Logger { get; set; }
 
-        public void SetRandomHash(Hash bestChainBlockHash, Hash randomHash)
+        public void SetRandomHash(Hash bestChainHash, Hash randomHash)
         {
             _randomHashes.RemoveAll(p => !_blockHashes.Values.Contains(p.Key));
-            _randomHashes[bestChainBlockHash] = randomHash;
+            _randomHashes[bestChainHash] = randomHash;
+
+            // Following are just logs.
 
             {
                 var log = new StringBuilder("\n");
@@ -54,7 +56,7 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
             return randomHash ?? Hash.Empty;
         }
 
-        public void SetGeneratedBlockPreviousBlockInformation(Hash blockHash, long blockHeight)
+        public void SetGeneratedBlockBestChainHash(Hash blockHash, long blockHeight)
         {
             if (_blockHashes.Count > 0)
             {
