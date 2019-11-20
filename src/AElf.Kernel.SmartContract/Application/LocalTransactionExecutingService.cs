@@ -23,6 +23,7 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly List<IPreExecutionPlugin> _prePlugins;
         private readonly List<IPostExecutionPlugin> _postPlugins;
         private readonly ITransactionResultService _transactionResultService;
+        public bool IsTxExecutionTimeoutEnabled;
         public ILogger<LocalTransactionExecutingService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
@@ -36,6 +37,7 @@ namespace AElf.Kernel.SmartContract.Application
             _smartContractExecutiveService = smartContractExecutiveService;
             _prePlugins = GetUniquePrePlugins(prePlugins);
             _postPlugins = GetUniquePostPlugins(postPlugins);
+            IsTxExecutionTimeoutEnabled = false; // Disabled by default
             Logger = NullLogger<LocalTransactionExecutingService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -72,7 +74,7 @@ namespace AElf.Kernel.SmartContract.Application
                         var task = Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
                             cancellationToken), cancellationToken);
 
-                        if (cancellationToken == CancellationToken.None)
+                        if (!IsTxExecutionTimeoutEnabled || cancellationToken == CancellationToken.None)
                             trace = await task;
                         else
                             trace = await task.WithCancellation(cancellationToken,
