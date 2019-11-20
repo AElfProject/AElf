@@ -164,7 +164,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 .ExpectedMiningTime.ToDateTime()
                 .AddMilliseconds(GetMiningInterval());
         }
-        
+
         /// <summary>
         /// Maybe tune other miners' supposed order of next round,
         /// will record this purpose to their FinalOrderOfNextRound field.
@@ -185,11 +185,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 .ToDictionary(m => m.Pubkey, m => m.FinalOrderOfNextRound);
 
             var decryptedPreviousInValues = RealTimeMinersInformation.Values.Where(v =>
-                    v.Pubkey != pubkey && v.DecryptedPreviousInValues.ContainsKey(pubkey))
-                .ToDictionary(info => info.Pubkey, info => info.DecryptedPreviousInValues[pubkey]);
+                    v.Pubkey != pubkey && v.DecryptedPieces.ContainsKey(pubkey))
+                .ToDictionary(info => info.Pubkey, info => info.DecryptedPieces[pubkey]);
 
             var minersPreviousInValues =
-                RealTimeMinersInformation.Values.Where(info => info.PreviousInValue != null).ToDictionary(info => info.Pubkey,
+                RealTimeMinersInformation.Values.Where(info => info.PreviousInValue != null).ToDictionary(
+                    info => info.Pubkey,
                     info => info.PreviousInValue);
 
             return new UpdateValueInput
@@ -202,12 +203,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 ActualMiningTime = minerInRound.ActualMiningTimes.First(),
                 SupposedOrderOfNextRound = minerInRound.SupposedOrderOfNextRound,
                 TuneOrderInformation = {tuneOrderInformation},
-                EncryptedInValues = {minerInRound.EncryptedInValues},
-                DecryptedPreviousInValues = {decryptedPreviousInValues},
+                EncryptedPieces = {minerInRound.EncryptedPieces},
+                DecryptedPieces = {decryptedPreviousInValues},
                 MinersPreviousInValues = {minersPreviousInValues}
             };
         }
-        
+
         public long GetMinedBlocks()
         {
             return RealTimeMinersInformation.Values.Sum(minerInRound => minerInRound.ProducedBlocks);
@@ -250,7 +251,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             foreach (var minerInRound in RealTimeMinersInformation.Clone())
             {
                 var checkableMinerInRound = minerInRound.Value.Clone();
-                checkableMinerInRound.EncryptedInValues.Clear();
+                checkableMinerInRound.EncryptedPieces.Clear();
                 checkableMinerInRound.ActualMiningTimes.Clear();
                 if (!isContainPreviousInValue)
                 {
