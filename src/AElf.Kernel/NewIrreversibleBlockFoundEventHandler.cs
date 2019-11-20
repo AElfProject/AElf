@@ -15,15 +15,18 @@ namespace AElf.Kernel
         private readonly ITaskQueueManager _taskQueueManager;
         private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockchainService _blockchainService;
+        private readonly ISmartContractExecutiveService _smartContractExecutiveService;
         public ILogger<NewIrreversibleBlockFoundEventHandler> Logger { get; set; }
 
         public NewIrreversibleBlockFoundEventHandler(ITaskQueueManager taskQueueManager,
             IBlockchainStateService blockchainStateService,
-            IBlockchainService blockchainService)
+            IBlockchainService blockchainService,
+            ISmartContractExecutiveService smartContractExecutiveService)
         {
             _taskQueueManager = taskQueueManager;
             _blockchainStateService = blockchainStateService;
             _blockchainService = blockchainService;
+            _smartContractExecutiveService = smartContractExecutiveService;
             Logger = NullLogger<NewIrreversibleBlockFoundEventHandler>.Instance;
         }
 
@@ -47,6 +50,8 @@ namespace AElf.Kernel
                         KernelConstants.UpdateChainQueueName);
                 }
             }, KernelConstants.CleanChainBranchQueueName);
+            
+            _smartContractExecutiveService.ClearExecutive();
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Acs0;
 using AElf.Kernel.Infrastructure;
@@ -37,6 +38,9 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly IReadOnlyDictionary<Address, long> _readOnlyContractInfoCache;
 
         public ILogger<SmartContractExecutiveService> Logger { get; set; }
+        
+        private const int ExecutiveExpirationTime = 3600; // 1 Hour
+        private const int ExecutiveClearLimit = 10;
  
         public SmartContractExecutiveService(
             ISmartContractRunnerContainer smartContractRunnerContainer, IBlockchainStateManager blockchainStateManager,
@@ -122,6 +126,7 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     if (reg.CodeHash == executive.ContractHash)
                     {
+                        executive.LastUsedTime = TimestampHelper.GetUtcNow();
                         pool.Add(executive);
                         return;
                     }
@@ -199,6 +204,19 @@ namespace AElf.Kernel.SmartContract.Application
         public IReadOnlyDictionary<Address, long> GetContractInfoCache()
         {
             return _readOnlyContractInfoCache;
+        }
+
+        public void ClearExecutive()
+        {
+            foreach (var executiveBag in _executivePools.Values)
+            {
+                if (executiveBag.Count > ExecutiveClearLimit && executiveBag.Last().LastUsedTime <
+                    TimestampHelper.GetUtcNow() - TimestampHelper.DurationFromSeconds(ExecutiveExpirationTime))
+                {
+                    if (executiveBag.TryTake(out var executive))
+                        executive.Unload();
+                }
+            }
         }
 
         #region private methods

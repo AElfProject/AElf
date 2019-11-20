@@ -17,6 +17,8 @@ using AElf.Kernel.SmartContract.Sdk;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
+using Type = System.Type;
 
 namespace AElf.Runtime.CSharp
 {
@@ -37,6 +39,8 @@ namespace AElf.Runtime.CSharp
         private List<ServiceDescriptor> _descriptors;
 
         private AssemblyLoadContext _acl;
+        
+        public Timestamp LastUsedTime { get; set; }
 
         private Type FindContractType(Assembly assembly)
         {

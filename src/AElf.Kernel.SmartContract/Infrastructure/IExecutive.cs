@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel.SmartContract.Sdk;
 using AElf.Types;
 using Google.Protobuf.Reflection;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Kernel.SmartContract.Infrastructure
 {
@@ -19,6 +20,7 @@ namespace AElf.Kernel.SmartContract.Infrastructure
         IEnumerable<FileDescriptor> GetFileDescriptors();
         
         Hash ContractHash { get; }
+        Timestamp LastUsedTime { get; set; }
 
         void Unload();
     }
