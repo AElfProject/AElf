@@ -3,6 +3,7 @@
     <PropertyGroup>
         <ProtoBaseDir>..\..\protobuf</ProtoBaseDir>
         <PatcherDir>..\..\scripts\patcher</PatcherDir>
+        <PatcherProjectName>AElf.Contracts.Deployer</PatcherProjectName>
     </PropertyGroup>
 
     <ItemGroup>
@@ -56,11 +57,18 @@
             <Compile Include="Protobuf/Generated/*.cs"/>
         </ItemGroup>
     </Target>
+    <!-- Build patcher before building the contract -->
+    <Target Name="PatcherBuild" BeforeTargets="BeforeBuild">
+        <MSBuild Condition="'$(IsContract)' != '' AND '$(IsContract)'" 
+                 Projects="$(ProjectDir)/../../src/$(PatcherProjectName)/$(PatcherProjectName).csproj"/>
+    </Target>
+    <!-- Patch the contract dll after building the contract -->
     <Target Name="PatchContractCode" AfterTargets="AfterBuild">
         <Exec Condition="'$(IsContract)' != '' AND '$(IsContract)'"
               WorkingDirectory = "$(PatcherDir)"
               Command="dotnet AElf.Contracts.Deployer.dll $(TargetDir)$(TargetName).dll" />
     </Target>
+    <!-- Move dlls before codecov injection in travis -->
     <Target Name="CopyNonCodeCovContractDll" AfterTargets="PatchContractCode">
         <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)'" 
               SourceFiles="$(TargetDir)$(TargetName).dll" 
