@@ -9,6 +9,7 @@ using AElf.CSharp.Core.Utils;
 using AElf.Kernel.Token;
 using AElf.Types;
 using Google.Protobuf;
+using Shouldly;
 using Xunit;
 using SampleAddress = AElf.Contracts.TestKit.SampleAddress;
 
@@ -33,6 +34,7 @@ namespace AElf.Contracts.MultiToken
             var validateResult = await SideChainTester.GetTransactionResultAsync(validateTransaction.GetHash());
             Assert.True(validateResult.Status == TransactionResultStatus.Mined);
 
+            await BootMinerChangeRoundAsync(true);
             var merklePath =
                 await IndexSideChainTransactionAsync(validateTransaction, ParentChainHeightOfCreation, MainChainId);
             // Main chain register
@@ -53,7 +55,7 @@ namespace AElf.Contracts.MultiToken
         }
 
         #pragma warning disable xUnit1013
-        public async Task SideChain_RegisterCrossChainTokenContractAddress_Test()
+        public async Task<int> SideChain_RegisterCrossChainTokenContractAddress_Test()
         {
             var sideChainId = await InitAndCreateSideChainAsync(ParentChainHeightOfCreation, MainChainId);
             StartSideChain(sideChainId);
@@ -64,7 +66,8 @@ namespace AElf.Contracts.MultiToken
             await MainChainTester.MineAsync(new List<Transaction> {validateTransaction});
             var validateResult = await MainChainTester.GetTransactionResultAsync(validateTransaction.GetHash());
             Assert.True(validateResult.Status == TransactionResultStatus.Mined);
-
+            
+            await BootMinerChangeRoundAsync(false);
             var merklePath =
                 await IndexMainChainTransactionAsync(validateTransaction, ParentChainHeightOfCreation, MainChainId);
             //Side chain register
@@ -82,6 +85,7 @@ namespace AElf.Contracts.MultiToken
             await ApproveWithMinersOnSideChainAsync(proposalId);
             var result = await ReleaseProposalAsync(proposalId, SideParliamentAddress, "Side");
             Assert.True(result.Status == TransactionResultStatus.Mined);
+            return sideChainId;
         }
 
         [Fact]
@@ -172,6 +176,8 @@ namespace AElf.Contracts.MultiToken
             Assert.True(validateResult.Status == TransactionResultStatus.Mined);
 
             var fakeTransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot");
+            
+            await BootMinerChangeRoundAsync(false);
             var merklePath = await IndexMainChainTransactionAsync(validateTransaction, ParentChainHeightOfCreation,
                 MainChainId, fakeTransactionStatusMerkleRoot);
             var registerCrossChainTokenContractAddressInput = new RegisterCrossChainTokenContractAddressInput
@@ -191,10 +197,13 @@ namespace AElf.Contracts.MultiToken
             Assert.Contains("Cross chain verification failed.", result.Error);
         }
 
-        #pragma warning disable xUnit1013
-        public async Task SideChain_CrossChainCreateToken_Test()
+        
+        
+#pragma warning disable xUnit1013
+        
+        public async Task<int> SideChain_CrossChainCreateToken_Test()
         {
-            await SideChain_RegisterCrossChainTokenContractAddress_Test();
+            int sideChainId = await SideChain_RegisterCrossChainTokenContractAddress_Test();
             // Main chain create token
             var createTransaction = await CreateTransactionAsync(TokenContractAddress,
                 MainChainTester.GetCallOwnerAddress(), SymbolForTesting, "Main");
@@ -202,6 +211,7 @@ namespace AElf.Contracts.MultiToken
             var createResult = await MainChainTester.GetTransactionResultAsync(createTransaction.GetHash());
             Assert.True(createResult.Status == TransactionResultStatus.Mined);
 
+            await BootMinerChangeRoundAsync(false);
             var merklePath =
                 await IndexMainChainTransactionAsync(createTransaction, ParentChainHeightOfCreation + 1, MainChainId);
             var crossChainCreateTokenInput = new CrossChainCreateTokenInput
@@ -223,6 +233,7 @@ namespace AElf.Contracts.MultiToken
                     Symbol = SymbolForTesting
                 }));
             Assert.True(newTokenInfo.TotalSupply == _totalSupply);
+            return sideChainId;
         }
 
         [Fact]
@@ -236,7 +247,7 @@ namespace AElf.Contracts.MultiToken
             await SideChainTester.MineAsync(new List<Transaction> {createTransaction});
             var createResult = await SideChainTester.GetTransactionResultAsync(createTransaction.GetHash());
             Assert.True(createResult.Status == TransactionResultStatus.Mined);
-
+            
             var merklePath =
                 await IndexSideChainTransactionAsync(createTransaction, ParentChainHeightOfCreation + 1, MainChainId);
             var crossChainCreateTokenInput = new CrossChainCreateTokenInput
@@ -275,7 +286,9 @@ namespace AElf.Contracts.MultiToken
                 TransactionBytes = createTransaction.ToByteString(),
                 MerklePath = merklePath
             };
-
+            
+            //transfer some token for size fee
+            
             var result = await SideChainTester.ExecuteContractWithMiningAsync(SideTokenContractAddress,
                 nameof(TokenContractContainer.TokenContractStub.CrossChainCreateToken), crossChainCreateTokenInput);
             Assert.True(result.Status == TransactionResultStatus.Failed);
@@ -371,9 +384,8 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task MainChain_CrossChainTransfer_NativeToken_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
             // side chain register and cross chain create token
-            await SideChain_RegisterCrossChainTokenContractAddress_Test();
+            var sideChainId = await SideChain_RegisterCrossChainTokenContractAddress_Test();
             // main chain register 
             var validateTransaction = await ValidateTransactionAsync(SideBasicContractZeroAddress,
                 SideTokenContractAddress, TokenSmartContractAddressNameProvider.Name, "Side");
@@ -381,6 +393,7 @@ namespace AElf.Contracts.MultiToken
             var validateResult = await SideChainTester.GetTransactionResultAsync(validateTransaction.GetHash());
             Assert.True(validateResult.Status == TransactionResultStatus.Mined);
 
+            await BootMinerChangeRoundAsync(true);
             var merklePath =
                 await IndexSideChainTransactionAsync(validateTransaction, ParentChainHeightOfCreation, MainChainId);
             var registerCrossChainTokenContractAddressInput = new RegisterCrossChainTokenContractAddressInput
@@ -430,14 +443,21 @@ namespace AElf.Contracts.MultiToken
                 });
             var balance = GetBalanceOutput.Parser.ParseFrom(balanceResult);
             Assert.True(balance.Balance == (balanceBefore - 1000));
+
+            //verify side chain token address throw main chain token contract
+            var byteString = await MainChainTester.CallContractMethodAsync(TokenContractAddress,
+                "GetCrossChainTransferTokenContractAddress", new GetCrossChainTransferTokenContractAddressInput
+                {
+                    ChainId = sideChainId
+                });
+            var tokenAddress = Address.Parser.ParseFrom(byteString);
+            tokenAddress.ShouldBe(SideTokenContractAddress);
         }
         
         [Fact]
         public async Task MainChain_CrossChainTransfer_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
-            // side chain register and cross chain create token
-            await SideChain_CrossChainCreateToken_Test();
+            var sideChainId = await SideChain_CrossChainCreateToken_Test();
             // main chain register 
             var validateTransaction = await ValidateTransactionAsync(SideBasicContractZeroAddress,
                 SideTokenContractAddress, TokenSmartContractAddressNameProvider.Name, "Side");
@@ -445,6 +465,7 @@ namespace AElf.Contracts.MultiToken
             var validateResult = await SideChainTester.GetTransactionResultAsync(validateTransaction.GetHash());
             Assert.True(validateResult.Status == TransactionResultStatus.Mined);
 
+            await BootMinerChangeRoundAsync(true);
             var merklePath =
                 await IndexSideChainTransactionAsync(validateTransaction, ParentChainHeightOfCreation, MainChainId);
             var registerCrossChainTokenContractAddressInput = new RegisterCrossChainTokenContractAddressInput
@@ -491,14 +512,14 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task MainChain_CrossChainTransfer_IncorrectChainId_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
-            await SideChain_CrossChainCreateToken_Test();
+            var sideChainId = await SideChain_CrossChainCreateToken_Test();
             var validateTransaction = await ValidateTransactionAsync(SideBasicContractZeroAddress,
                 SideTokenContractAddress, TokenSmartContractAddressNameProvider.Name, "Side");
             await SideChainTester.MineAsync(new List<Transaction> {validateTransaction});
             var validateResult = await SideChainTester.GetTransactionResultAsync(validateTransaction.GetHash());
             Assert.True(validateResult.Status == TransactionResultStatus.Mined);
 
+            await BootMinerChangeRoundAsync(true);
             var merklePath =
                 await IndexSideChainTransactionAsync(validateTransaction, ParentChainHeightOfCreation, MainChainId);
             var registerCrossChainTokenContractAddressInput = new RegisterCrossChainTokenContractAddressInput
@@ -556,8 +577,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task MainChain_CrossChainTransfer_WithoutCrossChainCreate_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
-            await SideChain_RegisterCrossChainTokenContractAddress_Test();
+            var sideChainId = await SideChain_RegisterCrossChainTokenContractAddress_Test();
             var createTransaction = await CreateTransactionAsync(TokenContractAddress,
                 MainChainTester.GetCallOwnerAddress(), SymbolForTesting, "Main");
             await MainChainTester.MineAsync(new List<Transaction> {createTransaction});
@@ -577,6 +597,7 @@ namespace AElf.Contracts.MultiToken
             var validateResult = await SideChainTester.GetTransactionResultAsync(validateTransaction.GetHash());
             Assert.True(validateResult.Status == TransactionResultStatus.Mined);
 
+            await BootMinerChangeRoundAsync(true);
             var merklePath =
                 await IndexSideChainTransactionAsync(validateTransaction, ParentChainHeightOfCreation, MainChainId);
             var registerCrossChainTokenContractAddressInput = new RegisterCrossChainTokenContractAddressInput
@@ -612,9 +633,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task SideChain_CrossChainReceived_NativeToken_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
-            // side chain register 
-            await SideChain_RegisterCrossChainTokenContractAddress_Test();
+            var sideChainId = await SideChain_RegisterCrossChainTokenContractAddress_Test();
             // main chain register 
             var validateTransaction = await ValidateTransactionAsync(SideBasicContractZeroAddress,
                 SideTokenContractAddress, TokenSmartContractAddressNameProvider.Name, "Side");
@@ -622,6 +641,7 @@ namespace AElf.Contracts.MultiToken
             var validateResult = await SideChainTester.GetTransactionResultAsync(validateTransaction.GetHash());
             Assert.True(validateResult.Status == TransactionResultStatus.Mined);
 
+            await BootMinerChangeRoundAsync(true);
             var merklePath =
                 await IndexSideChainTransactionAsync(validateTransaction, ParentChainHeightOfCreation, MainChainId);
             var registerCrossChainTokenContractAddressInput = new RegisterCrossChainTokenContractAddressInput
@@ -653,6 +673,7 @@ namespace AElf.Contracts.MultiToken
             var txResult = await MainChainTester.GetTransactionResultAsync(crossChainTransferTransaction.GetHash());
             Assert.True(txResult.Status == TransactionResultStatus.Mined);
 
+            await BootMinerChangeRoundAsync(false);
             var transferMerKlePath = await IndexMainChainTransactionAsync(crossChainTransferTransaction,
                 ParentChainHeightOfCreation + 1, MainChainId);
             var crossChainReceiveTokenInput = new CrossChainReceiveTokenInput
@@ -678,10 +699,10 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task SideChain_CrossChainReceived_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
+            var sideChainId = await SideChain_CrossChainCreateToken_Test();
+
             var transferAmount = 900;
             // side chain register and cross chain create token
-            await SideChain_CrossChainCreateToken_Test();
             // main chain register 
             var validateTransaction = await ValidateTransactionAsync(SideBasicContractZeroAddress,
                 SideTokenContractAddress, TokenSmartContractAddressNameProvider.Name, "Side");
@@ -689,6 +710,7 @@ namespace AElf.Contracts.MultiToken
             var validateResult = await SideChainTester.GetTransactionResultAsync(validateTransaction.GetHash());
             Assert.True(validateResult.Status == TransactionResultStatus.Mined);
 
+            await BootMinerChangeRoundAsync(true);
             var merklePath =
                 await IndexSideChainTransactionAsync(validateTransaction, ParentChainHeightOfCreation, MainChainId);
             var registerCrossChainTokenContractAddressInput = new RegisterCrossChainTokenContractAddressInput
@@ -722,6 +744,7 @@ namespace AElf.Contracts.MultiToken
             Assert.True(txResult.Status == TransactionResultStatus.Mined);
 
             //Side chain receive token
+            await BootMinerChangeRoundAsync(false);
             var transferMerKlePath = await IndexMainChainTransactionAsync(crossChainTransferTransaction,
                 ParentChainHeightOfCreation + 2, MainChainId);
             var crossChainReceiveTokenInput = new CrossChainReceiveTokenInput
@@ -784,16 +807,16 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task SideChain_CrossChainReceived_Twice_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
+            var sideChainId = await SideChain_CrossChainCreateToken_Test();
             var transferAmount = 1000;
-            await SideChain_CrossChainCreateToken_Test();
-
+            
             var validateTransaction = await ValidateTransactionAsync(SideBasicContractZeroAddress,
                 SideTokenContractAddress, TokenSmartContractAddressNameProvider.Name, "Side");
             await SideChainTester.MineAsync(new List<Transaction> {validateTransaction});
             var validateResult = await SideChainTester.GetTransactionResultAsync(validateTransaction.GetHash());
             Assert.True(validateResult.Status == TransactionResultStatus.Mined);
 
+            await BootMinerChangeRoundAsync(true);
             var validateMerklePath =
                 await IndexSideChainTransactionAsync(validateTransaction, ParentChainHeightOfCreation, MainChainId);
             var registerCrossChainTokenContractAddressInput = new RegisterCrossChainTokenContractAddressInput
@@ -825,6 +848,7 @@ namespace AElf.Contracts.MultiToken
             var txResult = await MainChainTester.GetTransactionResultAsync(crossChainTransferTransaction.GetHash());
             Assert.True(txResult.Status == TransactionResultStatus.Mined);
 
+            await BootMinerChangeRoundAsync(false);
             var transferMerKlePath = await IndexMainChainTransactionAsync(crossChainTransferTransaction,
                 ParentChainHeightOfCreation + 2, MainChainId);
             var crossChainReceiveTokenInput = new CrossChainReceiveTokenInput
@@ -848,16 +872,17 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task SideChain_CrossChainReceived_InvalidToken_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
+            var sideChainId = await SideChain_CrossChainCreateToken_Test();
             var transferAmount = 1000;
             var otherSymbol = "TEST";
-            await SideChain_CrossChainCreateToken_Test();
+            
             var validateTransaction = await ValidateTransactionAsync(SideBasicContractZeroAddress,
                 SideTokenContractAddress, TokenSmartContractAddressNameProvider.Name, "Side");
             await SideChainTester.MineAsync(new List<Transaction> {validateTransaction});
             var validateResult = await SideChainTester.GetTransactionResultAsync(validateTransaction.GetHash());
             Assert.True(validateResult.Status == TransactionResultStatus.Mined);
 
+            await BootMinerChangeRoundAsync(true);
             var validateMerklePath =
                 await IndexSideChainTransactionAsync(validateTransaction, ParentChainHeightOfCreation, MainChainId);
             var registerCrossChainTokenContractAddressInput = new RegisterCrossChainTokenContractAddressInput
@@ -894,6 +919,7 @@ namespace AElf.Contracts.MultiToken
             var txResult = await MainChainTester.GetTransactionResultAsync(crossChainTransferTransaction.GetHash());
             Assert.True(txResult.Status == TransactionResultStatus.Mined);
 
+            await BootMinerChangeRoundAsync(false);
             var transferMerKlePath = await IndexMainChainTransactionAsync(crossChainTransferTransaction,
                 ParentChainHeightOfCreation + 2, MainChainId);
             var crossChainReceiveTokenInput = new CrossChainReceiveTokenInput
@@ -912,8 +938,7 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task SideChain_CrossChainReceive_WithoutCrossChainCreate_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
-            await SideChain_RegisterCrossChainTokenContractAddress_Test();
+            var sideChainId = await SideChain_RegisterCrossChainTokenContractAddress_Test();
             var createTransaction = await CreateTransactionAsync(TokenContractAddress,
                 MainChainTester.GetCallOwnerAddress(), SymbolForTesting, "Main");
             await MainChainTester.MineAsync(new List<Transaction> {createTransaction});
@@ -933,6 +958,7 @@ namespace AElf.Contracts.MultiToken
             var validateResult = await SideChainTester.GetTransactionResultAsync(validateTransaction.GetHash());
             Assert.True(validateResult.Status == TransactionResultStatus.Mined);
 
+            await BootMinerChangeRoundAsync(true);
             var merklePath =
                 await IndexSideChainTransactionAsync(validateTransaction, ParentChainHeightOfCreation, MainChainId);
             var registerCrossChainTokenContractAddressInput = new RegisterCrossChainTokenContractAddressInput
@@ -965,6 +991,7 @@ namespace AElf.Contracts.MultiToken
             Assert.True(txResult.Status == TransactionResultStatus.Mined);
             
             //Side chain receive token
+            await BootMinerChangeRoundAsync(false);
             var transferMerKlePath = await IndexMainChainTransactionAsync(crossChainTransferTransaction,
                 ParentChainHeightOfCreation + 2, MainChainId);
             var crossChainReceiveTokenInput = new CrossChainReceiveTokenInput
@@ -983,15 +1010,16 @@ namespace AElf.Contracts.MultiToken
         [Fact]
         public async Task SideChain_CrossChainReceived_WrongReceiver_Test()
         {
-            var sideChainId = ChainHelper.GetChainId(1);
+            var sideChainId = await SideChain_CrossChainCreateToken_Test();
             var transferAmount = 1000;
-            await SideChain_CrossChainCreateToken_Test();
+            
             var validateTransaction = await ValidateTransactionAsync(SideBasicContractZeroAddress,
                 SideTokenContractAddress, TokenSmartContractAddressNameProvider.Name, "Side");
             await SideChainTester.MineAsync(new List<Transaction> {validateTransaction});
             var validateResult = await SideChainTester.GetTransactionResultAsync(validateTransaction.GetHash());
             Assert.True(validateResult.Status == TransactionResultStatus.Mined);
 
+            await BootMinerChangeRoundAsync(true);
             var validateMerklePath =
                 await IndexSideChainTransactionAsync(validateTransaction, ParentChainHeightOfCreation, MainChainId);
             var registerCrossChainTokenContractAddressInput = new RegisterCrossChainTokenContractAddressInput
@@ -1023,6 +1051,7 @@ namespace AElf.Contracts.MultiToken
             var txResult = await MainChainTester.GetTransactionResultAsync(crossChainTransferTransaction.GetHash());
             Assert.True(txResult.Status == TransactionResultStatus.Mined);
 
+            await BootMinerChangeRoundAsync(false);
             var transferMerKlePath = await IndexMainChainTransactionAsync(crossChainTransferTransaction,
                 ParentChainHeightOfCreation + 2, MainChainId);
             var crossChainReceiveTokenInput = new CrossChainReceiveTokenInput
@@ -1160,9 +1189,9 @@ namespace AElf.Contracts.MultiToken
                 ParentChainBlockData = {parentChainBlockData}
             };
 
-            var indexingTx = await SideChainTester.GenerateTransactionAsync(SideCrossChainContractAddress,
-                CrossChainConstants.CrossChainIndexingMethodName, crossChainBlockData);
-            await SideChainTester.MineAsync(new List<Transaction> {indexingTx});
+            var indexingTx = await GenerateTransactionAsync(SideCrossChainContractAddress,
+                CrossChainConstants.CrossChainIndexingMethodName, null, crossChainBlockData, "Side");
+            await MineAsync(new List<Transaction> {indexingTx}, "Side");
 
             return merklePath;
         }

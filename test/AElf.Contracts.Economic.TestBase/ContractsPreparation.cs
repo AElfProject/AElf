@@ -354,11 +354,14 @@ namespace AElf.Contracts.Economic.TestBase
                     IsNativeTokenBurnable = EconomicContractsTestConstants.IsBurnable,
                     NativeTokenSymbol = EconomicContractsTestConstants.NativeTokenSymbol,
                     NativeTokenTotalSupply = EconomicContractsTestConstants.TotalSupply,
-                    MiningRewardTotalAmount = EconomicContractsTestConstants.TotalSupply / 5
+                    MiningRewardTotalAmount = EconomicContractsTestConstants.TotalSupply / 5,
                 });
                 CheckResult(result.TransactionResult);
             }
+        }
 
+        protected async Task InitialMiningRewards()
+        {
             //Issue native token to core data center keyPairs
             {
                 var result = await EconomicContractStub.IssueNativeToken.SendAsync(new IssueNativeTokenInput
@@ -518,6 +521,35 @@ namespace AElf.Contracts.Economic.TestBase
             }
         }
 
+        protected async Task ExecuteProposalTransaction(Address from, Address contract, string method, IMessage input)
+        {
+            var genesisOwner = await ParliamentAuthContractStub.GetGenesisOwnerAddress.CallAsync(new Empty());
+            var proposal = new CreateProposalInput
+            {
+                OrganizationAddress = genesisOwner,
+                ContractMethodName = method,
+                ExpiredTime = TimestampHelper.GetUtcNow().AddHours(1),
+                Params = input.ToByteString(),
+                ToAddress = contract
+            };
+            var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
+            CheckResult(createResult.TransactionResult);
+
+            var proposalHash = HashHelper.HexStringToHash(createResult.TransactionResult.ReadableReturnValue.Replace("\"", ""));
+            foreach (var bp in InitialCoreDataCenterKeyPairs)
+            {
+                var tester = GetParliamentAuthContractTester(bp);
+                var approveResult = await tester.Approve.SendAsync(new Acs3.ApproveInput
+                {
+                    ProposalId = proposalHash,
+                });
+                CheckResult(approveResult.TransactionResult);
+            }
+
+            var releaseResult = await ParliamentAuthContractStub.Release.SendAsync(proposalHash);
+            CheckResult(releaseResult.TransactionResult);
+        }
+
         #endregion
 
         #region Other Methods
@@ -544,7 +576,7 @@ namespace AElf.Contracts.Economic.TestBase
             var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
             CheckResult(createResult.TransactionResult);
 
-            var proposalHash = Hash.FromMessage(proposal);
+            var proposalHash = createResult.Output;
             foreach (var bp in InitialCoreDataCenterKeyPairs)
             {
                 var tester = GetParliamentAuthContractTester(bp);

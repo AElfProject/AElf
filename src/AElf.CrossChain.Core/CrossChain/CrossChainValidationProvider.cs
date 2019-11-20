@@ -113,7 +113,10 @@ namespace AElf.CrossChain
             Hash blockHash, long blockHeight)
         {
             if (CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored)
+            {
+                Logger.LogTrace("Disable cross chain data validation.");
                 return true;
+            }
             
             var sideChainBlockDataValidationResult =
                 await _crossChainIndexingDataService.ValidateSideChainBlockDataAsync(

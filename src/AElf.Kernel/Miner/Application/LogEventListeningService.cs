@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Types;
+using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Miner.Application
@@ -18,6 +20,8 @@ namespace AElf.Kernel.Miner.Application
             (_blooms = _eventHandlers.Select(h => h.InterestedEvent).ToDictionary(e => e, e => e.GetBloom()));
 
         private readonly List<ILogEventHandler> _eventHandlers;
+        
+        public ILogger<LogEventListeningService> Logger { get; set; }
 
         public LogEventListeningService(IBlockchainService blockchainService,
             ITransactionResultQueryService transactionResultQueryService,
@@ -28,12 +32,11 @@ namespace AElf.Kernel.Miner.Application
             _eventHandlers = eventHandlers.ToLookup(p => p.GetType()).Select(coll => coll.First()).ToList();
         }
 
-        public async Task ApplyAsync(IEnumerable<Hash> blockHashes)
+        public async Task ApplyAsync(IEnumerable<Block> blocks)
         {
-            foreach (var blockId in blockHashes)
+            Logger.LogTrace("Apply log event handler.");
+            foreach (var block in blocks)
             {
-                var block = await _blockchainService.GetBlockByHashAsync(blockId);
-
                 var blockBloom = new Bloom(block.Header.Bloom.ToByteArray());
                 if (!Blooms.Values.Any(b => b.IsIn(blockBloom)))
                 {
@@ -77,11 +80,13 @@ namespace AElf.Kernel.Miner.Application
                         {
                             if (log.Address != interestedEvent.Address || log.Name != interestedEvent.Name)
                                 continue;
-                            await handler.Handle(block, result, log);
+                            await handler.HandleAsync(block, result, log);
                         }
                     }
                 }
             }
+            
+            Logger.LogTrace("Finish apply log event handler.");
         }
     }
 }

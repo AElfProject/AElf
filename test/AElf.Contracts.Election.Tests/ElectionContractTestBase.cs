@@ -42,6 +42,7 @@ namespace AElf.Contracts.Election
             AsyncHelper.RunSync(InitializeEconomicContract);
             AsyncHelper.RunSync(InitializeToken);
             AsyncHelper.RunSync(InitializeAElfConsensus);
+            AsyncHelper.RunSync(InitialMiningRewards);
 
             MinerElectionVotingItemId = AsyncHelper.RunSync(() =>
                 ElectionContractStub.GetMinerElectionVotingItemId.CallAsync(new Empty()));

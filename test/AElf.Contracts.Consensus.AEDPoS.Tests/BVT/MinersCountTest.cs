@@ -20,7 +20,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// test:Change the number of miners when term changed
         /// </summary>
         /// <returns></returns>
-        [Fact]
+        [Fact(Skip = "Need to be refactored via testkit aedpos extension")]
         public async Task AEDPoSContract_ChangeMinersCount_Test()
         {
             const int termIntervalMin = 31536000 / 60;
@@ -36,7 +36,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 new AElfConsensusTriggerInformation
                 {
                     Pubkey = ByteString.CopyFrom(InitialCoreDataCenterKeyPairs[i].PublicKey),
-                    RandomHash = randomHashes[i]
+                    InValue = randomHashes[i]
                 }).ToDictionary(t => t.Pubkey.ToHex(), t => t);
 
             var voter = GetElectionContractTester(VoterKeyPairs[0]);
@@ -103,7 +103,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 newMinerStub = GetAEDPoSContractStub(ValidationDataCenterKeyPairs.First(o =>o.PublicKey.ToHex() == firstPubKey));
                 
                 minerCount = currentRound.RealTimeMinersInformation.Count;
-                Assert.Equal(9.Add(termCount.Mul(2)), minerCount);
+                Assert.Equal(AEDPoSContractTestConstants.SupposedMinersCount.Add(termCount.Mul(2)), minerCount);
 
                 changeTermTime = BlockchainStartTimestamp.ToDateTime()
                     .AddMinutes((termCount + 2).Mul(termIntervalMin)).AddSeconds(10);

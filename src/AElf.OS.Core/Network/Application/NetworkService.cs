@@ -25,11 +25,12 @@ namespace AElf.OS.Network.Application
         private readonly IAElfNetworkServer _networkServer;
         private readonly IKnownBlockCacheProvider _knownBlockCacheProvider;
         private readonly IBroadcastPrivilegedPubkeyListProvider _broadcastPrivilegedPubkeyListProvider;
+        private readonly IBlackListedPeerProvider _blackListedPeerProvider;
 
         public ILogger<NetworkService> Logger { get; set; }
 
         public NetworkService(IPeerPool peerPool, ITaskQueueManager taskQueueManager, IAElfNetworkServer networkServer,
-            IKnownBlockCacheProvider knownBlockCacheProvider,
+            IKnownBlockCacheProvider knownBlockCacheProvider, IBlackListedPeerProvider blackListedPeerProvider,
             IBroadcastPrivilegedPubkeyListProvider broadcastPrivilegedPubkeyListProvider)
         {
             _peerPool = peerPool;
@@ -37,6 +38,7 @@ namespace AElf.OS.Network.Application
             _networkServer = networkServer;
             _knownBlockCacheProvider = knownBlockCacheProvider;
             _broadcastPrivilegedPubkeyListProvider = broadcastPrivilegedPubkeyListProvider;
+            _blackListedPeerProvider = blackListedPeerProvider;
 
             Logger = NullLogger<NetworkService>.Instance;
         }
@@ -65,19 +67,8 @@ namespace AElf.OS.Network.Application
 
             return true;
         }
-
-        public List<PeerInfo> GetPeers()
-        {   
-            return _peerPool.GetPeers(true).Select(PeerInfoHelper.FromNetworkPeer).ToList();
-        }
-
-        public PeerInfo GetPeerByPubkey(string peerPubkey)
-        {
-            var peer = _peerPool.FindPeerByPublicKey(peerPubkey);
-            return peer == null ? null : PeerInfoHelper.FromNetworkPeer(peer);
-        }
         
-        public async Task<bool> RemovePeerByPubkeyAsync(string peerPubKey)
+        public async Task<bool> RemovePeerByPubkeyAsync(string peerPubKey, bool blacklistPeer = false)
         {
             var peer = _peerPool.FindPeerByPublicKey(peerPubKey);
             if (peer == null)
@@ -86,9 +77,26 @@ namespace AElf.OS.Network.Application
                 return false;
             }
             
+            if (blacklistPeer)
+            {
+                _blackListedPeerProvider.AddIpToBlackList(peer.RemoteEndpoint.Address);
+                Logger.LogDebug($"Blacklisted {peer.RemoteEndpoint.Address} ({peerPubKey})");
+            }
+            
             await _networkServer.DisconnectAsync(peer);
 
             return true;
+        }
+
+        public List<PeerInfo> GetPeers(bool includeFailing = true)
+        {   
+            return _peerPool.GetPeers(includeFailing).Select(PeerInfoHelper.FromNetworkPeer).ToList();
+        }
+
+        public PeerInfo GetPeerByPubkey(string peerPubkey)
+        {
+            var peer = _peerPool.FindPeerByPublicKey(peerPubkey);
+            return peer == null ? null : PeerInfoHelper.FromNetworkPeer(peer);
         }
 
         private bool IsOldBlock(BlockHeader header)
@@ -122,27 +130,34 @@ namespace AElf.OS.Network.Application
 
         public async Task BroadcastBlockWithTransactionsAsync(BlockWithTransactions blockWithTransactions)
         {
-            if (!TryAddKnownBlock(blockWithTransactions.Header))
-                return;
-
-            if (IsOldBlock(blockWithTransactions.Header))
-                return;
-            
-            var nextMinerPubkey = await GetNextMinerPubkey(blockWithTransactions.Header);
-            
-            var nextPeer = _peerPool.FindPeerByPublicKey(nextMinerPubkey);
-            if (nextPeer != null)
-                await SendBlockAsync(nextPeer, blockWithTransactions);
-
-            foreach (var peer in _peerPool.GetPeers())
+            try
             {
-                if (nextPeer != null && peer.Info.Pubkey == nextPeer.Info.Pubkey)
-                    continue;
+                if (!TryAddKnownBlock(blockWithTransactions.Header))
+                    return;
 
-                await SendBlockAsync(peer, blockWithTransactions);
+                if (IsOldBlock(blockWithTransactions.Header))
+                    return;
+
+                var nextMinerPubkey = await GetNextMinerPubkey(blockWithTransactions.Header);
+
+                var nextPeer = _peerPool.FindPeerByPublicKey(nextMinerPubkey);
+                if (nextPeer != null)
+                    await SendBlockAsync(nextPeer, blockWithTransactions);
+
+                foreach (var peer in _peerPool.GetPeers())
+                {
+                    if (nextPeer != null && peer.Info.Pubkey == nextPeer.Info.Pubkey)
+                        continue;
+
+                    await SendBlockAsync(peer, blockWithTransactions);
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError($"Error in BroadcastBlockWithTransactionsAsync. \n{e.Message}\n{e.StackTrace}");
             }
         }
-        
+
         private async Task SendBlockAsync(IPeer peer, BlockWithTransactions blockWithTransactions)
         {
             try

@@ -1,6 +1,6 @@
 using System;
-using System.Security.Cryptography;
 using System.Text;
+using AElf.Cryptography.Exceptions;
 using AElf.Types;
 using Xunit;
 using Shouldly;
@@ -21,7 +21,7 @@ namespace AElf.Cryptography.Tests
             //invalid key length
             var bytes = new byte[30];
             new Random().NextBytes(bytes);
-            Assert.Throws<ArgumentException>(() => CryptoHelper.FromPrivateKey(bytes));
+            Assert.Throws<InvalidPrivateKeyException>(() => CryptoHelper.FromPrivateKey(bytes));
         }
 
         [Fact]
@@ -71,7 +71,7 @@ namespace AElf.Cryptography.Tests
         [Fact]
         public void FromPrivateKey_BadPrivateKey_ShouldThrowException()
         {
-            Assert.Throws<InvalidOperationException>(() => CryptoHelper.FromPrivateKey(new byte[32]));
+            Assert.Throws<InvalidPrivateKeyException>(() => CryptoHelper.FromPrivateKey(new byte[32]));
         }
         
         [Fact]
@@ -118,7 +118,7 @@ namespace AElf.Cryptography.Tests
         [Fact]
         public void Ecdh_BadArgument_ShouldThrowException()
         {
-            Assert.Throws<InvalidOperationException>(() => CryptoHelper.Ecdh(new byte[32], new byte[33]));
+            Assert.Throws<PublicKeyOperationException>(() => CryptoHelper.Ecdh(new byte[32], new byte[33]));
         }
     }
 }

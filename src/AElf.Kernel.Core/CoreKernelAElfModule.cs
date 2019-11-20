@@ -10,6 +10,7 @@ using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel
 {
@@ -35,7 +36,6 @@ namespace AElf.Kernel
             services.AddStoreKeyPrefixProvide<Transaction>("tx");
             services.AddStoreKeyPrefixProvide<TransactionBlockIndex>("ti");
             services.AddStoreKeyPrefixProvide<TransactionResult>("tr");
-            services.AddStoreKeyPrefixProvide<TransactionReceipt>("tc");
             services.AddStoreKeyPrefixProvide<VersionedState>("vs");
             
 
@@ -49,8 +49,11 @@ namespace AElf.Kernel
             services.AddSingleton<ITransactionInclusivenessProvider, TransactionInclusivenessProvider>();
         }
 
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
+            var transactionBlockIndexService =
+                context.ServiceProvider.GetRequiredService<ITransactionBlockIndexService>();
+            AsyncHelper.RunSync(transactionBlockIndexService.InitializeTransactionBlockIndexCacheAsync);
         }
     }
 

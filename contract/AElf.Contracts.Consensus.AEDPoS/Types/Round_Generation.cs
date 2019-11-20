@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Sdk.CSharp;
@@ -9,9 +8,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
     public partial class Round
     {
         public bool GenerateNextRoundInformation(Timestamp currentBlockTimestamp, Timestamp blockchainStartTimestamp,
-            out Round nextRound)
+            out Round nextRound, bool isMinerListChanged = false)
         {
-            nextRound = new Round();
+            nextRound = new Round {IsMinerListJustChanged = isMinerListChanged};
 
             var minersMinedCurrentRound = GetMinedMiners();
             var minersNotMinedCurrentRound = GetNotMinedMiners();
@@ -50,7 +49,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     ExpectedMiningTime = currentBlockTimestamp
                         .AddMilliseconds(miningInterval.Mul(order)),
                     ProducedBlocks = minerInRound.ProducedBlocks,
-                    MissedTimeSlots = minerInRound.MissedTimeSlots + 1
+                    // Update missed time slots count of one miner.
+                    MissedTimeSlots = minerInRound.MissedTimeSlots.Add(1)
                 };
             }
 
@@ -95,7 +95,13 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             // Last miner of next round != Extra block producer of next round
-            var lastMinerOfNextRound = nextRound.RealTimeMinersInformation.Values.First(i => i.Order == minersCount);
+            var lastMinerOfNextRound =
+                nextRound.RealTimeMinersInformation.Values.FirstOrDefault(i => i.Order == minersCount);
+            if (lastMinerOfNextRound == null)
+            {
+                return;
+            }
+
             var extraBlockProducerOfNextRound = nextRound.GetExtraBlockProducerInformation();
             if (lastMinerOfNextRound.Pubkey == extraBlockProducerOfNextRound.Pubkey)
             {

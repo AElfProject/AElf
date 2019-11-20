@@ -29,17 +29,20 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var blockchainStartTimestamp = GetBlockchainStartTimestamp();
 
             var behaviour = IsMainChain
-                ? new MainChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey, GetMaximumBlocksCount(),
+                ? new MainChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey,
+                        GetMaximumBlocksCount(),
                         Context.CurrentBlockTime, blockchainStartTimestamp, State.TimeEachTerm.Value)
                     .GetConsensusBehaviour()
-                : new SideChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey, GetMaximumBlocksCount(),
+                : new SideChainConsensusBehaviourProvider(currentRound, _processingBlockMinerPubkey,
+                    GetMaximumBlocksCount(),
                     Context.CurrentBlockTime).GetConsensusBehaviour();
 
-            Context.LogDebug(() => $"{currentRound.ToString(_processingBlockMinerPubkey)}\nArranged behaviour: {behaviour.ToString()}");
+            Context.LogDebug(() =>
+                $"{currentRound.ToString(_processingBlockMinerPubkey)}\nArranged behaviour: {behaviour.ToString()}");
 
             return behaviour == AElfConsensusBehaviour.Nothing
                 ? ConsensusCommandProvider.InvalidConsensusCommand
-                : GetConsensusCommand(behaviour, currentRound, _processingBlockMinerPubkey);
+                : GetConsensusCommand(behaviour, currentRound, _processingBlockMinerPubkey, Context.CurrentBlockTime);
         }
 
         public override BytesValue GetConsensusExtraData(BytesValue input)
@@ -58,11 +61,61 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var pubkey = triggerInformation.Pubkey;
             var consensusInformation = new AElfConsensusHeaderInformation();
             consensusInformation.MergeFrom(GetConsensusBlockExtraData(input, true).Value);
+            var transactionList = GenerateTransactionListByExtraData(consensusInformation, pubkey);
+            return transactionList;
+        }
+
+        public override ValidationResult ValidateConsensusBeforeExecution(BytesValue input)
+        {
+            var extraData = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Value.ToByteArray());
+            return ValidateBeforeExecution(extraData);
+        }
+
+        public override ValidationResult ValidateConsensusAfterExecution(BytesValue input)
+        {
+            var headerInformation = new AElfConsensusHeaderInformation();
+            headerInformation.MergeFrom(input.Value);
+            if (TryToGetCurrentRoundInformation(out var currentRound))
+            {
+                if (headerInformation.Behaviour == AElfConsensusBehaviour.UpdateValue)
+                {
+                    headerInformation.Round =
+                        currentRound.RecoverFromUpdateValue(headerInformation.Round,
+                            headerInformation.SenderPubkey.ToHex());
+                }
+
+                if (headerInformation.Behaviour == AElfConsensusBehaviour.TinyBlock)
+                {
+                    headerInformation.Round =
+                        currentRound.RecoverFromTinyBlock(headerInformation.Round,
+                            headerInformation.SenderPubkey.ToHex());
+                }
+
+                var isContainPreviousInValue = !currentRound.IsMinerListJustChanged;
+                if (headerInformation.Round.GetHash(isContainPreviousInValue) !=
+                    currentRound.GetHash(isContainPreviousInValue))
+                {
+                    Context.LogDebug(() => $"Round information of block header:\n{headerInformation.Round}");
+                    Context.LogDebug(() => $"Round information of executing result:\n{currentRound}");
+                    return new ValidationResult
+                    {
+                        Success = false, Message = "Current round information is different with consensus extra data."
+                    };
+                }
+            }
+
+            return new ValidationResult {Success = true};
+        }
+
+        private TransactionList GenerateTransactionListByExtraData(AElfConsensusHeaderInformation consensusInformation,
+            ByteString pubkey)
+        {
             var round = consensusInformation.Round;
             var behaviour = consensusInformation.Behaviour;
             switch (behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValue:
+                    Context.LogDebug(() => $"Previous in value in extra data:{round.RealTimeMinersInformation[pubkey.ToHex()].PreviousInValue}");
                     return new TransactionList
                     {
                         Transactions =
@@ -82,7 +135,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                                 {
                                     ActualMiningTime = minerInRound.ActualMiningTimes.Last(),
                                     ProducedBlocks = minerInRound.ProducedBlocks,
-                                    RoundId = round.RoundId
+                                    RoundId = round.RoundIdForValidation
                                 })
                         }
                     };
@@ -103,35 +156,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         }
                     };
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    return new TransactionList();
             }
-        }
-
-        public override ValidationResult ValidateConsensusBeforeExecution(BytesValue input)
-        {
-            var extraData = AElfConsensusHeaderInformation.Parser.ParseFrom(input.Value.ToByteArray());
-            return ValidateBeforeExecution(extraData);
-        }
-
-        public override ValidationResult ValidateConsensusAfterExecution(BytesValue input1)
-        {
-            var input = new AElfConsensusHeaderInformation();
-            input.MergeFrom(input1.Value);
-            if (TryToGetCurrentRoundInformation(out var currentRound))
-            {
-                var isContainPreviousInValue = !currentRound.IsMinerListJustChanged;
-                if (input.Round.GetHash(isContainPreviousInValue) != currentRound.GetHash(isContainPreviousInValue))
-                {
-                    Context.LogDebug(() => $"Round information of block header:\n{input.Round}");
-                    Context.LogDebug(() => $"Round information of executing result:\n{currentRound}");
-                    return new ValidationResult
-                    {
-                        Success = false, Message = "Current round information is different with consensus extra data."
-                    };
-                }
-            }
-
-            return new ValidationResult {Success = true};
         }
     }
 }

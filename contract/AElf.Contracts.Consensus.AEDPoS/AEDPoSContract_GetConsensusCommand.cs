@@ -16,24 +16,25 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <param name="behaviour"></param>
         /// <param name="currentRound"></param>
         /// <param name="pubkey"></param>
+        /// <param name="currentBlockTime"></param>
         /// <returns></returns>
         private ConsensusCommand GetConsensusCommand(AElfConsensusBehaviour behaviour, Round currentRound,
-            string pubkey)
+            string pubkey, Timestamp currentBlockTime = null)
         {
             if (SolitaryMinerDetection(currentRound, pubkey))
                 return ConsensusCommandProvider.InvalidConsensusCommand;
-
-            var currentBlockTime = Context.CurrentBlockTime;
 
             if (currentRound.RoundNumber == 1 && behaviour != AElfConsensusBehaviour.TinyBlock)
                 return new ConsensusCommandProvider(new FirstRoundCommandStrategy(currentRound, pubkey,
                     currentBlockTime, behaviour)).GetConsensusCommand();
 
+            Context.LogDebug(() => $"Params to get command: {behaviour}, {pubkey}, {currentBlockTime}");
             switch (behaviour)
             {
                 case AElfConsensusBehaviour.UpdateValue:
+                    TryToGetPreviousRoundInformation(out var previousRound);
                     return new ConsensusCommandProvider(new NormalBlockCommandStrategy(currentRound, pubkey,
-                        currentBlockTime)).GetConsensusCommand();
+                        currentBlockTime, previousRound.RoundId)).GetConsensusCommand();
 
                 case AElfConsensusBehaviour.NextRound:
                 case AElfConsensusBehaviour.NextTerm:
@@ -75,8 +76,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 // Not single node.
 
+                var minedMinersOfCurrentRound = currentRound.GetMinedMiners();
+                isAlone = minedMinersOfCurrentRound.Count == 0;
+
                 // If only this node mined during previous round, stop mining.
-                if (TryToGetPreviousRoundInformation(out var previousRound))
+                if (TryToGetPreviousRoundInformation(out var previousRound) && isAlone)
                 {
                     var minedMiners = previousRound.GetMinedMiners();
                     isAlone = minedMiners.Count == 1 &&

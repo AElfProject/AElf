@@ -6,7 +6,6 @@ using AElf.CSharp.Core;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
-using Google.Protobuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.EventBus.Local;
@@ -47,21 +46,7 @@ namespace AElf.Kernel.SmartContract.Application
                 {
                     var transactionExecutingResult =
                         await _transactionResultQueryService.GetTransactionResultAsync(transactionId);
-                    if (transactionExecutingResult == null)
-                    {
-                        Logger.LogTrace($"Transaction result is null, transactionId: {transactionId}");
-                        continue;
-                    }
-
-                    if (transactionExecutingResult.Status == TransactionResultStatus.Failed)
-                    {
-                        Logger.LogTrace(
-                            $"Transaction failed, transactionId: {transactionId}, error: {transactionExecutingResult.Error}");
-                        continue;
-                    }
-
-                    if (transactionExecutingResult.Bloom.Length == 0 ||
-                        !_bloom.IsIn(new Bloom(transactionExecutingResult.Bloom.ToByteArray())))
+                    if (!CheckTransactionExecutingResult(transactionExecutingResult, transactionId))
                     {
                         continue;
                     }
@@ -85,7 +70,7 @@ namespace AElf.Kernel.SmartContract.Application
                     }
                 }
 
-                Logger.LogTrace($"Event of type {typeof(T).FullName} found. {messages.FirstOrDefault()}");
+                Logger.LogTrace($"Event of type {typeof(T).FullName} found.");
 
                 return messages;
             }
@@ -106,6 +91,30 @@ namespace AElf.Kernel.SmartContract.Application
 
             _logEvent = new T().ToLogEvent(contractAddress);
             _bloom = _logEvent.GetBloom();
+        }
+
+        private bool CheckTransactionExecutingResult(TransactionResult transactionExecutingResult, Hash transactionId)
+        {
+            if (transactionExecutingResult == null)
+            {
+                Logger.LogTrace($"Transaction result is null, transactionId: {transactionId}");
+                return false;
+            }
+
+            if (transactionExecutingResult.Status == TransactionResultStatus.Failed)
+            {
+                Logger.LogTrace(
+                    $"Transaction failed, transactionId: {transactionId}, error: {transactionExecutingResult.Error}");
+                return false;
+            }
+
+            if (transactionExecutingResult.Bloom.Length == 0 ||
+                !_bloom.IsIn(new Bloom(transactionExecutingResult.Bloom.ToByteArray())))
+            {
+                return false;
+            }
+
+            return true;
         }
     }
 }

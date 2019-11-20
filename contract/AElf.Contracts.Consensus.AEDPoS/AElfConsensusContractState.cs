@@ -51,6 +51,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public SingletonState<LatestProviderToTinyBlocksCount> LatestProviderToTinyBlocksCount { get; set; }
 
         public MappedState<long, MinerList> MinedMinerListMap { get; set; }
-        public MappedState<string, TokenAmounts> TransactionFees { get; set; }
+        public MappedState<string, MethodFees> TransactionFees { get; set; }
+
+        public SingletonState<Round> RoundBeforeLatestExecution { get; set; }
     }
 }

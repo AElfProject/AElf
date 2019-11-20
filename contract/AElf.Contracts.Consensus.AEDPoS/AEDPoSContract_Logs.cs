@@ -6,9 +6,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        private void LogIfPreviousMinerHasNotProduceEnoughTinyBlocks(Round currentRound, string publicKey)
+        private void LogIfPreviousMinerHasNotProduceEnoughTinyBlocks(Round currentRound, string pubkey)
         {
-            var minerInRound = currentRound.RealTimeMinersInformation[publicKey];
+            if (!currentRound.RealTimeMinersInformation.ContainsKey(pubkey))
+            {
+                return;
+            }
+
+            var minerInRound = currentRound.RealTimeMinersInformation[pubkey];
 
             var extraBlockProducerOfPreviousRound = currentRound.ExtraBlockProducerOfPreviousRound;
 
@@ -19,6 +24,10 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             if (minerInRound.Order < 2)
             {
+                if (!currentRound.RealTimeMinersInformation.ContainsKey(extraBlockProducerOfPreviousRound))
+                {
+                    return;
+                }
                 var extraBlockProducerTinyBlocks = currentRound
                     .RealTimeMinersInformation[extraBlockProducerOfPreviousRound].ProducedTinyBlocks;
                 if (extraBlockProducerTinyBlocks < AEDPoSContractConstants.MaximumTinyBlocksCount)

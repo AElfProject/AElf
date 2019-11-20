@@ -2,6 +2,7 @@
 using System.Linq;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
+using AElf.Sdk.CSharp.State;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 
@@ -37,11 +38,7 @@ namespace AElf.Contracts.Profit
         /// <returns></returns>
         public override Hash CreateScheme(CreateSchemeInput input)
         {
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
+            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
 
             if (input.ProfitReceivingDuePeriodCount == 0)
             {
@@ -57,17 +54,7 @@ namespace AElf.Contracts.Profit
                 schemeId = Hash.FromTwoHashes(schemeId, createdSchemeIds.Last());
             }
 
-            var scheme = new Scheme
-            {
-                SchemeId = schemeId,
-                // The address of general ledger for current profit item.
-                VirtualAddress = Context.ConvertVirtualAddressToContractAddress(schemeId),
-                Manager = input.Manager == null ? Context.Sender : input.Manager,
-                ProfitReceivingDuePeriodCount = input.ProfitReceivingDuePeriodCount,
-                CurrentPeriod = 1,
-                IsReleaseAllBalanceEveryTimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault,
-                DelayDistributePeriodCount = input.DelayDistributePeriodCount
-            };
+            var scheme = GetNewScheme(input, schemeId);
             State.SchemeInfos[schemeId] = scheme;
 
             var schemeIds = State.ManagingSchemeIds[scheme.Manager];
@@ -169,9 +156,7 @@ namespace AElf.Contracts.Profit
 
         public override Empty AddBeneficiary(AddBeneficiaryInput input)
         {
-            Assert(input.SchemeId != null, "Invalid scheme id.");
-            Assert(input.BeneficiaryShare?.Beneficiary != null, "Invalid beneficiary address.");
-            Assert(input.BeneficiaryShare?.Shares >= 0, "Invalid share.");
+            AssertValidInput(input);
             if (input.BeneficiaryShare == null) return new Empty();
 
             if (input.EndPeriod == 0)
@@ -231,6 +216,13 @@ namespace AElf.Contracts.Profit
                 $"Added {input.BeneficiaryShare.Shares} weights to scheme {input.SchemeId.ToHex()}: {profitDetail}");
 
             return new Empty();
+        }
+
+        private void AssertValidInput(AddBeneficiaryInput input)
+        {
+            Assert(input.SchemeId != null, "Invalid scheme id.");
+            Assert(input.BeneficiaryShare?.Beneficiary != null, "Invalid beneficiary address.");
+            Assert(input.BeneficiaryShare?.Shares >= 0, "Invalid share.");
         }
 
         public override Empty RemoveBeneficiary(RemoveBeneficiaryInput input)
@@ -328,11 +320,7 @@ namespace AElf.Contracts.Profit
 
             Assert(Context.Sender == scheme.Manager, "Only manager can distribute profits.");
 
-            if (State.TokenContract.Value == null)
-            {
-                State.TokenContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.TokenContractSystemName);
-            }
+            ValidateContractState(State.TokenContract, SmartContractConstants.TokenContractSystemName);
 
             var balance = State.TokenContract.GetBalance.Call(new GetBalanceInput
             {
@@ -567,6 +555,7 @@ namespace AElf.Contracts.Profit
         public override Empty ContributeProfits(ContributeProfitsInput input)
         {
             Assert(input.Symbol != null && input.Symbol.Any(), "Invalid token symbol.");
+            Assert(input.Amount > 0, "Amount need to greater than 0.");
             if (input.Symbol == null) return new Empty(); // Just to avoid IDE warning.
 
             var scheme = State.SchemeInfos[input.SchemeId];
@@ -753,6 +742,30 @@ namespace AElf.Contracts.Profit
             profitDetail.LastProfitPeriod = lastProfitPeriod;
 
             return totalAmount;
+        }
+        
+        private void ValidateContractState(ContractReferenceState state, Hash contractSystemName)
+        {
+            if (state.Value != null)
+                return;
+            state.Value = Context.GetContractAddressByName(contractSystemName);
+        }
+        
+        private Scheme GetNewScheme(CreateSchemeInput input, Hash schemeId)
+        {
+            var scheme = new Scheme
+            {
+                SchemeId = schemeId,
+                // The address of general ledger for current profit item.
+                VirtualAddress = Context.ConvertVirtualAddressToContractAddress(schemeId),
+                Manager = input.Manager == null ? Context.Sender : input.Manager,
+                ProfitReceivingDuePeriodCount = input.ProfitReceivingDuePeriodCount,
+                CurrentPeriod = 1,
+                IsReleaseAllBalanceEveryTimeByDefault = input.IsReleaseAllBalanceEveryTimeByDefault,
+                DelayDistributePeriodCount = input.DelayDistributePeriodCount
+            };
+
+            return scheme;
         }
     }
 }

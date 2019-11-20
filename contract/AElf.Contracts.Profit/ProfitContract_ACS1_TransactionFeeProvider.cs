@@ -6,39 +6,42 @@ namespace AElf.Contracts.Profit
 {
     public partial class ProfitContract
     {
-        public override TokenAmounts GetMethodFee(MethodName input)
+        public override MethodFees GetMethodFee(StringValue input)
         {
-            var tokenAmounts = State.TransactionFees[input.Name];
-            if (tokenAmounts != null)
+            var methodFees = State.TransactionFees[input.Value];
+            if (methodFees != null)
             {
-                return tokenAmounts;
+                return methodFees;
             }
 
-            switch (input.Name)
+            switch (input.Value)
             {
                 case nameof(CreateScheme):
-                    return new TokenAmounts
+                    return new MethodFees
                     {
-                        Amounts = {new TokenAmount {Symbol = Context.Variables.NativeSymbol, Amount = 10_00000000}}
+                        Fees =
+                        {
+                            new MethodFee {Symbol = Context.Variables.NativeSymbol, BasicFee = 10_00000000}
+                        }
                     };
                 default:
-                    return new TokenAmounts
+                    return new MethodFees
                     {
-                        Amounts = {new TokenAmount {Symbol = Context.Variables.NativeSymbol, Amount = 1_00000000}}
+                        Fees =
+                        {
+                            new MethodFee {Symbol = Context.Variables.NativeSymbol, BasicFee = 1_00000000}
+                        }
                     };
             }
         }
 
-        public override Empty SetMethodFee(TokenAmounts input)
+        public override Empty SetMethodFee(MethodFees input)
         {
-            if (State.ParliamentAuthContract.Value == null)
-            {
-                State.ParliamentAuthContract.Value =
-                    Context.GetContractAddressByName(SmartContractConstants.ParliamentAuthContractSystemName);
-            }
+            ValidateContractState(State.ParliamentAuthContract, SmartContractConstants.ParliamentAuthContractSystemName);
 
             Assert(Context.Sender == State.ParliamentAuthContract.GetGenesisOwnerAddress.Call(new Empty()));
-            State.TransactionFees[input.Method] = input;
+            Assert(input.Fees.Count <= ProfitContractConstants.TokenAmountLimit, "Invalid input.");
+            State.TransactionFees[input.MethodName] = input;
 
             return new Empty();
         }

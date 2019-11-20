@@ -40,7 +40,7 @@ namespace AElf.Contracts.Election
             await tokenTester.Transfer.SendAsync(new TransferInput
             {
                 Symbol = ElectionContractTestConstants.NativeTokenSymbol,
-                Amount = balance - 100,
+                Amount = balance / 2,
                 To = Address.FromPublicKey(VoterKeyPairs[1].PublicKey),
                 Memo = "transfer token to other"
             });
@@ -203,14 +203,14 @@ namespace AElf.Contracts.Election
 
             foreach (var votedFullNodeKeyPair in ValidationDataCenterKeyPairs.Take(EconomicContractsTestConstants.InitialCoreDataCenterCount - 1))
             {
-                var votes = await ElectionContractStub.GetCandidateVote.CallAsync(new StringInput
+                var votes = await ElectionContractStub.GetCandidateVote.CallAsync(new StringValue
                     {Value = votedFullNodeKeyPair.PublicKey.ToHex()});
                 votes.ObtainedActiveVotedVotesAmount.ShouldBe(amount);
             }
 
             foreach (var votedFullNodeKeyPair in ValidationDataCenterKeyPairs.Skip(EconomicContractsTestConstants.InitialCoreDataCenterCount - 1))
             {
-                var votes = await ElectionContractStub.GetCandidateVote.CallAsync(new StringInput
+                var votes = await ElectionContractStub.GetCandidateVote.CallAsync(new StringValue
                     {Value = votedFullNodeKeyPair.PublicKey.ToHex()});
                 votes.ObtainedActiveVotedVotesAmount.ShouldBe(0);
             }

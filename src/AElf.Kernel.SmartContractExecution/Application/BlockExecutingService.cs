@@ -85,6 +85,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         private async Task<Block> FillBlockAfterExecutionAsync(BlockHeader blockHeader, List<Transaction> transactions,
             List<ExecutionReturnSet> blockExecutionReturnSet)
         {
+            Logger.LogTrace("Start block field filling after execution.");
             var bloom = new Bloom();
             var blockStateSet = new BlockStateSet
             {
@@ -132,13 +133,16 @@ namespace AElf.Kernel.SmartContractExecution.Application
                 Body = blockBody
             };
             blockStateSet.BlockHash = blockHash;
+            Logger.LogTrace("Set block state set.");
+
             await _blockchainStateService.SetBlockStateSetAsync(blockStateSet);
-            //Logger.LogTrace($"BlockStateSet: {blockStateSet}");
+            Logger.LogTrace("Finish block field filling after execution.");
             return block;
         }
 
         private Hash CalculateWorldStateMerkleTreeRoot(BlockStateSet blockStateSet)
         {
+            Logger.LogTrace("Start world state calculation.");
             Hash merkleTreeRootOfWorldState;
             var byteArrays = GetDeterministicByteArrays(blockStateSet);
             using (var hashAlgorithm = SHA256.Create())
@@ -174,6 +178,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
         
         private Hash CalculateTransactionStatusMerkleTreeRoot(List<ExecutionReturnSet> blockExecutionReturnSet)
         {
+            Logger.LogTrace("Start transaction status merkle tree root calculation.");
             var executionReturnSet = blockExecutionReturnSet.Select(executionReturn =>
                 (executionReturn.TransactionId, executionReturn.Status));
             var nodes = new List<Hash>();
@@ -187,6 +192,7 @@ namespace AElf.Kernel.SmartContractExecution.Application
 
         private Hash CalculateTransactionMerkleTreeRoot(IEnumerable<Hash> transactionIds)
         {
+            Logger.LogTrace("Start transaction merkle tree root calculation.");
             return BinaryMerkleTree.FromLeafNodes(transactionIds).Root;
         }
         

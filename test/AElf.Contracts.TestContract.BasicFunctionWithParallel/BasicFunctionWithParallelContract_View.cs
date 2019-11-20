@@ -45,7 +45,7 @@ namespace AElf.Contracts.TestContract.BasicFunctionWithParallel
             return new TwoUserMoneyOut
             {
                 FirstInt64Value = State.WinerHistory[input.First],
-                SecondInt64Value = State.WinerHistory[input.First]
+                SecondInt64Value = State.WinerHistory[input.Second]
             };
         }
 

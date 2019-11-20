@@ -1,7 +1,5 @@
-using System;
 using AElf.Sdk.CSharp;
 using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.Runtime.CSharp.Tests.TestContract
 {

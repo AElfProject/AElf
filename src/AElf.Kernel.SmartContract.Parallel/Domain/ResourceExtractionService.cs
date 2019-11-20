@@ -113,9 +113,16 @@ namespace AElf.Kernel.SmartContract.Parallel
             }
         }
 
-        public void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds)
+        public void ClearConflictingTransactionsResourceCache(IEnumerable<Hash> transactionIds,IEnumerable<Address> contractAddresses)
         {
             ClearResourceCache(transactionIds);
+            var keys = _resourceCache.Where(c =>
+                contractAddresses.Contains(c.Value.Address) &&
+                c.Value.ResourceInfo.ParallelType != ParallelType.NonParallelizable).Select(c => c.Key);
+            foreach (var key in keys)
+            {
+                _resourceCache[key].ResourceInfo.ParallelType = ParallelType.NonParallelizable;
+            }
         }
 
         #region Event Handler Methods
@@ -165,9 +172,7 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public async Task HandleBlockAcceptedAsync(BlockAcceptedEvent eventData)
         {
-            var block = await _blockchainService.GetBlockByHashAsync(eventData.BlockHeader.GetHash());
-
-            ClearResourceCache(block.TransactionIds);
+            ClearResourceCache(eventData.Block.TransactionIds);
 
             await Task.CompletedTask;
         }

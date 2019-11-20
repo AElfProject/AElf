@@ -7,14 +7,6 @@ This article will get you started with AElf's Boilerplate project. You will lear
 
 ## Environment
 
-#### Minimum requirement
-
-To successfully complete this tutorial you first need to install the following dependencies, please refer to your platforms installation guide:
-- Git for version control, follow [these instructions](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
-- Dotnet core sdk for building and testing, you can [download it here](https://dotnet.microsoft.com/download). 
-
-Mac users also need to [install Homebrew](https://brew.sh/).
-
 #### IDE
 
 Strictly speaking you don't need an IDE for this tutorial but it is highly recommended. If you don't already have one we recommend you try Visual Studio Code (vscode) with the C# extension:

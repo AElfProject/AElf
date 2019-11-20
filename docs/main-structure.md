@@ -1,6 +1,9 @@
 # Summary
 
 * [Tutorials](tutorials/main.md)
+    * [Environment setup](tutorials/setup.md)
+    * [Running a node](tutorials/run-node.md)
+    * [Running multiple nodes](introduction/multi-nodes.md)
     * [How to dev a DAPP](tutorials/DApp/main.md)
         * [Setup env](tutorials/DApp/setup.md)
         * [Develop smart contract](tutorials/DApp/smart-contract-helloworld.md)
@@ -9,11 +12,6 @@
         * [Use browser extension](tutorials/DApp/browser-extension.md)
     * [Enterprise development](tutorials/enterprise.md)
     * [Running on Google cloud](tutorials/GCP.md)
-* [Getting started](introduction/main.md)
-    * [Before you start](introduction/before.md)
-    * [Running a node](introduction/quickstart.md)
-    * [Running multiple nodes](introduction/multi-nodes.md)
-    * [Configuration](introduction/config.md)
     * [Command line interface](cli/cli.md)
         * [Introduction](cli/introduction.md)
         * [Commands](cli/methods.md)

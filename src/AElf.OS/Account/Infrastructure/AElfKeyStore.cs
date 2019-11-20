@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AElf.Cryptography;
 using AElf.Cryptography.ECDSA;
-using AElf.Cryptography.ECDSA.Exceptions;
+using AElf.Cryptography.Exceptions;
 using AElf.OS.Node.Application;
 using AElf.Types;
 using Volo.Abp.DependencyInjection;

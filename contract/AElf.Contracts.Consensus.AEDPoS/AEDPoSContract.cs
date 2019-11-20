@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using AElf.Contracts.Election;
 using AElf.Contracts.MultiToken;
 using AElf.Sdk.CSharp;
@@ -97,41 +96,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             ProcessConsensusInformation(input);
             return new Empty();
-        }
-
-        private static void PerformSecretSharing(UpdateValueInput input, MinerInRound minerInRound, Round round,
-            string publicKey)
-        {
-            minerInRound.EncryptedInValues.Add(input.EncryptedInValues);
-            foreach (var decryptedPreviousInValue in input.DecryptedPreviousInValues)
-            {
-                round.RealTimeMinersInformation[decryptedPreviousInValue.Key].DecryptedPreviousInValues
-                    .Add(publicKey, decryptedPreviousInValue.Value);
-            }
-        }
-
-        private void UpdatePreviousInValues(UpdateValueInput input, string publicKey, Round round)
-        {
-            foreach (var previousInValue in input.MinersPreviousInValues)
-            {
-                if (previousInValue.Key == publicKey)
-                {
-                    continue;
-                }
-
-                var filledValue = round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue;
-                if (filledValue != null && filledValue != previousInValue.Value)
-                {
-                    Context.LogDebug(() => $"Something wrong happened to previous in value of {previousInValue.Key}.");
-                    State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
-                    {
-                        Pubkey = publicKey,
-                        IsEvilNode = true
-                    });
-                }
-
-                round.RealTimeMinersInformation[previousInValue.Key].PreviousInValue = previousInValue.Value;
-            }
         }
 
         #endregion
