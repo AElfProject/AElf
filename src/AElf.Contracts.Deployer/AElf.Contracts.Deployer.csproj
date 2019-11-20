@@ -18,17 +18,11 @@
       <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-        <PatcherDlls Include="$(TargetPath)\*.*"/>
-    </ItemGroup>
-    
     <Target Name="CopyDlls" AfterTargets="AfterBuild">
+        <ItemGroup>
+            <PatcherDlls Include="$(TargetDir)\*"/>
+        </ItemGroup>
         <MakeDir Directories="$(PatcherDir)" Condition="!Exists('$(PatcherDir)')" />
         <Copy SourceFiles="@(PatcherDlls)" DestinationFolder="$(PatcherDir)" SkipUnchangedFiles="true" />
-        <ItemGroup>
-            <PatcherFiles Include="$(PatcherDir)\*" />
-        </ItemGroup>
-        <Message Importance="high" Text="Patcher DLLs:" />
-        <Message Importance="high" Text="%(PatcherFiles.FullPath)" />
     </Target>
 </Project>
