@@ -49,8 +49,8 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 var newInValue = GenerateInValue(secretSharingInformation);
                 _inValueCacheService.AddInValue(secretSharingInformation.CurrentRoundId, newInValue);
 
-                Logger.LogTrace(
-                    $"Handling sharing information: {secretSharingInformation}. New in value: {newInValue}");
+                //Logger.LogTrace(
+                    //$"Handling sharing information: {secretSharingInformation}. New in value: {newInValue}");
 
                 if (secretSharingInformation.PreviousRound.RealTimeMinersInformation.Count == 1)
                 {
