@@ -79,7 +79,7 @@ namespace AElf.Contracts.Genesis
         {
             var result = await Tester.ExecuteContractWithMiningAsync(
                 BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroBase.ProposeNewContract),
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ProposeNewContract),
                 new ContractDeploymentInput
                 {
                     Category = KernelConstants.DefaultRunnerCategory,
@@ -112,7 +112,7 @@ namespace AElf.Contracts.Genesis
         {
             var result = await Tester.ExecuteContractWithMiningAsync(
                 BasicContractZeroAddress,
-                nameof(BasicContractZeroContainer.BasicContractZeroBase.ProposeUpdateContract),
+                nameof(BasicContractZeroContainer.BasicContractZeroStub.ProposeUpdateContract),
                 new ContractUpdateInput
                 {
                     Address = BasicContractZeroAddress,
