@@ -55,8 +55,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     ? 0
                     : AEDPoSContractConstants.MaximumTinyBlocksCount.Sub(lastMinedMinerInformation.ActualMiningTimes
                         .Count);
-                var leftBlocksCount = _currentHeight
-                    .Add(leftMinersCount.Mul(AEDPoSContractConstants.MaximumTinyBlocksCount))
+                var leftBlocksCount = leftMinersCount.Mul(AEDPoSContractConstants.MaximumTinyBlocksCount)
                     .Add(leftTinyBlocks);
                 return new RandomNumberRequestInformation
                 {
