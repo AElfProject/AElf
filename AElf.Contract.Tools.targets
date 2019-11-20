@@ -66,7 +66,9 @@
     <Target Name="PatchContractCode" AfterTargets="AfterBuild">
         <Exec Condition="'$(IsContract)' != '' AND '$(IsContract)'"
               WorkingDirectory = "$(PatcherDir)"
-              Command="dotnet AElf.Contracts.Deployer.dll $(TargetDir)$(TargetName).dll" />
+              Command="dotnet AElf.Contracts.Deployer.dll $(TargetDir)$(TargetName).dll" ConsoleToMsBuild="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="OutputOfExec" />
+        </Exec>
     </Target>
     <!-- Move dlls before codecov injection in travis -->
     <Target Name="CopyNonCodeCovContractDll" AfterTargets="PatchContractCode">
