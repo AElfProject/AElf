@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <PatcherDlls Include="$(TargetDir)\*"/>
+        <PatcherDlls Include="$(TargetPath)\*.*"/>
     </ItemGroup>
     
     <Target Name="CopyDlls" AfterTargets="AfterBuild">
