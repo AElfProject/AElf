@@ -11,7 +11,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        internal class RandomNumberRequestHandler
+        private class RandomNumberRequestHandler
         {
             private readonly Round _currentRound;
             private readonly long _currentHeight;
@@ -27,7 +27,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 _currentRound = currentRound;
                 _currentHeight = currentHeight;
-                _minersCount = currentRound.RealTimeMinersInformation.Count;
+                _minersCount = currentRound.RealTimeMinersInformation.Keys.Count;
                 _minimumRequestMinersCount = _minersCount.Mul(2).Div(3).Add(1);
             }
 
@@ -67,7 +67,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        internal class RandomNumberProvider
+        private class RandomNumberProvider      
         {
             private readonly RandomNumberRequestInformation _requestInformation;
 
@@ -116,12 +116,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var tokenHash = Context.TransactionId;
             if (TryToGetCurrentRoundInformation(out var currentRound))
             {
-                var information = new RandomNumberRequestHandler(currentRound, Context.CurrentHeight)
+                var requestInformation = new RandomNumberRequestHandler(currentRound, Context.CurrentHeight)
                     .GetRandomNumberRequestInformation();
 
-                State.RandomNumberInformationMap[tokenHash] = information;
+                State.RandomNumberInformationMap[tokenHash] = requestInformation;
 
-                // For clear usage.
+                // For clearing tokens of certain round number.
                 if (State.RandomNumberTokenMap[currentRound.RoundNumber] == null)
                 {
                     State.RandomNumberTokenMap[currentRound.RoundNumber] = new HashList {Values = {tokenHash}};
@@ -134,18 +134,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Context.Fire(new RandomNumberRequestHandled
                 {
                     Requester = Context.Sender,
-                    BlockHeight = information.ExpectedBlockHeight,
+                    BlockHeight = requestInformation.ExpectedBlockHeight,
                     TokenHash = tokenHash
                 });
 
+                Context.LogDebug(() =>
+                    $"Handled a request of random number: {tokenHash}.current height: {Context.CurrentHeight}, target height: {requestInformation.ExpectedBlockHeight}");
+
                 return new RandomNumberOrder
                 {
-                    BlockHeight = information.ExpectedBlockHeight,
+                    BlockHeight = requestInformation.ExpectedBlockHeight,
                     TokenHash = tokenHash
                 };
             }
 
-            // Not possible.
+            // Impossible.
             Assert(false, "Failed to get current round information");
 
             // Won't reach here anyway.

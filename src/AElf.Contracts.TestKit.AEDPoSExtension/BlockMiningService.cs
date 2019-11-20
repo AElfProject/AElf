@@ -217,8 +217,8 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             var consensusHeaderInformation = new AElfConsensusHeaderInformation();
             consensusHeaderInformation.MergeFrom(consensusExtraData.Value);
             Debug.WriteLine($"Current header information: {consensusHeaderInformation}");
+
             // Validate consensus extra data.
-            if (consensusExtraData != null)
             {
                 var validationResult =
                     await _contractStubs.First().ValidateConsensusBeforeExecution.CallAsync(consensusExtraData);
@@ -388,7 +388,7 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
                         minerInRound.ExpectedMiningTime.AddMilliseconds(AEDPoSExtensionConstants.MiningInterval) &&
                         (minerInRound.ActualMiningTimes.Count + 1 <= maximumBlocksCount ||
                          minerInRound.Pubkey == _currentRound.ExtraBlockProducerOfPreviousRound &&
-                         minerInRound.ActualMiningTimes.Count + 1 <= maximumBlocksCount * 2))
+                         minerInRound.ActualMiningTimes.Count + 2 <= maximumBlocksCount * 2))
                     {
                         Debug.WriteLine("Normal block or tiny block.");
                         return ProperContractStub(minerInRound);
