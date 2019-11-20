@@ -298,3 +298,6 @@ coverage*.xml
 *.gz
 *.zip
 *.zlo
+
+# Contract patcher dlls
+scripts/patcher/*

@@ -2,6 +2,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ProtoBaseDir>..\..\protobuf</ProtoBaseDir>
+        <PatcherDir>..\..\scripts\patcher</PatcherDir>
     </PropertyGroup>
 
     <ItemGroup>
@@ -55,7 +56,15 @@
             <Compile Include="Protobuf/Generated/*.cs"/>
         </ItemGroup>
     </Target>
-    <Target Name="CopyNonInjectedContractDll" AfterTargets="AfterBuild">
-        <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)'" SourceFiles="$(TargetDir)$(TargetName).dll" DestinationFolder="../../test/AElf.Runtime.CSharp.Tests/contracts" />
+    <Target Name="PatchContractCode" AfterTargets="AfterBuild">
+        <Exec Condition="'$(IsContract)' != '' AND '$(IsContract)'"
+              WorkingDirectory = "$(PatcherDir)"
+              Command="dotnet AElf.Contracts.Deployer.dll $(TargetDir)$(TargetName).dll" />
+    </Target>
+    <Target Name="CopyNonCodeCovContractDll" AfterTargets="PatchContractCode">
+        <Copy Condition="'$(IsContract)' != '' AND '$(IsContract)'" 
+              SourceFiles="$(TargetDir)$(TargetName).dll" 
+              DestinationFolder="../../test/AElf.Runtime.CSharp.Tests/contracts"
+              SkipUnchangedFiles="true" />
     </Target>
 </Project>

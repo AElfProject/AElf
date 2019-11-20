@@ -26,8 +26,7 @@ namespace AElf.Contracts.Deployer
                 ? Path.Combine(contractDir, $"{dllName}.dll")
                 : Assembly.Load(dllName).Location;
 
-            return ContractPatcher.Patch(File.ReadAllBytes(dllPath));
-            //File.ReadAllBytes(dllPath);
+            return File.ReadAllBytes(dllPath);
         }
 
         private static IEnumerable<string> GetContractNames(Assembly assembly)

@@ -4,6 +4,7 @@
         <PackageId>AElf.Contracts.Deployer</PackageId>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <TargetFramework>netcoreapp3.0</TargetFramework>
+        <OutputType>Exe</OutputType>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DefineConstants>TRACE;UNIT_TEST</DefineConstants>
@@ -16,4 +17,13 @@
       <ProjectReference Include="..\AElf.Runtime.CSharp.Core\AElf.Runtime.CSharp.Core.csproj" />
       <ProjectReference Include="..\AElf.Types\AElf.Types.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+        <PatcherDlls Include="$(TargetDir)\*"/>
+    </ItemGroup>
+    
+    <Target Name="CopyDlls" AfterTargets="AfterBuild">
+        <MakeDir Directories="$(PatcherDir)" Condition="!Exists('$(PatcherDir)')" />
+        <Copy SourceFiles="@(PatcherDlls)" DestinationFolder="$(PatcherDir)" SkipUnchangedFiles="true" />
+    </Target>
 </Project>
