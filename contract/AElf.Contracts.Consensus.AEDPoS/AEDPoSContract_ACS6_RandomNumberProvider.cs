@@ -11,7 +11,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        internal class RandomNumberRequestHandler
+        private class RandomNumberRequestHandler
         {
             private readonly Round _currentRound;
             private readonly long _currentHeight;
@@ -55,8 +55,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     ? 0
                     : AEDPoSContractConstants.MaximumTinyBlocksCount.Sub(lastMinedMinerInformation.ActualMiningTimes
                         .Count);
-                var leftBlocksCount = _currentHeight
-                    .Add(leftMinersCount.Mul(AEDPoSContractConstants.MaximumTinyBlocksCount))
+                var leftBlocksCount = leftMinersCount.Mul(AEDPoSContractConstants.MaximumTinyBlocksCount)
                     .Add(leftTinyBlocks);
                 return new RandomNumberRequestInformation
                 {
@@ -67,7 +66,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        internal class RandomNumberProvider
+        private class RandomNumberProvider      
         {
             private readonly RandomNumberRequestInformation _requestInformation;
 
@@ -121,7 +120,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                 State.RandomNumberInformationMap[tokenHash] = information;
 
-                // For clear usage.
+                // For clearing tokens of certain round number.
                 if (State.RandomNumberTokenMap[currentRound.RoundNumber] == null)
                 {
                     State.RandomNumberTokenMap[currentRound.RoundNumber] = new HashList {Values = {tokenHash}};
@@ -137,6 +136,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     BlockHeight = information.ExpectedBlockHeight,
                     TokenHash = tokenHash
                 });
+
+                Context.LogDebug(() =>
+                    $"Handled a request of random number: {tokenHash}.current height: {Context.CurrentHeight}, target height: {information.ExpectedBlockHeight}");
 
                 return new RandomNumberOrder
                 {
