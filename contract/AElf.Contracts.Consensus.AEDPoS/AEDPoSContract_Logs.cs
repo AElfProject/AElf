@@ -29,7 +29,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     return;
                 }
                 var extraBlockProducerTinyBlocks = currentRound
-                    .RealTimeMinersInformation[extraBlockProducerOfPreviousRound].ProducedTinyBlocks;
+                    .RealTimeMinersInformation[extraBlockProducerOfPreviousRound].ActualMiningTimes?.Count ?? 0;
                 if (extraBlockProducerTinyBlocks < AEDPoSContractConstants.MaximumTinyBlocksCount)
                 {
                     Context.LogDebug(() =>
@@ -41,7 +41,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
             var previousMinerInRound =
                 currentRound.RealTimeMinersInformation.Values.First(m => m.Order == minerInRound.Order.Sub(1));
-            var previousTinyBlocks = previousMinerInRound.ProducedTinyBlocks;
+            var previousTinyBlocks = previousMinerInRound.ActualMiningTimes?.Count ?? 0;
             if ((extraBlockProducerOfPreviousRound == previousMinerInRound.Pubkey &&
                  previousTinyBlocks < AEDPoSContractConstants.MaximumTinyBlocksCount.Mul(2)) ||
                 (extraBlockProducerOfPreviousRound != previousMinerInRound.Pubkey &&
