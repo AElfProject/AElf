@@ -25,5 +25,10 @@
     <Target Name="CopyDlls" AfterTargets="AfterBuild">
         <MakeDir Directories="$(PatcherDir)" Condition="!Exists('$(PatcherDir)')" />
         <Copy SourceFiles="@(PatcherDlls)" DestinationFolder="$(PatcherDir)" SkipUnchangedFiles="true" />
+        <ItemGroup>
+            <PatcherFiles Include="$(PatcherDir)\*" />
+        </ItemGroup>
+        <Message Importance="high" Text="Patcher DLLs:" />
+        <Message Importance="high" Text="%(PatcherFiles.FullPath)" />
     </Target>
 </Project>
