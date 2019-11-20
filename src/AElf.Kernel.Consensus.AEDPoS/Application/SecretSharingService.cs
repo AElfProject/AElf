@@ -46,6 +46,11 @@ namespace AElf.Kernel.Consensus.AEDPoS.Application
                 var secretSharingInformation = new SecretSharingInformation();
                 secretSharingInformation.MergeFrom(logEvent);
 
+                if (secretSharingInformation.PreviousRound.RealTimeMinersInformation.Count == 1)
+                {
+                    return Task.CompletedTask;
+                }
+
                 var newInValue = GenerateInValue(secretSharingInformation);
                 _inValueCacheService.AddInValue(secretSharingInformation.CurrentRoundId, newInValue);
 

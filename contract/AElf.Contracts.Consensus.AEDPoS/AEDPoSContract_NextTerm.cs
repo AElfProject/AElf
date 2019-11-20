@@ -24,6 +24,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             {
                 input.RealTimeMinersInformation[senderPubkey].ProducedBlocks =
                     input.RealTimeMinersInformation[senderPubkey].ProducedBlocks.Add(1);
+                input.RealTimeMinersInformation[senderPubkey].ProducedTinyBlocks = 1;
             }
             else
             {

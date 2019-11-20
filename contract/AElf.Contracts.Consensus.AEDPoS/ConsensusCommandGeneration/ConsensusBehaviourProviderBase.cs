@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using AElf.Sdk.CSharp;
 using Google.Protobuf.WellKnownTypes;
@@ -57,7 +58,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
                     if (CurrentRound.ExtraBlockProducerOfPreviousRound == Pubkey &&
                         !CurrentRound.IsMinerListJustChanged &&
-                        MinerInRound.ActualMiningTimes.Count < MaximumBlocksCount.Add(blocksBeforeCurrentRound))
+                        MinerInRound.ActualMiningTimes.Count.Add(1) < MaximumBlocksCount.Add(blocksBeforeCurrentRound))
                     {
                         return AElfConsensusBehaviour.TinyBlock;
                     }
