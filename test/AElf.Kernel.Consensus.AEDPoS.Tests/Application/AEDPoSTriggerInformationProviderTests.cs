@@ -19,17 +19,17 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
         }
 
         [Fact]
-        public async Task GetTriggerInformationForBlockHeaderExtraDataAsync_NullConsensusCommand_Test()
+        public async Task GetTriggerInformationForBlockHeaderExtraData_NullConsensusCommand_Test()
         {
-            var result = await _triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraDataAsync(null);
+            var result = _triggerInformationProvider.GetTriggerInformationForBlockHeaderExtraData(null);
             var triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(result.Value);
             triggerInformation.Behaviour.ShouldBe(AElfConsensusBehaviour.UpdateValue);
         }
 
         [Fact]
-        public async Task GetTriggerInformationForConsensusTransactionsAsync_NullConsensusCommand_Test()
+        public async Task GetTriggerInformationForConsensusTransactions_NullConsensusCommand_Test()
         {
-            var result = await _triggerInformationProvider.GetTriggerInformationForConsensusTransactionsAsync(null);
+            var result = _triggerInformationProvider.GetTriggerInformationForConsensusTransactions(null);
             var triggerInformation = AElfConsensusTriggerInformation.Parser.ParseFrom(result.Value);
             triggerInformation.Behaviour.ShouldBe(AElfConsensusBehaviour.UpdateValue);
         }

@@ -51,9 +51,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Div(1000)
             });
 
-            var triggerForCommand =
-                await TriggerInformationProvider
-                    .GetTriggerInformationForBlockHeaderExtraDataAsync(consensusCommand.ToBytesValue());
+            var triggerForCommand = TriggerInformationProvider
+                    .GetTriggerInformationForBlockHeaderExtraData(consensusCommand.ToBytesValue());
 
             var extraDataBytes = await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggerForCommand);
 
@@ -75,8 +74,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             });
 
             var triggerForCommand =
-                await TriggerInformationProvider
-                    .GetTriggerInformationForConsensusTransactionsAsync(consensusCommand.ToBytesValue());
+                TriggerInformationProvider.GetTriggerInformationForConsensusTransactions(
+                    consensusCommand.ToBytesValue());
 
             var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
 
@@ -151,9 +150,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(2).Div(1000)
             });
 
-            var triggerForCommand =
-                await TriggerInformationProvider
-                    .GetTriggerInformationForBlockHeaderExtraDataAsync(consensusCommand.ToBytesValue());
+            var triggerForCommand = TriggerInformationProvider
+                .GetTriggerInformationForBlockHeaderExtraData(consensusCommand.ToBytesValue());
 
             var extraDataBytes = await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggerForCommand);
 
@@ -176,9 +174,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Seconds = AEDPoSContractTestConstants.MiningInterval.Mul(2).Div(1000)
             });
 
-            var triggerForCommand =
-                await TriggerInformationProvider
-                    .GetTriggerInformationForConsensusTransactionsAsync(consensusCommand.ToBytesValue());
+            var triggerForCommand = TriggerInformationProvider
+                .GetTriggerInformationForConsensusTransactions(consensusCommand.ToBytesValue());
 
             var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
 
@@ -253,9 +250,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .Div(1000)
             });
 
-            var triggerForCommand =
-                await TriggerInformationProvider
-                    .GetTriggerInformationForBlockHeaderExtraDataAsync(consensusCommand.ToBytesValue());
+            var triggerForCommand = TriggerInformationProvider
+                .GetTriggerInformationForBlockHeaderExtraData(consensusCommand.ToBytesValue());
 
             var extraDataBytes = await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggerForCommand);
 
@@ -278,9 +274,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     .Div(1000)
             });
 
-            var triggerForCommand =
-                await TriggerInformationProvider
-                    .GetTriggerInformationForConsensusTransactionsAsync(consensusCommand.ToBytesValue());
+            var triggerForCommand = TriggerInformationProvider
+                .GetTriggerInformationForConsensusTransactions(consensusCommand.ToBytesValue());
 
             var transactionList = await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
 
@@ -319,9 +314,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
             KeyPairProvider.SetKeyPair(usingKeyPair);
 
             var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_ExtraBlockMiner_Test();
-            var triggerForCommand =
-                await TriggerInformationProvider
-                    .GetTriggerInformationForBlockHeaderExtraDataAsync(consensusCommand.ToBytesValue());
+            var triggerForCommand = TriggerInformationProvider
+                .GetTriggerInformationForBlockHeaderExtraData(consensusCommand.ToBytesValue());
             var extraDataBytes = await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggerForCommand);
 
             var validateBeforeResult =
@@ -342,16 +336,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
         public async Task AEDPoSContract_ValidateConsensusBeforeExecution_UpdateValue_WithoutMiner_Test()
         {
             var usingKeyPair = ValidationDataCenterKeyPairs[0];
-            KeyPairProvider.SetKeyPair(usingKeyPair);
 
             var consensusCommand = await AEDPoSContract_GetConsensusCommand_FirstRound_ExtraBlockMiner_Test();
+
+            KeyPairProvider.SetKeyPair(usingKeyPair);
+
             var updateValue = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.UpdateValue}
                 .ToByteString();
             consensusCommand.Hint = updateValue;
 
-            var triggerForCommand =
-                await TriggerInformationProvider
-                    .GetTriggerInformationForBlockHeaderExtraDataAsync(consensusCommand.ToBytesValue());
+            var triggerForCommand = TriggerInformationProvider
+                .GetTriggerInformationForBlockHeaderExtraData(consensusCommand.ToBytesValue());
             var extraDataBytes = await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggerForCommand);
 
             await NextTerm(BootMinerKeyPair);
@@ -376,9 +371,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 .ToByteString();
             consensusCommand.Hint = updateValue;
 
-            triggerForCommand =
-                await TriggerInformationProvider
-                    .GetTriggerInformationForBlockHeaderExtraDataAsync(consensusCommand.ToBytesValue());
+            triggerForCommand = TriggerInformationProvider
+                .GetTriggerInformationForBlockHeaderExtraData(consensusCommand.ToBytesValue());
             var extraDataBytes = await AEDPoSContractStub.GetConsensusExtraData.CallAsync(triggerForCommand);
 
             var validateBeforeResult =
@@ -405,9 +399,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         .Div(1000)
                 });
 
-                var triggerForCommand =
-                    await TriggerInformationProvider
-                        .GetTriggerInformationForConsensusTransactionsAsync(consensusCommand.ToBytesValue());
+                var triggerForCommand = TriggerInformationProvider
+                    .GetTriggerInformationForConsensusTransactions(consensusCommand.ToBytesValue());
 
                 var transactionList =
                     await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
@@ -437,9 +430,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                         .Div(1000)
                 });
 
-                var triggerForCommand =
-                    await TriggerInformationProvider
-                        .GetTriggerInformationForConsensusTransactionsAsync(consensusCommand.ToBytesValue());
+                var triggerForCommand = TriggerInformationProvider
+                    .GetTriggerInformationForConsensusTransactions(consensusCommand.ToBytesValue());
 
                 var transactionList =
                     await AEDPoSContractStub.GenerateConsensusTransactions.CallAsync(triggerForCommand);
