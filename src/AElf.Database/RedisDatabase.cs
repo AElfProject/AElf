@@ -29,36 +29,41 @@ namespace AElf.Database
             return _connectionMultiplexer.IsConnected;
         }
         
-        public async Task<bool> IsExists(string key)
+        public Task<bool> IsExists(string key)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
-            return await _connectionMultiplexer.GetDatabase().KeyExistsAsync(key);
+            return Task.FromResult(_connectionMultiplexer.GetDatabase().KeyExists(key));
         }
 
-        public async Task<byte[]> GetAsync(string key)
+        public Task<byte[]> GetAsync(string key)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
-            return await _connectionMultiplexer.GetDatabase().StringGetAsync(key);
+            var value = _connectionMultiplexer.GetDatabase().StringGet(key);
+            return Task.FromResult<byte[]>(value);
         }
 
-        public async Task SetAsync(string key, byte[] bytes)
+        public Task SetAsync(string key, byte[] bytes)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
-            await _connectionMultiplexer.GetDatabase().StringSetAsync(key, bytes);
+            _connectionMultiplexer.GetDatabase().StringSet(key, bytes);
+            return Task.CompletedTask;
         }
 
-        public async Task RemoveAsync(string key)
+        public Task RemoveAsync(string key)
         {
             Check.NotNullOrWhiteSpace(key, nameof(key));
-            await _connectionMultiplexer.GetDatabase().KeyDeleteAsync(key);
+            _connectionMultiplexer.GetDatabase().KeyDelete(key);
+            return Task.CompletedTask;
         }
 
-        public async Task SetAllAsync(Dictionary<string, byte[]> cache)
+        public Task SetAllAsync(Dictionary<string, byte[]> cache)
         {
             if (cache.Count == 0)
-                return;
+                return Task.CompletedTask;
             var keyPairs = cache.Select(entry => new KeyValuePair<RedisKey, RedisValue>(entry.Key, entry.Value));
-            await _connectionMultiplexer.GetDatabase().StringSetAsync(keyPairs.ToArray());
+            _connectionMultiplexer.GetDatabase().StringSet(keyPairs.ToArray());
+            
+            return Task.CompletedTask;
         }
     }
 }
