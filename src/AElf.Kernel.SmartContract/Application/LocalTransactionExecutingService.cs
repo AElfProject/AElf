@@ -37,7 +37,7 @@ namespace AElf.Kernel.SmartContract.Application
             _smartContractExecutiveService = smartContractExecutiveService;
             _prePlugins = GetUniquePrePlugins(prePlugins);
             _postPlugins = GetUniquePostPlugins(postPlugins);
-            IsTxExecutionTimeoutEnabled = false; // Disabled by default
+            IsTxExecutionTimeoutEnabled = true; // Enabled by default
             Logger = NullLogger<LocalTransactionExecutingService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }

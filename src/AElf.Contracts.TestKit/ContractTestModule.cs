@@ -138,6 +138,9 @@ namespace AElf.Contracts.TestKit
         {
             context.ServiceProvider.GetService<IAElfAsymmetricCipherKeyPairProvider>()
                 .SetKeyPair(CryptoHelper.GenerateKeyPair());
+            
+            var executingService = context.ServiceProvider.GetService<LocalTransactionExecutingService>();
+            executingService.IsTxExecutionTimeoutEnabled = false;
 
             var dto = new OsBlockchainNodeContextStartDto
             {
