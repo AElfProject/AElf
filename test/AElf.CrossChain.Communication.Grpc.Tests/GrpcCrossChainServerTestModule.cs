@@ -67,7 +67,7 @@ namespace AElf.CrossChain.Communication.Grpc
                             {
                                 ChainId = chainId,
                                 Height = height,
-                                TransactionStatusMerkleRoot = Hash.FromString("TransactionStatusMerkleRoot")
+                                TransactionStatusMerkleTreeRoot = Hash.FromString("TransactionStatusMerkleRoot")
                             };
                             return Task.FromResult(parentChanBlockData);
                         });
