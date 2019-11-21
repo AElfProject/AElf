@@ -1,19 +1,44 @@
 # Cross Chain Contract
 
+## Functions
+
+### Detailed Description
+
+Defines C# API  functions for cross chain contract.
+
+## Functions Documentation
+
+### function Initialize
+
+```protobuf
+rpc Initialize (InitializeInput) returns (google.protobuf.Empty) {}
+message InitializeInput 
+{
+    int32 parent_chain_id = 1;
+    int64 creation_height_on_parent_chain = 2;
+}
+```
+
+Initialize cross-chain-contract.
+
+**Parameters:**
+
+***InitializeInput***
+
+- **parent_chain_id** - id of parent chain
+- **creation_height_on_parent_chain** - height of side chain creation on parent chain
+
 ### function ChangeOwnerAddress
 
 ```protobuf
 rpc ChangOwnerAddress(aelf.Address) returns (google.protobuf.Empty) {}
-message Address
-{
-    bytes value = 1;
-}
 ```
 
-Change the address of the owner of cross chain contract.
+Change the owner address of cross-chain-contract. Only origin owner is permitted to invoke this method to change to new address.
 
 **Parameters:**
-- ***Address*** - the address owner wants to change to 
+
+- ***Address*** - new contract owner address
 
 ### function CreateSideChain
 
@@ -33,25 +58,24 @@ message SideChainCreationRequest
 }
 ```
 
-Create a side chain and the creation is a proposal result from system address.
+Create a new side chain. Only contract owner is permitted to invoke this method.
 
 **Parameters:**
 
 ***SideChainCreationRequest*** 
 
-- **indexing_price** - price of indexing
-- **locked_token_amount** - the initial balance of side-chain
-- **contract_code** - codes of contract in byte
-- **is_privilege_preserved** - ??
-- **side_chain_token_symbol** - symbol of token on side-chain
-- **side_chain_token_name** - name of token on side-chain
-- **side_chain_token_total_supply** - total supply of token on side-chain
-- **side_chain_token_decimals** - token's decimal on side-chain
-- **is_side_chain_token_burnable** - whether the token can be burned
+- **indexing_price** - indexing fee.
+- **locked_token_amount** - initial locked balance for a new side chain.
+- **is_privilege_preserved** - creator privilege boolean flag: True if chain creator privilege preserved, otherwise false.
+- **side_chain_token_symbol** - side chain token symbol.
+- **side_chain_token_name** - side chain token name.
+- **side_chain_token_total_supply** -  total supply of side chain token.
+- **side_chain_token_decimals** - sÏide chain token decimal.
+- **is_side_chain_token_burnable** - side chain token burnable flag.
 
 **Returns:**
 
-Id of a new side-chain
+Id of a new side chain
 
 ### function Recharge
 
@@ -63,14 +87,14 @@ message RechargeInput {
 }
 ```
 
-Recharge a certain amount of native symbols  for specified side-chain
+Recharge for specified side chain.
 
 **Parameters:**
 
 ***RechargeInput*** 
 
-- **chain_id** - id of the side-chain
-- **amount** - the amount of native symbols to recharge
+- **chain_id** - id of the side chain
+- **amount** - the token amount to recharge
 
 ### function RecordCrossChainData
 
@@ -79,7 +103,6 @@ rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) {
 message CrossChainBlockData {
     repeated SideChainBlockData side_chain_block_data = 1;
     repeated ParentChainBlockData parent_chain_block_data = 2;
-    int64 previous_block_height = 3;
 }
 message SideChainBlockData {
     int64 height = 1;
@@ -96,52 +119,43 @@ message ParentChainBlockData {
     map<string, bytes> extra_data = 6;
 }
 message CrossChainExtraData {
-    aelf.Hash side_chain_block_headers_root = 1;
-    aelf.Hash side_chain_transactions_root = 2;
+    aelf.Hash transaction_status_merkle_tree_root = 1;
 }
 ```
 
-Index block data of parent-chain and side-chain
+Index block data of parent chain and side chain. Only current block generator is permitted to invoke this method and it would be system transaction automatically generated during block mining.
 
 **Parameters:**
 
 ***CrossChainBlockData***
 
 - **SideChainBlockData**
-  - height : height of side-chain
-  - block_header_hash : hash of the block
-  - transaction_merkle_tree_root : merkle tree root of transactions in the block
-  - chain_id : id of side-chain
+  - height : height of side chain block
+  - block_header_hash : hash of side chain block
+  - transaction_merkle_tree_root : merkle tree root computing from transactions status in side chain block
+  - chain_id : id of side chain
+
 - **ParentChainBlockData**
-  - height : height of parent-chain
-  - **cross_chain_extra_data**
-    - side_chain_block_headers_root : ??
-    - side_chain_transactions_root : the merkle tree root recorded on parent-chain
-  - chain_id : id of parent-chain
-  - transaction_status_merkle_root : the merkle tree root made by transactionId and its status
-  - indexed_merkle_path : 
-  - extra_data : a map saving extra data of consensus
-- **previous_block_height** - height of previous block
+  - height : height of parent chain
+  - **cross_chain_extra_data** 
+    - transaction_status_merkle_tree_root : the merkle tree root computing from side chain roots.
+  - chain_id : parent chain id
+  - transaction_status_merkle_root : merkle tree root computing from transactions status in parent chain block
+  - indexed_merkle_path : <block height, merkle path> key-value map
+  - extra_data : extra data map
+
 
 ### function DisposeSideChain
 
 ```protobuf
 rpc DisposeSideChain (aelf.SInt32Value) returns (aelf.SInt64Value) {}
-message SInt32Value
-{
-    sint32 value = 1;
-}
-message SInt64Value
-{
-    sint64 value = 1;
-}
 ```
 
-Dispose the specified side-chain. It is a proposal result from system address.
+Dispose the specified side chain. Only contract owner is permitted to invoke this method.
 
 **Parameters:**
 
-- **SInt32Value** - the id of side chain which needs to be disposed
+- **SInt32Value** - the id of side chain to be disposed
 
 **Returns:**
 
@@ -162,77 +176,40 @@ message VerifyTransactionInput {
 }
 ```
 
-Verification of transaction.
+Transaction cross chain verification.
 
 **Parameters:**
 
 ***VerifyTransactionInput*** 
 
-- **transaction_id** - hash of transaction
-- **path** - merkle path of the transaction
-- **parent_chain_height** - height of parent-chain
-- **verified_chain_id** - id of the chain which is verified
+- **transaction_id** - transaction id
+- **path** - merkle path for the transaction
+- **parent_chain_height** - height of parent chain indexing this transaction
+- **verified_chain_id** - id of the chain to be verified
 
 **Returns:**
 
-Whether the input transaction passed verification
+True if verification succeeded, otherwise false.
 
-### function CurrentSideChainSerialNumber
-
-```protobuf
-rpc CurrentSideChainSerialNumber (google.protobuf.Empty) returns (aelf.SInt64Value) 
-{
-		option (aelf.is_view) = true;
-}
-```
-
-Get serial number of current side-chain
-
-**Parameters:**
-
-- **google.protobuf.Empty**
-
-**Returns:**
-
-Serial number of current side-chain
-
-### function LockedToken
-
-```protobuf
-rpc LockedToken (aelf.SInt32Value) returns (aelf.SInt64Value) 
-{
-		option (aelf.is_view) = true;
-}
-```
-
-Get amount of the locked token
-
-**Parameters:**
-
-- **SInt32Value** - id of side-chain
-
-**Returns:**
-
-Amount of the locked token
 
 ### function LockedAddress
 
 ```protobuf
-rpc LockedAddress (aelf.SInt32Value) returns (aelf.Address)
+rpc GetSideChainCreator (aelf.SInt32Value) returns (aelf.Address)
 {
 		option (aelf.is_view) = true;
 }
 ```
 
-Get locked address
+Get side chain creator address.
 
 **Parameters:**
 
-- **SInt32Value** - id of side-chain
+- **SInt32Value** - id of side chain
 
 **Returns:**
 
-Address of side-chain's proposer
+Address of side chain creator.
 
 ### function GetChainStatus
 
@@ -243,15 +220,15 @@ rpc GetChainStatus (aelf.SInt32Value) returns (aelf.SInt32Value)
 }
 ```
 
-Get current status of the specified side-chain
+Get current status of the specified side chain
 
 **Parameters:**
 
-- **SInt32Value** - id of side-chain
+- **SInt32Value** - id of side chain
 
 **Returns:**
 
-Current status of the side-chain
+Current status of side chain
 
 ### function GetSideChainHeight
 
@@ -262,15 +239,15 @@ rpc GetSideChainHeight (aelf.SInt32Value) returns (aelf.SInt64Value)
 }   
 ```
 
-Get current height of the specified side-chain
+Get current height of the specified side chain.
 
 **Parameters:**
 
-- **SInt32Value** - id of side-chain
+- **SInt32Value** - id of side chain
 
 **Returns:**
 
-Current height of the side chain
+Current height of the side chain.
 
 ### function GetParentChainHeight
 
@@ -281,7 +258,7 @@ rpc GetParentChainHeight (google.protobuf.Empty) returns (aelf.SInt64Value)
 }
 ```
 
-Get current height of parent-chain
+Get recorded height of parent chain
 
 **Parameters:**
 
@@ -289,7 +266,7 @@ Get current height of parent-chain
 
 **Returns:**
 
-Height of parent-chain
+Height of parent chain.
 
 ### function GetParentChainId
 
@@ -300,7 +277,7 @@ rpc GetParentChainId (google.protobuf.Empty) returns (aelf.SInt32Value)
 }
 ```
 
-Get id of the parent-chain which can't be zero
+Get id of the parent chain which can't be zero
 
 **Parameters:**
 
@@ -308,26 +285,26 @@ Get id of the parent-chain which can't be zero
 
 **Returns:**
 
-id of parent-chain
+Parent chain id.
 
 ### function LockedBalance
 
 ```protobuf
-rpc LockedBalance (aelf.SInt32Value) returns (aelf.SInt64Value) 
+rpc GetSideChainBalance (aelf.SInt32Value) returns (aelf.SInt64Value) 
 {
 		option (aelf.is_view) = true;
 }
 ```
 
-Get balance of the specified side-chain
+Get locked token balance for side chain.
 
 **Parameters:**
 
-- **SInt32Value** - id of side-chain
+- **SInt32Value** - id of side chain
 
 **Returns:**
 
-Balance of the side-chain
+Balance of the side chain
 
 ### function GetSideChainIdAndHeight
 
@@ -342,7 +319,7 @@ message SideChainIdAndHeightDict
 }
 ```
 
-Get chain-id and height of side-chains
+Get id and recorded height of side chains.
 
 **Parameters:**
 
@@ -350,7 +327,7 @@ Get chain-id and height of side-chains
 
 **Returns:**
 
-***SideChainIdAndHeightDict*** : A dictionary contains id and height of side-chains
+***SideChainIdAndHeightDict*** : A map contains id and height of side chains
 
 ### function GetSideChainIndexingInformationList
 
@@ -371,7 +348,7 @@ message SideChainIndexingInformation
 }
 ```
 
-Get information of indexed side-chains
+Get indexing information of side chains.
 
 **Parameters:**
 
@@ -379,7 +356,8 @@ Get information of indexed side-chains
 
 **Returns:**
 
-***SideChainIndexingInformationList*** : A list contains information of indexed side-chains
+***SideChainIndexingInformationList*** : A list contains indexing information of side chains
+
 
 ### function GetAllChainsIdAndHeight
 
@@ -394,7 +372,7 @@ message SideChainIdAndHeightDict
 }
 ```
 
-Get chain-id and height of all chains
+Get id and recorded height of all chains.
 
 **Parameters:**
 
@@ -402,7 +380,9 @@ Get chain-id and height of all chains
 
 **Returns:**
 
-***SideChainIdAndHeightDict*** : A dictionary contains id and height of all-chains
+***SideChainIdAndHeightDict*** : A map contains id and height of all chains
+
+
 
 ### function GetIndexedCrossChainBlockDataByHeight
 
@@ -411,21 +391,17 @@ rpc GetIndexedCrossChainBlockDataByHeight (aelf.SInt64Value) returns (CrossChain
 {
 		option (aelf.is_view) = true;
 }
-message CrossChainBlockData
-{
+message CrossChainBlockData {
     repeated SideChainBlockData side_chain_block_data = 1;
     repeated ParentChainBlockData parent_chain_block_data = 2;
-    int64 previous_block_height = 3;
 }
-message SideChainBlockData 
-{
+message SideChainBlockData {
     int64 height = 1;
     aelf.Hash block_header_hash = 2;
     aelf.Hash transaction_merkle_tree_root = 3;
     int32 chain_id = 4;
 }
-message ParentChainBlockData 
-{
+message ParentChainBlockData {
     int64 height = 1;
     CrossChainExtraData cross_chain_extra_data = 2;
     int32 chain_id = 3;
@@ -433,26 +409,23 @@ message ParentChainBlockData
     map<int64, aelf.MerklePath> indexed_merkle_path = 5;
     map<string, bytes> extra_data = 6;
 }
-message CrossChainExtraData
-{
-    aelf.Hash side_chain_block_headers_root = 1;
-    aelf.Hash side_chain_transactions_root = 2;
+message CrossChainExtraData {
+    aelf.Hash transaction_status_merkle_tree_root = 1;
 }
 ```
 
-Get block data of indexed cross-chain by height
+Get indexed cross chain data by height.
 
 **Parameters:**
 
-- **SInt64Value** - height of chain
+- **SInt64Value** - block height
 
 **Returns:**
 
 ***CrossChainBlockData***
 
-- **side_chain_block_data** - block data of side-chain
-- **parent_chain_block_data** - block data of main-chain
-- **previous_block_height** - height of previous block
+- **side_chain_block_data** - cross chain block data of side chain
+- **parent_chain_block_data** - cross chain block data of parent chain
 
 ### function GetIndexedSideChainBlockDataByHeight
 
@@ -473,17 +446,17 @@ message SideChainBlockData
 }
 ```
 
-Get block data of indexed side-chain by height
+Get block data of indexed side chain by height
 
 **Parameters:**
 
-- **SInt64Value** - height of side-chain
+- **SInt64Value** - height of side chain
 
 **Returns:**
 
 ***IndexedSideChainBlockData***
 
-- **side_chain_block_data** - block data of side-chain
+- **side_chain_block_data** - block data of side chain
 
 ### function GetBoundParentChainHeightAndMerklePathByHeight
 
@@ -508,18 +481,18 @@ message MerklePathNode
 }
 ```
 
-Get merkle proof of parent-chain which is bound up with side-chain
+Get merkle path bound up with side chain
 
 **Parameters:**
 
-- **SInt64Value** - height of side-chain
+- **SInt64Value** - height of side chain
 
 **Returns:**
 
 ***CrossChainMerkleProofContext***
 
-- **bound_parent_chain_height** - height of parent-chain bound up with side-chain
-- **merkle_path_for_parent_chain_root** - ??
+- **bound_parent_chain_height** - height of parent chain bound up with side chain
+- **merkle_path_from_parent_chain** - merkle path generated from parent chain
 
 ### function GetChainInitializationData
 
@@ -540,20 +513,20 @@ message ChainInitializationData
 }
 ```
 
-Get initialization data of the specified side-chain
+Get initialization data for specified side chain.
 
 **Parameters:**
 
-- **Int32Value** - id of side-chain
+- **Int32Value** - id of side chain
 
 **Returns:**
 
 ***ChainInitializationData***
 
-- **chain_id** - id of side-chain
-- **creator** - proposer of side-chain
-- **creation_timestamp** - timestamp for side-chain creation
+- **chain_id** - id of side chain
+- **creator** - side chain creator
+- **creation_timestamp** - timestamp for side chain creation
 - **extra_information** - extra infomation like consensus and nativeToken etc.
-- **creation_height_on_parent_chain** - creation height of side-chain on parent-chain
-- **chain_creator_privilege_preserved** - ??
-- **side_chain_token_symbol** - token symbol of side-chain
+- **creation_height_on_parent_chain** - height of side chain creation on parent chain
+- **chain_creator_privilege_preserved** - creator privilege boolean flag: True if chain creator privilege preserved, otherwise false.
+- **side_chain_token_symbol** - token symbol of side chain
