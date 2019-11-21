@@ -37,7 +37,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             var requestData = new CrossChainRequest
             {
-                FromChainId = ChainHelper.GetChainId(1),
+                ChainId = ChainHelper.GetChainId(1),
                 NextHeight = 10
             };
 
@@ -54,7 +54,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             var requestData = new CrossChainRequest
             {
-                FromChainId = ChainHelper.GetChainId(1),
+                ChainId = ChainHelper.GetChainId(1),
                 NextHeight = 101
             };
 
@@ -70,7 +70,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             var requestData = new CrossChainRequest
             {
-                FromChainId = ChainHelper.GetChainId(1),
+                ChainId = ChainHelper.GetChainId(1),
                 NextHeight = 61
             };
 
@@ -88,7 +88,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             var requestData = new CrossChainRequest
             {
-                FromChainId = ChainHelper.GetChainId(1),
+                ChainId = ChainHelper.GetChainId(1),
                 NextHeight = 10
             };
 
@@ -106,14 +106,13 @@ namespace AElf.CrossChain.Communication.Grpc
             var request = new HandShake
             {
                 ListeningPort = 2100,
-                FromChainId = ChainHelper.GetChainId(1),
-                Host = "127.0.0.1"
+                ChainId = ChainHelper.GetChainId(1)
             };
             var context = BuildServerCallContext();
             var indexingHandShakeReply = await BasicCrossChainRpcBase.CrossChainHandShake(request, context);
 
             Assert.NotNull(indexingHandShakeReply);
-            Assert.True(indexingHandShakeReply.Success);
+            Assert.True(indexingHandShakeReply.Status == HandShakeReply.Types.HandShakeStatus.Success);
         }
 
         [Fact]

@@ -100,7 +100,7 @@ namespace AElf.Contracts.CrossChain.Tests
             var transactionResult = await ReleaseProposalAsync(proposalId);
             var chainId = CreationRequested.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).ChainId;
 
-            var balance = (await CrossChainContractStub.LockedBalance.CallAsync(new SInt32Value {Value = chainId}))
+            var balance = (await CrossChainContractStub.GetSideChainBalance.CallAsync(new SInt32Value {Value = chainId}))
                 .Value;
             Assert.Equal(10, balance);
         }
@@ -147,7 +147,7 @@ namespace AElf.Contracts.CrossChain.Tests
             var sideChainId =
                 await InitAndCreateSideChainAsync(parentChainHeightOfCreation, parentChainId, lockedTokenAmount);
 
-            var lockedToken = await CrossChainContractStub.LockedToken.CallAsync(new SInt32Value
+            var lockedToken = await CrossChainContractStub.GetSideChainBalance.CallAsync(new SInt32Value
             {
                 Value = sideChainId
             });
@@ -168,7 +168,7 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         [Fact]
-        public async Task GetLockedToken_DisposedChain()
+        public async Task GetSideChainBalance_DisposedChain()
         {
             var parentChainId = 123;
             var lockedTokenAmount = 10L;
@@ -189,12 +189,13 @@ namespace AElf.Contracts.CrossChain.Tests
             });
 
             var status = res.TransactionResult.Status;
-            Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Disposed side chain.", res.TransactionResult.Error);
+            Assert.True(status == TransactionResultStatus.Mined);
+            var actual = SInt64Value.Parser.ParseFrom(res.TransactionResult.ReturnValue);
+            Assert.True(0 == actual.Value);
         }
 
         [Fact]
-        public async Task GetLockedAddress()
+        public async Task GetSideChainCreator()
         {
             var parentChainId = 123;
             var lockedTokenAmount = 10L;
@@ -202,7 +203,7 @@ namespace AElf.Contracts.CrossChain.Tests
             var sideChainId =
                 await InitAndCreateSideChainAsync(parentChainHeightOfCreation, parentChainId, lockedTokenAmount);
 
-            var address = await CrossChainContractStub.LockedAddress.CallAsync(new SInt32Value
+            var address = await CrossChainContractStub.GetSideChainCreator.CallAsync(new SInt32Value
             {
                 Value = sideChainId
             });
@@ -211,7 +212,7 @@ namespace AElf.Contracts.CrossChain.Tests
         }
 
         [Fact]
-        public async Task GetLockedAddress_NotExist()
+        public async Task GetGetSideChainCreator_NotExist()
         {
             var sideChainId = ChainHelper.GetChainId(1);
             var res = await CrossChainContractStub.LockedAddress.SendWithExceptionAsync(new SInt32Value
@@ -245,8 +246,9 @@ namespace AElf.Contracts.CrossChain.Tests
             });
 
             var status = res.TransactionResult.Status;
-            Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Disposed side chain.", res.TransactionResult.Error);
+            Assert.True(status == TransactionResultStatus.Mined);
+            var actual = Address.Parser.ParseFrom(res.TransactionResult.ReturnValue);
+            Assert.Equal(DefaultSender, actual);
         }
 
         [Fact]
@@ -389,7 +391,7 @@ namespace AElf.Contracts.CrossChain.Tests
 
             var status = res.TransactionResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Not authorized to dispose.", res.TransactionResult.Error);
+            Assert.Contains("No permission.", res.TransactionResult.Error);
         }
 
         [Fact]
@@ -406,7 +408,7 @@ namespace AElf.Contracts.CrossChain.Tests
             var status = transactionResult.Status;
 
             Assert.True(status == TransactionResultStatus.Failed);
-            Assert.Contains("Not existed side chain.", transactionResult.Error);
+            Assert.Contains("Side chain not found.", transactionResult.Error);
         }
 
         [Fact]
@@ -432,7 +434,7 @@ namespace AElf.Contracts.CrossChain.Tests
             var transactionResult2 = await ReleaseProposalWithExceptionAsync(proposalId2);
             var status2 = transactionResult2.Status;
             Assert.True(status2 == TransactionResultStatus.Failed);
-            Assert.Contains("Unable to dispose this side chain.", transactionResult2.Error);
+            Assert.Contains("Incorrect chain status.", transactionResult2.Error);
         }
 
         [Fact]

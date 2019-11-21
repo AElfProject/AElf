@@ -14,8 +14,11 @@ namespace AElf.CrossChain
             _blockchainService = blockchainService;
         }
 
-        public async Task<Block> GetIrreversibleBlockByHeightAsync(long height)
+        public async Task<Block> GetNotIndexedIrreversibleBlockByHeightAsync(long height)
         {
+            var libExistenceValidationResult = await ValidateIrreversibleBlockExistingAsync();
+            if (!libExistenceValidationResult)
+                return null;
             return await _blockchainService.GetIrreversibleBlockByHeightAsync(height);
         }
 

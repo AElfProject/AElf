@@ -25,7 +25,7 @@ namespace AElf.CrossChain.Communication.Grpc
         {
             var chainId = ChainHelper.GetChainId(1);
             var remoteChainId = ChainOptions.ChainId;
-            await _server.StartAsync("localhost", 5000);
+            await _server.StartAsync(5000);
             await _grpcCrossChainClientNodePlugin.StartAsync(chainId);
             var client = _crossChainClientProvider.GetAllClients();
             Assert.True(client[0].RemoteChainId == remoteChainId);
@@ -36,7 +36,7 @@ namespace AElf.CrossChain.Communication.Grpc
         public async Task ClientStart_Null_Test()
         {
             var chainId = ChainOptions.ChainId;
-            _grpcCrossChainConfigOption.RemoteParentChainServerPort = 0;
+            _grpcCrossChainConfigOption.ParentChainServerPort = 0;
             await _grpcCrossChainClientNodePlugin.StartAsync(chainId);
             Dispose();
         }
