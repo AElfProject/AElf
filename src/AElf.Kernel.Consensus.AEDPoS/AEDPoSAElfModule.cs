@@ -55,8 +55,6 @@ namespace AElf.Kernel.Consensus.AEDPoS
                     });
                 }
             });
-
-            context.Services.AddSingleton<ISystemTransactionGenerator, RandomNumberTransactionGenerator>();
         }
     }
 }

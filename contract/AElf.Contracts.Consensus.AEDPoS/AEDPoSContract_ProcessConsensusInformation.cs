@@ -55,6 +55,9 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // Make sure GetMaximumBlocksCount need to be executed no matter what consensus behaviour is.
             var minersCountInTheory = GetMaximumBlocksCount();
             ResetLatestProviderToTinyBlocksCount(minersCountInTheory);
+
+            // Clear cache.
+            _processingBlockMinerPubkey = null;
         }
 
         private void ProcessNextRound(Round nextRound)
