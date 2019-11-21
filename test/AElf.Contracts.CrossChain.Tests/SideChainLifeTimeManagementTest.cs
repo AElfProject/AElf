@@ -109,7 +109,7 @@ namespace AElf.Contracts.CrossChain.Tests
         public async Task CheckLockedBalance_NotExist()
         {
             var chainId = ChainHelper.GetChainId(1);
-            var txResult = (await CrossChainContractStub.LockedBalance.SendWithExceptionAsync(new SInt32Value {Value = chainId}))
+            var txResult = (await CrossChainContractStub.GetSideChainBalance.SendWithExceptionAsync(new SInt32Value {Value = chainId}))
                 .TransactionResult;
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
@@ -131,7 +131,7 @@ namespace AElf.Contracts.CrossChain.Tests
             var ecKeyPair = SampleECKeyPairs.KeyPairs[1];
             var crossChainContractStub2 = GetCrossChainContractStub(ecKeyPair);
 
-            var txResult = (await crossChainContractStub2.LockedBalance.SendWithExceptionAsync(new SInt32Value {Value = chainId}))
+            var txResult = (await crossChainContractStub2.GetSideChainBalance.SendWithExceptionAsync(new SInt32Value {Value = chainId}))
                 .TransactionResult;
             var status = txResult.Status;
             Assert.True(status == TransactionResultStatus.Failed);
@@ -158,7 +158,7 @@ namespace AElf.Contracts.CrossChain.Tests
         public async Task GetLockedToken_NotExist()
         {
             var sideChainId = ChainHelper.GetChainId(1);
-            var res = await CrossChainContractStub.LockedToken.SendWithExceptionAsync(new SInt32Value
+            var res = await CrossChainContractStub.GetSideChainBalance.SendWithExceptionAsync(new SInt32Value
             {
                 Value = sideChainId
             });
@@ -183,7 +183,7 @@ namespace AElf.Contracts.CrossChain.Tests
             await ApproveWithMinersAsync(proposalId);
             await ReleaseProposalAsync(proposalId);
 
-            var res = await CrossChainContractStub.LockedToken.SendWithExceptionAsync(new SInt32Value
+            var res = await CrossChainContractStub.GetSideChainBalance.SendWithExceptionAsync(new SInt32Value
             {
                 Value = sideChainId
             });
@@ -215,7 +215,7 @@ namespace AElf.Contracts.CrossChain.Tests
         public async Task GetGetSideChainCreator_NotExist()
         {
             var sideChainId = ChainHelper.GetChainId(1);
-            var res = await CrossChainContractStub.LockedAddress.SendWithExceptionAsync(new SInt32Value
+            var res = await CrossChainContractStub.GetSideChainBalance.SendWithExceptionAsync(new SInt32Value
             {
                 Value = sideChainId
             });
@@ -240,7 +240,7 @@ namespace AElf.Contracts.CrossChain.Tests
             await ApproveWithMinersAsync(proposalId);
             await ReleaseProposalAsync(proposalId);
 
-            var res = await CrossChainContractStub.LockedToken.SendWithExceptionAsync(new SInt32Value
+            var res = await CrossChainContractStub.GetSideChainBalance.SendWithExceptionAsync(new SInt32Value
             {
                 Value = sideChainId
             });
