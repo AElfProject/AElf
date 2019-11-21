@@ -32,6 +32,9 @@ namespace AElf.Contracts.Economic.TestBase
             context.Services.AddSingleton<IPostExecutionPlugin, ResourceConsumptionPostExecutionPlugin>();
             context.Services.AddSingleton<IRandomHashCacheService, MockRandomHashCacheService>();
             context.Services.AddSingleton<ITransactionInclusivenessProvider, TransactionInclusivenessProvider>();
+                        
+            context.Services.AddSingleton<ISecretSharingService, SecretSharingService>();
+            context.Services.AddSingleton<IInValueCacheService, InValueCacheService>();
 
             context.Services
                 .AddSingleton<ISystemTransactionMethodNameListProvider, SystemTransactionMethodNameListProvider>();
@@ -40,7 +43,7 @@ namespace AElf.Contracts.Economic.TestBase
     
     public class MockRandomHashCacheService : IRandomHashCacheService
     {
-        public void SetRandomHash(Hash bestChainBlockHash, Hash randomHash)
+        public void SetRandomHash(Hash bestChainHash, Hash randomHash)
         {
         }
 
@@ -49,7 +52,7 @@ namespace AElf.Contracts.Economic.TestBase
             return Hash.FromMessage(bestChainBlockHash);
         }
 
-        public void SetGeneratedBlockPreviousBlockInformation(Hash blockHash, long blockHeight)
+        public void SetGeneratedBlockBestChainHash(Hash blockHash, long blockHeight)
         {
         }
 

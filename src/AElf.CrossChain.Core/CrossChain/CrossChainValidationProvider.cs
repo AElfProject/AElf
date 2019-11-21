@@ -59,9 +59,11 @@ namespace AElf.CrossChain
 
             try
             {
-                if (isSideChainBlockDataIndexed ^ (extraData != null))
+                if (!isSideChainBlockDataIndexed && extraData != null)
                 {
                     // cross chain extra data in block header should be null if no side chain block data indexed in contract 
+                    Logger.LogWarning(
+                        $"Cross chain extra data should not be null, block height {block.Header.Height}, hash {block.GetHash()}.");
                     return false;
                 }
 
@@ -71,18 +73,21 @@ namespace AElf.CrossChain
                 var indexedCrossChainBlockData =
                     await _crossChainIndexingDataService.GetIndexedCrossChainBlockDataAsync(block.Header.GetHash(), block.Header.Height);
                 
-                var res = true;
-                
-                if (isSideChainBlockDataIndexed)
-                    res = ValidateBlockExtraDataAsync(indexedCrossChainBlockData, extraData);
-                
-                if (res)
+                if (isSideChainBlockDataIndexed && indexedCrossChainBlockData.SideChainBlockData.Count > 0)
                 {
-                    res = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, block.Header.PreviousBlockHash,
-                        block.Header.Height - 1);
+                    if (extraData == null || !ValidateBlockExtraDataAsync(indexedCrossChainBlockData, extraData))
+                    {
+                        // extra data is null, or it is not consistent with contract
+                        Logger.LogWarning(
+                            $"Invalid cross chain extra data, block height {block.Header.Height}, hash {block.GetHash()}.");
+                        return false;
+                    }
                 }
+
+                var validationResult = await ValidateCrossChainBlockDataAsync(indexedCrossChainBlockData, block.Header.PreviousBlockHash,
+                    block.Header.Height - 1);
                 
-                return res;
+                return validationResult;
             }
             catch (ValidateNextTimeBlockValidationException ex)
             {
@@ -97,10 +102,10 @@ namespace AElf.CrossChain
 
         private bool ValidateBlockExtraDataAsync(CrossChainBlockData crossChainBlockData, CrossChainExtraData extraData)
         {
-            var txRootHashList = crossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMerkleTreeRoot).ToList();
+            var txRootHashList = crossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionStatusMerkleTreeRoot).ToList();
             var calculatedSideChainTransactionsRoot = BinaryMerkleTree.FromLeafNodes(txRootHashList).Root;
 
-            return calculatedSideChainTransactionsRoot.Equals(extraData.SideChainTransactionsRoot);
+            return calculatedSideChainTransactionsRoot.Equals(extraData.TransactionStatusMerkleTreeRoot);
         }
 
         private CrossChainExtraData ExtractCrossChainExtraData(BlockHeader header)
@@ -114,7 +119,7 @@ namespace AElf.CrossChain
         {
             if (CrossChainConfigOptions.CurrentValue.CrossChainDataValidationIgnored)
             {
-                Logger.LogTrace("Disable cross chain data validation.");
+                Logger.LogTrace("Cross chain data validation disabled.");
                 return true;
             }
             
@@ -127,10 +132,8 @@ namespace AElf.CrossChain
             var parentChainBlockDataValidationResult =
                 await _crossChainIndexingDataService.ValidateParentChainBlockDataAsync(
                     crossChainBlockData.ParentChainBlockData.ToList(), blockHash, blockHeight);
-            if (!parentChainBlockDataValidationResult)
-                return false;
-
-            return true;
+            
+            return parentChainBlockDataValidationResult;
         }
     }
 }

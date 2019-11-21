@@ -29,6 +29,8 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     information.Value.SupposedOrderOfNextRound;
                 RealTimeMinersInformation[information.Key].FinalOrderOfNextRound =
                     information.Value.FinalOrderOfNextRound;
+                RealTimeMinersInformation[information.Key].PreviousInValue =
+                    information.Value.PreviousInValue;
             }
 
             return this;

@@ -55,7 +55,12 @@ namespace AElf.CrossChain
         [Fact]
         public async Task Validate_EmptyHeader_WithIndexedData_Test()
         {
-            var block = _kernelTestHelper.GenerateBlock(10, Hash.Empty);
+            var fakeMerkleTreeRoot1 = Hash.FromString("fakeMerkleTreeRoot1");
+            var fakeSideChainId = ChainHelper.ConvertBase58ToChainId("2112");
+            var fakeSideChainBlockData = CreateSideChainBlockData(fakeSideChainId, 1, fakeMerkleTreeRoot1);
+
+            CreateFakeCacheAndStateData(fakeSideChainId, fakeSideChainBlockData, 2);
+            var block = _kernelTestHelper.GenerateBlock(1, Hash.Empty);
             var bloom = new Bloom();
             bloom.Combine(new []{
                 GetSideChainBlockDataIndexedEventBloom(), GetParentChainBlockDataIndexedEventBloom()
@@ -74,7 +79,7 @@ namespace AElf.CrossChain
             var sideChainBlockData = new SideChainBlockData
             {
                 Height = 1,
-                TransactionMerkleTreeRoot = fakeMerkleTreeRoot1,
+                TransactionStatusMerkleTreeRoot = fakeMerkleTreeRoot1,
                 ChainId = chainId
             };
             var sideChainTxMerkleTreeRoot = ComputeRootHash(new[] {sideChainBlockData});
@@ -188,14 +193,14 @@ namespace AElf.CrossChain
             block.Header.ExtraData.Clear();
 
             block.Header.ExtraData.Add(
-                new CrossChainExtraData {SideChainTransactionsRoot = merkleTreeRoot}.ToByteString());
+                new CrossChainExtraData {TransactionStatusMerkleTreeRoot = merkleTreeRoot}.ToByteString());
             return block;
         }
 
         private Hash ComputeRootHash(IEnumerable<SideChainBlockData> blockInfo)
         {
             var binaryMerkleTree = BinaryMerkleTree.FromLeafNodes(blockInfo.Select(sideChainBlockData =>
-                sideChainBlockData.TransactionMerkleTreeRoot));
+                sideChainBlockData.TransactionStatusMerkleTreeRoot));
             return binaryMerkleTree.Root;
         }
 
@@ -227,7 +232,7 @@ namespace AElf.CrossChain
             return new SideChainBlockData
             {
                 Height = height,
-                TransactionMerkleTreeRoot = transactionMerkleTreeRoot,
+                TransactionStatusMerkleTreeRoot = transactionMerkleTreeRoot,
                 ChainId = chainId
             };
         }

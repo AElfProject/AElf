@@ -33,7 +33,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
         {
             var blockHash = Hash.FromString("blockHash");
             const long blockHeight = 5L;
-            _randomHashCacheService.SetGeneratedBlockPreviousBlockInformation(blockHash, blockHeight);
+            _randomHashCacheService.SetGeneratedBlockBestChainHash(blockHash, blockHeight);
             var queryResult = _randomHashCacheService.GetLatestGeneratedBlockRandomHash();
             queryResult.ShouldBe(Hash.Empty);
         }
@@ -49,10 +49,10 @@ namespace AElf.Kernel.Consensus.DPoS.Tests.Application
             var randomHash2 = Hash.FromString("randomHash2");
             
             _randomHashCacheService.SetRandomHash(previousHash, randomHash1);
-            _randomHashCacheService.SetGeneratedBlockPreviousBlockInformation(previousHash, blockHeight);
+            _randomHashCacheService.SetGeneratedBlockBestChainHash(previousHash, blockHeight);
             
             _randomHashCacheService.SetRandomHash(blockHash, randomHash2);
-            _randomHashCacheService.SetGeneratedBlockPreviousBlockInformation(blockHash, blockHeight + 1);
+            _randomHashCacheService.SetGeneratedBlockBestChainHash(blockHash, blockHeight + 1);
             
             var queryResult = _randomHashCacheService.GetLatestGeneratedBlockRandomHash();
             queryResult.ShouldBe(randomHash1);

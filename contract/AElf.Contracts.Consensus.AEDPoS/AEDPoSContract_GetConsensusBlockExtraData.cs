@@ -9,7 +9,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
     // ReSharper disable once InconsistentNaming
     public partial class AEDPoSContract
     {
-        private BytesValue GetConsensusBlockExtraData(BytesValue input, bool withSecretSharingInformation = false)
+        private BytesValue GetConsensusBlockExtraData(BytesValue input, bool isGeneratingTransactions = false)
         {
             var triggerInformation = new AElfConsensusTriggerInformation();
             triggerInformation.MergeFrom(input.Value);
@@ -32,10 +32,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 case AElfConsensusBehaviour.UpdateValue:
                     information = GetConsensusExtraDataToPublishOutValue(currentRound, pubkey,
                         triggerInformation);
-                    if (!withSecretSharingInformation)
+                    if (!isGeneratingTransactions)
                     {
                         information.Round = information.Round.GetUpdateValueRound(pubkey);
                     }
+
                     break;
 
                 case AElfConsensusBehaviour.TinyBlock:
@@ -53,7 +54,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     break;
             }
 
-            if (!withSecretSharingInformation)
+            if (!isGeneratingTransactions)
             {
                 information.Round.DeleteSecretSharingInformation();
             }
@@ -71,28 +72,31 @@ namespace AElf.Contracts.Consensus.AEDPoS
             currentRound.RealTimeMinersInformation[pubkey].ActualMiningTimes
                 .Add(Context.CurrentBlockTime);
 
-            Assert(triggerInformation.RandomHash != null, "Random hash should not be null.");
+            Assert(triggerInformation.InValue != null, "Random hash should not be null.");
 
-            var inValue = currentRound.CalculateInValue(triggerInformation.RandomHash);
-            var outValue = Hash.FromMessage(inValue);
+            var outValue = Hash.FromMessage(triggerInformation.InValue);
             var signature =
-                Hash.FromTwoHashes(outValue, triggerInformation.RandomHash); // Just initial signature value.
+                Hash.FromTwoHashes(outValue, triggerInformation.InValue); // Just initial signature value.
             var previousInValue = Hash.Empty; // Just initial previous in value.
 
             if (TryToGetPreviousRoundInformation(out var previousRound) && !IsFirstRoundOfCurrentTerm(out _))
             {
-                signature = previousRound.CalculateSignature(inValue);
-                if (triggerInformation.PreviousRandomHash != null &&
-                    triggerInformation.PreviousRandomHash != Hash.Empty)
+                signature = previousRound.CalculateSignature(triggerInformation.InValue);
+                Context.LogDebug(
+                    () => $"Previous in value in trigger information: {triggerInformation.PreviousInValue}");
+                if (triggerInformation.PreviousInValue != null &&
+                    triggerInformation.PreviousInValue != Hash.Empty)
                 {
-                    // If PreviousRandomHash is null or Hash.Empty, it means the sender unable or unwilling to publish his previous in value.
-                    previousInValue = previousRound.CalculateInValue(triggerInformation.PreviousRandomHash);
                     // Self check.
-                    if (Hash.FromMessage(previousInValue) !=
+                    if (Hash.FromMessage(triggerInformation.PreviousInValue) !=
                         previousRound.RealTimeMinersInformation[pubkey].OutValue)
                     {
                         Context.LogDebug(() => "Failed to produce block at previous round?");
                         previousInValue = Hash.Empty;
+                    }
+                    else
+                    {
+                        previousInValue = triggerInformation.PreviousInValue;
                     }
                 }
             }
@@ -100,14 +104,36 @@ namespace AElf.Contracts.Consensus.AEDPoS
             var updatedRound = currentRound.ApplyNormalConsensusData(pubkey, previousInValue,
                 outValue, signature);
 
+            Context.LogDebug(
+                () => $"Previous in value after ApplyNormalConsensusData: {updatedRound.RealTimeMinersInformation[pubkey].PreviousInValue}");
+
             updatedRound.RealTimeMinersInformation[pubkey].ImpliedIrreversibleBlockHeight = Context.CurrentHeight;
 
             // Update secret pieces of latest in value.
-//            foreach (var secret in triggerInformation.Secrets)
-//            {
-//                updatedRound.RealTimeMinersInformation[publicKey].EncryptedInValues.Add(secret.Key, secret.Value);
-//            }
-            ShareInValueOfCurrentRound(updatedRound, previousRound, inValue, pubkey);
+            foreach (var encryptedPiece in triggerInformation.EncryptedPieces)
+            {
+                updatedRound.RealTimeMinersInformation[pubkey].EncryptedPieces
+                    .Add(encryptedPiece.Key, encryptedPiece.Value);
+            }
+
+            foreach (var decryptedPiece in triggerInformation.DecryptedPieces)
+            {
+                if (updatedRound.RealTimeMinersInformation.ContainsKey(decryptedPiece.Key))
+                {
+                    updatedRound.RealTimeMinersInformation[decryptedPiece.Key].DecryptedPieces[pubkey] =
+                        decryptedPiece.Value;
+                }
+            }
+
+            foreach (var revealedInValue in triggerInformation.RevealedInValues)
+            {
+                if (updatedRound.RealTimeMinersInformation.ContainsKey(revealedInValue.Key) &&
+                    (updatedRound.RealTimeMinersInformation[revealedInValue.Key].PreviousInValue == Hash.Empty ||
+                     updatedRound.RealTimeMinersInformation[revealedInValue.Key].PreviousInValue == null))
+                {
+                    updatedRound.RealTimeMinersInformation[revealedInValue.Key].PreviousInValue = revealedInValue.Value;
+                }
+            }
 
             // To publish Out Value.
             return new AElfConsensusHeaderInformation
