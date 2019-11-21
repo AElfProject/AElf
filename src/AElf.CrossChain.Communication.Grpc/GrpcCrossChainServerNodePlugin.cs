@@ -17,11 +17,9 @@ namespace AElf.CrossChain.Communication.Grpc
 
         public Task StartAsync(int chainId)
         {
-            if (string.IsNullOrEmpty(_grpcCrossChainConfigOption.ListeningHost) 
-                || _grpcCrossChainConfigOption.LocalServerPort == 0)
+            if (_grpcCrossChainConfigOption.ListeningPort == 0)
                 return Task.CompletedTask;
-            return _grpcCrossChainServer.StartAsync(_grpcCrossChainConfigOption.ListeningHost,
-                _grpcCrossChainConfigOption.LocalServerPort);
+            return _grpcCrossChainServer.StartAsync(_grpcCrossChainConfigOption.ListeningPort);
         }
 
         public Task ShutdownAsync()
