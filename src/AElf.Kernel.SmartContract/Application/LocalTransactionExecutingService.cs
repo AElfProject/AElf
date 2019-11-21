@@ -12,6 +12,7 @@ using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EventBus.Local;
 
@@ -23,21 +24,22 @@ namespace AElf.Kernel.SmartContract.Application
         private readonly List<IPreExecutionPlugin> _prePlugins;
         private readonly List<IPostExecutionPlugin> _postPlugins;
         private readonly ITransactionResultService _transactionResultService;
-        public bool IsTxExecutionTimeoutEnabled;
+        private readonly ContractOptions _contractOptions;
         public ILogger<LocalTransactionExecutingService> Logger { get; set; }
 
         public ILocalEventBus LocalEventBus { get; set; }
 
         public LocalTransactionExecutingService(ITransactionResultService transactionResultService,
             ISmartContractExecutiveService smartContractExecutiveService,
-            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins
+            IEnumerable<IPostExecutionPlugin> postPlugins, IEnumerable<IPreExecutionPlugin> prePlugins,
+            IOptionsSnapshot<ContractOptions> contractOptionsSnapshot
         )
         {
             _transactionResultService = transactionResultService;
             _smartContractExecutiveService = smartContractExecutiveService;
             _prePlugins = GetUniquePrePlugins(prePlugins);
             _postPlugins = GetUniquePostPlugins(postPlugins);
-            IsTxExecutionTimeoutEnabled = true; // Enabled by default
+            _contractOptions = contractOptionsSnapshot.Value;
             Logger = NullLogger<LocalTransactionExecutingService>.Instance;
             LocalEventBus = NullLocalEventBus.Instance;
         }
@@ -74,11 +76,11 @@ namespace AElf.Kernel.SmartContract.Application
                         var task = Task.Run(() => ExecuteOneAsync(singleTxExecutingDto,
                             cancellationToken), cancellationToken);
 
-                        if (!IsTxExecutionTimeoutEnabled || cancellationToken == CancellationToken.None)
+                        if (!_contractOptions.IsTxExecutionTimeoutEnabled || cancellationToken == CancellationToken.None)
                             trace = await task;
                         else
                             trace = await task.WithCancellation(cancellationToken,
-                                new CancellationTokenSource(SmartContractConstants.TransactionExecutionTimePeriodLimitInMilliSeconds).Token);
+                                new CancellationTokenSource(_contractOptions.TransactionExecutionTimePeriodLimitInMilliSeconds).Token);
                     }
                     catch (OperationCanceledException)
                     {
