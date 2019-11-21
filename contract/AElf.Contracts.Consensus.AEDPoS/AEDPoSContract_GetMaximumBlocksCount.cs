@@ -21,7 +21,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <returns></returns>
         private int GetMaximumBlocksCount()
         {
-            TryToGetCurrentRoundInformation(out var currentRound, true);
+            TryToGetCurrentRoundInformation(out var currentRound);
             var libRoundNumber = currentRound.ConfirmedIrreversibleBlockRoundNumber;
             var libBlockHeight = currentRound.ConfirmedIrreversibleBlockHeight;
             var currentHeight = Context.CurrentHeight;

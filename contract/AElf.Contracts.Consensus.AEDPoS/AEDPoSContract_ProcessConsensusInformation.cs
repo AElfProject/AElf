@@ -55,21 +55,21 @@ namespace AElf.Contracts.Consensus.AEDPoS
             // Make sure GetMaximumBlocksCount need to be executed no matter what consensus behaviour is.
             var minersCountInTheory = GetMaximumBlocksCount();
             ResetLatestProviderToTinyBlocksCount(minersCountInTheory);
-            ClearCachedFields();
         }
 
         private void ProcessNextRound(Round nextRound)
         {
             RecordMinedMinerListOfCurrentRound();
 
-            TryToGetCurrentRoundInformation(out var currentRound, true);
+            TryToGetCurrentRoundInformation(out var currentRound);
 
             // Do some other stuff during the first time to change round.
             if (currentRound.RoundNumber == 1)
             {
                 // Set blockchain start timestamp.
-                var actualBlockchainStartTimestamp = currentRound.FirstActualMiner()?.ActualMiningTimes.FirstOrDefault() ??
-                                                     Context.CurrentBlockTime;
+                var actualBlockchainStartTimestamp =
+                    currentRound.FirstActualMiner()?.ActualMiningTimes.FirstOrDefault() ??
+                    Context.CurrentBlockTime;
                 SetBlockchainStartTimestamp(actualBlockchainStartTimestamp);
                 //currentRound.RealTimeMinersInformation.First().Value.ActualMiningTimes.First();
 
@@ -92,7 +92,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Context.LogDebug(() => "Evil miners detected.");
                 foreach (var evilMiner in evilMiners)
                 {
-                    Context.LogDebug(() => 
+                    Context.LogDebug(() =>
                         $"Evil miner {evilMiner}, missed time slots: {currentRound.RealTimeMinersInformation[evilMiner].MissedTimeSlots}.");
                     // Mark these evil miners.
                     State.ElectionContract.UpdateCandidateInformation.Send(new UpdateCandidateInformationInput
@@ -104,7 +104,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
 
             Assert(TryToAddRoundInformation(nextRound), "Failed to add round information.");
-            
+
             Assert(TryToUpdateRoundNumber(nextRound.RoundNumber), "Failed to update round number.");
 
             ClearExpiredRandomNumberTokens();
@@ -186,7 +186,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void ProcessUpdateValue(UpdateValueInput updateValueInput)
         {
-            TryToGetCurrentRoundInformation(out var currentRound, true);
+            TryToGetCurrentRoundInformation(out var currentRound);
 
             var minerInRound = currentRound.RealTimeMinersInformation[_processingBlockMinerPubkey];
             minerInRound.ActualMiningTimes.Add(updateValueInput.ActualMiningTime);
@@ -240,7 +240,11 @@ namespace AElf.Contracts.Consensus.AEDPoS
 
         private void ProcessTinyBlock(TinyBlockInput tinyBlockInput)
         {
-            TryToGetCurrentRoundInformation(out var currentRound, true);
+            TryToGetCurrentRoundInformation(out var currentRound);
+
+            Context.LogDebug(() =>
+                $"Processing tiny block:\n {currentRound}\n" +
+                $"Current height: {Context.CurrentHeight}\nPrevious block hash: {Context.PreviousBlockHash.ToHex()}");
 
             currentRound.RealTimeMinersInformation[_processingBlockMinerPubkey].ActualMiningTimes
                 .Add(tinyBlockInput.ActualMiningTime);
@@ -310,12 +314,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     };
                 }
             }
-        }
-
-        private void ClearCachedFields()
-        {
-            _rounds.Clear();
-            _processingBlockMinerPubkey = null;
         }
     }
 }

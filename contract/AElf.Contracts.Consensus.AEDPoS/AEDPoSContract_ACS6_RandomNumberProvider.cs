@@ -51,10 +51,17 @@ namespace AElf.Contracts.Consensus.AEDPoS
                     };
                 }
 
-                var leftTinyBlocks = lastMinedMinerInformation == null
-                    ? 0
-                    : AEDPoSContractConstants.MaximumTinyBlocksCount.Sub(lastMinedMinerInformation.ActualMiningTimes
-                        .Count);
+                var leftTinyBlocks = 0;
+                if (lastMinedMinerInformation != null)
+                {
+                    var lastMinedMinerPubkey = lastMinedMinerInformation.Pubkey;
+                    leftTinyBlocks = _currentRound.ExtraBlockProducerOfPreviousRound == lastMinedMinerPubkey
+                        ? AEDPoSContractConstants.MaximumTinyBlocksCount.Mul(2).Sub(lastMinedMinerInformation
+                            .ActualMiningTimes.Count)
+                        : AEDPoSContractConstants.MaximumTinyBlocksCount.Sub(lastMinedMinerInformation.ActualMiningTimes
+                            .Count);
+                }
+
                 var leftBlocksCount = leftMinersCount.Mul(AEDPoSContractConstants.MaximumTinyBlocksCount)
                     .Add(leftTinyBlocks);
                 return new RandomNumberRequestInformation
@@ -66,7 +73,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
             }
         }
 
-        private class RandomNumberProvider      
+        private class RandomNumberProvider
         {
             private readonly RandomNumberRequestInformation _requestInformation;
 

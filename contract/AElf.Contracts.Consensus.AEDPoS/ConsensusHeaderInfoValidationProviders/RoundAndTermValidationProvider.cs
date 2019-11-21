@@ -52,7 +52,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
         {
             // Is next round information correct?
             var extraData = validationContext.ExtraData;
-            if (TryToGetCurrentRoundInformation(out var currentRound, validationContext, true) &&
+            if (TryToGetCurrentRoundInformation(out var currentRound, validationContext) &&
                 currentRound.RoundNumber.Add(1) != extraData.Round.RoundNumber)
             {
                 return new ValidationResult {Message = "Incorrect round number for next round."};
@@ -77,7 +77,7 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 return validationResult;
             }
 
-            if (TryToGetCurrentRoundInformation(out var currentRound, validationContext, true) &&
+            if (TryToGetCurrentRoundInformation(out var currentRound, validationContext) &&
                 currentRound.TermNumber.Add(1) != extraData.Round.TermNumber)
             {
                 return new ValidationResult {Message = "Incorrect term number for next round."};
@@ -96,22 +96,12 @@ namespace AElf.Contracts.Consensus.AEDPoS
             return false;
         }
 
-        private bool TryToGetCurrentRoundInformation(out Round round, ConsensusValidationContext validationContext,
-            bool useCache = false)
+        private bool TryToGetCurrentRoundInformation(out Round round, ConsensusValidationContext validationContext)
         {
             round = null;
-            var rounds = validationContext.RoundsDict;
+            var rounds = validationContext.Rounds;
             if (!TryToGetRoundNumber(out var roundNumber, validationContext.CurrentRoundNumber)) return false;
-
-            if (useCache && rounds.ContainsKey(roundNumber))
-            {
-                round = rounds[roundNumber];
-            }
-            else
-            {
-                round = validationContext.Rounds[roundNumber];
-            }
-
+            round = rounds[roundNumber];
             return !round.IsEmpty;
         }
 
@@ -124,7 +114,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
         /// <summary>
         /// Check only one Out Value was filled during this updating.
         /// </summary>
-        /// <param name="minersInformation"></param>
         /// <returns></returns>
         private bool NewOutValueFilled(ConsensusValidationContext validationContext)
         {
@@ -158,23 +147,14 @@ namespace AElf.Contracts.Consensus.AEDPoS
         }
 
         private bool TryToGetPreviousRoundInformation(out Round previousRound,
-            ConsensusValidationContext validationContext, bool useCache = false)
+            ConsensusValidationContext validationContext)
         {
             previousRound = new Round();
-            var _rounds = validationContext.RoundsDict;
 
             if (!TryToGetRoundNumber(out var roundNumber, validationContext.CurrentRoundNumber)) return false;
             if (roundNumber < 2) return false;
             var targetRoundNumber = roundNumber.Sub(1);
-            if (useCache && _rounds.ContainsKey(targetRoundNumber))
-            {
-                previousRound = _rounds[targetRoundNumber];
-            }
-            else
-            {
-                previousRound = validationContext.Rounds[targetRoundNumber];
-            }
-
+            previousRound = validationContext.Rounds[targetRoundNumber];
             return !previousRound.IsEmpty;
         }
     }

@@ -33,7 +33,6 @@ namespace AElf.Contracts.Consensus.AEDPoS
                 Rounds = State.Rounds,
                 LatestProviderToTinyBlocksCount = State.LatestProviderToTinyBlocksCount.Value,
                 ExtraData = extraData,
-                RoundsDict = _rounds
             };
             var service = new HeaderInformationValidationService(new List<IHeaderInformationValidationProvider>
             {
