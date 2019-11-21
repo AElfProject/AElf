@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
-using System.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
@@ -33,14 +32,6 @@ namespace AElf.Launcher
             ILogger<Program> logger = NullLogger<Program>.Instance;
             try
             {
-                ThreadPool.SetMinThreads(100, 100);
-
-                ThreadPool.GetMinThreads(out var workerThreads, out var completionPortThreads);
-                Console.WriteLine($"Launcher - workers: {workerThreads}, IOCP: {completionPortThreads}");
-
-                ThreadPool.GetMaxThreads(out workerThreads,out completionPortThreads);
-                Console.WriteLine($"Launcher - max workers: {workerThreads}, IOCP: {completionPortThreads}");
-
                 CreateHostBuilder(args).Build().Run();
             }
             catch (Exception e)
