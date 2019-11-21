@@ -5,50 +5,138 @@ A side-chain node is usually very similar to a main-chain node because both are 
 ### Procedure
 
 This guides you through configuring and running a sidechain node and a mainchain node. Here's a description of the steps to follow:
-- create and edit the mainchain's configuration.
-- launch the mainchain node and create, approve and release an side chain creation request (a script is provided in this tutorial), this will give you a chain ID. 
-- with the chain ID the was issued after the proposal release, modify the side-chains configuration.
-- launch the sidechain node. 
+- create and edit configurations.
+- launch the main-chain node and create, approve and release a side chain creation request (a script is provided later in this tutorial), this will give you a chain ID. 
+- launch the side-chain node. 
 - verify that the indexing height is increasing.
 
-Note that this tutorial assumes that you know how to clone AElf's source repository, create accounts and build and run multiple nodes. If you not it's recommended to follow previous tutorials.
+Note that this tutorial assumes that you know how to clone AElf's source repository, create accounts and build and run multiple nodes. If you not it's recommended to follow previous tutorials. You will also need **nodejs** to run the script and we recommend you install **aelf-command** for interacting with the nodes.
 
-You will need two folders where you will place both configurations files.
+You will need two folders where you will place both configurations files. You can copy some template configurations from the [**AElf.Launcher project**](https://github.com/AElfProject/AElf/tree/dev/src/AElf.Launcher) in AElf's source code. After the setup you will end up will the following folders:
+- Main chain node
+  - appsettings.json
+  - appsettings.MainChain.MainNet.json
+- Side chain node
+  - appsettings.json
+  - appsettings.SideChain.MainNet.json
+- AElf clone
+- AElf build (optional, can be in the clone folder)
+  - AElf.Launcher.dll (aelf's executable program)
+- ProposalScript
+  - sideChainProposal.js
 
-### Main chain:
+### Main chain configuration:
 
-Keep ```ParentChainId``` empty as main chain doesn't have parent chain.
+Two configuration files must be placed in the configuration folder of the main-chain, this is also the folder from which you will launch the node:
+- appsettings.json
+- appsettings.MainChain.MainNet.json
 
+We will set up the main chain node with **AELF** as it's chain id, connecting to Redis' **db1**. The web API port is **1234**. To make the tutorial easier to follow the node's account will be the same as the miner (used below in the miner list). So don't forget to change the **account**, **password** and **initial miner**.
+
+In **appsettings.json** change the following configuration sections:
 ```json
 "ChainId":"AELF",
 "ChainType":"MainChain",
-"CrossChain": {
-    "Grpc": {
-      "LocalServerPort": 5000,
-      "LocalServerHost": "127.0.0.1"
-    },
-    "ParentChainId":"",
-}
+"NetType": "MainNet",
+"ConnectionStrings": {
+        "BlockchainDb": "redis://localhost:6379?db=1",
+        "StateDb": "redis://localhost:6379?db=1"
+},
+"Account": {
+    "NodeAccount": "YOUR ACCOUNT",
+    "NodeAccountPassword": "YOUR PASSWORD"
+},
+"Kestrel": {
+    "EndPoints": {
+        "Http": {
+            "Url": "http://*:1234/"
+        }
+    }
+},
+"Consensus": {
+    "InitialMinerList": ["THE PUB KEY OF THE ACCOUNT CONFIGURED EARLIER"],
+    "MiningInterval": 4000,
+    "StartTimestamp": 0
+},
 ```
 
-### Side chain:
-
-
+In **appsettings.MainChain.MainNet.json** change the following configuration sections:
 
 ```json
-"ChainId":"tDVV", // 1866392
-"ChainType":"SideChain",
-"CrossChain":{
-    "Grpc": {
-      "RemoteParentChainServerPort": 5000,
-      "LocalServerHost": "127.0.0.1",
-      "LocalServerPort": 5010,
-      "RemoteParentChainServerHost": "127.0.0.1"
-    },
-    "ParentChainId":"AELF",
+{
+  "CrossChain": {
+      "Grpc": {
+          "ListeningPort": 5010
+      },
+      "MaximalCountForIndexingParentChainBlock" : 32
+  }
 }
 ```
 
+### Side chain configuration:
+
+Two configuration files must be placed in the configuration folder of the side-chain, this is also the folder from which you will launch the node:
+- appsettings.json
+- appsettings.SideChain.MainNet.json
+
+We will set up the side-chain node with **tDVV** (1866392 converted to base58) as it's chain id, connecting to Redis' **db2**. The web API port is **1235**. To make the tutorial easier to follow the node's account will be the same as the miner (used below in the miner list). So don't forget to change the **account**, **password** and **initial miner**. You can use the same account for both nodes in this tutorial.
+
+In **appsettings.json** change the following configuration sections:
+```json
+"ChainId":"tDVV",
+"ChainType":"SideChain",
+"NetType": "MainNet",
+"ConnectionStrings": {
+        "BlockchainDb": "redis://localhost:6379?db=2",
+        "StateDb": "redis://localhost:6379?db=2"
+},
+"Account": {
+    "NodeAccount": "YOUR ACCOUNT",
+    "NodeAccountPassword": "YOUR PASSWORD"
+},
+"Kestrel": {
+    "EndPoints": {
+        "Http": {
+            "Url": "http://*:1235/"
+        }
+    }
+},
+"Consensus": {
+    "InitialMinerList": ["THE PUB KEY OF THE ACCOUNT CONFIGURED EARLIER"],
+    "MiningInterval": 4000,
+    "StartTimestamp": 0
+},
+
+In **appsettings.SideChain.MainNet.json** change the following configuration sections:
+```json
+{
+  "CrossChain": {
+    "Grpc": {
+      "ParentChainServerPort": 5010,
+      "ListeningPort": 5000,
+      "ParentChainServerIp": "127.0.0.1"
+    },
+    "ParentChainId": "AELF",
+    "MaximalCountForIndexingParentChainBlock" : 32
+  }
+}
+```
+
+### Launch the main-chain node:
+
+Open a terminal and navigate to the folder where you created the configuration for the main-chain. The next step is to launch the main-chain node:
+
+```bash
+dotnet ../AElf.Launcher.dll
+```
+
+You can try out a few commands from another terminal to check if everything is fine, for example:
+
+```bash
+aelf-command get-blk-height -e http://127.0.0.1:1234
+```
+
+### Side chain configuration:
 
 Here you can find the full script for creating the proposal, approving and releasing it. Note that this script is an example and is in **no** way production ready. Don't forget to replace:
 - the private key.
@@ -56,6 +144,8 @@ Here you can find the full script for creating the proposal, approving and relea
 
 The last log from this script will print the chain ID of he newly created side-chain.
 
+Create the script file, copy the following content and run it:
+**sideChainProposal.js**:
 ```javascript
 const AElf = require('aelf-sdk');
 const Wallet = AElf.wallet;
@@ -190,7 +280,19 @@ const createSideChain = async () => {
 createSideChain();
 ```
 
+### Launch the side-chain node:
 
+Open a terminal and navigate to the folder where you created the configuration for the side-chain.
+
+```bash
+dotnet ../AElf.Launcher.dll
+```
+
+You can try out a few commands from another terminal to check if everything is fine, for example:
+
+```bash
+aelf-command get-blk-height -e http://127.0.0.1:1235
+```
 
 
 
