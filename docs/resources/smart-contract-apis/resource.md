@@ -2,9 +2,9 @@
 
 The TokenConverter contract is most essentially used for managing resources.
 
-**Buying and selling resources**:
+## **Buying and selling resources**:
 
-The TokenConverter's contract permits buying and selling resource based on the **Bancor** algorithm.
+The token converter's contract permits buying and selling resource based on the **Bancor** algorithm.
 
 ```Protobuf
 rpc Buy (BuyInput) returns (google.protobuf.Empty) {}
