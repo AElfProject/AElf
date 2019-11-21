@@ -164,7 +164,7 @@ namespace AElf.Contracts.Genesis
                 ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroBase.DeploySmartContract),
                 Params = input.ToByteString(),
                 OrganizationAddress = State.GenesisOwner.Value,
-                ExpiredTime = Context.CurrentBlockTime.AddMinutes(3) // Maybe, get the interval from configuration
+                ExpiredTime = Context.CurrentBlockTime.AddMinutes(10) // Maybe, get the interval from configuration
             });
 
             // Fire event to trigger BPs checking contract code
@@ -197,7 +197,7 @@ namespace AElf.Contracts.Genesis
                 ContractMethodName = nameof(BasicContractZeroContainer.BasicContractZeroBase.UpdateSmartContract),
                 Params = input.ToByteString(),
                 OrganizationAddress = State.GenesisOwner.Value,
-                ExpiredTime = Context.CurrentBlockTime.AddMinutes(3) // // Maybe, get the interval from configuration
+                ExpiredTime = Context.CurrentBlockTime.AddMinutes(10) // Maybe, get the interval from configuration
             });
 
             // Fire event to trigger BPs checking contract code
