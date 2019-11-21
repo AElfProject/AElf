@@ -9,7 +9,7 @@ namespace AElf.Database
     public class RedisDatabase<TKeyValueDbContext> : IKeyValueDatabase<TKeyValueDbContext>
         where TKeyValueDbContext : KeyValueDbContext<TKeyValueDbContext>
     {
-        private static ConnectionMultiplexer _connectionMultiplexer;
+        private readonly ConnectionMultiplexer _connectionMultiplexer;
 
         public RedisDatabase(KeyValueDatabaseOptions<TKeyValueDbContext> options)
         {
