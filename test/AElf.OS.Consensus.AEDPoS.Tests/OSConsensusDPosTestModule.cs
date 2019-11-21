@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.AEDPoS.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Grpc;
@@ -64,6 +65,7 @@ namespace AElf.OS.Consensus.DPos
             });
             
             context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
+            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
         }
     }
 }

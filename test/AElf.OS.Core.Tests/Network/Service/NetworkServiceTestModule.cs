@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Modularity;
 using AElf.OS.Network;
 using AElf.OS.Network.Application;
@@ -24,7 +25,8 @@ namespace AElf.OS
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
             context.Services.AddSingleton<INetworkService, NetworkService>();
-            
+            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
+
             Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
             var p3 = new Mock<IPeer>();
             p3.Setup(p => p.Info).Returns(new PeerConnectionInfo { Pubkey = "pBestPeer" });

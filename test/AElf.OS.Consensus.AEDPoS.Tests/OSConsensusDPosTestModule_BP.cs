@@ -4,6 +4,7 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Account.Infrastructure;
 using AElf.Kernel.Consensus.AEDPoS.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Modularity;
 using AElf.OS.Network.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,6 +39,7 @@ namespace AElf.OS.Consensus.DPos
                         }));
                 return mockService.Object;
             });
+            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
         }
 
         public override void OnPreApplicationInitialization(ApplicationInitializationContext context)

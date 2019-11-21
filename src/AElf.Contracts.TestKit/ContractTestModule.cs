@@ -71,6 +71,8 @@ namespace AElf.Contracts.TestKit
                 options.ContextVariables[ContextVariableDictionary.ResourceTokenSymbolList] = "RAM,STO,CPU,NET";
             });
 
+            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
+
             #region Infra
 
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(o => o.UseInMemoryDatabase());
@@ -139,9 +141,6 @@ namespace AElf.Contracts.TestKit
             context.ServiceProvider.GetService<IAElfAsymmetricCipherKeyPairProvider>()
                 .SetKeyPair(CryptoHelper.GenerateKeyPair());
             
-            var executingService = context.ServiceProvider.GetService<LocalTransactionExecutingService>();
-            executingService.IsTxExecutionTimeoutEnabled = false;
-
             var dto = new OsBlockchainNodeContextStartDto
             {
                 ChainId = ChainId,

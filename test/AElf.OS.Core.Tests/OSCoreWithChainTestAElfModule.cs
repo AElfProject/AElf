@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
 using AElf.OS.Network.Infrastructure;
@@ -24,6 +25,8 @@ namespace AElf.OS
 
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
+            Configure<ContractOptions>(options => { options.IsTxExecutionTimeoutEnabled = false; });
+
             context.Services.AddTransient<ISystemTransactionGenerationService>(o =>
             {
                 var mockService = new Mock<ISystemTransactionGenerationService>();
