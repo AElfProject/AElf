@@ -13,24 +13,10 @@ Interbank transfer is an example of breaking the independence of closed systems 
 
 ### Technical aspect
 
-Every cross-chain contract implements ACS7 witch is the standard that defines cross-chain oper
+In order to deploy a side-chain a proposal must be issues in the Parliament. Votes will be accumulated and eventually the proposal approved and released. The release sets up state in the crosschain contract and the token contract. After this a link is created between the side chain and the main and indexing will start. Every cross-chain contract implements ACS7 that is the standard that defines cross-chain operations that enable cross chain transfer functionality.
 
-  - Side chain validates main chain multi-token contract address
-   - Main chain: ValidateSystemContractAddress，GenesisContract
-   - Side chain: RegisterCrossChainTokenContractAddress，MultiTokenContract
-
-  - Main chain validates side chain multi-token contract address
-   - Side chain: ValidateSystemContractAddress，GenesisContract
-   - Main chain: RegisterCrossChainTokenContractAddress，MultiTokenContract
-
-- Main chain to Side chain transfer
- - Create token
-  - Main chain: Create & Issue, MultiTokenContract
-  - Side chain: CrossChainCreateToken, MultiTokenContract
- 
- - Transfer
-  - Main chain: CrossChainTransfer, MultiTokenContract
-
- - Receive
-  - Side chain: CrossChainReceiveToken, MultiTokenContract
+Here's a high level overview of the process of token creation and cross chain transfer:
+ - the first step involves creating and issue on the token contract of the main chain. A transaction also has to be sent to the side chain's token contract to register the token.
+ - transfer transactions can start: first transfer from the main-chain to the side-chain by calling the main-chain's token contract CrossChainTransfer method.
+ - in order to complete the transfer, the side-chain must receive the tokens by calling the CrossChainReceiveToken method of the token contract.
 
