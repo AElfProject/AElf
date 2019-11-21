@@ -21,7 +21,6 @@ namespace AElf.Contracts.MultiToken
             Configure<ContractOptions>(o =>
             {
                 o.ContractDeploymentAuthorityRequired = false;
-                o.IsTxExecutionTimeoutEnabled = false;
             });
         }
     }
