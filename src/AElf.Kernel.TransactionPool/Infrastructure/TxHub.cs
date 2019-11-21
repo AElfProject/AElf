@@ -275,7 +275,7 @@ namespace AElf.Kernel.TransactionPool.Infrastructure
             foreach (var queuedTransaction in _allTransactions.Values)
             {
                 prefixes.TryGetValue(queuedTransaction.Transaction.RefBlockNumber, out var prefix);
-                UpdateRefBlockStatus(queuedTransaction, prefix, _bestChainHeight);
+                UpdateRefBlockStatus(queuedTransaction, prefix, eventData.BlockHeight);
                 AddToCollection(queuedTransaction);
             }
 

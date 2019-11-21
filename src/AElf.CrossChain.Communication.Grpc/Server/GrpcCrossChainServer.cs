@@ -1,3 +1,4 @@
+using System.Net;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
@@ -22,13 +23,13 @@ namespace AElf.CrossChain.Communication.Grpc
 
         public ILogger<GrpcCrossChainServer> Logger { get; set; }
         
-        public async Task StartAsync(string localServerHost, int localServerPort)
+        public async Task StartAsync(int listeningPort)
         {
             _server = new Server
             {
                 Ports =
                 {
-                    new ServerPort(localServerHost, localServerPort, ServerCredentials.Insecure)
+                    new ServerPort(IPAddress.Any.ToString(), listeningPort, ServerCredentials.Insecure)
                 },
                 Services =
                 {
@@ -40,7 +41,7 @@ namespace AElf.CrossChain.Communication.Grpc
             
             await Task.Run(() => _server.Start());
             
-            Logger.LogDebug($"Grpc cross chain server started, listening at {localServerPort}");
+            Logger.LogDebug($"Grpc cross chain server started, listening at {listeningPort}");
             IsStarted = true;
         }
 

@@ -55,7 +55,7 @@ namespace AElf.CrossChain
 
         public async Task<Block> GetNonIndexedBlockAsync(long height)
         {
-            return await _irreversibleBlockStateProvider.GetIrreversibleBlockByHeightAsync(height);
+            return await _irreversibleBlockStateProvider.GetNotIndexedIrreversibleBlockByHeightAsync(height);
         }
 
         public async Task<ChainInitializationData> GetChainInitializationDataAsync(int chainId)
