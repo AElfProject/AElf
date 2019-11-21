@@ -197,7 +197,7 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1.Tests
                     Owner = DefaultSender,
                     Symbol = "ELF"
                 })).Balance;
-                var targetBalance = 1; // So that the sender doesn't have enough balance for paying the fee
+                var targetBalance = 1000; // So that the sender doesn't have enough balance for paying the fee
                 var res = await TokenContractStub.Burn.SendAsync(new BurnInput()
                 {
                     Symbol = "ELF",

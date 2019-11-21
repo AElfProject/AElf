@@ -12,6 +12,7 @@ using AElf.Kernel.TransactionPool.Application;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Volo.Abp.Modularity;
 
 namespace AElf.Contracts.Economic.TestBase
@@ -32,7 +33,7 @@ namespace AElf.Contracts.Economic.TestBase
             context.Services.AddSingleton<IPostExecutionPlugin, ResourceConsumptionPostExecutionPlugin>();
             context.Services.AddSingleton<IRandomHashCacheService, MockRandomHashCacheService>();
             context.Services.AddSingleton<ITransactionInclusivenessProvider, TransactionInclusivenessProvider>();
-
+            context.Services.RemoveAll<IPreExecutionPlugin>();
             context.Services
                 .AddSingleton<ISystemTransactionMethodNameListProvider, SystemTransactionMethodNameListProvider>();
         }

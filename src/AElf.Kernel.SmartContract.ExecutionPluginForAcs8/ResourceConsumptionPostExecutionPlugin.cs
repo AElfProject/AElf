@@ -15,11 +15,15 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
     public class ResourceConsumptionPostExecutionPlugin : IPostExecutionPlugin, ISingletonDependency
     {
         private readonly IHostSmartContractBridgeContextService _contextService;
+        private readonly ICalculateFeeService _calService;
+        //private readonly IRecordBehavior _behavior = new RecordBehavior("./ResourceToken.txt");
         private const string AcsSymbol = "acs8";
 
-        public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService)
+        public ResourceConsumptionPostExecutionPlugin(IHostSmartContractBridgeContextService contextService,
+            ICalculateFeeService calService)
         {
             _contextService = contextService;
+            _calService = calService;
         }
 
         private static bool IsAcs8(IReadOnlyList<ServiceDescriptor> descriptors)
@@ -73,12 +77,24 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
             // Transaction trace state set reads count related to CPU Token.
             var readsCount = transactionContext.Trace.StateSet.Reads.Count;
 
+            var netCost = (int)_calService.GetNetTokenCost(transactionSize);
+            var cpuCost = (int)_calService.GetCpuTokenCost(readsCount);
+            var stoCost = (int)_calService.GetStoTokenCost(writesCount);
+//            var record = new RecordInfo{
+//                TransactionId = string.Empty,
+//                TransactionName = transactionContext.Transaction.MethodName,
+//            };               
+//            record.AddCostInfo("Net", transactionSize, netCost);
+//            record.AddCostInfo("Cpu", readsCount,cpuCost);
+//            record.AddCostInfo("Sto", writesCount, stoCost);
+//            _behavior.DealWithRecord(record);
+            
             var chargeResourceTokenTransaction = (await tokenStub.ChargeResourceToken.SendAsync(
                 new ChargeResourceTokenInput
                 {
-                    TransactionSize = transactionSize,
-                    WritesCount = writesCount,
-                    ReadsCount = readsCount,
+                    TransactionSize = netCost,
+                    WritesCount = stoCost,
+                    ReadsCount = cpuCost,
                     Caller = transactionContext.Transaction.From
                 })).Transaction;
 

@@ -21,19 +21,22 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
         private readonly ISystemTransactionMethodNameListProvider _systemTransactionMethodNameListProvider;
         private readonly IPrimaryTokenSymbolProvider _primaryTokenSymbolProvider;
         private readonly ITransactionSizeFeeUnitPriceProvider _transactionSizeFeeUnitPriceProvider;
+        private readonly ICalculateFeeService _calService;
+        //private readonly IRecordBehavior _behavior = new RecordBehavior("./TransationFee.txt");
 
         public ILogger<FeeChargePreExecutionPlugin> Logger { get; set; }
 
         public FeeChargePreExecutionPlugin(IHostSmartContractBridgeContextService contextService,
             ISystemTransactionMethodNameListProvider systemTransactionMethodNameListProvider,
             IPrimaryTokenSymbolProvider primaryTokenSymbolProvider,
-            ITransactionSizeFeeUnitPriceProvider transactionSizeFeeUnitPriceProvider)
+            ITransactionSizeFeeUnitPriceProvider transactionSizeFeeUnitPriceProvider,
+            ICalculateFeeService calService)
         {
             _contextService = contextService;
             _systemTransactionMethodNameListProvider = systemTransactionMethodNameListProvider;
             _primaryTokenSymbolProvider = primaryTokenSymbolProvider;
             _transactionSizeFeeUnitPriceProvider = transactionSizeFeeUnitPriceProvider;
-
+            _calService = calService;
             Logger = NullLogger<FeeChargePreExecutionPlugin>.Instance;
         }
 
@@ -110,12 +113,21 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs1
                 }
 
                 var unitPrice = await _transactionSizeFeeUnitPriceProvider.GetUnitPriceAsync();
+                var txSize = transactionContext.Transaction.Size();
+                var txCost = _calService.GetTransactionFee(txSize);
+//                var record = new RecordInfo{
+//                    TransactionId = string.Empty,
+//                    TransactionName = transactionContext.Transaction.MethodName,
+//                };               
+//                record.AddCostInfo("transaction", txSize, txCost);
+//                _behavior.DealWithRecord(record);
                 var chargeFeeTransaction = (await tokenStub.ChargeTransactionFees.SendAsync(
                     new ChargeTransactionFeesInput
                     {
                         MethodName = transactionContext.Transaction.MethodName,
                         ContractAddress = transactionContext.Transaction.To,
-                        TransactionSizeFee = unitPrice * transactionContext.Transaction.Size(),
+                        //TransactionSizeFee = unitPrice * transactionContext.Transaction.Size(),
+                        TransactionSizeFee = txCost,
                         PrimaryTokenSymbol = await _primaryTokenSymbolProvider.GetPrimaryTokenSymbol()
                     })).Transaction;
                 return new List<Transaction>
