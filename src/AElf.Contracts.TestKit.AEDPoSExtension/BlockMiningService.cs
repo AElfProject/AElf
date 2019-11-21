@@ -203,13 +203,15 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             {
                 Behaviour = hint.Behaviour,
                 // It doesn't matter for testing.
-                RandomHash = Hash.FromString($"RandomHashOf{pubkey}"),
-                PreviousRandomHash = Hash.FromString($"RandomHashOf{pubkey}"),
+                InValue = Hash.FromString($"InValueOf{pubkey}"),
+                PreviousInValue = Hash.FromString($"InValueOf{pubkey}"),
                 Pubkey = pubkey.Value
             };
 
             var consensusExtraData = await contractStub.GetConsensusExtraData.CallAsync(new BytesValue
-                {Value = triggerInformation.ToByteString()});
+            {
+                Value = triggerInformation.ToByteString()
+            });
             // Validate consensus extra data.
             if (consensusExtraData != null)
             {

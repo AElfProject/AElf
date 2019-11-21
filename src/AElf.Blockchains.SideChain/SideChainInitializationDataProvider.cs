@@ -28,14 +28,16 @@ namespace AElf.Blockchains.SideChain
 
         public async Task<ChainInitializationData> GetChainInitializationDataAsync()
         {
+            var chain = await _blockchainService.GetChainAsync();
+            if (chain != null)
+                return null;
+            
             var chainInitializationData =
                 await _chainInitializationDataPlugin.GetChainInitializationDataAsync(_chainOptions.ChainId);
-            if (chainInitializationData != null)
-                return chainInitializationData;
-            var chain = await _blockchainService.GetChainAsync();
-            if (chain == null)
+            if (chainInitializationData == null)
                 throw new Exception("Initialization data cannot be null for a new side chain.");
-            return null;
+                
+            return chainInitializationData;
         }
 
         public int ParentChainId { get; }

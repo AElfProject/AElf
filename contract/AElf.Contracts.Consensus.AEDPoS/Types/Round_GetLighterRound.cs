@@ -6,16 +6,16 @@ namespace AElf.Contracts.Consensus.AEDPoS
     {
         public void DeleteSecretSharingInformation()
         {
-            var encryptedInValues = RealTimeMinersInformation.Values.Select(i => i.EncryptedInValues);
-            foreach (var encryptedInValue in encryptedInValues)
+            var encryptedPieces = RealTimeMinersInformation.Values.Select(i => i.EncryptedPieces);
+            foreach (var encryptedPiece in encryptedPieces)
             {
-                encryptedInValue.Clear();
+                encryptedPiece.Clear();
             }
-            
-            var decryptedInValues = RealTimeMinersInformation.Values.Select(i => i.DecryptedPreviousInValues);
-            foreach (var decryptedInValue in decryptedInValues)
+
+            var decryptedPieces = RealTimeMinersInformation.Values.Select(i => i.DecryptedPieces);
+            foreach (var decryptedPiece in decryptedPieces)
             {
-                decryptedInValue.Clear();
+                decryptedPiece.Clear();
             }
         }
     }
