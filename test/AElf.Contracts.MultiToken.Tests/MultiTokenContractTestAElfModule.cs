@@ -18,7 +18,11 @@ namespace AElf.Contracts.MultiToken
             context.Services.AddSingleton(instance);
             context.Services.AddSingleton<ISystemTransactionGenerator>(instance);
             context.Services.RemoveAll<IPreExecutionPlugin>();
-            Configure<ContractOptions>(o => o.ContractDeploymentAuthorityRequired = false);
+            Configure<ContractOptions>(o =>
+            {
+                o.ContractDeploymentAuthorityRequired = false;
+                o.IsTxExecutionTimeoutEnabled = false;
+            });
         }
     }
     
