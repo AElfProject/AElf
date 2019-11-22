@@ -36,6 +36,11 @@ namespace AElf.Contracts.TestKet.AEDPoSExtension
             _blockTimeProvider.SetBlockTime(blockTime);
         }
 
+        public void SetBlockTime(int offsetMilliseconds)
+        {
+            _blockTimeProvider.SetBlockTime(offsetMilliseconds);
+        }
+
         public async Task AddTransactionListAsync(List<Transaction> transactions)
         {
             await _transactionListProvider.AddTransactionListAsync(transactions);

@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using AElf.Types;
@@ -82,29 +84,39 @@ namespace AElf.Kernel.Blockchain.Application
 
     public class BlockValidationProvider : IBlockValidationProvider
     {
-        private IBlockchainService _blockchainServce;
+        private readonly IBlockchainService _blockchainService;
+        private readonly ITransactionBlockIndexService _transactionBlockIndexService;
         public ILogger<BlockValidationProvider> Logger { get; set; }
 
-        public BlockValidationProvider(IBlockchainService blockchainService)
+        public BlockValidationProvider(IBlockchainService blockchainService,
+            ITransactionBlockIndexService transactionBlockIndexService)
         {
-            _blockchainServce = blockchainService;
+            _blockchainService = blockchainService;
+            _transactionBlockIndexService = transactionBlockIndexService;
         }
 
         public async Task<bool> ValidateBeforeAttachAsync(IBlock block)
         {
             if (block?.Header == null || block.Body == null)
             {
-                Logger.LogWarning($"Block header or body is null.");
+                Logger.LogWarning("Block header or body is null.");
                 return false;
             }
 
             if (block.Body.TransactionsCount == 0)
             {
-                Logger.LogWarning($"Block transactions is empty");
+                Logger.LogWarning("Block transactions is empty");
                 return false;
             }
 
-            if (_blockchainServce.GetChainId() != block.Header.ChainId)
+            var hashSet = new HashSet<Hash>();
+            if (block.Body.TransactionIds.Select(item => hashSet.Add(item)).Any(addResult => !addResult))
+            {
+                Logger.LogWarning("Block contains duplicates transaction");
+                return false;
+            }
+
+            if (_blockchainService.GetChainId() != block.Header.ChainId)
             {
                 Logger.LogWarning($"Block chain id mismatch {block.Header.ChainId}");
                 return false;
@@ -112,18 +124,19 @@ namespace AElf.Kernel.Blockchain.Application
 
             if (block.Header.Height != Constants.GenesisBlockHeight && !block.VerifySignature())
             {
-                Logger.LogWarning($"Block verify signature failed.");
+                Logger.LogWarning("Block verify signature failed.");
                 return false;
             }
 
             if (block.Body.CalculateMerkleTreeRoot() != block.Header.MerkleTreeRootOfTransactions)
             {
-                Logger.LogWarning($"Block merkle tree root mismatch.");
+                Logger.LogWarning("Block merkle tree root mismatch.");
                 return false;
             }
 
             if (block.Header.Height != Constants.GenesisBlockHeight &&
-                block.Header.Time.ToDateTime() - TimestampHelper.GetUtcNow().ToDateTime() > KernelConstants.AllowedFutureBlockTimeSpan.ToTimeSpan())
+                block.Header.Time.ToDateTime() - TimestampHelper.GetUtcNow().ToDateTime() >
+                KernelConstants.AllowedFutureBlockTimeSpan.ToTimeSpan())
             {
                 Logger.LogWarning($"Future block received {block}, {block.Header.Time.ToDateTime()}");
                 return false;
@@ -131,7 +144,7 @@ namespace AElf.Kernel.Blockchain.Application
 
             return true;
         }
-        
+
         public async Task<bool> ValidateBlockBeforeExecuteAsync(IBlock block)
         {
             if (block?.Header == null || block.Body == null)
@@ -139,6 +152,19 @@ namespace AElf.Kernel.Blockchain.Application
 
             if (block.Body.TransactionsCount == 0)
                 return false;
+
+            // Verify that the transaction has been packaged in the current branch
+            foreach (var transactionId in block.TransactionIds)
+            {
+                var blockIndex =
+                    await _transactionBlockIndexService.GetCachedTransactionBlockIndexAsync(transactionId,
+                        block.Header.PreviousBlockHash);
+                if (blockIndex != null)
+                {
+                    Logger.LogWarning($"Transaction: {transactionId} repackaged.");
+                    return false;
+                }
+            }
 
             return true;
         }

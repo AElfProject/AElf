@@ -13,14 +13,14 @@ namespace AElf.Kernel.Consensus.AEDPoS
     {
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly IBlockTimeProvider _blockTimeProvider;
+        private readonly IConsensusReaderContextService _contextService;
 
         public AEDPoSReaderFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
-            ISmartContractAddressService smartContractAddressService, IBlockTimeProvider blockTimeProvider)
+            ISmartContractAddressService smartContractAddressService, IConsensusReaderContextService contextService)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _smartContractAddressService = smartContractAddressService;
-            _blockTimeProvider = blockTimeProvider;
+            _contextService = contextService;
         }
 
         public AEDPoSContractContainer.AEDPoSContractStub Create(IChainContext chainContext)
@@ -30,7 +30,7 @@ namespace AElf.Kernel.Consensus.AEDPoS
                 __factory = new MethodStubFactory(_transactionReadOnlyExecutionService,
                     _smartContractAddressService,
                     chainContext,
-                    _blockTimeProvider)
+                    _contextService)
             };
         }
     }

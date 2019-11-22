@@ -1,5 +1,4 @@
 using System;
-using AElf.Kernel.Types.SmartContract;
 using AElf.Types;
 
 namespace AElf.Sdk.CSharp.Tests.TestContract
@@ -9,20 +8,25 @@ namespace AElf.Sdk.CSharp.Tests.TestContract
         public void Initialize(string symbol, string tokenName, ulong totalSupply, uint decimals)
         {
             Assert(!State.Initialized.Value, "Already initialized.");
-            // TODO: Add back this assert
-            // Api.Assert(Api.GetContractOwner().Equals(Api.GetFromAddress()), "Only owner can initialize the contract state.");
-
+            
             // Set token info
             State.TokenInfo.Symbol.Value = symbol;
             State.TokenInfo.TokenName.Value = tokenName;
             State.TokenInfo.TotalSupply.Value = totalSupply;
             State.TokenInfo.Decimals.Value = decimals;
 
+            State.NativeTokenSymbol.Value = symbol;
+
             // Assign total supply to owner
             State.Balances[Context.Sender] = totalSupply;
 
             // Set initialized flag
             State.Initialized.Value = true;
+        }
+
+        public void ResetNativeTokenSymbol(string symbol)
+        {
+            State.NativeTokenSymbol.Value = symbol;
         }
 
         public void Transfer(Address to, ulong amount)

@@ -1,6 +1,6 @@
 using System;
-using System.Security.Cryptography;
 using System.Text;
+using AElf.Cryptography.Exceptions;
 using AElf.Types;
 using Xunit;
 using Shouldly;
@@ -21,7 +21,7 @@ namespace AElf.Cryptography.Tests
             //invalid key length
             var bytes = new byte[30];
             new Random().NextBytes(bytes);
-            Assert.Throws<ArgumentException>(() => CryptoHelper.FromPrivateKey(bytes));
+            Assert.Throws<InvalidPrivateKeyException>(() => CryptoHelper.FromPrivateKey(bytes));
         }
 
         [Fact]
@@ -56,6 +56,24 @@ namespace AElf.Cryptography.Tests
             Assert.False(publicKey2.BytesEqual(keyPair.PublicKey));
         }
 
+        [Fact]
+        public void VerifySignature_BadSignature()
+        {
+            var keyPair = CryptoHelper.GenerateKeyPair();
+            var messageBytes = Encoding.UTF8.GetBytes("Hello world.");
+            var messageHash = messageBytes.ComputeHash();
+            var signature = new byte[65];
+
+            var verifyResult = CryptoHelper.VerifySignature(signature, messageHash, keyPair.PublicKey);
+            verifyResult.ShouldBeFalse();
+        }
+
+        [Fact]
+        public void FromPrivateKey_BadPrivateKey_ShouldThrowException()
+        {
+            Assert.Throws<InvalidPrivateKeyException>(() => CryptoHelper.FromPrivateKey(new byte[32]));
+        }
+        
         [Fact]
         public void Decrypt_Message_Test()
         {
@@ -95,6 +113,12 @@ namespace AElf.Cryptography.Tests
         {
             var byteArray1 = CryptoHelper.RandomFill(30);
             byteArray1.Length.ShouldBe(30);
+        }
+        
+        [Fact]
+        public void Ecdh_BadArgument_ShouldThrowException()
+        {
+            Assert.Throws<PublicKeyOperationException>(() => CryptoHelper.Ecdh(new byte[32], new byte[33]));
         }
     }
 }

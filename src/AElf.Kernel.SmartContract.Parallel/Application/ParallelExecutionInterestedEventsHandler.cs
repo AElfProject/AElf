@@ -8,21 +8,25 @@ using Volo.Abp.EventBus;
 namespace AElf.Kernel.SmartContract.Parallel
 {
     public class ParallelExecutionInterestedEventsHandler : ILocalEventHandler<TransactionAcceptedEvent>,
-        ILocalEventHandler<BlockAcceptedEvent>,
+//        ILocalEventHandler<BlockAcceptedEvent>,
         ILocalEventHandler<NewIrreversibleBlockFoundEvent>,
         ILocalEventHandler<UnexecutableTransactionsFoundEvent>,
         ITransientDependency
     {
         private readonly IResourceExtractionService _resourceExtractionService;
+        private readonly ITaskQueueManager _taskQueueManager;
 
-        public ParallelExecutionInterestedEventsHandler(IResourceExtractionService resourceExtractionService)
+        public ParallelExecutionInterestedEventsHandler(IResourceExtractionService resourceExtractionService,
+            ITaskQueueManager taskQueueManager)
         {
             _resourceExtractionService = resourceExtractionService;
+            _taskQueueManager = taskQueueManager;
         }
 
-        public async Task HandleEventAsync(TransactionAcceptedEvent eventData)
+        public Task HandleEventAsync(TransactionAcceptedEvent eventData)
         {
-            await _resourceExtractionService.HandleTransactionAcceptedEvent(eventData);
+            _ = _resourceExtractionService.HandleTransactionAcceptedEvent(eventData);
+            return Task.CompletedTask;
         }
 
         public async Task HandleEventAsync(BlockAcceptedEvent eventData)
@@ -30,9 +34,13 @@ namespace AElf.Kernel.SmartContract.Parallel
             await _resourceExtractionService.HandleBlockAcceptedAsync(eventData);
         }
 
-        public async Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
+        public Task HandleEventAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            await _resourceExtractionService.HandleNewIrreversibleBlockFoundAsync(eventData);
+            _taskQueueManager.Enqueue(
+                async () => { await _resourceExtractionService.HandleNewIrreversibleBlockFoundAsync(eventData); },
+                KernelConstants.ChainCleaningQueueName);
+            
+            return Task.CompletedTask;
         }
 
         public async Task HandleEventAsync(UnexecutableTransactionsFoundEvent eventData)

@@ -3,36 +3,45 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.OS.Network.Application;
-using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Metrics;
+using AElf.OS.Network.Protocol.Types;
 using AElf.Types;
+using Google.Protobuf.WellKnownTypes;
 
 namespace AElf.OS.Network.Infrastructure
 {
     public interface IPeer
     {
-        bool IsBest { get; set; }
         bool IsReady { get; }
-        
+        string ConnectionStatus { get; }
+        bool IsInvalid { get; }
+        SyncState SyncState { get; }
+        Hash LastKnownLibHash { get; }
         long LastKnownLibHeight { get; }
+        Timestamp LastReceivedHandshakeTime { get; }
         IPEndPoint RemoteEndpoint { get; }
-        string IpAddress { get; }
-        
+
         int BufferedTransactionsCount { get; }
         int BufferedBlocksCount { get; }
         int BufferedAnnouncementsCount { get; }
-
-        PeerInfo Info { get; }
-
-        IReadOnlyDictionary<long, Hash> RecentBlockHeightAndHashMappings { get; }
         
-        void AddKnowBlock(BlockAnnouncement blockAnnouncement);
+        byte[] InboundSessionId { get; }
+
+        PeerConnectionInfo Info { get; }
+
+        Task CheckHealthAsync();
+
+        bool KnowsBlock(Hash hash);
+        bool TryAddKnownBlock(Hash blockHash);
+        bool KnowsTransaction(Hash hash);
+        bool TryAddKnownTransaction(Hash transactionHash);
+        void UpdateLastKnownLib(LibAnnouncement libAnnouncement);
 
         void EnqueueAnnouncement(BlockAnnouncement transaction, Action<NetworkException> sendCallback);
         void EnqueueTransaction(Transaction transaction, Action<NetworkException> sendCallback);
         void EnqueueBlock(BlockWithTransactions blockWithTransactions, Action<NetworkException> sendCallback);
+        void EnqueueLibAnnouncement(LibAnnouncement libAnnouncement,Action<NetworkException> sendCallback);
 
-        Task<Handshake> DoHandshakeAsync(Handshake handshake);
         Task<BlockWithTransactions> GetBlockByHashAsync(Hash hash);
         Task<List<BlockWithTransactions>> GetBlocksAsync(Hash previousHash, int count);
         Task<NodeList> GetNodesAsync(int count = NetworkConstants.DefaultDiscoveryMaxNodesToRequest);
@@ -40,7 +49,6 @@ namespace AElf.OS.Network.Infrastructure
         Task<bool> TryRecoverAsync();
         
         Dictionary<string, List<RequestMetric>> GetRequestMetrics();
-
         Task DisconnectAsync(bool gracefulDisconnect);
     }
 }

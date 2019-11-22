@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -8,6 +7,10 @@ using AElf.OS.Network.Application;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
+using Grpc.Core;
+using Grpc.Core.Testing;
+using Moq;
+using NSubstitute;
 using Shouldly;
 using Volo.Abp.Threading;
 using Xunit;
@@ -32,8 +35,9 @@ namespace AElf.OS.Network
             _grpcPeer = GrpcTestPeerHelpers.CreateNewPeer();
             _grpcPeer.IsConnected = true;
 
-            _nonInterceptedPeer = GrpcTestPeerHelpers.CreateNewPeer("127.0.0.1:2000", false);
-            _nonInterceptedPeer.IsConnected = true;
+            //_nonInterceptedPeer = GrpcTestPeerHelpers.CreateNewPeer("127.0.0.1:2000", false);
+            //_nonInterceptedPeer.IsConnected = true;
+            _nonInterceptedPeer = MockServiceClient("127.0.0.1:2000");
 
             _pool.TryAddPeer(_grpcPeer);
         }
@@ -57,7 +61,7 @@ namespace AElf.OS.Network
                 executed.Set();
             });
 
-            executed.WaitOne(TimeSpan.FromMilliseconds(1000));
+            executed.WaitOne();
             exception.ShouldBeNull();
             called.ShouldBeTrue();
         }
@@ -77,7 +81,7 @@ namespace AElf.OS.Network
                 executed.Set();
             });
 
-            executed.WaitOne(TimeSpan.FromMilliseconds(1000));
+            executed.WaitOne();
             exception.ShouldBeNull();
             called.ShouldBeTrue();
         }
@@ -96,7 +100,7 @@ namespace AElf.OS.Network
                 executed.Set();
             });
 
-            executed.WaitOne(TimeSpan.FromMilliseconds(1000));
+            executed.WaitOne();
             exception.ShouldBeNull();
             called.ShouldBeTrue();
         }
@@ -107,13 +111,11 @@ namespace AElf.OS.Network
             AutoResetEvent executed = new AutoResetEvent(false);
 
             NetworkException exception = null;
-            bool called = false;
             _grpcPeer.IsConnected = false;
             Should.Throw<NetworkException>(() =>
                 _grpcPeer.EnqueueAnnouncement(new BlockAnnouncement(), ex =>
                 {
                     exception = ex;
-                    called = true;
                     executed.Set();
                 }));
 
@@ -121,7 +123,6 @@ namespace AElf.OS.Network
                 _grpcPeer.EnqueueBlock(new BlockWithTransactions(), ex =>
                 {
                     exception = ex;
-                    called = true;
                     executed.Set();
                 }));
         }
@@ -193,36 +194,45 @@ namespace AElf.OS.Network
             isReady.ShouldBeFalse();
         }
 
-        [Fact]
-        public void Peer_AddKnowBlock_Test()
+        private GrpcPeer MockServiceClient(string ipAddress)
         {
-            //fork clean hash
-            var announcement = new BlockAnnouncement
-            {
-                HasFork = true
-            };
-            _grpcPeer.AddKnowBlock(announcement);
-            _grpcPeer.RecentBlockHeightAndHashMappings.Count().ShouldBe(0);
+            var mockClient = new Mock<PeerService.PeerServiceClient>();
+            var testCompletionSource = Task.FromResult(new VoidReply());
 
-            for (var i = 0; i < 10; i++)
-            {
-                _grpcPeer.AddKnowBlock(new BlockAnnouncement
-                {
-                    BlockHash = Hash.FromString($"height-{i+1}"),
-                    BlockHeight = i+1,
-                    HasFork = false
-                });
-                _grpcPeer.RecentBlockHeightAndHashMappings.Count().ShouldBe(i+1);
-            }
+            // setup mock announcement stream
+            var announcementStreamCall = MockStreamCall<BlockAnnouncement, VoidReply>(testCompletionSource);
+            mockClient.Setup(m => m.AnnouncementBroadcastStream(It.IsAny<Metadata>(), null, CancellationToken.None))
+                .Returns(announcementStreamCall);
             
-            //over max value
-            _grpcPeer.AddKnowBlock(new BlockAnnouncement
-            {
-                BlockHash = Hash.FromString($"random-hash"),
-                BlockHeight = 20,
-                HasFork = false
-            });
-            _grpcPeer.RecentBlockHeightAndHashMappings.Count().ShouldBe(10);
+            // setup mock transaction stream
+            var transactionStreamCall = MockStreamCall<Transaction, VoidReply>(testCompletionSource);
+            mockClient.Setup(m => m.TransactionBroadcastStream(It.IsAny<Metadata>(), null, CancellationToken.None))
+                .Returns(transactionStreamCall);
+            
+            // setup mock block stream
+            var blockStreamCall = MockStreamCall<BlockWithTransactions, VoidReply>(testCompletionSource);
+            mockClient.Setup(m => m.BlockBroadcastStream(It.IsAny<Metadata>(), null, CancellationToken.None))
+                .Returns(blockStreamCall);
+            
+            // create peer
+            var grpcPeer = GrpcTestPeerHelpers.CreatePeerWithClient(ipAddress, 
+                NetworkTestConstants.FakePubkey, mockClient.Object);
+            
+            grpcPeer.IsConnected = true;
+
+            return grpcPeer;
+        }
+        
+        private AsyncClientStreamingCall<TReq, TResp> MockStreamCall<TReq, TResp>(Task<TResp> replyTask) where TResp : new()
+        {
+            var mockRequestStream = new Mock<IClientStreamWriter<TReq>>();
+            mockRequestStream.Setup(m => m.WriteAsync(It.IsAny<TReq>()))
+                .Returns(replyTask);
+            
+            var call = TestCalls.AsyncClientStreamingCall(mockRequestStream.Object, Task.FromResult(new TResp()),
+                Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
+
+            return call;
         }
     }
 }

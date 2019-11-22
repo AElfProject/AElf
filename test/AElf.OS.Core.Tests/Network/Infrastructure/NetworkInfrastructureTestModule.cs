@@ -2,6 +2,7 @@ using System.Threading.Tasks;
 using AElf.Kernel;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Modularity;
+using AElf.OS.Network.Infrastructure;
 using AElf.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -17,6 +18,7 @@ namespace AElf.OS.Network
             Configure<NetworkOptions>(o=>
             {
                 o.MaxPeers = 2;
+                o.PeerBlackListTimeoutInSeconds = 1;
             });
 
             var services = context.Services;

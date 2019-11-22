@@ -68,7 +68,8 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                 ElectionSmartContractAddressNameProvider.Name,
                 TreasurySmartContractAddressNameProvider.Name,
                 TokenConverterSmartContractAddressNameProvider.Name,
-                EconomicSmartContractAddressNameProvider.Name
+                EconomicSmartContractAddressNameProvider.Name,
+                ReferendumAuthSmartContractAddressNameProvider.Name
             }));
 
             AsyncHelper.RunSync(InitialEconomicSystem);
@@ -103,7 +104,8 @@ namespace AElf.Contracts.Economic.AEDPoSExtension.Tests
                     NativeTokenDecimals = 8,
                     NativeTokenSymbol = EconomicTestConstants.TokenSymbol,
                     NativeTokenTotalSupply = 10_000_000_000_00000000,
-                    NativeTokenName = "Native Token"
+                    NativeTokenName = "Native Token",
+                    TransactionSizeFeeUnitPrice = 1000
                 })
             });
             await BlockMiningService.MineBlockAsync(GetIssueTransactions());

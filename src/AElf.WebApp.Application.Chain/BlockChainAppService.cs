@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Google.Protobuf;
 using Volo.Abp;
 using Volo.Abp.Application.Services;
 using Volo.Abp.EventBus.Local;
@@ -88,44 +89,7 @@ namespace AElf.WebApp.Application.Chain
 
             var block = await GetBlockAsync(realBlockHash);
 
-            if (block == null)
-            {
-                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-            }
-
-            var blockDto = new BlockDto
-            {
-                BlockHash = block.GetHash().ToHex(),
-                Header = new BlockHeaderDto
-                {
-                    PreviousBlockHash = block.Header.PreviousBlockHash.ToHex(),
-                    MerkleTreeRootOfTransactions = block.Header.MerkleTreeRootOfTransactions.ToHex(),
-                    MerkleTreeRootOfWorldState = block.Header.MerkleTreeRootOfWorldState.ToHex(),
-                    Extra = block.Header.ExtraData.ToString(),
-                    Height = block.Header.Height,
-                    Time = block.Header.Time.ToDateTime(),
-                    ChainId = ChainHelper.ConvertChainIdToBase58(block.Header.ChainId),
-                    Bloom = block.Header.Bloom.ToByteArray().ToHex(),
-                    SignerPubkey = block.Header.SignerPubkey.ToByteArray().ToHex()
-                },
-                Body = new BlockBodyDto()
-                {
-                    TransactionsCount = block.Body.TransactionsCount,
-                    Transactions = new List<string>()
-                }
-            };
-
-            if (includeTransactions)
-            {
-                var transactions = block.Body.TransactionIds;
-                var txs = new List<string>();
-                foreach (var transactionId in transactions)
-                {
-                    txs.Add(transactionId.ToHex());
-                }
-
-                blockDto.Body.Transactions = txs;
-            }
+            var blockDto = CreateBlockDto(block, includeTransactions);
 
             return blockDto;
         }
@@ -142,45 +106,7 @@ namespace AElf.WebApp.Application.Chain
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
             var blockInfo = await GetBlockAtHeightAsync(blockHeight);
 
-            if (blockInfo == null)
-            {
-                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
-            }
-
-            var blockDto = new BlockDto
-            {
-                BlockHash = blockInfo.GetHash().ToHex(),
-                Header = new BlockHeaderDto
-                {
-                    PreviousBlockHash = blockInfo.Header.PreviousBlockHash.ToHex(),
-                    MerkleTreeRootOfTransactions = blockInfo.Header.MerkleTreeRootOfTransactions.ToHex(),
-                    MerkleTreeRootOfWorldState = blockInfo.Header.MerkleTreeRootOfWorldState.ToHex(),
-                    Extra = blockInfo.Header.ExtraData.ToString(),
-                    Height = blockInfo.Header.Height,
-                    Time = blockInfo.Header.Time.ToDateTime(),
-                    ChainId = ChainHelper.ConvertChainIdToBase58(blockInfo.Header.ChainId),
-                    Bloom = blockInfo.Header.Bloom.ToByteArray().ToHex(),
-                    SignerPubkey = blockInfo.Header.SignerPubkey.ToByteArray().ToHex()
-                },
-                Body = new BlockBodyDto()
-                {
-                    TransactionsCount = blockInfo.Body.TransactionsCount,
-                    Transactions = new List<string>()
-                }
-            };
-
-            if (includeTransactions)
-            {
-                var transactions = blockInfo.Body.TransactionIds;
-                var txs = new List<string>();
-                foreach (var transactionId in transactions)
-                {
-                    txs.Add(transactionId.ToHex());
-                }
-
-                blockDto.Body.Transactions = txs;
-            }
-
+            var blockDto = CreateBlockDto(blockInfo, includeTransactions);
             return blockDto;
         }
 
@@ -207,6 +133,7 @@ namespace AElf.WebApp.Application.Chain
             var blockState = await _blockchainStateManager.GetBlockStateSetAsync(HashHelper.HexStringToHash(blockHash));
             if (blockState == null)
                 throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+            
             return JsonConvert.DeserializeObject<BlockStateDto>(blockState.ToString());
         }
 
@@ -228,16 +155,20 @@ namespace AElf.WebApp.Application.Chain
                     {
                         Order = i.Value.Order,
                         ExpectedMiningTime = i.Value.ExpectedMiningTime.ToDateTime(),
-                        ActualMiningTimes = i.Value.ActualMiningTimes.Select(t => t.ToDateTime()).ToList(),
+                        ActualMiningTimes = i.Value.ActualMiningTimes?.Select(t => t.ToDateTime()).ToList(),
                         ProducedTinyBlocks = i.Value.ProducedTinyBlocks,
                         ProducedBlocks = i.Value.ProducedBlocks,
                         MissedBlocks = i.Value.MissedTimeSlots,
                         InValue = i.Value.InValue?.ToHex(),
                         OutValue = i.Value.OutValue?.ToHex(),
-                        PreviousInValue = i.Value.PreviousInValue?.ToHex()
+                        PreviousInValue = i.Value.PreviousInValue?.ToHex(),
+                        ImpliedIrreversibleBlockHeight = i.Value.ImpliedIrreversibleBlockHeight
                     }),
                 RoundNumber = round.RoundNumber,
                 TermNumber = round.TermNumber,
+                ConfirmedIrreversibleBlockHeight = round.ConfirmedIrreversibleBlockHeight,
+                ConfirmedIrreversibleBlockRoundNumber = round.ConfirmedIrreversibleBlockRoundNumber,
+                IsMinerListJustChanged = round.IsMinerListJustChanged,
                 RoundId = round.RealTimeMinersInformation.Values.Select(bpInfo => bpInfo.ExpectedMiningTime.Seconds)
                     .Sum()
             };
@@ -251,6 +182,49 @@ namespace AElf.WebApp.Application.Chain
         private async Task<Block> GetBlockAtHeightAsync(long height)
         {
             return await _blockchainService.GetBlockByHeightInBestChainBranchAsync(height);
+        }
+
+        private BlockDto CreateBlockDto(Block block, bool includeTransactions)
+        {
+            if (block == null)
+            {
+                throw new UserFriendlyException(Error.Message[Error.NotFound], Error.NotFound.ToString());
+            }
+
+            var bloom = block.Header.Bloom;
+            var blockDto = new BlockDto
+            {
+                BlockHash = block.GetHash().ToHex(),
+                Header = new BlockHeaderDto
+                {
+                    PreviousBlockHash = block.Header.PreviousBlockHash.ToHex(),
+                    MerkleTreeRootOfTransactions = block.Header.MerkleTreeRootOfTransactions.ToHex(),
+                    MerkleTreeRootOfWorldState = block.Header.MerkleTreeRootOfWorldState.ToHex(),
+                    MerkleTreeRootOfTransactionState = block.Header.MerkleTreeRootOfTransactionStatus.ToHex(),
+                    Extra = block.Header.ExtraData.ToString(),
+                    Height = block.Header.Height,
+                    Time = block.Header.Time.ToDateTime(),
+                    ChainId = ChainHelper.ConvertChainIdToBase58(block.Header.ChainId),
+                    Bloom = bloom.Length == 0 ? ByteString.CopyFrom(new byte[256]).ToBase64(): bloom.ToBase64(),
+                    SignerPubkey = block.Header.SignerPubkey.ToByteArray().ToHex()
+                },
+                Body = new BlockBodyDto()
+                {
+                    TransactionsCount = block.Body.TransactionsCount,
+                    Transactions = new List<string>()
+                }
+            };
+
+            if (!includeTransactions) return blockDto;
+            var transactions = block.Body.TransactionIds;
+            var txs = new List<string>();
+            foreach (var transactionId in transactions)
+            {
+                txs.Add(transactionId.ToHex());
+            }
+            blockDto.Body.Transactions = txs;
+
+            return blockDto;
         }
     }
 }

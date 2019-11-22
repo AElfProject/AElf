@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Linq;
-using AElf.Blockchains.BasicBaseChain;
 using AElf.Blockchains.MainChain;
 using AElf.Blockchains.SideChain;
 using AElf.Kernel;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Volo.Abp;
 using Volo.Abp.Modularity;
 
 namespace AElf.Launcher
@@ -16,6 +15,7 @@ namespace AElf.Launcher
     public class Startup
     {
         private readonly IConfiguration _configuration;
+        private const string DefaultCorsPolicyName = "CorsPolicy";
 
         public Startup(IConfiguration configuration)
         {
@@ -23,7 +23,7 @@ namespace AElf.Launcher
         }
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-        public IServiceProvider ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
             var chainType = _configuration.GetValue("ChainType", ChainType.MainChain);
             switch (chainType)
@@ -35,27 +35,37 @@ namespace AElf.Launcher
                     AddApplication<MainChainAElfModule>(services);
                     break;
             }
-            
-            return services.BuildAutofacServiceProvider();
+            services.AddCors(options =>
+            {
+                options.AddPolicy(DefaultCorsPolicyName, builder =>
+                {
+                    builder
+                        .WithOrigins(_configuration["CorsOrigins"]
+                            .Split(",", StringSplitOptions.RemoveEmptyEntries)
+                            .Select(o => o.RemovePostFix("/"))
+                            .ToArray()
+                        )
+                        .WithAbpExposedHeaders()
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                    if (_configuration["CorsOrigins"] != "*")
+                    {
+                        builder.AllowCredentials();
+                    }
+                });
+            });
         }
         
         private static void AddApplication<T>(IServiceCollection services) where T: IAbpModule
         {
-            services.AddApplication<T>(options => { options.UseAutofac(); });
+            services.AddApplication<T>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            app.UseCors(builder => builder
-                .WithOrigins(_configuration["CorsOrigins"]
-                    .Split(",", StringSplitOptions.RemoveEmptyEntries)
-                    .Select(o => o.RemovePostFix("/"))
-                    .ToArray())
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials()
-            );
+            app.UseRouting();
+            app.UseCors(DefaultCorsPolicyName);
 
             app.InitializeApplication();
         }

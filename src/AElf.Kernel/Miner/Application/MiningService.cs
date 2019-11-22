@@ -1,10 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.SmartContractExecution.Application;
-using AElf.Sdk.CSharp;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
@@ -82,6 +82,7 @@ namespace AElf.Kernel.Miner.Application
 
         private async Task SignBlockAsync(Block block)
         {
+            Logger.LogTrace("Sign block.");
             var signature = await _accountService.SignAsync(block.GetHash().ToByteArray());
             block.Header.Signature = ByteString.CopyFrom(signature);
         }
@@ -89,24 +90,43 @@ namespace AElf.Kernel.Miner.Application
         public async Task<Block> MineAsync(RequestMiningDto requestMiningDto, List<Transaction> transactions,
             Timestamp blockTime)
         {
-            using (var cts = new CancellationTokenSource())
+            try
             {
-                cts.CancelAfter((int) requestMiningDto.BlockExecutionTime.Milliseconds());
+                using (var cts = new CancellationTokenSource())
+                {
+                    var expirationTime = blockTime + requestMiningDto.BlockExecutionTime;
+                    if (expirationTime < TimestampHelper.GetUtcNow())
+                        cts.Cancel();
+                    else
+                    {
+                        var ts = (expirationTime - TimestampHelper.GetUtcNow()).ToTimeSpan();
+                        if (ts.TotalMilliseconds > int.MaxValue)
+                        {
+                            ts = TimeSpan.FromMilliseconds(int.MaxValue);
+                        }
 
-                var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
-                    requestMiningDto.PreviousBlockHeight, blockTime);
-                var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
-                    requestMiningDto.PreviousBlockHeight);
+                        cts.CancelAfter(ts);
+                    }
 
-                var pending = transactions;
-
-                block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
-                    systemTransactions, pending, cts.Token);
-                await SignBlockAsync(block);
-                Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
-                                      $"previous: {block.Header.PreviousBlockHash}, " +
-                                      $"transactions: {block.Body.TransactionsCount}");
-                return block;
+                    var block = await GenerateBlock(requestMiningDto.PreviousBlockHash,
+                        requestMiningDto.PreviousBlockHeight, blockTime);
+                    var systemTransactions = await GenerateSystemTransactions(requestMiningDto.PreviousBlockHash,
+                        requestMiningDto.PreviousBlockHeight);
+                    var pending = transactions;
+                    block = await _blockExecutingService.ExecuteBlockAsync(block.Header,
+                        systemTransactions, pending, cts.Token);
+                    await SignBlockAsync(block);
+                    Logger.LogInformation($"Generated block: {block.ToDiagnosticString()}, " +
+                                          $"previous: {block.Header.PreviousBlockHash}, " +
+                                          $"executed transactions: {block.Body.TransactionsCount}, " +
+                                          $"not executed transactions {transactions.Count + systemTransactions.Count - block.Body.TransactionsCount} ");
+                    return block;
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogError("Failed while mining block.", e);
+                throw;
             }
         }
     }

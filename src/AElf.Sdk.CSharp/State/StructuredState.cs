@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using AElf.Kernel;
 using AElf.Types;
-using Google.Protobuf;
 
 namespace AElf.Sdk.CSharp.State
 {
@@ -95,6 +93,11 @@ namespace AElf.Sdk.CSharp.State
                 foreach (var kv1 in changes.Writes)
                 {
                     stateSet.Writes[kv1.Key] = kv1.Value;
+                }
+                
+                foreach (var kv1 in changes.Deletes)
+                {
+                    stateSet.Deletes[kv1.Key] = kv1.Value;
                 }
 
                 foreach (var kv1 in changes.Reads)

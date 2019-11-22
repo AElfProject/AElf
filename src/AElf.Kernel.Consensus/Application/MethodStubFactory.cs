@@ -2,11 +2,13 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using AElf.CSharp.Core;
+using AElf.Kernel.Account.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Types;
 using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Volo.Abp.DependencyInjection;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel.Consensus.Application
 {
@@ -15,20 +17,23 @@ namespace AElf.Kernel.Consensus.Application
         private readonly ITransactionReadOnlyExecutionService _transactionReadOnlyExecutionService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly IChainContext _chainContext;
-        private readonly IBlockTimeProvider _blockTimeProvider;
+        private readonly IConsensusReaderContextService _contextService;
 
-        private Address FromAddress { get; } = Address.FromBytes(new byte[] { }.ComputeHash());
+        private Address FromAddress { get; }
 
         private Address ConsensusContractAddress =>
             _smartContractAddressService.GetAddressByContractName(ConsensusSmartContractAddressNameProvider.Name);
 
         public MethodStubFactory(ITransactionReadOnlyExecutionService transactionReadOnlyExecutionService,
-            ISmartContractAddressService smartContractAddressService, IChainContext chainContext, IBlockTimeProvider blockTimeProvider)
+            ISmartContractAddressService smartContractAddressService, IChainContext chainContext, 
+            IConsensusReaderContextService contextService)
         {
             _transactionReadOnlyExecutionService = transactionReadOnlyExecutionService;
             _smartContractAddressService = smartContractAddressService;
             _chainContext = chainContext;
-            _blockTimeProvider = blockTimeProvider;
+            _contextService = contextService;
+
+            FromAddress = AsyncHelper.RunSync(() => _contextService.GetAccountAsync());
         }
 
         [SuppressMessage("ReSharper", "InconsistentNaming")]
@@ -53,7 +58,7 @@ namespace AElf.Kernel.Consensus.Application
 
                 var trace =
                     await _transactionReadOnlyExecutionService.ExecuteAsync(chainContext, transaction,
-                        _blockTimeProvider.GetBlockTime());
+                        _contextService.GetBlockTime());
 
                 return trace.IsSuccessful()
                     ? method.ResponseMarshaller.Deserializer(trace.ReturnValue.ToByteArray())

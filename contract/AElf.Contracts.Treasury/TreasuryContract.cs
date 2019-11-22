@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using AElf.Contracts.MultiToken;
@@ -33,7 +34,7 @@ namespace AElf.Contracts.Treasury
     /// 2. tx fees.
     /// 3. resource consumption of developer's contracts.
     /// </summary>
-    public class TreasuryContract : TreasuryContractContainer.TreasuryContractBase
+    public partial class TreasuryContract : TreasuryContractContainer.TreasuryContractBase
     {
         public override Empty InitialTreasuryContract(Empty input)
         {
@@ -137,7 +138,7 @@ namespace AElf.Contracts.Treasury
 
         public override Empty Donate(DonateInput input)
         {
-            Assert(input.Amount > 0, "Invalid amount of donating.");
+            Assert(input.Amount > 0, "Invalid amount of donating. Amount need to greater than 0.");
             if (State.TokenContract.Value == null)
             {
                 State.TokenContract.Value =
@@ -147,6 +148,17 @@ namespace AElf.Contracts.Treasury
             var isNativeSymbol = input.Symbol == Context.Variables.NativeSymbol;
 
             State.TokenContract.TransferFrom.Send(new TransferFromInput
+            {
+                From = Context.Sender,
+                To = isNativeSymbol
+                    ? State.TreasuryVirtualAddress.Value
+                    : Context.Self,
+                Symbol = input.Symbol,
+                Amount = input.Amount,
+                Memo = "Donate to treasury."
+            });
+
+            Context.Fire(new DonationReceived
             {
                 From = Context.Sender,
                 To = isNativeSymbol
@@ -402,7 +414,8 @@ namespace AElf.Contracts.Treasury
                     reElectionProfitAddBeneficiaries.BeneficiaryShares.Add(new BeneficiaryShare
                     {
                         Beneficiary = minerAddress,
-                        Shares = continualAppointmentCount
+                        Shares = Math.Min(continualAppointmentCount,
+                            TreasuryContractConstants.MaximumReElectionRewardShare)
                     });
                 }
                 else

@@ -3,12 +3,14 @@ using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
 using AElf.Kernel.SmartContract.Infrastructure;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
 using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp;
 using Volo.Abp.Modularity;
+using Volo.Abp.Threading;
 
 namespace AElf.Kernel
 {
@@ -30,10 +32,10 @@ namespace AElf.Kernel
             services.AddStoreKeyPrefixProvide<ChainBlockLink>("cl");
             services.AddStoreKeyPrefixProvide<ChainBlockIndex>("ci");
             services.AddStoreKeyPrefixProvide<ChainStateInfo>("cs");
+            services.AddStoreKeyPrefixProvide<ChainContractInfo>("cc");
             services.AddStoreKeyPrefixProvide<Transaction>("tx");
             services.AddStoreKeyPrefixProvide<TransactionBlockIndex>("ti");
             services.AddStoreKeyPrefixProvide<TransactionResult>("tr");
-            services.AddStoreKeyPrefixProvide<TransactionReceipt>("tc");
             services.AddStoreKeyPrefixProvide<VersionedState>("vs");
             
 
@@ -43,10 +45,15 @@ namespace AElf.Kernel
 
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
+
+            services.AddSingleton<ITransactionPackingService, TransactionPackingService>();
         }
 
-        public override void OnApplicationInitialization(ApplicationInitializationContext context)
+        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
         {
+            var transactionBlockIndexService =
+                context.ServiceProvider.GetRequiredService<ITransactionBlockIndexService>();
+            AsyncHelper.RunSync(transactionBlockIndexService.InitializeTransactionBlockIndexCacheAsync);
         }
     }
 

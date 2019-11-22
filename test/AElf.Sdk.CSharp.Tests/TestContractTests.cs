@@ -251,6 +251,27 @@ namespace AElf.Sdk.CSharp.Tests
         }
 
         [Fact]
+        public void TestReadonlyState()
+        {
+            var firstInput = new CustomContract.BoolInput
+            {
+                BoolValue = true
+            };
+
+            var firstOutput = Contract.TestReadonlyState(firstInput);
+            firstOutput.BoolValue.ShouldBeTrue();
+
+            var secondInput = new CustomContract.BoolInput
+            {
+                BoolValue = false
+            };
+
+            var secondOutput = Contract.TestReadonlyState(secondInput);
+            // Still true
+            secondOutput.BoolValue.ShouldBeTrue();
+        }
+
+        [Fact]
         public void SendVirtualInline_Test()
         {
             BridgeContext.SendVirtualInline(Hash.FromString("hash"), SampleAddress.AddressList[0], "TestMethod", new CustomContract.StringInput

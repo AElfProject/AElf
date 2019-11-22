@@ -68,7 +68,7 @@ namespace AElf.Benchmark
             await _blockStateSets.RemoveAsync(_block.GetHash().ToStorageKey());
             foreach (var transactionId in _block.Body.TransactionIds)
             {
-                await _transactionManager.RemoveTransaction(transactionId);
+                await _transactionManager.RemoveTransactionAsync(transactionId);
                 await _transactionResultManager.RemoveTransactionResultAsync(transactionId, _block.GetHash());
                 await _transactionResultManager.RemoveTransactionResultAsync(transactionId,_block.Header.GetPreMiningHash());
             }

@@ -6,6 +6,7 @@ using AElf.Contracts.Deployer;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TestContract.BasicFunctionWithParallel;
 using AElf.Cryptography;
+using AElf.Cryptography.ECDSA;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
@@ -39,7 +40,7 @@ namespace AElf.Parallel.Tests
         public byte[] BasicFunctionWithParallelContractCode =>
             Codes.Single(kv => kv.Key.Split(",").First().Trim().EndsWith("BasicFunctionWithParallel")).Value;
         
-        public Address BasicFunctionWithParallelContractAddress { get; private set; }
+        public static Address BasicFunctionWithParallelContractAddress { get; private set; }
 
         public ParallelTestHelper(IOsBlockchainNodeContextService osBlockchainNodeContextService,
             IAccountService accountService,
@@ -93,13 +94,14 @@ namespace AElf.Parallel.Tests
             BasicFunctionWithParallelContractAddress = await DeployContract<BasicFunctionWithParallelContract>();
         }
         
-        public List<Transaction> GenerateBasicFunctionWithParallelTransactions(int groupCount,int transactionCount)
+        public List<Transaction> GenerateBasicFunctionWithParallelTransactions(List<ECKeyPair> groupUsers, int transactionCount)
         {
             var transactions = new List<Transaction>();
-            
+
+            var groupCount = groupUsers.Count;
             for (var i = 0; i < groupCount; i++)
             {
-                var keyPair = CryptoHelper.GenerateKeyPair();
+                var keyPair = groupUsers[i];
                 var from = Address.FromPublicKey(keyPair.PublicKey);
                 var count = transactionCount / groupCount;
                 for (var j = 0; j < count; j++)
@@ -108,11 +110,35 @@ namespace AElf.Parallel.Tests
                     var transaction = GenerateTransaction(from,
                         BasicFunctionWithParallelContractAddress,
                         nameof(BasicFunctionWithParallelContractContainer.BasicFunctionWithParallelContractStub
-                            .QueryTwoUserWinMoney),
-                        new QueryTwoUserWinMoneyInput
-                            {First = from, Second = address});
+                            .IncreaseWinMoney),
+                        new IncreaseWinMoneyInput {First = from, Second = address});
                     var signature =
                         CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, transaction.GetHash().ToByteArray());
+                    transaction.Signature = ByteString.CopyFrom(signature); 
+
+                    transactions.Add(transaction);
+                }
+            }
+
+            return transactions;
+        }
+        
+        public List<Transaction> GenerateTransferFromTransactionsWithoutConflictWithMultiSender(List<ECKeyPair> keyPairs, int count = 1)
+        {
+            var transactions = new List<Transaction>();
+            foreach (var keyPair in keyPairs)
+            {
+                var from = Address.FromPublicKey(keyPair.PublicKey);
+                for (var i = 0; i < count; i++)
+                {
+                    var to = CryptoHelper.GenerateKeyPair();
+                    var transaction = GenerateTransaction(from,
+                        _smartContractAddressService.GetAddressByContractName(
+                            TokenSmartContractAddressNameProvider.Name),
+                        nameof(TokenContractContainer.TokenContractStub.TransferFrom),
+                        new TransferFromInput
+                            {From = from, To = Address.FromPublicKey(to.PublicKey), Amount = 1, Symbol = "ELF"});
+                    var signature = CryptoHelper.SignWithPrivateKey(keyPair.PrivateKey, transaction.GetHash().ToByteArray());
                     transaction.Signature = ByteString.CopyFrom(signature); 
 
                     transactions.Add(transaction);

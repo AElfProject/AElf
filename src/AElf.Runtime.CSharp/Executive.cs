@@ -124,63 +124,11 @@ namespace AElf.Runtime.CSharp
                     );
                 }
 
-                try
-                {
-                    var tx = CurrentTransactionContext.Transaction;
-                    var retVal = handler.Execute(tx.Params.ToByteArray());
-                    if (retVal != null)
-                    {
-                        CurrentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);
-                        // TODO: Clean up ReadableReturnValue
-                        CurrentTransactionContext.Trace.ReadableReturnValue = handler.ReturnBytesToString(retVal);
-                    }
-
-                    CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
-                }
-                catch (TargetInvocationException ex)
-                {
-                    CurrentTransactionContext.Trace.Error += ex;
-                    CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                }
-                catch (AssertionException ex)
-                {
-                    CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                    CurrentTransactionContext.Trace.Error += "\n" + ex;
-                }
-                catch (Exception ex)
-                {
-                    // TODO: Simplify exception
-                    CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
-                    CurrentTransactionContext.Trace.Error += "\n" + ex;
-                }
+                ExecuteTransaction(handler);
 
                 if (!handler.IsView())
                 {
-                    var changes = _smartContractProxy.GetChanges();
-
-                    var address = _hostSmartContractBridgeContext.Self.ToStorageKey();
-                    foreach (var (key, value) in changes.Writes)
-                    {
-                        if (!key.StartsWith(address))
-                        {
-                            throw new InvalidOperationException("a contract cannot access other contracts data");
-                        }
-                    }
-
-                    foreach (var (key, value) in changes.Reads)
-                    {
-                        if (!key.StartsWith(address))
-                        {
-                            throw new InvalidOperationException("a contract cannot access other contracts data");
-                        }
-                    }
-
-                    if (!CurrentTransactionContext.Trace.IsSuccessful())
-                    {
-                        changes.Writes.Clear();
-                    }
-
-                    CurrentTransactionContext.Trace.StateSet = changes;
+                    CurrentTransactionContext.Trace.StateSet = GetChanges();
                 }
                 else
                 {
@@ -211,16 +159,6 @@ namespace AElf.Runtime.CSharp
 
             return handler.InputBytesToString(paramsBytes);
         }
-
-//        public object GetReturnValue(string methodName, byte[] bytes)
-//        {
-//            if (!_callHandlers.TryGetValue(methodName, out var handler))
-//            {
-//                return null;
-//            }
-//
-//            return handler.ReturnBytesToObject(bytes);
-//        }
 
         private IEnumerable<FileDescriptor> GetSelfAndDependency(FileDescriptor fileDescriptor,
             HashSet<string> known = null)
@@ -253,5 +191,75 @@ namespace AElf.Runtime.CSharp
         }
 
         public Hash ContractHash { get; set; }
+
+        private void ExecuteTransaction(IServerCallHandler handler)
+        {
+            try
+            {
+                var tx = CurrentTransactionContext.Transaction;
+                var retVal = handler.Execute(tx.Params.ToByteArray());
+                if (retVal != null)
+                {
+                    CurrentTransactionContext.Trace.ReturnValue = ByteString.CopyFrom(retVal);
+                    CurrentTransactionContext.Trace.ReadableReturnValue = handler.ReturnBytesToString(retVal);
+                }
+
+                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.Executed;
+            }
+            catch (TargetInvocationException ex)
+            {
+                CurrentTransactionContext.Trace.Error += ex;
+                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+            }
+            catch (AssertionException ex)
+            {
+                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+                CurrentTransactionContext.Trace.Error += "\n" + ex;
+            }
+            catch (Exception ex)
+            {
+                // TODO: Simplify exception
+                CurrentTransactionContext.Trace.ExecutionStatus = ExecutionStatus.ContractError;
+                CurrentTransactionContext.Trace.Error += "\n" + ex;
+            }
+        }
+        
+        private TransactionExecutingStateSet GetChanges()
+        {
+            var changes = _smartContractProxy.GetChanges();
+
+            var address = _hostSmartContractBridgeContext.Self.ToStorageKey();
+            foreach (var key in changes.Writes.Keys)
+            {
+                if (!key.StartsWith(address))
+                {
+                    throw new InvalidOperationException("a contract cannot access other contracts data");
+                }
+            }
+                    
+            foreach (var (key, value) in changes.Deletes)
+            {
+                if (!key.StartsWith(address))
+                {
+                    throw new InvalidOperationException("a contract cannot access other contracts data");
+                }
+            }
+
+            foreach (var key in changes.Reads.Keys)
+            {
+                if (!key.StartsWith(address))
+                {
+                    throw new InvalidOperationException("a contract cannot access other contracts data");
+                }
+            }
+
+            if (!CurrentTransactionContext.Trace.IsSuccessful())
+            {
+                changes.Writes.Clear();
+                changes.Deletes.Clear();
+            }
+
+            return changes;
+        }
     }
 }

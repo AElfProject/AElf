@@ -22,18 +22,17 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
         private const long NewFeeAmount = 1_5000_0000;
         private const long CreateSchemeAmount = 10_00000000;
 
-        [Fact]
-        public async Task Vote_SetMethodFee_Test()
+        private async Task Vote_SetMethodFee_Test()
         {
             //default fee
             {
-                var addOptionFeeAmount = await VoteContractStub.GetMethodFee.CallAsync(new MethodName
+                var addOptionFeeAmount = await VoteContractStub.GetMethodFee.CallAsync(new StringValue
                 {
-                    Name = nameof(VoteContractStub.AddOption)
+                    Value = nameof(VoteContractStub.AddOption)
                 });
-                addOptionFeeAmount.Method.ShouldBe(string.Empty); //default value is empty
-                addOptionFeeAmount.Amounts.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
-                addOptionFeeAmount.Amounts.First().Amount.ShouldBe(DefaultFeeAmount);
+                addOptionFeeAmount.MethodName.ShouldBe(string.Empty); //default value is empty
+                addOptionFeeAmount.Fees.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
+                addOptionFeeAmount.Fees.First().BasicFee.ShouldBe(DefaultFeeAmount);
             }
 
             //set transaction fee
@@ -41,13 +40,13 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 await Vote_SetMethodFee(nameof(VoteContractStub.AddOption), EconomicSystemTestConstants.NativeTokenSymbol, NewFeeAmount);
 
                 //query result
-                var addOptionFeeAmount = await VoteContractStub.GetMethodFee.CallAsync(new MethodName
+                var addOptionFeeAmount = await VoteContractStub.GetMethodFee.CallAsync(new StringValue
                 {
-                    Name = nameof(VoteContractStub.AddOption)
+                    Value = nameof(VoteContractStub.AddOption)
                 });
-                addOptionFeeAmount.Amounts.Count.ShouldBe(1);
-                addOptionFeeAmount.Amounts.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
-                addOptionFeeAmount.Amounts.First().Amount.ShouldBe(NewFeeAmount);
+                addOptionFeeAmount.Fees.Count.ShouldBe(1);
+                addOptionFeeAmount.Fees.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
+                addOptionFeeAmount.Fees.First().BasicFee.ShouldBe(NewFeeAmount);
             }
         }
         
@@ -67,29 +66,29 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             {
                 Option = address,
                 VotingItemId = registerItem.VotingItemId
-            })).TransactionResult;
-            transactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            }));
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var transactionSize = transactionResult.Transaction.Size();
 
             var afterBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = BootMinerAddress
             })).Balance;
-            beforeBalance.ShouldBe(afterBalance + NewFeeAmount);
+            beforeBalance.ShouldBe(afterBalance + NewFeeAmount + transactionSize * 0);
         }
 
-        [Fact]
-        public async Task Profit_SetMethodFee_Test()
+        private async Task Profit_SetMethodFee_Test()
         {
             //default fee
             {
-                var addOptionFeeAmount = await ProfitContractStub.GetMethodFee.CallAsync(new MethodName
+                var addOptionFeeAmount = await ProfitContractStub.GetMethodFee.CallAsync(new StringValue
                 {
-                    Name = nameof(ProfitContractStub.CreateScheme)
+                    Value = nameof(ProfitContractStub.CreateScheme)
                 });
-                addOptionFeeAmount.Method.ShouldBe(string.Empty); //default value is empty
-                addOptionFeeAmount.Amounts.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
-                addOptionFeeAmount.Amounts.First().Amount.ShouldBe(CreateSchemeAmount);
+                addOptionFeeAmount.MethodName.ShouldBe(string.Empty); //default value is empty
+                addOptionFeeAmount.Fees.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
+                addOptionFeeAmount.Fees.First().BasicFee.ShouldBe(CreateSchemeAmount);
             }
 
             //set transaction fee
@@ -97,13 +96,13 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 await Profit_SetMethodFee(nameof(ProfitContractStub.CreateScheme), EconomicSystemTestConstants.NativeTokenSymbol, NewFeeAmount);
 
                 //query result
-                var addOptionFeeAmount = await ProfitContractStub.GetMethodFee.CallAsync(new MethodName
+                var addOptionFeeAmount = await ProfitContractStub.GetMethodFee.CallAsync(new StringValue
                 {
-                    Name = nameof(ProfitContractStub.CreateScheme)
+                    Value = nameof(ProfitContractStub.CreateScheme)
                 });
-                addOptionFeeAmount.Amounts.Count.ShouldBe(1);
-                addOptionFeeAmount.Amounts.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
-                addOptionFeeAmount.Amounts.First().Amount.ShouldBe(NewFeeAmount);
+                addOptionFeeAmount.Fees.Count.ShouldBe(1);
+                addOptionFeeAmount.Fees.First().Symbol.ShouldBe(EconomicSystemTestConstants.NativeTokenSymbol);
+                addOptionFeeAmount.Fees.First().BasicFee.ShouldBe(NewFeeAmount);
             }
         }
 
@@ -127,13 +126,14 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             });
 
             transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
+            var transactionSize = transactionResult.Transaction.Size();
 
             var afterBalance = (await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
                 Owner = testerAddress
             })).Balance;
-            beforeBalance.ShouldBe(afterBalance + NewFeeAmount); 
+            beforeBalance.ShouldBe(afterBalance + NewFeeAmount + transactionSize * 0); 
         }
 
         private async Task Vote_SetMethodFee(string method, string symbol, long feeAmount)
@@ -144,15 +144,15 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 OrganizationAddress = gensisOwner,
                 ContractMethodName = nameof(VoteContractStub.SetMethodFee),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = new TokenAmounts
+                Params = new MethodFees
                 {
-                    Method = method,
-                    Amounts =
+                    MethodName = method,
+                    Fees =
                     {
-                        new TokenAmount
+                        new MethodFee
                         {
                             Symbol = symbol,
-                            Amount = feeAmount
+                            BasicFee = feeAmount
                         }
                     }
                 }.ToByteString(),
@@ -161,7 +161,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
            createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var proposalHash = Hash.FromMessage(proposal);
+            var proposalHash = createResult.Output;
             var approveResult = await ParliamentAuthContractStub.Approve.SendAsync(new Acs3.ApproveInput
             {
                 ProposalId = proposalHash,
@@ -180,15 +180,15 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 OrganizationAddress = gensisOwner,
                 ContractMethodName = nameof(ProfitContractStub.SetMethodFee),
                 ExpiredTime = TimestampHelper.GetUtcNow().AddDays(1),
-                Params = new TokenAmounts
+                Params = new MethodFees 
                 {
-                    Method = method,
-                    Amounts =
+                    MethodName = method,
+                    Fees =
                     {
-                        new TokenAmount
+                        new MethodFee
                         {
                             Symbol = symbol,
-                            Amount = feeAmount
+                            BasicFee = feeAmount
                         }
                     }
                 }.ToByteString(),
@@ -197,7 +197,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             var createResult = await ParliamentAuthContractStub.CreateProposal.SendAsync(proposal);
             createResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
-            var proposalHash = Hash.FromMessage(proposal);
+            var proposalHash = createResult.Output;
             var approveResult = await ParliamentAuthContractStub.Approve.SendAsync(new Acs3.ApproveInput
             {
                 ProposalId = proposalHash,

@@ -3,13 +3,13 @@ syntax = "proto3";
 package treasury;
 
 import "aelf/core.proto";
-import "aelf/options.proto";
-import "google/protobuf/empty.proto";
+import "acs1.proto";
 
 option csharp_namespace = "AElf.Contracts.Treasury";
 
 service TreasuryContract {
     option (aelf.csharp_state) = "AElf.Contracts.Treasury.TreasuryContractState";
+    option (aelf.base) = "acs1.proto";
 
     // Action
     rpc InitialTreasuryContract (google.protobuf.Empty) returns (google.protobuf.Empty) {
@@ -70,4 +70,15 @@ message ReleaseMiningRewardInput {
 
 message MinerReElectionInformation {
     map<string, sint64> continual_appointment_times = 1;
+}
+
+// Events
+
+message DonationReceived {
+    option (aelf.is_event) = true;
+    aelf.Address from = 1 [(aelf.is_indexed) = true];
+    aelf.Address to = 2 [(aelf.is_indexed) = true];
+    string symbol = 3 [(aelf.is_indexed) = true];
+    sint64 amount = 4 [(aelf.is_indexed) = true];
+    string memo = 5;
 }

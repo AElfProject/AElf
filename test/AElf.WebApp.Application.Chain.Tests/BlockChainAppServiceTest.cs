@@ -8,6 +8,7 @@ using Acs0;
 using AElf.Contracts.Deployer;
 using AElf.Contracts.Genesis;
 using AElf.Contracts.MultiToken;
+using AElf.Contracts.TestKit;
 using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
@@ -26,6 +27,7 @@ using Org.BouncyCastle.Utilities.Encoders;
 using Shouldly;
 using Xunit;
 using Xunit.Abstractions;
+using SampleAddress = AElf.Kernel.SampleAddress;
 
 namespace AElf.WebApp.Application.Chain.Tests
 {
@@ -40,7 +42,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private readonly ITxHub _txHub;
-        private readonly IBlockchainStateMergingService _blockchainStateMergingService;
+        private readonly IBlockchainStateService _blockchainStateService;
         private readonly IBlockchainStateManager _blockchainStateManager;
         private readonly OSTestHelper _osTestHelper;
         private readonly IAccountService _accountService;
@@ -51,7 +53,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             _blockchainService = GetRequiredService<IBlockchainService>();
             _smartContractAddressService = GetRequiredService<ISmartContractAddressService>();
             _txHub = GetRequiredService<ITxHub>();
-            _blockchainStateMergingService = GetRequiredService<IBlockchainStateMergingService>();
+            _blockchainStateService = GetRequiredService<IBlockchainStateService>();
             _blockchainStateManager = GetRequiredService<IBlockchainStateManager>();
             _osTestHelper = GetRequiredService<OSTestHelper>();
             _accountService = GetRequiredService<IAccountService>();
@@ -208,7 +210,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             var jObject = JObject.Parse(sendTransactionResponse);
             jObject["owner"].ShouldBe(accountAddress.GetFormatted());
             jObject["symbol"].ShouldBe("ELF");
-            jObject.Value<long>("balance").ShouldBe(9999900);
+            jObject.Value<long>("balance").ShouldBe(_osTestHelper.TokenTotalSupply - _osTestHelper.MockChainTokenAmount);
         }
 
         [Fact]
@@ -391,7 +393,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Error.Code.ShouldBe(Error.InvalidTransaction.ToString());
             response.Error.Message.ShouldBe(Error.Message[Error.InvalidTransaction]);
 
-            var existTransaction = await _txHub.GetTransactionReceiptAsync(transaction.GetHash());
+            var existTransaction = await _txHub.GetQueuedTransactionAsync(transaction.GetHash());
             existTransaction.ShouldBeNull();
         }
 
@@ -563,7 +565,6 @@ namespace AElf.WebApp.Application.Chain.Tests
 
             response.TransactionId.ShouldBe(transactionHex);
             response.Status.ShouldBe(TransactionResultStatus.Failed.ToString().ToUpper());
-            response.Error.Contains("Token already exists.").ShouldBeTrue();
         }
 
         [Fact]
@@ -684,7 +685,9 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Header.Height.ShouldBe(block.Height);
             response.Header.Time.ShouldBe(block.Header.Time.ToDateTime());
             response.Header.ChainId.ShouldBe(ChainHelper.ConvertChainIdToBase58(chain.Id));
-            response.Header.Bloom.ShouldBe(block.Header.Bloom.ToByteArray().ToHex());
+            response.Header.Bloom.ShouldBe(block.Header.Bloom.ToBase64());
+            response.Header.Extra.ShouldBe(block.Header.ExtraData?.ToString());
+            response.Header.MerkleTreeRootOfTransactionState.ShouldBe(block.Header.MerkleTreeRootOfTransactionStatus.ToHex());
             response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToHex());
             response.Body.TransactionsCount.ShouldBe(3);
 
@@ -716,8 +719,10 @@ namespace AElf.WebApp.Application.Chain.Tests
             response.Header.Height.ShouldBe(block.Height);
             response.Header.Time.ShouldBe(block.Header.Time.ToDateTime());
             response.Header.ChainId.ShouldBe(ChainHelper.ConvertChainIdToBase58(chain.Id));
-            response.Header.Bloom.ShouldBe(block.Header.Bloom.ToByteArray().ToHex());
-            response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToHex());
+            response.Header.Bloom.ShouldBe(block.Header.Bloom.ToBase64());
+            response.Header.SignerPubkey.ShouldBe(block.Header.SignerPubkey.ToByteArray().ToHex());
+            response.Header.Extra.ShouldBe(block.Header.ExtraData?.ToString());
+            response.Header.MerkleTreeRootOfTransactionState.ShouldBe(block.Header.MerkleTreeRootOfTransactionStatus.ToHex());
             response.Body.TransactionsCount.ShouldBe(3);
 
             var responseTransactions = response.Body.Transactions;
@@ -833,7 +838,7 @@ namespace AElf.WebApp.Application.Chain.Tests
             blockState.Changes.ShouldNotBeNull();
 
             var blockStateSet = await _blockchainStateManager.GetBlockStateSetAsync(block.GetHash());
-            await _blockchainStateMergingService.MergeBlockStateAsync(blockStateSet.BlockHeight,
+            await _blockchainStateService.MergeBlockStateAsync(blockStateSet.BlockHeight,
                 blockStateSet.BlockHash);
 
             var errorResponse = await GetResponseAsObjectAsync<WebAppErrorResponse>(
@@ -1207,29 +1212,7 @@ namespace AElf.WebApp.Application.Chain.Tests
                 await GetResponseAsObjectAsync<List<TaskQueueInfoDto>>("/api/blockChain/taskQueueStatus");
 
             var count = response.Count;
-            response.Count.ShouldBeGreaterThan(0);
-
-            const string testQueueOneName = "testQueueOneName";
-            const string testQueueTwoName = "testQueueTwoName";
-
-            _taskQueueManager.CreateQueue(testQueueOneName);
-            _taskQueueManager.CreateQueue(testQueueTwoName);
-
-            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueOneName);
-            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueOneName);
-
-            response = await GetResponseAsObjectAsync<List<TaskQueueInfoDto>>("/api/blockChain/taskQueueStatus");
-            response.Count.ShouldBe(2 + count);
-            response.Any(info => info.Name == testQueueOneName).ShouldBeTrue();
-            response.First(info => info.Name == testQueueOneName).Size.ShouldBe(1);
-            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
-            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
-            _taskQueueManager.Enqueue(async () => await Task.Delay(100), testQueueTwoName);
-
-            response = await GetResponseAsObjectAsync<List<TaskQueueInfoDto>>("/api/blockChain/taskQueueStatus");
-            response.Count.ShouldBe(2 + count);
-            response.First(info => info.Name == testQueueTwoName).Size.ShouldBe(2);
-            response.Any(info => info.Name == testQueueTwoName).ShouldBeTrue();
+            count.ShouldBeGreaterThan(0);
         }
 
         [Fact]
@@ -1243,7 +1226,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        private async Task GetMerklePathByTransactionId_Success_Test()
+        public async Task GetMerklePathByTransactionId_Success_Test()
         {
             var transactionList = new List<Transaction>();
             for (var i = 0; i < 3; i++)
@@ -1282,7 +1265,7 @@ namespace AElf.WebApp.Application.Chain.Tests
         }
 
         [Fact]
-        private async Task GetMerklePathByTransactionId_Failed_Test()
+        public async Task GetMerklePathByTransactionId_Failed_Test()
         {
             string hex = "5a7d71da020cae179a0dfe82bd3c967e1573377578f4cc87bc21f74f2556c0ef";
 

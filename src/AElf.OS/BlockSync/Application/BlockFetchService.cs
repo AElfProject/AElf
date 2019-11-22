@@ -1,9 +1,12 @@
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Application;
+using AElf.OS.BlockSync.Events;
+using AElf.OS.BlockSync.Exceptions;
 using AElf.OS.Network.Application;
 using AElf.Types;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Volo.Abp.EventBus.Local;
 
 namespace AElf.OS.BlockSync.Application
 {
@@ -15,6 +18,8 @@ namespace AElf.OS.BlockSync.Application
         private readonly IBlockSyncQueueService _blockSyncQueueService;
 
         public ILogger<BlockFetchService> Logger { get; set; }
+        
+        public ILocalEventBus LocalEventBus { get; set; }
 
         public BlockFetchService(IBlockSyncAttachService blockSyncAttachService,
             IBlockchainService blockchainService,
@@ -38,15 +43,34 @@ namespace AElf.OS.BlockSync.Application
                 return true;
             }
 
-            var blockWithTransactions = await _networkService.GetBlockByHashAsync(blockHash, suggestedPeerPubKey);
+            var response = await _networkService.GetBlockByHashAsync(blockHash, suggestedPeerPubKey);
 
-            if (blockWithTransactions == null)
+            if (!response.Success || response.Payload == null)
             {
+                return false;
+            }
+            
+            var blockWithTransactions = response.Payload;
+            if (blockWithTransactions.GetHash() != blockHash || blockWithTransactions.Height != blockHeight)
+            {
+                Logger.LogWarning(
+                    $"Fetched invalid block, peer: {suggestedPeerPubKey}, block hash: {blockWithTransactions.GetHash()}, block height: {blockWithTransactions.Height}");
+                await LocalEventBus.PublishAsync(new BadPeerFoundEventData
+                {
+                    BlockHash = blockWithTransactions.GetHash(),
+                    BlockHeight = blockWithTransactions.Height,
+                    PeerPubkey = suggestedPeerPubKey
+                });
+                
                 return false;
             }
 
             _blockSyncQueueService.Enqueue(
-                async () => { await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions); },
+                async () =>
+                {
+                    await _blockSyncAttachService.AttachBlockWithTransactionsAsync(blockWithTransactions,
+                        suggestedPeerPubKey);
+                },
                 OSConstants.BlockSyncAttachQueueName);
 
             return true;

@@ -360,7 +360,7 @@ namespace AElf.CrossChain
             {
                 Height = 1,
                 ChainId = chainId,
-                TransactionMerkleTreeRoot = fakeMerkleTreeRoot1
+                TransactionStatusMerkleTreeRoot = fakeMerkleTreeRoot1
             };
             
             var fakeIndexedCrossChainBlockData = new CrossChainBlockData();
@@ -407,7 +407,6 @@ namespace AElf.CrossChain
         [Fact]
         public async Task GetCrossChainBlockDataForNextMining_Test()
         {
-            var parentChainId = 123;
             var sideChainId = 456;
             var parentBlockInfoCache = new List<IBlockCacheEntity>();
             var cachingCount = 5;

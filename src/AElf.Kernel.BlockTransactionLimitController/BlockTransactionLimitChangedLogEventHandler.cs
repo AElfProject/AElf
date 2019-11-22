@@ -4,7 +4,7 @@ using AElf.Kernel.SmartContract.Application;
 using AElf.Sdk.CSharp;
 using AElf.Types;
 using AElf.Contracts.Configuration;
-using Google.Protobuf;
+using AElf.Kernel.SmartContractExecution.Application;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Volo.Abp.DependencyInjection;
@@ -13,7 +13,7 @@ namespace AElf.Kernel.BlockTransactionLimitController
 {
     public class BlockTransactionLimitChangedLogEventHandler : ILogEventHandler, ISingletonDependency
     {
-        private readonly IBlockTransactionLimitProvider _provider;
+        private readonly IBlockTransactionLimitProvider _blockTransactionLimitProvider;
         private readonly ISmartContractAddressService _smartContractAddressService;
         private LogEvent _interestedEvent;
 
@@ -21,9 +21,12 @@ namespace AElf.Kernel.BlockTransactionLimitController
         {
             get
             {
-                if (_interestedEvent != null) return _interestedEvent;
+                if (_interestedEvent != null)
+                    return _interestedEvent;
+
                 var address =
-                    _smartContractAddressService.GetAddressByContractName(ConfigurationSmartContractAddressNameProvider.Name);
+                    _smartContractAddressService.GetAddressByContractName(ConfigurationSmartContractAddressNameProvider
+                        .Name);
 
                 _interestedEvent = new BlockTransactionLimitChanged().ToLogEvent(address);
 
@@ -33,24 +36,20 @@ namespace AElf.Kernel.BlockTransactionLimitController
 
         public ILogger<BlockTransactionLimitChangedLogEventHandler> Logger { get; set; }
 
-        public BlockTransactionLimitChangedLogEventHandler(IBlockTransactionLimitProvider provider,
+        public BlockTransactionLimitChangedLogEventHandler(IBlockTransactionLimitProvider blockTransactionLimitProvider,
             ISmartContractAddressService smartContractAddressService)
         {
-            _provider = provider;
+            _blockTransactionLimitProvider = blockTransactionLimitProvider;
             _smartContractAddressService = smartContractAddressService;
             Logger = NullLogger<BlockTransactionLimitChangedLogEventHandler>.Instance;
         }
 
-        public async Task Handle(Block block, TransactionResult result, LogEvent log)
+        public async Task HandleAsync(Block block, TransactionResult transactionResult, LogEvent logEvent)
         {
             var eventData = new BlockTransactionLimitChanged();
-            foreach (var bs in log.Indexed)
-            {
-                eventData.MergeFrom(bs);
-            }
+            eventData.MergeFrom(logEvent);
 
-            eventData.MergeFrom(log.NonIndexed);
-            _provider.SetLimit(eventData.New);
+            _blockTransactionLimitProvider.SetLimit(eventData.New);
             Logger.LogInformation($"BlockTransactionLimit has been changed to {eventData.New}");
             await Task.CompletedTask;
         }

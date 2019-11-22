@@ -87,7 +87,8 @@ namespace AElf
     {
         public static void Enqueue(this ITaskQueueManager taskQueueManager, Func<Task> task, string name = null)
         {
-            taskQueueManager.GetQueue(name).Enqueue(task);
+            var queue = taskQueueManager.GetQueue(name);
+            queue.Enqueue(task);
         }
     }
 

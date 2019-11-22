@@ -2,10 +2,10 @@ syntax = "proto3";
 
 package acs7;
 
-import "aelf/core.proto";
+import public "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
+import public "google/protobuf/timestamp.proto";
 
 option (aelf.identity) = "acs7";
 
@@ -14,6 +14,10 @@ service ACS7 {
     rpc RecordCrossChainData (CrossChainBlockData) returns (google.protobuf.Empty) {
     }
     rpc CreateSideChain (SideChainCreationRequest) returns (aelf.SInt32Value) {
+    }
+    rpc Recharge (RechargeInput) returns (google.protobuf.Empty) {
+    }
+    rpc DisposeSideChain (aelf.SInt32Value) returns (aelf.SInt64Value) {
     }
     rpc GetSideChainIdAndHeight (google.protobuf.Empty) returns (SideChainIdAndHeightDict) {
         option (aelf.is_view) = true;
@@ -41,8 +45,13 @@ service ACS7 {
 message SideChainBlockData {
     int64 height = 1;
     aelf.Hash block_header_hash = 2;
-    aelf.Hash transaction_merkle_tree_root = 3;
+    aelf.Hash transaction_status_merkle_tree_root = 3;
     int32 chain_id = 4;
+}
+
+message RechargeInput {
+    int32 chain_id = 1;
+    sint64 amount = 2;
 }
 
 message IndexedSideChainBlockDataResult {
@@ -55,7 +64,7 @@ message ParentChainBlockData {
     int64 height = 1;
     CrossChainExtraData cross_chain_extra_data = 2;
     int32 chain_id = 3;
-    aelf.Hash transaction_status_merkle_root = 4;
+    aelf.Hash transaction_status_merkle_tree_root = 4;
 
     // Indexed block height from side chain and merkle path for this side chain block
     map<int64, aelf.MerklePath> indexed_merkle_path = 5;
@@ -63,11 +72,8 @@ message ParentChainBlockData {
 }
 
 message CrossChainExtraData {
-    // Merkle tree root of side chain block headers
-    aelf.Hash side_chain_block_headers_root = 1;
-
-    // Merkle tree root of side chain block transaction roots
-    aelf.Hash side_chain_transactions_root = 2;
+    // Merkle tree root of side chain block transaction status root
+    aelf.Hash transaction_status_merkle_tree_root = 1;
 }
 
 enum SideChainStatus
@@ -99,7 +105,7 @@ message CrossChainBlockData {
 
 message CrossChainMerkleProofContext {
     int64 bound_parent_chain_height = 1;
-    aelf.MerklePath merkle_path_for_parent_chain_root = 2;
+    aelf.MerklePath merkle_path_from_parent_chain = 2;
 }
 
 message ChainInitializationData {
@@ -109,6 +115,7 @@ message ChainInitializationData {
     repeated bytes extra_information = 4;
     int64 creation_height_on_parent_chain = 5;
     bool chain_creator_privilege_preserved = 6;
+    string side_chain_token_symbol = 7;
 }
 
 enum ResourceType
@@ -137,8 +144,21 @@ message SideChainInfo {
 message SideChainCreationRequest {
     int64 indexing_price = 1;
     int64 locked_token_amount = 2;
-    bytes contract_code = 3;
     bool is_privilege_preserved = 4;
+    string side_chain_token_symbol = 5;
+    string side_chain_token_name = 6;
+    sint64 side_chain_token_total_supply = 7;
+    sint32 side_chain_token_decimals = 8;
+    bool is_side_chain_token_burnable = 9;
+}
+
+message SideChainTokenInfo {
+    string symbol = 1;
+    string token_name = 2;
+    sint64 total_supply = 3;
+    sint32 decimals = 4;
+    aelf.Address issuer = 5;
+    bool is_burnable = 6;
 }
 
 message RequestChainCreationOutput {

@@ -1,10 +1,12 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using AElf.Contracts.Consensus.AEDPoS;
-using AElf.Kernel.Account.Application;
 using AElf.Kernel.Blockchain.Application;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
 using AElf.Sdk.CSharp;
 using AElf.Types;
@@ -19,12 +21,13 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
     [DependsOn(
         typeof(KernelTestAElfModule),
         typeof(AEDPoSAElfModule))]
+    // ReSharper disable once InconsistentNaming
     public class AEDPoSTestAElfModule : AElfModule
     {
         public override void ConfigureServices(ServiceConfigurationContext context)
         {
-            var _interestedEvent = new IrreversibleBlockFound();
-            var _logEvent = _interestedEvent.ToLogEvent(SampleAddress.AddressList[0]);
+            var interestedEvent = new IrreversibleBlockFound();
+            var logEvent = interestedEvent.ToLogEvent(SampleAddress.AddressList[0]);
             
             context.Services.AddTransient(provider =>
             {
@@ -45,7 +48,7 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                     {
                         Header = new BlockHeader
                         {
-                            Bloom = ByteString.CopyFrom(_logEvent.GetBloom().Data),
+                            Bloom = ByteString.CopyFrom(logEvent.GetBloom().Data),
                             Height = 15
                         },
                         Body = new BlockBody
@@ -81,11 +84,11 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                     .Returns(Task.FromResult(new TransactionResult
                     {
                         Status = TransactionResultStatus.Mined,
-                        Bloom = ByteString.CopyFrom(_logEvent.GetBloom().Data),
+                        Bloom = ByteString.CopyFrom(logEvent.GetBloom().Data),
                         Logs = { new LogEvent
                         {
                             Address = SampleAddress.AddressList[0],
-                            Name = _logEvent.Name
+                            Name = logEvent.Name
                         }}
                     }));
                 
@@ -103,8 +106,22 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
 
             context.Services.AddTransient(provider =>
             {
+                var mockService = new Mock<IBlockExtraDataService>();
+                mockService.Setup(m => m.GetExtraDataFromBlockHeader("Consensus", It.IsAny<BlockHeader>()))
+                    .Returns(ByteString.CopyFrom(new AElfConsensusHeaderInformation
+                    {
+                        Behaviour = AElfConsensusBehaviour.UpdateValue,
+                        SenderPubkey = ByteString.CopyFromUtf8("real-pubkey"),
+                        Round = new Round()
+                    }.ToByteArray()));
+
+                return mockService.Object;
+            });
+
+            context.Services.AddTransient(provider =>
+            {
                 var mockService = new Mock<IConsensusService>();
-                mockService.Setup(m => m.GetInformationToUpdateConsensusAsync(It.IsAny<ChainContext>())).Returns(
+                mockService.Setup(m => m.GetConsensusExtraDataAsync(It.IsAny<ChainContext>())).Returns(
                     Task.FromResult(ByteString.CopyFromUtf8("test").ToByteArray()));
 
                 mockService.Setup(m => m.TriggerConsensusAsync(It.IsAny<ChainContext>())).Returns(Task.CompletedTask);
@@ -136,6 +153,10 @@ namespace AElf.Kernel.Consensus.DPoS.Tests
                 
                 return mockService.Object;
             });
+            
+            context.Services
+                .AddTransient<IConstrainedTransactionValidationProvider, ConstrainedAEDPoSTransactionValidationProvider
+                >();
         }
     }
 }

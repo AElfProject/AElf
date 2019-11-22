@@ -1,7 +1,6 @@
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Net;
-using System.Threading.Tasks;
-using AElf.Types;
 
 namespace AElf.OS.Network.Infrastructure
 {
@@ -10,12 +9,20 @@ namespace AElf.OS.Network.Infrastructure
         int PeerCount { get; }
 
         bool IsFull();
-        
+        bool IsPeerBlackListed(IPAddress ipAddress);
+
+        bool AddHandshakingPeer(IPAddress ipAddress, string pubkey);
+        bool RemoveHandshakingPeer(IPAddress ipAddress, string pubkey);
+        Dictionary<IPAddress, ConcurrentDictionary<string, string>> GetHandshakingPeers();
+
         List<IPeer> GetPeers(bool includeFailing = false);
 
         IPeer FindPeerByEndpoint(IPEndPoint peerEndpoint);
         IPeer FindPeerByPublicKey(string remotePubKey);
 
+        List<IPeer> GetPeersByIpAddress(IPAddress ipAddress);
+
+        bool TryReplace(string pubkey, IPeer oldPeer, IPeer newPeer);
         bool TryAddPeer(IPeer peer);
         IPeer RemovePeer(string publicKey);
     }

@@ -21,7 +21,6 @@ namespace AElf.OS.BlockSync.Infrastructure
         /// </returns>
         public bool TryAddOrUpdateAnnouncementCache(Hash blockHash, long blockHeight, string senderPubKey)
         {
-            //TODO: block height should be checked in case of malicious attacks.
             if (_cache.TryGetValue(blockHash, out var announcementCache))
             {
                 var res = announcementCache.SenderPubKeys.IsEmpty;

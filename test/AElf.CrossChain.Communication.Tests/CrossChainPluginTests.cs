@@ -21,10 +21,12 @@ namespace AElf.CrossChain.Communication
         {
             var localChainId = ChainHelper.GetChainId(1);
             var remoteChainId = _chainOptions.ChainId;
-            await _server.StartAsync("localhost", 5000); 
+            await _server.StartAsync(5000); 
             CreateAndGetClient(localChainId, false, remoteChainId);
             var res = await _crossChainPlugin.GetChainInitializationDataAsync(localChainId);
             Assert.True(res.CreationHeightOnParentChain.Equals(1));
+            
+            _server.Dispose();
         }
     }
 }

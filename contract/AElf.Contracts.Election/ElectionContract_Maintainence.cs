@@ -29,16 +29,17 @@ namespace AElf.Contracts.Election
 
             State.TimeEachTerm.Value = input.TimeEachTerm;
 
-            State.MinerIncreaseInterval.Value = input.MinerIncreaseInterval;
-
             State.MinersCount.Value = input.MinerList.Count;
             State.InitialMiners.Value = new PubkeyList
             {
                 Value = {input.MinerList.Select(k => k.ToByteString())}
             };
-            foreach (var publicKey in input.MinerList)
+            foreach (var pubkey in input.MinerList)
             {
-                State.CandidateInformationMap[publicKey] = new CandidateInformation {Pubkey = publicKey};
+                State.CandidateInformationMap[pubkey] = new CandidateInformation
+                {
+                    Pubkey = pubkey
+                };
             }
 
             State.CurrentTermNumber.Value = 1;
@@ -60,8 +61,8 @@ namespace AElf.Contracts.Election
                 IsLockToken = false,
                 AcceptedCurrency = Context.Variables.NativeSymbol,
                 TotalSnapshotNumber = long.MaxValue,
-                StartTimestamp = DateTime.MinValue.ToUniversalTime().ToTimestamp(),
-                EndTimestamp = DateTime.MaxValue.ToUniversalTime().ToTimestamp()
+                StartTimestamp = TimestampHelper.MinValue,
+                EndTimestamp = TimestampHelper.MaxValue
             };
             State.VoteContract.Register.Send(votingRegisterInput);
 
@@ -96,9 +97,9 @@ namespace AElf.Contracts.Election
             var previousMiners = State.AEDPoSContract.GetPreviousRoundInformation.Call(new Empty())
                 .RealTimeMinersInformation.Keys.ToList();
 
-            foreach (var publicKey in previousMiners)
+            foreach (var pubkey in previousMiners)
             {
-                UpdateCandidateInformation(publicKey, input.TermNumber, previousMiners);
+                UpdateCandidateInformation(pubkey, input.TermNumber, previousMiners);
             }
 
             if (State.ProfitContract.Value == null)
@@ -132,16 +133,16 @@ namespace AElf.Contracts.Election
                 EndRoundNumber = input.RoundNumber
             };
 
-            foreach (var publicKey in State.Candidates.Value.Value)
+            foreach (var pubkey in State.Candidates.Value.Value)
             {
-                var votes = State.CandidateVotes[publicKey.ToHex()];
+                var votes = State.CandidateVotes[pubkey.ToHex()];
                 var validObtainedVotesAmount = 0L;
                 if (votes != null)
                 {
                     validObtainedVotesAmount = votes.ObtainedActiveVotedVotesAmount;
                 }
 
-                snapshot.ElectionResult.Add(publicKey.ToHex(), validObtainedVotesAmount);
+                snapshot.ElectionResult.Add(pubkey.ToHex(), validObtainedVotesAmount);
             }
 
             State.Snapshots[input.TermNumber] = snapshot;
@@ -178,6 +179,10 @@ namespace AElf.Contracts.Election
         public override Empty UpdateCandidateInformation(UpdateCandidateInformationInput input)
         {
             var candidateInformation = State.CandidateInformationMap[input.Pubkey];
+            if (candidateInformation == null)
+            {
+                return new Empty();
+            }
 
             if (input.IsEvilNode)
             {
@@ -189,8 +194,7 @@ namespace AElf.Contracts.Election
                     Beneficiary = Address.FromPublicKey(publicKeyByte)
                 });
                 Context.LogDebug(() => $"Marked {input.Pubkey.Substring(0, 10)} as an evil node.");
-                // TODO: Set to null.
-                State.CandidateInformationMap[input.Pubkey] = new CandidateInformation();
+                State.CandidateInformationMap.Remove(input.Pubkey);
                 var candidates = State.Candidates.Value;
                 candidates.Value.Remove(ByteString.CopyFrom(publicKeyByte));
                 State.Candidates.Value = candidates;

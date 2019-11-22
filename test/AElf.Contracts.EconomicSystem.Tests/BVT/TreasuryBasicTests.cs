@@ -5,6 +5,7 @@ using Acs5;
 using AElf.Contracts.Economic.TestBase;
 using AElf.Contracts.MultiToken;
 using AElf.Contracts.TokenConverter;
+using AElf.Kernel;
 using AElf.Types;
 using Google.Protobuf.WellKnownTypes;
 using Shouldly;
@@ -37,28 +38,23 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             tokenInformation.TotalSupply.ShouldBe(EconomicSystemTestConstants.TotalSupply);
         }
 
-        [Fact]
-        public async Task EconomistSystem_SetMethodTransactionFee_Test()
+        private async Task EconomistSystem_SetMethodTransactionFee_Test()
         {
             const long feeAmount = 10L;
-            await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new TokenAmounts
+            await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new MethodFees
             {
-                Method = nameof(TransactionFeeChargingContractStub.SendForFun),
-                Amounts =
+                MethodName = nameof(TransactionFeeChargingContractStub.SendForFun),
+                Fees =
                 {
-                    new TokenAmount
-                    {
-                        Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                        Amount = feeAmount
-                    }
+                    new MethodFee {Symbol = EconomicSystemTestConstants.NativeTokenSymbol, BasicFee = feeAmount}
                 }
             });
 
-            var tokenAmount = await TransactionFeeChargingContractStub.GetMethodFee.CallAsync(new MethodName
+            var tokenAmount = await TransactionFeeChargingContractStub.GetMethodFee.CallAsync(new StringValue
             {
-                Name = nameof(TransactionFeeChargingContractStub.SendForFun)
+                Value = nameof(TransactionFeeChargingContractStub.SendForFun)
             });
-            tokenAmount.Amounts.First(a => a.Symbol == EconomicSystemTestConstants.NativeTokenSymbol).Amount
+            tokenAmount.Fees.First(a => a.Symbol == EconomicSystemTestConstants.NativeTokenSymbol).BasicFee
                 .ShouldBe(feeAmount);
         }
 
@@ -75,46 +71,77 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol
             });
             var tycoon = GetTransactionFeeChargingContractTester(chosenOneKeyPair);
-            await tycoon.SendForFun.SendAsync(new Empty());
+            var transactionResult = await tycoon.SendForFun.SendAsync(new Empty());
+            var transactionSize = transactionResult.Transaction.Size();
             var balanceAfter = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
             {
                 Owner = chosenOneAddress,
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol
             });
-            balanceAfter.Balance.ShouldBeLessThan(balanceBefore.Balance);
+            balanceAfter.Balance.ShouldBe(balanceBefore.Balance - 10L - transactionSize * 0);
         }
 
         [Fact]
-        public async Task<long> EconomistSystem_SetMethodTransactionFee_MultipleSymbol_Test()
+        public async Task EconomicSystem_ChargeMethodTransactionFeeEvenExecutionFailed()
+        {
+            const long feeAmount = 10L;
+            await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new MethodFees
+            {
+                MethodName = nameof(TransactionFeeChargingContractStub.SupposedToFail),
+                Fees =
+                {
+                    new MethodFee {Symbol = EconomicSystemTestConstants.NativeTokenSymbol, BasicFee = feeAmount}
+                }
+            });
+
+            var chosenOneKeyPair = CoreDataCenterKeyPairs.First();
+            var chosenOneAddress = Address.FromPublicKey(chosenOneKeyPair.PublicKey);
+            var balanceBefore = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = chosenOneAddress,
+                Symbol = EconomicSystemTestConstants.NativeTokenSymbol
+            });
+            var tycoon = GetTransactionFeeChargingContractTester(chosenOneKeyPair);
+            var transactionResult = await tycoon.SupposedToFail.SendAsync(new Empty());
+            transactionResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Failed);
+            var balanceAfter = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
+            {
+                Owner = chosenOneAddress,
+                Symbol = EconomicSystemTestConstants.NativeTokenSymbol
+            });
+            balanceAfter.Balance.ShouldBe(balanceBefore.Balance - feeAmount);
+        }
+
+        private async Task<long> EconomistSystem_SetMethodTransactionFee_MultipleSymbol_Test()
         {
             const long feeAmount = 10L;
 
-            await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new TokenAmounts
+            await TransactionFeeChargingContractStub.SetMethodFee.SendAsync(new MethodFees
             {
-                Method = nameof(TransactionFeeChargingContractStub.SendForFun),
-                Amounts =
+                MethodName = nameof(TransactionFeeChargingContractStub.SendForFun),
+                Fees =
                 {
-                    new TokenAmount
+                    new MethodFee
                     {
                         Symbol = EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol,
-                        Amount = feeAmount
+                        BasicFee = feeAmount
                     },
-                    new TokenAmount
+                    new MethodFee
                     {
                         Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                        Amount = feeAmount
+                        BasicFee = feeAmount
                     }
                 }
             });
 
-            var tokenAmount = await TransactionFeeChargingContractStub.GetMethodFee.CallAsync(new MethodName
+            var tokenAmount = await TransactionFeeChargingContractStub.GetMethodFee.CallAsync(new StringValue
             {
-                Name = nameof(TransactionFeeChargingContractStub.SendForFun)
+                Value = nameof(TransactionFeeChargingContractStub.SendForFun)
             });
-            tokenAmount.Amounts.First(a => a.Symbol == EconomicSystemTestConstants.NativeTokenSymbol).Amount
+            tokenAmount.Fees.First(a => a.Symbol == EconomicSystemTestConstants.NativeTokenSymbol).BasicFee
                 .ShouldBe(feeAmount);
-            tokenAmount.Amounts
-                .First(a => a.Symbol == EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol).Amount
+            tokenAmount.Fees
+                .First(a => a.Symbol == EconomicSystemTestConstants.TransactionFeeChargingContractTokenSymbol).BasicFee
                 .ShouldBe(feeAmount);
 
             return feeAmount;
@@ -135,7 +162,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 });
                 balance.Balance.ShouldBe(0);
             }
-            
+
             // The chosen one decide to buy some TFCC tokens.
             var chosenOneTokenContractStub =
                 GetTester<TokenContractContainer.TokenContractStub>(TokenContractAddress, chosenOneKeyPair);
@@ -143,7 +170,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
             {
                 Spender = TokenConverterContractAddress,
                 Symbol = EconomicSystemTestConstants.NativeTokenSymbol,
-                Amount = 100_000_00000000// Enough,
+                Amount = 100_000_00000000 // Enough,
             });
             var chosenOneTokenConverterContractStub =
                 GetTester<TokenConverterContractContainer.TokenConverterContractStub>(TokenConverterContractAddress,
@@ -154,7 +181,7 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 Amount = feeAmount
             });
             result.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
-            
+
             {
                 var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
@@ -163,10 +190,10 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 });
                 balance.Balance.ShouldBe(feeAmount);
             }
-            
+
             var tycoon = GetTransactionFeeChargingContractTester(chosenOneKeyPair);
             await tycoon.SendForFun.SendAsync(new Empty());
-            
+
             {
                 var balance = await TokenContractStub.GetBalance.CallAsync(new GetBalanceInput
                 {
@@ -176,16 +203,17 @@ namespace AElf.Contracts.EconomicSystem.Tests.BVT
                 balance.Balance.ShouldBe(0L);
             }
         }
-        
+
         [Fact]
         public async Task EconomistSystem_SetMethodCallThreshold_Test()
         {
             const long feeAmount = 100L;
-            var setMethodResult = await MethodCallThresholdContractStub.SetMethodCallingThreshold.SendAsync(new SetMethodCallingThresholdInput
-            {
-                Method = nameof(MethodCallThresholdContractStub.SendForFun),
-                SymbolToAmount = {{EconomicSystemTestConstants.NativeTokenSymbol, feeAmount}}
-            });
+            var setMethodResult = await MethodCallThresholdContractStub.SetMethodCallingThreshold.SendAsync(
+                new SetMethodCallingThresholdInput
+                {
+                    Method = nameof(MethodCallThresholdContractStub.SendForFun),
+                    SymbolToAmount = {{EconomicSystemTestConstants.NativeTokenSymbol, feeAmount}}
+                });
             setMethodResult.TransactionResult.Status.ShouldBe(TransactionResultStatus.Mined);
 
             var tokenAmount = await MethodCallThresholdContractStub.GetMethodCallingThreshold.CallAsync(new StringValue

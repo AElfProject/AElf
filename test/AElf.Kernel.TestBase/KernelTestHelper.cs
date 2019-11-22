@@ -61,9 +61,9 @@ namespace AElf.Kernel
         /// LongestChainHeight: 13
         ///         LIB height: 5
         /// 
-        ///             Height: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14
+        ///             Height: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12 -> 13 -> 14 -> 15 -> 16 -> 17 -> 18 -> 19
         ///        Best Branch: a -> b -> c -> d -> e -> f -> g -> h -> i -> j  -> k
-        ///     Longest Branch:                                   (h)-> l -> m  -> n  -> o  -> p 
+        ///     Longest Branch:                                   (h)-> l -> m  -> n  -> o  ->  p ->  q ->  r ->  s ->  t ->  u ->  v
         ///        Fork Branch:                    (e)-> q -> r -> s -> t -> u
         ///    Unlinked Branch:                                              v  -> w  -> x  -> y  -> z
         /// </returns>
@@ -77,7 +77,7 @@ namespace AElf.Kernel
             BestBranchBlockList.AddRange(await AddBestBranch(chain));
             
             LongestBranchBlockList =
-                await AddForkBranch(chain, BestBranchBlockList[7].Height, BestBranchBlockList[7].GetHash());
+                await AddForkBranch(chain, BestBranchBlockList[7].Height, BestBranchBlockList[7].GetHash(), 11);
 
             foreach (var block in LongestBranchBlockList)
             {
@@ -267,11 +267,11 @@ namespace AElf.Kernel
             return bestBranchBlockList;
         }
         
-        private async Task<List<Block>> AddForkBranch(Chain chain, long previousHeight, Hash previousHash)
+        private async Task<List<Block>> AddForkBranch(Chain chain, long previousHeight, Hash previousHash, int count = 5)
         {
             var forkBranchBlockList = new List<Block>();
 
-            for (var i = 0; i < 5; i++)
+            for (var i = 0; i < count; i++)
             {
                 var newBlock = await AttachBlock(previousHeight, previousHash);
                 forkBranchBlockList.Add(newBlock);

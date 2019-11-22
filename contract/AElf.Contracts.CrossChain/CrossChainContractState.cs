@@ -1,3 +1,4 @@
+using Acs1;
 using Acs7;
 using AElf.Sdk.CSharp.State;
 using AElf.Types;
@@ -11,6 +12,8 @@ namespace AElf.Contracts.CrossChain
         public Int64State SideChainSerialNumber { get; set; }
         
         public SingletonState<Address> Owner { get; set; }
+        
+        public MappedState<string, MethodFees> TransactionFees { get; set; }
         
         #region side chain
 
@@ -31,7 +34,6 @@ namespace AElf.Contracts.CrossChain
         public MappedState<long, MerklePath> TxRootMerklePathInParentChain { get; set; }
         public Int64State CurrentParentChainHeight { get; set; }
         public Int32State ParentChainId { get; set; }
-        public Int64State CreationHeightOnParentChain { get; set; }
         public MappedState<long, Hash> ParentChainTransactionStatusMerkleTreeRoot { get; set; }
         
         public SingletonState<IndexedParentChainBlockData> LastIndexedParentChainBlockData { get; set; }

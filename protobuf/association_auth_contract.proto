@@ -1,10 +1,7 @@
 syntax = "proto3";
 
-import "aelf/core.proto";
-import "aelf/options.proto";
+import "acs1.proto";
 import "acs3.proto";
-import "google/protobuf/empty.proto";
-import "google/protobuf/timestamp.proto";
 
 option csharp_namespace = "AElf.Contracts.AssociationAuth";
 
@@ -12,6 +9,7 @@ service AssociationAuthContract {
     
     option (aelf.csharp_state) = "AElf.Contracts.AssociationAuth.AssociationAuthState";
     option (aelf.base) = "acs3.proto";
+    option (aelf.base) = "acs1.proto";
     
     // Actions    
     rpc CreateOrganization (CreateOrganizationInput) returns (aelf.Address) {
@@ -52,4 +50,14 @@ message ProposalInfo {
     aelf.Address organization_address = 7;
     int32 approved_weight = 8;
     repeated aelf.Address approved_reviewer = 9;
+}
+
+message ProposalCreated{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
+}
+
+message ProposalReleased{
+    option (aelf.is_event) = true;
+    aelf.Hash proposal_id = 1;
 }

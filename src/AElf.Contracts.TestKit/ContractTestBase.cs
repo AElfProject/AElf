@@ -59,17 +59,18 @@ namespace AElf.Contracts.TestKit
             ECKeyPair senderKey)
         {
             var zeroStub = GetTester<BasicContractZeroContainer.BasicContractZeroStub>(ContractZeroAddress, senderKey);
-            var res = await zeroStub.DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput()
+            var res = await zeroStub.DeploySystemSmartContract.SendAsync(new SystemContractDeploymentInput
             {
                 Category = category,
                 Code = ByteString.CopyFrom(code),
                 Name = name,
                 TransactionMethodCallList = new SystemContractDeploymentInput.Types.SystemTransactionMethodCallList()
             });
-            if (res.TransactionResult.Status != TransactionResultStatus.Mined)
+            if (res.TransactionResult == null || res.TransactionResult.Status != TransactionResultStatus.Mined)
             {
                 throw new Exception($"DeploySystemSmartContract failed: {res.TransactionResult}");
             }
+
             return res.Output;
         }
 

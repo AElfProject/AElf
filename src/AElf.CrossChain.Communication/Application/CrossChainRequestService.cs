@@ -1,6 +1,8 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Acs7;
+using AElf.CrossChain.Communication.Exception;
 using Microsoft.Extensions.Logging;
 using Volo.Abp.DependencyInjection;
 
@@ -28,12 +30,21 @@ namespace AElf.CrossChain.Communication.Application
             {
                 Logger.LogTrace(
                     $"Try to request from chain {ChainHelper.ConvertChainIdToBase58(chainIdHeightPair.Key)}, from height {chainIdHeightPair.Value}");
-                await _crossChainClientService.RequestCrossChainDataAsync(chainIdHeightPair.Key, chainIdHeightPair.Value);
+                try
+                {
+                    await _crossChainClientService.RequestCrossChainDataAsync(chainIdHeightPair.Key, chainIdHeightPair.Value);
+                }
+                catch (CrossChainRequestException e)
+                {
+                    Logger.LogError(
+                        $"Request chain {ChainHelper.ConvertChainIdToBase58(chainIdHeightPair.Key)} failed.", e);
+                }
             }
         }
 
         public async Task<ChainInitializationData> RequestChainInitializationDataAsync(int chainId)
         {
+            Logger.LogTrace("Request chain initialization data.");
             var chainInitializationData = await _crossChainClientService.RequestChainInitializationData(chainId);
             return chainInitializationData;
         }

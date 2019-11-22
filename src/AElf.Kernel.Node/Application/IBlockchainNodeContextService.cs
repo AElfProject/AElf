@@ -68,8 +68,10 @@ namespace AElf.Kernel.Node.Application
                 ChainId = dto.ChainId,
                 TxHub = _txHub,
             };
-            var chain = await _blockchainService.GetChainAsync() ??
-                        await _chainCreationService.CreateNewChainAsync(dto.Transactions);
+            var chain = await _blockchainService.GetChainAsync();
+            chain = chain == null
+                ? await _chainCreationService.CreateNewChainAsync(dto.Transactions)
+                : await _blockchainService.ResetChainToLibAsync(chain);
 
             await _smartContractAddressUpdateService.UpdateSmartContractAddressesAsync(
                 await _blockchainService.GetBlockHeaderByHashAsync(chain.BestChainHash));

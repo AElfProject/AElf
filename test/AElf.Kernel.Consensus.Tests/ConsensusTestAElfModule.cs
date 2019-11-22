@@ -43,10 +43,10 @@ namespace AElf.Kernel.Consensus
                 var mockService = new Mock<ITriggerInformationProvider>();
                 mockService.Setup(m => m.GetTriggerInformationForConsensusCommand(It.IsAny<BytesValue>()))
                     .Returns(new BytesValue());
-                mockService.Setup(m => m.GetTriggerInformationForBlockHeaderExtraDataAsync(It.IsAny<BytesValue>()))
-                    .Returns(Task.FromResult(new BytesValue()));
-                mockService.Setup(m => m.GetTriggerInformationForConsensusTransactionsAsync(It.IsAny<BytesValue>()))
-                    .Returns(Task.FromResult(new BytesValue()));
+                mockService.Setup(m => m.GetTriggerInformationForBlockHeaderExtraData(It.IsAny<BytesValue>()))
+                    .Returns(new BytesValue());
+                mockService.Setup(m => m.GetTriggerInformationForConsensusTransactions(It.IsAny<BytesValue>()))
+                    .Returns(new BytesValue());
 
                 return mockService.Object;
             });
@@ -57,6 +57,16 @@ namespace AElf.Kernel.Consensus
                 mockService.Setup(m => m.GetAddressByContractName(It.IsAny<Hash>()))
                     .Returns(SampleAddress.AddressList[0]);
 
+                return mockService.Object;
+            });
+
+            services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IConsensusExtraDataExtractor>();
+                mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height == 9)))
+                    .Returns(ByteString.Empty);
+                mockService.Setup(m => m.ExtractConsensusExtraData(It.Is<BlockHeader>(o => o.Height != 9)))
+                    .Returns(ByteString.CopyFromUtf8("test"));
                 return mockService.Object;
             });
 
@@ -72,8 +82,7 @@ namespace AElf.Kernel.Consensus
                         ExecutionStatus = ExecutionStatus.Executed,
                         ReturnValue = ByteString.CopyFrom(new ConsensusCommand
                         {
-                            NextBlockMiningLeftMilliseconds = 4000,
-                            ExpectedMiningTime = TimestampHelper.GetUtcNow(),
+                            ArrangedMiningTime = TimestampHelper.GetUtcNow(),
                             Hint = new AElfConsensusHint {Behaviour = AElfConsensusBehaviour.Nothing}.ToByteString(),
                             LimitMillisecondsOfMiningBlock = 400
                         }.ToByteArray())
@@ -111,7 +120,7 @@ namespace AElf.Kernel.Consensus
 
                 mockService.Setup(m =>
                         m.ExecuteAsync(It.IsAny<ChainContext>(),
-                            It.Is<Transaction>(tx => tx.MethodName == "GetInformationToUpdateConsensus"),
+                            It.Is<Transaction>(tx => tx.MethodName == "GetConsensusExtraData"),
                             It.IsAny<Timestamp>()))
                     .Returns(Task.FromResult(new TransactionTrace
                     {

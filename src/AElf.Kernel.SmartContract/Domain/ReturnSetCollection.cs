@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using AElf.Types;
 
 namespace AElf.Kernel.SmartContract.Domain
@@ -6,11 +7,11 @@ namespace AElf.Kernel.SmartContract.Domain
     public class ReturnSetCollection
     {
         private List<ExecutionReturnSet> _executed = new List<ExecutionReturnSet>();
-        private List<Hash> _unexecutable = new List<Hash>();
+        private List<ExecutionReturnSet> _unexecutable = new List<ExecutionReturnSet>();
 
         public List<ExecutionReturnSet> Executed => _executed;
 
-        public List<Hash> Unexecutable => _unexecutable;
+        public List<ExecutionReturnSet> Unexecutable => _unexecutable;
 
         public ReturnSetCollection(IEnumerable<ExecutionReturnSet> returnSets)
         {
@@ -28,7 +29,7 @@ namespace AElf.Kernel.SmartContract.Domain
                 }
                 else if (returnSet.Status == TransactionResultStatus.Unexecutable)
                 {
-                    _unexecutable.Add(returnSet.TransactionId);
+                    _unexecutable.Add(returnSet);
                 }
             }
         }
@@ -41,10 +42,22 @@ namespace AElf.Kernel.SmartContract.Domain
                 foreach (var change in returnSet.StateChanges)
                 {
                     blockStateSet.Changes[change.Key] = change.Value;
+                    blockStateSet.Deletes.Remove(change.Key);
+                }
+
+                foreach (var delete in returnSet.StateDeletes)
+                {
+                    blockStateSet.Deletes.AddIfNotContains(delete.Key);
+                    blockStateSet.Changes.Remove(delete.Key);
                 }
             }
 
             return blockStateSet;
+        }
+
+        public List<ExecutionReturnSet> ToList()
+        {
+            return _executed.Concat(_unexecutable).ToList();
         }
     }
 }

@@ -1,3 +1,0 @@
-## auth contract
-
-Coming soon !

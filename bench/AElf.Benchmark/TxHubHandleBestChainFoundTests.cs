@@ -82,7 +82,7 @@ namespace AElf.Benchmark
         {
             await _txHub.HandleBlockAcceptedAsync(new BlockAcceptedEvent
             {
-                BlockHeader = _block.Header
+                Block = _block
             });
             
             await _txHub.HandleBestChainFoundAsync(new BestChainFoundEventData
@@ -93,7 +93,7 @@ namespace AElf.Benchmark
             
             foreach (var transactionId in _block.Body.TransactionIds)
             {
-                await _transactionManager.RemoveTransaction(transactionId);
+                await _transactionManager.RemoveTransactionAsync(transactionId);
             }
             
             await _chainManager.RemoveChainBlockLinkAsync(_block.GetHash());

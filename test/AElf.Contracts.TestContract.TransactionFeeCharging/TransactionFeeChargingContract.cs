@@ -34,19 +34,25 @@ namespace AElf.Contracts.TestContract.TransactionFeeCharging
             return new Empty();
         }
 
-        public override Empty SetMethodFee(TokenAmounts input)
+        public override Empty SetMethodFee(MethodFees input)
         {
-            State.TransactionFees[input.Method] = input;
+            State.TransactionFees[input.MethodName] = input;
             return new Empty();
         }
 
-        public override TokenAmounts GetMethodFee(MethodName input)
+        public override MethodFees GetMethodFee(StringValue input)
         {
-            return State.TransactionFees[input.Name];
+            return State.TransactionFees[input.Value];
         }
 
         public override Empty SendForFun(Empty input)
         {
+            return new Empty();
+        }
+
+        public override Empty SupposedToFail(Empty input)
+        {
+            Assert(false, "Fate!");
             return new Empty();
         }
     }

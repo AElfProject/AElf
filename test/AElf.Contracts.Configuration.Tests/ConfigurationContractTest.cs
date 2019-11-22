@@ -24,8 +24,8 @@ namespace AElf.Contracts.ConfigurationContract.Tests
             
             Assert.True(transactionResult.Status == TransactionResultStatus.Mined);
 
-            var oldLimit = BlockTransactionLimitChanged.Parser.ParseFrom(transactionResult.Logs[0].NonIndexed).Old;
-            var newLimit = BlockTransactionLimitChanged.Parser.ParseFrom(transactionResult.Logs[0].NonIndexed).New;
+            var oldLimit = BlockTransactionLimitChanged.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).Old;
+            var newLimit = BlockTransactionLimitChanged.Parser.ParseFrom(transactionResult.Logs[1].NonIndexed).New;
 
             Assert.True(oldLimit == 0);
             Assert.True(newLimit == 100);

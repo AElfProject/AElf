@@ -1,3 +1,5 @@
+using System;
+
 namespace AElf.OS.Network
 {
     public static class NetworkConstants
@@ -6,8 +8,10 @@ namespace AElf.OS.Network
         public const int DefaultPeerRecoveryTimeoutInMilliSeconds = 3000;
         public const bool DefaultCompressBlocks = true;
         public const int DefaultMaxRequestRetryCount = 1;
-        public const int DefaultMaxRandomPeersPerRequest = 2;
         public const int DefaultMaxPeers = 25;
+        public const int DefaultMaxPeersPerIpAddress = 0;
+
+        public const int DefaultSessionIdSize = 5;
 
         public const int DefaultMaxBlockAgeToBroadcastInMinutes = 10;
 
@@ -22,8 +26,15 @@ namespace AElf.OS.Network
         public const string TransactionBroadcastQueueName = "TransactionBroadcastQueue";
         public const string BlockBroadcastQueueName = "BlockBroadcastQueue";
 
+        public const long HandshakeTimeout = 1000;
+
+        public const long PeerConnectionTimeout = 10000;
+
         public const int DefaultMaxBufferedTransactionCount = 100;
         public const int DefaultMaxBufferedBlockCount = 50;
         public const int DefaultMaxBufferedAnnouncementCount = 200;
+
+        public const int DefaultPeerReconnectionPeriod = 60_000; // 1 min
+        public const int DefaultPeerBlackListTimeoutInSeconds = 300;
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
 using AElf.Contracts.Genesis;
 using AElf.CrossChain.Communication.Grpc;
 using AElf.Kernel;
@@ -17,6 +18,7 @@ using AElf.RuntimeSetup;
 using AElf.WebApp.Web;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Volo.Abp;
 using Volo.Abp.AspNetCore;
@@ -40,7 +42,8 @@ namespace AElf.Blockchains.BasicBaseChain
         //web api module
         typeof(WebWebAppAElfModule),
 
-        typeof(ParallelExecutionModule)
+        typeof(ParallelExecutionModule),
+        typeof(BlockTransactionLimitControllerModule)
     )]
     public class BasicBaseChainAElfModule : AElfModule
     {
@@ -49,12 +52,17 @@ namespace AElf.Blockchains.BasicBaseChain
         public override void PreConfigureServices(ServiceConfigurationContext context)
         {
             var configuration = context.Services.GetConfiguration();
+            var hostBuilderContext = context.Services.GetSingletonInstanceOrNull<HostBuilderContext>();
 
             var chainType = context.Services.GetConfiguration().GetValue("ChainType", ChainType.MainChain);
             var netType = context.Services.GetConfiguration().GetValue("NetType", NetType.MainNet);
-            context.Services.SetConfiguration(new ConfigurationBuilder().AddConfiguration(configuration)
-                .AddJsonFile($"appsettings.{chainType}.{netType}.json").SetBasePath(context.Services.GetHostingEnvironment().ContentRootPath)
-                .Build());
+
+            var newConfig = new ConfigurationBuilder().AddConfiguration(configuration)
+                .AddJsonFile($"appsettings.{chainType}.{netType}.json")
+                .SetBasePath(context.Services.GetHostingEnvironment().ContentRootPath)
+                .Build();
+            
+            hostBuilderContext.Configuration = newConfig;
         }
 
         public override void ConfigureServices(ServiceConfigurationContext context)
@@ -72,10 +80,17 @@ namespace AElf.Blockchains.BasicBaseChain
             Configure<HostSmartContractBridgeContextOptions>(options =>
             {
                 options.ContextVariables[ContextVariableDictionary.NativeSymbolName] = context.Services
-                    .GetConfiguration().GetValue("TokenInitial:Symbol", "ELF");
+                    .GetConfiguration().GetValue("Economic:Symbol", "ELF");
+                options.ContextVariables[ContextVariableDictionary.ResourceTokenSymbolList] = context.Services
+                    .GetConfiguration().GetValue("Economic:ResourceTokenSymbolList", "RAM,STO,CPU,NET");
             });
             
             Configure<ContractOptions>(configuration.GetSection("Contract"));
+            Configure<ContractOptions>(options =>
+            {
+                options.GenesisContractDir = Path.Combine(context.Services.GetHostingEnvironment().ContentRootPath,
+                    "genesis");
+            });
         }
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)

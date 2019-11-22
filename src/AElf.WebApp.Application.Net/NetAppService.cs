@@ -23,12 +23,14 @@ namespace AElf.WebApp.Application.Net
     public class NetAppService : INetAppService
     {
         private readonly INetworkService _networkService;
+        private readonly IReconnectionService _reconnectionService;
 
         private static readonly string Version = typeof(NetApplicationWebAppAElfModule).Assembly.GetName().Version.ToString();
 
-        public NetAppService(INetworkService networkService)
+        public NetAppService(INetworkService networkService, IReconnectionService reconnectionService)
         {
             _networkService = networkService;
+            _reconnectionService = reconnectionService;
         }
         
         /// <summary>
@@ -47,6 +49,7 @@ namespace AElf.WebApp.Application.Net
         /// <returns></returns>
         public async Task<bool> RemovePeerAsync(string address)
         {
+            _reconnectionService.CancelReconnection(address);
             return await _networkService.RemovePeerAsync(address);
         }
         
@@ -60,14 +63,15 @@ namespace AElf.WebApp.Application.Net
             
             var peerDtoList = peerList.Select(p => new PeerDto
             {
-                IpAddress = p.RemoteEndpoint.ToString(),
-                ProtocolVersion = p.Info.ProtocolVersion,
-                ConnectionTime = p.Info.ConnectionTime,
-                Inbound = p.Info.IsInbound,
+                IpAddress = p.IpAddress,
+                ProtocolVersion = p.ProtocolVersion,
+                ConnectionTime = p.ConnectionTime,
+                Inbound = p.Inbound,
+                ConnectionStatus = p.ConnectionStatus,
                 BufferedAnnouncementsCount = p.BufferedAnnouncementsCount,
                 BufferedBlocksCount = p.BufferedBlocksCount,
                 BufferedTransactionsCount = p.BufferedTransactionsCount,
-                RequestMetrics = withMetrics ? p.GetRequestMetrics().Values.SelectMany(kvp => kvp).ToList() : null
+                RequestMetrics = withMetrics ? p.RequestMetrics : null
             }).ToList();
             
             return peerDtoList;

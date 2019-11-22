@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using AElf.Kernel.Blockchain.Infrastructure;
 using AElf.Kernel.Infrastructure;
@@ -32,8 +33,11 @@ namespace AElf.Kernel.Blockchain.Domain
         Task SetChainBlockLinkExecutionStatus(ChainBlockLink blockLink, ChainBlockLinkExecutionStatus status);
         Task SetBestChainAsync(Chain chain, long bestChainHeight, Hash bestChainHash);
         int GetChainId();
-        Task<List<Hash>> CleanBranchesAsync(Chain chain, Hash irreversibleBlockHash, long irreversibleBlockHeight);
         Task RemoveLongestBranchAsync(Chain chain);
+        Task<DiscardedBranch> GetDiscardedBranchAsync(Chain chain, Hash irreversibleBlockHash,
+            long irreversibleBlockHeight);
+        Task CleanChainBranchAsync(Chain chain, DiscardedBranch discardedBranch);
+        Task<Chain> ResetChainToLibAsync(Chain chain);
     }
 
     public class ChainManager : IChainManager, ISingletonDependency
@@ -138,6 +142,11 @@ namespace AElf.Kernel.Blockchain.Domain
         {
             BlockAttachOperationStatus status = BlockAttachOperationStatus.None;
 
+            bool isLinkedToLongestChain = chainBlockLink.PreviousBlockHash == chain.LongestChainHash &&
+                                          chainBlockLink.Height == chain.LongestChainHeight + 1;
+
+            Logger.LogTrace($"Start attach block hash {chainBlockLink.BlockHash}, height {chainBlockLink.Height}");
+            
             while (true)
             {
                 var previousHash = chainBlockLink.PreviousBlockHash.ToStorageKey();
@@ -148,7 +157,9 @@ namespace AElf.Kernel.Blockchain.Domain
                     chain.Branches[blockHash] = chainBlockLink.Height;
                     chain.Branches.Remove(previousHash);
 
-                    if (chainBlockLink.Height > chain.LongestChainHeight)
+                    //TODO: change the longest chain switch length 
+                    if (isLinkedToLongestChain && chainBlockLink.Height > chain.LongestChainHeight
+                        || chainBlockLink.Height >= chain.LongestChainHeight + 8)
                     {
                         chain.LongestChainHeight = chainBlockLink.Height;
                         chain.LongestChainHash = chainBlockLink.BlockHash;
@@ -199,7 +210,7 @@ namespace AElf.Kernel.Blockchain.Domain
 
             Logger.LogInformation($"Attach {chainBlockLink.BlockHash} to longest chain, status: {status}, " +
                                   $"longest chain height: {chain.LongestChainHeight}, longest chain hash: {chain.LongestChainHash}");
-            Logger.LogTrace($"Not linked blocks: {chain.NotLinkedBlocks}, branches: {chain.Branches}");
+//            Logger.LogTrace($"Not linked blocks: {chain.NotLinkedBlocks}, branches: {chain.Branches}");
 
             return status;
         }
@@ -296,9 +307,8 @@ namespace AElf.Kernel.Blockchain.Domain
             return ChainId;
         }
 
-        public async Task<List<Hash>> CleanBranchesAsync(Chain chain, Hash irreversibleBlockHash, long irreversibleBlockHeight)
+        public async Task<DiscardedBranch> GetDiscardedBranchAsync(Chain chain, Hash irreversibleBlockHash, long irreversibleBlockHeight)
         {
-            var toRemoveBlocks = new List<Hash>();
             var toCleanBranchKeys = new List<string>();
             var toCleanNotLinkedKeys = new List<string>();
 
@@ -311,7 +321,6 @@ namespace AElf.Kernel.Blockchain.Domain
                     continue;
                 }
 
-                var toRemoveBlocksTemp = new List<Hash>();
                 var chainBlockLink = await GetChainBlockLinkAsync(branch.Key);
                 
                 // Remove incorrect branch.
@@ -328,41 +337,37 @@ namespace AElf.Kernel.Blockchain.Domain
                     }
                 }
 
+                var isDiscardedBranch = false;
                 while (true)
                 {
-                    if (chainBlockLink != null)
+                    if (chainBlockLink == null)
                     {
-
-                        if (chainBlockLink.PreviousBlockHash == irreversibleBlockHash)
-                        {
-                            toRemoveBlocksTemp.Clear();
-                            break;
-                        }
-
-                        // Use the height and hash alternatives to ChainBlockLink.IsIrreversibleBlock to verify,
-                        // because ChainBlockLink can be overwrite 
-                        if (chainBlockLink.Height < irreversibleBlockHeight)
-                        {
-                            var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
-                            if (chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
-                            {
-                                break;
-                            }
-                        }
-
-                        toRemoveBlocksTemp.Add(chainBlockLink.BlockHash);
-                        chainBlockLink = await GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
-                    }
-                    else
-                    {
-                        toCleanBranchKeys.Add(branch.Key);
+                        isDiscardedBranch = true;
                         break;
                     }
+
+                    if (chainBlockLink.PreviousBlockHash == irreversibleBlockHash)
+                    {
+                        break;
+                    }
+
+                    // Use the height and hash alternatives to ChainBlockLink.IsIrreversibleBlock to verify,
+                    // because ChainBlockLink can be overwrite 
+                    if (chainBlockLink.Height < irreversibleBlockHeight)
+                    {
+                        var chainBlockIndex = await GetChainBlockIndexAsync(chainBlockLink.Height);
+                        if (chainBlockIndex.BlockHash == chainBlockLink.BlockHash)
+                        {
+                            isDiscardedBranch = true;
+                            break;
+                        }
+                    }
+
+                    chainBlockLink = await GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
                 }
 
-                if (toRemoveBlocksTemp.Count > 0)
+                if (isDiscardedBranch)
                 {
-                    toRemoveBlocks.AddRange(toRemoveBlocksTemp);
                     toCleanBranchKeys.Add(branch.Key);
                 }
             }
@@ -378,24 +383,28 @@ namespace AElf.Kernel.Blockchain.Domain
 
                 if (blockLink.Height <= irreversibleBlockHeight)
                 {
-                    toRemoveBlocks.Add(blockLink.BlockHash);
                     toCleanNotLinkedKeys.Add(notLinkedBlock.Key);
                 }
             }
-
-            Logger.LogTrace($"Cleanup branches: [{toCleanBranchKeys.JoinAsString(",")}]");
-            Logger.LogTrace($"Cleanup blocks: [{toRemoveBlocks.JoinAsString(",")}]");
-
-            await RemoveChainBranchesAsync(chain, toCleanBranchKeys, toCleanNotLinkedKeys);
-
-            return toRemoveBlocks;
+            
+            return new DiscardedBranch
+            {
+                BranchKeys = toCleanBranchKeys,
+                NotLinkedKeys = toCleanNotLinkedKeys
+            };
         }
 
-        private async Task RemoveChainBranchesAsync(Chain chain, List<string> branchKeys, List<string> notLinkedKeys)
+        public async Task CleanChainBranchAsync(Chain chain, DiscardedBranch discardedBranch)
         {
             var longestChainKey = chain.LongestChainHash.ToStorageKey();
-            foreach (var key in branchKeys)
+            var bestChainKey = chain.BestChainHash.ToStorageKey();
+            foreach (var key in discardedBranch.BranchKeys)
             {
+                if (key == bestChainKey)
+                {
+                    continue;
+                }
+
                 if (key == longestChainKey)
                 {
                     chain.LongestChainHash = chain.BestChainHash;
@@ -405,10 +414,13 @@ namespace AElf.Kernel.Blockchain.Domain
                 chain.Branches.Remove(key);
             }
 
-            foreach (var key in notLinkedKeys)
+            foreach (var key in discardedBranch.NotLinkedKeys)
             {
                 chain.NotLinkedBlocks.Remove(key);
             }
+
+            Logger.LogDebug(
+                $"Clean chain branch, Branches: [{discardedBranch.BranchKeys.JoinAsString(",")}], NotLinkedBlocks: [{discardedBranch.NotLinkedKeys.JoinAsString(",")}]");
 
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
         }
@@ -424,6 +436,42 @@ namespace AElf.Kernel.Blockchain.Domain
                 $"Switch Longest chain to height: {chain.LongestChainHeight}, hash: {chain.LongestChainHash}.");
 
             await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+        }
+
+        public async Task<Chain> ResetChainToLibAsync(Chain chain)
+        {
+            var libHash = chain.LastIrreversibleBlockHash;
+            var libHeight = chain.LastIrreversibleBlockHeight;
+
+            foreach (var branch in chain.Branches)
+            {
+                var hash = HashHelper.Base64ToHash(branch.Key);
+                var chainBlockLink = await GetChainBlockLinkAsync(hash);
+
+                while (chainBlockLink != null && chainBlockLink.Height > libHeight)
+                {
+                    chainBlockLink.ExecutionStatus = ChainBlockLinkExecutionStatus.ExecutionNone;
+                    chainBlockLink.IsLinked = false;
+                    await SetChainBlockLinkAsync(chainBlockLink);
+                    
+                    chainBlockLink = await GetChainBlockLinkAsync(chainBlockLink.PreviousBlockHash);
+                }
+            }
+            
+            chain.Branches.Clear();
+            chain.NotLinkedBlocks.Clear();
+            
+            chain.Branches[libHash.ToStorageKey()] = libHeight;
+
+            chain.BestChainHash = libHash;
+            chain.BestChainHeight = libHeight;
+            chain.LongestChainHash = libHash;
+            chain.LongestChainHeight = libHeight;
+
+            Logger.LogTrace($"Rollback to height {chain.BestChainHeight}, hash {chain.BestChainHash}.");
+            await _chains.SetAsync(chain.Id.ToStorageKey(), chain);
+
+            return chain;
         }
     }
 }

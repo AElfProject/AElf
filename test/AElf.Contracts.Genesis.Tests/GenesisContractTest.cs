@@ -12,8 +12,7 @@ namespace AElf.Contracts.Genesis
 {
     public class BasicContractZeroTest : AuthorityNotRequiredBasicContractZeroTestBase
     {
-        [Fact]
-        public async Task<Address> Deploy_SmartContracts_Test()
+        private async Task<Address> Deploy_SmartContracts_Test()
         {
             var result = await DefaultTester.DeploySmartContract.SendAsync(new ContractDeploymentInput()
             {
@@ -49,6 +48,11 @@ namespace AElf.Contracts.Genesis
             {
                 var author = await DefaultTester.GetContractAuthor.CallAsync(contractAddress);
                 author.ShouldBe(DefaultSender);
+            }
+
+            {
+                var contracts = await ZeroTester.GetDeployedContractAddressList.CallAsync(new Empty());
+                contracts.Value.ShouldContain(contractAddress);
             }
         }
 

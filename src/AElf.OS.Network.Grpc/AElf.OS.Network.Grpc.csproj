@@ -10,7 +10,7 @@
       <PackageReference Include="BouncyCastle.NetCore" Version="1.8.5" />
       <PackageReference Include="Grpc" Version="1.21.0" />
       <PackageReference Include="Grpc.Tools" Version="1.21.0" />
-      <PackageReference Include="Volo.Abp.EventBus" Version="0.19.0" />
+      <PackageReference Include="Volo.Abp.EventBus" Version="1.0.2" />
     </ItemGroup>
 
     <ItemGroup>

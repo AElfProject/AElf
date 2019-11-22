@@ -25,18 +25,17 @@ namespace AElf.CrossChain
             if (blockHeader.Height == Constants.GenesisBlockHeight)
                 return ByteString.Empty;
 
-            //Logger.LogTrace($"Get new cross chain data with hash {blockHeader.PreviousBlockHash}, height {blockHeader.Height - 1}");
-
             var newCrossChainBlockData =
                 await _crossChainIndexingDataService.GetCrossChainBlockDataForNextMiningAsync(blockHeader.PreviousBlockHash,
                     blockHeader.Height - 1);
             if (newCrossChainBlockData == null || newCrossChainBlockData.SideChainBlockData.Count == 0)
                 return ByteString.Empty;
             
-            var txRootHashList = newCrossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionMerkleTreeRoot).ToList();
+            var txRootHashList = newCrossChainBlockData.SideChainBlockData.Select(scb => scb.TransactionStatusMerkleTreeRoot).ToList();
             var calculatedSideChainTransactionsRoot = BinaryMerkleTree.FromLeafNodes(txRootHashList).Root;
 
-            return new CrossChainExtraData {SideChainTransactionsRoot = calculatedSideChainTransactionsRoot}
+            Logger.LogTrace("Cross chain extra data generated.");
+            return new CrossChainExtraData {TransactionStatusMerkleTreeRoot = calculatedSideChainTransactionsRoot}
                 .ToByteString();
         }
     }

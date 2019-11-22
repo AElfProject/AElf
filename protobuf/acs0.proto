@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package acs0;
 
-import "aelf/core.proto";
+import public "aelf/core.proto";
 import "aelf/options.proto";
 import "google/protobuf/empty.proto";
 import "google/protobuf/wrappers.proto";
@@ -55,6 +55,7 @@ message ContractInfo
     aelf.Address author = 2;
     int32 category = 3;
     aelf.Hash code_hash = 4;
+    bool is_system_contract = 5;
 }
 
 message ContractDeploymentInput {

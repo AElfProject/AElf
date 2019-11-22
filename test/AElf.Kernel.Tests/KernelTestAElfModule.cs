@@ -10,6 +10,7 @@ using AElf.Kernel.Consensus;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContractExecution;
 using AElf.Kernel.SmartContractExecution.Application;
 using AElf.Kernel.TransactionPool;
@@ -88,6 +89,29 @@ namespace AElf.Kernel
 
                     return dataProvider.Object;
                 });
+            
+            context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
+        }
+    }
+
+    [DependsOn(typeof(KernelWithChainTestAElfModule), typeof(ConsensusAElfModule))]
+    public class KernelWithConsensusStaffTestAElfModule : AElfModule
+    {
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            var services = context.Services;
+
+            services.AddTransient(builder =>
+            {
+                var mockConsensusScheduler = new Mock<IConsensusScheduler>();
+                return mockConsensusScheduler.Object;
+            });
+
+            services.AddTransient(builder =>
+            {
+                var mockTriggerInformationProvider = new Mock<ITriggerInformationProvider>();
+                return mockTriggerInformationProvider.Object;
+            });
         }
     }
 }
