@@ -53,6 +53,11 @@ namespace AElf.OS.Network.Grpc
             try
             {
                 Logger.LogDebug($"Peer {context.Peer} has requested a handshake.");
+                
+                foreach (var authProperty in context.AuthContext.Properties)
+                {
+                    Logger.LogDebug($"Auth property: {authProperty.Name} -> {authProperty.Value}");
+                }
             
                 if(!UriHelper.TryParsePrefixedEndpoint(context.Peer, out IPEndPoint peerEndpoint))
                     return new HandshakeReply { Error = HandshakeError.InvalidConnection};
