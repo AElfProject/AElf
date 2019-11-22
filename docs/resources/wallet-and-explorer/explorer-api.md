@@ -199,3 +199,58 @@ SuccessResponse:
     ]
 }
 ```
+
+## TPS
+
+### Get TPS Record
+
+```js
+URL: /api/tps/list?start_time={unix_timestamp}&end_time={unix_timestamp}&order={order}
+Method: GET
+SuccessResponse:
+{
+    "total": 178,
+    "tps": [
+        {
+            "id": 12498,
+            "start": "2019-11-22T01:12:14Z",
+            "end": "2019-11-22T01:13:14Z",
+            "txs": 1878,
+            "blocks": 120,
+            "tps": 31,
+            "tpm": 1878,
+            "type": 1
+        },
+        {
+            "id": 12499,
+            "start": "2019-11-22T01:13:14Z",
+            "end": "2019-11-22T01:14:14Z",
+            "txs": 1889,
+            "blocks": 117,
+            "tps": 31,
+            "tpm": 1889,
+            "type": 1
+        },
+        {
+            "id": 12500,
+            "start": "2019-11-22T01:14:14Z",
+            "end": "2019-11-22T01:15:14Z",
+            "txs": 1819,
+            "blocks": 114,
+            "tps": 30,
+            "tpm": 1819,
+            "type": 1
+        },
+        {
+            "id": 12501,
+            "start": "2019-11-22T01:15:14Z",
+            "end": "2019-11-22T01:16:14Z",
+            "txs": 1779,
+            "blocks": 105,
+            "tps": 30,
+            "tpm": 1779,
+            "type": 1
+        }
+    ]
+}
+```
