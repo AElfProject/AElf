@@ -66,12 +66,12 @@ namespace AElf.OS.Network.Grpc
             }
         }
 
-        public override async Task<VoidReply> ConfirmHandshake(ConfirmHandshakeRequest request,
+        public override Task<VoidReply> ConfirmHandshake(ConfirmHandshakeRequest request,
             ServerCallContext context)
         {
             try
             {
-                Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a confirm handshake.");
+                Logger.LogDebug($"Peer {context.GetPeerInfo()} has requested a handshake confirmation.");
 
                 _connectionService.ConfirmHandshake(context.GetPublicKey());
             }
@@ -81,7 +81,7 @@ namespace AElf.OS.Network.Grpc
                 throw;
             }
 
-            return new VoidReply();
+            return Task.FromResult(new VoidReply());
         }
 
         public override async Task<VoidReply> BlockBroadcastStream(
@@ -99,9 +99,11 @@ namespace AElf.OS.Network.Grpc
                     peer.SyncState = SyncState.Finished;
                 }
                 
-                await requestStream.ForEachAsync(r =>
+                await requestStream.ForEachAsync(block =>
                 {
-                    _ = EventBus.PublishAsync(new BlockReceivedEvent(r, peerPubkey));
+                    peer.TryAddKnownBlock(block.GetHash());
+                    _ = EventBus.PublishAsync(new BlockReceivedEvent(block, peerPubkey));
+
                     return Task.CompletedTask;
                 });
             }
@@ -147,8 +149,7 @@ namespace AElf.OS.Network.Grpc
             Logger.LogDebug($"Received announce {announcement.BlockHash} from {context.GetPeerInfo()}.");
 
             var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
-
-            peer.AddKnowBlock(announcement);
+            peer.TryAddKnownBlock(announcement.BlockHash);
 
             if (peer.SyncState != SyncState.Finished)
             {
@@ -206,6 +207,9 @@ namespace AElf.OS.Network.Grpc
             // then don't participate in p2p network
             if (tx.RefBlockNumber > chain.LongestChainHeight + NetworkConstants.DefaultInitialSyncOffset)
                 return;
+            
+            var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
+            peer.TryAddKnownTransaction(tx.GetHash());
 
             _ = EventBus.PublishAsync(new TransactionsReceivedEvent {Transactions = new List<Transaction> {tx}});
         }
@@ -288,7 +292,14 @@ namespace AElf.OS.Network.Grpc
                 block = await _blockchainService.GetBlockWithTransactionsByHash(request.Hash);
 
                 if (block == null)
+                {
                     Logger.LogDebug($"Could not find block {request.Hash} for {context.GetPeerInfo()}.");
+                }
+                else
+                {
+                    var peer = _connectionService.GetPeerByPubkey(context.GetPublicKey());
+                    peer.TryAddKnownBlock(block.GetHash());
+                }
             }
             catch (Exception e)
             {

@@ -19,7 +19,7 @@ namespace AElf.CrossChain
         private readonly IBlockCacheEntityConsumer _blockCacheEntityConsumer;
         private readonly IIndexedCrossChainBlockDataProvider _indexedCrossChainBlockDataProvider;
         private readonly IIrreversibleBlockStateProvider _irreversibleBlockStateProvider;
-        private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
+        private readonly ITransactionPackingService _transactionPackingService;
         
         public ILogger<CrossChainIndexingDataService> Logger { get; set; }
 
@@ -29,13 +29,13 @@ namespace AElf.CrossChain
             IBlockCacheEntityConsumer blockCacheEntityConsumer, 
             IIndexedCrossChainBlockDataProvider indexedCrossChainBlockDataProvider, 
             IIrreversibleBlockStateProvider irreversibleBlockStateProvider, 
-            ITransactionInclusivenessProvider transactionInclusivenessProvider)
+            ITransactionPackingService transactionPackingService)
         {
             _readerFactory = readerFactory;
             _blockCacheEntityConsumer = blockCacheEntityConsumer;
             _indexedCrossChainBlockDataProvider = indexedCrossChainBlockDataProvider;
             _irreversibleBlockStateProvider = irreversibleBlockStateProvider;
-            _transactionInclusivenessProvider = transactionInclusivenessProvider;
+            _transactionPackingService = transactionPackingService;
         }
 
         private async Task<List<SideChainBlockData>> GetNonIndexedSideChainBlockDataAsync(Hash blockHash, long blockHeight)
@@ -249,7 +249,7 @@ namespace AElf.CrossChain
         /// <returns></returns>
         public async Task<CrossChainBlockData> GetCrossChainBlockDataForNextMiningAsync(Hash blockHash, long blockHeight)
         {
-            if (!_transactionInclusivenessProvider.IsTransactionPackable)
+            if (!_transactionPackingService.IsTransactionPackingEnabled())
                 return null;
 
             Logger.LogTrace("Try get cross chain data for mining.");

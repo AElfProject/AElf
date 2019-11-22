@@ -46,7 +46,7 @@ namespace AElf.Kernel
             services.AddKeyValueDbContext<BlockchainKeyValueDbContext>(p => p.UseRedisDatabase());
             services.AddKeyValueDbContext<StateKeyValueDbContext>(p => p.UseRedisDatabase());
 
-            services.AddSingleton<ITransactionInclusivenessProvider, TransactionInclusivenessProvider>();
+            services.AddSingleton<ITransactionPackingService, TransactionPackingService>();
         }
 
         public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
