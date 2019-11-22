@@ -15,22 +15,22 @@ namespace AElf.Kernel.SmartContract.ExecutionPluginForAcs8
     public class DonateResourceTransactionGenerator : ISystemTransactionGenerator
     {
         private readonly ISmartContractAddressService _smartContractAddressService;
-        private readonly ITransactionInclusivenessProvider _transactionInclusivenessProvider;
+        private readonly ITransactionPackingService _transactionPackingService;
 
         public ILogger<DonateResourceTransactionGenerator> Logger { get; set; }
 
 
         public DonateResourceTransactionGenerator(ISmartContractAddressService smartContractAddressService,
-            ITransactionInclusivenessProvider transactionInclusivenessProvider)
+            ITransactionPackingService transactionPackingService)
         {
             _smartContractAddressService = smartContractAddressService;
-            _transactionInclusivenessProvider = transactionInclusivenessProvider;
+            _transactionPackingService = transactionPackingService;
         }
 
         public void GenerateTransactions(Address @from, long preBlockHeight, Hash preBlockHash,
             ref List<Transaction> generatedTransactions)
         {
-            if (!_transactionInclusivenessProvider.IsTransactionPackable)
+            if (!_transactionPackingService.IsTransactionPackingEnabled())
                 return;
 
             if (preBlockHeight < Constants.GenesisBlockHeight)
