@@ -1,7 +1,6 @@
 ﻿using AElf.Kernel;
 using AElf.Modularity;
 using AElf.OS.BlockSync.Worker;
-using AElf.OS.Consensus.DPos;
 using AElf.OS.Network;
 using AElf.OS.Network.Grpc;
 using AElf.OS.Worker;
@@ -17,8 +16,7 @@ namespace AElf.OS
         typeof(AbpBackgroundWorkersModule),
         typeof(KernelAElfModule),
         typeof(CoreOSAElfModule),
-        typeof(GrpcNetworkModule),
-        typeof(AElfConsensusOSAElfModule)
+        typeof(GrpcNetworkModule)
     )]
     public class OSAElfModule : AElfModule
     {
