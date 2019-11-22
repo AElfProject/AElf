@@ -15,7 +15,7 @@ service EconomicContract {
 }
 ```
 
-When doing this you can `override` (implement) the ACSs methods in your contract implementation in C#.
+When doing this you can `override` (implement) the ACS's methods in your contract implementation in C#.
 
 ## ACS0 - Genesis
 

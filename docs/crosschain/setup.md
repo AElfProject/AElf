@@ -4,7 +4,7 @@ A side-chain node is usually very similar to a main-chain node because both are 
 
 ### Procedure
 
-This guides you through configuring and running a sidechain node and a mainchain node. Here's a description of the steps to follow:
+This guides you through configuring and running a side-chain node and a main-chain node. Here's a description of the steps to follow:
 - create and edit configurations.
 - launch the main-chain node and create, approve and release a side chain creation request (a script is provided later in this tutorial), this will give you a chain ID. 
 - launch the side-chain node. 

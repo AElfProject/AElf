@@ -12,7 +12,7 @@ The OS layer implements the application and infrastructure layer for the network
 
 ### Kernel
 
-The kernel contains the smart contract and execution primitives and definitions. The kernel also defines the components necessary for accessing the blockchains data. Various managers will use the storage layer to access the underlying database.
+The kernel contains the smart contract and execution primitives and definitions. The kernel also defines the components necessary for accessing the blockchain's data. Various managers will use the storage layer to access the underlying database.
 
 The kernel also defines the notion of plugins. The diagram show that the side chain modules are implemented as plugins.
 

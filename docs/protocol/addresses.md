@@ -1,8 +1,8 @@
 ## keypairs and addresses
 
-You can easily create a key pair with our **command line tool** with the **create** command. When creating the keypair (that we sometimes refer to as the "account") it will generate a file with the ".ak" extension. This file will contain the public and private key and will be encrypted with a password.
+You can easily create a key pair with our **command line tool** with the **create** command. When creating the key-pair (that we sometimes refer to as the "account") it will generate a file with the ".ak" extension. This file will contain the public and private key and will be encrypted with a password.
 
-If you are writting a dApp you can also use the following method in the js-sdk, it is based on bip39 for generating a deterministic key pair with a "mnemonic sentence" ([here for more on this](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki)):
+If you are writing a dApp you can also use the following method in the js-sdk, it is based on bip39 for generating a deterministic key pair with a "mnemonic sentence" ([here for more on this](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki)):
 
 ```js
 import Aelf from 'aelf-sdk';
@@ -28,4 +28,4 @@ message Address
 }
 ```
 
-To sum up, if you need an AElf keypair, you can either directly use the **create** command or use the js-sdk. Note that this keypair files should be located in the keys folder of the data directory (datadir). You can read more about this in the [getting started](../tutorials/run-node.md) section.
+To sum up, if you need an AElf key-pair, you can either directly use the **create** command or use the js-sdk. Note that this key-pair files should be located in the keys folder of the data directory (datadir). You can read more about this in the [getting started](../tutorials/run-node.md) section.
