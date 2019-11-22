@@ -56,5 +56,7 @@
       * [Multi Token Contract](resources/smart-contract-apis/multi-token.md)
       * [Resource Contract](resources/smart-contract-apis/resource.md)
       * [Cross chain Contract](resources/smart-contract-apis/cross-chain.md)
-    * [Wallet and Block Explorer](resources/wallet-and-explorer.md)
+    * [Wallet and Block Explorer](resources/wallet-and-explorer/index.md)
+      * [wallet-bridge-sdk](resources/wallet-and-explorer/wallet-bridge-sdk.md)
+      * [explorer-api](resources/wallet-and-explorer/explorer-api.md)
     * [Browser Extension](resources/browser-extension.md)

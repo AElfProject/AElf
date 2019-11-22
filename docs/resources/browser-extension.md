@@ -1,6 +1,6 @@
 # aelf-web-extension
 
-You can get more information in [Github](https://github.com/hzz780/aelf-web-extension)
+You can get more information in [Github](https://github.com/AElfProject/aelf-web-extension)
 
 ## For User
 
