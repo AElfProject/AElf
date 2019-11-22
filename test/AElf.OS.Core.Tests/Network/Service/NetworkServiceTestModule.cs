@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Net;
 using System.Threading.Tasks;
 using AElf.Kernel;
@@ -15,6 +17,7 @@ using AElf.Types;
 using Google.Protobuf;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using NSubstitute;
 using Volo.Abp.Modularity;
 
 namespace AElf.OS
@@ -30,8 +33,6 @@ namespace AElf.OS
             Mock<IPeerPool> peerPoolMock = new Mock<IPeerPool>();
             var p3 = new Mock<IPeer>();
             p3.Setup(p => p.Info).Returns(new PeerConnectionInfo { Pubkey = "pBestPeer" });
-            
-            var recentBlockHeightAndHashMappings = new ConcurrentDictionary<long, Hash>();
             
             var osTestHelper = context.Services.GetServiceLazy<OSTestHelper>();
             
@@ -136,5 +137,91 @@ namespace AElf.OS
 
             context.Services.AddTransient(o => Mock.Of<IBroadcastPrivilegedPubkeyListProvider>());
         }
+    }
+
+    [DependsOn(typeof(NetworkServiceTestModule))]
+    public class NetworkServicePropagationTestModule : AElfModule
+    {
+        private class KnownHashContainer
+        {
+            private readonly List<Hash> _knownHashes = new List<Hash>();
+            public bool TryAdd(Hash hash)
+            {
+                if (HasHash(hash)) 
+                    return false;
+
+                _knownHashes.Add(hash);
+
+                return true;
+            }
+
+            public bool HasHash(Hash hash)
+            {
+                return _knownHashes.Contains(hash);
+            }
+        }
+
+        public override void ConfigureServices(ServiceConfigurationContext context)
+        {
+            NetworkServicePropagationTestContext testContext = new NetworkServicePropagationTestContext();
+
+            List<IPeer> peers = null;
+
+            var peerPoolMock = new Mock<IPeerPool>();
+            var knownBlockHashes = new KnownHashContainer();
+            var knownTransactionHashes = new KnownHashContainer();
+            
+            peerPoolMock.Setup(p => p.GetPeers(It.IsAny<bool>())).Returns<bool>(adr =>
+            {
+                if (peers != null)
+                    return peers;
+
+                var propPeerOne = new Mock<IPeer>();
+
+                propPeerOne.Setup(p => p.TryAddKnownBlock(It.IsAny<Hash>()))
+                    .Returns<Hash>(blockHash => knownBlockHashes.TryAdd(blockHash));
+                propPeerOne.Setup(p => p.KnowsBlock(It.IsAny<Hash>()))
+                    .Returns<Hash>(blockHash => knownBlockHashes.HasHash(blockHash));
+                
+                propPeerOne.Setup(p => p.TryAddKnownTransaction(It.IsAny<Hash>()))
+                    .Returns<Hash>(txHash => knownTransactionHashes.TryAdd(txHash));
+                propPeerOne.Setup(p => p.KnowsTransaction(It.IsAny<Hash>()))
+                    .Returns<Hash>(txHash => knownTransactionHashes.HasHash(txHash));
+                
+                SetupBroadcastCallbacks(propPeerOne);
+                
+                peers = new List<IPeer> { propPeerOne.Object };
+                
+                testContext.MockedPeers.Add(propPeerOne);
+
+                return peers;
+            });
+
+            context.Services.AddSingleton<IPeerPool>(o => peerPoolMock.Object);
+            context.Services.AddSingleton<NetworkServicePropagationTestContext>(o => testContext);
+            context.Services.AddTransient(o => Mock.Of<IBroadcastPrivilegedPubkeyListProvider>());
+        }
+
+        private void SetupBroadcastCallbacks(Mock<IPeer> peerMock)
+        {
+            // set up the mock to execute the broadcast callbacks
+
+            peerMock
+                .Setup(p => p.EnqueueBlock(It.IsAny<BlockWithTransactions>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<BlockWithTransactions, Action<NetworkException>>((block, action) => action.Invoke(null));
+                
+            peerMock
+                .Setup(p => p.EnqueueAnnouncement(It.IsAny<BlockAnnouncement>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<BlockAnnouncement, Action<NetworkException>>((announce, action) => action.Invoke(null));
+                
+            peerMock
+                .Setup(p => p.EnqueueTransaction(It.IsAny<Transaction>(), It.IsAny<Action<NetworkException>>()))
+                .Callback<Transaction, Action<NetworkException>>((transaction, action) => action.Invoke(null));
+        }
+    }
+
+    public class NetworkServicePropagationTestContext
+    {
+        public List<Mock<IPeer>> MockedPeers = new List<Mock<IPeer>>();
     }
 }
