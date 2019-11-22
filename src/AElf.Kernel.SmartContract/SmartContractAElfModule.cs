@@ -1,4 +1,6 @@
 using System.Runtime.CompilerServices;
+using AElf.Kernel.Blockchain.Application;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.SmartContract.Infrastructure;
 using AElf.Modularity;
@@ -21,8 +23,17 @@ namespace AElf.Kernel.SmartContract
 
         public override void OnApplicationInitialization(ApplicationInitializationContext context)
         {
-            var smartContractExecutiveService = context.ServiceProvider.GetService<ISmartContractExecutiveService>();
-            AsyncHelper.RunSync(() => smartContractExecutiveService.InitContractInfoCacheAsync());
+            var smartContractExecutiveProvider = context.ServiceProvider.GetService<ISmartContractExecutiveProvider>();
+            var blockchainService = context.ServiceProvider.GetService<IBlockchainService>();
+            var chain = AsyncHelper.RunSync(() => blockchainService.GetChainAsync());
+            if (chain == null) return;
+            smartContractExecutiveProvider.Init(chain.LastIrreversibleBlockHash, chain.LastIrreversibleBlockHeight);
+        }
+        
+        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var deployedContractAddressService = context.ServiceProvider.GetService<IDeployedContractAddressService>();
+            AsyncHelper.RunSync(() => deployedContractAddressService.InitAsync());
         }
     }
 }

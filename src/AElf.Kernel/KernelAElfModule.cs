@@ -1,4 +1,5 @@
 ﻿using AElf.Kernel.ChainController;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.Node;
 using AElf.Kernel.SmartContract;
 using AElf.Kernel.SmartContractExecution;
@@ -7,6 +8,7 @@ using AElf.Modularity;
 using Volo.Abp;
 using Volo.Abp.Modularity;
 using Microsoft.Extensions.DependencyInjection;
+using Volo.Abp.Threading;
 
 
 namespace AElf.Kernel
@@ -33,6 +35,12 @@ namespace AElf.Kernel
             taskQueueManager.CreateQueue(KernelConstants.ConsensusRequestMiningQueueName);
             taskQueueManager.CreateQueue(KernelConstants.UpdateChainQueueName);
             taskQueueManager.CreateQueue(KernelConstants.ChainCleaningQueueName);
+        }
+        
+        public override void OnPostApplicationInitialization(ApplicationInitializationContext context)
+        {
+            var blockTransactionLimitProvider = context.ServiceProvider.GetService<IBlockTransactionLimitProvider>();
+            AsyncHelper.RunSync(() => blockTransactionLimitProvider.InitAsync());
         }
     }
 }

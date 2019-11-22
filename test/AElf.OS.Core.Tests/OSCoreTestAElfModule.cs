@@ -4,6 +4,11 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.AEDPoS;
+using AElf.Kernel.Miner.Application;
+using AElf.Kernel.SmartContract;
+using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.TransactionPool;
+using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
 using AElf.OS.Network.Infrastructure;
 using AElf.Types;
@@ -58,6 +63,12 @@ namespace AElf.OS
             });
 
             context.Services.AddSingleton(o => Mock.Of<IAElfNetworkServer>());
+            context.Services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IBlockTransactionLimitProvider>();
+                mockService.Setup(m => m.InitAsync());
+                return mockService.Object;
+            });
         }
     }
 }

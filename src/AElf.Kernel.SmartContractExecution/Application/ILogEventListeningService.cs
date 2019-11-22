@@ -8,4 +8,14 @@ namespace AElf.Kernel.SmartContractExecution.Application
     {
         Task ApplyAsync(IEnumerable<Block> blocks);
     }
+    
+    public interface IBlockAcceptedLogEventListeningService : ILogEventListeningService
+    {
+
+    }
+
+    public interface IBestChainFoundLogEventListeningService : ILogEventListeningService
+    {
+        
+    }
 }

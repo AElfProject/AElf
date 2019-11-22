@@ -12,16 +12,8 @@ namespace AElf.Kernel.SmartContract.Application
     {
         Task<IExecutive> GetExecutiveAsync(IChainContext chainContext, Address address);
 
-        Task PutExecutiveAsync(Address address, IExecutive executive);
+        Task PutExecutiveAsync(IExecutive executive);
 
-        Task SetContractInfoAsync(Address address,long blockHeight);
-
-        void ClearContractInfoCache(long blockHeight);
-
-        Task InitContractInfoCacheAsync();
-
-        IReadOnlyDictionary<Address, long> GetContractInfoCache();
-
-        bool IsContractDeployOrUpdating(Address address);
+        Task<bool> CheckContractHash(IChainContext chainContext, Address address, Hash contractHash);
     }
 }

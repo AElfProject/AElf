@@ -57,7 +57,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             IChainContext chainContext,
             Transaction transaction, CancellationToken ct)
         {
-            if (ct.IsCancellationRequested || _smartContractExecutiveService.IsContractDeployOrUpdating(transaction.To))
+            if (ct.IsCancellationRequested)
                 return (transaction, new TransactionResourceInfo()
                 {
                     TransactionId = transaction.GetHash(),
@@ -67,7 +67,9 @@ namespace AElf.Kernel.SmartContract.Parallel
             if (_resourceCache.TryGetValue(transaction.GetHash(), out var resourceCache))
             {
                 resourceCache.ResourceUsedBlockHeight = chainContext.BlockHeight;
-                return (transaction, resourceCache.ResourceInfo);
+                if (await _smartContractExecutiveService.CheckContractHash(chainContext, resourceCache.Address,
+                    resourceCache.ResourceInfo.ContractHash))
+                    return (transaction, resourceCache.ResourceInfo);
             }
 
             return (transaction, await GetResourcesForOneAsync(chainContext, transaction, ct));
@@ -88,7 +90,8 @@ namespace AElf.Kernel.SmartContract.Parallel
                     return new TransactionResourceInfo
                     {
                         TransactionId = transaction.GetHash(),
-                        ParallelType = ParallelType.NonParallelizable
+                        ParallelType = ParallelType.NonParallelizable,
+                        ContractHash = executive.ContractHash
                     };
                 }
 
@@ -108,7 +111,7 @@ namespace AElf.Kernel.SmartContract.Parallel
             {
                 if (executive != null)
                 {
-                    await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
+                    await _smartContractExecutiveService.PutExecutiveAsync(executive);
                 }
             }
         }
@@ -140,20 +143,11 @@ namespace AElf.Kernel.SmartContract.Parallel
 
         public async Task HandleNewIrreversibleBlockFoundAsync(NewIrreversibleBlockFoundEvent eventData)
         {
-            var contractInfoCache = _smartContractExecutiveService.GetContractInfoCache();
-            var addresses = contractInfoCache.Where(c => c.Value <= eventData.BlockHeight).Select(c => c.Key).ToArray();
-
             try
             {
-                var transactionIds = _resourceCache.Where(c =>
-                    c.Value.Address.IsIn(addresses) &&
-                    c.Value.ResourceInfo.ParallelType != ParallelType.NonParallelizable).Select(c => c.Key);
-
-                ClearResourceCache(transactionIds.Concat(_resourceCache
+                ClearResourceCache(_resourceCache
                     .Where(c => c.Value.ResourceUsedBlockHeight <= eventData.BlockHeight)
-                    .Select(c => c.Key)).Distinct().ToList());
-
-                _smartContractExecutiveService.ClearContractInfoCache(eventData.BlockHeight);
+                    .Select(c => c.Key).Distinct().ToList());
             }
             catch (InvalidOperationException e)
             {

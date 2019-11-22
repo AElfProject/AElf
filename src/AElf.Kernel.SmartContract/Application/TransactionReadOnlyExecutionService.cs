@@ -45,7 +45,7 @@ namespace AElf.Kernel.SmartContract.Application
             }
             finally
             {
-                await _smartContractExecutiveService.PutExecutiveAsync(transaction.To, executive);
+                await _smartContractExecutiveService.PutExecutiveAsync(executive);
             }
 
             return trace;
@@ -66,7 +66,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (executive != null)
                 {
-                    await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
+                    await _smartContractExecutiveService.PutExecutiveAsync(executive);
                 }
             }
 
@@ -88,7 +88,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (executive != null)
                 {
-                    await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
+                    await _smartContractExecutiveService.PutExecutiveAsync(executive);
                 }
             }
 
@@ -108,7 +108,7 @@ namespace AElf.Kernel.SmartContract.Application
             {
                 if (executive != null)
                 {
-                    await _smartContractExecutiveService.PutExecutiveAsync(address, executive);
+                    await _smartContractExecutiveService.PutExecutiveAsync(executive);
                 }
             }
         }

@@ -9,9 +9,9 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
 {
     public class OptionalLogEventListeningService : ILogEventListeningService, ISingletonDependency
     {
-        private LogEventListeningService _inner;
+        private BlockAcceptedLogEventListeningService _inner;
 
-        public OptionalLogEventListeningService(LogEventListeningService inner)
+        public OptionalLogEventListeningService(BlockAcceptedLogEventListeningService inner)
         {
             _inner = inner;
         }

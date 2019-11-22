@@ -4,6 +4,7 @@ using AElf.Cryptography;
 using AElf.Kernel;
 using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.Application;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.SmartContract.Application;
 using AElf.Kernel.TransactionPool.Infrastructure;
 using AElf.Modularity;
@@ -57,6 +58,12 @@ namespace AElf.Contracts.TestBase
             context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
             
             context.Services.RemoveAll<IPreExecutionPlugin>();
+            context.Services.AddTransient(provider =>
+            {
+                var mockService = new Mock<IBlockTransactionLimitProvider>();
+                mockService.Setup(m => m.InitAsync());
+                return mockService.Object;
+            });
         }
     }
 }

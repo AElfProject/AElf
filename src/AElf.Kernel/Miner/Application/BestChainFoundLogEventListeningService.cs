@@ -9,7 +9,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Miner.Application
 {
-    public class LogEventListeningService : ILogEventListeningService, ISingletonDependency
+    public class BestChainFoundLogEventListeningService : IBestChainFoundLogEventListeningService, ISingletonDependency
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ITransactionResultQueryService _transactionResultQueryService;
@@ -19,13 +19,13 @@ namespace AElf.Kernel.Miner.Application
             _blooms ??
             (_blooms = _eventHandlers.Select(h => h.InterestedEvent).ToDictionary(e => e, e => e.GetBloom()));
 
-        private readonly List<ILogEventHandler> _eventHandlers;
+        private readonly List<IBestChainFoundLogEventHandler> _eventHandlers;
         
-        public ILogger<LogEventListeningService> Logger { get; set; }
+        public ILogger<BestChainFoundLogEventListeningService> Logger { get; set; }
 
-        public LogEventListeningService(IBlockchainService blockchainService,
+        public BestChainFoundLogEventListeningService(IBlockchainService blockchainService,
             ITransactionResultQueryService transactionResultQueryService,
-            IServiceContainer<ILogEventHandler> eventHandlers)
+            IServiceContainer<IBestChainFoundLogEventHandler> eventHandlers)
         {
             _blockchainService = blockchainService;
             _transactionResultQueryService = transactionResultQueryService;

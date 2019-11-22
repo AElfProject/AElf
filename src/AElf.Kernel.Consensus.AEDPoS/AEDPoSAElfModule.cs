@@ -3,6 +3,7 @@ using AElf.Kernel.Account.Application;
 using AElf.Kernel.Consensus.AEDPoS.Application;
 using AElf.Kernel.Consensus.Application;
 using AElf.Kernel.Consensus.Scheduler.RxNet;
+using AElf.Kernel.Miner.Application;
 using AElf.Kernel.TransactionPool.Application;
 using AElf.Modularity;
 using Google.Protobuf.WellKnownTypes;
@@ -11,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Volo.Abp.Modularity;
 using Volo.Abp.Threading;
 using AElf.Kernel.SmartContract.Application;
+using AElf.Kernel.SmartContractExecution.Application;
 
 namespace AElf.Kernel.Consensus.AEDPoS
 {
@@ -31,6 +33,10 @@ namespace AElf.Kernel.Consensus.AEDPoS
                 .AddSingleton<IConstrainedTransactionValidationProvider,
                     ConstrainedAEDPoSTransactionValidationProvider>();
             context.Services.AddSingleton(typeof(ContractEventDiscoveryService<>));
+            context.Services.AddSingleton<IBestChainFoundLogEventHandler, IrreversibleBlockFoundLogEventHandler>();
+            context.Services
+                .AddSingleton<IBestChainFoundLogEventHandler, IrreversibleBlockHeightUnacceptableLogEventHandler>();
+            context.Services.AddSingleton<IBestChainFoundLogEventHandler, SecretSharingInformationLogEventHandler>();
 
             var configuration = context.Services.GetConfiguration();
 

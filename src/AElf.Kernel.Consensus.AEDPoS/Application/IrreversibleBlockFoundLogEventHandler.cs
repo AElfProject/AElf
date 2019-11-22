@@ -13,7 +13,7 @@ using Volo.Abp.DependencyInjection;
 
 namespace AElf.Kernel.Consensus.AEDPoS.Application
 {
-    public class IrreversibleBlockFoundLogEventHandler : ILogEventHandler, ISingletonDependency
+    public class IrreversibleBlockFoundLogEventHandler : IBestChainFoundLogEventHandler
     {
         private readonly IBlockchainService _blockchainService;
         private readonly ISmartContractAddressService _smartContractAddressService;

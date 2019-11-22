@@ -6,17 +6,24 @@ using AElf.Cryptography.ECDSA;
 using AElf.Kernel.Miner.Application;
 using AElf.Types;
 using AElf.Contracts.Configuration;
+using AElf.Kernel.Blockchain.Application;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace AElf.Kernel.BlockTransactionLimitController.Tests
 {
-    public class BlockTransactionLimitTests : ContractTestBase<BlockTransactionLimitTestModule>
+    public sealed class BlockTransactionLimitTests : ContractTestBase<BlockTransactionLimitTestModule>
     {
         private Address ConfigurationContractAddress { get; set; }
         private ConfigurationContainer.ConfigurationStub ConfigurationStub;
         private ECKeyPair DefaultSenderKeyPair => SampleECKeyPairs.KeyPairs[0];
+        private readonly IBlockchainService _blockchainService;
+
+        public BlockTransactionLimitTests()
+        {
+            _blockchainService = GetRequiredService<IBlockchainService>();
+        }
 
         private async Task DeployContractsAsync()
         {
@@ -45,7 +52,9 @@ namespace AElf.Kernel.BlockTransactionLimitController.Tests
                 Assert.Equal(0, limit.Value);
             }
             var provider = Application.ServiceProvider.GetRequiredService<IBlockTransactionLimitProvider>();
-            var limitNum = await provider.GetLimitAsync();
+            var chain = await _blockchainService.GetChainAsync();
+            var limitNum = provider.GetLimit(new ChainContext
+                {BlockHash = chain.BestChainHash, BlockHeight = chain.BestChainHeight});
             Assert.Equal(0, limitNum);
         }
     }
