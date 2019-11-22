@@ -2,23 +2,7 @@
 
 [Github](https://github.com/AElfProject/aelf-bridge)
 
-中文 | [English](./README.md)
-
-## 目录
-  - [简介](#简介)
-  - [安装](#安装)
-    - [版本管理](#使用版本管理工具)
-    - [使用script标签](#使用script标签)  
-  - [使用](#使用)
-    - [demo](#demo)
-    - [初始化](#初始化)
-      - [选项](#选项)
-    - [获取钱包账户信息](#获取钱包账户信息)
-    - [调用合约方法(只读与发送交易)](#调用合约方法(只读与发送交易))
-    - [调用链API](#调用链API)
-    - [disconnect-断开连接](#disconnect-断开连接)
-      
-## 简介 / Introduction
+## Introduction
 
 为了给Dapp提供与链交互的能力，同时为了保护钱包信息，隔离Dapp与钱包信息，aelf-bridge可用于与钱包App之间的交互，钱包App保存有AElf的钱包信息，能够与AElf链直接交流。
 
@@ -28,13 +12,13 @@ In order to provide dApps with the ability to interact with the chain, and to pr
 
 The wallet App described here includes a mobile (iOS/Android) native app and a desktop app.
 
-## 安装 / installation
+## Installation
 
 aelf-bridge是AElf生态的一环，由于Dapp大多为Web应用，因此提供`JavaScript`的版本，使用`Npm`作为版本管理工具。
 
 Aelf-bridge is part of the AElf ecosystem. Since dApps are mostly web applications, it provides a version of `JavaScript` and uses `Npm` as a version management tool.
 
-### 使用版本管理工具 / Use version management tools
+### Using version management tools
 
 ```bash
 npm i aelf-bridge
@@ -42,19 +26,19 @@ npm i aelf-bridge
 yarn add aelf-bridge
 ```
 
-### 使用script标签 / Use the script tag
+### Using the script tag
 
 ```html
 <script src="https://unpkg.com/aelf-bridge@lastest/dist/aelf-bridge.js"></script>
 ```
 
-## 使用 / Usage
+## Usage
 
 ### demo
 
 [aelf-bridge-demo](https://github.com/AElfProject/aelf-bridge-demo)
 
-### 初始化 / initialization
+### Initialization
 
 ```javascript
 import AElfBridge from 'aelf-bridge';
@@ -75,9 +59,9 @@ bridgeInstance.connect().then(isConnected => {
 })
 ```
 
-#### 选项 / Options
+#### Options
 
-可传入的选项列表如下 / The list of options that can be passed as follows:
+The options can be passed as follows:
 
 ```javascript
 const defaultOptions = {
@@ -108,7 +92,7 @@ const defaultOptions = {
 }
 ```
 
-### 获取钱包账户信息 / Get wallet account information
+### Get wallet account information
 
 `bridgeInstance.account()`
 
@@ -144,7 +128,7 @@ res = {
 }
 ```
 
-### 调用合约方法(只读与发送交易) / Call contract method (read-only and send transaction)
+### Call contract method (read-only and send transaction)
 
 * 发送交易`bridgeInstance.invoke(params)`
 * 合约只读方法`bridgeInstance.invokeRead(params)`
